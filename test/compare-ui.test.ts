@@ -5,7 +5,7 @@ import type { Flow } from '../src/core/model.ts'
 import type { Run } from '../src/core/perf/types.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, playable, samePick, saveTarget, unsaved } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, firstLinkedRun, flipped, fromAddress, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, playable, runCompareOff, runPairOf, samePick, saveTarget, unsaved } from '../ui/src/compare.ts'
 import type { Compare } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -108,13 +108,52 @@ test('the pick is ordered so the holder of the tag is second', () => {
 test('an address opens a comparison of two flows that play, in the mode it names', () => {
   const model = modelOf({ a: plays('A'), b: plays('B'), empty: flow('Empty') })
   const named = (a: string, b: string, mode: Compare['mode'] = 'side', kind: Compare['kind'] = 'flow'): Compare => ({ kind, a, b, mode })
-  assert.deepEqual(fromAddress(model, named('a', 'b')), { compare: named('a', 'b') })
-  assert.deepEqual(fromAddress(model, named('a', 'b', 'swap')), { compare: named('a', 'b', 'swap') }, 'the address keeps its mode')
-  assert.deepEqual(fromAddress(model, named('a', 'a')), { compare: named('a', 'a') })
-  assert.deepEqual(fromAddress(model, named('a', 'empty')), { unplayable: true })
-  assert.deepEqual(fromAddress(model, named('a', 'gone')), { unplayable: true })
-  assert.deepEqual(fromAddress(model, named('a', 'b', 'side', 'run')), {}, 'runs are not flows')
-  assert.deepEqual(fromAddress(model, undefined), {})
+  const flows = (c: Compare | undefined) => fromAddress(model, {}, c)
+  assert.deepEqual(flows(named('a', 'b')), { compare: named('a', 'b') })
+  assert.deepEqual(flows(named('a', 'b', 'swap')), { compare: named('a', 'b', 'swap') }, 'the address keeps its mode')
+  assert.deepEqual(flows(named('a', 'a')), { compare: named('a', 'a') })
+  assert.deepEqual(flows(named('a', 'empty')), { notice: "That flow can't play yet." })
+  assert.deepEqual(flows(named('a', 'gone')), { notice: "That flow can't play yet." })
+  assert.deepEqual(flows(named('a', 'b', 'side', 'run')), { notice: "That run can't open." }, 'a run is not a flow: with no runs it is missing')
+  assert.deepEqual(flows(undefined), {})
+})
+
+test('an address opens a comparison of two runs that are there, and says so when one is not', () => {
+  const model = modelOf({})
+  const runs = { slow: run('Slow'), fast: run('Fast', { with: 'slow' }) }
+  const named = (a: string, b: string, mode: Compare['mode'] = 'side'): Compare => ({ kind: 'run', a, b, mode })
+  assert.deepEqual(fromAddress(model, runs, named('slow', 'fast')), { compare: named('slow', 'fast') })
+  assert.deepEqual(fromAddress(model, runs, named('slow', 'fast', 'swap')), { compare: named('slow', 'fast', 'swap') })
+  assert.deepEqual(fromAddress(model, runs, named('slow', 'slow')), { compare: named('slow', 'slow') })
+  assert.deepEqual(fromAddress(model, runs, named('slow', 'gone')), { notice: "That run can't open." })
+  assert.deepEqual(fromAddress(model, runs, named('__proto__', 'fast')), { notice: "That run can't open." }, 'a key the object inherits is no run')
+})
+
+test('Compare on the Performance tab is blocked while editing and with no other run', () => {
+  assert.equal(runCompareOff({ a: run('A'), b: run('B') }, false), undefined)
+  assert.equal(runCompareOff({ a: run('A'), b: run('B') }, true), 'Not while editing')
+  assert.equal(runCompareOff({ a: run('A') }, false), 'No other run')
+})
+
+test('C on a run offers the first run it is linked to that is there', () => {
+  const model = modelOf({})
+  const runs = { old: run('Old'), now: run('Now', { with: 'old' }), gone: run('Gone', { with: 'missing' }), alone: run('Alone') }
+  assert.equal(firstLinkedRun(model, runs, 'now'), 'old')
+  assert.equal(firstLinkedRun(model, runs, 'old'), 'now', 'the one that tags it')
+  assert.equal(firstLinkedRun(model, runs, 'alone'), undefined, 'not linked: the picker opens instead')
+  assert.equal(firstLinkedRun(model, runs, 'gone'), undefined, 'a tag to a run that is not there is skipped')
+})
+
+test('a run is marked linked when it tags a run that is there or one tags it', () => {
+  const runs = { old: run('Old'), now: run('Now', { with: 'old' }), gone: run('Gone', { with: 'missing' }), alone: run('Alone'), self: run('Self', { with: 'self' }) }
+  assert.deepEqual([...linkedRuns(runs)].sort(), ['now', 'old'])
+  assert.deepEqual([...linkedRuns({})], [])
+})
+
+test('the pick of a run is ordered so the holder of the tag is second', () => {
+  const runs = { old: run('Old'), now: run('Now', { with: 'old' }), other: run('Other') }
+  assert.deepEqual(runPairOf(runs, 'now', 'old'), { kind: 'run', a: 'old', b: 'now', mode: 'side' })
+  assert.deepEqual(runPairOf(runs, 'other', 'old'), { kind: 'run', a: 'other', b: 'old', mode: 'side' })
 })
 
 test('the two sides swap places and nothing else changes', () => {

@@ -13,9 +13,10 @@ const SCRUB_MS = 250 // ms after the slider of a run was last dragged that the s
  * Ramp act on, the one that was moved last. A whole number is a tested level; a ramp goes between them. Whether the panel is open is not in here (it is the Performance tab of the navigator), but a
  * ramp stops when it closes: the reader calls `stopRamp` then.
  *
- * `still` is the reader's wish for no motion: there is no ramp then. `named` is the run the page's address names, read once when the page opens.
+ * `still` is the reader's wish for no motion: there is no ramp then. `named` is the run the page's address names, read once when the page opens. A pane of a comparison names just
+ * its run, and the run opens where a run does without an address: at its first struggle. The hook never writes the address, so any number of them can live at once.
  */
-export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; named: () => Perf | undefined; still: boolean }) {
+export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; named: () => (Pick<Perf, 'run'> & Partial<Perf>) | undefined; still: boolean }) {
   // Where a run opens: a single run at the level its address names, else at its first struggle, else at the top. A run with several sources at the places its address names when it
   // names one for each dial, else together at the first struggle (each dial along its own loads), else every dial at its top.
   const startPositions = (id: string, level?: number, levels?: number[]): number[] => {

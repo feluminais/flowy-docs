@@ -11,6 +11,12 @@ export const FADE_MS = 150
 export const swapDuration = (reduced: boolean): number => (reduced ? 0 : SWAP_MS)
 
 /**
+ * The time a swap of two runs takes. Both runs draw the same view, so the boxes stay where they are and only what the runs measured changes: the traffic fades from one run's to
+ * the other's over this long, and the boxes' colours and the lines' thickness follow on their own transitions. None under reduced motion, where it cuts.
+ */
+export const crossfadeDuration = (reduced: boolean): number => (reduced ? 0 : FADE_MS * 2)
+
+/**
  * What changes on the canvas when it swaps from one flow's diagram to the other's. Shapes are told apart by their object id, so a shape both diagrams draw `stay`s and glides
  * from where it was to where it goes; one only the new diagram draws is `entering`, one only the old one drew is `leaving`. `stay` and `entering` follow the order of `to`,
  * `leaving` that of `from`.

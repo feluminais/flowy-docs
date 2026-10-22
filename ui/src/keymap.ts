@@ -19,8 +19,9 @@ export type KeyState = {
   navigatorOpen: boolean
   navigatorUsed: boolean // the last click or key was in the navigator
   flow: boolean // a flow is playing
-  compare: boolean // two flows are open: side by side the keys of a flow go to the pane last clicked, swapped to the flow on show
-  swap: boolean // the two flows are in Swap, one canvas flipping between them
+  compare: boolean // two flows (or runs) are open: side by side the keys of a flow go to the pane last clicked, swapped to the flow on show
+  swap: boolean // the two flows (or runs) are in Swap, one canvas flipping between them
+  runCompare: boolean // the comparison is of two runs: the keys of the Performance tab go to the pane last clicked, and the keys of a flow stay out
   halfStep: boolean // a step being recorded has its first end
   panel: boolean // a panel on the right is open, or several shapes are picked
   inside: boolean // not at the top level
@@ -42,7 +43,7 @@ export type KeyActions = {
   toggleShortcuts(): void
   closeNavigator(): void
   stopFlow(): void
-  /** Compare on and off: close the comparison, or open it beside the flow playing (the picker when it has no linked flow). */
+  /** Compare on and off: close the comparison, or open it beside the flow playing or the run on show (the picker when it has no linked one). */
   compare(): void
   closeCompare(): void
   /** In Swap: flip the canvas to the other flow. */
@@ -108,6 +109,8 @@ const arrow = (c: KeyContext) => c.e.key === 'ArrowRight' || c.e.key === 'ArrowL
 const by = (c: KeyContext): 1 | -1 => (c.e.key === 'ArrowRight' ? 1 : -1)
 const home = (c: KeyContext) => c.e.key === 'Home' || c.e.key === 'End'
 const end = (c: KeyContext): 'first' | 'last' => (c.e.key === 'Home' ? 'first' : 'last')
+/** The keys of a flow apply: one is playing, or two are compared. Two runs have no steps: their comparison takes the keys of the Performance tab. */
+const flowKeys = (c: KeyContext) => c.s.flow || (c.s.compare && !c.s.runCompare)
 /** A plain press of the letter that is not a key held down. */
 const tap = (c: KeyContext, l: string) => c.key === l && c.plain && !c.e.repeat
 
@@ -141,19 +144,19 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'perf-step', keys: '→  ←',
-    when: c => c.s.perfOpen && arrow(c),
+    when: c => (c.s.perfOpen || c.s.runCompare) && arrow(c),
     run: c => c.act.stepRun(by(c)),
     help: { performance: { text: 'Next and previous tested level' } },
   },
   {
     id: 'perf-ends', keys: 'Home  End',
-    when: c => c.s.perfOpen && home(c),
+    when: c => (c.s.perfOpen || c.s.runCompare) && home(c),
     run: c => c.act.runEnd(end(c)),
     help: { performance: { text: 'First and last tested level' } },
   },
   {
     id: 'perf-ramp', keys: 'P',
-    when: c => c.s.perfOpen && tap(c, 'p'),
+    when: c => (c.s.perfOpen || c.s.runCompare) && tap(c, 'p'),
     run: c => c.act.ramp(),
     help: { performance: { text: 'Ramp the load or play the time, or pause' } },
   },
@@ -166,32 +169,32 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'flow-step', keys: '→  ←',
-    when: c => (c.s.flow || c.s.compare) && arrow(c),
+    when: c => flowKeys(c) && arrow(c),
     run: c => c.act.stepFlow(by(c)),
     help: { flows: { text: 'Next and previous step' } },
   },
   {
     id: 'flow-ends', keys: 'Home  End',
-    when: c => (c.s.flow || c.s.compare) && home(c),
+    when: c => flowKeys(c) && home(c),
     run: c => c.act.flowEnd(end(c)),
     help: { flows: { text: 'First and last step' } },
   },
   {
     id: 'flow-play', keys: 'P',
-    when: c => (c.s.flow || c.s.compare) && tap(c, 'p'),
+    when: c => flowKeys(c) && tap(c, 'p'),
     run: c => c.act.play(),
     help: { flows: { text: 'Step through the flow on its own, or pause' } },
   },
   {
     id: 'flow-replay', keys: 'R',
-    when: c => (c.s.flow || c.s.compare) && tap(c, 'r'),
+    when: c => flowKeys(c) && tap(c, 'r'),
     run: c => c.act.replay(),
     help: { flows: { text: 'Replay the step' } },
   },
   // In edit mode the key is still taken, to say why it does nothing there.
   {
     id: 'compare', keys: 'C',
-    when: c => tap(c, 'c') && (c.s.flow || c.s.compare || c.s.editing),
+    when: c => tap(c, 'c') && (c.s.flow || c.s.compare || c.s.editing || c.s.perfOpen),
     run: c => c.act.compare(),
     help: { flows: { text: 'Compare with another flow, or close the comparison' } },
   },

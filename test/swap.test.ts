@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { planSwap, SWAP_MS, swapDuration } from '../ui/src/swap.ts'
+import { crossfadeDuration, FADE_MS, planSwap, SWAP_MS, swapDuration } from '../ui/src/swap.ts'
 
 const at = (id: string, x = 0, y = 0) => ({ id, position: { x, y } })
 
@@ -59,4 +59,9 @@ test('a big pair of flows keeps its order and is not planned in quadratic time',
 test('reduced motion cuts: the swap takes no time', () => {
   assert.equal(swapDuration(true), 0)
   assert.equal(swapDuration(false), SWAP_MS)
+})
+
+test('two runs crossfade (no glide, the boxes do not move) and under reduced motion they cut', () => {
+  assert.equal(crossfadeDuration(true), 0)
+  assert.ok(crossfadeDuration(false) >= FADE_MS && crossfadeDuration(false) < SWAP_MS, 'a short fade, not the glide of two flows')
 })

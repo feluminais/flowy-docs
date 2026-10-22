@@ -4,6 +4,7 @@ import { Controls, ReactFlow } from '@xyflow/react'
 import type { FitViewOptions, NodeChange } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
+import { compareOf } from '../../src/core/compare.ts'
 import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import { dependents, needsDecision } from '../../src/core/dependents.ts'
@@ -11,13 +12,9 @@ import type { Target } from '../../src/core/dependents.ts'
 import { connect, deleteWith, forgetLayout, placeBoxes, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { followsLanding, leavesMarks } from '../../src/core/animation.ts'
-import { marksOf, usesStates } from '../../src/core/states.ts'
-import type { StateMark } from '../../src/core/states.ts'
+import { usesStates } from '../../src/core/states.ts'
 import { stopIndexOf, stopsOf } from '../../src/core/structure.ts'
-import { runStates } from '../../src/core/perf/analyse.ts'
-import { trafficAt } from '../../src/core/perf/traffic.ts'
-import { eventsOf } from '../../src/core/perf/types.ts'
-import type { LineTraffic, Setting } from '../../src/core/perf/types.ts'
+import type { LineTraffic } from '../../src/core/perf/types.ts'
 import { drawnIn, homeView, lightFor, rollUp, table } from '../../src/core/failures.ts'
 import type { Mark, Part } from '../../src/core/failures.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
@@ -30,7 +27,7 @@ import { connectionsOf, locate, moveBetween } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { addressChange, readHash, runAddress, toHash } from './hash.ts'
-import { compareOff, firstLinked, flipped, fromAddress, noteOf, noteOff, pairKey, pairOf, playable, unsaved } from './compare.ts'
+import { compareOff, firstLinked, firstLinkedRun, flipped, fromAddress, noteOf, noteOff, openable, pairKey, pairOf, playable, runCompareOff, runPairOf, unsaved } from './compare.ts'
 import type { Compare } from './compare.ts'
 import { CompareView } from './CompareView.tsx'
 import type { CompareHandle } from './CompareView.tsx'
@@ -48,7 +45,7 @@ import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
 import { DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
-import { clampPos, dialTop, settingOf, starterRun, stepFrom, top } from './perfview.ts'
+import { clampPos, dialTop, starterRun, stepFrom, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel } from './Panel.tsx'
 import type { Delete } from './Panel.tsx'
 import { UsedBy } from './UsedBy.tsx'
@@ -74,8 +71,9 @@ import { useModel } from './useModel.ts'
 import type { Tag } from './useModel.ts'
 import { useEditSession } from './useEditSession.ts'
 import { usePerfRun } from './usePerfRun.ts'
+import { useRunDrawing } from './useRunDrawing.ts'
 import { usePlayback, usePlayer } from './usePlayer.ts'
-import { NO_MARKS, useFlowStage } from './useFlowStage.ts'
+import { useFlowStage } from './useFlowStage.ts'
 import { useZoom } from './useZoom.ts'
 import type { Edit, Loaded, Restore } from './useModel.ts'
 import { Yaml } from './Yaml.tsx'
@@ -148,10 +146,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   })
   const [side, setSide] = useState<Side>()
   // Two flows side by side (see CompareView), named by the address. While one is open the single canvas and its flow player wait behind it, as they do behind the Performance and Failures tabs.
-  const [compare, setCompare] = useState<Compare | undefined>(() => fromAddress(model, readHash(location.hash).compare).compare)
+  /** Whether both sides of a comparison are there to open: flows that play, or runs. */
+  const comparable = (c: Compare) => (c.kind === 'run' ? openable(runs, c.a) && openable(runs, c.b) : playable(model, c.a) && playable(model, c.b))
+  const [compare, setCompare] = useState<Compare | undefined>(() => fromAddress(model, runs, readHash(location.hash).compare).compare)
   // The stop the flow that was playing was at when the comparison opened: its pane starts there.
   const [compareStart, setCompareStart] = useState<{ flow: string; step: number }>()
   const [picking, setPicking] = useState(false) // the popover of the player's Compare button
+  const [pickingRun, setPickingRun] = useState<'compare' | 'link'>() // the popover under the Compare or the Link with button of the Performance tab's run header
+  const [dropping, setDropping] = useState<{ id: string; other: string | undefined }>() // a run's link about to go with the note it holds, until the reader says yes
   const compareRef = useRef<CompareHandle>(null)
   // The note on the pair: what is typed in its editor is kept here, not in the strip, so it survives the strip going away (the Performance tab opening over the panes) and so leaving can ask
   // first. It belongs to one pair; another pair starts with none. A pair with no tag has no file to hold it, so there it is a draft. It is only dropped by Discard, by saving it, or by
@@ -172,7 +174,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [remembered] = useState(loadNav)
   const [tab, setNavTab] = useState<NavTab | undefined>(() => {
     const named = readHash(location.hash)
-    return named.perf !== undefined ? 'performance' : named.failures !== undefined ? 'failures' : remembered.tab
+    // A comparison waits behind the Performance and Failures tabs, so an address that names one opens without the tab that was left open.
+    const left = named.compare !== undefined && (remembered.tab === 'performance' || remembered.tab === 'failures')
+    return named.perf !== undefined ? 'performance' : named.failures !== undefined ? 'failures' : left ? undefined : remembered.tab
   })
   // Whether the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in
   // the diagram. A navigator that came back with the page has not been used.
@@ -249,15 +253,13 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (!perfOpen) perfRun.stopRamp()
   }, [perfOpen])
   const failuresOpen = nav === 'failures' // a tab of the navigator on the left, with Explorer, Flows and YAML
-  const comparing = compare && !editing && !perfOpen && !failuresOpen && playable(model, compare.a) && playable(model, compare.b) ? compare : undefined
+  const comparing = compare && !editing && !perfOpen && !failuresOpen && comparable(compare) ? compare : undefined
+  const flowsCompared = comparing?.kind === 'flow' // two flows stay on their own views; two runs share the level the address names, and going to another one moves both panes
   // A flow that was playing waits behind the Performance and Failures tabs and a comparison, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen || comparing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks } = useFlowStage({ model, view, flow, playing, replays, recording })
-  // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. The marks are kept as text so
-  // that the graph (which takes dagre tens of ms) is rebuilt only when a state changes, not on every step of a Play.
-  const timeEvents = perfOpen && loadTest !== undefined && eventsOf(loadTest).length > 0
-  const marksText = timeEvents && loadTest ? JSON.stringify(marksOf(model, runStates(loadTest, load))) : ''
-  const runMarks = useMemo(() => (marksText === '' || marksText === '{}' ? NO_MARKS : (JSON.parse(marksText) as Record<string, StateMark>)), [marksText])
+  // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. A pane of a comparison of runs draws its run the same way (see useRunDrawing).
+  const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
   const stateMarks = flow ? flowMarks : runMarks
   const manyPicked = side?.kind === 'objects' // several shapes picked: a bar at the foot of the canvas, no panel over them
   const detailsOpen = details || (side !== undefined && !manyPicked) // the right-hand side holds Details and nothing else
@@ -267,9 +269,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const graph = useMemo(() => toGraph(model, view, shown, problems, stateMarks), [model, view, shown, problems, stateMarks])
   // The states on the canvas now, for the key: a shape on another view that is in one is not drawn here.
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
-  const setting = useMemo<Setting>(() => (multi ? settingOf(dials, here) : { '': load }), [multi, dials, hereKey, load])
-  const loadTraffic = useMemo(() => (perfOpen && loadTest ? trafficAt(model, runs, runKey, setting, view) : undefined), [perfOpen, model, runs, runKey, loadTest, setting, view])
-  const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
   const drawnLines = useMemo(() => (still ? NO_LINES : loadTraffic?.lines ?? NO_LINES), [still, loadTraffic]) // what the panel's key is told, so the tab makes no traffic of its own
   const chosen = side?.kind === 'objects' ? side.ids : side?.kind === 'object' ? [side.id] : [] // the shapes picked for editing, one or several
   const picked = recording ? [recording.from, recording.to] : chosen
@@ -367,7 +366,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
     return copyText('```mermaid\n' + diagram + '```\n', `Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
   }
-  // Flowy only reads runs, so making one is a file: a starter for this view to fill with what a load test measured.
+  // Flowy reads runs and writes only their `compare` field, so making one is a file: a starter for this view to fill with what a load test measured.
   const createRun = () => copyText(starterRun(model, view), 'Copied a starter run for this view. Fill in your numbers and save it as flowy/perf/<name>.yaml.')
   const copyFailures = (format: 'markdown' | 'csv') => {
     if (analysis) void copyText(table(model, analysis, format), format === 'csv' ? 'Copied this analysis as CSV.' : 'Copied this analysis as a table.')
@@ -393,7 +392,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     zoom.cancelMotion()
     setViewId(id)
     setPlaying(undefined)
-    setCompare(undefined) // a comparison is of the flows, not of a level
+    setCompare(c => (c?.kind === 'run' ? c : undefined)) // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level
     session.viewChanged()
     setSide(s => (s?.kind === 'object' ? s : undefined)) // lines, Add and recording belong to one view
   }
@@ -423,6 +422,24 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (playing?.auto) setPlaying({ ...playing, auto: false }) // it must not start up again behind the panes, or when the comparison closes
     setCompare(pairOf(model, id, other))
   }
+  /** Two runs side by side: `id` is the one the Performance tab showed, `other` the one picked to go with it. The tab leaves, as the comparison has a panel of its own for each run. */
+  const openRunCompare = (id: string, other: string) => {
+    setPickingRun(undefined)
+    if (!openable(runs, id) || !openable(runs, other)) return setNotice("That run can't open.")
+    setSide(undefined)
+    perfRun.stopRamp()
+    leave('performance')
+    setCompare(runPairOf(runs, id, other))
+  }
+  /** Writes the link of run `id` (the run it is the newer of, or none to unlink), in its own file. A run's note belongs to its link, so one that would go with it asks first. */
+  const writeLink = (id: string, other: string | undefined) =>
+    void tag('run', id, other === undefined ? undefined : { with: other }).then(message => message !== undefined && setNotice(message))
+  const linkRun = (id: string, other: string | undefined) => {
+    const was = Object.hasOwn(runs, id) ? compareOf(runs[id].compare) : undefined
+    if (was?.with === other || (was === undefined && other === undefined)) return // nothing to change
+    if (was?.note !== undefined) setDropping({ id, other })
+    else writeLink(id, other)
+  }
   // Close, Esc and C all come here. With a note that isn't saved they ask first (see the prompt below); one more of them while it asks is a Keep.
   const closeCompare = () => {
     if (asking) return setAsking(undefined)
@@ -430,11 +447,17 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setCompare(undefined)
     setSide(undefined) // what it showed was clicked in a pane
   }
-  /** C: close the comparison, or open it beside the flow playing, with the first flow it is linked to or else the picker. */
+  /** C: close the comparison, or open it beside the flow playing (or the run the Performance tab shows), with the first one it is linked to or else the picker. */
   const toggleCompare = () => {
     if (comparing) return closeCompare()
-    const off = compareOff(model, editing)
+    const off = perfOpen ? runCompareOff(runs, editing) : compareOff(model, editing)
     if (off !== undefined) return setNotice(off)
+    if (perfOpen) {
+      const other = firstLinkedRun(model, runs, runKey)
+      if (other === undefined) setPickingRun(open => (open === 'compare' ? undefined : 'compare'))
+      else openRunCompare(runKey, other)
+      return
+    }
     const id = flow ? playing?.flow : undefined
     if (id === undefined) return
     const other = firstLinked(model, id)
@@ -444,6 +467,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   useEffect(() => {
     if (!flow) setPicking(false) // the popover hangs on the player
   }, [flow])
+  useEffect(() => {
+    if (!perfOpen) setPickingRun(undefined) // and these hang on the run header
+  }, [perfOpen])
   useEffect(() => {
     if (!compare) setCompareStart(undefined)
   }, [compare])
@@ -458,11 +484,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     return () => window.removeEventListener('beforeunload', ask)
   }, [keeping])
   useEffect(() => {
-    if (fromAddress(model, readHash(location.hash).compare).unplayable) setNotice("That flow can't play yet.") // a link to a comparison that can't open
+    const notice = fromAddress(model, runs, readHash(location.hash).compare).notice
+    if (notice !== undefined) setNotice(notice) // a link to a comparison that can't open
   }, [])
   useEffect(() => {
-    if (compare && !(playable(model, compare.a) && playable(model, compare.b))) setCompare(undefined) // a live reload took one of the flows away
-  }, [model, compare])
+    if (compare && !comparable(compare)) setCompare(undefined) // a live reload took one of the flows or runs away
+  }, [model, runs, compare])
   /** Pick a mode in the Failures list; when its part is outside this view, the canvas goes to the view that draws it. */
   const selectMode = (id: string | undefined) => {
     setModeId(id)
@@ -471,7 +498,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }
   /** A click on a shape in the list of those no mode names yet: go to it and pick it. */
   const pickShape = (id: string) => {
-    if (!comparing && parentOf(model, id) !== view) go(parentOf(model, id)) // a comparison stays open: the Details show the shape
+    if (!flowsCompared && parentOf(model, id) !== view) go(parentOf(model, id)) // a comparison of flows stays open: the Details show the shape
     setSide({ kind: 'object', id })
   }
   /** Show it: play the flow that tells a failure, at the step it names (counted from 1), or open it to edit. */
@@ -503,7 +530,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if ('shape' in target) {
       if (!getObject(model, target.shape)) return setNotice("That shape isn't in the model any more.")
       setSearching(false)
-      if (!comparing) go(parentOf(model, target.shape)) // the view the box sits in
+      if (!flowsCompared) go(parentOf(model, target.shape)) // the view the box sits in
       show({ kind: 'object', id: target.shape })
     } else if (Object.hasOwn(model.flows, target.flow)) openFlow(target.flow)
     else setNotice("That flow isn't in the model any more.")
@@ -512,10 +539,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const pickRow = (row: OutlineRow) => {
     if (row.kind === 'flow') return openFlow(row.id)
     if (row.id === ROOT) {
-      if (!comparing && view !== ROOT) go(ROOT)
+      if (!flowsCompared && view !== ROOT) go(ROOT)
       return setSide(undefined)
     }
-    if (!comparing && parentOf(model, row.id) !== view) go(parentOf(model, row.id)) // a comparison stays open: the Details show the shape
+    if (!flowsCompared && parentOf(model, row.id) !== view) go(parentOf(model, row.id)) // a comparison of flows stays open: the Details show the shape
     setSide({ kind: 'object', id: row.id })
   }
   /** Enter or a double-click in the Explorer: zoom into a shape that opens, else the same as a click. */
@@ -655,7 +682,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       const named = readHash(location.hash)
       // The browser has already moved on, and a Back or a typed address can't be held back, so unlike every other way out this one can't ask. The note stays where it is, keyed by its
       // pair, and the reader is told it is there. (Taking the address back and asking would need to know which way the reader went, which the History API doesn't say.)
-      const keeps = fromAddress(model, named.compare).compare
+      const keeps = fromAddress(model, runs, named.compare).compare
       if (dirtyRef.current && !(keeps && compare && keeps.kind === compare.kind && pairKey(keeps.a, keeps.b) === pairKey(compare.a, compare.b)))
         setNotice('The note is kept until you close this page. Compare the pair again to see it')
       goNow(named.view)
@@ -680,9 +707,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         openFailures()
         if (m && !drawnIn(model, named.view, m)) go(homeView(model, m)) // the mode's part is outside the view the address names
       } else leave('failures')
-      const opened = fromAddress(model, named.compare)
+      const opened = fromAddress(model, runs, named.compare)
       setCompare(opened.compare)
-      if (opened.unplayable) setNotice("That flow can't play yet.")
+      if (opened.notice !== undefined) setNotice(opened.notice)
     }
     window.addEventListener('popstate', follow)
     window.addEventListener('hashchange', follow)
@@ -712,7 +739,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement && e.target.closest('.navfind') !== null)) return
       }
       const state: KeyState = {
-        editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', halfStep: recording?.from !== undefined,
+        editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', runCompare: comparing?.kind === 'run', halfStep: recording?.from !== undefined,
         panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
         showFlows, showYaml, canPerf,
       }
@@ -730,12 +757,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen ? closePerf() : closeFailures()),
         // A second press while a zoom out is still leaving goes up from where that one is heading.
         up: () => zoom.zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view)),
-        stepRun: by => perfRun.stepLevel(stepFrom(here[activeDial], by)),
+        // With two runs side by side the keys of the Performance tab act on the pane that has the focus.
+        stepRun: by => (comparing ? compareRef.current?.focusedRun()?.step(by) : perfRun.stepLevel(stepFrom(here[activeDial], by))),
         runEnd: end => {
-          if (end === 'first') perfRun.stepLevel(0)
+          if (comparing) compareRef.current?.focusedRun()?.end(end)
+          else if (end === 'first') perfRun.stepLevel(0)
           else if (loadTest) perfRun.stepLevel(multi ? dialTop(dials[activeDial]) : top(loadTest))
         },
-        ramp: () => perfRun.toggleRamp(),
+        ramp: () => (comparing ? compareRef.current?.focusedRun()?.ramp() : perfRun.toggleRamp()),
         stepFailure: by => selectMode(neighbour([...rows.here, ...rows.elsewhere].map(r => r.id), mode ? modeId : undefined, by)),
         // With two flows side by side the keys of a flow act on the pane that has the focus.
         stepFlow: by => (comparing ? compareRef.current?.focused()?.step(by) : stepTo(stopIndex + by)),
@@ -752,7 +781,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           return true
         },
         search: () => setSearching(true),
-        fit: () => (comparing ? compareRef.current?.focused()?.fit() : fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 })),
+        fit: () => (comparing ? (comparing.kind === 'run' ? compareRef.current?.focusedRun() : compareRef.current?.focused())?.fit() : fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 })),
         toggleTab,
         togglePerf: () => toggleTab('performance'),
         toggleFailures: () => toggleTab('failures'),
@@ -821,7 +850,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           {comparing ? (
-            <CompareView ref={compareRef} model={model} compare={comparing} problems={problems} colorMode={colorMode} lines={lines} still={still} shown={side} nav={nav !== undefined} details={detailsOpen && side !== undefined} start={compareStart}
+            <CompareView ref={compareRef} model={model} runs={runs} view={view} compare={comparing} problems={problems} colorMode={colorMode} lines={lines} still={still} shown={side} nav={nav !== undefined} details={detailsOpen && side !== undefined} start={compareStart}
               onPick={picked => {
                 didSomethingElse()
                 show(picked)
@@ -926,7 +955,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {searching && (
             <Search model={model} onClose={() => setSearching(false)} onPick={id => {
               setSearching(false)
-              if (!comparing) go(parentOf(model, id)) // the view the box sits in; a comparison stays open
+              if (!flowsCompared) go(parentOf(model, id)) // the view the box sits in; a comparison of flows stays open
               show({ kind: 'object', id })
             }} />
           )}
@@ -936,6 +965,16 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               <span>Discard the note?</span>
               <button onClick={discardNote}>Discard</button>
               <button className="primary" autoFocus onClick={() => setAsking(undefined)}>Keep</button>
+            </div>
+          )}
+          {dropping && (
+            <div className="draft-ask" role="alertdialog" aria-label="Remove the note?">
+              <span>Remove the note?</span>
+              <button onClick={() => {
+                writeLink(dropping.id, dropping.other)
+                setDropping(undefined)
+              }}>Remove</button>
+              <button className="primary" autoFocus onClick={() => setDropping(undefined)}>Keep</button>
             </div>
           )}
           {notice && (
@@ -976,7 +1015,19 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                   perfRun.stopRamp()
                   perfRun.pick(id)
                 }}
-                onActive={perfRun.setActive} onSlide={(dial, to) => perfRun.slide(to, dial)} onJump={perfRun.jumpTo} onPlace={perfRun.placeAll} onRamp={perfRun.toggleRamp} onCreate={live ? createRun : undefined} />
+                onActive={perfRun.setActive} onSlide={(dial, to) => perfRun.slide(to, dial)} onJump={perfRun.jumpTo} onPlace={perfRun.placeAll} onRamp={perfRun.toggleRamp} onCreate={live ? createRun : undefined}
+                compare={{
+                  off: runCompareOff(runs, editing), linkOff: noteOff(live, readOnly), open: pickingRun, onToggle: which => setPickingRun(open => (open === which ? undefined : which)), onUnlink: () => linkRun(runKey, undefined),
+                  picker: pickingRun && (
+                    <ComparePicker model={model} runs={runs} kind="run" id={runKey} label={pickingRun === 'compare' ? 'Compare with' : 'Link with'} toggle={pickingRun === 'compare' ? 'data-compare-toggle' : 'data-link-toggle'}
+                      onPick={other => {
+                        setPickingRun(undefined)
+                        if (pickingRun === 'compare') openRunCompare(runKey, other)
+                        else linkRun(runKey, other)
+                      }}
+                      onClose={() => setPickingRun(undefined)} />
+                  ),
+                }} />
             </NavPanel>
           )}
           {nav === 'flows' && (
@@ -1015,7 +1066,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
               trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
               compare={{ off: compareOff(model, editing), open: picking, onToggle: () => setPicking(open => !open),
-                picker: playing ? <ComparePicker model={model} flowId={playing.flow} onPick={id => openCompare(playing.flow, id)} onClose={() => setPicking(false)} /> : null }} />
+                picker: playing ? <ComparePicker model={model} id={playing.flow} onPick={id => openCompare(playing.flow, id)} onClose={() => setPicking(false)} /> : null }} />
           )}
         </main>
         <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else setDetails(true) }} />
