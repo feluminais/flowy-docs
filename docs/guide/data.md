@@ -42,13 +42,18 @@ objects:
 | `kind` | A word for what it is: `table`, `collection`, `topic` | Small, beside the name |
 | `limits` | One line on how long it is kept or how much fits | A clock and the line, on the right |
 | `note` | One line on why it is this way | Under the heading |
-| `columns` | The column headings. A bare name, or a mapping with `name` and any of `key: primary`, `to` and `note` | The headings of the grid |
+| `columns` | The column headings. A bare name, or a mapping with `name` and any of `type`, `key: primary`, `to` and `note` | The headings of the grid |
 | `rows` | Sample rows, with one cell for each column | The rows of the grid |
 | `sample` | One sample document, in place of `columns` | Its fields, one to a line, nesting shown by indent |
 | `notes` | With a `sample`: a field to its note. A nested field is its keys joined with dots (`hours.mon`) | Under the data |
 
 In a grid, a column with `key: primary` shows a small **PK**, a column with `to: customers` shows **FK customers**, and a column with a
-`note` shows a dot. The note is under the data, headed by the column's name. Notes are always shown. Point at a mark for its full name.
+`type` shows it in small type under the name. End the type with `?` when the column can be empty (`type: timestamp?`) and it shows a
+**NULL** mark beside the name. A column with a `note` shows a purple dot. The note is under the data, headed by the column's name, on a
+purple strip. Notes are always shown. Point at a mark for its full name.
+
+Write the type as the code does: `int`, `text`, `timestamp`, `numeric(12,2)`, `uuid`. It is free text of up to 40 characters, and Flowy
+does not check it against anything. Quote a type that holds `[`, `]`, `,` or `{` (`type: "text[]"`).
 
 A key set is a grid with `Key`, `Value` and `Expires` columns, and a topic is a grid with `Key` and `Value` whose rows are messages. A
 document store has a `sample` in place of `columns`, and its notes name fields:
