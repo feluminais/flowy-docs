@@ -50,6 +50,12 @@ internal sealed class PaneFlow
 
     public bool AutoFit { get; init; } = true;
 
+    /// <summary>
+    /// What a comparison with Show changes on says changed in this flow: its shapes, lines and steps. The canvas marks the shapes and lines when the flow draws, and the card's progress bar
+    /// marks the stops. Null (the switch is off) marks nothing.
+    /// </summary>
+    public SideMarks? Changes { get; set; }
+
     public string FlowId => _flowId;
 
     /// <summary>How the lines are drawn (straight, curved or angled), as the reader last said.</summary>
@@ -111,7 +117,7 @@ internal sealed class PaneFlow
             _fitted = true;
             _canvas.Fit(0, true, 0, 0, refit: false); // once, when the pane first has a size; after that the reader's zoom stays through a resize
         }
-        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.Auto, null, _canvas.StatesShown.Values.ToList());
+        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.Auto, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps);
         _player.Show(card);
         _canvas.SetMarks(marks);
 
@@ -146,6 +152,7 @@ internal sealed class PaneFlow
         if (!Drawing || _folder is null || Frame() is not { } frame || !_folder.Model.Flows.TryGetValue(_flowId, out var flow)) return null;
         var stops = StopsNow()!;
         _canvas.SetScene(frame.Scene, _lineStyle, frame.Selected);
+        _canvas.ShowChanges(Changes);
         _canvas.ShowStates(States.Marks(_folder.Model, States.At(flow, stops, StopNow)));
         return frame.Shown;
     }

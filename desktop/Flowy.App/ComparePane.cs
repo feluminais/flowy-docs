@@ -98,6 +98,13 @@ internal sealed class ComparePane : Border, IFlowKeys
 
     public string FlowId => _flow.FlowId;
 
+    /// <summary>What Show changes marks in this pane's flow (see <see cref="PaneFlow.Changes"/>); null when it is off.</summary>
+    public SideMarks? Changes
+    {
+        get => _flow.Changes;
+        set => _flow.Changes = value;
+    }
+
     public CanvasView Canvas => _canvas;
 
     public PlayerCard Card => _player;

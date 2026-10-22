@@ -25,6 +25,7 @@ internal sealed class CanvasView : Border
     private readonly TrafficLayer _traffic = new();
     private Traffic? _load; // the load being shown, if the Performance panel is open
     private FailureOverlay? _failures; // the marks being shown, if the Failures tab is open
+    private SideMarks? _changes; // a comparison's change marks for the flow drawn here, while Show changes is on
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the states at the stop on show, by shape
     private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new() { RenderTransformOrigin = RelativePoint.TopLeft };
@@ -288,8 +289,31 @@ internal sealed class CanvasView : Border
         _back.SetScene(scene, lineStyle);
         if (_load is not null) ApplyLoad();
         if (_failures is not null) ApplyFailures();
+        ApplyChanges();
         ApplyStates();
     }
+
+    /// <summary>
+    /// Marks what a comparison says changed in the flow drawn here: a ring and a badge on each shape, a halo behind each line (see <see cref="BoxControl.SetChange"/>). Null takes every mark away.
+    /// The marks are kept by id, so a scene drawn next is marked too.
+    /// </summary>
+    public void ShowChanges(SideMarks? marks)
+    {
+        _changes = marks;
+        ApplyChanges();
+    }
+
+    private void ApplyChanges()
+    {
+        foreach (var (id, box) in _boxes) box.SetChange(_changes is not null && _changes.Shapes.TryGetValue(id, out var kind) ? kind : null);
+        _back.SetChanges(_changes?.Lines);
+    }
+
+    /// <summary>The kind a shape is marked as now, or null (for tests).</summary>
+    internal Change? ChangeOnBox(string id) => _boxes.TryGetValue(id, out var box) ? box.ChangeShown : null;
+
+    /// <summary>The kind a line is marked as now, or null (for tests).</summary>
+    internal Change? ChangeOnLine(string from, string to) => _back.ChangeOf(from, to);
 
     /// <summary>Where the labels showing now are, for tests.</summary>
     internal IReadOnlyList<Flowy.Core.Rect> LabelRects => _back.LabelRects;
