@@ -116,6 +116,36 @@ public class ParticlesTests
         Assert.True(alpha < 1 && alpha > Particles.GhostAlpha && scale < 1 && scale > 0.75);
     }
 
+    [Fact]
+    public void A_particle_goes_into_a_shape_that_opens_from_the_outline_and_is_all_the_way_in_at_the_end_of_the_run_on()
+    {
+        // a line that ends at one: 24 run on past the outline of a run of 124
+        Assert.Equal(0, Particles.WentIn(0, 124, 0, 24));
+        Assert.Equal(0, Particles.WentIn(100, 124, 0, 24)); // at the outline
+        Assert.Equal(0.5, Particles.WentIn(112, 124, 0, 24));
+        Assert.Equal(1, Particles.WentIn(124, 124, 0, 24));
+        Assert.Equal(1, Particles.WentIn(130, 124, 0, 24));
+    }
+
+    [Fact]
+    public void A_particle_comes_out_of_a_shape_that_opens_from_all_the_way_in_to_the_outline_and_a_line_with_no_such_end_has_none_going_in()
+    {
+        Assert.Equal(1, Particles.WentIn(0, 124, 24, 0));
+        Assert.Equal(0.5, Particles.WentIn(12, 124, 24, 0));
+        Assert.Equal(0, Particles.WentIn(24, 124, 24, 0));
+        Assert.Equal(0, Particles.WentIn(124, 124, 24, 0));
+        Assert.Equal(0, Particles.WentIn(60, 124, 0, 0));
+        Assert.Equal(0, Particles.WentIn(0, 100, 0, 0));
+    }
+
+    [Fact]
+    public void A_particle_going_in_thins_away_and_shrinks_a_little_and_one_on_the_line_is_as_always()
+    {
+        Assert.Equal((1.0, 1.0), Particles.Swallow(0));
+        Assert.Equal((0.0, 0.75), Particles.Swallow(1));
+        Assert.Equal(0.5, Particles.Swallow(0.5).Alpha);
+    }
+
     // ---- a source's numbers drawn: dots at once, the cap, and how a failing share fails -----------------------------------
 
     [Fact]
@@ -261,6 +291,28 @@ public class ParticlesTests
         var line = PathPoints.Flatten("M0,0L100,0");
         Assert.Equal((0d, 0d), PathPoints.PointAt(line, -3));
         Assert.Equal((100d, 0d), PathPoints.PointAt(line, 7));
+    }
+
+    [Fact]
+    public void Extend_runs_a_line_on_before_its_start_and_after_its_end_each_the_way_the_line_runs_there()
+    {
+        var line = PathPoints.Extend(PathPoints.Flatten("M0,0L100,0L100,50"), 10, 20);
+        Assert.Equal([-10d, 0d, 100d, 100d, 100d], line.Xs);
+        Assert.Equal([0d, 0d, 0d, 50d, 70d], line.Ys);
+        Assert.Equal(10 + 100 + 50 + 20, line.Total);
+        Assert.Equal((-10d, 0d), PathPoints.PointAt(line, 0));
+        Assert.Equal((100d, 70d), PathPoints.PointAt(line, 1));
+    }
+
+    [Fact]
+    public void Extend_by_nothing_or_a_line_with_no_length_leaves_the_line_as_it_was()
+    {
+        var line = PathPoints.Flatten("M0,0L100,0");
+        Assert.Same(line, PathPoints.Extend(line, 0, 0));
+        var point = PathPoints.Flatten("M5,5L5,5");
+        Assert.Same(point, PathPoints.Extend(point, 10, 10));
+        Assert.Equal([0d, 100d, 104d], PathPoints.Extend(line, 0, 4).Xs);
+        Assert.Equal([-4d, 0d, 100d], PathPoints.Extend(line, 4, 0).Xs);
     }
 
     [Theory]

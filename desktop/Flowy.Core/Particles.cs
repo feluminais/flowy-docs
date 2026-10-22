@@ -86,6 +86,21 @@ public static class Particles
     /// <summary>How a particle <paramref name="behind"/> of the way draws: fainter, and a little smaller, as something does when it is further back.</summary>
     public static (double Alpha, double Scale) Ghost(double behind) => (1 - behind + behind * GhostAlpha, 1 - behind * 0.25);
 
+    /// <summary>
+    /// How far into a shape that opens a particle is, 0 to 1: a line that ends at one runs on <paramref name="after"/> into it, and one that starts at one runs in
+    /// from <paramref name="before"/> inside (see <see cref="PathPoints.Extend"/>). <paramref name="length"/> is how far along the whole run the particle is. It is
+    /// 0 on the outline and while the particle is on the line, and 1 once it is all the way in, where a particle that arrives is gone and one that leaves has not yet shown.
+    /// </summary>
+    public static double WentIn(double length, double total, double before, double after)
+    {
+        var outside = before > 0 ? (before - length) / before : 0;
+        var inside = after > 0 ? (length - (total - after)) / after : 0;
+        return Math.Min(1, Math.Max(0, Math.Max(outside, inside)));
+    }
+
+    /// <summary>How a particle <paramref name="into"/> a shape that opens draws: it thins away and shrinks a little as it goes in, so it reads as passing through the outline.</summary>
+    public static (double Alpha, double Scale) Swallow(double into) => (1 - into, 1 - into * 0.25);
+
     /// <summary>How visible a particle is: full until it is nearly out, then fading, so one that fails dies away instead of vanishing.</summary>
     public static double Visibility(Mote m) => m.Fails == 0 ? 1 : Math.Min(1, Math.Max(0, (m.Fails - m.S) / 0.15));
 

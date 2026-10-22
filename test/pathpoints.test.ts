@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { getBezierPath, getSmoothStepPath, getStraightPath, Position } from '@xyflow/react'
-import { flatten, pointAt } from '../ui/src/pathpoints.ts'
+import { extend, flatten, pointAt } from '../ui/src/pathpoints.ts'
 
 const near = (actual: number, expected: number, within = 0.01) => assert.ok(Math.abs(actual - expected) <= within, `expected ${expected}, got ${actual}`)
 
@@ -52,6 +52,24 @@ test('the paths React Flow writes for a line in each style are read: curves are 
 test('a quadratic curve is flattened through its midpoint', () => {
   const line = flatten('M0,0Q50,0 100,100')
   assert.ok(line.xs.some((x, i) => Math.abs(x - 50) < 1e-9 && Math.abs(line.ys[i] - 25) < 1e-9))
+})
+
+test('extend runs a line on before its start and after its end, each the way the line runs there', () => {
+  const line = extend(flatten('M0,0L100,0L100,50'), 10, 20)
+  assert.deepEqual(line.xs, [-10, 0, 100, 100, 100])
+  assert.deepEqual(line.ys, [0, 0, 0, 50, 70])
+  assert.equal(line.total, 10 + 100 + 50 + 20)
+  assert.deepEqual(pointAt(line, 0), [-10, 0])
+  assert.deepEqual(pointAt(line, 1), [100, 70])
+})
+
+test('extend by nothing, or a line with no length, leaves the line as it was', () => {
+  const line = flatten('M0,0L100,0')
+  assert.equal(extend(line, 0, 0), line)
+  const point = flatten('M5,5L5,5')
+  assert.equal(extend(point, 10, 10), point)
+  assert.deepEqual(extend(line, 0, 4).xs, [0, 100, 104])
+  assert.deepEqual(extend(line, 4, 0).xs, [-4, 0, 100])
 })
 
 test('an empty path is a point at the origin, and one it cannot read is skipped', () => {

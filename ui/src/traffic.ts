@@ -62,6 +62,20 @@ export const howBehind = (depth: number, ramp: number): number => Math.min(1, Ma
 /** How a particle `behind` of the way draws: fainter, and a little smaller, as something does when it is further back. */
 export const ghost = (behindBy: number): { alpha: number; scale: number } => ({ alpha: 1 - behindBy + behindBy * GHOST, scale: 1 - behindBy * 0.25 })
 
+/**
+ * How far into a shape that opens a particle is, 0 to 1: a line that ends at one runs on `after` into it, and one that starts at one runs in from `before`
+ * inside (see `extend` in pathpoints.ts). `length` is how far along the whole run the particle is. It is 0 on the outline and while the particle is on the
+ * line, and 1 once it is all the way in, where a particle that arrives is gone and one that leaves has not yet shown.
+ */
+export const wentIn = (length: number, total: number, { before, after }: { before: number; after: number }): number => {
+  const out = before > 0 ? (before - length) / before : 0
+  const into = after > 0 ? (length - (total - after)) / after : 0
+  return Math.min(1, Math.max(0, out, into))
+}
+
+/** How a particle `into` a shape draws: it thins away and shrinks a little as it goes in, so it reads as passing through the outline. */
+export const swallow = (into: number): { alpha: number; scale: number } => ({ alpha: 1 - into, scale: 1 - into * 0.25 })
+
 /** How visible a particle is: full until it is nearly out, then fading, so one that fails dies away instead of vanishing. */
 export const visibility = (m: Mote): number => (m.fails === 0 ? 1 : Math.min(1, Math.max(0, (m.fails - m.s) / 0.15)))
 

@@ -11,7 +11,9 @@ namespace Flowy.App.Canvas;
 /// and the ones that fail dying away short of the end. It sits over the boxes in the same camera, takes no pointer, and runs its own clock: a frame at a
 /// time on the window's animation frames, for as long as it has a line to draw. Each line's path is flattened once (<see cref="PathPoints"/>), so a
 /// particle's place is a lookup. Where its line runs behind a shape that is not one of its ends, or under a label, a particle is still drawn, going faint
-/// and a little smaller as it goes behind and back as it comes out, so the flow reads through what covers it. A run's source sets the particles' colour and
+/// and a little smaller as it goes behind and back as it comes out, so the flow reads through what covers it. A line that ends at a shape that opens runs on a
+/// little way into it, thinning away as it goes in, and one that starts at such a shape comes out of it the same way, so the flow goes into and out of the shape
+/// and is not cut off at its edge. A run's source sets the particles' colour and
 /// size (a line's <c>Color</c> and <c>Radius</c>), and a line that says how its failing share fails draws a lost call as a ring where it pops and a rejected
 /// one as a call that stops at a bar at the end of the line and comes back in the danger tone. A line that several sources share has a stream for each (a line's
 /// <c>Source</c>), drawn in that source's colour and running a little to its side of the path (its <c>Offset</c>). Reduced motion draws none: the canvas leaves this empty then.
@@ -21,7 +23,16 @@ internal sealed class TrafficLayer : Control
     /// <summary>A shape a line may run behind: where it is and its outline (null: the box itself).</summary>
     internal readonly record struct ShapeCover(string Id, CoreRect Rect, double[]? Edge);
 
-    private sealed record Drawn(LineTraffic Line, FlatLine Path, ParticleStream Stream, IReadOnlyList<ShapeCover> Behind);
+    /// <summary>How far a particle runs on into a shape that opens, and out of one, while it thins away or comes in (in the diagram's units, whatever the zoom).</summary>
+    internal const double Reach = 24;
+
+    /// <summary>
+    /// A line's way for the layer: the path that runs on into the shapes at its ends that open, the same without the run into its end (a rejected call stops at
+    /// the bar there), and how far each runs.
+    /// </summary>
+    internal readonly record struct Way(FlatLine Path, FlatLine Bounce, double Before, double After);
+
+    private sealed record Drawn(LineTraffic Line, Way Way, ParticleStream Stream, IReadOnlyList<ShapeCover> Behind);
 
     private List<Drawn> _lines = [];
     private IReadOnlyList<CoreRect> _labels = [];
@@ -59,23 +70,23 @@ internal sealed class TrafficLayer : Control
     /// The lines to draw traffic on, and where each is (null: its path isn't known, so nothing is drawn on it). What is already on a line keeps going
     /// when the load changes; a line that is new starts with its particles already spread along it, as they would be had the load always been this.
     /// </summary>
-    public void Set(IReadOnlyList<LineTraffic> lines, Func<LineTraffic, FlatLine?> pathOf, IReadOnlyList<ShapeCover> shapes, IReadOnlyList<CoreRect> labels)
+    internal void Set(IReadOnlyList<LineTraffic> lines, Func<LineTraffic, Way?> pathOf, IReadOnlyList<ShapeCover> shapes, IReadOnlyList<CoreRect> labels)
     {
         _labels = labels;
         var drawn = new List<Drawn>();
         // The sources that share a line are entries of one path: it is worked out once, however many there are.
-        var paths = new Dictionary<(string, string), FlatLine?>();
+        var paths = new Dictionary<(string, string), Way?>();
         foreach (var line in lines)
         {
             if (!paths.TryGetValue((line.From, line.To), out var found)) paths[(line.From, line.To)] = found = pathOf(line);
-            if (found is not { } path) continue;
+            if (found is not { } way) continue;
             var key = (line.From, line.To, line.Source);
             if (!_streams.TryGetValue(key, out var stream))
             {
                 _streams[key] = stream = new ParticleStream();
                 for (double t = 0; t < line.TravelMs; t += 32) Flowy.Core.Particles.Advance(stream, line, 32, Rand);
             }
-            drawn.Add(new Drawn(line, path, stream, shapes.Where(s => s.Id != line.From && s.Id != line.To).ToList()));
+            drawn.Add(new Drawn(line, way, stream, shapes.Where(s => s.Id != line.From && s.Id != line.To).ToList()));
         }
         _lines = drawn;
         foreach (var key in _streams.Keys.Where(k => !drawn.Any(d => (d.Line.From, d.Line.To, d.Line.Source) == k)).ToList()) _streams.Remove(key);
@@ -172,23 +183,29 @@ internal sealed class TrafficLayer : Control
             // Sources that share a line run a little apart, to either side of it, by steps of a usual dot and its room: so two on one path don't hide each other.
             var aside = (d.Line.Offset ?? 0) * (2.2 + d.Line.Width / 2) / _viewport.Zoom * 2.4;
             var bar = 0.0; // how strongly the bar at the end of a rejected line shows: the strongest of its particles
+            // A rejected call stops at the bar at the end of the line, so it doesn't run on into the shape there.
+            var rejected = d.Line.Failure == "rejected";
+            var path = rejected ? d.Way.Bounce : d.Way.Path;
+            var after = rejected ? 0 : d.Way.After;
             foreach (var m in d.Stream.Motes)
             {
                 var look = Flowy.Core.Particles.Look(m, d.Line.Failure);
-                var (x, y) = PathPoints.PointAt(d.Path, look.At);
+                var (x, y) = PathPoints.PointAt(path, look.At);
                 if (aside != 0)
                 {
                     // To the side of the path, by its direction a little either way along it.
-                    var (ax, ay) = PathPoints.PointAt(d.Path, look.At - 0.02);
-                    var (bx, by) = PathPoints.PointAt(d.Path, look.At + 0.02);
+                    var (ax, ay) = PathPoints.PointAt(path, look.At - 0.02);
+                    var (bx, by) = PathPoints.PointAt(path, look.At + 0.02);
                     var span = Math.Sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
                     if (span == 0) span = 1;
                     x += -(by - ay) / span * aside;
                     y += (bx - ax) / span * aside;
                 }
                 if (look.Bar is { } strength && strength > bar) bar = strength;
-                var (ghostAlpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
-                var r = radius * scale;
+                var (ghostAlpha, ghostScale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
+                var (goneAlpha, goneScale) = Flowy.Core.Particles.Swallow(Flowy.Core.Particles.WentIn(look.At * path.Total, path.Total, d.Way.Before, after));
+                ghostAlpha *= goneAlpha;
+                var r = radius * ghostScale * goneScale;
                 if (look.Pop is { } pop)
                 {
                     // A lost call: a ring where it died, growing and fading.
@@ -209,8 +226,8 @@ internal sealed class TrafficLayer : Control
             if (bar > 0)
             {
                 // A rejected call meets a bar across the end of the line, strongest while one is at it.
-                var (ex, ey) = PathPoints.PointAt(d.Path, 1);
-                var (px, py) = PathPoints.PointAt(d.Path, 0.96);
+                var (ex, ey) = PathPoints.PointAt(path, 1);
+                var (px, py) = PathPoints.PointAt(path, 0.96);
                 var length = Math.Sqrt((ex - px) * (ex - px) + (ey - py) * (ey - py));
                 if (length == 0) length = 1;
                 var (nx, ny) = (-(ey - py) / length, (ex - px) / length);
