@@ -4,7 +4,7 @@ import { isMap } from './text.ts'
 
 /** How a shape is drawn, how its colour is chosen and which icon it carries. The desktop app (Look.cs) holds the same tables, and a fixture test keeps the two equal. */
 
-/** The shapes an object may take with `shape:`. Documented, with what each is for, in docs/guide.md. */
+/** The shapes an object may take with `shape:`. Documented, with what each is for, in docs/guide/shapes.md. */
 export const SHAPES = ['rectangle', 'pill', 'ellipse', 'diamond', 'hexagon', 'parallelogram', 'cylinder', 'queue', 'document', 'folder', 'note', 'cloud', 'arrow'] as const
 export type Shape = (typeof SHAPES)[number]
 

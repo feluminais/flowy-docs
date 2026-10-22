@@ -31,7 +31,7 @@ with no value, and the file can't be saved again. `flowy check` reports that. A 
 | `objects` | A mapping of object id to object (below) |
 | `connections` | A list of connections (below) |
 | `lines` | How the canvas draws lines: `straight` (the default, so leave it out), `curved` or `angled` |
-| `icons` | Your own icons: a mapping of name to SVG path data on a 24 by 24 grid ([the guide](guide.md#icons)) |
+| `icons` | Your own icons: a mapping of name to SVG path data on a 24 by 24 grid ([the guide](guide/shapes.md#icons)) |
 
 Other top-level keys are kept as they are.
 
@@ -46,13 +46,13 @@ Other top-level keys are kept as they are.
 | `shape` | `rectangle`, `pill`, `ellipse`, `diamond`, `hexagon`, `parallelogram`, `cylinder`, `queue`, `document`, `folder`, `note`, `cloud` or `arrow` | Left out, the type's own: actor a pill, store a cylinder, the rest a rectangle |
 | `color` | `gray`, `red`, `orange`, `amber`, `green`, `teal`, `blue`, `indigo`, `purple` or `pink`, or a hex like `"#3b82f6"` | Left out, the type's colour |
 | `opacity` | A whole number from 0 to 100 | How much of `color` the fill holds. 15 when a colour is set and this is not |
-| `icon` | A built-in icon name ([the guide](guide.md#icons)) or one under `icons:` | Left out, the type's icon (cloud for an external one) |
+| `icon` | A built-in icon name ([the guide](guide/shapes.md#icons)) or one under `icons:` | Left out, the type's icon (cloud for an external one) |
 | `tech` | Text | The real stack, short: `Node, Fastify` |
 | `description` | Markdown | The first paragraph, up to the first blank line, is the hover teaser |
 | `code` | A list of paths | Files and folders in the repo, relative to the folder that holds `flowy/`. Each must exist |
 | `links` | A list of `{ url, title }` | `url` is an `http` or `https` address, or a path in the repo that exists. `title` is optional |
-| `snippets` | A list of `{ text, title, language }` | A few lines of code, at most 6 of 40 lines and 8000 characters. `title` and `language` are optional ([the guide](guide.md#code)) |
-| `data` | A list of entries | Only on a `store`: its tables, key sets, topics or collections ([the guide](guide.md#data)) |
+| `snippets` | A list of `{ text, title, language }` | A few lines of code, at most 6 of 40 lines and 8000 characters. `title` and `language` are optional ([the guide](guide/code.md#code)) |
+| `data` | A list of entries | Only on a `store`: its tables, key sets, topics or collections ([the guide](guide/data.md#data)) |
 
 ### A connection
 
@@ -71,7 +71,7 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `name` | Text. Required |
 | `view` | `root`, or the id of an object that holds others. Every step must be visible there |
 | `steps` | A list of steps, at least one |
-| `groups` | A mapping of group id to group ([the guide](guide.md#repeats-branches-and-parallel-steps)) |
+| `groups` | A mapping of group id to group ([the guide](guide/flows.md#repeats-branches-and-parallel-steps)) |
 | `states` | Where shapes stand before step 1: a mapping of object id to a state |
 
 ### A step
@@ -89,7 +89,7 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `states` | The objects this step changes: object id to a state |
 
 A **state** is `running` (the default), `starting`, `stopping`, `stopped`, `restarting` or `degraded`. It holds from the step that sets it until another step
-changes it ([the guide](guide.md#shape-states)).
+changes it ([the guide](guide/flows.md#shape-states)).
 
 An **animation** is a kind, `send`, `call`, `callback` or `event`, or a mapping with a `kind` and any of these:
 
@@ -147,7 +147,7 @@ A **mode** is one way a part fails:
 
 A load test, summarised: a `name`, a `unit`, optional `about`, `entry`, `source` (the colour and scale of its dots), and `levels` (at least two, rising in `load`), each with the numbers every shape and
 connection measured. With `axis: time` the levels rise in `at` instead, and `events` say what happens at a time, such as a shape going down. `adds` lists two to four runs to play added together,
-and `sources` tests several at once. Tools write it. The format is in [the guide](guide.md#performance).
+and `sources` tests several at once. Tools write it. The format is in [the guide](guide/performance.md#performance).
 
 ## What writes what over MCP
 
@@ -160,4 +160,4 @@ and `sources` tests several at once. Tools write it. The format is in [the guide
 | A failure analysis, or one mode of it | `put_failures`, `put_failure` |
 | `lines`, `perf/`, `layout.yaml` | Not over MCP: write the file, or use the canvas |
 
-[The guide](guide.md#let-claude-build-it) lists all the tools.
+[The guide](guide/claude.md#let-claude-build-it) lists all the tools.

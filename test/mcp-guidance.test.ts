@@ -1,11 +1,15 @@
 import { test } from 'node:test'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
+import { existsSync } from 'node:fs'
+import { dirname } from 'node:path'
+import { SNIPPET_MAX } from '../src/core/snippets.ts'
+import { STATE_NAMES } from '../src/core/states.ts'
 import { createMcpServer } from '../src/node/mcp.ts'
 
 async function setup(t: TestContext) {
@@ -21,10 +25,11 @@ async function setup(t: TestContext) {
   return client
 }
 
-test('the server offers the three guides as resources, as they are in docs/', async t => {
+test('the server offers the guide pages and the topic rules as resources, the pages as they are in docs/', async t => {
   const client = await setup(t)
   const listed = (await client.listResources()).resources
-  assert.deepEqual(listed.map(r => r.uri).sort(), ['flowy://docs/format.md', 'flowy://docs/guide.md', 'flowy://docs/writing.md'])
+  const pages = (await readdir('docs/guide')).map(n => `flowy://docs/guide/${n}`)
+  assert.deepEqual(listed.map(r => r.uri).sort(), ['flowy://docs/format.md', 'flowy://docs/guide.md', ...pages, 'flowy://docs/writing.md', 'flowy://rules/code', 'flowy://rules/data', 'flowy://rules/failures', 'flowy://rules/flows'].sort())
   for (const r of listed) assert.ok(r.description && r.mimeType === 'text/markdown', r.uri)
   const read = await client.readResource({ uri: 'flowy://docs/format.md' })
   assert.equal((read.contents[0] as { text: string }).text, await readFile('docs/format.md', 'utf8'))
@@ -68,7 +73,7 @@ test('every tool, prompt and guide the instructions name is really there', async
 test('the guide lists every tool, and SECURITY.md and the guide count them as the server does', async t => {
   const client = await setup(t)
   const tools = (await client.listTools()).tools.map(x => x.name)
-  const guide = await readFile('docs/guide.md', 'utf8')
+  const guide = await readFile('docs/guide/claude.md', 'utf8')
   const security = await readFile('SECURITY.md', 'utf8')
   const table = guide.slice(guide.indexOf('**The tools.**'), guide.indexOf('Not over MCP:'))
   assert.deepEqual(tools.filter(name => !table.includes(`\`${name}\``)), [], 'tools missing from the guide table')
@@ -76,4 +81,38 @@ test('the guide lists every tool, and SECURITY.md and the guide count them as th
   assert.match(guide, new RegExp(`The server has ${words[tools.length]}\\.`))
   const reads = tools.filter(name => name.startsWith('get_')).length
   assert.match(security, new RegExp(`Claude gets ${words[tools.length]} tools: ${words[reads]} read the model and ${words[tools.length - reads]} change`))
+})
+
+test('the instructions give the default, ask for the rest by name, and end on what Flowy could add', async t => {
+  const client = await setup(t)
+  const instructions = client.getInstructions() ?? ''
+  assert.match(instructions, /make Flowy docs[^]*the default and nothing else/)
+  assert.match(instructions, /Don't read the topic rules/)
+  assert.match(instructions, /ask which parts/)
+  assert.match(instructions, /what Flowy could add, from what you saw/)
+  // The long rules for the parts most requests leave out are not in the instructions; they are read on request.
+  for (const rule of ['Writing code (put_object', 'Writing data (put_object', 'Writing failure modes (put_failures']) assert.ok(!instructions.includes(rule), rule)
+  for (const topic of ['flows', 'data', 'code', 'failures']) assert.ok(instructions.includes(`flowy://rules/${topic}`), topic)
+})
+
+test('each topic rule is a resource, with the limits the code enforces', async t => {
+  const client = await setup(t)
+  const text = async (topic: string) => ((await client.readResource({ uri: `flowy://rules/${topic}` })).contents[0] as { text: string }).text
+  assert.match(await text('code'), new RegExp(`At most ${SNIPPET_MAX.snippets} snippets of ${SNIPPET_MAX.lines} lines`))
+  assert.match(await text('flows'), new RegExp(STATE_NAMES.join(', ')))
+  assert.match(await text('flows'), /Animate only when the user asked for motion/)
+  assert.match(await text('data'), /Sample rows are invented/)
+  assert.match(await text('failures'), /put_failure replaces the whole mode/)
+})
+
+test('docs/guide.md routes to every page, and every relative link in the guide pages lands on a file', async () => {
+  const index = await readFile('docs/guide.md', 'utf8')
+  const pages = await readdir('docs/guide')
+  for (const page of pages) assert.ok(index.includes(`(guide/${page})`), `${page} is not linked from guide.md`)
+  for (const file of ['docs/guide.md', ...pages.map(p => `docs/guide/${p}`)]) {
+    const text = await readFile(file, 'utf8')
+    for (const [, target] of text.matchAll(/\]\(([A-Za-z0-9./-]+?)(?:#[^)\s]*)?\)/g)) {
+      assert.ok(existsSync(join(dirname(file), target)), `${file} links to ${target}, which is not there`)
+    }
+  }
 })

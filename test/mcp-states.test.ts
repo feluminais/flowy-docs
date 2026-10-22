@@ -1,4 +1,5 @@
 import { test } from 'node:test'
+import { RULES } from '../src/node/rules.ts'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -71,7 +72,7 @@ test('mcp: delete_object is refused while a flow\'s states name the shape', asyn
 
 test('mcp: the instructions and the put_flow fields tell Claude about states', async t => {
   const { client } = await setup(t)
-  const text = client.getInstructions() ?? ''
+  const text = ((client.getInstructions() ?? '') + Object.values(RULES).map(r => r.text).join(' '))
   for (const phrase of ['A shape is Running unless a flow says otherwise', 'set the shape back to running when it recovers', 'running, starting, stopping, stopped, restarting, degraded']) assert.ok(text.includes(phrase), phrase)
   const put = (await client.listTools()).tools.find(tool => tool.name === 'put_flow')!
   const schema = JSON.stringify(put.inputSchema)

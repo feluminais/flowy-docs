@@ -1,4 +1,5 @@
 import { test } from 'node:test'
+import { RULES } from '../src/node/rules.ts'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -69,7 +70,7 @@ test('delete_flow is refused while another flow continues in it', async t => {
 
 test('the instructions and the put_flow fields tell Claude about groups, lanes and flow links', async t => {
   const { client } = await setup(t)
-  const text = (client.getInstructions() ?? '').toLowerCase()
+  const text = (((client.getInstructions() ?? '') + Object.values(RULES).map(r => r.text).join(' '))).toLowerCase()
   for (const word of ['repeat', 'branch', 'parallel', 'lane', 'flow:', 'times is the limit the code really has']) assert.ok(text.includes(word), word)
   const put = (await client.listTools()).tools.find(tool => tool.name === 'put_flow')!
   const schema = JSON.stringify(put.inputSchema)

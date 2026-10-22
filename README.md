@@ -35,15 +35,15 @@ model is in [docs/demo/flowy](docs/demo/flowy).
 
 | | |
 | --- | --- |
-| [Zoom](docs/guide.md#read-it) | Double-click a shape to open what is inside it. Esc or the breadcrumb takes you back up |
-| [Flows](docs/guide.md#read-it) | Play a request step by step, including failures, repeats, branches and parallel lanes |
-| [Performance](docs/guide.md#performance) | Replay a load test on the diagram and see where the system first struggles |
-| [Failure modes](docs/guide.md#failure-modes) | Rate how each part fails and read the ranked list on the canvas |
-| [Data](docs/guide.md#data) | Show what a store holds: tables with sample rows, topics, key sets |
-| [Source links](docs/guide.md#read-it) | A shape lists the files it lives in, and a path that no longer exists is reported |
-| [Claude](docs/guide.md#let-claude-build-it) | An MCP server lets Claude map a repo into the model, and it refuses a change that would break the model |
-| [Edit](docs/guide.md#edit-it) | Drag, connect and record flows on the canvas. Every save goes through the same checks |
-| [Share](docs/guide.md#share-it) | Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request |
+| [Zoom](docs/guide/canvas.md#read-it) | Double-click a shape to open what is inside it. Esc or the breadcrumb takes you back up |
+| [Flows](docs/guide/canvas.md#read-it) | Play a request step by step, including failures, repeats, branches and parallel lanes |
+| [Performance](docs/guide/performance.md#performance) | Replay a load test on the diagram and see where the system first struggles |
+| [Failure modes](docs/guide/failures.md#failure-modes) | Rate how each part fails and read the ranked list on the canvas |
+| [Data](docs/guide/data.md#data) | Show what a store holds: tables with sample rows, topics, key sets |
+| [Source links](docs/guide/canvas.md#read-it) | A shape lists the files it lives in, and a path that no longer exists is reported |
+| [Claude](docs/guide/claude.md#let-claude-build-it) | An MCP server lets Claude map a repo into the model, and it refuses a change that would break the model |
+| [Edit](docs/guide/canvas.md#edit-it) | Drag, connect and record flows on the canvas. Every save goes through the same checks |
+| [Share](docs/guide/share.md#share-it) | Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request |
 
 ![Flowy Docs on Plum, a food-delivery service: the Ordering view with a store's tables open in its panel, search, a flow playing, the shape pickers of edit mode, a load-test replay, and the dark theme behind](docs/images/hero.png)
 
@@ -95,7 +95,7 @@ Ask Claude to write the rest. From the root of the repo you want to document:
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
-Then say "map this repo into Flowy". [The guide](docs/guide.md#let-claude-build-it) lists what it can change.
+Then say "map this repo into Flowy". [The guide](docs/guide/claude.md#let-claude-build-it) lists what it can change.
 
 ## Documentation
 

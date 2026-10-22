@@ -1,4 +1,5 @@
 import { test } from 'node:test'
+import { RULES } from '../src/node/rules.ts'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -74,5 +75,5 @@ test('the tool takes data and the instructions say how to write it', async t => 
   const { client } = await setup(t)
   const tool = (await client.listTools()).tools.find(x => x.name === 'put_object')!
   assert.ok('data' in (tool.inputSchema.properties ?? {}))
-  assert.match(client.getInstructions() ?? '', /never copied from a real/)
+  assert.match(((client.getInstructions() ?? '') + Object.values(RULES).map(r => r.text).join(' ')), /never copied from a real/)
 })

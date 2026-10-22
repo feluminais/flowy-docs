@@ -59,7 +59,7 @@ Someone who stops at the teaser must not leave with a wrong idea. Anything that 
 
 ## Shape, colour and icon
 
-The type already gives every shape a good look, so most shapes need none of this. Choose one when it says something the type can't ([which shape for what](guide.md#which-shape-for-what)).
+The type already gives every shape a good look, so most shapes need none of this. Choose one when it says something the type can't ([which shape for what](guide/shapes.md#which-shape-for-what)).
 
 - **Let the shape carry the kind of thing.** A decision is a diamond, a message queue a queue, a report a document. Then a reader knows what a shape is before reading it, and the name can say what it holds.
 - **Use one shape for one kind of thing, everywhere.** If one queue is a queue and another is a rectangle, the reader will wonder what the difference is.
@@ -108,7 +108,7 @@ The rest of the description shows when someone clicks. Spend the words where the
 ## Data
 
 A store's Data section is a picture of what it holds, for a developer who wants to know which data a flow touches. The format is in
-[the guide](guide.md#data).
+[the guide](guide/data.md#data).
 
 - **Show the few tables a flow touches,** not all of them. A store with forty tables gets the four a reader meets in the flows. The
   rest stay in the migrations, which a `links:` entry can point at.
@@ -200,7 +200,7 @@ What changed: the sender is the subject in every step, the endpoint moved into M
 ## Failure modes
 
 A failure analysis ranks how the system breaks, for someone deciding what to fix first. The format is in
-[the guide](guide.md#failure-modes).
+[the guide](guide/failures.md#failure-modes).
 
 - **Name the analysis for what it covers, in plain words.** "Plum fail scenario" and "Conductor fail scenario" say what is in them. A title
   such as "How Conductor can fail" does not.

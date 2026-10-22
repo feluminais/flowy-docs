@@ -1,4 +1,5 @@
 import { test } from 'node:test'
+import { RULES } from '../src/node/rules.ts'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -68,7 +69,7 @@ test('the tool takes snippets and the instructions say how to write them', async
   const { client } = await setup(t)
   const tool = (await client.listTools()).tools.find(x => x.name === 'put_object')!
   assert.ok('snippets' in (tool.inputSchema.properties as object))
-  assert.match(client.getInstructions() ?? '', /Writing code \(put_object's snippets\)/)
+  assert.match(((client.getInstructions() ?? '') + Object.values(RULES).map(r => r.text).join(' ')), /Writing code \(put_object's snippets\)/)
 })
 
 test('a key Flowy does not know on a snippet survives a put_object that sends it back', async t => {
