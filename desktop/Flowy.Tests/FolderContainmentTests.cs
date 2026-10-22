@@ -193,9 +193,10 @@ public class FolderContainmentTests
         LinkMaker.ToFile(Path.Combine(temp.Dir, "flowy", "flows", "pay.yaml"), secret);
         var dir = Path.Combine(temp.Dir, "flowy");
 
-        var folder = FolderLoader.Load(dir);
-        Assert.Contains(new Problem("flows/pay.yaml", null, "points outside the folder"), folder.Problems);
-        Assert.Empty(folder.Model.Flows);
+        // As the TypeScript loader does, a flow file that leads out stops the load and names the file.
+        var refused = Assert.Throws<ParseError>(() => FolderLoader.Load(dir));
+        Assert.Equal("flows/pay.yaml", refused.File);
+        Assert.Equal("points outside the folder", refused.Reason);
 
         var thrown = Assert.Throws<OpError>(() => FileStore.Save(dir, "flows/pay.yaml", "name: Changed\n", FileStore.Hash("name: Secret\nview: root\nsteps: []\n")));
         Assert.Equal("\"flows/pay.yaml\" points outside the folder", thrown.Message);
