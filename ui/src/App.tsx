@@ -5,16 +5,15 @@ import type { FitViewOptions, NodeChange } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts'
-import type { LineStyle, Model, Step } from '../../src/core/model.ts'
+import type { LineStyle, Model } from '../../src/core/model.ts'
 import { dependents, needsDecision } from '../../src/core/dependents.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import { connect, deleteWith, forgetLayout, placeBoxes, setLines } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
-import { animationOf, followsLanding, leavesMarks } from '../../src/core/animation.ts'
-import { captionOf, progressOf } from '../../src/core/captions.ts'
-import { marksOf, statesAt, usesStates } from '../../src/core/states.ts'
+import { followsLanding, leavesMarks } from '../../src/core/animation.ts'
+import { marksOf, usesStates } from '../../src/core/states.ts'
 import type { StateMark } from '../../src/core/states.ts'
-import { otherLaneSteps, stopIndexOf, stopsOf } from '../../src/core/structure.ts'
+import { stopIndexOf, stopsOf } from '../../src/core/structure.ts'
 import { runStates } from '../../src/core/perf/analyse.ts'
 import { trafficAt } from '../../src/core/perf/traffic.ts'
 import { eventsOf } from '../../src/core/perf/types.ts'
@@ -23,13 +22,13 @@ import { drawnIn, homeView, lightFor, rollUp, table } from '../../src/core/failu
 import type { Mark, Part } from '../../src/core/failures.ts'
 import { expandTo, outline } from '../../src/core/outline.ts'
 import type { OutlineRow } from '../../src/core/outline.ts'
-import { chain, hasChildren, isView, nameOf, parentOf, placeEnds, placeStep, stepEnds } from '../../src/core/views.ts'
+import { chain, hasChildren, isView, nameOf, parentOf, placeEnds, stepEnds } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
-import type { BoxNode, FrameNode, Playing } from './graph.ts'
+import type { BoxNode, FrameNode } from './graph.ts'
 import { addressChange, readHash, runAddress, toHash } from './hash.ts'
 import { contextOf, dispatch } from './keymap.ts'
 import type { KeyActions, KeyState } from './keymap.ts'
@@ -54,7 +53,7 @@ import { PickedBar } from './PickedBar.tsx'
 import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
-import { StepMotion, takenBy } from './StepMotion.tsx'
+import { StepMotion } from './StepMotion.tsx'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
 import { cameFrom, closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
@@ -70,12 +69,12 @@ import { useModel } from './useModel.ts'
 import { useEditSession } from './useEditSession.ts'
 import { usePerfRun } from './usePerfRun.ts'
 import { usePlayback, usePlayer } from './usePlayer.ts'
+import { NO_MARKS, useFlowStage } from './useFlowStage.ts'
 import { useZoom } from './useZoom.ts'
 import type { Edit, Loaded, Restore } from './useModel.ts'
 import { Yaml } from './Yaml.tsx'
 
 const nodeTypes = { box: Box, frame: Frame }
-const NO_MARKS: Record<string, StateMark> = {} // the same object every time, so a flow with no states never rebuilds the graph for them
 const NO_LINES: LineTraffic[] = [] // and no traffic, so the Performance panel's key is not rebuilt for it
 const edgeTypes = { line: Line }
 const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
@@ -227,12 +226,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const failuresOpen = nav === 'failures' // a tab of the navigator on the left, with Explorer, Flows and YAML
   // A flow that was playing waits behind the Performance and Failures tabs, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
-  // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
-  const stops = useMemo(() => (flow ? stopsOf(flow) : []), [flow])
-  const stopIndex = flow && playing ? Math.max(0, Math.min(playing.step, stops.length - 1)) : 0
-  const stop = flow ? stops[stopIndex] : undefined
-  // Where shapes stand at this stop: the flow's start and each step's changes up to it (nothing is stored, so stepping back needs no undo).
-  const flowMarks = useMemo(() => (flow && stop ? marksOf(model, statesAt(flow, stops, stopIndex)) : NO_MARKS), [model, flow, stop, stops, stopIndex])
+  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks } = useFlowStage({ model, view, flow, playing, replays, recording })
   // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. The marks are kept as text so
   // that the graph (which takes dagre tens of ms) is rebuilt only when a state changes, not on every step of a Play.
   const timeEvents = perfOpen && loadTest !== undefined && eventsOf(loadTest).length > 0
@@ -241,40 +235,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const stateMarks = flow ? flowMarks : runMarks
   const manyPicked = side?.kind === 'objects' // several shapes picked: a bar at the foot of the canvas, no panel over them
   const detailsOpen = details || (side !== undefined && !manyPicked) // the right-hand side holds Details and nothing else
-
-  // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
-  // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
-  const shown = useMemo<Playing | undefined>(() => {
-    const placeSteps = (steps: Step[]) => steps.map(s => placeStep(model, view, s))
-    if (flow && stops[stopIndex]) {
-      // A shape that takes a request off the line (`by`) is lit with the step, so it does not sit at the faint level while it flashes.
-      const also = stops[stopIndex].steps.flatMap(i => {
-        const taker = animationOf(flow.steps[i])?.by
-        const at = taker && 'shape' in taker ? placeStep(model, view, { from: taker.shape }) : null
-        return at ? [at[0]] : []
-      })
-      return { ends: placeSteps(flow.steps), steps: stops[stopIndex].steps, faint: otherLaneSteps(stops, stopIndex), ...(also.length > 0 ? { also } : {}) }
-    }
-    if (!recording) return undefined
-    const done = placeSteps(Object.hasOwn(model.flows, recording.id) ? model.flows[recording.id].steps : [])
-    return recording.from && recording.to
-      ? { ends: [...done, placeStep(model, view, { from: recording.from, to: recording.to === recording.from ? undefined : recording.to })], step: done.length }
-      : { ends: done }
-  }, [model, view, flow, stops, stopIndex, recording])
-  // Every step of the stop that moves, with where it lands in this view. A step the view can't show doesn't move.
-  const animated = flow && stop ? stop.steps.flatMap(i => {
-    const a = animationOf(flow.steps[i])
-    const p = shown?.ends[i]
-    return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p) }] : []
-  }) : []
-  const moving = animated.length > 0
-  const stepKey = flow && playing ? `${playing.flow}:${stopIndex}:${replays}` : ''
-  const caption = flow && stop ? captionOf(flow, stop) : undefined
-  const progress = useMemo(() => (flow ? progressOf(flow, stops) : undefined), [flow, stops])
-  const marks = flow && stop && caption ? stop.steps.flatMap((i, n) => {
-    const p = shown?.ends[i]
-    return p && stop.kind && caption.marks[n] !== '' ? [{ ends: p, text: caption.marks[n], kind: stop.kind }] : []
-  }) : []
   const { finished, stepTo, togglePlay } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey })
   const left = cameFrom(model.flows, playing?.trail ?? [])
   const trail = flow ? left : undefined
