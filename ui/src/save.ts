@@ -29,7 +29,7 @@ export function fromState(state: State): { model: Model; versions: Record<string
  * Left out, it is the page's own server.
  */
 export type Via = Transport | string
-const transportOf = (via: Via): Transport => (typeof via === 'string' ? httpTransport(via) : via)
+export const transportOf = (via: Via): Transport => (typeof via === 'string' ? httpTransport(via) : via)
 
 /** The folder's State as a model. Throws with a message for the user when the server or a file can't be read. */
 export async function fetchModel(via: Via = ''): Promise<ReturnType<typeof fromState>> {
@@ -45,10 +45,10 @@ export async function fetchModel(via: Via = ''): Promise<ReturnType<typeof fromS
 /** PUT a file's content, or DELETE it when `data` is null, but only if it's still at `version`. */
 const write = (transport: Transport, file: string, data: unknown, version: string | null) =>
   data === null ? transport.write('DELETE', file, { version }) : transport.write('PUT', file, { version, data })
-const ok = (reply: Reply) => reply.status >= 200 && reply.status < 300
-const errorOf = (reply: Reply) => (reply.body as { error?: string } | null)?.error
+export const ok = (reply: Reply) => reply.status >= 200 && reply.status < 300
+export const errorOf = (reply: Reply) => (reply.body as { error?: string } | null)?.error
 const versionOf = (reply: Reply) => (reply.body as { version: string | null }).version
-const failed = (what: string, file: string, reply: Reply) => `Couldn't ${what} ${file}: ${errorOf(reply) ?? `the server answered ${reply.status}`}`
+export const failed = (what: string, file: string, reply: Reply) => `Couldn't ${what} ${file}: ${errorOf(reply) ?? `the server answered ${reply.status}`}`
 
 /**
  * How to take one saved edit back: per file, newest write first, what to put back (`data`), what the
