@@ -854,7 +854,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails} onDelete={askDelete} state={side?.kind === 'object' && Object.hasOwn(stateMarks, side.id) ? stateMarks[side.id] : undefined}
               onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
           )}
-          {detailsOpen && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closeDetails} />}
+          {detailsOpen && side === undefined && view === ROOT && <OverviewPanel model={model} totals={totals} editing={editing} run={run} onClose={closeDetails} />}
           {detailsOpen && side?.kind === 'line' && (
             <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} onDelete={askDelete} />
           )}

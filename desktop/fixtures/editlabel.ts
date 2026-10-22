@@ -110,6 +110,9 @@ export const CASES: EditLabelCase[] = [
   make('the line style', 'Changed the line style', m => { m.meta.lines = 'curved' }),
   make('an icon added', 'Added the stripe icon', m => { m.meta.icons = { stripe: 'M4 4h16v16h-16z' } }),
   make('an icon deleted', 'Deleted the stripe icon', m => { delete m.meta.icons }, m => { m.meta.icons = { stripe: 'M4 4h16v16h-16z' } }),
+  make('the project name', 'Renamed the project', m => { m.meta.name = 'Plum' }),
+  make('the project description', 'Changed the project description', m => { m.meta.about = 'Food delivery.' }),
+  make('the project name and description', 'Changed the project name and description', m => { m.meta.name = 'Plum'; m.meta.about = 'Food delivery.' }),
   make('another setting', 'Changed the settings', m => { m.meta.owner = 'platform' }),
   make('two kinds of change', 'Renamed Web app to Storefront and 1 other change', m => {
     m.objects.web.name = 'Storefront'

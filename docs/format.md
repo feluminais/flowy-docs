@@ -30,6 +30,8 @@ with no value, and the file can't be saved again. `flowy check` reports that. A 
 | --- | --- |
 | `objects` | A mapping of object id to object (below) |
 | `connections` | A list of connections (below) |
+| `name` | Text | What the system is called. The Overview's heading |
+| `about` | Markdown | What the system is for and who uses it, a paragraph or two. The Overview shows it |
 | `lines` | How the canvas draws lines: `straight` (the default, so leave it out), `curved` or `angled` |
 | `icons` | Your own icons: a mapping of name to SVG path data on a 24 by 24 grid ([the guide](guide/shapes.md#icons)) |
 
@@ -154,6 +156,7 @@ and `sources` tests several at once. Tools write it. The format is in [the guide
 | To change | Use |
 | --- | --- |
 | An object and everything on it (`type`, `name`, `in`, `external`, `shape`, `color`, `opacity`, `icon`, `tech`, `description`, `code`, `links`, `snippets`, `data`) | `put_object` |
+| The system's `name` and `about` | `put_project` |
 | A custom icon | `put_icon` |
 | A connection | `connect`, `disconnect` |
 | A flow, with its groups, states and animations | `put_flow` |

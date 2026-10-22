@@ -7,12 +7,12 @@ import { FILE_KINDS, kindOfPath, pathOf } from '../core/filekinds.ts'
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
-import { getObject, OBJECT_TYPES, ROOT } from '../core/model.ts'
+import { getObject, OBJECT_TYPES, projectAbout, projectName, ROOT } from '../core/model.ts'
 import { changedFiles } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { describeDependent } from '../core/dependents.ts'
 import type { Dependent } from '../core/dependents.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setProject } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
@@ -29,9 +29,9 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_icon, and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_project (the system's name and what it is), put_icon, and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
-- A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
+- A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the system's name and a short about (put_project), the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
 - When they name a part, read its rules first and only those. They are resources: flowy://rules/flows (animation, outcomes, groups, states), flowy://rules/data, flowy://rules/code and flowy://rules/failures.
 - The last thing you say is the account in "After writing" and then what Flowy could add, from what you saw while reading and never as a general list: one line for each of data (a store with a schema or migration), code (a formula, a query or a payload that explains a shape), failures (outside services, retries, timeouts), motion in flows (call, send and event steps), performance (load-test results or a load-test tool in the repo) and more flows (name the ones you left out). Leave a part out when you saw nothing for it, and say that you did not write any of them.
@@ -127,6 +127,9 @@ const dataEntry = z.object({
   notes: z.record(z.string(), z.string()).optional().describe('For a sample: a field (a dotted path like "hours.mon" for a nested one) mapped to a one-line note.'),
 })
 
+/** The system's name and what it is, when the file has them, in the shape put_project takes. */
+const project = (m: Model) => ({ ...(projectName(m) ? { name: projectName(m) } : {}), ...(projectAbout(m) ? { about: projectAbout(m) } : {}) })
+
 /** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
 export function createMcpServer(dir: string, history?: History): McpServer {
   const server = new McpServer({ name: 'flowy-docs', version: '0.1.0' }, { instructions: INSTRUCTIONS })
@@ -220,6 +223,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     if (summary === true) {
       const objects = Object.entries(m.objects).map(([oid, o]) => ({ id: oid, type: o.type, name: o.name, ...(o.in ? { in: o.in } : {}), ...(o.tech ? { tech: o.tech } : {}), ...(o.external === 'true' ? { external: true } : {}) }))
       return {
+        ...project(m),
         objects,
         connections: m.connections.map(c => `${c.from} → ${c.to}${c.label ? `: ${c.label}` : ''}`),
         flows: Object.entries(m.flows).map(([fid, f]) => ({ id: fid, name: f.name, view: f.view, steps: f.steps.length })),
@@ -248,7 +252,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
       if (!Object.hasOwn(m.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
       return { id: analysis, analysis: m.failures[analysis], problems: about(p => p.file === `failures/${analysis}.yaml`) }
     }
-    return { objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
+    return { ...project(m), objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
   }))
 
   server.registerTool('get_problems', {
@@ -311,6 +315,14 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         .describe('What a store holds, drawn in its panel as tables with sample rows, key sets, topics or documents. Only a store can have it. Replaces the whole list, so read the store with get_model first and send every entry to keep. [] removes it. Sample rows are invented, never real data.'),
     },
   }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`, mcpLabel('put_object', input)))
+
+  server.registerTool('put_project', {
+    description: 'Set the name of the system and what it is: the first thing a reader sees when nothing is selected. Omitted fields stay as they are, "" removes one.',
+    inputSchema: {
+      name: z.string().max(200).optional().describe('What the system is called, e.g. "Plum".'),
+      about: z.string().max(4000).optional().describe('Markdown. What the system is for and who uses it, in a paragraph or two. Long documents belong in links on the top-level system.'),
+    },
+  }, input => write(m => setProject(m, input), 'Saved the project details.', mcpLabel('put_project', input)))
 
   server.registerTool('put_icon', {
     description: `Define a custom icon for objects to use with put_object's icon. It is SVG path data on a 24x24 grid, drawn as a 2px round line like the built-in ones (copy the "d" of a Tabler or Lucide icon, joining several paths). Built-in names, which can't be reused: ${ICON_GROUPS.map(g => `${g.group}: ${g.names.join(', ')}`).join('. ')}.`,

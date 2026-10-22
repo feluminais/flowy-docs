@@ -84,6 +84,12 @@ export const emptyModel = (): Model => ({ objects: {}, connections: [], flows: {
 /** The project's line style. Anything unknown draws straight; check() reports it. */
 export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s === model.meta.lines) ?? 'straight'
 
+/** The project's name: the top-level `name:` in model.yaml. Empty when there is none (check() reports a value that isn't text). */
+export const projectName = (model: Pick<Model, 'meta'>): string => (typeof model.meta.name === 'string' ? model.meta.name.trim() : '')
+
+/** What the project is, in Markdown: the top-level `about:` in model.yaml. Empty when there is none. */
+export const projectAbout = (model: Pick<Model, 'meta'>): string => (typeof model.meta.about === 'string' ? model.meta.about.trim() : '')
+
 /** Whether an object is an outside service: `external: true`, read back as the text "true". */
 export const isExternal = (o: FlowyObject): boolean => o.external === 'true'
 

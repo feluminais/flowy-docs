@@ -605,6 +605,31 @@ public static partial class EditOps
         return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Layout = d.Layout };
     }
 
+    /// <summary>
+    /// Set the project's name and what it is: the top-level <c>name:</c> and <c>about:</c> in model.yaml. A field left null stays as it is; blank text removes the key.
+    /// A new <c>name</c> goes first, a new <c>about</c> right after the name, and one that's there keeps its place.
+    /// </summary>
+    public static EditDoc SetProject(EditDoc doc, string? name = null, string? about = null)
+    {
+        var d = doc.Clone();
+        var meta = d.Meta;
+        foreach (var (key, given) in new[] { ("name", name), ("about", about) })
+        {
+            if (given is null) continue;
+            var text = given.Trim();
+            if (text == "") meta.Remove(key);
+            else if (meta.ContainsKey(key)) meta[key] = text;
+            else
+            {
+                var entries = meta.ToList();
+                entries.Insert(key == "about" ? entries.FindIndex(e => e.Key == "name") + 1 : 0, new KeyValuePair<string, object?>(key, text));
+                meta = new OrderedDictionary<string, object?>();
+                foreach (var (k, v) in entries) meta[k] = v;
+            }
+        }
+        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Layout = d.Layout };
+    }
+
     /// <summary>Forget where boxes were dragged in one view, so the computed layout shows again.</summary>
     public static EditDoc ForgetLayout(EditDoc doc, string view)
     {

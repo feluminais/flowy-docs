@@ -75,6 +75,8 @@ internal static class JsonDump
         });
         var result = Obj(
             ("lineStyle", m.LineStyle),
+            ("projectName", m.ProjectName),
+            ("projectAbout", m.ProjectAbout),
             ("objects", Arr(m.Objects.Select(kv => Obj(
                 ("id", kv.Key), ("type", kv.Value.Type), ("name", kv.Value.Name), ("in", kv.Value.In), ("external", kv.Value.External),
                 ("shape", kv.Value.Shape), ("color", kv.Value.Color), ("opacity", kv.Value.Opacity), ("icon", kv.Value.Icon),

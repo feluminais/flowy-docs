@@ -1,3 +1,8 @@
+name: Flowy Docs
+about: |
+  Architecture docs that live in the repo as YAML and that a reader zooms into. This model describes Flowy itself.
+
+  Open **Flowy Docs** to see the ways in: the browser canvas, the MCP server, the desktop app and the VS Code extension.
 objects:
   reader:
     type: actor

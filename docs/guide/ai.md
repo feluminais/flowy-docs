@@ -52,7 +52,7 @@ reads the way the code works.
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 
-**The tools.** The server has seventeen. What `get_model` shows can be sent straight back to the tool that writes it.
+**The tools.** The server has eighteen. What `get_model` shows can be sent straight back to the tool that writes it.
 
 | Tool | Does |
 | --- | --- |
@@ -66,6 +66,7 @@ notes in an object's `description` instead.
 | `put_flow`, `delete_flow` | A flow with its groups, states and animations, and answers with how each step reads on its view, or removes it |
 | `put_failures`, `delete_failures` | A whole failure analysis, or removes it |
 | `put_failure`, `delete_failure` | One mode of an analysis, or removes it. `run` must be one of the runs `get_model` lists |
+| `put_project` | The system's name and what it is, the first thing Details shows when nothing is picked. `""` removes one |
 | `put_icon`, `delete_icon` | Your own icon, or removes one nothing uses |
 
 Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those) and `layout.yaml`.

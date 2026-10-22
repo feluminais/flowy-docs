@@ -64,6 +64,9 @@ public static class Checks
         if (model.Meta.TryGetValue("lines", out var lines) && !(lines is string style && Names.LineStyles.Contains(style)))
             Add(FolderLayout.ModelFile, null, "lines must be straight, curved or angled");
 
+        foreach (var key in new[] { "name", "about" })
+            if (model.Meta.TryGetValue(key, out var text) && text is not (null or string)) Add(FolderLayout.ModelFile, null, $"{key} must be text");
+
         foreach (var path in EmptyKeys.Of(model.Meta)) Add("model.yaml", null, EmptyKeys.Message(path));
 
         if (model.Meta.TryGetValue("icons", out var icons) && !(icons is ""))

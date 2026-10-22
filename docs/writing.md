@@ -90,6 +90,10 @@ The first paragraph of a description is what a hover shows. Give every shape one
 | "Component responsible for checkout." | "Prices the basket, authorises the card and places the order." (Plum) | The real verbs |
 | "A robust, scalable payment solution." | "Charges cards and retries a declined charge once." | A fact, not a claim |
 
+## Write the overview
+
+The Overview is what Details shows at the top level when nothing is picked: the first thing a new reader sees. Give it `name` and `about` in `model.yaml`. Say what the system is for and who uses it, in one or two short paragraphs, and point at the shapes to open first. Don't list the shapes, the stack or the endpoints: the canvas and the panels hold those.
+
 ## Write the panel
 
 The rest of the description shows when someone clicks. Spend the words where the code is silent.
