@@ -247,12 +247,90 @@ public class EditSessionTests
         Assert.Contains("step: 3", after["failures/ordering.yaml"]); // the receipt mode moved up from step 4
         Assert.Equal(0, TempFiles(dir));
         Assert.Equal(EditResult.Ok, session.Undo());
-        var undone = Snapshot(dir); // written as the browser writes it, so not byte for byte what the hand-written files were
-        Assert.Contains("db-down", undone["failures/ordering.yaml"]);
-        Assert.Contains("step: 4", undone["failures/ordering.yaml"]);
-        Assert.Contains("db:", undone["model.yaml"]);
-        Assert.Contains("Saves the order", undone["flows/checkout.yaml"]);
+        Assert.Equal(before, Snapshot(dir)); // byte for byte, hand-written style included
         Assert.Equal("Nothing to undo.", session.Undo().Message);
+    }
+
+    private static readonly Target[] DropDb = [new Target(Object: "db")];
+    private static readonly Resolution[] SettleDb = [new("step:checkout:3", "removeStep"), new("mode:ordering:db-down:on", "removeMode")];
+
+    /// <summary>A hook that throws a disk error on the writes whose numbers (counting from 1, put-backs included) are listed.</summary>
+    private static Action<string> FailOn(params int[] numbers)
+    {
+        var n = 0;
+        return _ => { if (numbers.Contains(++n)) throw new IOException("disk full"); };
+    }
+
+    [Fact]
+    public void A_write_that_fails_halfway_puts_back_what_was_written_and_records_nothing()
+    {
+        var (temp, dir) = CopyCase("delete");
+        using var _ = temp;
+        var before = Snapshot(dir);
+        var session = new EditSession(dir) { BeforeWrite = FailOn(2) };
+        var saves = 0;
+        session.Saved += () => saves++;
+        Assert.Equal("Couldn't save: disk full", session.Apply(d => EditOps.DeleteWith(d, DropDb, SettleDb)).Message);
+        Assert.Equal(before, Snapshot(dir));
+        Assert.Equal(0, TempFiles(dir));
+        Assert.Equal(0, saves);
+        Assert.False(session.CanUndo);
+    }
+
+    [Fact]
+    public void A_file_that_changed_between_reading_and_writing_stops_the_edit_before_any_file_is_touched()
+    {
+        var (temp, dir) = CopyCase("delete");
+        using var _ = temp;
+        var session = new EditSession(dir);
+        var result = session.Apply(d =>
+        {
+            File.WriteAllText(Path.Combine(dir, "failures", "ordering.yaml"), "name: Someone else\nmodes: {}\n"); // someone else saves while the editor works
+            return EditOps.DeleteWith(d, DropDb, SettleDb);
+        });
+        Assert.Equal(EditResult.FileChanged, result);
+        var now = Snapshot(dir);
+        Assert.Equal("name: Someone else\nmodes: {}\n", now["failures/ordering.yaml"]);
+        Assert.Contains("db:", now["model.yaml"]);
+        Assert.Contains("Saves the order", now["flows/checkout.yaml"]);
+        Assert.False(session.CanUndo);
+    }
+
+    [Fact]
+    public void When_a_file_cannot_be_put_back_either_it_is_named_and_the_edit_can_still_be_undone()
+    {
+        var (temp, dir) = CopyCase("delete");
+        using var _ = temp;
+        var before = Snapshot(dir);
+        var session = new EditSession(dir) { BeforeWrite = FailOn(2, 3) }; // the second file, then putting the first back
+        var saves = 0;
+        session.Saved += () => saves++;
+        var message = session.Apply(d => EditOps.DeleteWith(d, DropDb, SettleDb)).Message;
+        Assert.Equal("Couldn't save: disk full. model.yaml was saved first and could not be put back.", message);
+        Assert.NotEqual(before["model.yaml"], Snapshot(dir)["model.yaml"]);
+        Assert.Equal(1, saves);
+        session.BeforeWrite = null;
+        Assert.Equal(EditResult.Ok, session.Undo());
+        Assert.Equal(before, Snapshot(dir)); // byte for byte, hand-written style included
+        Assert.False(session.CanUndo);
+    }
+
+    [Fact]
+    public void An_undo_that_fails_halfway_leaves_every_file_as_the_edit_left_it_and_can_be_tried_again()
+    {
+        var (temp, dir) = CopyCase("delete");
+        using var _ = temp;
+        var before = Snapshot(dir);
+        var session = new EditSession(dir);
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.DeleteWith(d, DropDb, SettleDb)));
+        var after = Snapshot(dir);
+        session.BeforeWrite = FailOn(2);
+        Assert.Equal("Couldn't undo: disk full", session.Undo().Message);
+        Assert.Equal(after, Snapshot(dir));
+        Assert.True(session.CanUndo);
+        session.BeforeWrite = null;
+        Assert.Equal(EditResult.Ok, session.Undo());
+        Assert.Equal(before, Snapshot(dir));
     }
 
     [Fact]
