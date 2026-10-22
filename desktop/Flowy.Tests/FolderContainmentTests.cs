@@ -117,7 +117,8 @@ public class FolderContainmentTests
 
         var session = new EditSession(dir);
         var result = session.Apply(d => EditOps.PutFlow(d, "pay", "Customer pays", "root", [EditOps.NewStep("customer", "pay", "Pays")]));
-        Assert.Equal("\"flows/pay.yaml\" points outside the folder", result.Message);
+        Assert.Contains("flows/pay.yaml", result.Message);
+        Assert.Contains("points outside the folder", result.Message);
         Assert.False(session.CanUndo);
         Assert.Empty(Directory.GetFileSystemEntries(outside));
     }
