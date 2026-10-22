@@ -10,6 +10,8 @@
 <p align="center">
   <a href="docs/install.md"><strong>Install</strong></a>
   &nbsp; · &nbsp;
+  <a href="https://feluminais.github.io/flowy-docs/">Demo</a>
+  &nbsp; · &nbsp;
   <a href="docs/guide.md">Guide</a>
   &nbsp; · &nbsp;
   <a href="docs/format.md">File format</a>
@@ -28,6 +30,9 @@ Flowy Docs draws a system as shapes you zoom into: people, systems, apps, stores
 them, and step-by-step flows. Double-click a shape to open what is inside it. Esc or the breadcrumb takes you back up, and a
 faded shape beside you slides across instead. The model is plain YAML in a `flowy/` folder, so it goes through git and review
 like the code it describes. You read it in the desktop app, a browser or VS Code, and you or an AI agent write it.
+
+A Mermaid diagram in the repo stays a flat picture. Flowy plays flows as animation from the same YAML in a browser, the
+desktop app and VS Code, and adds failure analyses and load-test replay to the diagram.
 
 The animations are the browser version on Plum, a made-up delivery service whose model is in [docs/demo/flowy](docs/demo/flowy).
 
