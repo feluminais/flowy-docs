@@ -30,7 +30,7 @@ import { connectionsOf, locate, moveBetween } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { addressChange, readHash, runAddress, toHash } from './hash.ts'
-import { compareOff, firstLinked, flipped, fromAddress, noteOf, noteOff, pairOf, playable, unsaved } from './compare.ts'
+import { compareOff, firstLinked, flipped, fromAddress, noteOf, noteOff, pairKey, pairOf, playable, unsaved } from './compare.ts'
 import type { Compare } from './compare.ts'
 import { CompareView } from './CompareView.tsx'
 import type { CompareHandle } from './CompareView.tsx'
@@ -154,11 +154,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [picking, setPicking] = useState(false) // the popover of the player's Compare button
   const compareRef = useRef<CompareHandle>(null)
   // The note on the pair: what is typed in its editor is kept here, not in the strip, so it survives the strip going away (the Performance tab opening over the panes) and so leaving can ask
-  // first. It belongs to one pair; another pair starts with none. A pair with no tag has no file to hold it, so there it is a draft that only lives as long as the comparison.
-  const [noteDraft, setNoteDraft] = useState<{ pair: string; text: string }>()
-  const pair = compare && `${compare.kind}:${[compare.a, compare.b].sort().join('|')}`
+  // first. It belongs to one pair; another pair starts with none. A pair with no tag has no file to hold it, so there it is a draft. It is only dropped by Discard, by saving it, or by
+  // reloading the page: closing the comparison any other way (an address, a live reload that takes a flow away) keeps it, and it is back when the pair is compared again.
+  // `saved` is the note the pair held when it was last typed in, to tell a draft that differs from it.
+  const [noteDraft, setNoteDraft] = useState<{ pair: string; text: string; saved: string }>()
+  const pair = compare && `${compare.kind}:${pairKey(compare.a, compare.b)}`
   const draft = noteDraft && noteDraft.pair === pair ? noteDraft.text : undefined
-  const dirty = compare !== undefined && unsaved(draft, noteOf(compare.kind === 'flow' ? model.flows : runs, compare.a, compare.b).text)
+  const savedNote = compare ? noteOf(compare.kind === 'flow' ? model.flows : runs, compare.a, compare.b).text : ''
+  const dirty = compare !== undefined && unsaved(draft, savedNote)
+  const keeping = noteDraft !== undefined && unsaved(noteDraft.text, noteDraft.saved) // a note typed and not saved, on any pair
   const dirtyRef = useRef(false) // read by handlers an earlier render made, which are the ones a prompt holds on to
   dirtyRef.current = dirty
   const [asking, setAsking] = useState<{ leave: () => void }>() // what to do once the reader says to discard the note
@@ -441,21 +445,18 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (!flow) setPicking(false) // the popover hangs on the player
   }, [flow])
   useEffect(() => {
-    if (!compare) {
-      setCompareStart(undefined)
-      setNoteDraft(undefined)
-    }
+    if (!compare) setCompareStart(undefined)
   }, [compare])
   useEffect(() => {
     if (!dirty) setAsking(undefined)
   }, [dirty])
   // Closing the tab or reloading with a note that isn't saved: the browser asks (it words the question itself).
   useEffect(() => {
-    if (!dirty) return
+    if (!keeping) return
     const ask = (e: BeforeUnloadEvent) => e.preventDefault()
     window.addEventListener('beforeunload', ask)
     return () => window.removeEventListener('beforeunload', ask)
-  }, [dirty])
+  }, [keeping])
   useEffect(() => {
     if (fromAddress(model, readHash(location.hash).compare).unplayable) setNotice("That flow can't play yet.") // a link to a comparison that can't open
   }, [])
@@ -476,7 +477,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   /** Show it: play the flow that tells a failure, at the step it names (counted from 1), or open it to edit. */
   const showFlow = (id: string, step?: number) => {
     if (unlessDraft(() => showFlow(id, step))) return
-    const f =Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
+    const f = Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
     if (!f || f.steps.length === 0 || !isView(model, f.view)) return setNotice("That flow can't play yet.")
     closeFailures()
     if (f.view !== view) go(f.view)
@@ -652,13 +653,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     const follow = () => {
       quiet.current = true
       const named = readHash(location.hash)
-      // The browser has already moved on, and a Back or a typed address can't be held back, so unlike every other way out this one can't ask: the note is lost, and the reader is told.
-      // (Taking the address back and asking would need to know which way the reader went, which the History API doesn't say.)
+      // The browser has already moved on, and a Back or a typed address can't be held back, so unlike every other way out this one can't ask. The note stays where it is, keyed by its
+      // pair, and the reader is told it is there. (Taking the address back and asking would need to know which way the reader went, which the History API doesn't say.)
       const keeps = fromAddress(model, named.compare).compare
-      if (dirtyRef.current && !(keeps && compare && keeps.kind === compare.kind && [keeps.a, keeps.b].sort().join('|') === [compare.a, compare.b].sort().join('|'))) {
-        setNotice('The note was discarded')
-        setNoteDraft(undefined)
-      }
+      if (dirtyRef.current && !(keeps && compare && keeps.kind === compare.kind && pairKey(keeps.a, keeps.b) === pairKey(compare.a, compare.b)))
+        setNotice('The note is kept until you close this page. Compare the pair again to see it')
       goNow(named.view)
       if (named.flow !== undefined) {
         // Back arrives twice (popstate, then hashchange), and the second must not undo the first: a flow already playing stays where it is.
@@ -829,7 +828,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               }}
               onClosePanel={closeDetails} onEmpty={close} onMode={mode => setCompare(c => c && { ...c, mode })} onFlip={() => setCompare(c => c && flipped(c))} onClose={closeCompare}
               note={{
-                off: noteOff(live, readOnly), draft, onDraft: text => setNoteDraft(text === undefined || pair === undefined ? undefined : { pair, text }),
+                off: noteOff(live, readOnly), draft, onDraft: text => setNoteDraft(text === undefined || pair === undefined ? undefined : { pair, text, saved: savedNote }),
                 onSave: (id, value) => tag(comparing.kind, id, value), onNotice: setNotice,
               }} />
           ) : (
