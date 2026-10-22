@@ -96,3 +96,16 @@ test('set_compare refuses a run that is not there, a target that is not a run, a
   assert.deepEqual(await call('set_compare', { kind: 'run', id: 'nope', with: 'old' }), { error: true, text: 'unknown run "nope"' })
   assert.equal(await readFile(join(dir, 'perf', 'new.yaml'), 'utf8'), was)
 })
+
+test('delete_flow takes the tag off a flow that tagged it, and refuses while that tag has a note', async t => {
+  const { dir, call } = await setup(t)
+  await call('set_compare', { kind: 'flow', id: 'after', with: 'before', note: 'Retries added' })
+  const refused = await call('delete_flow', { id: 'before' })
+  assert.deepEqual(refused, { error: true, text: 'flow "after" compares with "before", and its link has a note: remove that link first (Compare with)' })
+  assert.match(await readFile(join(dir, 'flows', 'before.yaml'), 'utf8'), /Before/)
+
+  await call('set_compare', { kind: 'flow', id: 'after', with: 'before' })
+  assert.equal((await call('delete_flow', { id: 'before' })).error, false)
+  assert.doesNotMatch(await readFile(join(dir, 'flows', 'after.yaml'), 'utf8'), /compare/)
+  await assert.rejects(readFile(join(dir, 'flows', 'before.yaml'), 'utf8'))
+})

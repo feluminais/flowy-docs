@@ -583,11 +583,28 @@ public static partial class EditOps
 
     public static EditDoc DeleteFlow(EditDoc doc, string id)
     {
-        return OnFlow(doc, id, (d, _) =>
+        var d = doc.Clone();
+        DropFlows(d, [id]);
+        return d;
+    }
+
+    /// <summary>
+    /// Delete flows together, in the document <paramref name="d"/> (a copy). A flow that is not deleted and tags one of them loses its tag, so no tag is left to a flow that is gone.
+    /// A tag with a note holds the reader's words, so it is never dropped quietly: the delete is refused and names the flow, which has to remove that link first.
+    /// A port of deleteFlows in src/core/ops.ts.
+    /// </summary>
+    internal static void DropFlows(EditDoc d, IReadOnlyCollection<string> ids)
+    {
+        foreach (var id in ids) ExistingFlow(d, id);
+        foreach (var other in JsCompat.OrderKeys(d.Flows.Keys))
         {
-            d.Flows.Remove(id);
-            return d;
-        });
+            if (ids.Contains(other)) continue;
+            var flow = Entry(d.Flows[other]);
+            if (Compares.Of(flow.GetValueOrDefault("compare")) is not { } tag || !ids.Contains(tag.With)) continue;
+            if (tag.Note is not null) throw new OpError($"flow \"{other}\" compares with \"{tag.With}\", and its link has a note: remove that link first (Compare with)");
+            flow.Remove("compare");
+        }
+        foreach (var id in ids) d.Flows.Remove(id);
     }
 
     // ---- layout and settings -------------------------------------------------------------------------------------
