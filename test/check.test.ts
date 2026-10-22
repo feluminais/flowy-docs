@@ -236,6 +236,12 @@ test('lines is straight, curved or angled', () => {
   assertProblem({ ...shop(), meta: { lines: 'wiggly' } }, 'model.yaml lines must be straight, curved or angled')
 })
 
+test('name and about are text', () => {
+  assert.deepEqual(check({ ...shop(), meta: { name: 'Shop', about: 'Sells things.' } }), [])
+  assertProblem({ ...shop(), meta: { name: ['Shop'] } }, 'model.yaml name must be text')
+  assertProblem({ ...shop(), meta: { about: { a: 'b' } } }, 'model.yaml about must be text')
+})
+
 test('isWebAddress takes http and https with a host', () => {
   for (const ok of ['https://example.com', 'http://localhost:4321/#a/b', 'HTTPS://EXAMPLE.COM/a?x=1#y']) assert.equal(isWebAddress(ok), true, ok)
   for (const bad of ['', 'https://', 'https:///x', 'ftp://x.dev', 'mailto:a@b.c', 'file:///x', 'javascript:alert(1)', '//example.com', 'example.com', 'https://a b.com', 'https://a.b\n', 'https://a.b\tc', 'docs/a.md'])

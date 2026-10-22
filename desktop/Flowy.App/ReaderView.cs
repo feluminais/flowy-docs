@@ -663,7 +663,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private void ShowViewDetails(Model model, string view)
     {
         if (_right != RightPanel.Details) _panel.Clear();
-        else if (view == Names.Root) _panel.ShowOverview(Totals());
+        else if (view == Names.Root && Editing) _panel.ShowProjectEditor(model, Totals(), RunAsync);
+        else if (view == Names.Root) _panel.ShowOverview(model, Totals());
         else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, AskDelete);
         else _panel.ShowObject(model, view, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
     }

@@ -1,3 +1,8 @@
+name: Plum
+about: |
+  Food delivery for one city. Customers order from the app or the website, restaurants cook, and couriers bring the food to the door.
+
+  Open **Ordering** first: every order passes through it. **Delivery** shows how a courier is found and followed.
 objects:
   customer:
     type: actor

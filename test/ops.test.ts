@@ -5,11 +5,11 @@ import type { AnimationKey } from '../src/core/animation.ts'
 import { check } from '../src/core/check.ts'
 import {
   connect, deleteFlow, deleteObject, deleteObjects, disconnect, forgetLayout, OpError, placeBoxes, putFlow, putObject, refuseNewProblems,
-  relabel, removeConnection, setLines, setStepAnimation, updateFlow,
+  relabel, removeConnection, setLines, setProject, setStepAnimation, updateFlow,
 } from '../src/core/ops.ts'
 import type { ObjectInput } from '../src/core/ops.ts'
 import { changesBetween } from '../ui/src/edit.ts'
-import { lineStyle } from '../src/core/model.ts'
+import { lineStyle, projectAbout, projectName } from '../src/core/model.ts'
 import type { Model, Step } from '../src/core/model.ts'
 import { shop } from './fixtures.ts'
 
@@ -254,6 +254,30 @@ test('setLines leaves straight out, and an existing lines key keeps its place', 
   const m = setLines({ ...shop(), meta: { title: 'Shop', lines: 'curved' } }, 'angled')
   assert.deepEqual(Object.keys(m.meta), ['title', 'lines'])
   assert.equal(m.meta.lines, 'angled')
+})
+
+test('setProject puts the name first and the about right after it, and leaves the other keys in place', () => {
+  const named = setProject({ ...shop(), meta: { lines: 'curved' } }, { name: ' Shop ' })
+  assert.deepEqual(Object.keys(named.meta), ['name', 'lines'])
+  assert.equal(projectName(named), 'Shop')
+  const both = setProject(named, { about: 'Sells things.\n' })
+  assert.deepEqual(Object.keys(both.meta), ['name', 'about', 'lines'])
+  assert.equal(projectAbout(both), 'Sells things.')
+  assert.deepEqual(Object.keys(setProject({ ...shop(), meta: { lines: 'curved' } }, { about: 'Sells things.' }).meta), ['about', 'lines'])
+  assert.deepEqual(Object.keys(setProject({ ...shop(), meta: { lines: 'curved', name: 'Shop' } }, { name: 'Store' }).meta), ['lines', 'name'])
+})
+
+test('setProject leaves a field it is not given, and blank text removes the key', () => {
+  const m = setProject(shop(), { name: 'Shop', about: 'Sells things.' })
+  assert.deepEqual(setProject(m, { about: 'More.' }).meta, { name: 'Shop', about: 'More.' })
+  assert.deepEqual(setProject(m, { name: '  ' }).meta, { about: 'Sells things.' })
+  assert.deepEqual(setProject(m, { name: '', about: '' }).meta, {})
+  assert.deepEqual(m.meta, { name: 'Shop', about: 'Sells things.' }, 'the model it was given is not changed')
+})
+
+test('projectName and projectAbout read text only', () => {
+  assert.equal(projectName({ meta: { name: ['x'] } }), '')
+  assert.equal(projectAbout({ meta: {} }), '')
 })
 
 test("forgetLayout drops one view's positions, and refuses when there are none", () => {

@@ -96,6 +96,12 @@ public sealed class Model
     /// <summary>The project's line style. Anything unknown draws straight; the checks report it.</summary>
     public string LineStyle => Meta.TryGetValue("lines", out var v) && v is string s && Names.LineStyles.Contains(s) ? s : "straight";
 
+    /// <summary>The project's name: the top-level <c>name:</c> in model.yaml. Empty when there is none (the checks report a value that isn't text).</summary>
+    public string ProjectName => Meta.TryGetValue("name", out var v) && v is string s ? s.Trim() : "";
+
+    /// <summary>What the project is, in Markdown: the top-level <c>about:</c> in model.yaml. Empty when there is none.</summary>
+    public string ProjectAbout => Meta.TryGetValue("about", out var v) && v is string s ? s.Trim() : "";
+
     /// <summary>The object with this id, or null (also for "root", which is no object).</summary>
     public FlowyObject? GetObject(string? id) => id is not null && id != Names.Root && Objects.TryGetValue(id, out var o) ? o : null;
 
