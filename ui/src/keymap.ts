@@ -27,7 +27,6 @@ export type KeyState = {
   failuresOpen: boolean
   analysis: boolean // the Failures tab has an analysis to step through
   readOnly: boolean
-  showFlows: boolean
   canPerf: boolean
 }
 
@@ -207,7 +206,7 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'flows', keys: 'L',
-    when: c => tap(c, 'l') && c.s.showFlows,
+    when: c => tap(c, 'l'),
     run: c => c.act.toggleTab('flows'),
     help: { reading: { text: 'Show every flow, and play one' } },
   },

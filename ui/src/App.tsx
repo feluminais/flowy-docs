@@ -218,7 +218,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
   const mode = modeIn(model, analysisKey, modeId)
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
-  const showFlows = totals.flows > 0 || editing // the Flows tab is there whenever there is a flow to find
   // The YAML tab is always there. Its files and steps need a server that keeps the history (not an exported page, not the VS Code webview); without one its panel says why.
   const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
   useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
@@ -226,7 +225,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
   const yamlWhy = noHistory({ live, inVscode: vscode !== undefined, hasApi: historyApi !== undefined, unavailable: yamlGone })
-  const nav = openTab(tab, { flows: showFlows, performance: canPerf })
+  const nav = openTab(tab, { performance: canPerf })
   const perfOpen = nav === 'performance' && loadTest !== undefined // a run is drawn on the canvas
   useEffect(() => {
     if (!perfOpen) perfRun.stopRamp()
@@ -651,7 +650,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       const state: KeyState = {
         editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, halfStep: recording?.from !== undefined,
         panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
-        showFlows, canPerf,
+        canPerf,
       }
       const act: KeyActions = {
         takeBack: () => void takeBack(),
@@ -701,7 +700,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
 
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
-  const navTabs = <NavTabs tab={nav ?? 'explorer'} showFlows={showFlows} onPick={setTab} />
+  const navTabs = <NavTabs tab={nav ?? 'explorer'} onPick={setTab} />
   const clearHistory = async () => {
     const why = historyApi && await clearOutcome(historyApi)
     if (why) setNotice(why)
@@ -753,7 +752,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
-        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes} showFlows={showFlows}
+        <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes}
           perf={{ runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined }} failures={{ count: modeCount(model) }} onPick={toggleTab} />
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
@@ -898,7 +897,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <FlowsTab model={model} view={view} editing={editing} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
+              <FlowsTab model={model} view={view} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} onOpen={f => openFlow(f.id)} />
             </NavPanel>
           )}
           {nav === 'explorer' && (
