@@ -99,8 +99,9 @@ public static partial class EditOps
                     mode.Remove("flow");
                     mode.Remove("step");
                 }
-            d.Flows.Remove(fid);
         }
+        // All together, so a flow that is deleted too does not count as one that keeps a tag to a deleted flow.
+        DropFlows(d, doomed);
         foreach (var (row, r) in Of("view", "changeView")) Entry(d.Flows[row.Flow!])["view"] = Viewed(row, r);
         foreach (var fid in Of("step").Select(x => x.Row.Flow!).Distinct().ToList())
         {
