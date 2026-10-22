@@ -5,11 +5,11 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>What the comparison shows: two flows, <c>A</c> first (the older, left), and how they are viewed (<c>side</c> now; <c>swap</c> is not built yet). A port of <c>Compare</c> in ui/src/compare.ts.</summary>
+/// <summary>What the comparison shows: two flows, <c>A</c> first (the older, left), and how they are viewed (<c>side</c> by side, or <c>swap</c> on one canvas). A port of <c>Compare</c> in ui/src/compare.ts.</summary>
 internal sealed record CompareState(string Kind, string A, string B, string Mode);
 
 /// <summary>
-/// Two flows side by side: the comparison takes the canvas's place, each flow in a pane of its own (see <see cref="CompareView"/>), and the flow player waits behind it as it does behind
+/// Two flows side by side, or swapping on one canvas: the comparison takes the canvas's place, each flow in a pane of its own (see <see cref="CompareView"/>), and the flow player waits behind it as it does behind
 /// editing, the Performance tab and the Failures tab. A port of what App.tsx does for the comparison, with the same rules: it never opens while editing, and starting to edit ends it;
 /// a flow that can't play does not open; the Performance and Failures tabs hide it and it is back when they close; going to another level ends it.
 /// </summary>
@@ -30,7 +30,7 @@ internal sealed partial class ReaderView
     /// Two flows side by side: <paramref name="id"/> is the one that was playing (or picked on a row), <paramref name="other"/> the one picked to go with it, the one that holds the tag second.
     /// A flow that can't play doesn't open, and nothing opens while editing.
     /// </summary>
-    internal void OpenCompare(string id, string other)
+    internal void OpenCompare(string id, string other, string mode = "side")
     {
         DropPicker();
         if (_folder is not { } folder || Editing) return;
@@ -43,7 +43,7 @@ internal sealed partial class ReaderView
         _compareStart = PlayingFlow() is { } playing && playing.Id == id ? (id, StopIndex()) : null;
         _playback.StopAuto(); // it must not start up again behind the panes, or when the comparison closes
         var (older, newer) = CompareChoices.Order("flow", CompareChoices.TagsOf(folder.Model, new Dictionary<string, LoadRun>(), "flow"), id, other);
-        _compare = new CompareState("flow", older, newer, "side");
+        _compare = new CompareState("flow", older, newer, mode);
         _compareView = null;
         _side = null;
         Refresh();
@@ -90,6 +90,32 @@ internal sealed partial class ReaderView
         Refresh();
     }
 
+    /// <summary>Side by side or Swap, from the bar. It is part of the comparison's state, so a reload or Swap sides keeps it.</summary>
+    private void SetCompareMode(string mode)
+    {
+        if (_compare is not { } state || state.Mode == mode) return;
+        _compare = state with { Mode = mode };
+        Refresh();
+    }
+
+    /// <summary>
+    /// Swap: puts the other flow on show (X), or the one that reads first or second in the bar (<paramref name="reads"/> 0 or 1). The Details panel stays open if its shape is in the
+    /// flow that comes on, and closes if it is not.
+    /// </summary>
+    private void SwapCompare(int? reads = null)
+    {
+        if (!Comparing || _compare is not { Mode: "swap" } state || _compareView?.Stage is not { } stage) return;
+        Interacted();
+        if (reads is { } side) stage.SwapTo(CompareView.KeysOf(state)[side]);
+        else stage.Swap();
+        if (_side is { } shown && !stage.Holds(shown)) CloseDetails();
+        else
+        {
+            Refresh();
+            Focus();
+        }
+    }
+
     private CompareView BuildCompareView()
     {
         var view = new CompareView();
@@ -97,6 +123,8 @@ internal sealed partial class ReaderView
         view.EmptyClicked += PaneClicked; // as on the single canvas, a click on nothing closes the panel
         view.Bar.Closed += () => CloseCompare();
         view.Bar.Flipped += FlipCompare;
+        view.Bar.ModePicked += SetCompareMode;
+        view.Bar.FlowPicked += reads => SwapCompare(reads);
         _compareHost.Child = view;
         return view;
     }
@@ -185,8 +213,15 @@ internal sealed partial class ReaderView
 
     internal ComparePicker? PickerShown => _picker;
 
-    /// <summary>Opens a comparison of two flows by id, for a picture (--compare). A pair that holds a tag reads with the one that holds it second.</summary>
-    public void OpenCompareById(string id, string other) => OpenCompare(id, other);
+    /// <summary>
+    /// Opens a comparison of two flows by id, for a picture (--compare). A pair that holds a tag reads with the one that holds it second. With <paramref name="swap"/> it opens in
+    /// Swap, on the flow that reads first, or on the other one with <paramref name="swapped"/>.
+    /// </summary>
+    public void OpenCompareById(string id, string other, bool swap = false, bool swapped = false)
+    {
+        OpenCompare(id, other, swap ? "swap" : "side");
+        if (swap && swapped) SwapCompare();
+    }
 
     internal void ToggleCompareKey() => ToggleCompare();
 }
