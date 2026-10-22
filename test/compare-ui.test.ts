@@ -5,7 +5,7 @@ import type { Flow } from '../src/core/model.ts'
 import type { Run } from '../src/core/perf/types.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, noteOf, noteOff, orderPair, pairOf, pairOff, playable, samePick, saveTarget, unsaved } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, playable, samePick, saveTarget, unsaved } from '../ui/src/compare.ts'
 import type { Compare } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -219,6 +219,33 @@ test('a tagged pair is saved on the line it has; an untagged one on the second o
   assert.deepEqual(saveTarget('flow', flows, 'old', 'other', '  Padded  '), { id: 'other', tag: { with: 'old', note: 'Padded' } })
 })
 
+test('Save as pair never replaces a link silently: the target is named with what it replaces', () => {
+  const flows = { x: flow('X'), y: flow('Y', 'z'), z: flow('Z'), w: flow('W', 'v'), v: flow('V') }
+  // The newer (second) already links to another flow, the older does not: the line goes to the older, which replaces nothing.
+  assert.deepEqual(saveTarget('flow', flows, 'x', 'y', 'n'), { id: 'x', tag: { with: 'y', note: 'n' } })
+  // Swap sides flips who is newer: Y is first, X second, and X is free.
+  assert.deepEqual(saveTarget('flow', flows, 'y', 'x', 'n'), { id: 'x', tag: { with: 'y', note: 'n' } })
+  // Both link elsewhere: the newer is the target by the usual rule, and the confirm says what it replaces.
+  assert.deepEqual(saveTarget('flow', flows, 'w', 'y'), { id: 'y', tag: { with: 'w' }, replaces: 'z' })
+  assert.deepEqual(saveTarget('flow', flows, 'y', 'w'), { id: 'w', tag: { with: 'y' }, replaces: 'v' }, 'swapped: the other one is the target')
+  // The older links elsewhere and the newer is free: the newer.
+  assert.deepEqual(saveTarget('flow', flows, 'y', 'x'), { id: 'x', tag: { with: 'y' } })
+  // A tag to a flow that is not there is still a link.
+  assert.deepEqual(saveTarget('flow', { a: flow('A'), b: flow('B', 'gone') }, 'a', 'b'), { id: 'a', tag: { with: 'b' } })
+  assert.deepEqual(saveTarget('flow', { a: flow('A', 'gone2'), b: flow('B', 'gone') }, 'a', 'b'), { id: 'b', tag: { with: 'a' }, replaces: 'gone' })
+})
+
+test('a pair that is tagged replaces nothing, and a free target replaces nothing', () => {
+  const flows = { old: flow('Old'), now: flow('Now', 'old') }
+  assert.equal(saveTarget('flow', flows, 'old', 'now', 'x').replaces, undefined)
+  assert.equal(saveTarget('flow', { a: flow('A'), b: flow('B') }, 'a', 'b').replaces, undefined)
+})
+
+test('the pair has one key whichever way round it is given', () => {
+  assert.equal(pairKey('a', 'b'), pairKey('b', 'a'))
+  assert.notEqual(pairKey('a', 'b'), pairKey('a', 'c'))
+})
+
 test('a tagged pair keeps the line that holds it when the tag is the other way round', () => {
   const flows = { a: flow('A', 'b'), b: flow('B') }
   assert.deepEqual(saveTarget('flow', flows, 'a', 'b', 'n'), { id: 'a', tag: { with: 'b', note: 'n' } })
@@ -243,4 +270,7 @@ test('a note counts as unsaved when it has text and is not what the pair holds',
   assert.equal(unsaved('x', ''), true)
   assert.equal(unsaved('x', 'x'), false, 'what is saved can not be lost')
   assert.equal(unsaved('', 'x'), true, 'a saved note emptied out is a change')
+  assert.equal(unsaved('x', 'x\n'), false, 'a hand-written block note ends in a newline: opening it is not a change')
+  assert.equal(unsaved('x\n', 'x\n'), false)
+  assert.equal(unsaved('y', 'x\n'), true)
 })
