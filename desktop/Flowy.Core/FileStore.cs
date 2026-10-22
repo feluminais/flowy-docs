@@ -72,26 +72,55 @@ public static class FileStore
                 Retry(() => File.Delete(path));
                 return null;
             }
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            var temp = $"{path}.{Guid.NewGuid()}.tmp";
+            Replace(path, text);
+            return Hash(text);
+        }
+    }
+
+    /// <summary>
+    /// Sets (or, with a null <paramref name="tag"/>, takes out) the <c>compare</c> tag of the run <paramref name="id"/>, only if its file still has version <paramref name="expected"/>. It is
+    /// the one write a run takes (see <see cref="RunCompareText"/>): the rest of the file stays as it is, and what would no longer play is never written. Returns the new version. Saves to
+    /// one file run one at a time, with those of <see cref="Save"/>. Throws <see cref="VersionConflict"/> when the file moved on or is gone, and <see cref="ParseError"/> when the run (or the
+    /// run with the tag) can't be read.
+    /// </summary>
+    public static string SaveRunCompare(string dir, string id, CompareTag? tag, string? expected)
+    {
+        var rel = FolderLayout.PerfFile(id);
+        if (!Names.IsValidId(id)) throw new InvalidOperationException($"refusing to write \"{rel}\"");
+        var path = Path.Combine(dir, rel);
+        lock (Locks.GetOrAdd(Path.GetFullPath(path), _ => new object()))
+        {
+            var (current, version) = Read(dir, rel);
+            if (current is null || version != expected) throw new VersionConflict(rel, version);
+            var text = RunCompareText.Set(current, tag);
+            Perf.ParseRun(id, text); // never write what can't be played
+            if (text == current) return version!;
+            Replace(path, text);
+            return Hash(text);
+        }
+    }
+
+    /// <summary>Puts the text in the file through a temporary one beside it, so a crash leaves the old file or the new one, never half of one.</summary>
+    private static void Replace(string path, string text)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var temp = $"{path}.{Guid.NewGuid()}.tmp";
+        try
+        {
+            File.WriteAllText(temp, text, NoBom);
+            Retry(() => File.Move(temp, path, true));
+        }
+        catch
+        {
             try
             {
-                File.WriteAllText(temp, text, NoBom);
-                Retry(() => File.Move(temp, path, true));
+                File.Delete(temp);
             }
-            catch
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
             {
-                try
-                {
-                    File.Delete(temp);
-                }
-                catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-                {
-                    // keep the real error, not a cleanup one
-                }
-                throw;
+                // keep the real error, not a cleanup one
             }
-            return Hash(text);
+            throw;
         }
     }
 
