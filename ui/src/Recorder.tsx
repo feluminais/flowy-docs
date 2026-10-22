@@ -4,17 +4,19 @@ import { getObject } from '../../src/core/model.ts'
 import type { Group, Model, Step } from '../../src/core/model.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { compareOf } from '../../src/core/compare.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
 import { nameOf } from '../../src/core/views.ts'
+import { flowTile, partnerChoices, taggedBy, tagWith } from './compare.ts'
 import { newId, pickStepState, stateOf, stepStateShapes, withKey } from './edit.ts'
 import { Field, Panel } from './forms.tsx'
 import type { Common, SaveEdit } from './forms.tsx'
 import { Section, TypeTile } from './Chrome.tsx'
-import { KindPicker, SketchPicker, StatePicker } from './Pickers.tsx'
-import type { Sketch } from './Pickers.tsx'
-import { ArrowDown, ArrowUp, ArrowsSplit, Check, GitFork, Play, Plus, Repeat, Route, Text, Trash } from './icons.tsx'
+import { KindPicker, PartnerPicker, SketchPicker, StatePicker } from './Pickers.tsx'
+import type { PartnerTile, Sketch } from './Pickers.tsx'
+import { ArrowDown, ArrowUp, ArrowsSplit, Check, Columns, GitFork, Play, Plus, Repeat, Route, Text, Trash } from './icons.tsx'
 
 /** The flow being recorded. While `id` is "", it still needs a name. `from` and `to` are the step being picked. */
 export type Recording = { id: string; name: string; from?: string; to?: string }
@@ -185,8 +187,26 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
   )
 }
 
+/**
+ * Which flow this one is compared with, and the flows that compare with it. A pick or a removal is one edit, so undo and the history take it like any other, and the note
+ * of the link stays when the partner changes. `off` greys the section out with its reason while the flow has no file yet.
+ */
+function CompareSection({ model, flowId, run, off, onOpen }: { model: Model; flowId: string; run: SaveEdit; off?: string; onOpen: (id: string) => void }) {
+  const tag = off === undefined && Object.hasOwn(model.flows, flowId) ? compareOf(model.flows[flowId].compare) : undefined
+  const partner: PartnerTile | undefined = tag && (tag.with !== flowId && Object.hasOwn(model.flows, tag.with) ? flowTile(model, tag.with) : { id: tag.with, name: tag.with, view: '', missing: true })
+  return (
+    <>
+      <Section icon={Columns} title="Compare with" />
+      <PartnerPicker partner={partner} choices={partnerChoices(model, flowId)} comparedBy={off === undefined ? taggedBy(model, flowId) : []} hasNote={tag?.note !== undefined} off={off}
+        onPick={id => void run(m => setCompare(m, flowId, tagWith(m, flowId, id)))}
+        onRemove={() => void run(m => setCompare(m, flowId, undefined))}
+        onOpen={onOpen} />
+    </>
+  )
+}
+
 /** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
-export function Recorder({ model, view, rec, onChange, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void }) {
+export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void; onOpenFlow: (id: string) => void }) {
   if (!rec.id) return (
     <Panel onClose={onClose}>
       <h2 className="iconhead"><span className="badge"><Route size={14} /></span>New flow</h2>
@@ -198,6 +218,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
         <label>Name<input name="name" autoFocus placeholder="e.g. Customer checks out" /></label>
         <button className="primary"><Play size={16} />Start recording</button>
       </form>
+      <CompareSection model={model} flowId="" run={run} off="Name the flow first" onOpen={onOpenFlow} />
     </Panel>
   )
   const flow = Object.hasOwn(model.flows, rec.id) ? model.flows[rec.id] : undefined
@@ -275,6 +296,7 @@ export function Recorder({ model, view, rec, onChange, run, onClose }: Common & 
         <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Click where it goes, or the same shape if it acts alone.` : 'Click the shape where the next step starts.'}</p>
       )}
       {flow && <GroupsSection flowId={rec.id} steps={steps} groups={groups} edit={edit} />}
+      <CompareSection model={model} flowId={rec.id} run={run} off={flow ? undefined : 'Record a step first'} onOpen={onOpenFlow} />
       <div className="panel-buttons">
         {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}><Trash size={16} />Delete flow</button>}
         <button className="primary" onClick={onClose}><Check size={16} />Done</button>

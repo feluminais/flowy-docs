@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
@@ -7,6 +8,9 @@ import type { Choice } from './compare.ts'
 import { Link, Search as SearchIcon } from './icons.tsx'
 
 const NO_RUNS: Record<string, Run> = {} // the same object every time, so the choices are not worked out again for it
+
+/** Where a popover that hangs off a row of a list sits, in the window's pixels: the list scrolls, so the popover can't live inside it. Below the row (`top`) or above it (`bottom`). */
+export type PickAt = { left: number; width: number; top?: number; bottom?: number }
 
 type Props = {
   model: Model
@@ -20,6 +24,8 @@ type Props = {
   label?: 'Compare with' | 'Link with'
   /** The attribute of the button that opened it, which takes the focus back and which a press on it does not count as outside. */
   toggle?: string
+  /** Set for the Compare button of a row in the Flows tab or the Explorer: the popover is then placed in the window instead of on its parent, and closes when a list scrolls. */
+  at?: PickAt
   onPick: (id: string) => void
   onClose: () => void
 }
@@ -28,7 +34,7 @@ type Props = {
  * The popover over the player's Compare button, or under the Performance tab's Compare and Link with: the flows (or runs) `id` is linked to first (a tag names them; one that is not
  * there is greyed out as Missing), then a field to find any other. A flow that can't play is greyed out too. Picking one calls `onPick`; a click elsewhere or Esc closes it.
  */
-export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId, label = 'Compare with', toggle = 'data-compare-toggle', onPick, onClose }: Props) {
+export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId, label = 'Compare with', toggle = 'data-compare-toggle', at, onPick, onClose }: Props) {
   const { linked, others } = useMemo(() => choicesFor(model, runs, kind, flowId), [model, runs, kind, flowId])
   const can = (id: string) => (kind === 'run' ? openable(runs, id) : playable(model, id))
   const [query, setQuery] = useState('')
@@ -49,10 +55,17 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
       onClose()
     }
     window.addEventListener('pointerdown', onDown, true)
+    // A list that scrolls moves the row the popover hangs off, and the popover would stay behind.
+    const onScroll = (e: Event) => {
+      if (e.target instanceof Element && e.target.matches('.navscroll, .tree')) onClose()
+    }
+    window.addEventListener('pointerdown', onDown, true)
     window.addEventListener('keydown', onKey, true)
+    if (at) window.addEventListener('scroll', onScroll, true)
     return () => {
       window.removeEventListener('pointerdown', onDown, true)
       window.removeEventListener('keydown', onKey, true)
+      window.removeEventListener('scroll', onScroll, true)
     }
   }, [onClose])
   const row = (c: Choice, isLinked: boolean) => {
@@ -73,8 +86,9 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
       </li>
     )
   }
-  return (
-    <div className={kind === 'run' ? 'cpick down' : 'cpick'} ref={box} role="dialog" aria-label={label}>
+  const popover = (
+    <div className={at ? 'cpick pop' : kind === 'run' ? 'cpick down' : 'cpick'} ref={box} role="dialog" aria-label={label}
+      style={at && { left: at.left, width: at.width, top: at.top ?? 'auto', bottom: at.bottom ?? 'auto' }}>
       {linked.length > 0 && <ul>{linked.map(c => row(c, true))}</ul>}
       <label className="cpick-find">
         <SearchIcon size={16} />
@@ -90,4 +104,6 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
       {q !== '' && found.length === 0 && <p className="muted">Nothing called that</p>}
     </div>
   )
+  // On a row of a scrolling list the popover goes to the body: focusing its field would otherwise scroll the list's panel to bring it into view.
+  return at ? createPortal(popover, document.body) : popover
 }
