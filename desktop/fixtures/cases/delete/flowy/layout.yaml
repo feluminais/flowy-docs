@@ -1,0 +1,6 @@
+root:
+  customer: [10, 20]
+  shop: [300, 40]
+shop:
+  web: [0, 0]
+  api: [200, 0]

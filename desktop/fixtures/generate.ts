@@ -5,6 +5,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { dumpBeats } from './beats.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
+import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
 import { dumpEditLabels } from './editlabel.ts'
 import { dumpFailures, dumpFailuresView } from './failures.ts'
@@ -37,6 +38,7 @@ await write('navigation', await dumpNavigation())
 await write('mermaid', await dumpMermaid())
 await write('yaml-write', await dumpYamlWrite())
 await write('ops', await dumpOps())
+await write('dependents', await dumpDependents())
 await write('beats', dumpBeats())
 await write('outline', await dumpOutline())
 await write('formula', dumpFormula())

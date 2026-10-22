@@ -21,9 +21,10 @@ public static class FileStore
     private static readonly UTF8Encoding NoBom = new(false);
     private static readonly ConcurrentDictionary<string, object> Locks = new();
 
-    /// <summary>The files an edit may write: model.yaml, layout.yaml and flows/&lt;id&gt;.yaml with a valid id.</summary>
+    /// <summary>The files an edit may write: model.yaml, layout.yaml, and flows/&lt;id&gt;.yaml and failures/&lt;id&gt;.yaml with a valid id.</summary>
     public static bool IsAllowed(string rel) =>
-        rel is FolderLayout.ModelFile or FolderLayout.LayoutFile || (FolderLayout.FlowIdOf(rel) is { } id && Names.IsValidId(id));
+        rel is FolderLayout.ModelFile or FolderLayout.LayoutFile
+        || (FolderLayout.FlowIdOf(rel) ?? FolderLayout.FailureIdOf(rel)) is { } id && Names.IsValidId(id);
 
     public static string Hash(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..16];
 
@@ -40,6 +41,16 @@ public static class FileStore
         var flows = Path.Combine(dir, FolderLayout.FlowsDir);
         if (!Directory.Exists(flows)) return [];
         var names = Directory.EnumerateFiles(flows).Select(Path.GetFileName).OfType<string>().Where(FolderLayout.IsRead).ToList();
+        names.Sort(StringComparer.Ordinal);
+        return names;
+    }
+
+    /// <summary>The folder's failure analysis files that have a valid id, by name, in the order the loader reads them. A file that can't be read is the loader's to report.</summary>
+    public static List<string> FailureFiles(string dir)
+    {
+        var failures = Path.Combine(dir, FolderLayout.FailuresDir);
+        if (!Directory.Exists(failures)) return [];
+        var names = Directory.EnumerateFiles(failures).Select(Path.GetFileName).OfType<string>().Where(n => FolderLayout.IsRead(n) && Names.IsValidId(FolderLayout.IdOfName(n))).ToList();
         names.Sort(StringComparer.Ordinal);
         return names;
     }

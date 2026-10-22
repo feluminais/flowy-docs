@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, deleteObjects, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -191,6 +191,34 @@ export const STEPS: Spec[] = [
   { op: 'deleteObjects', ids: ['shop', 'api', 'web', 'db', 'checkout'] }, // a box with what is inside it, the inner ones first
 ]
 
+/** Deleting what other parts depend on, from a folder with flows, groups, states and a failure analysis (desktop/fixtures/cases/delete). Each edit starts from what the one before left. */
+export const DELETE_STEPS: Spec[] = [
+  { op: 'removeStep', id: 'pay', index: 0 }, // the mode on step 2 of pay moves to step 1
+  { op: 'deleteObject', id: 'cache' }, // a mode sits on it
+  { op: 'deleteObject', id: 'mail' },
+  { op: 'deleteObject', id: 'api' },
+  { op: 'deleteWith', targets: [{ object: 'cache' }], resolutions: [] },
+  { op: 'deleteWith', targets: [{ object: 'cache' }], resolutions: [{ key: 'mode:ordering:cache-cold:on', action: 'removeMode' }] }, // its states, its line and its affects entry go along
+  { op: 'deleteWith', targets: [{ object: 'db' }], resolutions: [{ key: 'step:checkout:3', action: 'changeView' }, { key: 'mode:ordering:db-down:on', action: 'removeMode' }] },
+  { op: 'deleteWith', targets: [{ object: 'db' }], resolutions: [{ key: 'step:checkout:3', action: 'removeStep' }, { key: 'mode:ordering:db-down:on', action: 'repoint', to: 'db' }] },
+  { op: 'deleteWith', targets: [{ object: 'db' }], resolutions: [{ key: 'step:checkout:3', action: 'removeStep' }, { key: 'mode:ordering:db-down:on', action: 'repoint', to: 'nowhere' }] },
+  { op: 'deleteWith', targets: [{ object: 'db' }], resolutions: [{ key: 'step:checkout:3', action: 'removeStep' }, { key: 'mode:ordering:db-down:on', action: 'repoint', to: 'web' }, { key: 'step:checkout:9', action: 'removeStep' }] },
+  { op: 'deleteWith', targets: [{ object: 'db' }], resolutions: [{ key: 'step:checkout:3', action: 'removeStep' }, { key: 'mode:ordering:db-down:on', action: 'repoint', to: 'web' }] }, // the steps after it move up a number
+  { op: 'deleteWith', targets: [{ line: { from: 'api', to: 'mail', label: 'sends receipts' } }], resolutions: [] },
+  { op: 'deleteWith', targets: [{ line: { from: 'api', to: 'mail', label: 'second' } }], resolutions: [] }, // the mode on that line has nothing left
+  { op: 'deleteWith', targets: [{ line: { from: 'api', to: 'mail', label: 'second' } }], resolutions: [{ key: 'mode:ordering:mail-late:line', action: 'removeMode' }] },
+  { op: 'deleteWith', targets: [{ line: { from: 'api', to: 'nowhere' } }], resolutions: [] },
+  { op: 'deleteWith', targets: [{ object: 'mail' }], resolutions: [{ key: 'step:checkout:3', action: 'reroute', to: 'web' }, { key: 'step:solo:1', action: 'removeStep' }] }, // that would leave solo with no steps
+  { op: 'deleteWith', targets: [{ object: 'mail' }], resolutions: [{ key: 'step:checkout:3', action: 'reroute', to: 'web' }, { key: 'step:solo:1', action: 'deleteFlow' }, { key: 'start:checkout', action: 'removeStep' }] },
+  { op: 'deleteWith', targets: [{ object: 'mail' }], resolutions: [{ key: 'step:checkout:3', action: 'reroute', to: 'web' }, { key: 'step:solo:1', action: 'deleteFlow' }] },
+  { op: 'deleteWith', targets: [{ object: 'api' }], resolutions: [{ key: 'child:auth', action: 'deleteWith' }, { key: 'step:checkout:2', action: 'removeStep' }, { key: 'step:checkout:3', action: 'removeStep' }, { key: 'step:pay:1', action: 'removeStep' }, { key: 'mode:ordering:api-slow:on', action: 'removeMode' }] }, // that would leave pay with no steps
+  { op: 'deleteWith', targets: [{ object: 'api' }], resolutions: [{ key: 'child:auth', action: 'deleteWith' }, { key: 'step:checkout:2', action: 'removeStep' }, { key: 'step:checkout:3', action: 'removeStep' }, { key: 'step:pay:1', action: 'deleteFlow' }, { key: 'mode:ordering:api-slow:on', action: 'removeMode' }] },
+  { op: 'putObject', id: 'store2', type: 'system', name: 'Store 2' },
+  { op: 'deleteWith', targets: [{ object: 'shop' }], resolutions: [{ key: 'view:checkout', action: 'changeView', to: 'nowhere' }, { key: 'child:web', action: 'moveOut' }] },
+  { op: 'deleteWith', targets: [{ object: 'shop' }], resolutions: [{ key: 'view:checkout', action: 'changeView' }, { key: 'scope:ordering', action: 'changeScope' }, { key: 'child:web', action: 'moveOut' }] }, // web can't stand outside a system
+  { op: 'deleteWith', targets: [{ object: 'shop' }], resolutions: [{ key: 'view:checkout', action: 'changeView' }, { key: 'scope:ordering', action: 'changeScope' }, { key: 'child:web', action: 'moveOut', to: 'store2' }] },
+]
+
 function apply(model: Model, s: Spec): Model {
   switch (s.op) {
     case 'putObject': {
@@ -199,6 +227,7 @@ function apply(model: Model, s: Spec): Model {
     }
     case 'deleteObject': return deleteObject(model, s.id)
     case 'deleteObjects': return deleteObjects(model, s.ids)
+    case 'deleteWith': return deleteWith(model, s.targets, s.resolutions)
     case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label })
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
@@ -222,13 +251,13 @@ function apply(model: Model, s: Spec): Model {
 
 const filesOf = (m: Model) => ({ ...modelFiles(m), 'layout.yaml': serializeLayout(m.layout) })
 
-/** The folder the edits start from, as files, and what each edit writes or says. An edit that is refused changes nothing, as in the app. */
-export async function dumpOps(): Promise<unknown> {
-  const state = await loadState(join(root, 'desktop/fixtures/cases/edit/flowy'))
-  if ('parseError' in state) throw new Error('the edit case can\'t be read')
+/** What each edit of a script writes or says, starting from a folder. An edit that is refused changes nothing, as in the app. */
+async function run(dir: string, steps: Spec[]): Promise<{ initial: Record<string, string>; results: unknown[] }> {
+  const state = await loadState(dir)
+  if ('parseError' in state) throw new Error(`${dir} can't be read`)
   let model: Model = modelOf(state)
   const initial = filesOf(model)
-  const results = STEPS.map(spec => {
+  const results = steps.map(spec => {
     try {
       const next = apply(model, spec)
       refuseNewProblems(model, next)
@@ -239,9 +268,18 @@ export async function dumpOps(): Promise<unknown> {
       return { spec, error: e.message }
     }
   })
+  return { initial, results }
+}
+
+/** The folders the edits start from, as files, and what each edit writes or says. */
+export async function dumpOps(): Promise<unknown> {
+  const dir = join(root, 'desktop/fixtures/cases/edit/flowy')
+  const state = await loadState(dir)
+  if ('parseError' in state) throw new Error("the edit case can't be read")
+  const { initial, results } = await run(dir, STEPS)
   const names = ['Orders DB', 'orders db', 'Café Étoile', 'Naïve  Résumé', '日本語', '---', 'x'.repeat(100), '  Spaces  ', 'What?!', '1st place', 'API', 'api', 'Ünïcödé 2', 'a/b\c', '']
   const ids = names.flatMap(name => [[], ['orders-db', 'orders-db-2', 'API']].map(taken => ({ name, taken, id: newId(name, taken, 'component') })))
   const start: Model = modelOf(state)
   const types = [ROOT, ...Object.keys(start.objects), 'nowhere'].map(view => ({ view, types: typesIn(start, view) }))
-  return { initial, results, ids, types }
+  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS) }
 }

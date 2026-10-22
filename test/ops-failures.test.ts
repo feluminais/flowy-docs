@@ -91,15 +91,21 @@ test('usersOfObject and usersOfConnection find what a mode, an affects entry or 
   assert.deepEqual(usersOfConnection(m, 'mail', 'orders'), [])
 })
 
-test('deleteObject refuses a shape a mode names, as a part, as a line end or in affects', () => {
+test('deleteObject refuses a shape a mode names, as a part or as a line end, and drops it from affects', () => {
   const flowless = { ...shopWithFailures(), flows: {} } // a flow that uses a shape is refused first, with its own message
   refused(() => deleteObject(flowless, 'db'), '"db" is used by failure analysis ordering. Change or delete those first.')
   refused(() => deleteObject(flowless, 'mail'), '"mail" is used by failure analysis ordering. Change or delete those first.')
   flowless.objects.cache = { type: 'store', name: 'Cache', in: 'shop' }
+  flowless.failures.ordering.modes['api-slow'].affects = ['cache', 'web']
+  const kept = deleteObject(flowless, 'cache')
+  assert.equal(kept.objects.cache, undefined)
+  assert.deepEqual(kept.failures.ordering.modes['api-slow'].affects, ['web'])
   flowless.failures.ordering.modes['api-slow'].affects = ['cache']
-  refused(() => deleteObject(flowless, 'cache'), '"cache" is used by failure analysis ordering. Change or delete those first.')
+  assert.equal('affects' in deleteObject(flowless, 'cache').failures.ordering.modes['api-slow'], false)
   flowless.failures.second = { name: 'Second', modes: { y: { mode: 'y', on: 'cache' } } }
-  refused(() => deleteObject(flowless, 'cache'), '"cache" is used by failure analyses ordering, second. Change or delete those first.')
+  refused(() => deleteObject(flowless, 'cache'), '"cache" is used by failure analysis second. Change or delete those first.')
+  flowless.failures.third = { name: 'Third', scope: 'cache', modes: {} }
+  refused(() => deleteObject(flowless, 'cache'), '"cache" is used by failure analyses second, third. Change or delete those first.')
 })
 
 test('deleting a mode first frees the shape', () => {

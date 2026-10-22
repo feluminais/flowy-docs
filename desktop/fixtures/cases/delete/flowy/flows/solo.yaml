@@ -1,0 +1,4 @@
+name: Mail goes out
+view: root
+steps:
+  - { from: mail, text: Sends a newsletter }

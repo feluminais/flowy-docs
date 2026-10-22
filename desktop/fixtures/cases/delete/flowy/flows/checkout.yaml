@@ -1,0 +1,12 @@
+name: Customer checks out
+view: shop
+states:
+  cache: running
+  mail: stopped
+groups:
+  retry: { kind: repeat, times: "3" }
+steps:
+  - { from: customer, to: web, text: Clicks Buy }
+  - { from: web, to: api, text: Posts the order }
+  - { from: api, to: db, text: Saves the order, group: retry, states: { cache: degraded, db: running } }
+  - { from: api, to: mail, text: Sends the receipt, group: retry }

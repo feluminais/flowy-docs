@@ -2237,7 +2237,14 @@
         "op": "deleteObject",
         "id": "cache"
       },
-      "error": "\"cache\" is used by flow outage. Change or delete those first."
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
+        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
+        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "flows/outage.yaml": "name: The shop goes down\nview: root\nstates:\n  web: degraded\nsteps:\n  - from: customer\n    to: shop\n    text: Orders\n    states:\n      web: degraded\n      db: stopping\n      api: restarting\n  - from: shop\n    text: Stops answering\n    states:\n      db: stopped\n  - from: customer\n    text: Waits\n  - from: shop\n    text: Is back\n",
+        "flows/no-states.yaml": "name: An empty set writes none\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
     },
     {
       "spec": {
@@ -2245,10 +2252,10 @@
         "id": "no-states"
       },
       "files": {
-        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
-        "flows/outage.yaml": "name: The shop goes down\nview: root\nstates:\n  web: degraded\nsteps:\n  - from: customer\n    to: shop\n    text: Orders\n    states:\n      web: degraded\n      db: stopping\n      api: restarting\n  - from: shop\n    text: Stops answering\n    states:\n      db: stopped\n      cache: degraded\n  - from: customer\n    text: Waits\n  - from: shop\n    text: Is back\n",
+        "flows/outage.yaml": "name: The shop goes down\nview: root\nstates:\n  web: degraded\nsteps:\n  - from: customer\n    to: shop\n    text: Orders\n    states:\n      web: degraded\n      db: stopping\n      api: restarting\n  - from: shop\n    text: Stops answering\n    states:\n      db: stopped\n  - from: customer\n    text: Waits\n  - from: shop\n    text: Is back\n",
         "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
       }
     },
@@ -2258,7 +2265,7 @@
         "id": "outage"
       },
       "files": {
-        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
@@ -2284,7 +2291,7 @@
         }
       },
       "files": {
-        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n"
@@ -2306,7 +2313,7 @@
         }
       },
       "files": {
-        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
@@ -2324,7 +2331,7 @@
         }
       },
       "files": {
-        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
@@ -2336,7 +2343,7 @@
         "style": "angled"
       },
       "files": {
-        "model.yaml": "lines: angled\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "lines: angled\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
@@ -2348,7 +2355,7 @@
         "style": "straight"
       },
       "files": {
-        "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
@@ -2360,7 +2367,7 @@
         "style": "curved"
       },
       "files": {
-        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "lines: curved\nowner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
@@ -2371,7 +2378,7 @@
         "op": "setLines"
       },
       "files": {
-        "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\nshop:\n  web: [0, 0]\n  api: [5, 6]\n"
@@ -2383,7 +2390,7 @@
         "view": "shop"
       },
       "files": {
-        "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n",
+        "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
         "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
         "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
         "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
@@ -2401,7 +2408,7 @@
         "op": "deleteObject",
         "id": "shop"
       },
-      "error": "\"shop\" still contains web, api, db, cache. Delete or move those first."
+      "error": "\"shop\" still contains web, api, db. Delete or move those first."
     },
     {
       "spec": {
@@ -2422,12 +2429,7 @@
         "op": "deleteObject",
         "id": "cache"
       },
-      "files": {
-        "model.yaml": "owner: platform-team\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n",
-        "flows/browse.yaml": "name: Customer looks around\nview: root\nsteps:\n  - from: web\n    text: Shows the shop\n    description: |\n      More\n      lines here\n",
-        "flows/order.yaml": "name: Replaced\nview: root\nsteps:\n  - from: customer\n    text: Only step\n",
-        "layout.yaml": "root:\n  customer: [12, 34]\n  shop: [300.5, 40]\n"
-      }
+      "error": "unknown object \"cache\""
     },
     {
       "spec": {
@@ -2816,5 +2818,530 @@
       "view": "nowhere",
       "types": []
     }
-  ]
+  ],
+  "remove": {
+    "initial": {
+      "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+      "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+      "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+      "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+      "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 2\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+      "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+    },
+    "results": [
+      {
+        "spec": {
+          "op": "removeStep",
+          "id": "pay",
+          "index": 0
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 1\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteObject",
+          "id": "cache"
+        },
+        "error": "\"cache\" is used by failure analysis ordering. Change or delete those first."
+      },
+      {
+        "spec": {
+          "op": "deleteObject",
+          "id": "mail"
+        },
+        "error": "\"mail\" is used by flows checkout, solo. Change or delete those first."
+      },
+      {
+        "spec": {
+          "op": "deleteObject",
+          "id": "api"
+        },
+        "error": "\"api\" still contains auth. Delete or move those first."
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "cache"
+            }
+          ],
+          "resolutions": []
+        },
+        "error": "mode cache-cold of ordering needs a choice: removeMode, repoint"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "cache"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "mode:ordering:cache-cold:on",
+              "action": "removeMode"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 1\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "db"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "changeView"
+            },
+            {
+              "key": "mode:ordering:db-down:on",
+              "action": "removeMode"
+            }
+          ]
+        },
+        "error": "changeView is not one of the choices for flow checkout, step 3: removeStep, reroute, deleteFlow"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "db"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "removeStep"
+            },
+            {
+              "key": "mode:ordering:db-down:on",
+              "action": "repoint",
+              "to": "db"
+            }
+          ]
+        },
+        "error": "repoint for mode db-down of ordering needs \"to\": a shape that stays"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "db"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "removeStep"
+            },
+            {
+              "key": "mode:ordering:db-down:on",
+              "action": "repoint",
+              "to": "nowhere"
+            }
+          ]
+        },
+        "error": "repoint for mode db-down of ordering needs \"to\": a shape that stays"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "db"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "removeStep"
+            },
+            {
+              "key": "mode:ordering:db-down:on",
+              "action": "repoint",
+              "to": "web"
+            },
+            {
+              "key": "step:checkout:9",
+              "action": "removeStep"
+            }
+          ]
+        },
+        "error": "nothing is waiting on \"step:checkout:9\""
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "db"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "removeStep"
+            },
+            {
+              "key": "mode:ordering:db-down:on",
+              "action": "repoint",
+              "to": "web"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: web\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n    flow: checkout\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 3\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 1\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "line": {
+                "from": "api",
+                "to": "mail",
+                "label": "sends receipts"
+              }
+            }
+          ],
+          "resolutions": []
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: mail\n    label: second\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: web\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n    flow: checkout\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 3\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 1\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "line": {
+                "from": "api",
+                "to": "mail",
+                "label": "second"
+              }
+            }
+          ],
+          "resolutions": []
+        },
+        "error": "mode mail-late of ordering needs a choice: removeMode"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "line": {
+                "from": "api",
+                "to": "mail",
+                "label": "second"
+              }
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "mode:ordering:mail-late:line",
+              "action": "removeMode"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: web\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n    flow: checkout\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 1\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "line": {
+                "from": "api",
+                "to": "nowhere"
+              }
+            }
+          ],
+          "resolutions": []
+        },
+        "error": "no connection api → nowhere"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "mail"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "reroute",
+              "to": "web"
+            },
+            {
+              "key": "step:solo:1",
+              "action": "removeStep"
+            }
+          ]
+        },
+        "error": "Removing those steps would leave flow solo with no steps. Delete the flow instead."
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "mail"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "reroute",
+              "to": "web"
+            },
+            {
+              "key": "step:solo:1",
+              "action": "deleteFlow"
+            },
+            {
+              "key": "start:checkout",
+              "action": "removeStep"
+            }
+          ]
+        },
+        "error": "where flow checkout starts goes along with the shape, so it needs no choice"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "mail"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "step:checkout:3",
+              "action": "reroute",
+              "to": "web"
+            },
+            {
+              "key": "step:solo:1",
+              "action": "deleteFlow"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  auth:\n    type: component\n    in: api\n    name: Auth\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: web\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: api\n    to: web\n    text: Answers\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: web\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n    flow: checkout\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 1\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "api"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "child:auth",
+              "action": "deleteWith"
+            },
+            {
+              "key": "step:checkout:2",
+              "action": "removeStep"
+            },
+            {
+              "key": "step:checkout:3",
+              "action": "removeStep"
+            },
+            {
+              "key": "step:pay:1",
+              "action": "removeStep"
+            },
+            {
+              "key": "mode:ordering:api-slow:on",
+              "action": "removeMode"
+            }
+          ]
+        },
+        "error": "Removing those steps would leave flow pay with no steps. Delete the flow instead."
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "api"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "child:auth",
+              "action": "deleteWith"
+            },
+            {
+              "key": "step:checkout:2",
+              "action": "removeStep"
+            },
+            {
+              "key": "step:checkout:3",
+              "action": "removeStep"
+            },
+            {
+              "key": "step:pay:1",
+              "action": "deleteFlow"
+            },
+            {
+              "key": "mode:ordering:api-slow:on",
+              "action": "removeMode"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\nconnections:\n  - from: customer\n    to: web\n    label: browses\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: web\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n    flow: checkout\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "putObject",
+          "id": "store2",
+          "type": "system",
+          "name": "Store 2"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  store2:\n    type: system\n    name: Store 2\nconnections:\n  - from: customer\n    to: web\n    label: browses\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: web\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n    flow: checkout\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "shop"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "view:checkout",
+              "action": "changeView",
+              "to": "nowhere"
+            },
+            {
+              "key": "child:web",
+              "action": "moveOut"
+            }
+          ]
+        },
+        "error": "the scope of ordering needs a choice: changeScope"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "shop"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "view:checkout",
+              "action": "changeView"
+            },
+            {
+              "key": "scope:ordering",
+              "action": "changeScope"
+            },
+            {
+              "key": "child:web",
+              "action": "moveOut"
+            }
+          ]
+        },
+        "error": "Refused, nothing saved. This would add:\n- model.yaml: web: app must be inside system"
+      },
+      {
+        "spec": {
+          "op": "deleteWith",
+          "targets": [
+            {
+              "object": "shop"
+            }
+          ],
+          "resolutions": [
+            {
+              "key": "view:checkout",
+              "action": "changeView"
+            },
+            {
+              "key": "scope:ordering",
+              "action": "changeScope"
+            },
+            {
+              "key": "child:web",
+              "action": "moveOut",
+              "to": "store2"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  web:\n    type: app\n    in: store2\n    name: Web app\n  store2:\n    type: system\n    name: Store 2\nconnections:\n  - from: customer\n    to: web\n    label: browses\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n",
+          "failures/ordering.yaml": "name: Ordering\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: web\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n    flow: checkout\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      }
+    ]
+  }
 }

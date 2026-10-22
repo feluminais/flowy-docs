@@ -307,7 +307,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }, input => write(m => deleteIcon(m, input.name), `Deleted icon ${input.name}.`, mcpLabel('delete_icon', input)))
 
   server.registerTool('delete_object', {
-    description: 'Delete an object and its connections. Refused while it has children or a flow uses it.',
+    description: 'Delete an object, its connections, and the flow states and failure-mode affects entries that name it. Refused while it has children, a flow step or flow view uses it, or a failure mode names it.',
     inputSchema: { id: id('Object id') },
     annotations: destructive,
   }, input => write(m => deleteObject(m, input.id), `Deleted ${input.id}.`, mcpLabel('delete_object', input)))

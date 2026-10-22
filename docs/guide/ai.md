@@ -61,7 +61,7 @@ notes in an object's `description` instead.
 | `get_view` | What one diagram shows: its shapes, the faded ones that connect in, and the lines merged to that zoom level |
 | `get_mermaid` | One view as a flowchart, or one flow as a sequence diagram |
 | `get_failures` | The failure analyses as tables, worst first, with coverage; `format: csv` for a spreadsheet |
-| `put_object`, `delete_object` | A shape and everything on it ([the file format](../format.md#an-object)), or removes one that nothing holds or uses |
+| `put_object`, `delete_object` | A shape and everything on it ([the file format](../format.md#an-object)), or removes one, with its lines. A shape with shapes inside it, or one a flow step, a flow view or a failure mode names, is not removed |
 | `connect`, `disconnect` | Adds a line from one shape to another, or removes it |
 | `put_flow`, `delete_flow` | A flow with its groups, states and animations, and answers with how each step reads on its view, or removes it |
 | `put_failures`, `delete_failures` | A whole failure analysis, or removes it |

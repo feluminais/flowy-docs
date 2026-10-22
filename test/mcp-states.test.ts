@@ -60,14 +60,14 @@ test('mcp: a bad state is refused with the checker\'s words, and nothing is save
   assert.deepEqual(JSON.parse((await call('get_model')).text).flows, {})
 })
 
-test('mcp: delete_object is refused while a flow\'s states name the shape', async t => {
+test('mcp: delete_object takes a shape out of the states that name it', async t => {
   const { call } = await setup(t)
   await call('put_object', { id: 'cache', type: 'system', name: 'Cache' })
   const saved = await call('put_flow', { id: 'warm', name: 'Warm', view: 'root', states: { cache: 'starting' }, steps: [{ from: 'checkout', to: 'stripe', text: 'x' }] })
   assert.equal(saved.error, false, saved.text)
-  const refused = await call('delete_object', { id: 'cache' })
-  assert.equal(refused.error, true)
-  assert.match(refused.text, /"cache" is used by flow warm/)
+  const deleted = await call('delete_object', { id: 'cache' })
+  assert.equal(deleted.error, false, deleted.text)
+  assert.equal('states' in JSON.parse((await call('get_model')).text).flows.warm, false)
 })
 
 test('mcp: the instructions and the put_flow fields tell the AI about states', async t => {

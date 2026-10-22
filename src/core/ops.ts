@@ -1,7 +1,9 @@
 import { check, newProblems } from './check.ts'
 import { tidyData } from './data.ts'
 import type { DataInput } from './data.ts'
-import { analysesText, usersOfConnection, usersOfObject } from './failures.ts'
+import { dependents, describeDependent, lineIndices, needsDecision } from './dependents.ts'
+import type { Action, Dependent, Target } from './dependents.ts'
+import { analysesText, usersOfConnection } from './failures.ts'
 import { iconProblem } from './look.ts'
 import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
@@ -12,7 +14,7 @@ import { changeKind, dropGroup, groupRange, joinGroup, leaveGroup, newGroup, ste
 import { stateProblems } from './states.ts'
 import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
 import { hasText, isMap, own } from './text.ts'
-import { chain, memberIds } from './views.ts'
+import { chain, isView, parentOf } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
 export class OpError extends Error {
@@ -95,24 +97,24 @@ export function deleteIcon(model: Model, name: string): Model {
   return { ...model, meta: Object.keys(rest).length ? { ...model.meta, icons: rest } : meta }
 }
 
+/**
+ * Delete a shape and what only exists because of it: its lines, and any state entry or `affects` entry that names it. Refused while anything
+ * that needs a decision depends on it (shapes inside it, flow steps and views, failure modes), in the words of whatever is in the way; deleteWith
+ * is how those are settled.
+ */
 export function deleteObject(model: Model, id: string): Model {
   if (id === ROOT && Object.hasOwn(model.objects, ROOT))
     throw new OpError('"root" is reserved, so this object can\'t be changed here. Rename or delete it in model.yaml by hand.')
   if (!getObject(model, id)) throw new OpError(`unknown object "${id}"`)
-  const children = memberIds(model, id)
+  const rows = dependents(model, [{ object: id }]).filter(needsDecision)
+  const children = rows.filter(r => r.kind === 'child').map(r => r.child)
   if (children.length) throw new OpError(`"${id}" still contains ${children.join(', ')}. Delete or move those first.`)
-  // A shape that only a `states` names (the flow's or a step's) is used too: its state would be left pointing at nothing.
-  const names = (states: unknown) => isMap(states) && Object.hasOwn(states, id)
-  const flows = Object.entries(model.flows)
-    .filter(([, f]) => f.view === id || f.steps.some(s => s.from === id || s.to === id || names(s.states)) || names(f.states))
-    .map(([fid]) => fid)
+  const flows = [...new Set(rows.filter(r => r.flow !== undefined).map(r => r.flow))]
   if (flows.length)
     throw new OpError(`"${id}" is used by flow${flows.length > 1 ? 's' : ''} ${flows.join(', ')}. Change or delete those first.`)
-  const analyses = usersOfObject(model, id)
+  const analyses = [...new Set(rows.map(r => r.analysis).filter(a => a !== undefined))]
   if (analyses.length) throw new OpError(`"${id}" is used by ${analysesText(analyses)}. Change or delete those first.`)
-  const objects = { ...model.objects }
-  delete objects[id]
-  return { ...model, objects, connections: model.connections.filter(c => c.from !== id && c.to !== id) }
+  return deleteWith(model, [{ object: id }], [])
 }
 
 /**
@@ -122,6 +124,149 @@ export function deleteObject(model: Model, id: string): Model {
 export function deleteObjects(model: Model, ids: string[]): Model {
   const deepestFirst = [...new Set(ids)].sort((a, b) => chain(model, b).length - chain(model, a).length)
   return deepestFirst.reduce(deleteObject, model)
+}
+
+/** Whether a shape exists to point at: a target of a reroute, a repoint, a new view or a new home. */
+const exists = (model: Model, id: unknown): id is string => hasText(id) && getObject(model, id) !== undefined
+
+/** How one row of dependents() is settled: its key, what to do, and where to when the action points somewhere (reroute, repoint, changeView, changeScope, moveOut). */
+export type Resolution = { key: string; action: Action; to?: string }
+
+/** The model with the entries of `states` that name a shape in `gone` taken out, and a `states` left empty taken out too. */
+function withoutStates(model: Model, gone: ReadonlySet<string>): Model {
+  const strip = <T extends { states?: unknown }>(holder: T): T => {
+    if (!isMap(holder.states) || !Object.keys(holder.states).some(id => gone.has(id))) return holder
+    const { states: _, ...rest } = holder
+    const kept = Object.fromEntries(Object.entries(holder.states).filter(([id]) => !gone.has(id)))
+    return Object.keys(kept).length === 0 ? (rest as T) : { ...holder, states: kept }
+  }
+  const flows: Record<string, Flow> = {}
+  for (const [fid, flow] of Object.entries(model.flows)) own(flows, fid, { ...strip(flow), steps: flow.steps.map(strip) })
+  return { ...model, flows }
+}
+
+/**
+ * Delete shapes and lines as one edit, settling what depends on them the way `resolutions` say (see dependents). A row that goes with the shape
+ * needs no resolution. Refused, nothing changed, when a row that needs one has none, when a resolution does not fit its row or points at
+ * something that is going too, or when removing steps would leave a flow with none.
+ * Deleting a flow also takes the flow and step off the failure modes that named it, and removing a step moves the modes on later steps up.
+ */
+export function deleteWith(model: Model, targets: Target[], resolutions: Resolution[]): Model {
+  for (const t of targets) {
+    if ('object' in t) {
+      if (t.object === ROOT && Object.hasOwn(model.objects, ROOT)) throw new OpError('"root" is reserved, so this object can\'t be changed here. Rename or delete it in model.yaml by hand.')
+      if (!getObject(model, t.object)) throw new OpError(`unknown object "${t.object}"`)
+    } else if (lineIndices(model, t.line).length === 0) {
+      const { from, to, label } = t.line
+      throw new OpError(`no connection ${from} → ${to}${label ? ` labelled "${label}"` : ''}`)
+    }
+  }
+  const chosen = new Map<string, Resolution>()
+  for (const r of resolutions) {
+    if (chosen.has(r.key)) throw new OpError(`"${r.key}" is settled twice`)
+    chosen.set(r.key, r)
+  }
+  // A shape inside a deleted one goes too when it was chosen to, and then what depends on it is a row of its own.
+  let all = targets
+  let rows = dependents(model, all)
+  const known = new Set(rows.map(r => r.key))
+  for (;;) {
+    const more = rows.filter(r => r.kind === 'child' && chosen.get(r.key)?.action === 'deleteWith').map(r => r.child as string)
+    if (more.length === 0) break
+    all = [...all, ...more.map(object => ({ object }))]
+    rows = dependents(model, all)
+    for (const r of rows) known.add(r.key)
+  }
+  const unknown = resolutions.find(r => !known.has(r.key))
+  if (unknown) throw new OpError(`nothing is waiting on "${unknown.key}"`)
+  const needless = rows.find(r => !needsDecision(r) && chosen.has(r.key))
+  if (needless) throw new OpError(`${describeDependent(needless)} goes along with the shape, so it needs no choice`)
+
+  const gone = new Set(all.flatMap(t => ('object' in t ? [t.object] : [])))
+  const doomed = new Set(rows.filter(r => chosen.get(r.key)?.action === 'deleteFlow').map(r => r.flow as string))
+  const decided = rows.filter(needsDecision).filter(r => r.flow === undefined || !doomed.has(r.flow)).map((row): [Dependent, Resolution] => {
+    const r = chosen.get(row.key)
+    if (!r) throw new OpError(`${describeDependent(row)} needs a choice: ${row.actions.join(', ')}`)
+    if (!row.actions.includes(r.action)) throw new OpError(`${r.action} is not one of the choices for ${describeDependent(row)}: ${row.actions.join(', ')}`)
+    return [row, r]
+  })
+  const pointed = (row: Dependent, r: Resolution): string => {
+    if (!exists(model, r.to) || gone.has(r.to)) throw new OpError(`${r.action} for ${describeDependent(row)} needs "to": a shape that stays`)
+    return r.to
+  }
+  const viewed = (row: Dependent, r: Resolution): string => {
+    const to = r.to ?? ROOT
+    if (gone.has(to) || !isView(model, to)) throw new OpError(`${r.action} for ${describeDependent(row)} needs "to": "root" or a shape with shapes inside it that stays`)
+    return to
+  }
+  const of = (kind: Dependent['kind'], action?: Action) => decided.filter(([row, r]) => row.kind === kind && (action === undefined || r.action === action))
+
+  let m = model
+  for (const fid of doomed) {
+    m = deleteFlow(editModes(m, mode => {
+      if (mode.flow !== fid) return undefined
+      const { flow: _f, step: _s, ...rest } = mode
+      return rest
+    }), fid)
+  }
+  for (const [row, r] of of('view', 'changeView')) {
+    const flow = m.flows[row.flow as string]
+    m = setFlow(m, row.flow as string, { ...flow, view: viewed(row, r) })
+  }
+  const stepFlows = [...new Set(of('step').map(([row]) => row.flow as string))]
+  for (const fid of stepFlows) {
+    const mine = of('step').filter(([row]) => row.flow === fid)
+    const reroutes = mine.filter(([, r]) => r.action === 'reroute')
+    if (reroutes.length) {
+      const to = new Map(reroutes.map(([row, r]) => [(row.step as number) - 1, [row.ends as ('from' | 'to')[], pointed(row, r)] as const]))
+      m = withFlow(m, fid, flow => ({ ...flow, steps: flow.steps.map((s, i) => (to.has(i) ? { ...s, ...Object.fromEntries(to.get(i)![0].map(end => [end, to.get(i)![1]])) } : s)) }))
+    }
+    const removals = mine.filter(([, r]) => r.action === 'removeStep').map(([row]) => (row.step as number) - 1).sort((a, b) => b - a)
+    if (removals.length && removals.length === m.flows[fid].steps.length)
+      throw new OpError(`Removing those steps would leave flow ${fid} with no steps. Delete the flow instead.`)
+    for (const index of removals) m = removeStep(m, fid, index)
+  }
+  m = withoutStates(m, gone)
+
+  const mark = (aid: string, mid: string) => `${aid}\0${mid}`
+  const removed = new Set(of('mode', 'removeMode').map(([row]) => mark(row.analysis as string, row.mode as string)))
+  const repoints = new Map<string, [string, string][]>()
+  for (const [row, r] of of('mode', 'repoint')) {
+    const k = mark(row.analysis as string, row.mode as string)
+    repoints.set(k, [...(repoints.get(k) ?? []), [row.part as string, pointed(row, r)]])
+  }
+  m = editModes(m, (mode, aid, mid) => {
+    const k = mark(aid, mid)
+    if (removed.has(k)) return null
+    let next: Mode = mode
+    for (const [part, to] of repoints.get(k) ?? []) next = { ...next, [part]: to }
+    if (Array.isArray(next.affects) && next.affects.some(id => gone.has(id))) {
+      const kept = next.affects.filter(id => !gone.has(id))
+      const { affects: _, ...rest } = next
+      next = kept.length === 0 ? rest : { ...next, affects: kept }
+    }
+    return next === mode ? undefined : next
+  })
+  for (const [row, r] of of('scope', 'changeScope')) {
+    const a = m.failures[row.analysis as string]
+    const to = viewed(row, r)
+    const { scope: _, ...rest } = a
+    m = setAnalysis(m, row.analysis as string, to === ROOT ? (rest as Analysis) : { ...a, scope: to })
+  }
+
+  const objects = { ...m.objects }
+  for (const [row, r] of of('child', 'moveOut')) {
+    const child = row.child as string
+    let home = r.to ?? parentOf(model, row.of)
+    if (r.to === undefined) while (gone.has(home)) home = parentOf(model, home)
+    if (home !== ROOT && (!exists(model, home) || gone.has(home))) throw new OpError(`moveOut for ${describeDependent(row)} needs "to": "root" or a shape that stays`)
+    const { in: _, ...rest } = objects[child]
+    objects[child] = (home === ROOT ? rest : { ...objects[child], in: home }) as FlowyObject
+  }
+  for (const id of gone) delete objects[id]
+  const cut = new Set(targets.flatMap(t => ('line' in t ? lineIndices(model, t.line) : [])))
+  const connections = m.connections.filter((c, i) => !cut.has(i) && !gone.has(c.from) && !gone.has(c.to))
+  return { ...m, objects, connections }
 }
 
 /** Add a connection. An empty label means no label. */
@@ -264,11 +409,46 @@ function existingStep(flow: Flow, id: string, index: number): Step {
  * the label, and a group whose last member goes is taken out with it.
  */
 export function removeStep(model: Model, id: string, index: number): Model {
-  return withFlow(model, id, flow => {
+  const next = withFlow(model, id, flow => {
     existingStep(flow, id, index)
     const { steps, groups } = leaveGroup(flow, index)
     steps.splice(index, 1)
     return withGroups({ ...flow, steps }, groups)
+  })
+  return renumberModes(next, id, index + 1)
+}
+
+/**
+ * The model with every failure mode run through `change`: it returns the mode to put in its place, null to take the mode out, or undefined to
+ * leave it. Only the analyses that change are copied, and a mode keeps its place.
+ */
+function editModes(model: Model, change: (mode: Mode, analysis: string, id: string) => Mode | null | undefined): Model {
+  const failures: Record<string, Analysis> = {}
+  let any = false
+  for (const [aid, a] of Object.entries(model.failures)) {
+    const results = Object.entries(a.modes).map(([mid, m]) => [mid, change(m, aid, mid)] as const)
+    if (results.every(([, r]) => r === undefined)) {
+      own(failures, aid, a)
+      continue
+    }
+    any = true
+    const modes: Record<string, Mode> = {}
+    for (const [mid, r] of results) if (r !== null) own(modes, mid, r ?? a.modes[mid])
+    own(failures, aid, { ...a, modes })
+  }
+  return any ? { ...model, failures } : model
+}
+
+/**
+ * Failure modes that name a step of this flow, once step `removed` (counting from 1) is taken out: a mode on a later step moves up one, and a mode
+ * on the removed step keeps its flow and loses its step.
+ */
+function renumberModes(model: Model, flowId: string, removed: number): Model {
+  return editModes(model, m => {
+    const n = m.flow === flowId && hasText(m.step) && /^[1-9]\d*$/.test(m.step) ? Number(m.step) : 0
+    if (n < removed) return undefined
+    const { step: _, ...rest } = m
+    return n === removed ? rest : { ...m, step: String(n - 1) }
   })
 }
 

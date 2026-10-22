@@ -57,7 +57,26 @@ public sealed class EditSession(string dir)
         var layout = Read(FolderLayout.LayoutFile);
         var flows = FileStore.FlowFiles(dir).Select(name => KeyValuePair.Create(FolderLayout.IdOfName(name), Read(FolderLayout.FlowFile(FolderLayout.IdOfName(name))))).Where(f => f.Value is not null)
             .Select(f => KeyValuePair.Create(f.Key, f.Value!)).ToList();
-        return new Disk(EditDoc.Parse(model, layout, flows), versions);
+        // An analysis that can't be read is not part of the edit, so it is never replaced or deleted, as in the browser and MCP.
+        var failures = new List<KeyValuePair<string, string>>();
+        foreach (var name in FileStore.FailureFiles(dir))
+        {
+            var id = FolderLayout.IdOfName(name);
+            try
+            {
+                var text = Read(FolderLayout.FailureFile(id));
+                if (text is not null)
+                {
+                    ModelFiles.ParseAnalysis(id, text);
+                    failures.Add(KeyValuePair.Create(id, text));
+                }
+            }
+            catch (ParseError)
+            {
+                versions.Remove(FolderLayout.FailureFile(id));
+            }
+        }
+        return new Disk(EditDoc.Parse(model, layout, flows, failures), versions);
     }
 
     /// <summary>Does one edit. Says what to tell the reader (a refusal, or that a file changed under it), or that it is saved.</summary>

@@ -213,4 +213,56 @@ public class EditSessionTests
         Assert.Equal(1, saves);
         Assert.Equal(1, heard);
     }
+
+    private static (TempDir Temp, string Dir) CopyCase(string name)
+    {
+        var temp = new TempDir();
+        var source = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", name, "flowy");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+            temp.Write(Path.Combine("flowy", Path.GetRelativePath(source, file)), File.ReadAllText(file));
+        return (temp, Path.Combine(temp.Dir, "flowy"));
+    }
+
+    private static Dictionary<string, string> Snapshot(string dir) =>
+        Directory.GetFiles(dir, "*", SearchOption.AllDirectories).ToDictionary(f => Path.GetRelativePath(dir, f).Replace('\\', '/'), File.ReadAllText);
+
+    [Fact]
+    public void A_delete_that_settles_flows_and_analyses_writes_each_file_it_changes_and_one_undo_puts_them_all_back()
+    {
+        var (temp, dir) = CopyCase("delete");
+        using var _ = temp;
+        var before = Snapshot(dir);
+        var session = new EditSession(dir);
+        Assert.Contains("is used by failure analysis ordering", session.Apply(d => EditOps.DeleteObject(d, "cache")).Message);
+        Assert.Equal(before, Snapshot(dir));
+        var targets = new[] { new Target(Object: "db") };
+        var settled = new[] { new Resolution("step:checkout:3", "removeStep"), new Resolution("mode:ordering:db-down:on", "removeMode") };
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.DeleteWith(d, targets, settled)));
+        var after = Snapshot(dir);
+        Assert.NotEqual(before["model.yaml"], after["model.yaml"]);
+        Assert.NotEqual(before["flows/checkout.yaml"], after["flows/checkout.yaml"]);
+        Assert.NotEqual(before["failures/ordering.yaml"], after["failures/ordering.yaml"]);
+        Assert.Equal(before["flows/pay.yaml"], after["flows/pay.yaml"]);
+        Assert.DoesNotContain("db-down", after["failures/ordering.yaml"]);
+        Assert.Contains("step: 3", after["failures/ordering.yaml"]); // the receipt mode moved up from step 4
+        Assert.Equal(0, TempFiles(dir));
+        Assert.Equal(EditResult.Ok, session.Undo());
+        var undone = Snapshot(dir); // written as the browser writes it, so not byte for byte what the hand-written files were
+        Assert.Contains("db-down", undone["failures/ordering.yaml"]);
+        Assert.Contains("step: 4", undone["failures/ordering.yaml"]);
+        Assert.Contains("db:", undone["model.yaml"]);
+        Assert.Contains("Saves the order", undone["flows/checkout.yaml"]);
+        Assert.Equal("Nothing to undo.", session.Undo().Message);
+    }
+
+    [Fact]
+    public void An_analysis_that_cannot_be_read_is_left_alone_by_an_edit()
+    {
+        var (temp, dir) = CopyCase("delete");
+        using var _ = temp;
+        File.WriteAllText(Path.Combine(dir, "failures", "broken.yaml"), "name: Broken\nmodes: [not, a, map]\n");
+        var session = new EditSession(dir);
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
+        Assert.Equal("name: Broken\nmodes: [not, a, map]\n", File.ReadAllText(Path.Combine(dir, "failures", "broken.yaml")));
+    }
 }

@@ -1,0 +1,17 @@
+objects:
+  customer: { type: actor, name: Customer }
+  shop: { type: system, name: Shop }
+  web: { type: app, in: shop, name: Web app }
+  api: { type: app, in: shop, name: API }
+  db: { type: store, in: shop, name: Orders DB }
+  cache: { type: store, in: shop, name: Cache }
+  auth: { type: component, in: api, name: Auth }
+  mail: { type: system, name: Mail service, external: "true" }
+connections:
+  - { from: customer, to: web, label: browses }
+  - { from: web, to: api, label: REST }
+  - { from: api, to: db }
+  - { from: auth, to: db, label: checks users }
+  - { from: api, to: mail, label: sends receipts }
+  - { from: api, to: mail, label: second }
+  - { from: api, to: cache }
