@@ -1,0 +1,4 @@
+# Tests compare fixed strings on purpose; the culture rules are for the code that ships.
+[*.cs]
+dotnet_diagnostic.CA1305.severity = none
+dotnet_diagnostic.CA1310.severity = none

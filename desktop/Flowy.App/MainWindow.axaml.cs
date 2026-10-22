@@ -10,7 +10,7 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>A window for one model folder (or, before one is chosen, a welcome). Everything about which windows exist is the <see cref="Shell"/>'s.</summary>
-public partial class MainWindow : Window
+public partial class MainWindow : Window, IDisposable
 {
     private readonly Shell _shell;
     private readonly ReaderView _reader = new();
@@ -56,11 +56,7 @@ public partial class MainWindow : Window
             if (Dir is not null) _shell.RememberNavigator(Dir, navigator);
         };
         _reader.CustomApp = () => _shell.State.OpenFilesWith;
-        Closed += (_, _) =>
-        {
-            _disk?.Dispose();
-            _menu.Dispose();
-        };
+        Closed += (_, _) => Dispose();
 
         // A folder dropped on the window opens in a window of its own.
         DragDrop.SetAllowDrop(this, true);
@@ -110,6 +106,14 @@ public partial class MainWindow : Window
         Chrome.Fill(demo, Flowy.App.Canvas.Icons.Play, "Open the demo");
         demo.Click += (_, _) => _shell.OpenDemo();
         return demo;
+    }
+
+    /// <summary>Lets go of what the window holds on to: the folder watchers and the menu. Runs when the window closes.</summary>
+    public void Dispose()
+    {
+        _disk?.Dispose();
+        _reader.Dispose();
+        _menu.Dispose();
     }
 
     /// <summary>Shows a model folder in this window and keeps watching it. A file that can't be read gives an empty view and a banner saying which, until it is fixed.</summary>

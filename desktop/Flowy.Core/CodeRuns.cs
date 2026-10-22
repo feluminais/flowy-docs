@@ -66,7 +66,7 @@ public static partial class CodeRuns
             if (Open().Match(part) is { Success: true } open)
             {
                 var frame = (Mapped: false, Kind: (TokenKind?)null);
-                foreach (var cls in open.Groups[1].Value.Split([' ', '\t', '\n'], StringSplitOptions.RemoveEmptyEntries).Select(c => c.StartsWith("hljs-") ? c[5..] : c))
+                foreach (var cls in open.Groups[1].Value.Split([' ', '\t', '\n'], StringSplitOptions.RemoveEmptyEntries).Select(c => c.StartsWith("hljs-", StringComparison.Ordinal) ? c[5..] : c))
                     if (Kinds.TryGetValue(cls, out var kind))
                     {
                         frame = (true, kind);
