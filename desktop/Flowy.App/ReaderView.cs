@@ -407,11 +407,11 @@ internal sealed partial class ReaderView : Grid
     public string? MermaidText() =>
         _folder is not { } folder ? null : "```mermaid\n" + (PlayingFlow() is { } f ? Mermaid.Flow(folder.Model, f.Id) : Mermaid.View(folder.Model, CurrentView())) + "```\n";
 
-    /// <summary>The diagram as it is on screen, without the bar and the panel, as a PNG at <paramref name="scale"/> times the screen's size.</summary>
-    public void SavePicture(string path, double scale = 2)
+    /// <summary>The diagram as it is on screen, without the bar and the panel, as a PNG at <paramref name="scale"/> times the screen's size. False when there is nothing on screen to draw, and then no file is written.</summary>
+    public bool SavePicture(string path, double scale = 2)
     {
         var size = _motionHost.Bounds.Size;
-        if (size.Width < 1 || size.Height < 1) return;
+        if (size.Width < 1 || size.Height < 1) return false;
         var was = _motionHost.Background;
         _motionHost.Background = this.TryFindResource("BgBrush", ActualThemeVariant, out var bg) && bg is IBrush brush ? brush : Brushes.White;
         try
@@ -419,12 +419,19 @@ internal sealed partial class ReaderView : Grid
             using var bitmap = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale)), new Vector(96 * scale, 96 * scale));
             bitmap.Render(_motionHost);
             bitmap.Save(path, PngBitmapEncoderOptions.Default);
+            return true;
         }
         finally
         {
             _motionHost.Background = was;
         }
     }
+
+    /// <summary>What to tell the reader after Save Picture: "Saved" only when the file was written. No <paramref name="path"/> means the place picked is not a folder on this computer.</summary>
+    internal static string PictureNotice(string? path, bool saved) =>
+        path is null ? "Couldn't save the picture: pick a folder on this computer"
+        : saved ? $"Saved {Path.GetFileName(path)}."
+        : "Couldn't save the picture: nothing on screen to draw";
 
     /// <summary>The name a picture of what's on screen suggests: the model, then the level.</summary>
     public string PictureName(string model)
