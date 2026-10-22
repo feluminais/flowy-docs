@@ -880,6 +880,91 @@
       "folder": "docs/demo/flowy",
       "flows": [
         {
+          "id": "orders-db-fails-over",
+          "problems": [],
+          "at": [
+            {
+              "orders-db": "stopped"
+            },
+            {
+              "orders-db": "stopped",
+              "order-api": "degraded"
+            },
+            {
+              "orders-db": "starting",
+              "order-api": "degraded"
+            },
+            {
+              "orders-db": "running",
+              "order-api": "running"
+            }
+          ],
+          "marks": [
+            {
+              "orders-db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "ordering": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "orders-db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "ordering": {
+                "state": "stopped",
+                "inside": true
+              }
+            },
+            {
+              "orders-db": {
+                "state": "starting",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true
+              }
+            },
+            {}
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 4,
+              "states": {},
+              "before": null
+            },
+            {
+              "k": 9,
+              "states": {},
+              "before": null
+            }
+          ]
+        },
+        {
           "id": "stripe-outage",
           "problems": [],
           "at": [

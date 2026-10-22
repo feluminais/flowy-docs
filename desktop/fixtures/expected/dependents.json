@@ -1613,6 +1613,24 @@
             "described": "flow place-order, step 1"
           },
           {
+            "key": "step:sms-dropped:2",
+            "kind": "step",
+            "of": "customer",
+            "flow": "sms-dropped",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow sms-dropped, step 2"
+          },
+          {
             "key": "line:0",
             "kind": "line",
             "of": "customer",
@@ -1808,6 +1826,19 @@
             "described": "the view of flow hotel-wifi-takes-order"
           },
           {
+            "key": "view:nobody-accepts",
+            "kind": "view",
+            "of": "ordering",
+            "flow": "nobody-accepts",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow nobody-accepts"
+          },
+          {
             "key": "view:order-sent-twice",
             "kind": "view",
             "of": "ordering",
@@ -1819,6 +1850,19 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "the view of flow order-sent-twice"
+          },
+          {
+            "key": "view:orders-db-fails-over",
+            "kind": "view",
+            "of": "ordering",
+            "flow": "orders-db-fails-over",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow orders-db-fails-over"
           },
           {
             "key": "view:place-order",
@@ -1899,6 +1943,19 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow refund, step 4"
+          },
+          {
+            "key": "view:restaurant-accepts",
+            "kind": "view",
+            "of": "ordering",
+            "flow": "restaurant-accepts",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow restaurant-accepts"
           },
           {
             "key": "view:stripe-outage",
@@ -2066,6 +2123,19 @@
             "described": "the view of flow events-arrive-late"
           },
           {
+            "key": "view:follow-the-courier",
+            "kind": "view",
+            "of": "delivery",
+            "flow": "follow-the-courier",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow follow-the-courier"
+          },
+          {
             "key": "view:no-courier-answers",
             "kind": "view",
             "of": "delivery",
@@ -2174,6 +2244,42 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow refund, step 5"
+          },
+          {
+            "key": "step:sms-dropped:1",
+            "kind": "step",
+            "of": "notifications",
+            "flow": "sms-dropped",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow sms-dropped, step 1"
+          },
+          {
+            "key": "step:sms-dropped:3",
+            "kind": "step",
+            "of": "notifications",
+            "flow": "sms-dropped",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow sms-dropped, step 3"
           },
           {
             "key": "child:notifier",
@@ -2349,6 +2455,24 @@
             "described": "flow capture-payment, step 5"
           },
           {
+            "key": "step:nobody-accepts:3",
+            "kind": "step",
+            "of": "stripe",
+            "flow": "nobody-accepts",
+            "step": 3,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 3"
+          },
+          {
             "key": "step:place-order:3",
             "kind": "step",
             "of": "stripe",
@@ -2401,6 +2525,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow refund, step 3"
+          },
+          {
+            "key": "step:restaurant-accepts:3",
+            "kind": "step",
+            "of": "stripe",
+            "flow": "restaurant-accepts",
+            "step": 3,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 3"
           },
           {
             "key": "step:stripe-outage:1",
@@ -2596,6 +2738,42 @@
             "described": "flow refund, step 5"
           },
           {
+            "key": "step:sms-dropped:1",
+            "kind": "step",
+            "of": "twilio",
+            "flow": "sms-dropped",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow sms-dropped, step 1"
+          },
+          {
+            "key": "step:sms-dropped:2",
+            "kind": "step",
+            "of": "twilio",
+            "flow": "sms-dropped",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow sms-dropped, step 2"
+          },
+          {
             "key": "mode:ordering:sms-not-delivered:to",
             "kind": "mode",
             "of": "twilio",
@@ -2772,6 +2950,24 @@
             "described": "flow deliver-order, step 7"
           },
           {
+            "key": "step:follow-the-courier:3",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "follow-the-courier",
+            "step": 3,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 3"
+          },
+          {
             "key": "step:hotel-wifi-takes-order:1",
             "kind": "step",
             "of": "customer-app",
@@ -2808,6 +3004,60 @@
             "described": "flow hotel-wifi-takes-order, step 2"
           },
           {
+            "key": "step:menu-is-read:1",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "menu-is-read",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 1"
+          },
+          {
+            "key": "step:menu-is-read:6",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "menu-is-read",
+            "step": 6,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 6"
+          },
+          {
+            "key": "step:nobody-accepts:5",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "nobody-accepts",
+            "step": 5,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 5"
+          },
+          {
             "key": "step:order-sent-twice:1",
             "kind": "step",
             "of": "customer-app",
@@ -2824,6 +3074,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow order-sent-twice, step 1"
+          },
+          {
+            "key": "step:orders-db-fails-over:2",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "orders-db-fails-over",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow orders-db-fails-over, step 2"
           },
           {
             "key": "step:place-order:1",
@@ -2860,6 +3128,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow place-order, step 2"
+          },
+          {
+            "key": "step:restaurant-accepts:6",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "restaurant-accepts",
+            "step": 6,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 6"
           },
           {
             "key": "step:stripe-outage:3",
@@ -3114,6 +3400,24 @@
         ],
         "rows": [
           {
+            "key": "step:nobody-accepts:1",
+            "kind": "step",
+            "of": "kitchen-tablet",
+            "flow": "nobody-accepts",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 1"
+          },
+          {
             "key": "step:place-order:7",
             "kind": "step",
             "of": "kitchen-tablet",
@@ -3130,6 +3434,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow place-order, step 7"
+          },
+          {
+            "key": "step:restaurant-accepts:1",
+            "kind": "step",
+            "of": "kitchen-tablet",
+            "flow": "restaurant-accepts",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 1"
           },
           {
             "key": "mode:ordering:kitchen-tablet-offline:on",
@@ -3350,6 +3672,24 @@
             "described": "flow deliver-order, step 8"
           },
           {
+            "key": "step:follow-the-courier:4",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "follow-the-courier",
+            "step": 4,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 4"
+          },
+          {
             "key": "step:hotel-wifi-takes-order:1",
             "kind": "step",
             "of": "order-api",
@@ -3366,6 +3706,109 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow hotel-wifi-takes-order, step 1"
+          },
+          {
+            "key": "view:menu-is-read",
+            "kind": "view",
+            "of": "order-api",
+            "flow": "menu-is-read",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow menu-is-read"
+          },
+          {
+            "key": "step:nobody-accepts:1",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "nobody-accepts",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 1"
+          },
+          {
+            "key": "step:nobody-accepts:2",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "nobody-accepts",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 2"
+          },
+          {
+            "key": "step:nobody-accepts:3",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "nobody-accepts",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 3"
+          },
+          {
+            "key": "step:nobody-accepts:4",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "nobody-accepts",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 4"
+          },
+          {
+            "key": "step:nobody-accepts:5",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "nobody-accepts",
+            "step": 5,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 5"
           },
           {
             "key": "step:order-sent-twice:1",
@@ -3402,6 +3845,60 @@
             "emptiesFlow": true,
             "needsDecision": true,
             "described": "flow order-sent-twice, step 2"
+          },
+          {
+            "key": "step:orders-db-fails-over:1",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "orders-db-fails-over",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow orders-db-fails-over, step 1"
+          },
+          {
+            "key": "step:orders-db-fails-over:2",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "orders-db-fails-over",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow orders-db-fails-over, step 2"
+          },
+          {
+            "key": "step:orders-db-fails-over:4",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "orders-db-fails-over",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow orders-db-fails-over, step 4"
           },
           {
             "key": "step:place-order:2",
@@ -3492,6 +3989,96 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow place-order, step 7"
+          },
+          {
+            "key": "step:restaurant-accepts:1",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "restaurant-accepts",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 1"
+          },
+          {
+            "key": "step:restaurant-accepts:2",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "restaurant-accepts",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 2"
+          },
+          {
+            "key": "step:restaurant-accepts:3",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "restaurant-accepts",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 3"
+          },
+          {
+            "key": "step:restaurant-accepts:4",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "restaurant-accepts",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 4"
+          },
+          {
+            "key": "step:restaurant-accepts:5",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "restaurant-accepts",
+            "step": 5,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 5"
           },
           {
             "key": "step:stripe-outage:1",
@@ -3803,6 +4390,42 @@
             "described": "flow capture-payment, step 4"
           },
           {
+            "key": "step:menu-is-read:4",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "menu-is-read",
+            "step": 4,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 4"
+          },
+          {
+            "key": "step:nobody-accepts:4",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "nobody-accepts",
+            "step": 4,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow nobody-accepts, step 4"
+          },
+          {
             "key": "step:order-sent-twice:2",
             "kind": "step",
             "of": "orders-db",
@@ -3819,6 +4442,60 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow order-sent-twice, step 2"
+          },
+          {
+            "key": "step:orders-db-fails-over:1",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "orders-db-fails-over",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow orders-db-fails-over, step 1"
+          },
+          {
+            "key": "step:orders-db-fails-over:3",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "orders-db-fails-over",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow orders-db-fails-over, step 3"
+          },
+          {
+            "key": "step:orders-db-fails-over:4",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "orders-db-fails-over",
+            "step": 4,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow orders-db-fails-over, step 4"
           },
           {
             "key": "step:place-order:4",
@@ -3855,6 +4532,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow refund-not-recorded, step 2"
+          },
+          {
+            "key": "step:restaurant-accepts:2",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "restaurant-accepts",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 2"
           },
           {
             "key": "step:stripe-webhook:2",
@@ -3968,6 +4663,60 @@
           }
         ],
         "rows": [
+          {
+            "key": "step:menu-is-read:2",
+            "kind": "step",
+            "of": "menu-cache",
+            "flow": "menu-is-read",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 2"
+          },
+          {
+            "key": "step:menu-is-read:3",
+            "kind": "step",
+            "of": "menu-cache",
+            "flow": "menu-is-read",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 3"
+          },
+          {
+            "key": "step:menu-is-read:5",
+            "kind": "step",
+            "of": "menu-cache",
+            "flow": "menu-is-read",
+            "step": 5,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 5"
+          },
           {
             "key": "mode:ordering:menu-cache-stale:on",
             "kind": "mode",
@@ -4133,6 +4882,24 @@
             "described": "flow place-order, step 6"
           },
           {
+            "key": "step:restaurant-accepts:4",
+            "kind": "step",
+            "of": "events",
+            "flow": "restaurant-accepts",
+            "step": 4,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 4"
+          },
+          {
             "key": "mode:ordering:events-lag:on",
             "kind": "mode",
             "of": "events",
@@ -4212,6 +4979,114 @@
           }
         ],
         "rows": [
+          {
+            "key": "step:menu-is-read:1",
+            "kind": "step",
+            "of": "menu",
+            "flow": "menu-is-read",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 1"
+          },
+          {
+            "key": "step:menu-is-read:2",
+            "kind": "step",
+            "of": "menu",
+            "flow": "menu-is-read",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 2"
+          },
+          {
+            "key": "step:menu-is-read:3",
+            "kind": "step",
+            "of": "menu",
+            "flow": "menu-is-read",
+            "step": 3,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 3"
+          },
+          {
+            "key": "step:menu-is-read:4",
+            "kind": "step",
+            "of": "menu",
+            "flow": "menu-is-read",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 4"
+          },
+          {
+            "key": "step:menu-is-read:5",
+            "kind": "step",
+            "of": "menu",
+            "flow": "menu-is-read",
+            "step": 5,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 5"
+          },
+          {
+            "key": "step:menu-is-read:6",
+            "kind": "step",
+            "of": "menu",
+            "flow": "menu-is-read",
+            "step": 6,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow menu-is-read, step 6"
+          },
           {
             "key": "line:9",
             "kind": "line",
@@ -4776,6 +5651,42 @@
             "described": "flow deliver-order, step 8"
           },
           {
+            "key": "step:follow-the-courier:1",
+            "kind": "step",
+            "of": "courier-app",
+            "flow": "follow-the-courier",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 1"
+          },
+          {
+            "key": "step:follow-the-courier:4",
+            "kind": "step",
+            "of": "courier-app",
+            "flow": "follow-the-courier",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 4"
+          },
+          {
             "key": "step:no-courier-answers:3",
             "kind": "step",
             "of": "courier-app",
@@ -5247,6 +6158,60 @@
             "described": "flow deliver-order, step 7"
           },
           {
+            "key": "step:follow-the-courier:1",
+            "kind": "step",
+            "of": "tracking",
+            "flow": "follow-the-courier",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 1"
+          },
+          {
+            "key": "step:follow-the-courier:2",
+            "kind": "step",
+            "of": "tracking",
+            "flow": "follow-the-courier",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 2"
+          },
+          {
+            "key": "step:follow-the-courier:3",
+            "kind": "step",
+            "of": "tracking",
+            "flow": "follow-the-courier",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 3"
+          },
+          {
             "key": "mode:ordering:tracking-signal-lost:on",
             "kind": "mode",
             "of": "tracking",
@@ -5390,6 +6355,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow events-arrive-late, step 2"
+          },
+          {
+            "key": "step:follow-the-courier:2",
+            "kind": "step",
+            "of": "fleet-db",
+            "flow": "follow-the-courier",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 2"
           },
           {
             "key": "mode:ordering:fleet-position-writes:on",
@@ -5817,6 +6800,42 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow refund-not-recorded, step 4"
+          },
+          {
+            "key": "step:restaurant-accepts:5",
+            "kind": "step",
+            "of": "notifier",
+            "flow": "restaurant-accepts",
+            "step": 5,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 5"
+          },
+          {
+            "key": "step:restaurant-accepts:6",
+            "kind": "step",
+            "of": "notifier",
+            "flow": "restaurant-accepts",
+            "step": 6,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow restaurant-accepts, step 6"
           },
           {
             "key": "mode:ordering:sms-not-delivered:from",
@@ -8356,6 +9375,24 @@
             "described": "flow place-order, step 1"
           },
           {
+            "key": "step:sms-dropped:2",
+            "kind": "step",
+            "of": "customer",
+            "flow": "sms-dropped",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow sms-dropped, step 2"
+          },
+          {
             "key": "line:0",
             "kind": "line",
             "of": "customer",
@@ -8447,6 +9484,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow place-order, step 1"
+          },
+          {
+            "key": "step:sms-dropped:2",
+            "kind": "step",
+            "of": "customer",
+            "flow": "sms-dropped",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow sms-dropped, step 2"
           },
           {
             "key": "line:0",

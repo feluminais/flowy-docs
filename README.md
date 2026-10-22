@@ -41,12 +41,12 @@ The animations are the browser version on Plum, a made-up delivery service whose
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/images/anim/flows-dark.webp">
-    <img alt="The payment is captured, a flow with a retry and a branch, played one step at a time with the line animations" src="docs/images/anim/flows-light.webp">
+    <img alt="Customer places an order, played one step at a time: a call, an event and a callback travel along the lines between shapes, then The payment is captured, with a retry and a branch" src="docs/images/anim/flows-light.webp">
   </picture>
 </p>
 
-Play a request one step at a time. A step can call, send or fail, and a group of steps can repeat, branch or run in parallel.
-[More](docs/guide/flows.md)
+Play a request one step at a time, and watch it travel along its lines: a send, a call that waits for its answer, an event, a callback.
+A step can fail, and a group of steps can repeat, branch or run in parallel. [More](docs/guide/flows.md)
 
 ## Performance
 

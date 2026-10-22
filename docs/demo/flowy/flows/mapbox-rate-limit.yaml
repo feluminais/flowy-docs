@@ -1,7 +1,7 @@
 name: Mapbox turns the travel times away
 view: dispatch
 steps:
-  - { from: matcher, to: eta, text: Asks who is quickest, animation: call }
+  - { from: matcher, to: eta, text: Asks who is quickest, animation: { kind: call, carries: who is quickest } }
   - from: eta
     to: mapbox
     text: Asks Mapbox for travel times and is turned away

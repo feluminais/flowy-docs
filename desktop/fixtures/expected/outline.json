@@ -1287,7 +1287,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1296,7 +1296,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         },
@@ -1316,7 +1316,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1348,7 +1348,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1380,7 +1380,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 8,
+              "flows": 12,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1514,11 +1514,28 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:sms-dropped",
+              "kind": "flow",
+              "id": "sms-dropped",
+              "parent": "root",
+              "depth": 1,
+              "name": "The carrier drops the SMS",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         },
@@ -1539,7 +1556,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1571,7 +1588,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1603,7 +1620,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 8,
+              "flows": 12,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1619,7 +1636,7 @@
               "type": "app",
               "external": false,
               "shapes": 6,
-              "flows": 0,
+              "flows": 1,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1790,6 +1807,40 @@
               "match": true
             },
             {
+              "key": "flow:nobody-accepts",
+              "kind": "flow",
+              "id": "nobody-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Nobody accepts the order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:orders-db-fails-over",
+              "kind": "flow",
+              "id": "orders-db-fails-over",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Orders DB fails over",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:stripe-outage",
               "kind": "flow",
               "id": "stripe-outage",
@@ -1852,6 +1903,23 @@
               "flows": 0,
               "steps": 4,
               "linked": true,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:restaurant-accepts",
+              "kind": "flow",
+              "id": "restaurant-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The restaurant accepts",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -1985,11 +2053,28 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:sms-dropped",
+              "kind": "flow",
+              "id": "sms-dropped",
+              "parent": "root",
+              "depth": 1,
+              "name": "The carrier drops the SMS",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         },
@@ -2045,7 +2130,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2125,7 +2210,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2329,6 +2414,23 @@
               "match": true
             },
             {
+              "key": "flow:follow-the-courier",
+              "kind": "flow",
+              "id": "follow-the-courier",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "The customer follows the courier",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -2386,7 +2488,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 8,
+              "flows": 12,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2402,7 +2504,7 @@
               "type": "app",
               "external": false,
               "shapes": 6,
-              "flows": 0,
+              "flows": 1,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2499,6 +2601,23 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:menu-is-read",
+              "kind": "flow",
+              "id": "menu-is-read",
+              "parent": "order-api",
+              "depth": 3,
+              "name": "A menu is read",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -2669,6 +2788,40 @@
               "match": true
             },
             {
+              "key": "flow:nobody-accepts",
+              "kind": "flow",
+              "id": "nobody-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Nobody accepts the order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:orders-db-fails-over",
+              "kind": "flow",
+              "id": "orders-db-fails-over",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Orders DB fails over",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:stripe-outage",
               "kind": "flow",
               "id": "stripe-outage",
@@ -2731,6 +2884,23 @@
               "flows": 0,
               "steps": 4,
               "linked": true,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:restaurant-accepts",
+              "kind": "flow",
+              "id": "restaurant-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The restaurant accepts",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -2864,11 +3034,28 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:sms-dropped",
+              "kind": "flow",
+              "id": "sms-dropped",
+              "parent": "root",
+              "depth": 1,
+              "name": "The carrier drops the SMS",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         },
@@ -2924,7 +3111,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3004,7 +3191,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3208,6 +3395,23 @@
               "match": true
             },
             {
+              "key": "flow:follow-the-courier",
+              "kind": "flow",
+              "id": "follow-the-courier",
+              "parent": "delivery",
+              "depth": 2,
+              "name": "The customer follows the courier",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:notifications",
               "kind": "shape",
               "id": "notifications",
@@ -3265,7 +3469,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 8,
+              "flows": 12,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3281,7 +3485,7 @@
               "type": "app",
               "external": false,
               "shapes": 6,
-              "flows": 0,
+              "flows": 1,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3378,6 +3582,23 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:menu-is-read",
+              "kind": "flow",
+              "id": "menu-is-read",
+              "parent": "order-api",
+              "depth": 3,
+              "name": "A menu is read",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3548,6 +3769,40 @@
               "match": true
             },
             {
+              "key": "flow:nobody-accepts",
+              "kind": "flow",
+              "id": "nobody-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Nobody accepts the order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:orders-db-fails-over",
+              "kind": "flow",
+              "id": "orders-db-fails-over",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Orders DB fails over",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:stripe-outage",
               "kind": "flow",
               "id": "stripe-outage",
@@ -3610,6 +3865,23 @@
               "flows": 0,
               "steps": 4,
               "linked": true,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:restaurant-accepts",
+              "kind": "flow",
+              "id": "restaurant-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The restaurant accepts",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3743,11 +4015,28 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:sms-dropped",
+              "kind": "flow",
+              "id": "sms-dropped",
+              "parent": "root",
+              "depth": 1,
+              "name": "The carrier drops the SMS",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         },
@@ -3765,7 +4054,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3829,7 +4118,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4042,7 +4331,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 8,
+              "flows": 12,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4058,7 +4347,7 @@
               "type": "app",
               "external": false,
               "shapes": 6,
-              "flows": 0,
+              "flows": 1,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4091,6 +4380,23 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:menu-is-read",
+              "kind": "flow",
+              "id": "menu-is-read",
+              "parent": "order-api",
+              "depth": 3,
+              "name": "A menu is read",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -4213,6 +4519,40 @@
               "match": true
             },
             {
+              "key": "flow:nobody-accepts",
+              "kind": "flow",
+              "id": "nobody-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Nobody accepts the order",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:orders-db-fails-over",
+              "kind": "flow",
+              "id": "orders-db-fails-over",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "Orders DB fails over",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:stripe-outage",
               "kind": "flow",
               "id": "stripe-outage",
@@ -4253,6 +4593,23 @@
               "parent": "ordering",
               "depth": 2,
               "name": "The payment is captured",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:restaurant-accepts",
+              "kind": "flow",
+              "id": "restaurant-accepts",
+              "parent": "ordering",
+              "depth": 2,
+              "name": "The restaurant accepts",
               "external": false,
               "shapes": 0,
               "flows": 0,
@@ -4327,11 +4684,28 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:sms-dropped",
+              "kind": "flow",
+              "id": "sms-dropped",
+              "parent": "root",
+              "depth": 1,
+              "name": "The carrier drops the SMS",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         },
@@ -4351,7 +4725,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4367,7 +4741,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 8,
+              "flows": 12,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4409,7 +4783,7 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         },
@@ -4429,7 +4803,7 @@
               "name": "Overview",
               "external": false,
               "shapes": 36,
-              "flows": 14,
+              "flows": 20,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4461,7 +4835,7 @@
               "type": "system",
               "external": false,
               "shapes": 7,
-              "flows": 5,
+              "flows": 6,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -4493,7 +4867,7 @@
               "type": "system",
               "external": false,
               "shapes": 13,
-              "flows": 8,
+              "flows": 12,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -4627,11 +5001,28 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:sms-dropped",
+              "kind": "flow",
+              "id": "sms-dropped",
+              "parent": "root",
+              "depth": 1,
+              "name": "The carrier drops the SMS",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 36,
-            "flows": 14,
+            "flows": 20,
             "problems": 0
           }
         }
@@ -4647,6 +5038,13 @@
               "steps": 5,
               "view": "root",
               "linked": true
+            },
+            {
+              "id": "sms-dropped",
+              "name": "The carrier drops the SMS",
+              "steps": 3,
+              "view": "root",
+              "linked": false
             }
           ],
           "elsewhere": [
@@ -4682,6 +5080,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -4740,6 +5145,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -4766,11 +5185,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "root",
@@ -4782,6 +5225,13 @@
               "steps": 5,
               "view": "root",
               "linked": true
+            },
+            {
+              "id": "sms-dropped",
+              "name": "The carrier drops the SMS",
+              "steps": 3,
+              "view": "root",
+              "linked": false
             }
           ],
           "elsewhere": [
@@ -4817,6 +5267,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -4875,6 +5332,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -4901,11 +5372,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "ordering",
@@ -4940,6 +5435,20 @@
               "linked": false
             },
             {
+              "id": "nobody-accepts",
+              "name": "Nobody accepts the order",
+              "steps": 5,
+              "view": "ordering",
+              "linked": false
+            },
+            {
+              "id": "orders-db-fails-over",
+              "name": "Orders DB fails over",
+              "steps": 4,
+              "view": "ordering",
+              "linked": false
+            },
+            {
               "id": "stripe-outage",
               "name": "Stripe goes down and comes back",
               "steps": 6,
@@ -4966,6 +5475,13 @@
               "steps": 4,
               "view": "ordering",
               "linked": true
+            },
+            {
+              "id": "restaurant-accepts",
+              "name": "The restaurant accepts",
+              "steps": 6,
+              "view": "ordering",
+              "linked": false
             }
           ],
           "elsewhere": [
@@ -4980,6 +5496,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5017,6 +5540,13 @@
                   "steps": 2,
                   "view": "delivery",
                   "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
+                  "view": "delivery",
+                  "linked": false
                 }
               ]
             },
@@ -5036,9 +5566,26 @@
                   "linked": false
                 }
               ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
+                }
+              ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "ordering",
@@ -5073,6 +5620,20 @@
               "linked": false
             },
             {
+              "id": "nobody-accepts",
+              "name": "Nobody accepts the order",
+              "steps": 5,
+              "view": "ordering",
+              "linked": false
+            },
+            {
+              "id": "orders-db-fails-over",
+              "name": "Orders DB fails over",
+              "steps": 4,
+              "view": "ordering",
+              "linked": false
+            },
+            {
               "id": "stripe-outage",
               "name": "Stripe goes down and comes back",
               "steps": 6,
@@ -5099,6 +5660,13 @@
               "steps": 4,
               "view": "ordering",
               "linked": true
+            },
+            {
+              "id": "restaurant-accepts",
+              "name": "The restaurant accepts",
+              "steps": 6,
+              "view": "ordering",
+              "linked": false
             }
           ],
           "elsewhere": [
@@ -5113,6 +5681,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5150,6 +5725,13 @@
                   "steps": 2,
                   "view": "delivery",
                   "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
+                  "view": "delivery",
+                  "linked": false
                 }
               ]
             },
@@ -5169,9 +5751,26 @@
                   "linked": false
                 }
               ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
+                }
+              ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "delivery",
@@ -5204,6 +5803,13 @@
               "steps": 2,
               "view": "delivery",
               "linked": false
+            },
+            {
+              "id": "follow-the-courier",
+              "name": "The customer follows the courier",
+              "steps": 4,
+              "view": "delivery",
+              "linked": false
             }
           ],
           "elsewhere": [
@@ -5218,6 +5824,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5274,6 +5887,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -5300,11 +5927,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "delivery",
@@ -5337,6 +5988,13 @@
               "steps": 2,
               "view": "delivery",
               "linked": false
+            },
+            {
+              "id": "follow-the-courier",
+              "name": "The customer follows the courier",
+              "steps": 4,
+              "view": "delivery",
+              "linked": false
             }
           ],
           "elsewhere": [
@@ -5351,6 +6009,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5407,6 +6072,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -5433,11 +6112,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "notifications",
@@ -5455,6 +6158,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5490,6 +6200,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -5548,6 +6265,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -5574,11 +6305,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "notifications",
@@ -5596,6 +6351,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5631,6 +6393,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -5689,6 +6458,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -5715,11 +6498,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "backoffice",
@@ -5737,6 +6544,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5772,6 +6586,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -5830,6 +6651,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -5856,11 +6691,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "backoffice",
@@ -5878,6 +6737,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -5913,6 +6779,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -5971,6 +6844,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -5997,16 +6884,48 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "order-api",
           "editing": false,
-          "here": [],
+          "here": [
+            {
+              "id": "menu-is-read",
+              "name": "A menu is read",
+              "steps": 6,
+              "view": "order-api",
+              "linked": false
+            }
+          ],
           "elsewhere": [
             {
               "view": "root",
@@ -6019,6 +6938,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -6054,6 +6980,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -6112,6 +7045,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -6138,16 +7085,31 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "order-api",
           "editing": true,
-          "here": [],
+          "here": [
+            {
+              "id": "menu-is-read",
+              "name": "A menu is read",
+              "steps": 6,
+              "view": "order-api",
+              "linked": false
+            }
+          ],
           "elsewhere": [
             {
               "view": "root",
@@ -6160,6 +7122,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -6195,6 +7164,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -6253,6 +7229,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -6279,11 +7269,18 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "dispatch",
@@ -6309,6 +7306,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -6344,6 +7348,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -6385,6 +7396,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -6411,11 +7436,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         },
         {
           "view": "dispatch",
@@ -6441,6 +7490,13 @@
                   "steps": 5,
                   "view": "root",
                   "linked": true
+                },
+                {
+                  "id": "sms-dropped",
+                  "name": "The carrier drops the SMS",
+                  "steps": 3,
+                  "view": "root",
+                  "linked": false
                 }
               ]
             },
@@ -6476,6 +7532,13 @@
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
                   "steps": 2,
+                  "view": "delivery",
+                  "linked": false
+                },
+                {
+                  "id": "follow-the-courier",
+                  "name": "The customer follows the courier",
+                  "steps": 4,
                   "view": "delivery",
                   "linked": false
                 }
@@ -6517,6 +7580,20 @@
                   "linked": false
                 },
                 {
+                  "id": "nobody-accepts",
+                  "name": "Nobody accepts the order",
+                  "steps": 5,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
+                  "id": "orders-db-fails-over",
+                  "name": "Orders DB fails over",
+                  "steps": 4,
+                  "view": "ordering",
+                  "linked": false
+                },
+                {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
                   "steps": 6,
@@ -6543,11 +7620,35 @@
                   "steps": 4,
                   "view": "ordering",
                   "linked": true
+                },
+                {
+                  "id": "restaurant-accepts",
+                  "name": "The restaurant accepts",
+                  "steps": 6,
+                  "view": "ordering",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "order-api",
+              "name": "Order API",
+              "path": [
+                "Ordering",
+                "Order API"
+              ],
+              "flows": [
+                {
+                  "id": "menu-is-read",
+                  "name": "A menu is read",
+                  "steps": 6,
+                  "view": "order-api",
+                  "linked": false
                 }
               ]
             }
           ],
-          "total": 14
+          "total": 20
         }
       ],
       "expandTo": [
