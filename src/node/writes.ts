@@ -1,7 +1,7 @@
 import { ParseError } from '../core/model.ts'
 import { isRemovableFile, serializeFile } from '../core/modelfiles.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
-import { isAllowedPath, loadDir, saveFile, VersionConflict } from './files.ts'
+import { isAllowedPath, loadDir, OutsideFolder, saveFile, VersionConflict } from './files.ts'
 
 /** What to answer a write with: an HTTP status and the JSON that goes with it. */
 export type Answer = { status: number; body: unknown }
@@ -44,6 +44,7 @@ export async function applyWrite(dir: string, method: string, rel: string, body:
     return { status: 200, body: { version: await saveFile(dir, rel, text, version) } }
   } catch (e) {
     if (e instanceof VersionConflict) return { status: 409, body: { version: e.version } }
+    if (e instanceof OutsideFolder) return { status: 400, body: { error: e.message } }
     throw e
   }
 }
