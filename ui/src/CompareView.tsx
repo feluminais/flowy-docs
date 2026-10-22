@@ -29,6 +29,10 @@ type Props = {
   details: boolean
   onPick: (picked: Picked) => void
   onClosePanel: () => void
+  /** A click on nothing in a pane: the Details panel closes, as on the single canvas. */
+  onEmpty: () => void
+  /** The stop the flow that was playing was at, for its pane to start at. */
+  start?: { flow: string; step: number }
   onMode: (mode: Compare['mode']) => void
   onFlip: () => void
   onClose: () => void
@@ -39,11 +43,12 @@ type Props = {
  * Two flows side by side, each in a pane of its own, under the bar of the comparison. Every pane works alone (zoom, pan and play); they share the one Details panel, which shows
  * the last thing clicked in either. One pane has the focus (it is outlined): the first to start with, then the one last clicked or tabbed into. The keys of a flow act on it.
  */
-export function CompareView({ model, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onMode, onFlip, onClose, ref }: Props) {
+export function CompareView({ model, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onEmpty, start, onMode, onFlip, onClose, ref }: Props) {
   // A pane is keyed by its flow, so swapping the sides moves the panes (React moves their elements) instead of unmounting them: each keeps its place in its flow and its zoom.
   // A flow compared with itself has two panes, told apart by the second's suffix. The focus and the pane the panel came from follow the pane, not the side it is on.
   const flows = [compare.a, compare.b]
-  const keys = flows.map((id, i) => (i === 1 && flows[0] === id ? `${id}#1` : id))
+  const again = (i: number) => (i === 1 && flows[0] === flows[1] ? 1 : 0)
+  const keys = flows.map((id, i) => (again(i) ? `${id}#1` : id))
   const [focusKey, setFocusKey] = useState<string>() // the first pane has it until one is clicked
   const [last, setLast] = useState<string>() // the pane the Details panel was opened from
   const focused = Math.max(0, keys.indexOf(focusKey ?? keys[0])) as 0 | 1
@@ -63,7 +68,8 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
           const id = flows[slot]
           const own = last === keys[slot] ? shown : undefined
           return (
-            <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={keys[slot]} flowId={id} title={model.flows[id].name || id} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
+            <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={`${id.replace(/[^A-Za-z0-9_-]/g, '_')}-${again(slot)}`} flowId={id} title={model.flows[id].name || id}
+              label={again(slot) ? `${model.flows[id].name || id} (2)` : undefined} startAt={start?.flow === id && !again(slot) ? start.step : undefined} onEmpty={onEmpty} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
               onPick={p => pick(keys[slot], p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? lineId(own.from!, own.to!) : undefined}
               fitKey={compare.mode} colorMode={colorMode} problems={problems} lines={lines} still={still} />
           )

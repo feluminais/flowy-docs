@@ -14,6 +14,8 @@ export function ComparePicker({ model, flowId, onPick, onClose }: { model: Model
   const [query, setQuery] = useState('')
   const box = useRef<HTMLDivElement>(null)
   const q = query.trim().toLowerCase()
+  // Closing by Esc or by picking hands the focus back to the Compare button; a press elsewhere has put it somewhere else on purpose.
+  const giveBack = () => document.querySelector<HTMLElement>('[data-compare-toggle]')?.focus()
   const found = q === '' ? others : others.filter(c => c.name.toLowerCase().includes(q) || c.id.includes(q))
   // Esc is this popover's while it is open, ahead of the keys of the page; a press outside it closes it (the Compare button toggles it itself).
   useEffect(() => {
@@ -23,6 +25,7 @@ export function ComparePicker({ model, flowId, onPick, onClose }: { model: Model
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       e.stopPropagation()
+      giveBack()
       onClose()
     }
     window.addEventListener('pointerdown', onDown, true)
@@ -36,10 +39,16 @@ export function ComparePicker({ model, flowId, onPick, onClose }: { model: Model
     const off = c.missing ? 'Missing' : !playable(model, c.id) ? "Can't play yet" : undefined
     return (
       <li key={c.id}>
-        <button disabled={off !== undefined} title={off} onClick={() => onPick(c.id)}>
-          {isLinked && <span className="linked" role="img" aria-label="Linked" title="Linked"><Link size={14} /></span>}
+        <button disabled={off !== undefined} title={c.missing ? undefined : off} onClick={() => {
+          giveBack()
+          onPick(c.id)
+        }}>
           <strong>{c.name}</strong>
-          {!c.missing && Object.hasOwn(model.flows, c.id) && <span className="muted">{nameOf(model, model.flows[c.id].view)}</span>}
+          <span className="cpick-end muted">
+            {!c.missing && Object.hasOwn(model.flows, c.id) && nameOf(model, model.flows[c.id].view)}
+            {c.missing && 'Missing'}
+            {isLinked && <span className="linked"><Link size={13} />Linked</span>}
+          </span>
         </button>
       </li>
     )

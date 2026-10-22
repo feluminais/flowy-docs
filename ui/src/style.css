@@ -1101,8 +1101,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .cpick li button:hover:not(:disabled), .cpick li button:focus-visible { background: var(--bg); }
 .cpick li button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .cpick li button:disabled { cursor: default; opacity: 0.4; }
-.cpick li .muted { margin-left: auto; font-size: 12px; white-space: nowrap; }
-.cpick .linked { display: inline-flex; color: var(--accent); }
+.cpick li .cpick-end { display: inline-flex; align-items: center; gap: 10px; margin-left: auto; font-size: 12px; white-space: nowrap; }
+.cpick .linked { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); }
 .cpick-find { display: flex; align-items: center; gap: 8px; padding: 2px 8px; color: var(--muted); }
 .cpick ul + .cpick-find { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--line); }
 .cpick-find input { flex: 1; min-width: 0; box-sizing: border-box; padding: 6px 4px; border: 0; background: none; color: var(--fg); font-size: 14px; }
