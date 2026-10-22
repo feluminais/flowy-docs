@@ -1,0 +1,5 @@
+name: cross-new
+view: root
+steps:
+  - { from: c, to: d, text: New D }
+  - { from: a, to: b, text: New C }

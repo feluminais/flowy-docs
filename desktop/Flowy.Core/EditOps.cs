@@ -266,6 +266,33 @@ public static partial class EditOps
         });
     }
 
+    /// <summary>
+    /// Say which flow <paramref name="id"/> compares with: the short form without a note, the long form <c>{ with, note }</c> with one, or no tag when <paramref name="tag"/> is null.
+    /// Refused for an unknown flow, the flow itself, or an unknown target. Every other key of the flow keeps its place; a tag the flow has stays where it is and a new one goes last.
+    /// A port of setCompare in src/core/ops.ts.
+    /// </summary>
+    public static EditDoc SetCompare(EditDoc doc, string id, CompareTag? tag)
+    {
+        return OnFlow(doc, id, (d, flow) =>
+        {
+            if (tag is not null)
+            {
+                if (tag.With == id) throw new OpError($"flow \"{id}\" cannot compare with itself");
+                if (!doc.Flows.ContainsKey(tag.With)) throw new OpError($"unknown flow \"{tag.With}\"");
+            }
+            object? value = tag is null ? null : tag.Note is null ? tag.With : new OrderedDictionary<string, object?> { ["with"] = tag.With, ["note"] = tag.Note };
+            var result = new OrderedDictionary<string, object?>();
+            foreach (var (key, v) in flow)
+            {
+                if (key != "compare") result[key] = v;
+                else if (value is not null) result[key] = value;
+            }
+            if (value is not null && !result.ContainsKey("compare")) result["compare"] = value;
+            d.Flows[id] = result;
+            return d;
+        });
+    }
+
     /// <summary>The keys of a step in the order the guide shows them; a key set later goes after the nearest earlier one that is there.</summary>
     private static readonly string[] StepOrder = ["from", "to", "text", "description", "animation", "states", "group", "lane", "flow"];
 

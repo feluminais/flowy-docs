@@ -1,0 +1,6 @@
+name: same
+view: root
+steps:
+  - { from: a, to: b, text: First }
+  - { from: b, to: c, text: Second }
+  - { from: c, to: d, text: Third }

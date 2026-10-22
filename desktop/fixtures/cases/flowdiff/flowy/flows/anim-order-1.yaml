@@ -1,0 +1,4 @@
+name: anim-order-1
+view: root
+steps:
+  - { from: a, to: b, text: First, animation: { kind: call, trigger: inside } }

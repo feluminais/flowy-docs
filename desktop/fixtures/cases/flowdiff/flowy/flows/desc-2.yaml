@@ -1,0 +1,4 @@
+name: desc-2
+view: root
+steps:
+  - { from: a, to: b, text: First, description: Two }

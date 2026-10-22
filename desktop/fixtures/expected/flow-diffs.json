@@ -1,0 +1,380 @@
+{
+  "folder": "desktop/fixtures/cases/flowdiff/flowy",
+  "pairs": [
+    {
+      "older": "base",
+      "newer": "same",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      }
+    },
+    {
+      "older": "base",
+      "newer": "base",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      }
+    },
+    {
+      "older": "base",
+      "newer": "appended",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {
+          "d": "changed"
+        },
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {
+          "3": "new"
+        },
+        "shapes": {
+          "d": "changed",
+          "e": "new"
+        },
+        "lines": {
+          "d e": "new"
+        }
+      }
+    },
+    {
+      "older": "base",
+      "newer": "inserted",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {
+          "b": "changed"
+        },
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {
+          "1": "new"
+        },
+        "shapes": {
+          "b": "changed",
+          "e": "new"
+        },
+        "lines": {
+          "b e": "new"
+        }
+      }
+    },
+    {
+      "older": "base",
+      "newer": "removed",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "1": "removed"
+        },
+        "shapes": {
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {
+          "b c": "removed"
+        }
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {}
+      }
+    },
+    {
+      "older": "base",
+      "newer": "retexted",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "1": "changed"
+        },
+        "shapes": {
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {
+          "b c": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "1": "changed"
+        },
+        "shapes": {
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {
+          "b c": "changed"
+        }
+      }
+    },
+    {
+      "older": "appended",
+      "newer": "base",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "3": "removed"
+        },
+        "shapes": {
+          "d": "changed",
+          "e": "removed"
+        },
+        "lines": {
+          "d e": "removed"
+        }
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {
+          "d": "changed"
+        },
+        "lines": {}
+      }
+    },
+    {
+      "older": "anim-pulse",
+      "newer": "anim-flash",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      }
+    },
+    {
+      "older": "anim-pulse",
+      "newer": "anim-kind-pulse",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      }
+    },
+    {
+      "older": "anim-order-1",
+      "newer": "anim-order-2",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      }
+    },
+    {
+      "older": "desc-1",
+      "newer": "desc-2",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      }
+    },
+    {
+      "older": "cross-old",
+      "newer": "cross-new",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed",
+          "1": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed",
+          "c": "changed",
+          "d": "changed"
+        },
+        "lines": {
+          "a b": "changed",
+          "c d": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed",
+          "1": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed",
+          "c": "changed",
+          "d": "changed"
+        },
+        "lines": {
+          "a b": "changed",
+          "c d": "changed"
+        }
+      }
+    },
+    {
+      "older": "base",
+      "newer": "apart",
+      "related": false,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      }
+    },
+    {
+      "older": "alone-old",
+      "newer": "alone-new",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed"
+        },
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed"
+        },
+        "lines": {}
+      }
+    },
+    {
+      "older": "proto-old",
+      "newer": "proto-new",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "__proto__": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "__proto__ b": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "__proto__": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "__proto__ b": "changed"
+        }
+      }
+    },
+    {
+      "older": "dup-old",
+      "newer": "dup-new",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "1": "removed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+name: alone-old
+view: root
+steps:
+  - { from: a, text: Thinks }
+  - { from: a, to: b, text: Sends }

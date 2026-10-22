@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setGroupKind, setLines, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteFlow, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setGroupKind, setLines, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -99,6 +99,15 @@ export const STEPS: Spec[] = [
   { op: 'updateFlow', id: 'retry-pay', groups: { retry: { kind: 'repeat', times: '4' } } },
   { op: 'updateFlow', id: 'retry-pay', name: 'Customer pays again' },
   { op: 'updateFlow', id: 'retry-pay', groups: {} },
+  { op: 'setCompare', id: 'retry-pay', with: 'browse' },
+  { op: 'setCompare', id: 'retry-pay', with: 'browse', note: 'Retries loop three times now' },
+  { op: 'setCompare', id: 'retry-pay', with: 'order' },
+  { op: 'setCompare', id: 'retry-pay', with: 'retry-pay' },
+  { op: 'setCompare', id: 'retry-pay', with: 'nope' },
+  { op: 'setCompare', id: 'nope', with: 'browse' },
+  { op: 'updateFlow', id: 'retry-pay', name: 'Customer pays once more' },
+  { op: 'setCompare', id: 'retry-pay' },
+  { op: 'setCompare', id: 'retry-pay' },
   { op: 'removeStep', id: 'retry-pay', index: 0 },
   { op: 'removeStep', id: 'browse', index: 0 },
   { op: 'removeStep', id: 'browse', index: 0 },
@@ -232,6 +241,7 @@ function apply(model: Model, s: Spec): Model {
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
     case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }), ...(s.states === undefined ? {} : { states: s.states }) })
+    case 'setCompare': return setCompare(model, s.id, s.with === undefined ? undefined : s.note === undefined ? { with: s.with } : { with: s.with, note: s.note })
     case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }), ...(s.groups === undefined ? {} : { groups: s.groups }) })
     case 'removeStep': return removeStep(model, s.id, s.index)
     case 'putGroup': return putGroup(model, s.id, s.group, s.options)

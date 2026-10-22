@@ -1,0 +1,4 @@
+name: dup-new
+view: root
+steps:
+  - { from: a, to: b, text: Same }

@@ -1,0 +1,4 @@
+name: apart
+view: root
+steps:
+  - { from: e, to: f, text: Elsewhere }
