@@ -24,6 +24,8 @@ A `callback` takes no outcome. The step card says the outcome in a few words, an
 "Taken by Café wifi proxy", "Sent twice", "Delayed: Cold start", "30% lost". With reduced motion nothing moves, and the cross, the bar, the clock,
 the marker and the reason stay.
 
+Plum has a flow for each: [Courier pings are lost](../demo/flowy/flows/courier-pings-lost.yaml), [Mapbox turns the travel times away](../demo/flowy/flows/mapbox-rate-limit.yaml), [Hotel wifi takes the order](../demo/flowy/flows/hotel-wifi-takes-order.yaml), [A double tap sends the order twice](../demo/flowy/flows/order-sent-twice.yaml) and [Dispatch hears about an order late](../demo/flowy/flows/events-arrive-late.yaml). [Stripe reports a charge](../demo/flowy/flows/stripe-webhook.yaml) is a callback that something outside set off.
+
 These keys go inside `animation`, next to `outcome`:
 
 | Key | What it does |

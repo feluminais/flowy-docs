@@ -17,6 +17,7 @@
       "id": "courier",
       "type": "actor",
       "name": "Courier",
+      "icon": "truck",
       "description": "Rides or drives the order from the restaurant to the customer's door."
     },
     {
@@ -54,7 +55,13 @@
       "type": "system",
       "name": "Stripe",
       "external": "true",
-      "description": "Takes card payments and sends refunds. Plum never sees a card number.\n\n[Provider status](https://status.stripe.com)\n"
+      "description": "Takes card payments and sends refunds. Plum never sees a card number.",
+      "links": [
+        {
+          "url": "https://status.stripe.com",
+          "title": "Provider status"
+        }
+      ]
     },
     {
       "id": "twilio",
@@ -68,7 +75,13 @@
       "type": "system",
       "name": "Mapbox",
       "external": "true",
-      "description": "Maps, address lookup and travel times."
+      "description": "Maps, address lookup and travel times.",
+      "links": [
+        {
+          "url": "https://docs.mapbox.com/api/overview/#rate-limits",
+          "title": "Rate limits"
+        }
+      ]
     },
     {
       "id": "customer-app",
@@ -79,6 +92,12 @@
       "description": "The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\nKeeps nothing but the basket and the session.\n",
       "code": [
         "apps/customer/"
+      ],
+      "links": [
+        {
+          "url": "apps/customer/README.md",
+          "title": "Build and release notes"
+        }
       ]
     },
     {
@@ -639,6 +658,7 @@
       "type": "store",
       "name": "Message templates",
       "in": "notifications",
+      "shape": "document",
       "tech": "Postgres",
       "description": "The wording of every message, per language."
     },
@@ -900,6 +920,7 @@
           "from": "order-api",
           "to": "events",
           "text": "Announces that the order is paid and carries on without waiting",
+          "animation": "event",
           "placed": [
             "order-api",
             "events"
@@ -910,6 +931,7 @@
           "from": "events",
           "to": "dispatch",
           "text": "Hands the event to Dispatch, which starts looking for a courier",
+          "animation": "callback",
           "group": "readers",
           "lane": "Delivery",
           "flow": "deliver-order",
@@ -923,6 +945,7 @@
           "from": "events",
           "to": "warehouse",
           "text": "Streams the same event to the warehouse for its own records",
+          "animation": "event",
           "group": "readers",
           "lane": "Warehouse",
           "placed": [
@@ -1165,6 +1188,116 @@
       ]
     },
     {
+      "id": "events-arrive-late",
+      "name": "Dispatch hears about an order late",
+      "view": "delivery",
+      "steps": [
+        {
+          "from": "events",
+          "to": "dispatch",
+          "text": "The placed event waits behind the dinner rush",
+          "description": "One consumer reads every `placed` event. When orders arrive faster than it reads, each one waits in line.\n",
+          "animation": {
+            "kind": "event",
+            "outcome": "delayed",
+            "reason": "Consumer lag"
+          },
+          "placed": [
+            "ordering",
+            "dispatch"
+          ],
+          "ends": "Order events in Ordering → Dispatch"
+        },
+        {
+          "from": "dispatch",
+          "to": "fleet-db",
+          "text": "Finds couriers minutes after the customer paid",
+          "placed": [
+            "dispatch",
+            "fleet-db"
+          ],
+          "ends": "Dispatch → Fleet DB"
+        }
+      ]
+    },
+    {
+      "id": "hotel-wifi-takes-order",
+      "name": "Hotel wifi takes the order",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "customer-app",
+          "to": "order-api",
+          "text": "POST /orders reaches a sign-in page instead",
+          "description": "A hotel's wifi holds every request until the guest signs in. The call never reaches the **Order API**.\n",
+          "animation": {
+            "kind": "call",
+            "outcome": "intercepted",
+            "by": {
+              "name": "Hotel wifi portal"
+            }
+          },
+          "placed": [
+            "customer-app",
+            "order-api"
+          ],
+          "ends": "Customer app → Order API"
+        },
+        {
+          "from": "customer-app",
+          "text": "Waits for a reply and offers a Retry button",
+          "placed": [
+            "customer-app",
+            "customer-app"
+          ],
+          "ends": "Customer app"
+        }
+      ]
+    },
+    {
+      "id": "mapbox-rate-limit",
+      "name": "Mapbox turns the travel times away",
+      "view": "dispatch",
+      "steps": [
+        {
+          "from": "matcher",
+          "to": "eta",
+          "text": "Asks who is quickest",
+          "animation": "call",
+          "placed": [
+            "matcher",
+            "eta"
+          ],
+          "ends": "Matcher → ETA"
+        },
+        {
+          "from": "eta",
+          "to": "mapbox",
+          "text": "Asks Mapbox for travel times and is turned away",
+          "description": "Plum passes Mapbox's limit once orders pass 900 a minute. Mapbox answers at once, so the call fails fast.\n",
+          "animation": {
+            "kind": "call",
+            "outcome": "rejected",
+            "reason": "Rate limit"
+          },
+          "placed": [
+            "eta",
+            "mapbox"
+          ],
+          "ends": "ETA → Mapbox"
+        },
+        {
+          "from": "eta",
+          "text": "Falls back to straight-line distance and ranks more roughly",
+          "placed": [
+            "eta",
+            "eta"
+          ],
+          "ends": "ETA"
+        }
+      ]
+    },
+    {
       "id": "no-courier-answers",
       "name": "An offer goes unanswered",
       "view": "delivery",
@@ -1235,6 +1368,40 @@
           "kind": "branch"
         }
       }
+    },
+    {
+      "id": "order-sent-twice",
+      "name": "A double tap sends the order twice",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "customer-app",
+          "to": "order-api",
+          "text": "The same order arrives twice",
+          "description": "The app sends the order again when the first reply is slow. Both copies carry one idempotency key.\n",
+          "animation": {
+            "kind": "send",
+            "outcome": "duplicated",
+            "reason": "Slow reply"
+          },
+          "placed": [
+            "customer-app",
+            "order-api"
+          ],
+          "ends": "Customer app → Order API"
+        },
+        {
+          "from": "order-api",
+          "to": "orders-db",
+          "text": "Saves the first copy and refuses the second",
+          "animation": "send",
+          "placed": [
+            "order-api",
+            "orders-db"
+          ],
+          "ends": "Order API → Orders DB"
+        }
+      ]
     },
     {
       "id": "place-order",
@@ -1520,6 +1687,50 @@
           "ends": "Checkout in Order API → Stripe"
         }
       ]
+    },
+    {
+      "id": "stripe-webhook",
+      "name": "Stripe reports a charge",
+      "view": "ordering",
+      "steps": [
+        {
+          "from": "stripe",
+          "to": "order-api",
+          "text": "Calls Plum's webhook to say the charge went through",
+          "description": "Stripe starts this call itself, so nothing in Plum set it off. The order is marked paid when it arrives.\n",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside",
+            "carries": "o_1042"
+          },
+          "placed": [
+            "stripe",
+            "order-api"
+          ],
+          "ends": "Stripe → Order API"
+        },
+        {
+          "from": "order-api",
+          "to": "orders-db",
+          "text": "Marks the order paid",
+          "animation": "send",
+          "placed": [
+            "order-api",
+            "orders-db"
+          ],
+          "ends": "Order API → Orders DB"
+        },
+        {
+          "from": "order-api",
+          "text": "Carries on to announce the order",
+          "flow": "announce-order",
+          "placed": [
+            "order-api",
+            "order-api"
+          ],
+          "ends": "Order API"
+        }
+      ]
     }
   ],
   "problems": [],
@@ -1641,6 +1852,8 @@
           "controls": "Every order carries an idempotency key, and a second order with the same key is refused.",
           "owner": "Ordering",
           "status": "done",
+          "flow": "order-sent-twice",
+          "step": "1",
           "after": {
             "severity": "6",
             "occurrence": "1",
@@ -1681,6 +1894,8 @@
           "action": "Batch the travel-time calls, as the second run tries.",
           "owner": "Delivery",
           "status": "planned",
+          "flow": "mapbox-rate-limit",
+          "step": "2",
           "run": "dinner-rush",
           "after": {
             "severity": "6",
@@ -1716,6 +1931,8 @@
           "action": "Run a second Dispatch consumer.",
           "owner": "Delivery",
           "status": "planned",
+          "flow": "events-arrive-late",
+          "step": "1",
           "after": {
             "severity": "5",
             "occurrence": "2",

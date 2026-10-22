@@ -82,6 +82,8 @@ modes:
     status: done
     after: { severity: 6, occurrence: 1, detection: 4 }
     affects: [customer-app]
+    flow: order-sent-twice
+    step: 1
   menu-cache-stale:
     on: menu-cache
     mode: Serves a menu five minutes late
@@ -109,6 +111,8 @@ modes:
     status: planned
     after: { severity: 6, occurrence: 2, detection: 3 }
     affects: [dispatch, offers]
+    flow: mapbox-rate-limit
+    step: 2
     run: dinner-rush
   fleet-position-writes:
     on: fleet-db
@@ -131,6 +135,8 @@ modes:
     status: planned
     after: { severity: 5, occurrence: 2, detection: 3 }
     affects: [dispatch, offers]
+    flow: events-arrive-late
+    step: 1
   kitchen-tablet-offline:
     on: kitchen-tablet
     mode: The tablet goes offline and nobody accepts within two minutes
