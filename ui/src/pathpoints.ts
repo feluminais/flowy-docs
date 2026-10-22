@@ -45,6 +45,38 @@ export function flatten(d: string): Polyline {
   return { xs, ys, at, total: at[at.length - 1] }
 }
 
+/**
+ * The line with a straight run added before its start and after its end, each on along the way the line runs there: where a particle goes into a shape
+ * that opens, or comes out of one. 0 adds nothing, and a line with no length has no way to run on, so it comes back as it was.
+ */
+export function extend(line: Polyline, before: number, after: number): Polyline {
+  const last = line.xs.length - 1
+  if (last === 0 || line.total === 0 || (before <= 0 && after <= 0)) return line
+  // The way out of the line at an end: from the nearest point that is not on the end itself, to the end.
+  const heading = (end: number, step: 1 | -1): [number, number] => {
+    for (let i = end + step; i >= 0 && i <= last; i += step) {
+      const length = Math.hypot(line.xs[end] - line.xs[i], line.ys[end] - line.ys[i])
+      if (length > 0) return [(line.xs[end] - line.xs[i]) / length, (line.ys[end] - line.ys[i]) / length]
+    }
+    return [0, 0]
+  }
+  const xs = [...line.xs]
+  const ys = [...line.ys]
+  if (before > 0) {
+    const [dx, dy] = heading(0, 1)
+    xs.unshift(xs[0] + dx * before)
+    ys.unshift(ys[0] + dy * before)
+  }
+  if (after > 0) {
+    const [dx, dy] = heading(last, -1)
+    xs.push(line.xs[last] + dx * after)
+    ys.push(line.ys[last] + dy * after)
+  }
+  const at = [0]
+  for (let k = 1; k < xs.length; k++) at.push(at[k - 1] + Math.hypot(xs[k] - xs[k - 1], ys[k] - ys[k - 1]))
+  return { xs, ys, at, total: at[at.length - 1] }
+}
+
 /** The point `s` of the way along (0 at the start, 1 at the end; outside that it stops at the ends). */
 export function pointAt(line: Polyline, s: number): [number, number] {
   const last = line.xs.length - 1

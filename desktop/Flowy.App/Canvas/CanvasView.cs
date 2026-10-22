@@ -366,11 +366,15 @@ internal sealed class CanvasView : Border
     }
 
     /// <summary>A traffic line's path, flattened, in the style the lines are drawn in: the same one the line itself takes, so the particles run on it.</summary>
-    private FlatLine? PathOf(LineTraffic line)
+    private TrafficLayer.Way? PathOf(LineTraffic line)
     {
         if (_scene is null || RectOf(line.From) is not { } a || RectOf(line.To) is not { } b) return null;
         double[]? Outline(string id) => Look.DefOf(_scene.Boxes.First(x => x.Id == id).Object).Edge;
-        return PathPoints.Flatten(LinePaths.Build(LineStyle, a, b, Outline(line.From), Outline(line.To)).Data);
+        var path = PathPoints.Flatten(LinePaths.Build(LineStyle, a, b, Outline(line.From), Outline(line.To)).Data);
+        // A line that ends at a shape that opens runs on into it, and one that starts at one comes out of it (see Particles.WentIn).
+        bool Opens(string id) => _scene.Boxes.First(x => x.Id == id).Inside > 0;
+        var (before, after) = (Opens(line.From) ? TrafficLayer.Reach : 0, Opens(line.To) ? TrafficLayer.Reach : 0);
+        return new TrafficLayer.Way(PathPoints.Extend(path, before, after), PathPoints.Extend(path, before, 0), before, after);
     }
 
     /// <summary>The scene with the boxes that are being (or were just) dragged where they are now, and the frame around the members following them.</summary>

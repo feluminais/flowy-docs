@@ -62,6 +62,43 @@ public static partial class PathPoints
         return new FlatLine([.. xs], [.. ys], at, at[^1]);
     }
 
+    /// <summary>
+    /// The line with a straight run added before its start and after its end, each on along the way the line runs there: where a particle goes into a shape
+    /// that opens, or comes out of one. 0 adds nothing, and a line with no length has no way to run on, so it comes back as it was.
+    /// </summary>
+    public static FlatLine Extend(FlatLine line, double before, double after)
+    {
+        var last = line.Xs.Length - 1;
+        if (last == 0 || line.Total == 0 || (before <= 0 && after <= 0)) return line;
+        // The way out of the line at an end: from the nearest point that is not on the end itself, to the end.
+        (double X, double Y) Heading(int end, int step)
+        {
+            for (var i = end + step; i >= 0 && i <= last; i += step)
+            {
+                var length = Math.Sqrt(Math.Pow(line.Xs[end] - line.Xs[i], 2) + Math.Pow(line.Ys[end] - line.Ys[i], 2));
+                if (length > 0) return ((line.Xs[end] - line.Xs[i]) / length, (line.Ys[end] - line.Ys[i]) / length);
+            }
+            return (0, 0);
+        }
+        var xs = line.Xs.ToList();
+        var ys = line.Ys.ToList();
+        if (before > 0)
+        {
+            var (dx, dy) = Heading(0, 1);
+            xs.Insert(0, xs[0] + dx * before);
+            ys.Insert(0, ys[0] + dy * before);
+        }
+        if (after > 0)
+        {
+            var (dx, dy) = Heading(last, -1);
+            xs.Add(line.Xs[last] + dx * after);
+            ys.Add(line.Ys[last] + dy * after);
+        }
+        var at = new double[xs.Count];
+        for (var k = 1; k < xs.Count; k++) at[k] = at[k - 1] + Math.Sqrt(Math.Pow(xs[k] - xs[k - 1], 2) + Math.Pow(ys[k] - ys[k - 1], 2));
+        return new FlatLine([.. xs], [.. ys], at, at[^1]);
+    }
+
     /// <summary>The point <paramref name="s"/> of the way along (0 at the start, 1 at the end; outside that it stops at the ends).</summary>
     public static (double X, double Y) PointAt(FlatLine line, double s)
     {
