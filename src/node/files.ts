@@ -50,7 +50,7 @@ export const hashBytes = (bytes: Uint8Array) => createHash('sha256').update(byte
 const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
 
 /** Where `rel` really is: the real path of the file, or of the nearest folder above it that exists, with the rest of the path put back. */
-async function realPlace(dir: string, rel: string): Promise<string> {
+export async function realPlace(dir: string, rel: string): Promise<string> {
   let path = join(dir, rel)
   const rest: string[] = []
   for (;;) {
