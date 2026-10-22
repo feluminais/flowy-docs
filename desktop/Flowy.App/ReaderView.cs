@@ -27,13 +27,14 @@ internal sealed partial class ReaderView : Grid
     private const double ArriveMilliseconds = 230;
 
     /// <summary>What is picked, and shows in Details. <c>Boxes</c> is several boxes picked in edit mode, to move or delete together; <c>Flow</c> is a flow being recorded or edited.</summary>
-    private abstract record Side
+    internal abstract record Side
     {
         public sealed record Box(string Id) : Side;
 
         public sealed record Boxes(IReadOnlyList<string> Ids) : Side;
 
-        public sealed record Line(string From, string To) : Side;
+        /// <summary>A line of a view. <c>View</c> is the view of the pane of a comparison it was clicked in (two flows can sit on different views); null: the view the reader is in.</summary>
+        public sealed record Line(string From, string To, string? View = null) : Side;
 
         public sealed record Add : Side;
 
@@ -45,6 +46,7 @@ internal sealed partial class ReaderView : Grid
 
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
+    private readonly Border _compareHost = new() { ClipToBounds = true, IsVisible = false }; // the comparison, in the place of the canvas while it is open
     private readonly StackPanel _empty;
     private readonly TextBlock _emptyTitle = new() { Text = "Nothing to show yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
     private readonly TextBlock _emptyBody = new() { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Classes = { "muted" } };
@@ -124,7 +126,7 @@ internal sealed partial class ReaderView : Grid
             Children = { _emptyTitle, _emptyBody },
         };
         _zoomButtons = ZoomButtons();
-        var stage = new Grid { Children = { _motionHost, _empty, _zoomButtons, _panel, _nav, _navSash, _detailsSash, _player, _pickedBar, _overlay } };
+        var stage = new Grid { Children = { _motionHost, _compareHost, _empty, _zoomButtons, _panel, _nav, _navSash, _detailsSash, _player, _pickedBar, _overlay } };
         var beside = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { _rail, stage, _detailsRail } };
         SetColumn(stage, 1);
         SetColumn(_detailsRail, 2);
@@ -193,6 +195,7 @@ internal sealed partial class ReaderView : Grid
         _player.Replay += _playback.Replay;
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;
+        _player.CompareClicked += ToggleCompare;
 
         Focusable = true;
         // Every press, handled or not (the canvas handles its own): it says which half the reader is working in.
@@ -326,6 +329,7 @@ internal sealed partial class ReaderView : Grid
         _left = false;
         _playback.Head = null;
         _hover = null;
+        CloseCompare(false); // another folder has other flows
         _codeBase = null;
         _repoRoot = FolderLoader.RepoRoot(dir);
         SetBanner(null);
@@ -393,7 +397,7 @@ internal sealed partial class ReaderView : Grid
     /// <summary>A model with nothing in it shows a few words about what to do, not a blank canvas. A file that can't be read has its banner already.</summary>
     private void UpdateEmpty()
     {
-        _empty.IsVisible = _folder is not null && !_banner.IsVisible && (_view == Names.Root || Editing) && _canvas.Scene is { Boxes.Count: 0 };
+        _empty.IsVisible = _folder is not null && !_banner.IsVisible && !Comparing && (_view == Names.Root || Editing) && _canvas.Scene is { Boxes.Count: 0 };
         _emptyTitle.Text = Editing ? "Nothing here yet" : "Nothing to show yet";
         _emptyBody.Text = Editing
             ? "Press Add to put the first shape here."
@@ -407,19 +411,20 @@ internal sealed partial class ReaderView : Grid
     /// <summary>The diagram as it is on screen, without the bar and the panel, as a PNG at <paramref name="scale"/> times the screen's size.</summary>
     public void SavePicture(string path, double scale = 2)
     {
-        var size = _motionHost.Bounds.Size;
+        var host = Comparing ? _compareHost : _motionHost;
+        var size = host.Bounds.Size;
         if (size.Width < 1 || size.Height < 1) return;
-        var was = _motionHost.Background;
-        _motionHost.Background = this.TryFindResource("BgBrush", ActualThemeVariant, out var bg) && bg is IBrush brush ? brush : Brushes.White;
+        var was = host.Background;
+        host.Background = this.TryFindResource("BgBrush", ActualThemeVariant, out var bg) && bg is IBrush brush ? brush : Brushes.White;
         try
         {
             using var bitmap = new RenderTargetBitmap(new PixelSize((int)Math.Ceiling(size.Width * scale), (int)Math.Ceiling(size.Height * scale)), new Vector(96 * scale, 96 * scale));
-            bitmap.Render(_motionHost);
+            bitmap.Render(host);
             bitmap.Save(path, PngBitmapEncoderOptions.Default);
         }
         finally
         {
-            _motionHost.Background = was;
+            host.Background = was;
         }
     }
 
@@ -460,7 +465,7 @@ internal sealed partial class ReaderView : Grid
         return _folder.Model.Flows.Where(kv => kv.Value.View == view && (kv.Value.Steps.Count > 0 || Editing)).Select(kv => (kv.Key, kv.Value)).ToList();
     }
 
-    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen ? null : _playback.Head is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
+    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen || _compare is not null ? null : _playback.Head is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
 
     /// <summary>What the player steps through: the stops of a flow. A flow with no groups has one for each step.</summary>
     private IReadOnlyList<Stop> StopsOf(Flow flow) => _stops.GetValue(flow, f => Structure.Stops(f));
@@ -473,12 +478,13 @@ internal sealed partial class ReaderView : Grid
     {
         if (_folder is not { } folder) return;
         var model = folder.Model;
+        CloseCompareIfBroken(model);
         var view = CurrentView();
         var flow = PlayingFlow();
         var index = StopIndex();
         FollowCanvas(model, view);
 
-        var shown = DrawScene(folder, view, flow, index);
+        var shown = Comparing ? null : DrawScene(folder, view, flow, index); // the comparison has canvases of its own
         UpdateEmpty();
 
         // Fit when the view changes or a flow starts or stops, not on every step.
@@ -497,6 +503,7 @@ internal sealed partial class ReaderView : Grid
         ApplyFailures();
         RefreshPlayer(model, view, flow, index, shown);
         UpdateMotion(model, view, flow, index, shown);
+        RefreshCompare(folder);
         RefreshNavigator(model, view, flow);
     }
 
@@ -505,13 +512,7 @@ internal sealed partial class ReaderView : Grid
     {
         var model = folder.Model;
         Playing? shown = null;
-        if (flow is { } f)
-        {
-            var stops = StopsOf(f.Flow);
-            // A shape that takes a request off the line (`by`) is lit with the step, so it does not sit at the faint level while it flashes.
-            var also = stops[index].Steps.SelectMany(i => Animations.Read(f.Flow.Steps[i])?.By is { Shape: { } taker } && Views.PlaceStep(model, view, taker, null) is { } at ? new[] { at.From } : []).ToList();
-            shown = new Playing(f.Flow.Steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList(), null, stops[index].Steps, Structure.OtherLaneSteps(stops, index), also.Count > 0 ? also : null);
-        }
+        if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index);
         else if (Recording is { } rec) shown = RecordingShown(model, view, rec);
         var line = _side is Side.Line l ? SceneBuilder.LineId(l.From, l.To) : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
@@ -590,8 +591,8 @@ internal sealed partial class ReaderView : Grid
             case Side.Line { From: var from, To: var to } when Editing:
                 _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
                 break;
-            case Side.Line { From: var from, To: var to }:
-                _panel.ShowLine(model, view, from, to, _folder!.Problems);
+            case Side.Line { From: var from, To: var to, View: var lineView }:
+                _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems);
                 break;
             case Side.Add when Editing:
                 _panel.ShowAdd(model, view, RunAsync, OpenObject);
@@ -622,37 +623,16 @@ internal sealed partial class ReaderView : Grid
     {
         if (flow is not { } f)
         {
+            DropPicker(); // its flyout hangs on the card of the flow playing
             _player.Clear();
             _canvas.SetMarks([]);
             return;
         }
-        var stops = StopsOf(f.Flow);
-        var stop = stops[index];
-        var caption = Captions.Of(f.Flow, stop);
-        var steps = stop.Steps.Select((i, n) =>
-        {
-            var step = f.Flow.Steps[i];
-            var ends = step.From is null ? "" : Views.StepEnds(model, step.From, step.To, shown?.Ends[i]);
-            var animation = Animations.Read(step);
-            var outcome = animation is null ? null : Animations.OutcomeLine(animation, id => Views.NameOf(model, id));
-            return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome);
-        }).ToList();
-        var moves = stop.Steps.Any(i => Animations.Read(f.Flow.Steps[i]) is not null && shown?.Ends[i] is not null);
+        _player.CompareOff = CompareChoices.Off(model, Editing);
         (string Name, int Step)? trail = _playback.Head is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
-        _player.Show(new PlayerView(string.IsNullOrEmpty(f.Flow.Name) ? f.Id : f.Flow.Name, index, stops.Count, stop.Kind, caption, Captions.ProgressOf(f.Flow, stops), _playback.Auto, moves, trail, steps, _canvas.StatesShown.Values.ToList()));
-        _canvas.SetMarks(stop.Steps
-            .Select((i, n) => (Placed: shown?.Ends[i], Text: n < caption.Marks.Count ? caption.Marks[n] : ""))
-            .Where(x => x.Placed is not null && x.Text != "" && stop.Kind is not null)
-            .Select(x => new CanvasView.Mark(x.Placed!.Value.From, x.Placed.Value.To, x.Text, stop.Kind!))
-            .ToList());
-    }
-
-    /// <summary>A step's link to another flow, for the card: null when it has none or the flow isn't there.</summary>
-    private static LinkedFlow? LinkOf(Model model, Step step)
-    {
-        if (JsCompat.Blank(step.FlowId)) return null;
-        var id = JsCompat.JsTrim(step.FlowId!);
-        return model.Flows.TryGetValue(id, out var target) ? new LinkedFlow(id, string.IsNullOrEmpty(target.Name) ? id : target.Name, target.Steps.Count > 0 && Views.IsView(model, target.View)) : null;
+        var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.Auto, trail, _canvas.StatesShown.Values.ToList());
+        _player.Show(card);
+        _canvas.SetMarks(marks);
     }
 
     /// <summary>The Back bar's words: the flow the reader came from and the stop they left, one that still exists after a reload.</summary>
@@ -686,6 +666,7 @@ internal sealed partial class ReaderView : Grid
         _playback.Head = null;
         _playback.StopAuto();
         _hover = null;
+        CloseCompare(false); // two flows are compared on their own views, so going to a level ends it
         if (_side is not (null or Side.Box)) _side = null; // lines belong to one view
         Refresh();
     }
@@ -712,7 +693,7 @@ internal sealed partial class ReaderView : Grid
     /// <summary>The old view flies off, then the new one settles in. A second move on the way, or reduced motion, goes straight there.</summary>
     private void ZoomTo(string view, Move direction, Pt origin)
     {
-        if (_moving || MotionSettings.Reduced)
+        if (_moving || MotionSettings.Reduced || _compare is not null) // the comparison is not the canvas that would fly off
         {
             GoTo(view);
             return;
@@ -755,7 +736,11 @@ internal sealed partial class ReaderView : Grid
         _canvas.RenderTransform = new ScaleTransform(scale, scale);
     }
 
-    public void FitNow() => _canvas.Fit(RightOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
+    public void FitNow()
+    {
+        if (Comparing) _compareView?.FocusedPane.Fit(); // F fits the pane that has the focus
+        else _canvas.Fit(RightOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
+    }
 
     // ---- selecting ---------------------------------------------------------------------------------------------
 
@@ -837,6 +822,7 @@ internal sealed partial class ReaderView : Grid
         if (_folder?.Model.GetObject(id) is null) return;
         DidSomethingElse();
         _side = new Side.Box(id);
+        if (_compareView is not null) _compareView.Last = null; // shown from a list, not a pane: no pane outlines it
         Refresh();
         _canvas.Reveal(id, _detailsWidth, ShownTab is not null ? _navWidth : 0);
     }
@@ -919,7 +905,7 @@ internal sealed partial class ReaderView : Grid
         _search = new SearchBox(_folder.Model, id =>
         {
             CloseSearch(true);
-            GoTo(Views.ParentOf(_folder.Model, id)); // the view the box sits in
+            if (!Comparing) GoTo(Views.ParentOf(_folder.Model, id)); // the view the box sits in; a comparison of flows stays open, and the Details show the shape
             OpenObject(id);
         }, () => CloseSearch(true), query);
         _overlay.Children.Add(_search);
