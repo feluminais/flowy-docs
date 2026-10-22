@@ -291,6 +291,7 @@ internal sealed class SwapStage : Border, IFlowKeys
         // The canvas holds both diagrams' boxes and no lines, each box where it starts. Setting it does not move the camera.
         var start = new Scene(frame.Scene.View, "", [.. items.Select(l => l.Box with { Rect = l.Box.Rect with { X = l.X, Y = l.Y } })], [], null, frame.Scene.Members);
         _canvas.SetScene(start, Current.LineStyle, frame.Selected);
+        _canvas.ShowChanges(Current.Changes); // the marks follow the flow coming on: its shapes carry its marks as they glide in
         foreach (var l in items) _canvas.SetBoxPresence(l.Box.Id, l.Presence);
 
         return new Gliding(items, _canvas.Viewport, _canvas.FitOf(frame.Scene) ?? _canvas.Viewport, _canvas);

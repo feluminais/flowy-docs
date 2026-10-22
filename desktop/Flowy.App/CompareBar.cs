@@ -16,6 +16,9 @@ internal sealed class CompareBar : Border
     private readonly Button _swap = new();
     private readonly Button _flip = new();
     private readonly Button _close = new();
+    private readonly Button _changes = new();
+    private readonly TextBlock _marks = new() { Text = "Marks", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 4, 0), FontSize = 12, Classes = { "muted" } };
+    private readonly Border _keyHost = new() { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0), IsVisible = false };
     private readonly Button[] _names = [new(), new()];
     private readonly StackPanel _namesRow = new() { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(10, 0, 8, 0), IsVisible = false };
     private string _mode = "side";
@@ -29,6 +32,9 @@ internal sealed class CompareBar : Border
     /// <summary>The reader chose Swap sides: the flows go on each other's side.</summary>
     public event Action? Flipped;
 
+    /// <summary>The reader chose Show changes.</summary>
+    public event Action? ChangesToggled;
+
     /// <summary>The reader chose Close.</summary>
     public event Action? Closed;
 
@@ -39,6 +45,7 @@ internal sealed class CompareBar : Border
         Make(_side, null, "Side by side", "Side by side", "Two flows next to each other", () => ModePicked?.Invoke("side"));
         Make(_swap, null, "Swap", "Swap", "One canvas that flips between the flows", () => ModePicked?.Invoke("swap"));
         Make(_flip, Icons.ArrowsLeftRight, null, "Swap sides", "Swap sides", () => Flipped?.Invoke());
+        Make(_changes, null, "Show changes", "Show changes", "Mark what differs between the flows", () => ChangesToggled?.Invoke());
         Make(_close, Icons.Close, "Close", "Close", "Close the comparison (Esc)", () => Closed?.Invoke());
         for (var i = 0; i < _names.Length; i++)
         {
@@ -51,7 +58,9 @@ internal sealed class CompareBar : Border
             };
             _namesRow.Children.Add(_names[i]);
         }
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _side, _swap, _namesRow, _flip } };
+        var apart = new Border { Width = 1, Height = 18, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+        apart.Classes.Add("apart");
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _side, _swap, _namesRow, _flip, apart, _marks, _changes, _keyHost } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(_close, Dock.Right);
         dock.Children.Add(_close);
@@ -60,7 +69,8 @@ internal sealed class CompareBar : Border
         Mode = "side";
     }
 
-    private static void Make(Button button, string? icon, string? text, string name, string tip, Action click)
+    /// <summary>A bar button in the look of the top bar: an icon, words, or both; its tooltip greys with it and still shows, so a blocked one can say why.</summary>
+    internal static void Make(Button button, string? icon, string? text, string name, string tip, Action click)
     {
         button.Classes.Add("tool");
         if (icon is null) button.Content = new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Classes = { "btntext" } };
@@ -99,6 +109,19 @@ internal sealed class CompareBar : Border
         }
     }
 
+    /// <summary>
+    /// The Show changes switch: pressed while the marks are on, greyed with <paramref name="off"/> as its tooltip when they can't apply, and while they are on the key of what the marks
+    /// mean (<paramref name="key"/>, see <see cref="CompareKey"/>) beside it.
+    /// </summary>
+    public void ShowChanges(bool on, string? off, Control? key)
+    {
+        Press(_changes, on);
+        _changes.IsEnabled = off is null;
+        ToolTip.SetTip(_changes, off ?? "Mark what differs between the flows");
+        _keyHost.Child = on ? key : null;
+        _keyHost.IsVisible = on && key is not null;
+    }
+
     private static void Press(Button button, bool on)
     {
         if (on) button.Classes.Add("pressed");
@@ -118,4 +141,9 @@ internal sealed class CompareBar : Border
     internal bool FlowsShown => _namesRow.IsVisible;
 
     internal Button CloseButton => _close;
+
+    internal Button ChangesButton => _changes;
+
+    /// <summary>The key beside the switch, or null when it is off.</summary>
+    internal Control? KeyShown => _keyHost.IsVisible ? _keyHost.Child : null;
 }

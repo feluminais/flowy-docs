@@ -676,6 +676,397 @@ public class CompareTests
         Assert.Null(reader.CompareNow);
     }
 
+    // ---- change marks, the key, the note and Save as pair -------------------------------------------------------
+
+    private static string Dir(TempFolder temp) => Path.Combine(temp.Path, "flowy");
+
+    private static Flow FlowOnDisk(TempFolder temp, string id) => FolderLoader.Load(Dir(temp)).Model.Flows[id];
+
+    private static CompareTag? TagOnDisk(TempFolder temp, string id) => Compares.Of(FlowOnDisk(temp, id).CompareRaw);
+
+    /// <summary>The marks a pane draws are the diff's side for its flow: every shape and line the side marks is marked in the kind it says, and no other is.</summary>
+    private static void AssertMarks(Flowy.App.Canvas.CanvasView canvas, SideMarks side)
+    {
+        var scene = canvas.Scene!;
+        foreach (var box in scene.Boxes) Assert.Equal(side.Shapes.TryGetValue(box.Id, out var kind) ? kind : null, canvas.ChangeOnBox(box.Id));
+        foreach (var edge in scene.Edges) Assert.Equal(side.Lines.TryGetValue(edge.Id, out var kind) ? kind : null, canvas.ChangeOnLine(edge.From, edge.To));
+    }
+
+    private static int Marked(Flowy.App.Canvas.CanvasView canvas) =>
+        canvas.Scene!.Boxes.Count(b => canvas.ChangeOnBox(b.Id) is not null) + canvas.Scene.Edges.Count(e => canvas.ChangeOnLine(e.From, e.To) is not null);
+
+    /// <summary>Takes the keyboard out of any field and lets what was posted run, so a key pressed next is the reader's.</summary>
+    private static void Away(Window window, ReaderView reader)
+    {
+        EditModeTests.Settle(window);
+        reader.Focus();
+    }
+
+    [AvaloniaFact]
+    public void Show_changes_is_off_until_it_is_turned_on_and_is_remembered_for_the_next_window()
+    {
+        using var temp = new TempFolder();
+        var store = new UserStateStore(Path.Combine(temp.Path, "state.json"));
+        var shell = new Shell(store);
+        var window = shell.Show(Plum);
+        Assert.False(window.Reader.ShowChanges);
+        Assert.False(shell.State.ShowChanges);
+        window.Reader.OpenCompareById("refund", "refund-not-recorded");
+        var bar = window.Reader.CompareShown!.Bar;
+        Assert.False(On(bar.ChangesButton));
+        Assert.Null(bar.KeyShown); // the key is the marks': there are none to explain
+        Assert.True(bar.ChangesButton.IsEnabled);
+        ClickBar(bar.ChangesButton);
+        Assert.True(window.Reader.ShowChanges);
+        Assert.True(On(window.Reader.CompareShown!.Bar.ChangesButton));
+        Assert.True(shell.State.ShowChanges);
+        window.Close();
+        var next = new Shell(new UserStateStore(store.File)).Show(Plum);
+        Assert.True(next.Reader.ShowChanges);
+        next.Close();
+    }
+
+    [AvaloniaFact]
+    public void Nothing_is_marked_with_Show_changes_off_and_each_pane_draws_its_own_side_with_it_on_also_after_Swap_sides()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.OpenCompareById("refund-not-recorded", "refund"); // the holder of the tag reads second
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        Assert.Equal(["refund", "refund-not-recorded"], view.Panes.Select(p => p.FlowId).ToArray());
+        Assert.All(view.Panes, p => Assert.Equal(0, Marked(p.Canvas)));
+        Assert.All(view.Panes, p => Assert.Null(p.Changes));
+
+        reader.SetShowChanges(true);
+        EditModeTests.Settle(window);
+        var model = reader.Folder!.Model;
+        var diff = FlowDiffs.Diff(model.Flows["refund"], model.Flows["refund-not-recorded"]);
+        Assert.True(diff.Related);
+        AssertMarks(view.Panes[0].Canvas, diff.Older);
+        AssertMarks(view.Panes[1].Canvas, diff.Newer);
+        Assert.True(Marked(view.Panes[0].Canvas) + Marked(view.Panes[1].Canvas) > 0);
+        Assert.NotNull(view.Bar.KeyShown);
+
+        // Swap sides moves the panes, and each flow keeps its marks: the tag holder is still the newer.
+        ClickBar(view.Bar.FlipButton);
+        EditModeTests.Settle(window);
+        view = reader.CompareShown!;
+        Assert.Equal(["refund-not-recorded", "refund"], view.Panes.Select(p => p.FlowId).ToArray());
+        AssertMarks(view.Panes[0].Canvas, diff.Newer);
+        AssertMarks(view.Panes[1].Canvas, diff.Older);
+
+        reader.SetShowChanges(false);
+        EditModeTests.Settle(window);
+        Assert.All(reader.CompareShown!.Panes, p => Assert.Equal(0, Marked(p.Canvas)));
+        Assert.Null(reader.CompareShown.Bar.KeyShown);
+    }
+
+    [AvaloniaFact]
+    public void Without_a_tag_the_second_flow_is_the_newer_and_Swap_sides_changes_which_is()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        reader.SetShowChanges(true);
+        EditModeTests.Settle(window);
+        var model = reader.Folder!.Model;
+        var view = reader.CompareShown!;
+        Assert.Equal(("refund", "refund-not-recorded"), view.Sides);
+        AssertMarks(view.Panes[1].Canvas, FlowDiffs.Diff(model.Flows["refund"], model.Flows["refund-not-recorded"]).Newer);
+        ClickBar(view.Bar.FlipButton);
+        EditModeTests.Settle(window);
+        view = reader.CompareShown!;
+        Assert.Equal(("refund-not-recorded", "refund"), view.Sides); // no tag says otherwise: the flow on the right is the newer
+        AssertMarks(view.Panes[1].Canvas, FlowDiffs.Diff(model.Flows["refund-not-recorded"], model.Flows["refund"]).Newer);
+    }
+
+    [AvaloniaFact]
+    public void In_Swap_the_flow_on_show_gets_its_side_s_marks_and_the_key_lists_only_its_kinds()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.SetShowChanges(true);
+        reader.OpenCompareById("refund-not-recorded", "refund", swap: true);
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var stage = view.Stage!;
+        var diff = FlowDiffs.Diff(reader.Folder!.Model.Flows["refund"], reader.Folder.Model.Flows["refund-not-recorded"]);
+        Assert.Equal("refund", stage.OnKey);
+        AssertMarks(stage.Canvas, diff.Older);
+        Assert.Equal(CompareUi.KeyItems(diff, ["older"]).Items, ((CompareKey)view.Bar.KeyShown!).Kinds);
+        Press(window, Key.X, PhysicalKey.X);
+        EditModeTests.Settle(window);
+        Assert.Equal("refund-not-recorded", stage.OnKey);
+        AssertMarks(stage.Canvas, diff.Newer); // the marks follow the flow on show
+        Assert.Equal(CompareUi.KeyItems(diff, ["newer"]).Items, ((CompareKey)view.Bar.KeyShown!).Kinds);
+    }
+
+    [AvaloniaFact]
+    public void The_progress_cells_of_a_marked_flow_take_the_mark_of_their_steps()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.SetShowChanges(true);
+        reader.OpenCompareById("refund-not-recorded", "refund");
+        EditModeTests.Settle(window);
+        var model = reader.Folder!.Model;
+        var diff = FlowDiffs.Diff(model.Flows["refund"], model.Flows["refund-not-recorded"]);
+        var flow = model.Flows["refund-not-recorded"];
+        var stops = Structure.Stops(flow);
+        var expected = Captions.ProgressOf(flow, stops).Cells.Select(c => CompareUi.ChangeOfStop(stops[c.Stop].Steps, diff.Newer.Steps)).ToList();
+        Assert.Contains(expected, kind => kind is not null);
+        var cells = reader.CompareShown!.Panes[1].Card.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("seg")).ToList();
+        Assert.Equal(expected.Count, cells.Count);
+        for (var i = 0; i < cells.Count; i++)
+        {
+            var named = cells[i].Classes.FirstOrDefault(c => c.StartsWith("chg-"));
+            Assert.Equal(expected[i] is { } kind ? "chg-" + Flowy.App.Canvas.BoxControl.Word(kind) : null, named);
+        }
+        reader.SetShowChanges(false);
+        EditModeTests.Settle(window);
+        Assert.DoesNotContain(reader.CompareShown!.Panes[1].Card.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("seg")), b => b.Classes.Any(c => c.StartsWith("chg-")));
+    }
+
+    [AvaloniaFact]
+    public void The_key_lists_only_the_kinds_present_and_says_so_when_there_are_none_or_nothing_is_shared()
+    {
+        FlowDiff Diff(bool related, SideMarks older, SideMarks newer) => new(related, older, newer);
+        var none = new SideMarks(new Dictionary<int, Change>(), new Dictionary<string, Change>(), new Dictionary<string, Change>());
+        var added = new SideMarks(new Dictionary<int, Change> { [2] = Change.New }, new Dictionary<string, Change> { ["fee"] = Change.Changed }, new Dictionary<string, Change>());
+        string[] both = ["older", "newer"];
+        var key = new CompareKey(Diff(true, none, added), both);
+        Assert.Equal([Change.New, Change.Changed], key.Kinds);
+        Assert.Equal(["New", "Changed"], key.Words);
+        Assert.Equal(2, key.GetVisualDescendants().OfType<Border>().Count(b => b.Classes.Contains("sw")));
+        Assert.Empty(new CompareKey(Diff(true, none, added), ["older"]).Kinds); // the older flow alone has nothing marked
+        var same = new CompareKey(Diff(true, none, none), both);
+        Assert.Empty(same.Kinds);
+        Assert.Equal(["No changes"], same.Words);
+        var apart = new CompareKey(Diff(false, none, none), both);
+        Assert.Empty(apart.Kinds);
+        Assert.Equal(["Nothing in common"], apart.Words);
+        Assert.DoesNotContain(apart.GetVisualDescendants().OfType<Border>(), b => b.Classes.Contains("sw")); // no swatch for words
+    }
+
+    [AvaloniaFact]
+    public void A_marked_shape_is_lifted_when_dimmed_but_not_when_it_is_in_a_state()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.SetShowChanges(true);
+        reader.OpenCompareById("refund-not-recorded", "refund");
+        EditModeTests.Settle(window);
+        var pane = reader.CompareShown!.Panes[1];
+        var marked = pane.Canvas.Scene!.Boxes.First(b => pane.Canvas.ChangeOnBox(b.Id) is not null);
+        var control = pane.Canvas.BoxControlFor(marked.Id)!;
+        Assert.Contains("marked", control.Classes);
+        Assert.Contains("chg-" + Flowy.App.Canvas.BoxControl.Word(pane.Canvas.ChangeOnBox(marked.Id)!.Value), control.Classes);
+        control.Classes.Add("dim");
+        Assert.Equal(0.6, control.Opacity, 3);
+        control.Classes.Add("stated");
+        Assert.NotEqual(0.6, control.Opacity); // a shape in a state keeps its own fading
+    }
+
+    [AvaloniaFact]
+    public async Task A_note_on_a_tagged_pair_is_saved_in_the_newer_flows_file_as_one_edit_that_can_be_undone()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        Assert.False(note.Editing);
+        Assert.True(note.NoteButton!.IsEnabled);
+        Assert.Null(note.PairButton); // a tagged pair is a pair already
+        ClickBar(note.NoteButton);
+        EditModeTests.Settle(window);
+        Assert.True(note.Editing);
+        Assert.False(note.SaveButton!.IsEnabled); // nothing to save yet
+        note.Field.Text = "Fixed in the new flow";
+        Assert.Equal("Fixed in the new flow", reader.NoteDraftNow);
+        Assert.True(note.SaveButton!.IsEnabled);
+        ClickBar(note.SaveButton);
+        await EditModeTests.Until(() => reader.NoteDraftNow is null && reader.CompareShown!.Note.SavedView is not null); // saved: the draft is gone and the saved note is shown
+        Assert.Equal(new CompareTag("refund", "Fixed in the new flow"), TagOnDisk(temp, "refund-not-recorded"));
+        Assert.Null(TagOnDisk(temp, "refund")); // the line stays with the flow that holds it
+        Assert.False(reader.CompareShown!.Note.Editing);
+        Assert.True(reader.CanUndo);
+        await reader.UndoAsync();
+        await EditModeTests.Until(() => TagOnDisk(temp, "refund-not-recorded")?.Note is null);
+        Assert.Equal(new CompareTag("refund"), TagOnDisk(temp, "refund-not-recorded")); // one undo takes the whole note back
+    }
+
+    [AvaloniaFact]
+    public void When_the_folder_cannot_save_the_note_controls_are_greyed_with_the_reason_and_a_saved_note_still_shows()
+    {
+        var (temp, window, reader) = Open((rel, text) => rel == "flows/refund-not-recorded.yaml" ? "compare:\n  with: refund\n  note: Fixed in v2\n" + text : text);
+        using var _ = temp;
+        reader.CanEdit = false;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        Assert.False(note.NoteButton!.IsEnabled);
+        Assert.Equal("This page can't save", ToolTip.GetTip(note.NoteButton));
+        Assert.NotNull(note.SavedView); // shown, not editable
+        Assert.False(note.Editing);
+        reader.OpenCompareById("refund", "place-order");
+        EditModeTests.Settle(window);
+        var untagged = reader.CompareShown!.Note;
+        Assert.False(untagged.PairButton!.IsEnabled);
+        Assert.Equal("This page can't save", ToolTip.GetTip(untagged.PairButton));
+        Assert.False(untagged.NoteButton!.IsEnabled);
+    }
+
+    [AvaloniaFact]
+    public void An_untagged_pair_keeps_a_draft_and_closing_asks_first_Keep_keeps_and_Discard_drops()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        // Nothing typed, or only blanks: nothing to lose, so Close just closes.
+        ClickBar(view.Note.NoteButton!);
+        view.Note.Field.Text = "  \n";
+        ClickBar(view.Bar.CloseButton);
+        Assert.Null(reader.CompareNow);
+        Assert.Null(reader.AskShown);
+
+        // The blank draft was kept, so the editor is back open when the pair is.
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        view = reader.CompareShown!;
+        Assert.True(view.Note.Editing);
+        Assert.Null(view.Note.SaveButton); // an untagged pair writes with Save as pair
+        view.Note.Field.Text = "Because of the fee";
+        Assert.Equal("Because of the fee", reader.NoteDraftNow);
+        ClickBar(view.Bar.CloseButton);
+        var ask = reader.AskShown!;
+        Assert.NotNull(reader.CompareNow); // it asked instead
+        Assert.Equal("Discard the note?", Avalonia.Automation.AutomationProperties.GetName(ask));
+        // Esc is a Keep.
+        Away(window, reader);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.AskShown);
+        Assert.NotNull(reader.CompareNow);
+        Assert.Equal("Because of the fee", reader.CompareShown!.Note.Field.Text);
+        // Every other way out asks too: C, a level in the breadcrumb, and edit mode.
+        Away(window, reader);
+        Press(window, Key.C, PhysicalKey.C);
+        Assert.NotNull(reader.AskShown);
+        Press(window, Key.C, PhysicalKey.C); // one more while it asks is a Keep
+        Assert.Null(reader.AskShown);
+        reader.GoTo("ordering");
+        Assert.NotNull(reader.AskShown);
+        Assert.NotNull(reader.CompareNow);
+        ClickBar(reader.AskShown!.Keep);
+        Assert.Null(reader.AskShown);
+        reader.SetEditing(true);
+        Assert.NotNull(reader.AskShown);
+        Assert.False(reader.Editing);
+        ClickBar(reader.AskShown!.Keep);
+        Assert.Equal("Because of the fee", reader.NoteDraftNow);
+        // Discard drops the note and goes on.
+        ClickBar(view.Bar.CloseButton);
+        ClickBar(reader.AskShown!.Discard);
+        Assert.Null(reader.CompareNow);
+        Assert.Null(reader.AskShown);
+        Assert.False(reader.HoldsNote);
+    }
+
+    [AvaloniaFact]
+    public void A_draft_is_kept_when_a_change_on_disk_closes_the_comparison_and_is_back_when_the_pair_is_compared_again()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        ClickBar(reader.CompareShown!.Note.NoteButton!);
+        reader.CompareShown.Note.Field.Text = "Still to say";
+        var file = Path.Combine(Dir(temp), "flows", "refund-not-recorded.yaml");
+        var text = File.ReadAllText(file);
+        File.WriteAllText(file, "name: Nothing yet\nview: root\nsteps: []\n");
+        reader.Reload(FolderLoader.Load(Dir(temp)));
+        Assert.Null(reader.CompareNow); // the flow can't play now
+        Assert.Null(reader.AskShown); // and the app did not ask: it was not the reader who closed it
+        Assert.True(reader.HoldsNote);
+        File.WriteAllText(file, text);
+        reader.Reload(FolderLoader.Load(Dir(temp)));
+        reader.OpenCompareById("refund-not-recorded", "refund");
+        EditModeTests.Settle(window);
+        Assert.Equal("Still to say", reader.NoteDraftNow);
+        Assert.True(reader.CompareShown!.Note.Editing);
+        Assert.Equal("Still to say", reader.CompareShown.Note.Field.Text);
+    }
+
+    [AvaloniaFact]
+    public async Task Save_as_pair_names_the_flow_that_gets_the_line_and_writes_the_tag_with_the_draft_as_its_note()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        Assert.True(note.PairButton!.IsEnabled);
+        ClickBar(note.NoteButton!);
+        note.Field.Text = "  Because of the fee  ";
+        ClickBar(note.PairButton);
+        EditModeTests.Settle(window);
+        Assert.Equal(["Tag The refund is not recorded as the newer of Support refunds an order"], note.ConfirmLines);
+        ClickBar(note.CancelButton!); // the confirm's Cancel goes back to the draft
+        Assert.Empty(note.ConfirmLines);
+        Assert.Equal("  Because of the fee  ", reader.NoteDraftNow);
+        ClickBar(note.PairButton!);
+        ClickBar(note.SaveButton!);
+        await EditModeTests.Until(() => reader.NoteDraftNow is null && reader.CompareShown!.Note.PairButton is null); // saved, the draft is gone and it is a pair now
+        Assert.Equal(new CompareTag("refund", "Because of the fee"), TagOnDisk(temp, "refund-not-recorded")); // the note is trimmed
+        Assert.Null(TagOnDisk(temp, "refund"));
+    }
+
+    [AvaloniaFact]
+    public async Task Save_as_pair_never_replaces_a_link_without_saying_so_and_Swap_sides_changes_who_gets_the_line()
+    {
+        // The refund that is not recorded links to Place order, and so does the refund to Deliver order: either takes the line only by giving up its link.
+        var (temp, window, reader) = Open((rel, text) => rel switch
+        {
+            "flows/refund-not-recorded.yaml" => "compare: place-order\n" + text,
+            "flows/refund.yaml" => "compare: deliver-order\n" + text,
+            _ => text,
+        });
+        using var _ = temp;
+        var model = reader.Folder!.Model;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        ClickBar(note.PairButton!);
+        EditModeTests.Settle(window);
+        Assert.Equal(["Tag The refund is not recorded as the newer of Support refunds an order", $"Replaces its link to {model.Flows["place-order"].Name}"], note.ConfirmLines);
+        // Swap sides: the flow on the right is the other one, and the line goes to it instead.
+        ClickBar(reader.CompareShown.Bar.FlipButton);
+        EditModeTests.Settle(window);
+        note = reader.CompareShown!.Note;
+        Assert.Equal(["Tag Support refunds an order as the newer of The refund is not recorded", $"Replaces its link to {model.Flows["deliver-order"].Name}"], note.ConfirmLines);
+        ClickBar(note.SaveButton!);
+        await EditModeTests.Until(() => TagOnDisk(temp, "refund")?.With == "refund-not-recorded");
+        Assert.Equal(new CompareTag("refund-not-recorded"), TagOnDisk(temp, "refund")); // no draft: the short form
+        Assert.Equal("place-order", TagOnDisk(temp, "refund-not-recorded")!.With); // the other flow kept its own link
+    }
+
+    [AvaloniaFact]
+    public void When_the_newer_flow_links_elsewhere_and_the_older_does_not_the_older_gets_the_line_and_the_confirm_says_so()
+    {
+        var (temp, window, reader) = Open((rel, text) => rel == "flows/refund-not-recorded.yaml" ? "compare: place-order\n" + text : text);
+        using var _ = temp;
+        var model = reader.Folder!.Model;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        ClickBar(note.PairButton!);
+        EditModeTests.Settle(window);
+        Assert.Equal(["Tag Support refunds an order as the newer of The refund is not recorded", $"The refund is not recorded already links to {model.Flows["place-order"].Name}"], note.ConfirmLines);
+    }
+
     private static Button FindButton(Control root, string name) =>
         root.GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == name);
 }

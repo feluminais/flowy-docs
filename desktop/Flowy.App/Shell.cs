@@ -45,6 +45,9 @@ internal sealed class Shell
 
     public void RememberLines(string? lines) => Remember(_state with { Lines = lines });
 
+    /// <summary>The comparison's Show changes switch, as the reader left it.</summary>
+    public void RememberChanges(bool on) => Remember(_state with { ShowChanges = on });
+
     public void RememberCheckForUpdates(bool check) => Remember(_state with { CheckForUpdates = check });
 
     public void RememberWindow(WindowSize size) => Remember(_state with { Window = size });

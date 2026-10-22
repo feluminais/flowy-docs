@@ -96,8 +96,11 @@ public sealed record NavigatorState(string? Tab, IReadOnlyList<string> Expanded,
     public static double Clamp(double width, double limit = MaxWidth) => Math.Round(Math.Max(MinWidth, Math.Min(width, Math.Min(MaxWidth, limit))), MidpointRounding.AwayFromZero);
 }
 
-/// <summary>What the app remembers between runs. <c>OpenFilesWith</c> is the app the person chose to open a box's linked files with; null means the system's default. <c>Navigators</c> is what each project's navigator remembers, by <see cref="ModelFolders.Key"/>.</summary>
-public sealed record UserState(IReadOnlyList<string> Recent, string? Lines, bool CheckForUpdates, WindowSize? Window = null, string? OpenFilesWith = null, IReadOnlyDictionary<string, NavigatorState>? Navigators = null)
+/// <summary>
+/// What the app remembers between runs. <c>OpenFilesWith</c> is the app the person chose to open a box's linked files with; null means the system's default. <c>Navigators</c> is what each project's navigator
+/// remembers, by <see cref="ModelFolders.Key"/>. <c>ShowChanges</c> is the comparison's Show changes switch (off until it is turned on).
+/// </summary>
+public sealed record UserState(IReadOnlyList<string> Recent, string? Lines, bool CheckForUpdates, WindowSize? Window = null, string? OpenFilesWith = null, IReadOnlyDictionary<string, NavigatorState>? Navigators = null, bool ShowChanges = false)
 {
     public static UserState Default { get; } = new([], null, true);
 }
@@ -153,7 +156,8 @@ public sealed class UserStateStore(string file)
                     navigators[entry.Name] = new NavigatorState(tab, open, Width("navWidth"), Width("detailsWidth"));
                 }
             }
-            return new UserState(recent, lines, updates, window, openWith, navigators);
+            var changes = root.TryGetProperty("showChanges", out var c) && c.ValueKind == JsonValueKind.True;
+            return new UserState(recent, lines, updates, window, openWith, navigators, changes);
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException or InvalidOperationException)
         {
@@ -168,7 +172,7 @@ public sealed class UserStateStore(string file)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
             var temp = file + ".tmp";
-            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, openFilesWith = state.OpenFilesWith, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null, navigators = state.Navigators?.ToDictionary(k => k.Key, k => new { tab = k.Value.Tab, expanded = k.Value.Expanded, navWidth = k.Value.NavWidth, detailsWidth = k.Value.DetailsWidth }) }, Json));
+            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, showChanges = state.ShowChanges, openFilesWith = state.OpenFilesWith, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null, navigators = state.Navigators?.ToDictionary(k => k.Key, k => new { tab = k.Value.Tab, expanded = k.Value.Expanded, navWidth = k.Value.NavWidth, detailsWidth = k.Value.DetailsWidth }) }, Json));
             System.IO.File.Move(temp, file, true);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)

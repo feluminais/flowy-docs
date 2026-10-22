@@ -783,6 +783,75 @@
     <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
   </Style>
   <!--
+    Change marks of a comparison (Show changes): one colour and dash for each kind, shared by the ring round a shape, the halo along a line, a cell of the player's progress
+    bar and the key's swatch, so the key is the mark. New is the accent, solid; Removed the danger colour, dashed; Changed the warning colour. A ring sits outside the shape and
+    a badge on its bottom right corner, so nothing moves (the state glyph, the failure badge and the queue number are on the other corners). The dash is counted in stroke widths:
+    2.4 and 1.6 of a 2.5 px stroke are the browser's 6 and 4 px.
+  -->
+  <Style Selector="Border.sw.new, Border.sw.removed, Border.sw.changed">
+    <Setter Property="Width" Value="24" />
+    <Setter Property="Height" Value="14" />
+  </Style>
+  <Style Selector="Border.sw Rectangle.chg">
+    <Setter Property="RadiusX" Value="4" />
+    <Setter Property="RadiusY" Value="4" />
+    <Setter Property="StrokeThickness" Value="2.5" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector="Border.sw.new Rectangle.chg"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.sw.removed Rectangle.chg">
+    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="StrokeDashArray" Value="2.4,1.6" />
+  </Style>
+  <Style Selector="Border.sw.changed Rectangle.chg"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box Path.changering">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="2.5" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-new Path.changering">
+    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-removed Path.changering">
+    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="StrokeDashArray" Value="2.4,1.6" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-changed Path.changering">
+    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Stroke" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.changebadge">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="MinWidth" Value="18" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="Margin" Value="0,0,-7,-9" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-new Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.chg-removed Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector=":is(Grid).box.chg-changed Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.changebadge TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- A shape off the step on show is faded to a ghost; a mark on one stays readable, so every change shows at every step. A shape in a state keeps its own fading. -->
+  <Style Selector=":is(Grid).box.dim.marked:not(.stated)"><Setter Property="Opacity" Value="0.6" /></Style>
+  <!-- The cells of the player's progress bar take the colour of the change their steps carry. -->
+  <Style Selector="Border.seg.chg-new, Border.seg.chg-removed, Border.seg.chg-changed"><Setter Property="BorderThickness" Value="1" /></Style>
+  <Style Selector="Border.seg.chg-new"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.seg.chg-removed"><Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="Border.seg.chg-changed"><Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.seg.chg-new.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.seg.chg-removed.done"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="Border.seg.chg-changed.done"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <!--
     A run over time: its events as bars above the slider in the colour of the state they leave (a bar for a state with no colour of its own is muted, as in
     the browser), and a list with a ring for an event the run has not got to and a dot for one it has. The row the run has just got to is lit.
   -->
@@ -946,6 +1015,16 @@
   <Style Selector="Grid.compare">
     <Setter Property="Background" Value="{DynamicResource BgBrush}" />
   </Style>
+  <Style Selector="Border.apart"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
+  <!-- The note on a pair, under the panes: its text, or the editor, and the buttons that write it. -->
+  <Style Selector=":is(Border).comparenote">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Padding" Value="14,8" />
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+  </Style>
+  <Style Selector="TextBlock.noteconfirm"><Setter Property="FontSize" Value="12.5" /></Style>
+  <Style Selector="TextBlock.noteconfirm.warn"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
 
   <!-- The side panel and what's in it. -->
   <Style Selector=":is(Border).panel">

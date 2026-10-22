@@ -50,6 +50,11 @@ internal sealed class LaunchScript
         // flow that reads first, and --swapped flips it to the other (with motion on, a short --delay catches the swap half done).
         if (options.Value("--compare") is { } compare && compare.Split(',') is [var first, var second, ..])
             _reader.OpenCompareById(first.Trim(), second.Trim(), compare.Split(',') is [_, _, var way, ..] && way.Trim() == "swap", options.Has("--swapped"));
+        // --changes turns Show changes on, and --note puts text in the note editor of the pair, as if it had been typed.
+        if (options.Has("--changes")) _reader.SetShowChanges(true);
+        if (options.Value("--note") is { } note) _reader.PrefillNote(note);
+        if (options.Has("--pair")) _reader.AskToPair(); // the confirm of Save as pair
+        if (options.Has("--leave")) _reader.TryCloseCompare(); // Close, which asks "Discard the note?" when a note is typed
         if (options.Value("--run") is { } run) _reader.PickRunById(run);
         if (options.Value("--tab") is { } tab) _reader.OpenTab(tab); // before --select: with Failures open, a select picks a failure mode
         if (options.Value("--select") is { } select) _reader.Select(select);

@@ -330,6 +330,7 @@ internal sealed partial class ReaderView : Grid
         _playback.Head = null;
         _hover = null;
         CloseCompare(false); // another folder has other flows
+        _noteDraft = null; // and a note about two of them is no use there
         _codeBase = null;
         _repoRoot = FolderLoader.RepoRoot(dir);
         SetBanner(null);
@@ -657,6 +658,7 @@ internal sealed partial class ReaderView : Grid
     public void GoTo(string view)
     {
         if (_folder is null) return;
+        if (_compare is not null && UnlessDraft(() => GoTo(view))) return; // going to a level ends the comparison: a note that isn't saved asks first
         Interacted();
         _motion?.Dispose();
         _moving = false;

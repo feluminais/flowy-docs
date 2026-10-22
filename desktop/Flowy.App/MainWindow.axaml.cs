@@ -51,6 +51,8 @@ public partial class MainWindow : Window
         Content = _frame;
         _frame.Children.Add(Welcome());
         _reader.LinesPicked += _shell.RememberLines;
+        _reader.ChangesPicked += _shell.RememberChanges;
+        _reader.ShowChanges = _shell.State.ShowChanges;
         _reader.NavigatorChanged += navigator =>
         {
             if (Dir is not null) _shell.RememberNavigator(Dir, navigator);

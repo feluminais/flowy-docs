@@ -115,6 +115,7 @@ internal sealed partial class ReaderView
     private void OpenFlow(string id)
     {
         if (_folder is null || !_folder.Model.Flows.TryGetValue(id, out var flow) || flow.View is not { } view) return;
+        if (_compare is not null && UnlessDraft(() => OpenFlow(id))) return; // playing a flow ends the comparison: a note that isn't saved asks first
         CloseCompare(false); // playing a flow ends the comparison
         if (view != CurrentView()) GoTo(view);
         if (Editing) EditFlow(id);

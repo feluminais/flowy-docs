@@ -13,10 +13,13 @@ internal sealed record LinkedFlow(string Id, string Name, bool Playable);
 /// <summary>One step of the stop on show, as the card tells it. <c>Lane</c> is "" unless the stop is in a parallel group; <c>Outcome</c> is how its request ended, in the words of <see cref="Animations.OutcomeLine"/>.</summary>
 internal sealed record PlayerStep(string Ends, string Text, string? Description, string Lane, LinkedFlow? Link, string? Outcome = null);
 
-/// <summary>Everything the card shows: where the flow is (a stop of <c>Count</c>), the group the stop is in, the progress bar, the steps, the trail back, and the states on the canvas now (for the key).</summary>
+/// <summary>
+/// Everything the card shows: where the flow is (a stop of <c>Count</c>), the group the stop is in, the progress bar, the steps, the trail back, and the states on the canvas now (for the key).
+/// <c>Changes</c> is the kind of change each cell of the progress bar carries (one for each of its cells, null for none), while a comparison has Show changes on.
+/// </summary>
 internal sealed record PlayerView(
     string FlowName, int Stop, int Count, string? Kind, Caption Caption, Progress Progress, bool Auto, bool Moving, (string Name, int Step)? Trail, IReadOnlyList<PlayerStep> Steps,
-    IReadOnlyList<StateMark>? States = null);
+    IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null);
 
 /// <summary>The card at the bottom while a flow plays: which stop, the group it is in, who talks to whom, what happens, and Back, Next and Stop.</summary>
 internal sealed class PlayerCard : Border
@@ -100,7 +103,7 @@ internal sealed class PlayerCard : Border
     /// How far a flow has got: a cell for each stop, filled up to the stop shown, a branch's lanes on rows of their own, and under them a
     /// bracket for each group. A cell says its lane and a bracket says what its group means when you point at it.
     /// </summary>
-    private static Control Bar(Progress progress, int now)
+    private static Control Bar(Progress progress, int now, IReadOnlyList<Change?>? changes)
     {
         Grid Columns()
         {
@@ -111,14 +114,18 @@ internal sealed class PlayerCard : Border
         var cells = Columns();
         cells.RowSpacing = 0;
         for (var r = 0; r < Math.Max(1, progress.Rows); r++) cells.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-        foreach (var cell in progress.Cells)
+        for (var n = 0; n < progress.Cells.Count; n++)
         {
+            var cell = progress.Cells[n];
             var segment = new Border();
             segment.Classes.Add("seg");
             if (cell.Stop <= now) segment.Classes.Add("done");
+            var change = changes is not null && n < changes.Count ? changes[n] : null;
+            if (change is { } kind) segment.Classes.Add("chg-" + BoxControl.Word(kind));
             // A strip four pixels high is hard to point at, so each sits in a taller one that takes the pointer.
             var hit = new Border { Background = Brushes.Transparent, Padding = new Thickness(0, 2), Child = segment };
-            if (cell.Title != "") ToolTip.SetTip(hit, cell.Title);
+            var title = string.Join(", ", new[] { cell.Title, change is { } named ? CompareUi.Name(named) : "" }.Where(t => t != ""));
+            if (title != "") ToolTip.SetTip(hit, title);
             Grid.SetColumn(hit, cell.Col);
             Grid.SetRow(hit, cell.Row);
             cells.Children.Add(hit);
@@ -273,7 +280,7 @@ internal sealed class PlayerCard : Border
             column.Children.Add(tabs);
         }
         if (v.Caption.Text != "") column.Children.Add(new TextBlock { Text = v.Caption.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
-        column.Children.Add(Bar(v.Progress, v.Stop));
+        column.Children.Add(Bar(v.Progress, v.Stop, v.Changes));
         // The key: one mark for each state that is on the canvas now, drawn as it looks there.
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
         foreach (var step in v.Steps) column.Children.Add(Block(step, v.Steps.Count > 1));

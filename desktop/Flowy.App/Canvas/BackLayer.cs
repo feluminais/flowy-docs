@@ -20,6 +20,7 @@ internal sealed class BackLayer : Control
     private List<CoreRect> _labels = [];
     private IReadOnlyDictionary<string, double>? _widths; // how thick each line is drawn while a load shows (by line id), where it differs from the usual
     private FailureOverlay? _failures; // the Failures tab's badges and the line a picked mode fails, while the tab is open
+    private IReadOnlyDictionary<string, Change>? _changes; // a comparison's change marks on the lines, by line id, while Show changes is on
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
 
@@ -87,6 +88,20 @@ internal sealed class BackLayer : Control
         InvalidateVisual();
     }
 
+    /// <summary>Draws a halo behind the lines a comparison marks (by line id), in the colour and dash of their kind. Null, or no lines, takes them away.</summary>
+    public void SetChanges(IReadOnlyDictionary<string, Change>? lines)
+    {
+        var next = lines is { Count: > 0 } ? lines : null;
+        if (ReferenceEquals(next, _changes) || (next is null && _changes is null)) return;
+        _changes = next;
+        InvalidateVisual();
+    }
+
+    /// <summary>The kind a line is marked as, or null (for tests).</summary>
+    internal Change? ChangeOf(string from, string to) => _changes is not null && _changes.TryGetValue(SceneBuilder.LineId(from, to), out var kind) ? kind : null;
+
+    private Change? ChangeOf(SceneEdge e) => _changes is not null && _changes.TryGetValue(e.Id, out var kind) ? kind : null;
+
     /// <summary>The badge a line wears now, or null (for tests).</summary>
     internal FailureMark? FailureOn(string from, string to) =>
         _failures is not null && _failures.Lines.TryGetValue(Failures.LineKey(from, to), out var mark) ? mark : null;
@@ -145,7 +160,8 @@ internal sealed class BackLayer : Control
 
     private double Fade(SceneEdge e) =>
         _failures?.LightOfLine(e.From, e.To) == FailLight.Dim ? 0.15 :
-        e.Flags.HasFlag(EdgeFlags.Dim) ? 0.15 : e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step) ? _litFade : 1;
+        e.Flags.HasFlag(EdgeFlags.Dim) ? (ChangeOf(e) is null ? 0.15 : 0.6) : // a mark on a line off the step on show stays readable
+ e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step) ? _litFade : 1;
 
     public override void Render(DrawingContext context)
     {
@@ -207,6 +223,13 @@ internal sealed class BackLayer : Control
         }
         var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : e.Flags.HasFlag(EdgeFlags.Lane) ? new DashStyle([4 / thickness, 5 / thickness], 0) : null;
         using var opacity = context.PushOpacity(Fade(e));
+        if (ChangeOf(e) is { } change)
+        {
+            // The halo: 8 px wide in the kind's colour at 30%, dashed for Removed (6 and 4 px, in widths of the pen), as the browser's .change-line.
+            using var faint = context.PushOpacity(0.3);
+            var halo = Brush(change switch { Change.New => "AccentBrush", Change.Removed => "DangerBrush", _ => "WarnBrush" });
+            context.DrawGeometry(null, new Pen(halo, 8, change == Change.Removed ? new DashStyle([6.0 / 8, 4.0 / 8], 0) : null, PenLineCap.Flat), line.Geometry);
+        }
         context.DrawGeometry(null, new Pen(brush, thickness, dash, PenLineCap.Flat), line.Geometry);
 
         // The arrowhead: a closed triangle on the end, pointing along the line.

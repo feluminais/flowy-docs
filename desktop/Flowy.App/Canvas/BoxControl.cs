@@ -41,6 +41,11 @@ internal sealed class BoxControl : Grid
     private readonly Path _strain = Layer("strain");
     private readonly Path _stateline = Layer("stateline");
     private readonly Path _failline = Layer("failline");
+    // The ring of a change mark, drawn 5 px outside the shape on a path as much bigger as that takes: its negative margin takes back what its size adds, so it never moves the layout.
+    private readonly Path _changering = new() { Width = 210, Height = 82, Margin = new Thickness(-5), Stretch = Stretch.Fill, IsHitTestVisible = false };
+    private readonly Border _changebadge = new();
+    private readonly TextBlock _changeglyph = new();
+    private Change? _change;
     private readonly Border _queue = new();
     private readonly TextBlock _queueText = new();
     private readonly Border _failBadge = new();
@@ -133,6 +138,8 @@ internal sealed class BoxControl : Grid
         Children.Add(_strain); // over the author's colour, which stays as it is underneath
         Children.Add(_stateline); // over that: a state beats the strain colour
         Children.Add(_failline);
+        _changering.Classes.Add("changering");
+        Children.Add(_changering);
         Children.Add(_content);
         Children.Add(_inside);
         Children.Add(badge);
@@ -141,6 +148,10 @@ internal sealed class BoxControl : Grid
         _failBadge.Child = _failText;
         _failBadge.IsHitTestVisible = false;
         Children.Add(_failBadge);
+        _changebadge.Classes.Add("changebadge");
+        _changebadge.Child = _changeglyph;
+        _changebadge.IsHitTestVisible = false;
+        Children.Add(_changebadge);
         _handle.Classes.Add("handle");
         Children.Add(_handle);
         Update(box);
@@ -173,7 +184,7 @@ internal sealed class BoxControl : Grid
         if (shape != _shape)
         {
             var outline = OutlineOf(shape);
-            _glow.Data = _fill.Data = _tint.Data = _outline.Data = _colorline.Data = _strain.Data = _strainGlow.Data = _stateline.Data = _failline.Data = outline;
+            _glow.Data = _fill.Data = _tint.Data = _outline.Data = _colorline.Data = _strain.Data = _strainGlow.Data = _stateline.Data = _failline.Data = _changering.Data = outline;
             _shape = shape;
             _perimeter = outline.ContourLength > 0 ? outline.ContourLength : 544;
             if (_state is { Inside: false } own) DashFor(own, Looks[own.State].Dash == Dash.Drained ? 1 : 0);
@@ -333,6 +344,27 @@ internal sealed class BoxControl : Grid
     /// <summary>What a test can look at: the badge showing now (null when none) and how the shape is lit.</summary>
     internal (FailureMark? Mark, FailLight Light) FailureShown =>
         (_failMark, Classes.Contains("fails") ? FailLight.Fails : Classes.Contains("affected") ? FailLight.Affects : Classes.Contains("faildim") ? FailLight.Dim : FailLight.None);
+
+    /// <summary>
+    /// What a comparison with Show changes on says about this shape: a ring outside it and a small badge on its bottom right corner, in the colour and dash of the kind (New, Removed or
+    /// Changed), and a shape that a step fades stays readable. Null takes the mark away. The sign is the badge's, and its name is for a screen reader, so the colour is never the only copy.
+    /// </summary>
+    public void SetChange(Change? change)
+    {
+        if (change == _change) return;
+        _change = change;
+        foreach (var kind in Enum.GetValues<Change>()) Classes.Set("chg-" + Word(kind), change == kind);
+        Classes.Set("marked", change is not null);
+        _changeglyph.Text = change switch { Change.New => "+", Change.Removed => ((char)0x2212).ToString(), Change.Changed => "~", _ => "" };
+        var name = change is { } kindNow ? CompareUi.Name(kindNow) : null;
+        AutomationProperties.SetName(_changebadge, name);
+    }
+
+    /// <summary>The kind this shape is marked as, or null (for tests).</summary>
+    internal Change? ChangeShown => _change;
+
+    /// <summary>The word a kind's classes use.</summary>
+    internal static string Word(Change change) => change switch { Change.New => "new", Change.Removed => "removed", _ => "changed" };
 
     /// <summary>
     /// The state this shape is in, or null for Running: it dims, draws a second outline over its own in the state's dash and carries a glyph on a ring at its

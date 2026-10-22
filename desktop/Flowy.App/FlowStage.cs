@@ -19,7 +19,8 @@ internal static class FlowStage
 
     /// <summary>The card for the stop at <paramref name="index"/>, and the marks its groups put on the lines.</summary>
     public static (PlayerView Card, List<CanvasView.Mark> Marks) CardAt(
-        Model model, Flow flow, string id, IReadOnlyList<Stop> stops, int index, Playing? shown, bool auto, (string Name, int Step)? trail, IReadOnlyList<StateMark> states)
+        Model model, Flow flow, string id, IReadOnlyList<Stop> stops, int index, Playing? shown, bool auto, (string Name, int Step)? trail, IReadOnlyList<StateMark> states,
+        IReadOnlyDictionary<int, Change>? changes = null)
     {
         var stop = stops[index];
         var caption = Captions.Of(flow, stop);
@@ -32,7 +33,10 @@ internal static class FlowStage
             return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome);
         }).ToList();
         var moves = stop.Steps.Any(i => Animations.Read(flow.Steps[i]) is not null && shown?.Ends[i] is not null);
-        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, Captions.ProgressOf(flow, stops), auto, moves, trail, steps, states);
+        var progress = Captions.ProgressOf(flow, stops);
+        // A cell takes the mark of the steps of its stop (by file step number), when a comparison is marking this flow.
+        var cells = changes is null ? null : progress.Cells.Select(c => CompareUi.ChangeOfStop(stops[c.Stop].Steps, changes)).ToList();
+        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, progress, auto, moves, trail, steps, states, cells);
         var marks = stop.Steps
             .Select((i, n) => (Placed: shown?.Ends[i], Text: n < caption.Marks.Count ? caption.Marks[n] : ""))
             .Where(x => x.Placed is not null && x.Text != "" && stop.Kind is not null)
