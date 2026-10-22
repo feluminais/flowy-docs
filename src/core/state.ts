@@ -11,7 +11,7 @@ export type State =
     /** The failure analyses in failures/, by file name. Left out when the folder has none. */
     failures?: Record<string, Analysis>
     problems: Problem[]
-    /** Content hash per file, null for a missing file. Writes send it back as `version`. */
+    /** Content hash per file, null for a missing file. Writes send it back as `version`. A run's file (`perf/<id>.yaml`) has one too: the write of its `compare` needs it. */
     versions: Record<string, string | null>
     /** Where `code` paths link to, e.g. https://github.com/acme/shop/tree/main/. Missing when the repo isn't on GitHub or GitLab. */
     codeBase?: string

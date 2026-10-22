@@ -85,3 +85,32 @@ test('a failure mode listed in another order is not a change', () => {
   const after = withFailures({ ordering: { name: 'Ordering', modes: { dup: { mode: 'Order placed twice' }, late: { mode: 'Charge arrives late' } } } })
   assert.equal(describeEdit(before, after), undefined)
 })
+
+// A flow's `compare` is a tag, not a change to the flow: it is named as the link it makes. The holder is the newer flow, `with` the older.
+const withFlows = (flows: Record<string, { name: string; compare?: unknown }>): Model => ({
+  ...emptyModel(),
+  flows: Object.fromEntries(Object.entries(flows).map(([id, f]) => [id, { view: 'root', steps: [], ...f }])),
+})
+const pair = (compare?: unknown) => withFlows({ old: { name: 'Refund, old' }, now: { name: 'Refund, now', ...(compare === undefined ? {} : { compare }) } })
+
+test('a flow linked, unlinked, retargeted or noted is named', () => {
+  assert.equal(describeEdit(pair(), pair('old')), 'Linked Refund, old with Refund, now')
+  assert.equal(describeEdit(pair('old'), pair()), 'Unlinked Refund, now')
+  assert.equal(describeEdit(pair('old'), pair({ with: 'old', note: 'After the fix' })), 'Noted Refund, old and Refund, now')
+  assert.equal(describeEdit(pair({ with: 'old', note: 'After the fix' }), pair('old')), 'Cleared the note on Refund, old and Refund, now')
+  assert.equal(describeEdit(pair(), pair({ with: 'old', note: 'First' })), 'Linked Refund, old with Refund, now')
+  const three = (compare: string) => withFlows({ a: { name: 'A' }, b: { name: 'B' }, c: { name: 'C', compare } })
+  assert.equal(describeEdit(three('a'), three('b')), 'Linked B with C')
+})
+
+test('a link made along with another change to the flow is a change to the flow', () => {
+  const after = pair('old')
+  after.flows.now.name = 'Refund, new'
+  assert.equal(describeEdit(pair(), after), 'Changed the Refund, new flow')
+})
+
+test('a tag to a flow that is not there is named by its id, and two links count as a change each', () => {
+  assert.equal(describeEdit(pair(), pair('gone')), 'Linked gone with Refund, now')
+  const [before, after] = [withFlows({ a: { name: 'A' }, b: { name: 'B' }, c: { name: 'C' } }), withFlows({ a: { name: 'A' }, b: { name: 'B', compare: 'a' }, c: { name: 'C', compare: 'a' } })]
+  assert.equal(describeEdit(before, after), 'Changed 2 flows')
+})

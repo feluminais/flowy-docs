@@ -210,16 +210,22 @@ export function missingPaths(dir: string, ...models: Model[]): Set<string> {
  * The load-test runs in the folder's perf/, with what is wrong with them. A run that can't be read, or whose name
  * isn't an id, becomes a problem and is skipped: the architecture view is worth more than the numbers, so a file here
  * never stops a model loading. Only loadState reads runs, so a file of numbers can't get in the way of a save.
+ * `versions` holds the version of each run that is kept (`perf/<id>.yaml`), the one a write of its `compare` must send back.
  */
-export async function loadRuns(dir: string, model: Model): Promise<{ runs: Record<string, Run>; problems: Problem[] }> {
-  const { items: runs, problems } = await loadFolder(dir, FILE_KINDS.run, rel => readText(dir, rel), (id, text) => {
+export async function loadRuns(dir: string, model: Model): Promise<{ runs: Record<string, Run>; problems: Problem[]; versions: Record<string, string> }> {
+  const read: Record<string, string> = {}
+  const { items: runs, problems } = await loadFolder(dir, FILE_KINDS.run, async rel => {
+    const text = await readText(dir, rel)
+    if (text !== null) read[rel] = hashText(text)
+    return text
+  }, (id, text) => {
     const parsed = parseRun(id, text)
     return { item: parsed.run, check: () => [...parsed.problems, ...checkRun(id, parsed.run, model)] }
   })
   // A run that adds others needs the other runs. One with fewer than two it can add can't be played, so it is left out, as a file that can't be read is.
   problems.push(...checkRuns(runs))
   for (const id of Object.keys(runs)) if (runs[id].adds !== undefined && dialsOf(runs, id) === undefined) delete runs[id]
-  return { runs, problems }
+  return { runs, problems, versions: Object.fromEntries(Object.keys(runs).map(id => [`perf/${id}.yaml`, read[`perf/${id}.yaml`]])) }
 }
 
 /** The folder as the canvas reads it, or the file that can't be read: what GET /api/state answers and an export carries. */
@@ -230,11 +236,11 @@ export async function loadState(dir: string): Promise<State> {
     const base = await codeBase(dirname(resolve(dir)))
     // A flow file that isn't read is no part of the model, so it isn't a problem check() can see.
     const skipped = ignored.map(file => ignoredYml(FILE_KINDS.flow, file))
-    const { runs, problems: runProblems } = await loadRuns(dir, model)
+    const { runs, problems: runProblems, versions: runVersions } = await loadRuns(dir, model)
     // A mode's run link needs the runs, which are not in the model, so it is checked here. The rest of an analysis is checked in check().
     const failureProblems = [...unread, ...Object.entries(model.failures).flatMap(([id, a]) => runLinkProblems(id, a, runs))]
     return {
-      model: rest, layout, flows, problems: [...check(model, missingPaths(dir, model)), ...skipped], versions,
+      model: rest, layout, flows, problems: [...check(model, missingPaths(dir, model)), ...skipped], versions: { ...versions, ...runVersions },
       ...(Object.keys(failures).length > 0 ? { failures } : {}),
       ...(base ? { codeBase: base } : {}),
       ...(Object.keys(runs).length > 0 ? { runs } : {}),
