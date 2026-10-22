@@ -635,10 +635,16 @@ public static partial class EditOps
         return added;
     }
 
-    /// <summary>Refuse an edit that adds problems, naming them. Problems that were already there never block it.</summary>
-    public static void RefuseNewProblems(Model before, Model after, ISet<string>? absent = null)
+    /// <summary>
+    /// Refuse an edit that adds problems, naming them. Problems that were already there never block it. <paramref name="runs"/> are the load-test runs of the folder: a run is a file
+    /// the edit can't change, so an edit that leaves one naming a shape or a line that is gone is refused, as one that a flow or a failure analysis uses is. Twin of refuseNewProblems in src/core/ops.ts.
+    /// </summary>
+    public static void RefuseNewProblems(Model before, Model after, ISet<string>? absent = null, IdMap<LoadRun>? runs = null)
     {
-        var added = NewProblems(Checks.Run(before, absent), Checks.Run(after, absent));
-        if (added.Count > 0) throw new OpError("Refused, nothing saved. This would add:\n" + string.Join("\n", added.Select(p => $"- {p.File}: {p.Message}")));
+        List<Problem> Found(Model m) => [.. Checks.Run(m, absent), .. (runs ?? new IdMap<LoadRun>()).SelectMany(r => Perf.CheckRun(r.Key, r.Value, m))];
+        var added = NewProblems(Found(before), Found(after));
+        if (added.Count == 0) return;
+        var byRun = added.Any(p => p.File.StartsWith(FolderLayout.PerfDir + "/", StringComparison.Ordinal));
+        throw new OpError("Refused, nothing saved. This would add:\n" + string.Join("\n", added.Select(p => $"- {p.File}: {p.Message}")) + (byRun ? "\nChange or delete those runs first." : ""));
     }
 }
