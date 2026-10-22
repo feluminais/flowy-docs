@@ -1509,7 +1509,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 5,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -1800,7 +1800,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 4,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -1929,7 +1929,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 5,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -2594,7 +2594,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 4,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -2723,7 +2723,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 5,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3388,7 +3388,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 4,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -3517,7 +3517,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 5,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -4016,7 +4016,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 5,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -4299,7 +4299,7 @@
               "shapes": 0,
               "flows": 0,
               "steps": 5,
-              "linked": false,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -4323,7 +4323,7 @@
               "name": "Support refunds an order",
               "steps": 5,
               "view": "root",
-              "linked": false
+              "linked": true
             }
           ],
           "elsewhere": [
@@ -4397,7 +4397,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -4413,7 +4413,7 @@
               "name": "Support refunds an order",
               "steps": 5,
               "view": "root",
-              "linked": false
+              "linked": true
             }
           ],
           "elsewhere": [
@@ -4487,7 +4487,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -4531,7 +4531,7 @@
               "name": "The refund is not recorded",
               "steps": 4,
               "view": "ordering",
-              "linked": false
+              "linked": true
             }
           ],
           "elsewhere": [
@@ -4545,7 +4545,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -4619,7 +4619,7 @@
               "name": "The refund is not recorded",
               "steps": 4,
               "view": "ordering",
-              "linked": false
+              "linked": true
             }
           ],
           "elsewhere": [
@@ -4633,7 +4633,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -4707,7 +4707,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -4751,7 +4751,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -4795,7 +4795,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -4839,7 +4839,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -4861,7 +4861,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -4935,7 +4935,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -4957,7 +4957,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -5031,7 +5031,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -5053,7 +5053,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -5127,7 +5127,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -5149,7 +5149,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -5223,7 +5223,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -5245,7 +5245,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -5319,7 +5319,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -5341,7 +5341,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -5415,7 +5415,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -5437,7 +5437,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -5511,7 +5511,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -5533,7 +5533,7 @@
                   "name": "Support refunds an order",
                   "steps": 5,
                   "view": "root",
-                  "linked": false
+                  "linked": true
                 }
               ]
             },
@@ -5607,7 +5607,7 @@
                   "name": "The refund is not recorded",
                   "steps": 4,
                   "view": "ordering",
-                  "linked": false
+                  "linked": true
                 }
               ]
             }
@@ -6268,8 +6268,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 83,
-              "flows": 25,
+              "shapes": 89,
+              "flows": 27,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6277,8 +6277,8 @@
             }
           ],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         },
@@ -6297,8 +6297,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 83,
-              "flows": 25,
+              "shapes": 89,
+              "flows": 27,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6315,6 +6315,22 @@
               "external": false,
               "shapes": 7,
               "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare",
+              "kind": "shape",
+              "id": "compare",
+              "parent": "root",
+              "depth": 1,
+              "name": "Compare",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6418,8 +6434,8 @@
             }
           ],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         },
@@ -6439,8 +6455,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 83,
-              "flows": 25,
+              "shapes": 89,
+              "flows": 27,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6457,6 +6473,22 @@
               "external": false,
               "shapes": 7,
               "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare",
+              "kind": "shape",
+              "id": "compare",
+              "parent": "root",
+              "depth": 1,
+              "name": "Compare",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -7410,8 +7442,8 @@
             }
           ],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         },
@@ -7424,6 +7456,7 @@
             "performance",
             "states",
             "time",
+            "compare",
             "send-from",
             "send-to",
             "effects-from",
@@ -7501,7 +7534,12 @@
             "b-in",
             "gateway",
             "shared",
-            "audit"
+            "audit",
+            "compare-client",
+            "compare-api",
+            "compare-old",
+            "compare-db",
+            "compare-cache"
           ],
           "filter": "",
           "editing": false,
@@ -7513,8 +7551,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 83,
-              "flows": 25,
+              "shapes": 89,
+              "flows": 27,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -7643,6 +7681,136 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare",
+              "kind": "shape",
+              "id": "compare",
+              "parent": "root",
+              "depth": 1,
+              "name": "Compare",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:compare-api",
+              "kind": "shape",
+              "id": "compare-api",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · api",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-cache",
+              "kind": "shape",
+              "id": "compare-cache",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · cache",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-client",
+              "kind": "shape",
+              "id": "compare-client",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · client",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-db",
+              "kind": "shape",
+              "id": "compare-db",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · database",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-old",
+              "kind": "shape",
+              "id": "compare-old",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · old service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:compare-after",
+              "kind": "flow",
+              "id": "compare-after",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare after",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": true,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:compare-before",
+              "kind": "flow",
+              "id": "compare-before",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare before",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -9275,8 +9443,8 @@
             }
           ],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         },
@@ -9289,6 +9457,7 @@
             "performance",
             "states",
             "time",
+            "compare",
             "send-from",
             "send-to",
             "effects-from",
@@ -9366,7 +9535,12 @@
             "b-in",
             "gateway",
             "shared",
-            "audit"
+            "audit",
+            "compare-client",
+            "compare-api",
+            "compare-old",
+            "compare-db",
+            "compare-cache"
           ],
           "filter": "",
           "editing": true,
@@ -9378,8 +9552,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 83,
-              "flows": 25,
+              "shapes": 89,
+              "flows": 27,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -9508,6 +9682,136 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare",
+              "kind": "shape",
+              "id": "compare",
+              "parent": "root",
+              "depth": 1,
+              "name": "Compare",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:compare-api",
+              "kind": "shape",
+              "id": "compare-api",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · api",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-cache",
+              "kind": "shape",
+              "id": "compare-cache",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · cache",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-client",
+              "kind": "shape",
+              "id": "compare-client",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · client",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-db",
+              "kind": "shape",
+              "id": "compare-db",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · database",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-old",
+              "kind": "shape",
+              "id": "compare-old",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · old service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:compare-after",
+              "kind": "flow",
+              "id": "compare-after",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare after",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": true,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:compare-before",
+              "kind": "flow",
+              "id": "compare-before",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare before",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -11140,8 +11444,8 @@
             }
           ],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         },
@@ -11158,8 +11462,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 83,
-              "flows": 25,
+              "shapes": 89,
+              "flows": 27,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -11272,6 +11576,136 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare",
+              "kind": "shape",
+              "id": "compare",
+              "parent": "root",
+              "depth": 1,
+              "name": "Compare",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 2,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:compare-api",
+              "kind": "shape",
+              "id": "compare-api",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · api",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-cache",
+              "kind": "shape",
+              "id": "compare-cache",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · cache",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-client",
+              "kind": "shape",
+              "id": "compare-client",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · client",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-db",
+              "kind": "shape",
+              "id": "compare-db",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · database",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare-old",
+              "kind": "shape",
+              "id": "compare-old",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare · old service",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:compare-after",
+              "kind": "flow",
+              "id": "compare-after",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare after",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": true,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:compare-before",
+              "kind": "flow",
+              "id": "compare-before",
+              "parent": "compare",
+              "depth": 2,
+              "name": "Compare before",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": true,
               "problem": false,
               "expandable": false,
               "expanded": false,
@@ -12382,8 +12816,8 @@
             }
           ],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         },
@@ -12396,8 +12830,8 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         },
@@ -12416,8 +12850,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 83,
-              "flows": 25,
+              "shapes": 89,
+              "flows": 27,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -12434,6 +12868,22 @@
               "external": false,
               "shapes": 7,
               "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:compare",
+              "kind": "shape",
+              "id": "compare",
+              "parent": "root",
+              "depth": 1,
+              "name": "Compare",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -12537,8 +12987,8 @@
             }
           ],
           "totals": {
-            "shapes": 83,
-            "flows": 25,
+            "shapes": 89,
+            "flows": 27,
             "problems": 0
           }
         }
@@ -12550,6 +13000,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -12752,7 +13225,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "root",
@@ -12760,6 +13233,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -12962,7 +13458,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "steps",
@@ -13097,6 +13593,29 @@
           ],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -13164,7 +13683,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "steps",
@@ -13299,6 +13818,29 @@
           ],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -13366,7 +13908,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "structure",
@@ -13410,6 +13952,29 @@
           ],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "states",
               "name": "Shape states",
               "path": [
@@ -13568,7 +14133,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "structure",
@@ -13612,6 +14177,29 @@
           ],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "states",
               "name": "Shape states",
               "path": [
@@ -13770,7 +14358,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "performance",
@@ -13778,6 +14366,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -13980,7 +14591,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "performance",
@@ -13988,6 +14599,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -14190,7 +14824,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "states",
@@ -14213,6 +14847,29 @@
           ],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -14392,7 +15049,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "states",
@@ -14415,6 +15072,29 @@
           ],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -14594,7 +15274,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "time",
@@ -14602,6 +15282,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -14804,7 +15507,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "time",
@@ -14812,6 +15515,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -15014,7 +15740,457 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
+        },
+        {
+          "view": "compare",
+          "editing": false,
+          "here": [
+            {
+              "id": "compare-before",
+              "name": "Compare before",
+              "steps": 3,
+              "view": "compare",
+              "linked": true
+            },
+            {
+              "id": "compare-after",
+              "name": "Compare after",
+              "steps": 3,
+              "view": "compare",
+              "linked": true
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states",
+                  "linked": false
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                }
+              ]
+            }
+          ],
+          "total": 27
+        },
+        {
+          "view": "compare",
+          "editing": true,
+          "here": [
+            {
+              "id": "compare-before",
+              "name": "Compare before",
+              "steps": 3,
+              "view": "compare",
+              "linked": true
+            },
+            {
+              "id": "compare-after",
+              "name": "Compare after",
+              "steps": 3,
+              "view": "compare",
+              "linked": true
+            }
+          ],
+          "elsewhere": [
+            {
+              "view": "structure",
+              "name": "Flow structure",
+              "path": [
+                "Flow structure"
+              ],
+              "flows": [
+                {
+                  "id": "branch",
+                  "name": "Branch",
+                  "steps": 4,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "flow-link",
+                  "name": "Flow link",
+                  "steps": 2,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "flow-link-next",
+                  "name": "Flow link, the other flow",
+                  "steps": 2,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "parallel",
+                  "name": "Parallel",
+                  "steps": 5,
+                  "view": "structure",
+                  "linked": false
+                },
+                {
+                  "id": "repeat",
+                  "name": "Repeat",
+                  "steps": 3,
+                  "view": "structure",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "states",
+              "name": "Shape states",
+              "path": [
+                "Shape states"
+              ],
+              "flows": [
+                {
+                  "id": "states",
+                  "name": "Every state",
+                  "steps": 7,
+                  "view": "states",
+                  "linked": false
+                },
+                {
+                  "id": "state-inside",
+                  "name": "State inside a shape",
+                  "steps": 4,
+                  "view": "states",
+                  "linked": false
+                }
+              ]
+            },
+            {
+              "view": "steps",
+              "name": "Step animations",
+              "path": [
+                "Step animations"
+              ],
+              "flows": [
+                {
+                  "id": "bolt-drop",
+                  "name": "Bolt drop",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "call",
+                  "name": "Call",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "callback",
+                  "name": "Callback",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "delayed",
+                  "name": "Delayed",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "duplicated",
+                  "name": "Duplicated",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "effects",
+                  "name": "Effects",
+                  "steps": 4,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "event",
+                  "name": "Event",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "every-step-animation",
+                  "name": "Every step animation",
+                  "steps": 17,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "fail",
+                  "name": "Fail",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "flash",
+                  "name": "Flash",
+                  "steps": 2,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "intercepted",
+                  "name": "Intercepted",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "intercepted-by-name",
+                  "name": "Intercepted by a name",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "lost",
+                  "name": "Lost",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "rejected",
+                  "name": "Rejected",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "send",
+                  "name": "Send",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "send-with-a-word",
+                  "name": "Send with a word",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "share",
+                  "name": "Share of requests",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                },
+                {
+                  "id": "timeout",
+                  "name": "Timeout",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false
+                }
+              ]
+            }
+          ],
+          "total": 27
         },
         {
           "view": "rolled-up",
@@ -15022,6 +16198,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -15224,7 +16423,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "rolled-up",
@@ -15232,6 +16431,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -15434,7 +16656,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "states-holder",
@@ -15442,6 +16664,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -15644,7 +16889,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "states-holder",
@@ -15652,6 +16897,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -15854,7 +17122,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "time-holder",
@@ -15862,6 +17130,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -16064,7 +17355,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "time-holder",
@@ -16072,6 +17363,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -16274,7 +17588,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "scale",
@@ -16282,6 +17596,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -16484,7 +17821,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "scale",
@@ -16492,6 +17829,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -16694,7 +18054,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "sources",
@@ -16702,6 +18062,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -16904,7 +18287,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         },
         {
           "view": "sources",
@@ -16912,6 +18295,29 @@
           "here": [],
           "elsewhere": [
             {
+              "view": "compare",
+              "name": "Compare",
+              "path": [
+                "Compare"
+              ],
+              "flows": [
+                {
+                  "id": "compare-before",
+                  "name": "Compare before",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                },
+                {
+                  "id": "compare-after",
+                  "name": "Compare after",
+                  "steps": 3,
+                  "view": "compare",
+                  "linked": true
+                }
+              ]
+            },
+            {
               "view": "structure",
               "name": "Flow structure",
               "path": [
@@ -17114,7 +18520,7 @@
               ]
             }
           ],
-          "total": 25
+          "total": 27
         }
       ],
       "expandTo": [
@@ -17203,6 +18609,21 @@
           "opened": [
             "root",
             "time"
+          ]
+        },
+        {
+          "id": "compare",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "compare",
+          "self": true,
+          "opened": [
+            "compare",
+            "root"
           ]
         },
         {
@@ -18533,6 +19954,91 @@
             "audit",
             "root",
             "sources"
+          ]
+        },
+        {
+          "id": "compare-client",
+          "self": false,
+          "opened": [
+            "compare",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-client",
+          "self": true,
+          "opened": [
+            "compare",
+            "compare-client",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-api",
+          "self": false,
+          "opened": [
+            "compare",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-api",
+          "self": true,
+          "opened": [
+            "compare",
+            "compare-api",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-old",
+          "self": false,
+          "opened": [
+            "compare",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-old",
+          "self": true,
+          "opened": [
+            "compare",
+            "compare-old",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-db",
+          "self": false,
+          "opened": [
+            "compare",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-db",
+          "self": true,
+          "opened": [
+            "compare",
+            "compare-db",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-cache",
+          "self": false,
+          "opened": [
+            "compare",
+            "root"
+          ]
+        },
+        {
+          "id": "compare-cache",
+          "self": true,
+          "opened": [
+            "compare",
+            "compare-cache",
+            "root"
           ]
         },
         {
