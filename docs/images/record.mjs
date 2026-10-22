@@ -207,7 +207,7 @@ const scenes = {
       await s.park(); await s.key('Escape'); await s.wait(900)
     },
   },
-  // One shape from start to finish: add it, try two shapes on it, draw a line to another shape and name the line. Writes to the throwaway copy.
+  // One shape from start to finish: add it, try two shapes on it, draw a line to it from its neighbour and name the line. Writes to the throwaway copy.
   edit: {
     hash: '#ordering',
     copy: true,
@@ -216,11 +216,11 @@ const scenes = {
       await s.caption('Edit on the canvas')
       await s.key('e'); await s.wait(900)
       await s.click('::-p-text(Add)', 600); await s.wait(500)
-      await s.click('input', 500); await s.type('Receipts'); await s.key('Enter'); await s.wait(1300) // the new shape is open in the panel
+      await s.click('input', 500); await s.type('Ticket printer'); await s.key('Enter'); await s.wait(1300) // the new shape is open in the panel
       await s.click('::-p-text(Diamond)', 700); await s.wait(900)
       await s.click('::-p-text(Hexagon)', 500); await s.wait(1300)
-      await s.drag(down('receipts'), s.node('orders-db'), 700); await s.wait(700)
-      await s.click('input', 500); await s.type('stores receipts'); await s.key('Enter'); await s.wait(2200)
+      await s.drag(down('kitchen-tablet'), s.node('ticket-printer'), 700); await s.wait(1200)
+      await s.click('input', 500); await s.type('prints tickets'); await s.key('Enter'); await s.wait(2600)
       await s.park(); await s.caption(null); await s.wait(500)
     },
   },
