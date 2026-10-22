@@ -68,7 +68,8 @@ export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, on
     <section className="compare-note" aria-label="Note">
       <div className="note-body">
         {editing ? (
-          <textarea ref={field} value={draft} rows={3} aria-label="Note" placeholder="Note" spellCheck
+          // Read-only while a save runs, not disabled, so the field keeps its focus: what is typed then would be dropped when the save lands (a failed save keeps the draft as it is).
+          <textarea ref={field} value={draft} rows={3} aria-label="Note" placeholder="Note" spellCheck readOnly={busy} aria-busy={busy}
             onChange={e => onDraft(e.target.value)}
             onKeyDown={e => {
               // The keys of a field are its own: Escape leaves it, and a second one is the comparison's.

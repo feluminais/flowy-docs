@@ -88,7 +88,7 @@ public static class CompareUi
     public static FlowTile FlowTile(Model model, string id) =>
         new(id, model.Flows[id].Name is { Length: > 0 } name ? name : id, Views.NameOf(model, model.Flows[id].View ?? Names.Root));
 
-    // Name, lower-cased, then id: the ordinal compare of lower-case text matches localeCompare for the ids and names a project holds (as in CompareChoices).
+    // Name, lower-cased, then id, each ordinal: the same order as byLowerName in ui/src/compare.ts (UTF-16 code units, no locale collation).
     private static int ByTileName(FlowTile x, FlowTile y)
     {
         var byName = string.CompareOrdinal(x.Name.ToLowerInvariant(), y.Name.ToLowerInvariant());

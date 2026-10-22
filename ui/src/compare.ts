@@ -11,7 +11,16 @@ export type Compare = { kind: 'flow' | 'run'; a: string; b: string; mode: 'side'
 /** One thing the picker offers: the flow or run, which side of a tagged pair it stands on, and whether the tag points at something that is not there. */
 export type Choice = { id: string; name: string; side?: 'before' | 'after'; missing?: boolean }
 
-const byName = (x: Choice, y: Choice): number => x.name.toLowerCase().localeCompare(y.name.toLowerCase()) || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0)
+/**
+ * Name, lower-cased, then id, each by UTF-16 code unit: not a locale collation (like `lower()` in core/outline.ts), so the C# readers' ordinal compare of
+ * `ToLowerInvariant()` text gives the same order for every name, accented and Cyrillic ones included.
+ */
+const byLowerName = (x: { id: string; name: string }, y: { id: string; name: string }): number => {
+  const [a, b] = [x.name.toLowerCase(), y.name.toLowerCase()]
+  if (a !== b) return a < b ? -1 : 1
+  return x.id < y.id ? -1 : x.id > y.id ? 1 : 0
+}
+const byName = (x: Choice, y: Choice): number => byLowerName(x, y)
 
 /**
  * What `id` can be compared with: `linked` are the ones it tags (the older) and then the ones that tag it (the newer), the order `partnersOf` gives; a
@@ -31,7 +40,7 @@ export type FlowTile = { id: string; name: string; view: string }
 
 /** The tile of a flow that is there. */
 export const flowTile = (model: Model, id: string): FlowTile => ({ id, name: model.flows[id].name || id, view: nameOf(model, model.flows[id].view) })
-const byTileName = (x: FlowTile, y: FlowTile): number => x.name.toLowerCase().localeCompare(y.name.toLowerCase()) || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0)
+const byTileName = (x: FlowTile, y: FlowTile): number => byLowerName(x, y)
 
 /** What the edit form's Compare with offers for flow `flowId`: every other flow, by name. The flow itself is never offered, since a flow can't compare with itself. */
 export const partnerChoices = (model: Model, flowId: string): FlowTile[] => Object.keys(model.flows).filter(id => id !== flowId).map(id => flowTile(model, id)).sort(byTileName)
@@ -102,6 +111,26 @@ export const pairOff = (kind: 'flow' | 'run', a: string, b: string): string | un
 
 /** Whether the text in the note editor would be lost by leaving: it is not what the pair holds, and it is not just blank where nothing is held. */
 export const unsaved = (draft: string | undefined, saved: string): boolean => draft !== undefined && draft.trim() !== saved.trim()
+
+/** A note typed on a pair and not yet saved, with the note the pair held when it was typed (to tell a draft that differs from it). */
+export type Draft = { text: string; saved: string }
+
+/** The drafts of every pair that has one, by `draftKey`. A new map on every change, so a state hook sees it. */
+export type Drafts = ReadonlyMap<string, Draft>
+
+/** The key of the pair `a`, `b` of `kind` in the drafts: the same whichever way round the pair is given. */
+export const draftKey = (kind: 'flow' | 'run', a: string, b: string): string => `${kind}:${pairKey(a, b)}`
+
+/** The drafts with `text` kept for pair `key`, or with that pair's draft taken out when `text` is undefined. The other pairs' drafts stay as they are. */
+export function withDraft(drafts: Drafts, key: string, text: string | undefined, saved: string): Drafts {
+  const next = new Map(drafts)
+  if (text === undefined) next.delete(key)
+  else next.set(key, { text, saved })
+  return next
+}
+
+/** Whether leaving the page would lose a note: some pair, not just the one on show, has a draft that differs from what it held. */
+export const keepsDrafts = (drafts: Drafts): boolean => [...drafts.values()].some(d => unsaved(d.text, d.saved))
 
 /** What a click in a pane picked: a shape, or a line with the view its pane draws (the same two shapes can be joined differently in another view). */
 export type Picked = { kind: 'object'; id: string } | { kind: 'line'; from: string; to: string; view: string }

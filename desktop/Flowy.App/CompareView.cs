@@ -116,6 +116,13 @@ internal sealed class CompareView : Grid
         foreach (var run in _runs.Values) run.Session.StopRamp();
     }
 
+    /// <summary>Stops every pane's Autoplay, and the swap canvas's: the comparison is closed, and its flows would otherwise go on stepping where nobody sees them.</summary>
+    public void StopPlayback()
+    {
+        foreach (var pane in _byKey.Values) pane.Playback.StopAuto();
+        _stage?.StopPlayback();
+    }
+
     public bool Stacked => _stacked;
 
     /// <summary>The key of each pane. A flow compared with itself has two panes, told apart by the second's suffix.</summary>

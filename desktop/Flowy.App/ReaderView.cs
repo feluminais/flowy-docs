@@ -337,6 +337,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
     public void Load(Folder folder, string dir)
     {
+        var sameFolder = _dir is not null && ModelFolders.Key(_dir) == ModelFolders.Key(dir); // read again (the watch was lost), not another folder
         _folder = folder;
         _dir = dir;
         _models = [];
@@ -362,7 +363,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _playback.Head = null;
         _hover = null;
         CloseCompare(false); // another folder has other flows
-        _noteDraft = null; // and a note about two of them is no use there
+        // A note about two of them is no use there. The same folder read again keeps its notes (they are by pair), and a window asks before it goes to another folder (MainWindow.Open).
+        if (!sameFolder) _drafts.Clear();
         _codeBase = null;
         _repoRoot = FolderLoader.RepoRoot(dir);
         SetBanner(null);

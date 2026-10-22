@@ -96,7 +96,7 @@ public static class CompareChoices
             ? Openable(runs, a) && Openable(runs, b) ? null : "That run can't open."
             : Playable(model, a) && Playable(model, b) ? null : "That flow can't play yet.";
 
-    // Name, lower-cased, then id: the ordinal compare of lower-case text matches localeCompare for the ids and names a project holds.
+    // Name, lower-cased, then id, each ordinal: the same order as byLowerName in ui/src/compare.ts (UTF-16 code units, no locale collation).
     private static int ByName(CompareChoice x, CompareChoice y)
     {
         var byName = string.CompareOrdinal(x.Name.ToLowerInvariant(), y.Name.ToLowerInvariant());

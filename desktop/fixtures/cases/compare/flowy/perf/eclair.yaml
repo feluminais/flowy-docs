@@ -1,0 +1,4 @@
+name: Éclair
+levels:
+  - { load: 5 }
+  - { load: 10 }

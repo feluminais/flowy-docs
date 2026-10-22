@@ -17,7 +17,7 @@ internal sealed class CompareKey : WrapPanel
     /// <summary>The words of a key with nothing to draw: the flows share no shape, or they match.</summary>
     internal const string Unrelated = "Nothing in common";
 
-    internal const string Same = "No changes";
+    internal const string Same = "No step changes";
 
     public CompareKey(FlowDiff diff, IReadOnlyList<string> sides)
     {

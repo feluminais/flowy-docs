@@ -12,7 +12,7 @@ export function CompareKey({ diff, sides }: { diff: FlowDiff; sides: ('older' | 
     <KeyRow>
       {items.map(kind => <KeyItem key={kind} swatch={<svg className="sw change" data-change={kind} width="24" height="14" viewBox="0 0 24 14"><rect x="1.5" y="1.5" width="21" height="11" rx="4" /></svg>}>{CHANGE_NAMES[kind]}</KeyItem>)}
       {!related && <li>Nothing in common</li>}
-      {related && items.length === 0 && <li>No changes</li>}
+      {related && items.length === 0 && <li>No step changes</li>}
     </KeyRow>
   )
 }
