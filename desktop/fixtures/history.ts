@@ -42,8 +42,8 @@ const step = (id: string, source: StepSource, files: Record<string, string>): St
 const COLLAPSES: [string, Step[]][] = [
   ['an outside step equal to the labelled one before it', [step('1', 'you', { 'model.yaml': 'aaaaaaaaaaaaaaaa' }), step('2', 'outside', { 'model.yaml': 'aaaaaaaaaaaaaaaa' })]],
   ['a labelled step over the identical outside one', [step('1', 'you', { 'model.yaml': 'aaaaaaaaaaaaaaaa' }), step('2', 'outside', { 'model.yaml': 'bbbbbbbbbbbbbbbb' }), step('3', 'you', { 'model.yaml': 'bbbbbbbbbbbbbbbb' })]],
-  ['a labelled step over the first-seen step', [step('1', 'first', { 'model.yaml': 'aaaaaaaaaaaaaaaa' }), step('2', 'claude', { 'model.yaml': 'aaaaaaaaaaaaaaaa' })]],
-  ['two labelled steps with equal files', [step('1', 'you', { 'model.yaml': 'aaaaaaaaaaaaaaaa' }), step('2', 'claude', { 'model.yaml': 'aaaaaaaaaaaaaaaa' })]],
+  ['a labelled step over the first-seen step', [step('1', 'first', { 'model.yaml': 'aaaaaaaaaaaaaaaa' }), step('2', 'ai', { 'model.yaml': 'aaaaaaaaaaaaaaaa' })]],
+  ['two labelled steps with equal files', [step('1', 'you', { 'model.yaml': 'aaaaaaaaaaaaaaaa' }), step('2', 'ai', { 'model.yaml': 'aaaaaaaaaaaaaaaa' })]],
   ['files that come and go', [step('1', 'you', { 'model.yaml': 'aaaaaaaaaaaaaaaa' }), step('2', 'you', { 'model.yaml': 'aaaaaaaaaaaaaaaa', 'flows/a.yaml': 'bbbbbbbbbbbbbbbb' }), step('3', 'restore', { 'model.yaml': 'aaaaaaaaaaaaaaaa' })]],
   ['nothing', []],
 ]
@@ -101,7 +101,7 @@ export async function buildTrail(): Promise<Trail> {
     await browser.restore(added.id, (await browser.now()).versions, 'Restored the version from 10:00') // 4
     await put('model.yaml', `${shop.replace('connections: []\n', '')}  cart: { type: system, name: Cart }\nconnections: []\n`)
     await desktop.ensureCurrent('watch') // 5: outside, the same files as 6
-    await mcp.record('Claude: put_object cart', 'claude') // 6
+    await mcp.record('AI: put_object cart', 'ai') // 6
 
     const files: Record<string, Uint8Array> = {}
     for (const sub of ['steps', 'blobs']) {

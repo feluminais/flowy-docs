@@ -6,7 +6,7 @@ What the desktop app does and where it differs from the browser. Part of the [Fl
 
 The desktop app is a native reader for the same folders: it reads the YAML itself and draws it with its own renderer, so there is
 no server and no browser behind it. It reads and it edits: [Edit it](canvas.md#edit-it) above is as true of the app as of the browser, and
-what it saves, the browser and Claude see, and the other way round. A file that can't be read leaves the last good model on screen
+what it saves, the browser and an AI see, and the other way round. A file that can't be read leaves the last good model on screen
 with the reason in a banner, and while it is there editing is off.
 
 Editing in the app: **E** (or the Edit button) turns it on, and the bar gains New flow, Add, Undo, Redo and Tidy. A shape's panel becomes

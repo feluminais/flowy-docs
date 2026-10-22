@@ -100,7 +100,7 @@ be undone, so git sees the same change whether you made it by hand or in the app
   </picture>
 </p>
 
-An MCP server lets Claude or any other MCP client read the model and write it: shapes, lines, flows and failure analyses. Each
+An MCP server lets any MCP client, such as Claude Code, read the model and write it: shapes, lines, flows and failure analyses. Each
 call is checked, so a change that would break the model is refused, and an open canvas redraws as the files change. From the
 root of the repo you want to document:
 

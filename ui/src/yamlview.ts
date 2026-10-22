@@ -126,7 +126,7 @@ function formatter(kind: string, locale: string | undefined, timeZone: string | 
 export const restoreLabel = (iso: string, now: Date, locale?: string, timeZone?: string): string => `Restored the version from ${timeLabel(iso, now, locale, timeZone)}`
 
 /** The chip on a step in the list. The first look at a folder has none: its label says it. */
-export const SOURCE_NAMES: Record<StepSource, string | undefined> = { you: 'You', claude: 'Claude', outside: 'Outside', restore: 'Restored', first: undefined }
+export const SOURCE_NAMES: Record<StepSource, string | undefined> = { you: 'You', ai: 'AI', outside: 'Outside', restore: 'Restored', first: undefined }
 
 /** The step above (`-1`, newer) or below (`1`, older) one in a newest-first list; from no step, or one that is gone, the newest. */
 export function neighbour(steps: StepInfo[], id: string | undefined, delta: -1 | 1): string | undefined {

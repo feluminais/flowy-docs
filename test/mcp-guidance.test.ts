@@ -80,7 +80,7 @@ test('the guide lists every tool, and SECURITY.md and the guide count them as th
   const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty']
   assert.match(guide, new RegExp(`The server has ${words[tools.length]}\\.`))
   const reads = tools.filter(name => name.startsWith('get_')).length
-  assert.match(security, new RegExp(`Claude gets ${words[tools.length]} tools: ${words[reads]} read the model and ${words[tools.length - reads]} change`))
+  assert.match(security, new RegExp(`an AI client gets ${words[tools.length]} tools: ${words[reads]} read the model and ${words[tools.length - reads]} change`))
 })
 
 test('the instructions give the default, ask for the rest by name, and end on what Flowy could add', async t => {

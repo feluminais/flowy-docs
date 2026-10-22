@@ -81,7 +81,7 @@ and the part has errors in it, and opens Performance at the first load where it 
 
 **Writing it.** In edit mode the tab stays open and gains **New analysis** (a name and a scope), **Add failure mode** and a form for
 each mode: the part, the text, the three ratings, the status, what it affects, the flow and the run. Every save goes through the same
-checks as the rest of the model. Claude does the same through the MCP server: `get_failures` answers with the ranked table, the
+checks as the rest of the model. An AI does the same through the MCP server: `get_failures` answers with the ranked table, the
 coverage and the problems, `put_failure` writes one mode, `delete_failure` removes one, and `put_failures` and `delete_failures`
 write and remove a whole analysis. Every write is checked. How to word a mode is in [Writing good Flowy docs](../writing.md#failure-modes).
 

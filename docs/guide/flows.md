@@ -47,7 +47,7 @@ The checker names the step and the key. It refuses an outcome on a `callback`, a
 too long or has a line break, `by` on any other outcome, `intercepted` with no `by`, a `by` that names a shape that does not exist or one of the step's own ends, and an `at` outside 0.1 to 0.9
 or on any other outcome.
 
-Claude's `put_flow` takes the same keys, and is told to give a step an outcome only where it really ends that way.
+The `put_flow` tool takes the same keys, and is told to give a step an outcome only where it really ends that way.
 
 ## Repeats, branches and parallel steps
 
@@ -144,7 +144,7 @@ of the card, *Back to "…", step N*, that returns you to where you were (in the
 isn't in the address, so a reload drops it. Nothing moves when the system asks for less motion, and the chips, tabs, brackets and labels
 stay. A flow with none of these keys reads, plays and exports exactly as it did.
 
-Claude's `put_flow` takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when
+The `put_flow` tool takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when
 to reach for each. Edit mode has fields for all of them (see above).
 
 ## Shape states
@@ -186,7 +186,7 @@ steps:
 
 Flowy checks it as it checks everything else: an id that isn't a shape, a word that isn't one of the six, `states` that isn't a mapping of ids to words, and two lanes of one parallel stop that disagree. A change that deletes a shape that only a `states` names is refused, as it is for a step's shape.
 
-**Elsewhere in Flowy.** In edit mode a step's form has a **State** section with a row of drawn tiles (None, then the six) for each end of the step, and a pick is one edit; a flow's starting states are written in the file or by Claude. Claude's `put_flow` takes `states` on the flow and on each step, and its instructions say to use them where the story really takes a shape down, brings it up or hurts it. Mermaid writes a note over the shape with the state's name:
+**Elsewhere in Flowy.** In edit mode a step's form has a **State** section with a row of drawn tiles (None, then the six) for each end of the step, and a pick is one edit; a flow's starting states are written in the file or by an AI. The `put_flow` tool takes `states` on the flow and on each step, and its instructions say to use them where the story really takes a shape down, brings it up or hurts it. Mermaid writes a note over the shape with the state's name:
 
 ```mermaid
 sequenceDiagram

@@ -1,5 +1,5 @@
-/** Where a change came from: an edit in Flowy (you), through the MCP tools (claude), anything else (outside), a restore, or the first look at a folder. */
-export type StepSource = 'you' | 'claude' | 'outside' | 'restore' | 'first'
+/** Where a change came from: an edit in Flowy (you), through the MCP tools (ai), anything else (outside), a restore, or the first look at a folder. */
+export type StepSource = 'you' | 'ai' | 'outside' | 'restore' | 'first'
 
 /** Which program recorded the step. */
 export type StepApp = 'browser' | 'desktop' | 'mcp'
@@ -32,7 +32,7 @@ export const FIRST_LABEL = 'First seen'
 export const CLOSED_LABEL = 'Changed while Flowy was closed'
 
 /** Edits made in Flowy, through its tools or by a restore are labelled; a step that only notices a change is not. */
-export const isLabelled = (source: StepSource): boolean => source === 'you' || source === 'claude' || source === 'restore'
+export const isLabelled = (source: StepSource): boolean => source === 'you' || source === 'ai' || source === 'restore'
 
 /** A step's id: the time to the millisecond, then a random part so two programs recording at once do not collide. Plain sorting is time order. */
 export function stepId(time: Date, random: string): string {
@@ -93,7 +93,7 @@ export const fallbackLabel = (files: string[]): string => (files.length === 0 ? 
 /** What an MCP tool call is called in the list: the tool and what it was given (an id, a name, or the two ends of a connection). */
 export function mcpLabel(tool: string, input: Record<string, unknown>): string {
   const { from, to, id, name } = input
-  if (typeof from === 'string' && typeof to === 'string') return `Claude: ${tool} ${from} → ${to}`
+  if (typeof from === 'string' && typeof to === 'string') return `AI: ${tool} ${from} → ${to}`
   const target = typeof id === 'string' ? id : typeof name === 'string' ? name : undefined
-  return target === undefined ? `Claude: ${tool}` : `Claude: ${tool} ${target}`
+  return target === undefined ? `AI: ${tool}` : `AI: ${tool} ${target}`
 }

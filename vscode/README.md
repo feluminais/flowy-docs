@@ -12,13 +12,13 @@ is plain YAML that sits in git next to the code it describes.
   for its description, the files it lives in and everything it connects to. The **Flows** tab plays a flow one step at a
   time, with **Autoplay**.
 - **Edit it.** Press **E** in the panel to add shapes, rename them, drag them, connect them, write flows, and undo or redo.
-  Every edit is written to the YAML files, checked the same way Claude's edits are.
+  Every edit is written to the YAML files, checked the same way an AI's edits are.
 - **Jump to the code.** A path under **Source** opens in the editor beside the panel. A folder shows in the Explorer.
 - **Jump from the code.** Right-click a file in the Explorer or the editor and choose **Show This File in the Docs**. The
   panel shows the shape whose `code` lists that file, or the folder it is in. If two shapes list it equally you pick one.
 - **Find things from the palette.** **Flowy: Open Flow…** plays a flow you pick. **Flowy: Go to Shape…** shows a shape you
   pick where it is drawn.
-- **Stay current.** The panel redraws when a file in `flowy/` changes, whether you saved it, Claude wrote it or the desktop
+- **Stay current.** The panel redraws when a file in `flowy/` changes, whether you saved it, an AI wrote it or the desktop
   app did. It follows your VS Code colour theme, and after VS Code restarts it opens where you left off.
 
 | Command | What it does |
@@ -31,14 +31,14 @@ is plain YAML that sits in git next to the code it describes.
 ## Getting a model
 
 A model is a `flowy/` folder at the root of your repo: `model.yaml` for the shapes and connections, and `flows/*.yaml` for
-walkthroughs. The quickest way to get one is to ask Claude. From the root of the repo, with the Flowy Docs clone built once
-([Install](https://github.com/feluminais/flowy-docs/blob/main/docs/install.md#let-claude-write-the-model) says how):
+walkthroughs. The quickest way to get one is to ask an AI. From the root of the repo, with the Flowy Docs clone built once
+([Install](https://github.com/feluminais/flowy-docs/blob/main/docs/install.md#let-an-ai-write-the-model) says how):
 
 ```bash
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
-Then ask it to "map this repo into Flowy". You can also write the files by hand. How, and what to put in them, is in the
+That command is for Claude Code; any other MCP client takes the same command over stdio. Then ask it to "map this repo into Flowy". You can also write the files by hand. How, and what to put in them, is in the
 [guide](https://github.com/feluminais/flowy-docs/blob/main/docs/guide.md) and
 [Writing good Flowy docs](https://github.com/feluminais/flowy-docs/blob/main/docs/writing.md).
 

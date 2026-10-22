@@ -810,7 +810,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <p className="empty">{editing
               ? 'Nothing here yet. Press Add to put the first shape here.'
               : live
-                ? 'Nothing here yet. Ask Claude to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
+                ? 'Nothing here yet. Ask an AI to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
                 : 'Nothing here yet.'}</p>
           )}
           {searching && (

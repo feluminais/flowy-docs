@@ -45,7 +45,9 @@ export type Store = {
   clear(): Promise<void>
 }
 
-const SOURCES = new Set<string>(['you', 'claude', 'outside', 'restore', 'first'])
+const SOURCES = new Set<string>(['you', 'ai', 'outside', 'restore', 'first'])
+/** Steps recorded before the source was called `ai` say `claude`; they read as `ai`. */
+const LEGACY_SOURCES: Record<string, string> = { claude: 'ai' }
 const APPS = new Set<string>(['browser', 'desktop', 'mcp'])
 const isHash = (text: string): boolean => /^[0-9a-f]{16}$/.test(text)
 
@@ -57,9 +59,10 @@ function parseStep(id: string, text: string): Step | undefined {
     return undefined
   }
   if (typeof body !== 'object' || body === null) return undefined
-  const { time, label, source, app, files } = body as Record<string, unknown>
+  const { time, label, source: stored, app, files } = body as Record<string, unknown>
   if (typeof time !== 'string' || typeof label !== 'string') return undefined
-  if (typeof source !== 'string' || !SOURCES.has(source) || typeof app !== 'string' || !APPS.has(app)) return undefined
+  const source = typeof stored === 'string' ? (Object.hasOwn(LEGACY_SOURCES, stored) ? LEGACY_SOURCES[stored] : stored) : undefined
+  if (source === undefined || !SOURCES.has(source) || typeof app !== 'string' || !APPS.has(app)) return undefined
   if (!isMap(files)) return undefined
   const named: Record<string, string> = {}
   for (const [path, hash] of Object.entries(files)) {

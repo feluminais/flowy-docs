@@ -20,8 +20,8 @@ test('stepId sorts by time', () => {
   assert.ok(stepId(new Date('2026-10-20T10:15:00.124Z'), '000000') > earlier)
 })
 
-test('you, claude and restore are labelled; outside and first are not', () => {
-  for (const source of ['you', 'claude', 'restore'] as const) assert.equal(isLabelled(source), true)
+test('you, ai and restore are labelled; outside and first are not', () => {
+  for (const source of ['you', 'ai', 'restore'] as const) assert.equal(isLabelled(source), true)
   for (const source of ['outside', 'first'] as const) assert.equal(isLabelled(source), false)
 })
 
@@ -49,13 +49,13 @@ test('collapse: a labelled step replaces the identical outside one before it', (
 })
 
 test('collapse: a labelled step replaces the identical first-seen step', () => {
-  const edit = step('2', { m: '1' }, 'claude')
+  const edit = step('2', { m: '1' }, 'ai')
   assert.deepEqual(collapseSteps([step('1', { m: '1' }, 'first'), edit]), [edit])
 })
 
 test('collapse: two labelled steps with equal files keep the earlier', () => {
   const a = step('1', { m: '1' })
-  assert.deepEqual(collapseSteps([a, step('2', { m: '1' }, 'claude')]), [a])
+  assert.deepEqual(collapseSteps([a, step('2', { m: '1' }, 'ai')]), [a])
 })
 
 test('collapse: nothing in, nothing out, and the input is left alone', () => {
@@ -93,10 +93,10 @@ test('labels', () => {
 })
 
 test('mcpLabel names the tool and what it was given', () => {
-  assert.equal(mcpLabel('put_object', { id: 'cart' }), 'Claude: put_object cart')
-  assert.equal(mcpLabel('connect', { from: 'a', to: 'b' }), 'Claude: connect a → b')
-  assert.equal(mcpLabel('put_icon', { name: 'stripe' }), 'Claude: put_icon stripe')
-  assert.equal(mcpLabel('get_model', {}), 'Claude: get_model')
-  assert.equal(mcpLabel('put_object', { id: 5 }), 'Claude: put_object')
-  assert.equal(mcpLabel('connect', { from: 'a' }), 'Claude: connect')
+  assert.equal(mcpLabel('put_object', { id: 'cart' }), 'AI: put_object cart')
+  assert.equal(mcpLabel('connect', { from: 'a', to: 'b' }), 'AI: connect a → b')
+  assert.equal(mcpLabel('put_icon', { name: 'stripe' }), 'AI: put_icon stripe')
+  assert.equal(mcpLabel('get_model', {}), 'AI: get_model')
+  assert.equal(mcpLabel('put_object', { id: 5 }), 'AI: put_object')
+  assert.equal(mcpLabel('connect', { from: 'a' }), 'AI: connect')
 })

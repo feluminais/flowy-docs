@@ -127,7 +127,7 @@ test('a new version, file or comparison brings its first mark into view; a new s
 })
 
 test('a step\'s chip names where it came from; the first look has none', () => {
-  assert.deepEqual(SOURCE_NAMES, { you: 'You', claude: 'Claude', outside: 'Outside', restore: 'Restored', first: undefined })
+  assert.deepEqual(SOURCE_NAMES, { you: 'You', ai: 'AI', outside: 'Outside', restore: 'Restored', first: undefined })
 })
 
 test('the arrow keys move between steps, newest first, and stop at the ends', () => {

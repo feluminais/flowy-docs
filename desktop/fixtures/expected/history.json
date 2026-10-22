@@ -565,8 +565,8 @@
         {
           "id": "2",
           "time": "2026-10-20T10:00:02.000Z",
-          "label": "claude 2",
-          "source": "claude",
+          "label": "ai 2",
+          "source": "ai",
           "app": "browser",
           "files": {
             "model.yaml": "aaaaaaaaaaaaaaaa"
@@ -580,8 +580,8 @@
         {
           "id": "2",
           "time": "2026-10-20T10:00:02.000Z",
-          "label": "claude 2",
-          "source": "claude",
+          "label": "ai 2",
+          "source": "ai",
           "app": "browser",
           "changed": [
             "model.yaml"
@@ -605,8 +605,8 @@
         {
           "id": "2",
           "time": "2026-10-20T10:00:02.000Z",
-          "label": "claude 2",
-          "source": "claude",
+          "label": "ai 2",
+          "source": "ai",
           "app": "browser",
           "files": {
             "model.yaml": "aaaaaaaaaaaaaaaa"
@@ -935,7 +935,7 @@
         "input": {
           "id": "cart"
         },
-        "label": "Claude: put_object cart"
+        "label": "AI: put_object cart"
       },
       {
         "tool": "connect",
@@ -943,7 +943,7 @@
           "from": "a",
           "to": "b"
         },
-        "label": "Claude: connect a → b"
+        "label": "AI: connect a → b"
       },
       {
         "tool": "disconnect",
@@ -952,40 +952,40 @@
           "to": "b",
           "label": "x"
         },
-        "label": "Claude: disconnect a → b"
+        "label": "AI: disconnect a → b"
       },
       {
         "tool": "put_icon",
         "input": {
           "name": "stripe"
         },
-        "label": "Claude: put_icon stripe"
+        "label": "AI: put_icon stripe"
       },
       {
         "tool": "put_flow",
         "input": {
           "id": "checkout"
         },
-        "label": "Claude: put_flow checkout"
+        "label": "AI: put_flow checkout"
       },
       {
         "tool": "get_model",
         "input": {},
-        "label": "Claude: get_model"
+        "label": "AI: get_model"
       },
       {
         "tool": "put_object",
         "input": {
           "id": 5
         },
-        "label": "Claude: put_object"
+        "label": "AI: put_object"
       },
       {
         "tool": "connect",
         "input": {
           "from": "a"
         },
-        "label": "Claude: connect"
+        "label": "AI: connect"
       }
     ]
   },
@@ -1102,8 +1102,8 @@
       {
         "id": "20261020T100005000Z-000005",
         "time": "2026-10-20T10:00:05.000Z",
-        "label": "Claude: put_object cart",
-        "source": "claude",
+        "label": "AI: put_object cart",
+        "source": "ai",
         "app": "mcp",
         "changed": [
           "model.yaml"
@@ -1156,8 +1156,8 @@
         "step": {
           "id": "20261020T100005000Z-000005",
           "time": "2026-10-20T10:00:05.000Z",
-          "label": "Claude: put_object cart",
-          "source": "claude",
+          "label": "AI: put_object cart",
+          "source": "ai",
           "app": "mcp",
           "changed": [
             "model.yaml"

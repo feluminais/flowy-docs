@@ -15,7 +15,7 @@ doesn't update itself.
 
 ## The browser version
 
-It runs on any system that has Node 22.18 or later, and it is where `export`, Claude's MCP server, the YAML tab and failure modes live.
+It runs on any system that has Node 22.18 or later, and it is where `export`, the MCP server, the YAML tab and failure modes live.
 There is no npm package yet, so it runs from a clone. Build it once:
 
 ```bash
@@ -41,7 +41,7 @@ which Flowy creates if it's missing. `--dir <folder>` uses another folder, `--po
 | `export` | Writes a read-only copy of the canvas to `./flowy-site` (`--out` picks the folder) |
 | `mermaid --flow <id>` or `--view <id>` | Prints a flow as a sequence diagram or a view as a flowchart |
 | `failures` | Prints the failure analyses as tables (`--format csv`, `--analysis <id>`) |
-| `mcp` | Runs the MCP server for Claude |
+| `mcp` | Runs the MCP server |
 
 `flowy.sh` (macOS, Linux, Git Bash) and `flowy.cmd` (Windows) in the clone run the same command with the same flags, and
 build on the first run. After a `git pull`, run `npm install` and `npm run build` again.
@@ -69,7 +69,7 @@ Then open a repo that has a `flowy/` folder and run **Flowy: Open Docs** from th
 command above if the version didn't change). More in [vscode/README.md](../vscode/README.md), and how it is packaged in
 [CONTRIBUTING.md](../CONTRIBUTING.md#packaging-it).
 
-## Let Claude write the model
+## Let an AI write the model
 
 From the root of the repo you want to document, once the clone is built:
 
@@ -77,5 +77,5 @@ From the root of the repo you want to document, once the clone is built:
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
-Any other MCP client takes that command over stdio. Then ask Claude "map this repo into Flowy". [The guide](guide/ai.md#let-an-ai-build-it)
+That command is for Claude Code. Any other MCP client takes the same command over stdio. Then ask the AI "map this repo into Flowy". [The guide](guide/ai.md#let-an-ai-build-it)
 says what it writes and lists the tools.

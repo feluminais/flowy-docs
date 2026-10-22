@@ -93,7 +93,7 @@ function attach(panel: vscode.WebviewPanel, dir: string, canvas: { media: vscode
     }
   })
 
-  // Every save, from this editor, the app, the canvas or Claude, tells the canvas to read the folder again. A burst of events is one.
+  // Every save, from this editor, the app, the canvas or an AI, tells the canvas to read the folder again. A burst of events is one.
   const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(dir, '**'))
   let timer: ReturnType<typeof setTimeout> | undefined
   const changed = (file: vscode.Uri) => {

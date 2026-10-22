@@ -68,7 +68,7 @@ test('delete_flow is refused while another flow continues in it', async t => {
   assert.equal((await call('put_flow', { id: 'wrong', name: 'Wrong', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'x', flow: 'nowhere' }] })).error, true)
 })
 
-test('the instructions and the put_flow fields tell Claude about groups, lanes and flow links', async t => {
+test('the instructions and the put_flow fields tell the AI about groups, lanes and flow links', async t => {
   const { client } = await setup(t)
   const text = (((client.getInstructions() ?? '') + Object.values(RULES).map(r => r.text).join(' '))).toLowerCase()
   for (const word of ['repeat', 'branch', 'parallel', 'lane', 'flow:', 'times is the limit the code really has']) assert.ok(text.includes(word), word)

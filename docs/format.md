@@ -10,9 +10,9 @@ A model is a folder, `flowy/` by default, next to the code it describes.
 
 | File | Holds | Written by |
 | --- | --- | --- |
-| `model.yaml` | The shapes (`objects`), the lines between them (`connections`) and project settings | You, Claude, the canvas |
-| `flows/<id>.yaml` | One flow: a walkthrough of something happening | You, Claude, the canvas |
-| `failures/<id>.yaml` | One failure analysis | You, Claude, the canvas |
+| `model.yaml` | The shapes (`objects`), the lines between them (`connections`) and project settings | You, an AI, the canvas |
+| `flows/<id>.yaml` | One flow: a walkthrough of something happening | You, an AI, the canvas |
+| `failures/<id>.yaml` | One failure analysis | You, an AI, the canvas |
 | `perf/<id>.yaml` | One load-test run | A tool. Flowy only reads it |
 | `layout.yaml` | Where shapes were dragged | The canvas. Don't write it |
 

@@ -857,7 +857,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .ystep .ylabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ystep .ytime { flex: none; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .ychip { flex: none; padding: 1px 7px; border-radius: 9px; background: var(--hover); color: var(--muted); font-size: 11px; font-weight: 600; }
-.ychip.claude { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.ychip.ai { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
 .ychip.outside { background: var(--warn-bg); color: var(--warn-fg); }
 .ychip.restore { background: color-mix(in srgb, var(--added) 18%, transparent); color: var(--added); }
 .yclear { flex: none; display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12.5px; }

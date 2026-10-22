@@ -64,7 +64,7 @@ a section in the README and a line in this paragraph. Retake one when the canvas
 and a 1200 by 760 window. Serve a copy of `docs/demo` (`FLOWY_STATE_DIR=<empty folder> node src/cli.ts --dir <copy>/flowy --no-open`, so the
 copy's history stays out of your own and the demo is not written to). For the first, open `#ordering/failures/ordering/stripe-timeout` and press F, so the diagram fits beside the tab. For the
 second, press E and change a few things (a shape's Tech, a line of a flow's file in an editor, a `put_object` through `node src/cli.ts mcp`) so
-the list has You, Claude and Outside steps, press Y, and pick the step Claude wrote.
+the list has You, AI and Outside steps, press Y, and pick the step the AI wrote.
 
 ## Line labels
 
@@ -83,7 +83,7 @@ their middles are close and long labels land on top of each other. `ui/src/label
 
 A second, real analysis reads parts of [Conductor OSS](https://github.com/conductor-oss/conductor), the workflow engine, from its code. It models the server (its executor, decider, sweeper, lock and HTTP task) and the four stores beside it, two flows, and `failures/conductor.yaml`: seventeen rows, each written from the code, with the files and lines in its More. Its `about` pins the commit it was read at and says the ratings are an outsider's guesses. It is a demonstration of Flowy, and no assessment of Conductor. A row that could not be confirmed in the code was left out, and two ratings are left empty on purpose.
 
-The model, the flows and the analysis are kept in the `flowy/` folder of the maintainer's clone of Conductor. They are not part of this repo and are not published. To make an analysis of the same kind, build a clone like this (partial, shallow and sparse, about 6 MB of download, with its push address switched off) and have Claude model and read it through the MCP server:
+The model, the flows and the analysis are kept in the `flowy/` folder of the maintainer's clone of Conductor. They are not part of this repo and are not published. To make an analysis of the same kind, build a clone like this (partial, shallow and sparse, about 6 MB of download, with its push address switched off) and have an AI model and read it through the MCP server:
 
 ```bash
 git clone --depth 1 --filter=blob:none --no-checkout https://github.com/conductor-oss/conductor.git conductor-oss

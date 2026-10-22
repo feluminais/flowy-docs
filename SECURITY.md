@@ -15,7 +15,7 @@ Flowy runs on your machine and touches only its model folder and its own folder 
 - The browser version listens on 127.0.0.1, so other computers can't reach it. It refuses a request whose Host isn't
   `127.0.0.1` or `localhost` on its own port, and it saves only when a request carries a header that a web page open in
   another tab can't send. A website can't change your files through it.
-- Saving, from the canvas or from Claude, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder and
+- Saving, from the canvas or from an AI, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder and
   nothing else; the load-test runs in `perf/` are only ever read. `export` writes only to its output folder. The desktop app writes only when you edit, and only `model.yaml`, `layout.yaml` and `flows/*.yaml`, each
   through a temporary file and only if the file is still as it was read, so it can't overwrite a change made elsewhere.
 - The browser version's YAML history is in its own folder under your application data (`FLOWY_STATE_DIR` moves it), never in the
@@ -30,8 +30,8 @@ Flowy runs on your machine and touches only its model folder and its own folder 
   document in its default app, anything else shown in its folder and not run (an app you pick under **File › Open Files
   With** may open any file in the repo). It keeps its recent folders, window size, line-style pick and that app in
   `state.json` in its own folder under your application data.
-- Through the `mcp` command, Claude gets seventeen tools: five read the model and twelve change its objects, icons,
+- Through the `mcp` command, an AI client gets seventeen tools: five read the model and twelve change its objects, icons,
   connections, flows and failure analyses. None runs a command or reads a file outside the model folder.
 
 Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown and
-can embed images, which your browser then fetches from wherever they point, and Claude reads the descriptions back through MCP.
+can embed images, which your browser then fetches from wherever they point, and an AI reads the descriptions back through MCP.

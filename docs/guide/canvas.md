@@ -67,7 +67,7 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
   a problem carry a "!".
 
-The page follows the files: when Claude or your editor changes them, it updates by itself.
+The page follows the files: when an AI or your editor changes them, it updates by itself.
 
 ## Edit it
 
@@ -119,13 +119,13 @@ checks, and write the same text, so a change made in one looks the same in git a
   applies (a repeat becomes a branch or parallel group with its first step starting "Lane 1", and for parallel every step starts a lane),
   and a change the checks refuse (a `times` outside 2 to 99, a step moved out of its group's stretch) says why and saves nothing.
 
-Every save goes through the same checks as Claude's edits: a change that would add a problem is
+Every save goes through the same checks as an AI's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
 and the page reloads. Git keeps the history, and the browser version's [YAML tab](#yaml-and-history) keeps every step.
 
 Ctrl+Z, or Undo, takes back your last change on this page, then the one before. It goes back as
 far as the page has been open. Ctrl+Y or Ctrl+Shift+Z, or Redo, puts back what you undid, until
-you make a new change. If the file changed since (Claude, your editor, another tab), undo and redo
+you make a new change. If the file changed since (an AI, your editor, another tab), undo and redo
 leave it alone and say so. Undo brings back what the file said, not how it was written: like any
 save, it drops YAML comments and writes the file in Flowy's own layout.
 
@@ -135,7 +135,7 @@ In the browser version, the **YAML** tab of the left-hand panel (beside Explorer
 and keeps every change to them. It stays open beside Details, so a change can be watched while you edit. It is read only: change a
 model on the canvas, or in your editor.
 
-![The YAML tab: model.yaml with the line Claude's last edit changed marked in red and green, and under it the steps from First seen up to a change to Website's tech](../images/yaml.png)
+![The YAML tab: model.yaml with the line an AI's last edit changed marked in red and green, and under it the steps from First seen up to a change to Website's tech](../images/yaml.png)
 
 **The files.** There is a tab for each file: `model.yaml`, `layout.yaml` when there is one, every `flows/<id>.yaml` and every
 `failures/<id>.yaml`. The text is the file as it is on disk, comments included, so you can see that saving drops them. Load-test runs in
@@ -151,7 +151,7 @@ until you pick an older one.
 | Badge | Where it came from | Looks like |
 | --- | --- | --- |
 | You | An edit in Flowy | Moved Checkout, Renamed Cart to Basket, Connected Checkout to Stripe, Tidied Ordering |
-| Claude | A write through the MCP server | Claude: put_object menu-cache |
+| AI | A write through the MCP server | AI: put_object menu-cache |
 | Outside | Files changed some other way | Changed outside Flowy: flows/capture-payment.yaml |
 | Restored | A restore (below) | Restored the version from 14:02 |
 
