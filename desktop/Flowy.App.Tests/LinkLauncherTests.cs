@@ -28,4 +28,11 @@ public class LinkLauncherTests
 
         Assert.Null(LinkLauncher.ShowInFolderStart("/repo/docs/run.sh", LinkLauncher.Os.Other));
     }
+
+    [Fact]
+    public void A_launcher_that_says_no_is_told_to_the_reader_and_one_that_says_yes_is_silent()
+    {
+        Assert.Null(LinkLauncher.Told(true));
+        Assert.Equal("Couldn't open it: no app took it", LinkLauncher.Told(false));
+    }
 }

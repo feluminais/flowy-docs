@@ -179,6 +179,19 @@ public class HostileInputTests
         Assert.Equal("ordering", reader.View);
     }
 
+    [AvaloniaFact]
+    public void A_picture_of_nothing_writes_no_file_and_does_not_say_it_saved()
+    {
+        using var temp = new TempFolder();
+        var path = Path.Combine(temp.Path, "none.png");
+        var reader = new ReaderView(); // never shown, so there is no size to draw
+        Assert.False(reader.SavePicture(path));
+        Assert.False(File.Exists(path));
+        Assert.Equal("Couldn't save the picture: nothing on screen to draw", ReaderView.PictureNotice(path, false));
+        Assert.Equal("Saved none.png.", ReaderView.PictureNotice(path, true));
+        Assert.Equal("Couldn't save the picture: pick a folder on this computer", ReaderView.PictureNotice(null, false));
+    }
+
     private static string PictureNameIn(ReaderView reader, string view, string model)
     {
         reader.GoTo(view);
