@@ -1,4 +1,5 @@
 import { compareOf, partnersOf } from '../../src/core/compare.ts'
+import type { CompareTag } from '../../src/core/compare.ts'
 import type { Change, FlowDiff, SideMarks } from '../../src/core/flowdiff.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
@@ -31,6 +32,43 @@ export function orderPair(kind: 'flow' | 'run', items: Record<string, { name?: s
   if (a !== b && compareOf(items[a]?.compare)?.with === b) return [b, a]
   return [a, b]
 }
+
+type Tagged = Record<string, { name?: string; compare?: unknown }>
+
+/**
+ * The saved note of the pair `a` and `b`, whichever way round they are given, and which of them holds the line that has it (`holder`; none when no tag joins them).
+ * When both tag each other, the line with a note is the one shown, the newer's (see orderPair) first. A tag to some other item is not this pair's.
+ */
+export function noteOf(items: Tagged, a: string, b: string): { text: string; holder?: string } {
+  if (a === b) return { text: '' }
+  const [older, newer] = orderPair('flow', items, a, b)
+  const lines = [[newer, older], [older, newer]].flatMap(([id, other]) => {
+    const tag = compareOf(items[id]?.compare)
+    return tag?.with === other ? [{ id, note: tag.note }] : []
+  })
+  const line = lines.find(l => l.note !== undefined) ?? lines[0]
+  return line === undefined ? { text: '' } : { text: line.note ?? '', holder: line.id }
+}
+
+/**
+ * Where a note on the pair `a`, `b` is saved and with what tag: on the line the pair has, else on the second of the pair (the newer, on the right), naming the first as the
+ * older. `note` is trimmed; blank is no note, which writes the short form.
+ */
+export function saveTarget(kind: 'flow' | 'run', items: Tagged, a: string, b: string, note = ''): { id: string; tag: CompareTag } {
+  const [older, newer] = orderPair(kind, items, a, b)
+  const id = noteOf(items, a, b).holder ?? newer
+  const text = note.trim()
+  return { id, tag: text === '' ? { with: id === newer ? older : newer } : { with: id === newer ? older : newer, note: text } }
+}
+
+/** Why a note can't be written, or undefined when it can: the page has to be one that saves. The reason is the tooltip of the greyed control. */
+export const noteOff = (live: boolean, readOnly: boolean): string | undefined => (live && !readOnly ? undefined : "This page can't save")
+
+/** Why a pair can't be saved as one (a pair needs two), or undefined. */
+export const pairOff = (kind: 'flow' | 'run', a: string, b: string): string | undefined => (a === b ? `Needs two different ${kind}s` : undefined)
+
+/** Whether the text in the note editor would be lost by leaving: it is not what the pair holds, and it is not just blank where nothing is held. */
+export const unsaved = (draft: string | undefined, saved: string): boolean => draft !== undefined && draft.trim() !== saved
 
 /** What a click in a pane picked: a shape, or a line with the view its pane draws (the same two shapes can be joined differently in another view). */
 export type Picked = { kind: 'object'; id: string } | { kind: 'line'; from: string; to: string; view: string }

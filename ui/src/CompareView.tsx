@@ -8,6 +8,8 @@ import type { Problem } from '../../src/core/problem.ts'
 import { marksFor, orderPair, samePick } from './compare.ts'
 import type { Compare, Picked } from './compare.ts'
 import { CompareBar } from './CompareBar.tsx'
+import { CompareNote } from './CompareNote.tsx'
+import type { CompareNoteProps } from './CompareNote.tsx'
 import { ComparePane } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
 import { lineId } from './graph.ts'
@@ -43,6 +45,8 @@ type Props = {
   onMode: (mode: Compare['mode']) => void
   onFlip: () => void
   onClose: () => void
+  /** The note strip under the panes: what it needs from the reader, who keeps the draft (see CompareNote). */
+  note: Pick<CompareNoteProps, 'off' | 'draft' | 'onDraft' | 'onSave' | 'onNotice'>
   ref?: Ref<CompareHandle>
 }
 
@@ -51,7 +55,7 @@ type Props = {
  * the last thing clicked in either. One pane has the focus (it is outlined): the first to start with, then the one last clicked or tabbed into. The keys of a flow act on it.
  * In Swap there is one canvas instead (SwapCanvas), showing one flow at a time; the keys of a flow act on that one.
  */
-export function CompareView({ model, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onEmpty, start, onMode, onFlip, onClose, ref }: Props) {
+export function CompareView({ model, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onEmpty, start, onMode, onFlip, onClose, note, ref }: Props) {
   // A pane is keyed by its flow, so swapping the sides moves the panes (React moves their elements) instead of unmounting them: each keeps its place in its flow and its zoom.
   // A flow compared with itself has two panes, told apart by the second's suffix. The focus and the pane the panel came from follow the pane, not the side it is on.
   const flows = [compare.a, compare.b]
@@ -112,6 +116,7 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
           })}
         </div>
       )}
+      <CompareNote kind={compare.kind} a={compare.a} b={compare.b} items={model.flows} onFlip={onFlip} {...note} />
     </div>
   )
 }

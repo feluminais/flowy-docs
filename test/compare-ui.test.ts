@@ -5,7 +5,7 @@ import type { Flow } from '../src/core/model.ts'
 import type { Run } from '../src/core/perf/types.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, orderPair, pairOf, playable, samePick } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, noteOf, noteOff, orderPair, pairOf, pairOff, playable, samePick, saveTarget, unsaved } from '../ui/src/compare.ts'
 import type { Compare } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -181,4 +181,66 @@ test('each side takes its own marks', () => {
 
 test('the kinds have one name each', () => {
   assert.deepEqual(CHANGE_NAMES, { new: 'New', removed: 'Removed', changed: 'Changed' })
+})
+
+test('the note of a pair is the one its tag holds, whichever way round the pair is asked', () => {
+  const flows = { old: flow('Old'), now: flow('Now', { with: 'old', note: 'After the fix' }), other: flow('Other') }
+  assert.deepEqual(noteOf(flows, 'old', 'now'), { text: 'After the fix', holder: 'now' })
+  assert.deepEqual(noteOf(flows, 'now', 'old'), { text: 'After the fix', holder: 'now' })
+})
+
+test('a tag without a note has a holder and no text; a pair without a tag has neither', () => {
+  const flows = { old: flow('Old'), now: flow('Now', 'old'), other: flow('Other') }
+  assert.deepEqual(noteOf(flows, 'old', 'now'), { text: '', holder: 'now' })
+  assert.deepEqual(noteOf(flows, 'old', 'other'), { text: '' })
+  assert.deepEqual(noteOf(flows, 'now', 'now'), { text: '' }, 'a flow with itself is no pair')
+  assert.deepEqual(noteOf({ ...flows, now: flow('Now', 'gone') }, 'old', 'now'), { text: '' }, 'a tag to another flow is not this pair')
+})
+
+test('a pair that tag each other shows the note of the newer one, else the other', () => {
+  const both = { a: flow('A', { with: 'b', note: 'from a' }), b: flow('B', { with: 'a', note: 'from b' }) }
+  assert.deepEqual(noteOf(both, 'a', 'b'), { text: 'from a', holder: 'a' }, 'orderPair puts a second: it tags b')
+  assert.deepEqual(noteOf({ a: flow('A', 'b'), b: flow('B', { with: 'a', note: 'from b' }) }, 'a', 'b'), { text: 'from b', holder: 'b' }, 'the line with the note is the one shown')
+  assert.deepEqual(noteOf({ a: flow('A', 'b'), b: flow('B', 'a') }, 'a', 'b'), { text: '', holder: 'a' })
+})
+
+test('a run pair reads the runs the same way', () => {
+  const runs = { r1: run('R1'), r2: run('R2', { with: 'r1', note: 'Cache on' }) }
+  assert.deepEqual(noteOf(runs, 'r1', 'r2'), { text: 'Cache on', holder: 'r2' })
+})
+
+test('a tagged pair is saved on the line it has; an untagged one on the second of the pair, with the first as the older', () => {
+  const flows = { old: flow('Old'), now: flow('Now', { with: 'old', note: 'x' }), other: flow('Other') }
+  assert.deepEqual(saveTarget('flow', flows, 'old', 'now', 'New text'), { id: 'now', tag: { with: 'old', note: 'New text' } })
+  assert.deepEqual(saveTarget('flow', flows, 'now', 'old', ''), { id: 'now', tag: { with: 'old' } }, 'no text: the short form')
+  assert.deepEqual(saveTarget('flow', flows, 'other', 'old', 'Both'), { id: 'old', tag: { with: 'other', note: 'Both' } }, 'untagged: the one on the right gets the line')
+  assert.deepEqual(saveTarget('flow', flows, 'old', 'other'), { id: 'other', tag: { with: 'old' } })
+  assert.deepEqual(saveTarget('flow', flows, 'old', 'other', '  \n'), { id: 'other', tag: { with: 'old' } }, 'blank text is no note')
+  assert.deepEqual(saveTarget('flow', flows, 'old', 'other', '  Padded  '), { id: 'other', tag: { with: 'old', note: 'Padded' } })
+})
+
+test('a tagged pair keeps the line that holds it when the tag is the other way round', () => {
+  const flows = { a: flow('A', 'b'), b: flow('B') }
+  assert.deepEqual(saveTarget('flow', flows, 'a', 'b', 'n'), { id: 'a', tag: { with: 'b', note: 'n' } })
+})
+
+test('the note can be written when the page can save, and the reason is the tooltip when it can not', () => {
+  assert.equal(noteOff(true, false), undefined)
+  assert.equal(noteOff(false, false), "This page can't save")
+  assert.equal(noteOff(true, true), "This page can't save")
+})
+
+test('Save as pair needs two different flows', () => {
+  assert.equal(pairOff('flow', 'old', 'old'), 'Needs two different flows')
+  assert.equal(pairOff('flow', 'old', 'other'), undefined)
+  assert.equal(pairOff('run', 'r1', 'r1'), 'Needs two different runs')
+})
+
+test('a note counts as unsaved when it has text and is not what the pair holds', () => {
+  assert.equal(unsaved(undefined, 'x'), false, 'no editor open')
+  assert.equal(unsaved('', ''), false)
+  assert.equal(unsaved('  \n', ''), false, 'blank text is nothing to lose')
+  assert.equal(unsaved('x', ''), true)
+  assert.equal(unsaved('x', 'x'), false, 'what is saved can not be lost')
+  assert.equal(unsaved('', 'x'), true, 'a saved note emptied out is a change')
 })
