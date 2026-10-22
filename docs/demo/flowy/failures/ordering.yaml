@@ -55,7 +55,7 @@ modes:
     step: 2
     description: |
       The refund and the write are two steps, so one can happen without the other.
-      The nightly comparison finds the gap. It does not close it.
+      The nightly comparison only finds the gap.
   orders-db-down:
     on: orders-db
     mode: Orders DB is unavailable
@@ -169,7 +169,7 @@ modes:
     severity: 2
     occurrence: 7
     detection: 2
-    controls: A position older than a minute is dropped, so the map holds still and does not jump when the signal returns.
+    controls: A position older than a minute is dropped, so the map holds still until a fresh one comes in.
     owner: Delivery
     status: accepted
     affects: [customer-app, web]
