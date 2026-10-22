@@ -18,6 +18,7 @@ internal sealed partial class ReaderView
     private void OnPointerDown(object? sender, PointerPressedEventArgs e)
     {
         var inside = InNavigator(e.Source);
+        PressedOutsidePicker(e.Source);
         _navUsed = inside;
         if (!inside && InNavigator(TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement())) Focus();
     }
@@ -25,7 +26,7 @@ internal sealed partial class ReaderView
     /// <summary>What the keys' conditions ask about, as the reader is now. <paramref name="inNavigator"/>: the press came from inside the navigator.</summary>
     private KeyState KeyStateNow(bool inNavigator) => new(
         Editing, ReadOnly, _undoMove, _search is not null, _shortcuts is not null, _side is Side.Boxes, Recording is not null,
-        PlayingFlow() is not null, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
+        PlayingFlow() is not null, Comparing, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
         ShownTab is not null, _navUsed, inNavigator, RightOpen, CurrentView() != Names.Root);
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -83,9 +84,17 @@ internal sealed partial class ReaderView
 
         public void CloseNavigator() => r.CloseNav();
 
-        public void StopFlow() => r.Stop();
+        public void StopFlow()
+        {
+            if (r._picker is not null) r.ClosePicker(); // the Compare flyout is the innermost layer over the flow
+            else r.Stop();
+        }
 
         public void ClosePanel() => r.CloseDetails();
+
+        public void CloseCompare() => r.CloseCompare();
+
+        public void ToggleCompare() => r.ToggleCompare();
 
         public void Up() => r.Up();
 
@@ -114,18 +123,36 @@ internal sealed partial class ReaderView
 
         public bool StepFailures(Key key) => r.StepFailures(key);
 
-        public void FlowStep(int by) => r.StepTo(r.StopIndex() + by);
+        // While two flows are compared the keys of a flow act on the pane that has the focus.
+        public void FlowStep(int by)
+        {
+            if (r._compareView is { } view && r.Comparing) view.FocusedPane.Step(by);
+            else r.StepTo(r.StopIndex() + by);
+        }
 
-        public void FlowFirst() => r.StepTo(0);
+        public void FlowFirst()
+        {
+            if (r._compareView is { } view && r.Comparing) view.FocusedPane.First();
+            else r.StepTo(0);
+        }
 
         public void FlowLast()
         {
-            if (r.PlayingFlow() is { } flow) r.StepTo(r.StopsOf(flow.Flow).Count - 1);
+            if (r._compareView is { } view && r.Comparing) view.FocusedPane.Last();
+            else if (r.PlayingFlow() is { } flow) r.StepTo(r.StopsOf(flow.Flow).Count - 1);
         }
 
-        public void FlowPlay() => r._playback.ToggleAuto();
+        public void FlowPlay()
+        {
+            if (r._compareView is { } view && r.Comparing) view.FocusedPane.TogglePlay();
+            else r._playback.ToggleAuto();
+        }
 
-        public void FlowReplay() => r._playback.Replay();
+        public void FlowReplay()
+        {
+            if (r._compareView is { } view && r.Comparing) view.FocusedPane.Replay();
+            else r._playback.Replay();
+        }
 
         public bool Enter() => r.EnterBox();
 

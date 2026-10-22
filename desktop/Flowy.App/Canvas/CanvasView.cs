@@ -33,7 +33,9 @@ internal sealed class CanvasView : Border
     private Viewport _viewport = new(0, 0, 1);
     private IDisposable? _animation;
     private Padding _fitPadding = Camera.FitPadding(0, false);
+    private bool _fitPlayer; // the last Fit left room for a player card
     private bool _fitOnResize = true;
+    private bool _fitOnce; // the last Fit asked not to be repeated when the canvas is resized
     private Point? _pressedAt;
     private Viewport _pressedViewport;
     private bool _dragged;
@@ -513,13 +515,23 @@ internal sealed class CanvasView : Border
         return new Flowy.Core.Rect(x, y, rects.Max(r => r.Right) - x, rects.Max(r => r.Bottom) - y);
     }
 
+    /// <summary>How much room a fit leaves at the bottom for a player card, when it is not the usual 200 pixels: a pane of a comparison is short, and a card that size would leave no room for the diagram.</summary>
+    public Func<double>? PlayerRoom { get; set; }
+
+    private Padding FitRoom() => _fitPlayer && PlayerRoom is { } room ? _fitPadding with { Bottom = room() } : _fitPadding;
+
     /// <summary>The whole view, centred, with room for the details panel (`panel` wide, 0 when closed), the navigator (`nav` wide) and the flow player when they're there. Fits again when the window is resized.</summary>
-    public void Fit(double panel, bool player, double nav = 0, double milliseconds = 0)
+    public void Fit(double panel, bool player, double nav = 0, double milliseconds = 0, bool refit = true)
     {
         _fitPadding = Camera.FitPadding(panel, player, nav);
+        _fitPlayer = player;
         _fitOnResize = true;
+        _fitOnce = !refit;
         if (Content() is { } bounds && base.Bounds.Width > 0 && base.Bounds.Height > 0)
-            MoveTo(Camera.Fit(bounds, base.Bounds.Width, base.Bounds.Height, _fitPadding), milliseconds);
+        {
+            MoveTo(Camera.Fit(bounds, base.Bounds.Width, base.Bounds.Height, FitRoom()), milliseconds);
+            if (_fitOnce) _fitOnResize = false;
+        }
     }
 
     /// <summary>Pans just far enough that this box isn't hidden under the details panel (`panel` wide: it opens for the box) or the navigator (`nav` wide, 0 when closed).</summary>
@@ -550,7 +562,10 @@ internal sealed class CanvasView : Border
     {
         base.OnSizeChanged(e);
         if (_fitOnResize && Content() is { } bounds && e.NewSize.Width > 0 && e.NewSize.Height > 0)
-            SetViewport(Camera.Fit(bounds, e.NewSize.Width, e.NewSize.Height, _fitPadding));
+        {
+            SetViewport(Camera.Fit(bounds, e.NewSize.Width, e.NewSize.Height, FitRoom()));
+            if (_fitOnce) _fitOnResize = false; // a pane of a comparison fits when it first has a size, then keeps the zoom the reader gave it
+        }
     }
 
     private static bool OverBox(PointerEventArgs e) => e.Source is Visual v && (v is BoxControl || v.FindAncestorOfType<BoxControl>() is not null);

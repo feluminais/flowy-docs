@@ -31,19 +31,60 @@ internal sealed class PlayerCard : Border
     /// <summary>The reader chose to go back to the flow this one was opened from.</summary>
     public event Action? BackToFlow;
 
-    // Whether the legend is open. It stays as the reader left it for as long as the app runs.
-    private static bool s_legend;
-    private PlayerView? _shown;
+    /// <summary>The reader chose Compare (the button is there only on the reader's own card).</summary>
+    public event Action? CompareClicked;
 
-    public PlayerCard()
+    // Whether the legend is open. It stays as the reader left it for as long as the app runs, and every card shares it, so the two cards of a comparison never disagree.
+    private static bool s_legend;
+    private readonly bool _inPane;
+    private PlayerView? _shown;
+    private string? _compareOff;
+
+    /// <summary>
+    /// <paramref name="inPane"/>: the card of one pane of a comparison. It never leaves its flow, so its Stop and Open flow are greyed out with the reason in their tooltips, it has no Compare button,
+    /// and it sits closer to its pane's edge.
+    /// </summary>
+    public PlayerCard(bool inPane = false)
     {
+        _inPane = inPane;
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;
         VerticalAlignment = VerticalAlignment.Bottom;
         MaxWidth = 520;
-        Margin = new Thickness(16, 0, 16, 24);
+        Margin = inPane ? new Thickness(10, 0, 10, 12) : new Thickness(16, 0, 16, 24);
         IsVisible = false;
     }
+
+    /// <summary>Why Compare is greyed out (it is the tooltip), or null when it is not. The card shows the button only on the reader's own card.</summary>
+    public string? CompareOff
+    {
+        get => _compareOff;
+        set
+        {
+            _compareOff = value;
+            if (CompareButton is { } button)
+            {
+                button.IsEnabled = value is null;
+                ToolTip.SetTip(button, value ?? "Compare with another flow (C)");
+            }
+        }
+    }
+
+    /// <summary>The Compare button now on the card, or null when there is none (no flow shows, or this is a pane's card).</summary>
+    public Button? CompareButton { get; private set; }
+
+    /// <summary>The flyout of the Compare button, shown above the card's content for as long as it is set. The card is rebuilt at every step, so it keeps hold of this and puts it back.</summary>
+    public Control? Picker
+    {
+        get => _picker;
+        set
+        {
+            _picker = value;
+            if (_shown is { } again && IsVisible) Show(again);
+        }
+    }
+
+    private Control? _picker;
 
     private Button Tool(string icon, string? text, Action click, bool enabled = true, bool primary = false, string? name = null)
     {
@@ -124,6 +165,13 @@ internal sealed class PlayerCard : Border
         return box;
     }
 
+    /// <summary>A control that is greyed out says why when the pointer rests on it, since it does not take the pointer itself.</summary>
+    private static void GreyedWith(Control control, string reason)
+    {
+        ToolTip.SetTip(control, reason);
+        ToolTip.SetShowOnDisabled(control, true);
+    }
+
     private Control Block(PlayerStep step, bool lane)
     {
         var block = new StackPanel { Spacing = lane ? 4 : 8 }; // a card for one step spaces its lines as it always did
@@ -158,8 +206,9 @@ internal sealed class PlayerCard : Border
         }
         if (step.Link is { } link)
         {
-            var open = Tool(Icons.Route, $"Open flow: {link.Name}", () => OpenFlow?.Invoke(link.Id), link.Playable);
+            var open = Tool(Icons.Route, $"Open flow: {link.Name}", () => OpenFlow?.Invoke(link.Id), link.Playable && !_inPane);
             open.HorizontalAlignment = HorizontalAlignment.Left;
+            if (_inPane) GreyedWith(open, "Not while comparing");
             block.Children.Add(open);
         }
         if (!lane) return block;
@@ -197,6 +246,17 @@ internal sealed class PlayerCard : Border
             DockPanel.SetDock(help, Dock.Right);
             head.Children.Add(help);
         }
+        CompareButton = null;
+        if (!_inPane)
+        {
+            var compare = Tool(Icons.Columns, "Compare", () => CompareClicked?.Invoke(), _compareOff is null, name: "Compare");
+            ToolTip.SetTip(compare, _compareOff ?? "Compare with another flow (C)");
+            ToolTip.SetShowOnDisabled(compare, true);
+            if (_picker is not null) compare.Classes.Add("pressed");
+            DockPanel.SetDock(compare, Dock.Right);
+            head.Children.Add(compare);
+            CompareButton = compare;
+        }
         head.Children.Add(Chrome.Chips([.. chips]));
         column.Children.Add(head);
         if (grouped && s_legend) column.Children.Add(LegendBlock());
@@ -218,7 +278,8 @@ internal sealed class PlayerCard : Border
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
         foreach (var step in v.Steps) column.Children.Add(Block(step, v.Steps.Count > 1));
         var buttons = new DockPanel { Margin = new Thickness(0, 6, 0, 0), LastChildFill = false };
-        var stop = Tool(Icons.Close, "Stop", () => Stop?.Invoke());
+        var stop = Tool(Icons.Close, "Stop", () => Stop?.Invoke(), !_inPane);
+        if (_inPane) GreyedWith(stop, "Close the comparison to stop");
         stop.Margin = new Thickness(16, 0, 0, 0);
         DockPanel.SetDock(stop, Dock.Right);
         buttons.Children.Add(stop);
@@ -227,13 +288,25 @@ internal sealed class PlayerCard : Border
         if (v.Moving) left.Children.Add(Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step"));
         buttons.Children.Add(left);
         column.Children.Add(buttons);
-        Child = column;
+        // The flyout from the Compare button sits above the card's content. The last rebuild still holds it, so it is let go of before it is given a new place.
+        Detach(_picker);
+        // A pane has little room: its card scrolls when its pane (which sets MaxHeight) is shorter than the card.
+        Control body = _inPane ? new ScrollViewer { Content = column, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled } : column;
+        Child = _picker is null ? body : new StackPanel { Spacing = 10, Children = { _picker, body } };
         IsVisible = true;
+    }
+
+    /// <summary>Lets go of a control the last build of the card put in a panel of its own, so the next build can give it a place.</summary>
+    private static void Detach(Control? control)
+    {
+        if (control is not null && control.Parent is Panel panel) panel.Children.Remove(control);
     }
 
     public void Clear()
     {
+        Detach(_picker);
         IsVisible = false;
         Child = null;
+        CompareButton = null;
     }
 }

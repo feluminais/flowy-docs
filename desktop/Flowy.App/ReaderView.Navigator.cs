@@ -106,6 +106,8 @@ internal sealed partial class ReaderView
         _detailsSash.IsVisible = _panel.IsVisible;
         _detailsSash.Margin = new Thickness(0, 0, _detailsWidth - 3, 0);
         if (_zoomButtons is not null) _zoomButtons.Margin = new Thickness(16 + (nav ? _navWidth : 0), 16, 16, 16);
+        // The comparison keeps clear of both panels instead of fitting round them, so its panes (each with a zoom of its own) are never under one.
+        _compareHost.Margin = new Thickness(nav ? _navWidth : 0, 0, _panel.IsVisible ? _detailsWidth : 0, 0);
         if (_notice is not null) _notice.Margin = NoticeMargin;
     }
 
@@ -113,13 +115,14 @@ internal sealed partial class ReaderView
     private void OpenFlow(string id)
     {
         if (_folder is null || !_folder.Model.Flows.TryGetValue(id, out var flow) || flow.View is not { } view) return;
+        CloseCompare(false); // playing a flow ends the comparison
         if (view != CurrentView()) GoTo(view);
         if (Editing) EditFlow(id);
         else Play(id);
     }
 
     /// <summary>A click in the Explorer: show the shape where it is drawn and select it (its Details open on the right), or play the flow.</summary>
-    private void PickRow(OutlineRow row)
+    internal void PickRow(OutlineRow row)
     {
         if (_folder is null) return;
         if (row.Kind == "flow")
@@ -127,15 +130,16 @@ internal sealed partial class ReaderView
             OpenFlow(row.Id);
             return;
         }
+        // A comparison of flows stays open: the Details show the shape, where it is drawn or not.
         if (row.Id == Names.Root)
         {
-            if (CurrentView() != Names.Root) GoTo(Names.Root);
+            if (!Comparing && CurrentView() != Names.Root) GoTo(Names.Root);
             _side = null;
             Refresh();
             return;
         }
         var parent = Views.ParentOf(_folder.Model, row.Id);
-        if (parent != CurrentView()) GoTo(parent);
+        if (!Comparing && parent != CurrentView()) GoTo(parent);
         OpenObject(row.Id);
     }
 
