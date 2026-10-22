@@ -7,7 +7,7 @@
  *     node docs/images/record.mjs flows data # some of them
  *
  * Each one is the browser canvas on a throwaway copy of the Plum demo, driven by a script in headless Chrome (no window opens), then cut
- * into an animated WebP by ffmpeg. Needs ffmpeg on the PATH and Chrome or Edge (CHROME names the browser if it isn't found).
+ * into a lossless animated WebP by ffmpeg (a lossy one leaves blocks and colour smears on the dark theme). Needs ffmpeg on the PATH and Chrome or Edge (CHROME names the browser if it isn't found).
  * FORMAT=gif writes GIFs instead, about four times the size. The story of each one is its entry in `scenes` below. Retake them when the
  * canvas moves or looks different, and look at both themes before you commit.
  */
@@ -284,13 +284,14 @@ async function record(browser, name, scene, theme) {
     mkdirSync(outDir, { recursive: true })
     const out = join(outDir, `${name}-${theme}.${FORMAT}`)
     const input = ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', join(frames, 'list.txt')]
-    if (FORMAT === 'webp') execFileSync('ffmpeg', [...input, '-vf', `fps=20,scale=${WIDTH}:-1:flags=lanczos`, '-c:v', 'libwebp_anim', '-quality', '85', '-compression_level', '6', '-loop', '0', out])
+    if (FORMAT === 'webp') execFileSync('ffmpeg', [...input, '-vf', `fps=20,scale=${WIDTH}:-1:flags=lanczos`, '-c:v', 'libwebp_anim', '-lossless', '1', '-compression_level', '6', '-loop', '0', out])
     else execFileSync('ffmpeg', [...input, '-vf', `fps=15,scale=${WIDTH}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle`, out])
     console.log(`${name}-${theme}.${FORMAT}`)
   } finally {
     open = false
     site.stop()
-    rmSync(frames, { recursive: true, force: true })
+    if (process.env.KEEP_FRAMES) console.log(`frames kept in ${frames}`)
+    else rmSync(frames, { recursive: true, force: true })
   }
 }
 
@@ -301,7 +302,7 @@ const browser = await puppeteer.launch({ executablePath: findBrowser(), headless
 try {
   for (const [name, scene] of Object.entries(scenes)) {
     if (wanted.length && !wanted.includes(name)) continue
-    for (const theme of ['light', 'dark']) await record(browser, name, scene, theme)
+    for (const theme of (process.env.THEMES ?? 'light,dark').split(',')) await record(browser, name, scene, theme)
   }
 } finally {
   await browser.close()
