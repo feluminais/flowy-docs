@@ -36,8 +36,14 @@ export type PaneHandle = {
 
 type Props = {
   model: Model
-  /** An id of its own for this pane (React Flow wants one for each canvas on a page). It stays with the pane when the sides swap. */
+  /** An id of its own for this pane (React Flow wants one for each canvas on a page, and it ends up in `url(#...)` references, so it holds only letters, numbers, `_` and `-`). It stays with the pane when the sides swap. */
   paneId: string
+  /** What a screen reader calls the pane, when that is not the title. */
+  label?: string
+  /** The stop to start at (the flow was playing there when the comparison opened). */
+  startAt?: number
+  /** A click on the pane's empty area, which also gives it the focus. */
+  onEmpty: () => void
   /** The flow this pane draws, on that flow's own view. It must be one that plays (see `playable`). */
   flowId: string
   /** The flow's own name: the pane has no other caption. */
@@ -66,10 +72,10 @@ type Props = {
  * One flow of a comparison, drawn on its own view with a canvas of its own: its own zoom and pan, and its own player (a card at the foot of the pane), so acting in one pane
  * never moves another. It is the single canvas of the reader (App) cut down to what a flow needs: nothing is dragged, recorded or edited, and a double-click goes nowhere.
  */
-export function ComparePane({ model, paneId, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, fitKey, colorMode, problems, lines, still, ref }: Props) {
+export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, fitKey, colorMode, problems, lines, still, ref }: Props) {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   const view = flow?.view ?? ROOT
-  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = usePlayer({ initialFlow: () => flowId })
+  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = usePlayer({ initialFlow: () => flowId, initialStep: startAt })
   const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks: groupMarks } = useFlowStage({ model, view, flow, playing, replays })
   const { finished, stepTo, togglePlay } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey })
   const graph = useMemo(() => toGraph(model, view, shown, problems, flowMarks), [model, view, shown, problems, flowMarks])
@@ -102,13 +108,13 @@ export function ComparePane({ model, paneId, flowId, title, focused, onFocus, on
   }
 
   return (
-    <section className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={title} onFocus={onFocus} onPointerDownCapture={onFocus}>
+    <section className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={label ?? title} onFocus={onFocus} onPointerDownCapture={onFocus}>
       <h2 className="pane-title" title={title}>{title}</h2>
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
           <LabelSpotsContext value={spots}>
             <ReactFlow
-              id={`pane-${paneId.replace('#', '-again-')}`} // the id ends up in url(#...) references
+              id={`pane-${paneId}`}
               nodes={[...frame, ...nodes]}
               edges={edges}
               nodeTypes={nodeTypes}
@@ -129,7 +135,10 @@ export function ComparePane({ model, paneId, flowId, title, focused, onFocus, on
               }}
               onEdgeMouseEnter={(_, e) => setHovered(e.id)}
               onEdgeMouseLeave={() => setHovered(undefined)}
-              onPaneClick={onFocus}
+              onPaneClick={() => {
+                onFocus()
+                onEmpty() // as on the single canvas, a click on nothing closes the panel
+              }}
               onInit={instance => {
                 fitNow.current = options => void instance.fitView(options)
               }}

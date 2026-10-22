@@ -12,10 +12,10 @@ export type Play = { flow: string; step: number; auto?: boolean; trail?: Spot[] 
  * Which flow is playing, and the small settings of the player: R counts up and a new count plays the step again; whether a step that moves plays again after a rest (kept
  * across visits); the step (and replay) whose motion has finished.
  */
-export function usePlayer({ initialFlow }: { initialFlow: () => string | undefined }) {
+export function usePlayer({ initialFlow, initialStep = 0 }: { initialFlow: () => string | undefined; initialStep?: number }) {
   const [playing, setPlaying] = useState<Play | undefined>(() => {
     const flow = initialFlow()
-    return flow === undefined ? undefined : { flow, step: 0 }
+    return flow === undefined ? undefined : { flow, step: initialStep }
   })
   const [replays, setReplays] = useState(0)
   const [repeat, setRepeat] = useState(() => readPref('flowy.repeat') !== 'off') // whether a step that moves plays again after a rest

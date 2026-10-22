@@ -148,6 +148,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [side, setSide] = useState<Side>()
   // Two flows side by side (see CompareView), named by the address. While one is open the single canvas and its flow player wait behind it, as they do behind the Performance and Failures tabs.
   const [compare, setCompare] = useState<Compare | undefined>(() => fromAddress(model, readHash(location.hash).compare).compare)
+  // The stop the flow that was playing was at when the comparison opened: its pane starts there.
+  const [compareStart, setCompareStart] = useState<{ flow: string; step: number }>()
   const [picking, setPicking] = useState(false) // the popover of the player's Compare button
   const compareRef = useRef<CompareHandle>(null)
   const [flagged, setFlagged] = useState<string[]>([]) // the shapes the row of the Used by panel in focus names
@@ -386,6 +388,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setPicking(false)
     if (!playable(model, id) || !playable(model, other)) return setNotice("That flow can't play yet.")
     setSide(undefined)
+    setCompareStart(flow && playing?.flow === id ? { flow: id, step: stopIndex } : undefined)
+    if (playing?.auto) setPlaying({ ...playing, auto: false }) // it must not start up again behind the panes, or when the comparison closes
     setCompare(pairOf(model, id, other))
   }
   const closeCompare = () => {
@@ -407,6 +411,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (!flow) setPicking(false) // the popover hangs on the player
   }, [flow])
   useEffect(() => {
+    if (!compare) setCompareStart(undefined)
+  }, [compare])
+  useEffect(() => {
     if (fromAddress(model, readHash(location.hash).compare).unplayable) setNotice("That flow can't play yet.") // a link to a comparison that can't open
   }, [])
   useEffect(() => {
@@ -420,7 +427,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }
   /** A click on a shape in the list of those no mode names yet: go to it and pick it. */
   const pickShape = (id: string) => {
-    if (parentOf(model, id) !== view) go(parentOf(model, id))
+    if (!comparing && parentOf(model, id) !== view) go(parentOf(model, id)) // a comparison stays open: the Details show the shape
     setSide({ kind: 'object', id })
   }
   /** Show it: play the flow that tells a failure, at the step it names (counted from 1), or open it to edit. */
@@ -451,7 +458,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if ('shape' in target) {
       if (!getObject(model, target.shape)) return setNotice("That shape isn't in the model any more.")
       setSearching(false)
-      go(parentOf(model, target.shape)) // the view the box sits in
+      if (!comparing) go(parentOf(model, target.shape)) // the view the box sits in
       show({ kind: 'object', id: target.shape })
     } else if (Object.hasOwn(model.flows, target.flow)) openFlow(target.flow)
     else setNotice("That flow isn't in the model any more.")
@@ -460,10 +467,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const pickRow = (row: OutlineRow) => {
     if (row.kind === 'flow') return openFlow(row.id)
     if (row.id === ROOT) {
-      if (view !== ROOT) go(ROOT)
+      if (!comparing && view !== ROOT) go(ROOT)
       return setSide(undefined)
     }
-    if (parentOf(model, row.id) !== view) go(parentOf(model, row.id))
+    if (!comparing && parentOf(model, row.id) !== view) go(parentOf(model, row.id)) // a comparison stays open: the Details show the shape
     setSide({ kind: 'object', id: row.id })
   }
   /** Enter or a double-click in the Explorer: zoom into a shape that opens, else the same as a click. */
@@ -761,12 +768,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           {comparing ? (
-            <CompareView ref={compareRef} model={model} compare={comparing} problems={problems} colorMode={colorMode} lines={lines} still={still} shown={side} nav={nav !== undefined} details={detailsOpen}
+            <CompareView ref={compareRef} model={model} compare={comparing} problems={problems} colorMode={colorMode} lines={lines} still={still} shown={side} nav={nav !== undefined} details={detailsOpen && side !== undefined} start={compareStart}
               onPick={picked => {
                 didSomethingElse()
                 show(picked)
               }}
-              onClosePanel={closeDetails} onMode={mode => setCompare(c => c && { ...c, mode })} onFlip={() => setCompare(c => c && flipped(c))} onClose={closeCompare} />
+              onClosePanel={closeDetails} onEmpty={close} onMode={mode => setCompare(c => c && { ...c, mode })} onFlip={() => setCompare(c => c && flipped(c))} onClose={closeCompare} />
           ) : (
             <LineStyleContext value={lines}>
               <LineWidthsContext value={widths}>
@@ -862,7 +869,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {searching && (
             <Search model={model} onClose={() => setSearching(false)} onPick={id => {
               setSearching(false)
-              go(parentOf(model, id)) // the view the box sits in
+              if (!comparing) go(parentOf(model, id)) // the view the box sits in; a comparison stays open
               show({ kind: 'object', id })
             }} />
           )}
@@ -874,11 +881,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               <button aria-label="Dismiss" onClick={() => setNotice(undefined)}><Close size={16} /></button>
             </div>
           )}
-          {detailsOpen && (side?.kind === 'object' || (side === undefined && view !== ROOT)) && (
+          {detailsOpen && (side?.kind === 'object' || (side === undefined && view !== ROOT && !comparing)) && (
             <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails} onDelete={askDelete} state={side?.kind === 'object' && Object.hasOwn(stateMarks, side.id) ? stateMarks[side.id] : undefined}
               onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
           )}
-          {detailsOpen && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closeDetails} />}
+          {detailsOpen && side === undefined && view === ROOT && !comparing && <OverviewPanel totals={totals} onClose={closeDetails} />}
           {detailsOpen && side?.kind === 'line' && (
             <LinePanel model={model} view={side.view ?? view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} onDelete={askDelete} />
           )}
