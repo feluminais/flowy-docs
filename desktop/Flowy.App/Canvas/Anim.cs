@@ -17,6 +17,14 @@ internal static class Anim
 
     public static double EaseInOut(double t) => t < 0.5 ? 4 * t * t * t : 1 - Math.Pow(-2 * t + 2, 3) / 2;
 
+    /// <summary>
+    /// Milliseconds now, for the tests to take over: an animation measured on the wall clock ends when the machine says, so a test that asks "is it still
+    /// under way" after a sleep is a race. A test sets this to a clock it moves by hand and puts it back to null.
+    /// </summary>
+    internal static Func<double>? TestClock { get; set; }
+
+    private static double Now() => TestClock?.Invoke() ?? Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
+
     /// <summary>Starts it. Disposing the result stops it where it is, without calling <c>done</c>.</summary>
     public static IDisposable Run(Control host, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done = null)
     {
@@ -27,7 +35,7 @@ internal static class Anim
 
     private sealed class Runner(TopLevel? top, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done) : IDisposable
     {
-        private Stopwatch? _clock;
+        private double? _started;
         private DispatcherTimer? _timer;
         private bool _stopped;
 
@@ -45,8 +53,8 @@ internal static class Anim
         {
             if (_stopped) return;
             // The clock starts with the first frame, so work done before it (a view laid out for the new level) isn't taken out of the motion.
-            _clock ??= Stopwatch.StartNew();
-            var t = milliseconds <= 0 ? 1 : Math.Min(1, _clock.Elapsed.TotalMilliseconds / milliseconds);
+            _started ??= Now();
+            var t = milliseconds <= 0 ? 1 : Math.Min(1, (Now() - _started.Value) / milliseconds);
             frame(ease(t));
             if (_stopped) return; // the frame itself may have stopped it
             if (t < 1)

@@ -556,22 +556,38 @@ public class CompareTests
         EditModeTests.Settle(window);
         var stage = reader.CompareShown!.Stage!;
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        // The animation clock is moved by hand: on the wall clock a slow frame could end a swap before the test asked whether it was still under way.
+        var now = 0.0;
+        // Every read moves it on a little: the headless window only asks for another frame when the last one changed what is drawn, so a frame that sees the same
+        // time as the one before it (the key press runs a few of its own) would end the chain of frames and the swap would never get anywhere.
+        Flowy.App.Canvas.Anim.TestClock = () => now += 0.5;
+        void Pass(double ms)
+        {
+            for (var left = ms; left > 0; left -= 10)
+            {
+                now += Math.Min(10, left);
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Dispatcher.UIThread.RunJobs();
+            }
+        }
         try
         {
             // The second press comes while the lines are still fading out; each later one comes a little further into the glide.
             for (var i = 0; i < presses; i++)
             {
                 Press(window, Key.X, PhysicalKey.X);
-                Run(() => false, seconds: 0.12 * (i + 1));
+                Pass(120 * (i + 1));
                 Assert.True(stage.Swapping);
             }
-            Run(() => !stage.Swapping);
+            Pass(SwapPlans.SwapMs + 2 * SwapPlans.FadeMs); // longer than any swap takes
+            Assert.False(stage.Swapping);
             Assert.Equal(endsOn, stage.OnKey);
             AssertDrawn(stage);
             Assert.True(On(reader.CompareShown!.Bar.FlowButtons[endsOn == "refund" ? 0 : 1]));
         }
         finally
         {
+            Flowy.App.Canvas.Anim.TestClock = null;
             Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
         }
     }
