@@ -8,7 +8,7 @@ steps:
     description: |
       On a weak signal the app's position pings never reach **Live tracking**. The app does not
       retry them: a newer ping is coming in five seconds.
-  - { from: tracking, to: customer-app, text: The customer's map moves in jumps }
+  - { from: tracking, to: customer-app, text: The customer's map moves in jumps, animation: { kind: send, carries: position } }
   - from: fleet-db
     text: Keeps the last position it got
     description: |

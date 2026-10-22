@@ -147,18 +147,24 @@ const scenes = {
       await s.key('Escape'); await s.wait(1600)
     },
   },
-  // A flow with a retry that times out, then a branch.
+  // A request played from the customer's tap to the kitchen's tablet, then a flow with a retry that times out and a branch.
   flows: {
     hash: '#ordering',
     async story(s) {
+      const play = async (name, last) => {
+        await s.key('l'); await s.wait(500)
+        await s.click(`::-p-text(${name})`, 700); await s.park(); await s.wait(300)
+        await s.key('l'); await s.wait(1200)
+        await s.click('::-p-text(Autoplay)', 700); await s.park() // the flow steps itself from here
+        await s.page.waitForFunction(t => document.body.innerText.includes(t), { timeout: 90000 }, `Step ${last} of ${last}`)
+        await s.wait(2200)
+      }
       await s.wait(500)
       await s.caption('Play a flow')
-      await s.key('l'); await s.wait(500)
-      await s.click('::-p-text(The payment is captured)', 700); await s.park(); await s.wait(300)
-      await s.key('l'); await s.wait(1200)
-      await s.click('::-p-text(Autoplay)', 700); await s.park() // the flow steps itself from here
-      await s.page.waitForFunction(() => document.body.innerText.includes('Step 6 of 6'), { timeout: 60000 })
-      await s.wait(2600)
+      await play('Customer places an order', 7)
+      await s.key('Escape'); await s.wait(900)
+      await s.caption('Retries and branches')
+      await play('The payment is captured', 6)
       await s.caption(null)
       await s.key('Escape'); await s.wait(1000)
     },

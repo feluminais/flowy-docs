@@ -2140,7 +2140,7 @@ public class CompareTests
         using var _ = temp;
         Assert.Null(picker.Partner);
         Assert.DoesNotContain("refund", picker.OfferedIds); // a flow can't compare with itself
-        Assert.Equal(13, picker.OfferedIds.Count); // every other flow: Plum's fourteen less this one
+        Assert.Equal(19, picker.OfferedIds.Count); // every other flow: Plum's twenty less this one
         ClickBar(picker.TileOf("place-order")!);
         await EditModeTests.Until(() => FlowFile(temp, "refund").Contains("compare: place-order"));
         await EditModeTests.Until(() => reader.Panel.CurrentRecorder!.PartnerPicker!.Partner is not null);
@@ -2254,14 +2254,14 @@ public class CompareTests
         var picker = reader.Panel.CurrentRecorder!.PartnerPicker!;
         picker.Find.Text = "courier";
         EditModeTests.Settle(window);
-        Assert.Equal(["courier-pings-lost", "deliver-order", "no-courier-answers"], picker.OfferedIds.Order()); // the name or the id has it
+        Assert.Equal(["courier-pings-lost", "deliver-order", "follow-the-courier", "no-courier-answers"], picker.OfferedIds.Order()); // the name or the id has it
         picker.Find.Text = "zzz";
         EditModeTests.Settle(window);
         Assert.Empty(picker.OfferedIds);
         Assert.Contains("Nothing called that", Words(picker));
         picker.Find.Text = "";
         EditModeTests.Settle(window);
-        Assert.Equal(13, picker.OfferedIds.Count);
+        Assert.Equal(19, picker.OfferedIds.Count);
     }
 
     [AvaloniaFact]

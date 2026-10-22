@@ -101,11 +101,15 @@
         },
         {
           "flow": "deliver-order",
-          "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  participant n3 as Notifications\n  actor n4 as Courier\n  participant n5 as Courier app\n  participant n6 as Live tracking\n  n0->>n1: Hears that an order was placed\n  n1->>n2: Finds idle couriers near the restaurant\n  Note over n1: Ranks them by how soon each could arrive\n  n1->>n3: Sends the offer as a push\n  n4->>n5: Accepts within 30 seconds\n  n5->>n6: Streams its position every 5 seconds\n  n6->>n0: The customer watches the courier come\n  n5->>n0: Marks the order delivered\n"
+          "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  participant n3 as Notifications\n  actor n4 as Courier\n  participant n5 as Courier app\n  participant n6 as Live tracking\n  n0->>n1: Hears that an order was placed\n  n1->>n2: Finds idle couriers near the restaurant\n  Note over n1: Ranks them by how soon each could arrive\n  n1->>n3: Sends the offer as a push\n  n4->>n5: Accepts within 30 seconds\n  n5->>n6: Streams its position every 5 seconds\n  Note over n6: Continues in #quot;The customer follows the courier#quot;\n  n6->>n0: The customer watches the courier come\n  n5->>n0: Marks the order delivered\n"
         },
         {
           "flow": "events-arrive-late",
           "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  n0->>n1: The placed event waits behind the dinner rush\n  Note over n0,n1: Delayed: Consumer lag\n  n1->>n2: Finds couriers minutes after the customer paid\n"
+        },
+        {
+          "flow": "follow-the-courier",
+          "text": "sequenceDiagram\n  participant n0 as Courier app\n  participant n1 as Live tracking\n  participant n2 as Fleet DB\n  participant n3 as Ordering\n  loop Until the order is delivered: A new position every 5 seconds.\n    n0->>n1: Sends its position\n    n1->>n2: Stores it\n    n1->>n3: Moves the courier on the customer's map\n  end\n  n0->>n3: Marks the order delivered\n"
         },
         {
           "flow": "hotel-wifi-takes-order",
@@ -116,16 +120,28 @@
           "text": "sequenceDiagram\n  participant n0 as Matcher\n  participant n1 as ETA\n  participant n2 as Mapbox\n  n0->>n1: Asks who is quickest\n  n1->>n2: Asks Mapbox for travel times and is turned away\n  Note over n1,n2: Rejected: Rate limit\n  Note over n1: Falls back to straight-line distance and ranks more roughly\n"
         },
         {
+          "flow": "menu-is-read",
+          "text": "sequenceDiagram\n  participant n0 as Customer app\n  participant n1 as Menu\n  participant n2 as Menu cache\n  participant n3 as Orders DB\n  n0->>n1: Asks for a restaurant's menu\n  n1->>n2: Looks the menu up\n  alt The entry is there\n    n2->>n1: Hands back the stored menu\n  else The entry has expired\n    n1->>n3: Reads the menu from the database\n    n1->>n2: Stores it for five minutes\n  end\n  n1->>n0: Returns the menu\n"
+        },
+        {
           "flow": "no-courier-answers",
-          "text": "sequenceDiagram\n  participant n0 as Dispatch\n  participant n1 as Notifications\n  participant n2 as Courier app\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n0->>n1: Offers the job, and the nearest courier doesn't answer within 30 seconds\n    Note over n0: Moves on to the next courier on the list\n  end\n  alt A courier accepts\n    n2->>n0: Accepts, and the offers stop\n  else The list runs out\n    n0->>n1: Tells the customer that no courier is free yet\n    Note over n0: Searches again in a minute\n  end\n"
+          "text": "sequenceDiagram\n  participant n0 as Dispatch\n  participant n1 as Notifications\n  participant n2 as Courier app\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n0->>n1: Offers the job, and the nearest courier doesn't answer within 30 seconds\n    Note over n0,n1: Times out: No answer in 30 s\n    Note over n0: Moves on to the next courier on the list\n  end\n  alt A courier accepts\n    n2->>n0: Accepts, and the offers stop\n  else The list runs out\n    n0->>n1: Tells the customer that no courier is free yet\n    Note over n0: Searches again in a minute\n  end\n"
+        },
+        {
+          "flow": "nobody-accepts",
+          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Kitchen tablet\n  participant n2 as Stripe\n  participant n3 as Orders DB\n  participant n4 as Customer app\n  n0->>n1: Rings the restaurant's tablet and gets no answer\n  Note over n0,n1: Times out: Tablet offline\n  Note over n0: Waits two minutes, then cancels the order\n  n0->>n2: Releases the hold on the card\n  n0->>n3: Marks the order cancelled\n  n0->>n4: Tells the customer the restaurant couldn't take it\n"
         },
         {
           "flow": "order-sent-twice",
           "text": "sequenceDiagram\n  participant n0 as Customer app\n  participant n1 as Order API\n  participant n2 as Orders DB\n  n0->>n1: The same order arrives twice\n  Note over n0,n1: Sent twice: Slow reply\n  n1->>n2: Saves the first copy and refuses the second\n"
         },
         {
+          "flow": "orders-db-fails-over",
+          "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Orders DB\n  participant n2 as Customer app\n  n0->>n1: A write gets no answer, because the primary has failed\n  Note over n0,n1: Times out: Primary is down\n  Note over n1: Stopped\n  n0->>n2: Asks the customer to try again in a minute\n  Note over n0: Degraded\n  Note over n1: A standby takes over as the primary\n  Note over n1: Starting\n  n0->>n1: The next write goes through\n  Note over n1: Running\n  Note over n0: Running\n"
+        },
+        {
           "flow": "place-order",
-          "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Customer app\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Order events\n  participant n6 as Delivery\n  participant n7 as Kitchen tablet\n  n0->>n1: Fills a basket and taps Place order\n  n1->>n2: POST /orders with the basket\n  n2->>n3: Holds the amount on the card\n  n2->>n4: Saves the order as placed\n  n2->>n5: Announces the order\n  n5->>n6: Dispatch starts looking for a courier\n  n2->>n7: The restaurant's tablet rings\n"
+          "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Customer app\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Order events\n  participant n6 as Delivery\n  participant n7 as Kitchen tablet\n  n0->>n1: Fills a basket and taps Place order\n  n1->>n2: POST /orders with the basket\n  n2->>n3: Holds the amount on the card\n  n2->>n4: Saves the order as placed\n  n2->>n5: Announces the order\n  n5->>n6: Dispatch starts looking for a courier\n  Note over n6: Continues in #quot;A courier delivers it#quot;\n  n2->>n7: The restaurant's tablet rings\n"
         },
         {
           "flow": "refund-not-recorded",
@@ -134,6 +150,14 @@
         {
           "flow": "refund",
           "text": "sequenceDiagram\n  actor n0 as Support agent\n  participant n1 as Back office\n  participant n2 as Ordering\n  participant n3 as Stripe\n  participant n4 as Notifications\n  participant n5 as Twilio\n  n0->>n1: Finds the order in the support console\n  n1->>n2: Asks for a refund, in full or by line\n  n2->>n3: The money goes back to the card\n  n2->>n4: Asks for a confirmation to be sent\n  n4->>n5: The customer gets an SMS\n"
+        },
+        {
+          "flow": "restaurant-accepts",
+          "text": "sequenceDiagram\n  participant n0 as Kitchen tablet\n  participant n1 as Order API\n  participant n2 as Orders DB\n  participant n3 as Stripe\n  participant n4 as Order events\n  participant n5 as Notifications\n  participant n6 as Customer app\n  n0->>n1: The kitchen taps Accept\n  n1->>n2: Marks the order accepted\n  n1->>n3: Captures the amount it held\n  Note over n3: Continues in #quot;The payment is captured#quot;\n  n1->>n4: Announces that the order is accepted\n  n1->>n5: Asks for a push to the customer\n  n5->>n6: The customer is told the kitchen has started\n"
+        },
+        {
+          "flow": "sms-dropped",
+          "text": "sequenceDiagram\n  participant n0 as Notifications\n  participant n1 as Twilio\n  actor n2 as Customer\n  n0->>n1: Hands the confirmation to Twilio\n  n1->>n2: The carrier drops it before it reaches the phone\n  Note over n1,n2: Lost: Carrier drops it\n  Note over n0: Never hears that the customer got nothing\n"
         },
         {
           "flow": "stripe-outage",

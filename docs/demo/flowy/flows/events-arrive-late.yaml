@@ -7,4 +7,4 @@ steps:
     animation: { kind: event, outcome: delayed, reason: Consumer lag }
     description: |
       One consumer reads every `placed` event. When orders arrive faster than it reads, each one waits in line.
-  - { from: dispatch, to: fleet-db, text: Finds couriers minutes after the customer paid }
+  - { from: dispatch, to: fleet-db, text: Finds couriers minutes after the customer paid, animation: call }

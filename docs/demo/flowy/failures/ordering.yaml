@@ -69,6 +69,8 @@ modes:
     owner: Platform
     status: planned
     affects: [customer-app, web, kitchen-tablet, order-api]
+    flow: orders-db-fails-over
+    step: 1
   double-tap:
     on: order-api
     mode: A double tap places two orders
@@ -96,6 +98,8 @@ modes:
     owner: Ordering
     status: accepted
     affects: [customer-app, web]
+    flow: menu-is-read
+    step: 3
   eta-mapbox-fails:
     from: eta
     to: mapbox
@@ -149,8 +153,8 @@ modes:
     owner: Restaurants
     status: accepted
     affects: [customer-app]
-    flow: place-order
-    step: 7
+    flow: nobody-accepts
+    step: 1
   offers-no-answer:
     on: offers
     mode: No courier answers within 30 seconds
@@ -195,6 +199,8 @@ modes:
     owner: Notifications
     status: open
     affects: [customer-app]
+    flow: sms-dropped
+    step: 2
   warehouse-down:
     on: warehouse
     mode: The warehouse is down

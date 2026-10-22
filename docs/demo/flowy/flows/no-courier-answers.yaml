@@ -8,8 +8,8 @@ groups:
   result:
     kind: branch
 steps:
-  - { from: offers, to: notifier, text: "Offers the job, and the nearest courier doesn't answer within 30 seconds", group: offer }
+  - { from: offers, to: notifier, text: "Offers the job, and the nearest courier doesn't answer within 30 seconds", group: offer, animation: { kind: call, outcome: timeout, reason: No answer in 30 s } }
   - { from: offers, text: Moves on to the next courier on the list, group: offer }
-  - { from: courier-app, to: dispatch, text: "Accepts, and the offers stop", group: result, lane: A courier accepts }
-  - { from: offers, to: notifier, text: Tells the customer that no courier is free yet, group: result, lane: The list runs out }
+  - { from: courier-app, to: dispatch, text: "Accepts, and the offers stop", group: result, lane: A courier accepts, animation: { kind: call, carries: accept } }
+  - { from: offers, to: notifier, text: Tells the customer that no courier is free yet, group: result, lane: The list runs out, animation: { kind: send, carries: no courier yet } }
   - { from: dispatch, text: Searches again in a minute, group: result }
