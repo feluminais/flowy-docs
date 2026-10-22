@@ -14,7 +14,9 @@ Flowy runs on your machine and touches only its model folder and its own folder 
 
 - The browser version listens on 127.0.0.1, so other computers can't reach it. It refuses a request whose Host isn't
   `127.0.0.1` or `localhost` on its own port, and it saves only when a request carries a header that a web page open in
-  another tab can't send. A website can't change your files through it.
+  another tab can't send. A website can't change your files through it. Every answer carries a content policy: the page loads only
+  its own files and talks only to this server, and no other site may frame it. The server doesn't follow a link inside the model
+  folder that leads outside it, to read or to write.
 - Saving, from the canvas or from an AI, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder and
   nothing else; the load-test runs in `perf/` are only ever read. `export` writes only to its output folder. The desktop app writes only when you edit, and only `model.yaml`, `layout.yaml` and `flows/*.yaml`, each
   through a temporary file and only if the file is still as it was read, so it can't overwrite a change made elsewhere.
@@ -33,5 +35,5 @@ Flowy runs on your machine and touches only its model folder and its own folder 
 - Through the `mcp` command, an AI client gets seventeen tools: five read the model and twelve change its objects, icons,
   connections, flows and failure analyses. None runs a command or reads a file outside the model folder.
 
-Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown and
-can embed images, which your browser then fetches from wherever they point, and an AI reads the descriptions back through MCP.
+Treat a `flowy/` folder you didn't write like any other text from that repo. In the browser, descriptions are Markdown. An
+image in one is not fetched, because the page's content policy allows only its own files, and an AI reads the descriptions back through MCP.

@@ -6,7 +6,7 @@ import {
   sameFiles, stepId, stepInfos,
 } from '../core/history.ts'
 import type { Step, StepApp, StepFile, StepInfo, StepSource, StepView, YamlNow } from '../core/history.ts'
-import { hashBytes, isAllowedPath, saveRaw, VersionConflict, WRITTEN_FOLDERS } from './files.ts'
+import { hashBytes, isAllowedPath, pointsOutside, saveRaw, VersionConflict, WRITTEN_FOLDERS } from './files.ts'
 import { defaultStateDir, historyKey, openStore } from './history-store.ts'
 
 export type { StepFile, StepView, YamlNow }
@@ -86,6 +86,7 @@ export function openHistory(dir: string, options: HistoryOptions): History {
     const files: Record<string, string> = {}
     const bytes = new Map<string, Uint8Array>()
     const add = async (rel: string) => {
+      if (await pointsOutside(dir, rel)) return // a link out of the folder is not part of the model, so it is not kept in its history
       let data: Uint8Array
       try {
         const file = await readFile(join(dir, rel))

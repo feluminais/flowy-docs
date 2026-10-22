@@ -1,8 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import type { Dirent } from 'node:fs'
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, join, resolve } from 'node:path'
+import { mkdir, readdir, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, resolve, sep } from 'node:path'
 import { check } from '../core/check.ts'
 import type { Problem } from '../core/problem.ts'
 import { runLinkProblems } from '../core/failures.ts'
@@ -49,7 +49,46 @@ export const hashBytes = (bytes: Uint8Array) => createHash('sha256').update(byte
 // ignoreBOM: keep a BOM in the text, so the hash matches the file as it is.
 const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
 
+/** Where `rel` really is: the real path of the file, or of the nearest folder above it that exists, with the rest of the path put back. */
+async function realPlace(dir: string, rel: string): Promise<string> {
+  let path = join(dir, rel)
+  const rest: string[] = []
+  for (;;) {
+    try {
+      return join(await realpath(path), ...rest)
+    } catch (e) {
+      const code = (e as NodeJS.ErrnoException).code
+      if (code !== 'ENOENT' && code !== 'ENOTDIR') throw e
+      const parent = dirname(path)
+      if (parent === path) return join(path, ...rest)
+      rest.unshift(basename(path))
+      path = parent
+    }
+  }
+}
+
+/**
+ * Whether `rel` leads out of the model folder: it, or a folder on the way to it, is a link to somewhere that is not inside the folder. A link that stays inside is fine, and
+ * so is a model folder that is itself opened through a link, since both sides are compared by their real paths. A cloned repository can hold such a link, so
+ * nothing is read through it and nothing is written through it.
+ */
+export async function pointsOutside(dir: string, rel: string): Promise<boolean> {
+  const fold = (path: string) => (process.platform === 'win32' || process.platform === 'darwin' ? path.toLowerCase() : path)
+  const root = fold(await realPlace(dir, ''))
+  const place = fold(await realPlace(dir, rel))
+  return place !== root && !place.startsWith(root.endsWith(sep) ? root : root + sep)
+}
+
+/** A write that was refused because the file is, or sits behind, a link out of the model folder. */
+export class OutsideFolder extends Error {
+  name = 'OutsideFolder'
+  constructor(rel: string) {
+    super(`"${rel}" points outside the folder`)
+  }
+}
+
 async function readText(dir: string, rel: string): Promise<string | null> {
+  if (await pointsOutside(dir, rel)) throw new ParseError(rel, 'points outside the folder')
   let bytes: Uint8Array
   try {
     bytes = await readFile(join(dir, rel))
@@ -300,6 +339,7 @@ async function queued(dir: string, rel: string, work: () => Promise<string | nul
 }
 
 async function saveNow(dir: string, rel: string, text: string | null, expected: string | null): Promise<string | null> {
+  if (await pointsOutside(dir, rel)) throw new OutsideFolder(rel)
   const path = join(dir, rel)
   const current = await readText(dir, rel)
   // Known limit: saves are serialized per file inside this process only. Another process or an
@@ -316,6 +356,7 @@ async function saveNow(dir: string, rel: string, text: string | null, expected: 
 }
 
 async function saveRawNow(dir: string, rel: string, bytes: Uint8Array | null, expected: string | null): Promise<string | null> {
+  if (await pointsOutside(dir, rel)) throw new OutsideFolder(rel)
   const path = join(dir, rel)
   let current: Uint8Array | null = null
   try {
