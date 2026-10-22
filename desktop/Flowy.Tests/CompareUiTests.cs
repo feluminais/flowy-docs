@@ -133,6 +133,47 @@ public class CompareUiTests
         }
     }
 
+    private static JsonObject TileNode(FlowTile t) => new() { ["id"] = t.Id, ["name"] = t.Name, ["view"] = t.View };
+
+    private static JsonArray TileNodes(IEnumerable<FlowTile> tiles) => new(tiles.Select(t => (JsonNode?)TileNode(t)).ToArray());
+
+    private static Model CompareCase()
+    {
+        var dir = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "compare", "flowy");
+        return FolderLoader.Load(dir).Model;
+    }
+
+    [Fact]
+    public void The_flow_forms_tiles_choices_and_tags_are_the_ones_the_TypeScript_form_offers()
+    {
+        var model = CompareCase();
+        var expected = Expected["partners"]!;
+        Assert.Equal(9, expected["tiles"]!.AsArray().Count);
+        foreach (var t in expected["tiles"]!.AsArray()) Assert.Equal(JsonDump.Pretty(t), JsonDump.Pretty(TileNode(CompareUi.FlowTile(model, t!["id"]!.GetValue<string>()))));
+        foreach (var c in expected["choices"]!.AsArray())
+            Assert.Equal(JsonDump.Pretty(c!["result"]), JsonDump.Pretty(TileNodes(CompareUi.PartnerChoices(model, c["flowId"]!.GetValue<string>()))));
+        foreach (var c in expected["taggedBy"]!.AsArray())
+            Assert.Equal(JsonDump.Pretty(c!["result"]), JsonDump.Pretty(TileNodes(CompareUi.TaggedBy(model, c["flowId"]!.GetValue<string>()))));
+        var tags = expected["tagWith"]!.AsArray();
+        Assert.True(tags.Count >= 27);
+        foreach (var c in tags)
+        {
+            var tag = CompareUi.TagWith(model, c!["flowId"]!.GetValue<string>(), c["partner"]?.GetValue<string>());
+            Assert.Equal(JsonDump.Pretty(c["result"]), JsonDump.Pretty(tag is null ? null : TagNode(tag)));
+        }
+    }
+
+    [Fact]
+    public void A_flow_never_offers_itself_and_a_new_partner_keeps_the_note()
+    {
+        var model = CompareCase();
+        Assert.DoesNotContain(CompareUi.PartnerChoices(model, "checkout-v3"), t => t.Id == "checkout-v3");
+        Assert.Equal(new CompareTag("checkout", "Adds a retry, and a receipt"), CompareUi.TagWith(model, "checkout-v3", "checkout"));
+        Assert.Equal(new CompareTag("checkout-v3"), CompareUi.TagWith(model, "checkout-v2", "checkout-v3")); // it held no note
+        Assert.Null(CompareUi.TagWith(model, "checkout-v3", null));
+        Assert.Equal(["checkout-v3"], CompareUi.TaggedBy(model, "checkout-v2").Select(t => t.Id)); // checkout-v3 tags it; checkout-v2 itself tags checkout
+    }
+
     [Fact]
     public void A_pair_asked_for_the_other_way_round_gives_the_same_note()
     {
