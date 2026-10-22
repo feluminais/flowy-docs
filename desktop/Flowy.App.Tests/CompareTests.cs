@@ -15,11 +15,9 @@ public class CompareTests
 {
     private static string Plum => Path.Combine(Repo.Root, "docs", "demo", "flowy");
 
-    /// <summary>A reader on a copy of Plum, with <paramref name="change"/> applied to the copy's files first (a path under flowy/ and a new text for it).</summary>
-    private static (TempFolder Temp, Window Window, ReaderView Reader) Open(Func<string, string, string>? change = null, double width = 1200)
+    /// <summary>A copy of Plum in <paramref name="temp"/> (its <c>flowy</c> folder, which is returned), with <paramref name="change"/> applied to its files.</summary>
+    private static string CopyOfPlum(TempFolder temp, Func<string, string, string>? change = null)
     {
-        TestApp.NoMotion();
-        var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
         foreach (var file in Directory.GetFiles(Plum, "*", SearchOption.AllDirectories))
         {
@@ -29,6 +27,15 @@ public class CompareTests
             var text = Untagged(File.ReadAllText(file));
             File.WriteAllText(target, change?.Invoke(rel, text) ?? text);
         }
+        return dir;
+    }
+
+    /// <summary>A reader on a copy of Plum, with <paramref name="change"/> applied to the copy's files first (a path under flowy/ and a new text for it).</summary>
+    private static (TempFolder Temp, Window Window, ReaderView Reader) Open(Func<string, string, string>? change = null, double width = 1200)
+    {
+        TestApp.NoMotion();
+        var temp = new TempFolder();
+        var dir = CopyOfPlum(temp, change);
         var reader = new ReaderView();
         var window = new Window { Width = width, Height = 800, Content = reader };
         window.Show();
@@ -880,7 +887,7 @@ public class CompareTests
         Assert.Empty(new CompareKey(Diff(true, none, added), ["older"]).Kinds); // the older flow alone has nothing marked
         var same = new CompareKey(Diff(true, none, none), both);
         Assert.Empty(same.Kinds);
-        Assert.Equal(["No changes"], same.Words);
+        Assert.Equal(["No step changes"], same.Words);
         var apart = new CompareKey(Diff(false, none, none), both);
         Assert.Empty(apart.Kinds);
         Assert.Equal(["Nothing in common"], apart.Words);
@@ -1036,6 +1043,149 @@ public class CompareTests
         Assert.Equal("Still to say", reader.NoteDraftNow);
         Assert.True(reader.CompareShown!.Note.Editing);
         Assert.Equal("Still to say", reader.CompareShown.Note.Field.Text);
+    }
+
+    [AvaloniaFact]
+    public void Each_pair_keeps_its_own_note_and_typing_on_one_never_replaces_another()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        reader.PrefillNote("About the refunds");
+        reader.OpenCompareById("refund", "place-order"); // another pair replaces the comparison without asking
+        EditModeTests.Settle(window);
+        Assert.Null(reader.NoteDraftNow); // it starts with none
+        reader.PrefillNote("About the order");
+        Assert.Equal("About the refunds", reader.NoteDraftFor("flow", "refund-not-recorded", "refund")); // the first pair's is still there, whichever way round it is asked
+        Assert.Equal("About the order", reader.NoteDraftFor("flow", "refund", "place-order"));
+
+        // Discard on the pair on show drops its note and no other.
+        reader.TryCloseCompare();
+        ClickBar(reader.AskShown!.Discard);
+        Assert.Null(reader.CompareNow);
+        Assert.Null(reader.NoteDraftFor("flow", "refund", "place-order"));
+        Assert.Equal("About the refunds", reader.NoteDraftFor("flow", "refund", "refund-not-recorded"));
+        reader.OpenCompareById("refund-not-recorded", "refund");
+        EditModeTests.Settle(window);
+        Assert.Equal("About the refunds", reader.CompareShown!.Note.Field.Text);
+
+        // Read again, the same folder keeps the notes (they are by pair); another folder has none.
+        reader.Load(FolderLoader.Load(Dir(temp)), Dir(temp));
+        Assert.Null(reader.CompareNow);
+        Assert.Equal("About the refunds", reader.NoteDraftFor("flow", "refund", "refund-not-recorded"));
+        reader.Load(FolderLoader.Load(Plum), Plum);
+        Assert.False(reader.HoldsNote);
+    }
+
+    [AvaloniaFact]
+    public void Leaving_the_folder_asks_when_any_pair_holds_a_note_and_Discard_drops_them_all()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        reader.PrefillNote("About the refunds");
+        reader.OpenCompareById("refund", "place-order"); // the note is no longer on the pair on show
+        EditModeTests.Settle(window);
+        reader.PrefillNote("About the order");
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var left = false;
+        Assert.True(reader.UnlessNotesKept(() => left = true));
+        Assert.False(left);
+        Assert.Equal("Discard the note?", Avalonia.Automation.AutomationProperties.GetName(reader.AskShown!)); // it names no pair
+        ClickBar(reader.AskShown!.Keep);
+        Assert.False(left);
+        Assert.True(reader.HoldsNote);
+        reader.TryCloseCompare(); // the pair on show holds a note: this asks the usual question, and Keep leaves the comparison
+        ClickBar(reader.AskShown!.Keep);
+        Assert.NotNull(reader.CompareNow);
+
+        Assert.True(reader.UnlessNotesKept(() => left = true));
+        ClickBar(reader.AskShown!.Discard);
+        Assert.True(left);
+        Assert.False(reader.HoldsNote); // every pair's, not just the one on show
+        Assert.False(reader.UnlessNotesKept(() => { })); // nothing left to lose
+    }
+
+    [AvaloniaFact]
+    public void Closing_the_window_or_opening_another_folder_with_a_note_nobody_saved_asks_first()
+    {
+        TestApp.NoMotion();
+        using var temp = new TempFolder();
+        var dir = CopyOfPlum(temp);
+        var shell = new Shell(null);
+        var window = shell.Show(dir);
+        var reader = window.Reader;
+        EditModeTests.Settle(window);
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        reader.PrefillNote("Still to say");
+
+        window.Close();
+        Assert.True(window.IsVisible); // the close was held back
+        Assert.NotNull(reader.AskShown);
+        ClickBar(reader.AskShown!.Keep);
+        Assert.True(window.IsVisible);
+        Assert.Equal("Still to say", reader.NoteDraftNow);
+
+        window.Open(Plum); // another folder in this window asks too; Keep stays where it is
+        Assert.Equal(dir, window.Dir);
+        ClickBar(reader.AskShown!.Keep);
+        Assert.Equal(dir, window.Dir);
+        window.Open(dir); // the same folder read again does not ask
+        Assert.Null(reader.AskShown);
+        Assert.True(reader.HoldsNote);
+
+        window.Close();
+        ClickBar(reader.AskShown!.Discard);
+        Assert.False(window.IsVisible); // Discard closes it for real
+        Assert.Empty(shell.Windows);
+    }
+
+    [AvaloniaFact]
+    public async Task The_note_field_is_read_only_while_a_save_runs_and_keeps_what_was_typed_when_the_save_fails()
+    {
+        var (temp, window, reader) = Open(Linked);
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var note = reader.CompareShown!.Note;
+        ClickBar(note.NoteButton!);
+        note.Field.Text = "Edited";
+        var gate = new TaskCompletionSource<bool>();
+        note.Save = (_, _) => gate.Task;
+        ClickBar(note.SaveButton!);
+        Assert.True(note.Field.IsReadOnly); // what is typed now would be dropped when the save lands
+        gate.SetResult(false);
+        await EditModeTests.Until(() => !note.Field.IsReadOnly);
+        Assert.Equal("Edited", note.Field.Text);
+        Assert.Equal("Edited", reader.NoteDraftNow);
+    }
+
+    [AvaloniaFact]
+    public void Closing_the_comparison_stops_the_Autoplay_of_its_panes_and_of_the_swap_canvas()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var pane = reader.CompareShown!.Panes[0];
+        Press(window, Key.P, PhysicalKey.P);
+        Assert.True(pane.Playback.Auto);
+        ClickBar(reader.CompareShown.Bar.CloseButton);
+        Assert.Null(reader.CompareNow);
+        Assert.False(pane.Playback.Auto); // the detached pane's timer must not go on stepping
+
+        reader.OpenCompareById("refund", "refund-not-recorded", swap: true);
+        EditModeTests.Settle(window);
+        var stage = reader.CompareShown!.Stage!;
+        Press(window, Key.P, PhysicalKey.P);
+        Assert.True(stage.Flow("refund").Playback.Auto);
+        ClickBar(reader.CompareShown.Bar.CloseButton);
+        Assert.False(stage.Flow("refund").Playback.Auto);
+        Assert.False(stage.Flow("refund-not-recorded").Playback.Auto);
     }
 
     [AvaloniaFact]

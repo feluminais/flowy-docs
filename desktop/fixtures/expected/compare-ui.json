@@ -4899,6 +4899,11 @@
   "partners": {
     "tiles": [
       {
+        "id": "apple",
+        "name": "Яблуко",
+        "view": "Shop"
+      },
+      {
         "id": "bad-shape",
         "name": "bad-shape",
         "view": "Shop"
@@ -4924,6 +4929,16 @@
         "view": "Shop"
       },
       {
+        "id": "eat",
+        "name": "Їжа",
+        "view": "Shop"
+      },
+      {
+        "id": "eclair",
+        "name": "Éclair",
+        "view": "Shop"
+      },
+      {
         "id": "ghost",
         "name": "ghost",
         "view": "Shop"
@@ -4942,9 +4957,79 @@
         "id": "selfish",
         "name": "selfish",
         "view": "Shop"
+      },
+      {
+        "id": "zebra",
+        "name": "Zebra",
+        "view": "Shop"
       }
     ],
     "choices": [
+      {
+        "flowId": "apple",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
+          }
+        ]
+      },
       {
         "flowId": "bad-shape",
         "result": [
@@ -4986,6 +5071,26 @@
           {
             "id": "selfish",
             "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
             "view": "Shop"
           }
         ]
@@ -5032,6 +5137,26 @@
             "id": "selfish",
             "name": "selfish",
             "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
           }
         ]
       },
@@ -5076,6 +5201,26 @@
           {
             "id": "selfish",
             "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
             "view": "Shop"
           }
         ]
@@ -5122,6 +5267,26 @@
             "id": "selfish",
             "name": "selfish",
             "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
           }
         ]
       },
@@ -5166,6 +5331,156 @@
           {
             "id": "selfish",
             "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "eat",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "eclair",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
             "view": "Shop"
           }
         ]
@@ -5212,6 +5527,26 @@
             "id": "selfish",
             "name": "selfish",
             "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
           }
         ]
       },
@@ -5256,6 +5591,26 @@
           {
             "id": "selfish",
             "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
             "view": "Shop"
           }
         ]
@@ -5302,6 +5657,26 @@
             "id": "selfish",
             "name": "selfish",
             "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
           }
         ]
       },
@@ -5346,6 +5721,91 @@
           {
             "id": "mutual-b",
             "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
+          }
+        ]
+      },
+      {
+        "flowId": "zebra",
+        "result": [
+          {
+            "id": "bad-shape",
+            "name": "bad-shape",
+            "view": "Shop"
+          },
+          {
+            "id": "bare",
+            "name": "bare",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout",
+            "name": "checkout",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v2",
+            "name": "checkout-v2",
+            "view": "Shop"
+          },
+          {
+            "id": "checkout-v3",
+            "name": "checkout-v3",
+            "view": "Shop"
+          },
+          {
+            "id": "ghost",
+            "name": "ghost",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-a",
+            "name": "mutual-a",
+            "view": "Shop"
+          },
+          {
+            "id": "mutual-b",
+            "name": "mutual-b",
+            "view": "Shop"
+          },
+          {
+            "id": "selfish",
+            "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
             "view": "Shop"
           }
         ]
@@ -5396,6 +5856,26 @@
           {
             "id": "selfish",
             "name": "selfish",
+            "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
             "view": "Shop"
           }
         ]
@@ -5447,11 +5927,35 @@
             "id": "selfish",
             "name": "selfish",
             "view": "Shop"
+          },
+          {
+            "id": "zebra",
+            "name": "Zebra",
+            "view": "Shop"
+          },
+          {
+            "id": "eclair",
+            "name": "Éclair",
+            "view": "Shop"
+          },
+          {
+            "id": "apple",
+            "name": "Яблуко",
+            "view": "Shop"
+          },
+          {
+            "id": "eat",
+            "name": "Їжа",
+            "view": "Shop"
           }
         ]
       }
     ],
     "taggedBy": [
+      {
+        "flowId": "apple",
+        "result": []
+      },
       {
         "flowId": "bad-shape",
         "result": []
@@ -5485,6 +5989,14 @@
         ]
       },
       {
+        "flowId": "eat",
+        "result": []
+      },
+      {
+        "flowId": "eclair",
+        "result": []
+      },
+      {
         "flowId": "ghost",
         "result": []
       },
@@ -5501,11 +6013,34 @@
         "result": []
       },
       {
+        "flowId": "zebra",
+        "result": []
+      },
+      {
         "flowId": "nope",
         "result": []
       }
     ],
     "tagWith": [
+      {
+        "flowId": "apple",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "apple",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "apple",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
       {
         "flowId": "bad-shape",
         "partner": null,
@@ -5604,6 +6139,44 @@
         }
       },
       {
+        "flowId": "eat",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "eat",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "eat",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "eclair",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "eclair",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "eclair",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
         "flowId": "ghost",
         "partner": null,
         "result": null
@@ -5674,6 +6247,25 @@
       },
       {
         "flowId": "selfish",
+        "partner": "checkout",
+        "result": {
+          "with": "checkout"
+        }
+      },
+      {
+        "flowId": "zebra",
+        "partner": null,
+        "result": null
+      },
+      {
+        "flowId": "zebra",
+        "partner": "x",
+        "result": {
+          "with": "x"
+        }
+      },
+      {
+        "flowId": "zebra",
         "partner": "checkout",
         "result": {
           "with": "checkout"

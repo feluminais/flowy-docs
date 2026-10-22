@@ -19,6 +19,7 @@ public partial class MainWindow : Window, IDisposable
     private readonly LaunchScript _script;
     private FolderSession? _disk;
     private Size _normal; // the size when not maximized, which is what a restart should open at
+    private bool _discarding; // the reader said to discard the notes nobody saved: the window closes without asking again
 
     /// <param name="launch">What the command line asked for; the window opens at the size it names, if it names one.</param>
     internal MainWindow(Shell shell, LaunchOptions? launch = null)
@@ -42,8 +43,19 @@ public partial class MainWindow : Window, IDisposable
         {
             if (WindowState == WindowState.Normal) _normal = e.ClientSize;
         };
-        Closing += (_, _) =>
+        Closing += (_, e) =>
         {
+            // A note nobody saved asks first, as every other way out of it does: the window stays until the reader says Discard (then it closes for real) or Keep. The system ending the session
+            // can't be held back.
+            if (!_discarding && e.CloseReason != WindowCloseReason.OSShutdown && _reader.UnlessNotesKept(() =>
+            {
+                _discarding = true;
+                Close();
+            }))
+            {
+                e.Cancel = true;
+                return;
+            }
             if (Dir is not null) _shell.RememberWindow(new WindowSize(_normal.Width, _normal.Height, WindowState == WindowState.Maximized));
         };
         _menu = new MainMenu(this, shell, _reader, _frame, () => Dir, ReloadOrReopenAsync);
@@ -122,6 +134,8 @@ public partial class MainWindow : Window, IDisposable
     /// <summary>Shows a model folder in this window and keeps watching it. A file that can't be read gives an empty view and a banner saying which, until it is fixed.</summary>
     internal void Open(string dir, LaunchOptions? options = null)
     {
+        // Another folder in a window that holds a note nobody saved asks first; the same folder read again keeps its notes (they are by pair).
+        if (Dir is { } shown && ModelFolders.Key(shown) != ModelFolders.Key(dir) && _reader.UnlessNotesKept(() => Open(dir, options))) return;
         Dir = dir;
         Title = $"{ModelFolders.Title(dir)} — Flowy Docs";
         _disk?.Dispose();

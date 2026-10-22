@@ -59,7 +59,6 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
     const onScroll = (e: Event) => {
       if (e.target instanceof Element && e.target.matches('.navscroll, .tree')) onClose()
     }
-    window.addEventListener('pointerdown', onDown, true)
     window.addEventListener('keydown', onKey, true)
     if (at) window.addEventListener('scroll', onScroll, true)
     return () => {

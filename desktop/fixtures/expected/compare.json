@@ -41,6 +41,33 @@
   "layout": {},
   "flows": [
     {
+      "id": "apple",
+      "name": "Яблуко",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ]
+    },
+    {
       "id": "bad-shape",
       "name": "bad-shape",
       "view": "shop",
@@ -189,6 +216,60 @@
       ]
     },
     {
+      "id": "eat",
+      "name": "Їжа",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ]
+    },
+    {
+      "id": "eclair",
+      "name": "Éclair",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ]
+    },
+    {
       "id": "ghost",
       "name": "ghost",
       "view": "shop",
@@ -311,6 +392,33 @@
         "with": "selfish"
       },
       "compareProblem": null
+    },
+    {
+      "id": "zebra",
+      "name": "Zebra",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends the order",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ]
     }
   ],
   "problems": [
@@ -332,6 +440,7 @@
     }
   ],
   "partners": {
+    "apple": [],
     "bad-shape": [],
     "bare": [],
     "checkout-v2": [
@@ -358,6 +467,8 @@
         "side": "after"
       }
     ],
+    "eat": [],
+    "eclair": [],
     "ghost": [
       {
         "id": "nowhere",
@@ -376,7 +487,8 @@
         "side": "before"
       }
     ],
-    "selfish": []
+    "selfish": [],
+    "zebra": []
   },
   "linked": [
     "checkout",
@@ -394,6 +506,11 @@
       }
     },
     {
+      "id": "apple",
+      "name": "Яблуко",
+      "compare": null
+    },
+    {
       "id": "bad-shape",
       "name": "bad-shape",
       "compare": null
@@ -406,6 +523,16 @@
     {
       "id": "base",
       "name": "base",
+      "compare": null
+    },
+    {
+      "id": "eat",
+      "name": "Їжа",
+      "compare": null
+    },
+    {
+      "id": "eclair",
+      "name": "Éclair",
       "compare": null
     },
     {
@@ -429,6 +556,11 @@
       "compare": {
         "with": "same"
       }
+    },
+    {
+      "id": "zebra",
+      "name": "Zebra",
+      "compare": null
     }
   ],
   "runProblems": [

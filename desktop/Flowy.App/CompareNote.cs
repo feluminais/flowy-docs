@@ -118,6 +118,8 @@ internal sealed class CompareNote : Border
         if (_input is not { } input) return;
         var saved = Saved;
         var editing = input.Draft is not null;
+        // Read-only while a save runs, not disabled, so the field keeps its focus: what is typed then would be dropped when the save lands (a failed save keeps the draft as it is).
+        _field.IsReadOnly = _busy;
         if (!actionsOnly)
         {
             var key = editing ? "\0edit" : saved.Text;

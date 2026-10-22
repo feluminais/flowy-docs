@@ -148,7 +148,7 @@ public class CompareUiTests
     {
         var model = CompareCase();
         var expected = Expected["partners"]!;
-        Assert.Equal(9, expected["tiles"]!.AsArray().Count);
+        Assert.Equal(13, expected["tiles"]!.AsArray().Count); // nine flows of the case, and four with names that sort differently by locale and by code unit
         foreach (var t in expected["tiles"]!.AsArray()) Assert.Equal(JsonDump.Pretty(t), JsonDump.Pretty(TileNode(CompareUi.FlowTile(model, t!["id"]!.GetValue<string>()))));
         foreach (var c in expected["choices"]!.AsArray())
             Assert.Equal(JsonDump.Pretty(c!["result"]), JsonDump.Pretty(TileNodes(CompareUi.PartnerChoices(model, c["flowId"]!.GetValue<string>()))));

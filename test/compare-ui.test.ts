@@ -6,8 +6,8 @@ import type { Run } from '../src/core/perf/types.ts'
 import { nameOf } from '../src/core/views.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, firstLinkedRun, flipped, fromAddress, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, partnerChoices, playable, removeNeedsConfirm, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved } from '../ui/src/compare.ts'
-import type { Compare } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, draftKey, firstLinked, firstLinkedRun, flipped, fromAddress, keepsDrafts, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, partnerChoices, playable, removeNeedsConfirm, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved, withDraft } from '../ui/src/compare.ts'
+import type { Compare, Drafts } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
 const run = (name: string, compare?: Run['compare']): Run => ({ name, unit: 'req/s', levels: [], ...(compare === undefined ? {} : { compare }) })
@@ -344,4 +344,34 @@ test('the flows that tag a flow are listed by name with their view, a mutual pai
   assert.deepEqual(taggedBy(model, 'self'), [])
   const mutual = modelOf({ a: flow('A', 'b'), b: flow('B', 'a') })
   assert.deepEqual(taggedBy(mutual, 'a'), [], 'b is already its own partner: a mutual pair lists once')
+})
+
+test('names order by lower-cased UTF-16 code unit, then id, so the desktop twin gives the same order', () => {
+  // Locale order would put "Éclair" before "Zebra" and "Їжа" before "Яблуко"; code unit order is the other way round.
+  const model = modelOf({ zebra: flow('Zebra'), eclair: flow('Éclair'), eat: flow('Їжа'), apple: flow('Яблуко'), upper: flow('ZEBRA'), twin: flow('zebra'), me: flow('Me') })
+  assert.deepEqual(partnerChoices(model, 'me').map(t => t.id), ['twin', 'upper', 'zebra', 'eclair', 'apple', 'eat'])
+  assert.deepEqual(choicesFor(model, {}, 'flow', 'me').others.map(c => c.id), ['twin', 'upper', 'zebra', 'eclair', 'apple', 'eat'])
+})
+
+test('drafts are kept per pair: typing on one never replaces another, and a pair is the same whichever way round', () => {
+  let drafts: Drafts = new Map()
+  drafts = withDraft(drafts, draftKey('flow', 'a', 'b'), 'about a and b', '')
+  drafts = withDraft(drafts, draftKey('flow', 'c', 'd'), 'about c and d', '')
+  assert.equal(drafts.get(draftKey('flow', 'b', 'a'))?.text, 'about a and b')
+  assert.equal(drafts.get(draftKey('flow', 'c', 'd'))?.text, 'about c and d')
+  assert.equal(drafts.get(draftKey('run', 'a', 'b')), undefined, 'a run pair is another pair')
+  const typed = withDraft(drafts, draftKey('flow', 'a', 'b'), 'more', '')
+  assert.equal(drafts.get(draftKey('flow', 'a', 'b'))?.text, 'about a and b', 'the map it was given is not changed')
+  assert.equal(typed.get(draftKey('flow', 'c', 'd'))?.text, 'about c and d')
+})
+
+test("taking a pair's draft out leaves the others, and the page keeps a note while any pair has one that differs from what it held", () => {
+  const k1 = draftKey('flow', 'a', 'b')
+  const k2 = draftKey('flow', 'c', 'd')
+  assert.equal(keepsDrafts(new Map()), false)
+  let drafts = withDraft(withDraft(new Map(), k1, 'x', ''), k2, 'same as saved', 'same as saved')
+  assert.equal(keepsDrafts(drafts), true)
+  drafts = withDraft(drafts, k1, undefined, '')
+  assert.deepEqual([...drafts.keys()], [k2])
+  assert.equal(keepsDrafts(drafts), false, 'a draft equal to what the pair holds loses nothing')
 })

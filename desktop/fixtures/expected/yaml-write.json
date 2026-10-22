@@ -8746,6 +8746,27 @@
     },
     {
       "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/apple.yaml",
+      "data": {
+        "name": "Яблуко",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: Яблуко\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
       "rel": "flows/bad-shape.yaml",
       "data": {
         "name": "bad-shape",
@@ -8860,6 +8881,48 @@
     },
     {
       "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/eat.yaml",
+      "data": {
+        "name": "Їжа",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: Їжа\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/eclair.yaml",
+      "data": {
+        "name": "Éclair",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: Éclair\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
       "rel": "flows/ghost.yaml",
       "data": {
         "name": "ghost",
@@ -8945,6 +9008,27 @@
         ]
       },
       "text": "name: selfish\nview: shop\ncompare: selfish\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/compare/flowy",
+      "rel": "flows/zebra.yaml",
+      "data": {
+        "name": "Zebra",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends the order"
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "text": "Answers"
+          }
+        ]
+      },
+      "text": "name: Zebra\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends the order\n  - from: api\n    to: web\n    text: Answers\n"
     },
     {
       "folder": "docs/demo/flowy",
