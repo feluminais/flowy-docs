@@ -1,0 +1,10 @@
+name: Compare after
+view: compare
+compare:
+  with: compare-before
+  note: |
+    The old service is gone. The API reads the database and waits for the answer, then keeps it in the cache.
+steps:
+  - { from: compare-client, to: compare-api, text: Asks for the record }
+  - { from: compare-api, to: compare-db, text: Reads the record, animation: call }
+  - { from: compare-api, to: compare-cache, text: Keeps the answer }

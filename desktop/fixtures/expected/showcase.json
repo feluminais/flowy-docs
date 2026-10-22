@@ -32,6 +32,12 @@
       "description": "A run measured over time instead of over load, with events on its timeline that set the state of a shape.\n\nOpen the Performance tab (**T**), pick **Every state over time**, then press **Play**, drag the slider or click an event.\n"
     },
     {
+      "id": "compare",
+      "type": "system",
+      "name": "Compare",
+      "description": "A flow and the flow that replaced it, tagged as a pair, with a note. Each has one step that goes, one that is new and one that changes, so every mark is on show.\n\nPlay **Compare after** and press **C** to open the pair. Turn on **Show changes** for the marks, and pick **Swap** then **X** to watch the shapes glide, fade in and fade out.\n"
+    },
+    {
       "id": "send-from",
       "type": "app",
       "name": "Send · from",
@@ -612,6 +618,41 @@
       "name": "Not split by source",
       "in": "sources",
       "description": "The run says how many calls this line carries but not which source sent them, so its dots are grey and the key says \"Other calls\"."
+    },
+    {
+      "id": "compare-client",
+      "type": "app",
+      "name": "Compare · client",
+      "in": "compare",
+      "description": "Both flows start here, with the same first step, so it carries no mark."
+    },
+    {
+      "id": "compare-api",
+      "type": "app",
+      "name": "Compare · api",
+      "in": "compare",
+      "description": "Used by every step of both flows. A shape both flows draw is Changed when a step on it is marked."
+    },
+    {
+      "id": "compare-old",
+      "type": "app",
+      "name": "Compare · old service",
+      "in": "compare",
+      "description": "Only the older flow calls it, so it is Removed."
+    },
+    {
+      "id": "compare-db",
+      "type": "store",
+      "name": "Compare · database",
+      "in": "compare",
+      "description": "Both flows read it, but the newer one waits for the answer, so its step and line are Changed."
+    },
+    {
+      "id": "compare-cache",
+      "type": "store",
+      "name": "Compare · cache",
+      "in": "compare",
+      "description": "Only the newer flow calls it, so it is New."
     }
   ],
   "connections": [
@@ -861,6 +902,26 @@
       "from": "gateway",
       "to": "audit",
       "label": "logs"
+    },
+    {
+      "from": "compare-client",
+      "to": "compare-api",
+      "label": "asks"
+    },
+    {
+      "from": "compare-api",
+      "to": "compare-old",
+      "label": "asks"
+    },
+    {
+      "from": "compare-api",
+      "to": "compare-db",
+      "label": "reads"
+    },
+    {
+      "from": "compare-api",
+      "to": "compare-cache",
+      "label": "keeps"
     }
   ],
   "layout": {
@@ -1251,6 +1312,86 @@
             "callback-to"
           ],
           "ends": "Callback · from → Callback · to"
+        }
+      ]
+    },
+    {
+      "id": "compare-after",
+      "name": "Compare after",
+      "view": "compare",
+      "steps": [
+        {
+          "from": "compare-client",
+          "to": "compare-api",
+          "text": "Asks for the record",
+          "placed": [
+            "compare-client",
+            "compare-api"
+          ],
+          "ends": "Compare · client → Compare · api"
+        },
+        {
+          "from": "compare-api",
+          "to": "compare-db",
+          "text": "Reads the record",
+          "animation": "call",
+          "placed": [
+            "compare-api",
+            "compare-db"
+          ],
+          "ends": "Compare · api → Compare · database"
+        },
+        {
+          "from": "compare-api",
+          "to": "compare-cache",
+          "text": "Keeps the answer",
+          "placed": [
+            "compare-api",
+            "compare-cache"
+          ],
+          "ends": "Compare · api → Compare · cache"
+        }
+      ],
+      "compare": {
+        "with": "compare-before",
+        "note": "The old service is gone. The API reads the database and waits for the answer, then keeps it in the cache.\n"
+      },
+      "compareProblem": null
+    },
+    {
+      "id": "compare-before",
+      "name": "Compare before",
+      "view": "compare",
+      "steps": [
+        {
+          "from": "compare-client",
+          "to": "compare-api",
+          "text": "Asks for the record",
+          "placed": [
+            "compare-client",
+            "compare-api"
+          ],
+          "ends": "Compare · client → Compare · api"
+        },
+        {
+          "from": "compare-api",
+          "to": "compare-old",
+          "text": "Asks the old service first",
+          "placed": [
+            "compare-api",
+            "compare-old"
+          ],
+          "ends": "Compare · api → Compare · old service"
+        },
+        {
+          "from": "compare-api",
+          "to": "compare-db",
+          "text": "Reads the record",
+          "placed": [
+            "compare-api",
+            "compare-db"
+          ],
+          "ends": "Compare · api → Compare · database"
         }
       ]
     },
@@ -2194,6 +2335,51 @@
     }
   ],
   "problems": [],
+  "partners": {
+    "bolt-drop": [],
+    "branch": [],
+    "call": [],
+    "callback": [],
+    "compare-after": [
+      {
+        "id": "compare-before",
+        "side": "before",
+        "note": "The old service is gone. The API reads the database and waits for the answer, then keeps it in the cache.\n"
+      }
+    ],
+    "compare-before": [
+      {
+        "id": "compare-after",
+        "side": "after",
+        "note": "The old service is gone. The API reads the database and waits for the answer, then keeps it in the cache.\n"
+      }
+    ],
+    "delayed": [],
+    "duplicated": [],
+    "effects": [],
+    "event": [],
+    "every-step-animation": [],
+    "fail": [],
+    "flash": [],
+    "flow-link-next": [],
+    "flow-link": [],
+    "intercepted-by-name": [],
+    "intercepted": [],
+    "lost": [],
+    "parallel": [],
+    "rejected": [],
+    "repeat": [],
+    "send-with-a-word": [],
+    "send": [],
+    "share": [],
+    "state-inside": [],
+    "states": [],
+    "timeout": []
+  },
+  "linked": [
+    "compare-after",
+    "compare-before"
+  ],
   "views": {
     "root": {
       "id": "root",
@@ -2203,6 +2389,7 @@
         "performance",
         "states",
         "time",
+        "compare",
         "scale",
         "sources"
       ],
@@ -2539,6 +2726,43 @@
           "from": "time-caller",
           "to": "time-holder",
           "label": "calls",
+          "count": 1
+        }
+      ]
+    },
+    "compare": {
+      "id": "compare",
+      "members": [
+        "compare-client",
+        "compare-api",
+        "compare-old",
+        "compare-db",
+        "compare-cache"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "compare-client",
+          "to": "compare-api",
+          "label": "asks",
+          "count": 1
+        },
+        {
+          "from": "compare-api",
+          "to": "compare-old",
+          "label": "asks",
+          "count": 1
+        },
+        {
+          "from": "compare-api",
+          "to": "compare-db",
+          "label": "reads",
+          "count": 1
+        },
+        {
+          "from": "compare-api",
+          "to": "compare-cache",
+          "label": "keeps",
           "count": 1
         }
       ]

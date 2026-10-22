@@ -38,6 +38,13 @@ objects:
       A run measured over time instead of over load, with events on its timeline that set the state of a shape.
 
       Open the Performance tab (**T**), pick **Every state over time**, then press **Play**, drag the slider or click an event.
+  compare:
+    type: system
+    name: Compare
+    description: |
+      A flow and the flow that replaced it, tagged as a pair, with a note. Each has one step that goes, one that is new and one that changes, so every mark is on show.
+
+      Play **Compare after** and press **C** to open the pair. Turn on **Show changes** for the marks, and pick **Swap** then **X** to watch the shapes glide, fade in and fade out.
   send-from:
     type: app
     in: steps
@@ -473,6 +480,31 @@ objects:
     in: sources
     name: Not split by source
     description: The run says how many calls this line carries but not which source sent them, so its dots are grey and the key says "Other calls".
+  compare-client:
+    type: app
+    in: compare
+    name: Compare · client
+    description: Both flows start here, with the same first step, so it carries no mark.
+  compare-api:
+    type: app
+    in: compare
+    name: Compare · api
+    description: Used by every step of both flows. A shape both flows draw is Changed when a step on it is marked.
+  compare-old:
+    type: app
+    in: compare
+    name: Compare · old service
+    description: Only the older flow calls it, so it is Removed.
+  compare-db:
+    type: store
+    in: compare
+    name: Compare · database
+    description: Both flows read it, but the newer one waits for the answer, so its step and line are Changed.
+  compare-cache:
+    type: store
+    in: compare
+    name: Compare · cache
+    description: Only the newer flow calls it, so it is New.
 connections:
   - from: send-from
     to: send-to
@@ -621,3 +653,15 @@ connections:
   - from: gateway
     to: audit
     label: logs
+  - from: compare-client
+    to: compare-api
+    label: asks
+  - from: compare-api
+    to: compare-old
+    label: asks
+  - from: compare-api
+    to: compare-db
+    label: reads
+  - from: compare-api
+    to: compare-cache
+    label: keeps

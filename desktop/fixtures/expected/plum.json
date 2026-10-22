@@ -1423,7 +1423,12 @@
           ],
           "ends": "Notifications → Twilio"
         }
-      ]
+      ],
+      "compare": {
+        "with": "refund-not-recorded",
+        "note": "The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+      },
+      "compareProblem": null
     },
     {
       "id": "stripe-outage",
@@ -1824,6 +1829,74 @@
       ]
     }
   ],
+  "partners": {
+    "announce-order": [],
+    "capture-payment": [],
+    "courier-pings-lost": [],
+    "deliver-order": [],
+    "no-courier-answers": [],
+    "place-order": [],
+    "refund-not-recorded": [
+      {
+        "id": "refund",
+        "side": "after",
+        "note": "The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+      }
+    ],
+    "refund": [
+      {
+        "id": "refund-not-recorded",
+        "side": "before",
+        "note": "The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+      }
+    ],
+    "stripe-outage": []
+  },
+  "linked": [
+    "refund",
+    "refund-not-recorded"
+  ],
+  "runs": [
+    {
+      "id": "dinner-rush",
+      "name": "Dinner rush",
+      "compare": null
+    },
+    {
+      "id": "eta-batched",
+      "name": "Dinner rush, ETA calls batched",
+      "compare": null
+    },
+    {
+      "id": "orders-only",
+      "name": "Customer orders",
+      "compare": null
+    },
+    {
+      "id": "pings-climbing",
+      "name": "Courier pings",
+      "compare": null
+    },
+    {
+      "id": "stripe-outage",
+      "name": "Stripe outage",
+      "compare": null
+    },
+    {
+      "id": "together-measured",
+      "name": "Orders and pings, tested together",
+      "compare": {
+        "with": "together",
+        "note": "Added is the sum of two separate runs. Tested together sends both at once, and Fleet DB fills faster: at 600 orders a minute and 400 pings a second it reads 99%, where the sum reads 93%."
+      }
+    },
+    {
+      "id": "together",
+      "name": "Orders and pings, added",
+      "compare": null
+    }
+  ],
+  "runProblems": [],
   "views": {
     "root": {
       "id": "root",

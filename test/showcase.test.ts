@@ -2,6 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
 import { ANIMATION_KINDS, animationOf, EFFECTS, OUTCOMES } from '../src/core/animation.ts'
+import { compareOf } from '../src/core/compare.ts'
+import { diffFlows } from '../src/core/flowdiff.ts'
 import { knee, runStates } from '../src/core/perf/analyse.ts'
 import { dialsOf, settingAt } from '../src/core/perf/dials.ts'
 import { levelAt } from '../src/core/perf/levels.ts'
@@ -111,6 +113,22 @@ test('every kind of group is drawn by a flow, and a step can hand its story to a
   assert.ok(parallel.some(r => r.lanes.some(l => l.steps.length > 1) && r.lanes.some(l => l.steps.length === 1)), 'no parallel group with a lane that outlasts the others')
   assert.ok(flowList.some(([, flow]) => flow.steps.some(s => s.flow !== undefined && s.flow in flows)), 'no step hands its story to another flow')
   assert.ok(flowList.some(([, flow]) => flow.steps.some(s => s.to === undefined)), 'no step where a shape acts on its own')
+})
+
+test('a pair of flows is tagged and marks every kind of change on steps, shapes and lines, and the tag leads to a flow', () => {
+  const pair = flowList.filter(([, flow]) => compareOf(flow.compare) !== undefined)
+  assert.ok(pair.length > 0, 'no flow carries a compare tag: add a pair to docs/showcase')
+  for (const [id, newer] of pair) {
+    const tag = compareOf(newer.compare)!
+    assert.ok(tag.with in flows && tag.with !== id, `${id} is compared with ${tag.with}, which is not another flow`)
+    const diff = diffFlows(flows[tag.with], newer)
+    assert.ok(diff.related, `${id} and ${tag.with} share no shape`)
+    for (const kind of ['steps', 'shapes', 'lines'] as const) {
+      const marked = new Set([...Object.values(diff.older[kind]), ...Object.values(diff.newer[kind])])
+      for (const change of ['new', 'removed', 'changed'] as const) assert.ok(marked.has(change), `${id} against ${tag.with} marks no ${change} ${kind}: change the pair in docs/showcase`)
+    }
+    assert.ok(tag.note !== undefined && tag.note.trim() !== '', `${id} has no note`)
+  }
 })
 
 test('every state is shown by a flow, and a shape that holds one in a state shows that at the overview', () => {

@@ -1,5 +1,11 @@
 name: Support refunds an order
 view: root
+compare:
+  with: refund-not-recorded
+  note: |
+    The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.
+
+    Stripe is the one shape both flows draw.
 steps:
   - { from: support, to: backoffice, text: Finds the order in the support console }
   - { from: backoffice, to: ordering, text: "Asks for a refund, in full or by line" }
