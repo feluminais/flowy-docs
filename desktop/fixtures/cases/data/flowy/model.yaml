@@ -29,7 +29,7 @@ objects:
           - {name: order_id, key: primary, to: orders}
           - {name: item_id, key: primary}
           - quantity
-          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}
+          - {name: unit_price, note: Copied from the menu when the order is placed. Later menu changes leave it alone.}
         rows:
           - [o_1042, i_31, 2, 1245]
       - name: refunds
@@ -49,7 +49,7 @@ objects:
     data:
       - name: Keys
         limits: Oldest unused go first at 256 MB
-        note: Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.
+        note: Entries last five minutes because a shorter time put too much load on Postgres.
         columns:
           - Key
           - Value

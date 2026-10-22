@@ -78,7 +78,7 @@
             "quantity",
             {
               "name": "unit_price",
-              "note": "Copied from the menu at order time. Menus change; receipts must not."
+              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ],
           "rows": [
@@ -202,7 +202,7 @@
             },
             {
               "name": "unit_price",
-              "note": "Copied from the menu at order time. Menus change; receipts must not."
+              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ],
           "rows": [
@@ -217,7 +217,7 @@
           "notes": [
             {
               "name": "unit_price",
-              "text": "Copied from the menu at order time. Menus change; receipts must not."
+              "text": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ]
         },
@@ -294,7 +294,7 @@
         {
           "name": "Keys",
           "limits": "Oldest unused go first at 256 MB",
-          "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
           "columns": [
             "Key",
             "Value",
@@ -321,7 +321,7 @@
         {
           "name": "Keys",
           "limits": "Oldest unused go first at 256 MB",
-          "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
           "summary": "3 columns",
           "columns": [
             {
