@@ -155,8 +155,10 @@ const scenes = {
       await s.caption('Play a flow')
       await s.key('l'); await s.wait(500)
       await s.click('::-p-text(The payment is captured)', 700); await s.park(); await s.wait(300)
-      await s.key('l'); await s.wait(1500)
-      for (let step = 0; step < 5; step++) { await s.key('ArrowRight'); await s.wait(step === 4 ? 2200 : 1500) }
+      await s.key('l'); await s.wait(1200)
+      await s.click('::-p-text(Autoplay)', 700); await s.park() // the flow steps itself from here
+      await s.page.waitForFunction(() => document.body.innerText.includes('Step 6 of 6'), { timeout: 60000 })
+      await s.wait(2600)
       await s.caption(null)
       await s.key('Escape'); await s.wait(1000)
     },
