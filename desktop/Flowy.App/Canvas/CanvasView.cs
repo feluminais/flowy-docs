@@ -25,6 +25,8 @@ internal sealed class CanvasView : Border
     private readonly TrafficLayer _traffic = new();
     private Traffic? _load; // the load being shown, if the Performance panel is open
     private FailureOverlay? _failures; // the marks being shown, if the Failures tab is open
+    private IReadOnlySet<string> _going = new HashSet<string>(); // the boxes the Used by panel says are about to be deleted
+    private IReadOnlySet<string> _flagged = new HashSet<string>(); // the boxes its focused row names
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the states at the stop on show, by shape
     private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new() { RenderTransformOrigin = RelativePoint.TopLeft };
@@ -286,6 +288,7 @@ internal sealed class CanvasView : Border
         _back.SetScene(scene, lineStyle);
         if (_load is not null) ApplyLoad();
         if (_failures is not null) ApplyFailures();
+        ApplyUsed();
         ApplyStates();
     }
 
@@ -358,6 +361,19 @@ internal sealed class CanvasView : Border
         ApplyFailures();
     }
 
+    /// <summary>Shows what the Used by panel is about: the boxes about to be deleted outlined in red and dashed, and the ones its focused row names outlined in the accent colour. Empty sets take them away.</summary>
+    public void ShowUsed(IReadOnlySet<string> going, IReadOnlySet<string> flagged)
+    {
+        _going = going;
+        _flagged = flagged;
+        ApplyUsed();
+    }
+
+    private void ApplyUsed()
+    {
+        foreach (var (id, box) in _boxes) box.SetUsed(_going.Contains(id) ? UsedMark.Going : _flagged.Contains(id) ? UsedMark.Flagged : UsedMark.None);
+    }
+
     private void ApplyFailures()
     {
         foreach (var (id, box) in _boxes)
@@ -404,6 +420,7 @@ internal sealed class CanvasView : Border
         _back.SetScene(_scene, LineStyle);
         if (_load is not null) ApplyLoad();
         if (_failures is not null) ApplyFailures();
+        ApplyUsed();
     }
 
     private void EndGesture(PointerEventArgs e)

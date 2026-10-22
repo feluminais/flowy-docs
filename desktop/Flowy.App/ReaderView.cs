@@ -38,6 +38,9 @@ internal sealed partial class ReaderView : Grid
         public sealed record Add : Side;
 
         public sealed record Flow(Recording Rec) : Side;
+
+        /// <summary>What is waiting on the shapes or lines about to be deleted (the Used by panel). <c>Back</c> is what was picked before, which Cancel returns to.</summary>
+        public sealed record UsedBy(IReadOnlyList<Target> Targets, Side? Back) : Side;
     }
 
     /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in).</summary>
@@ -377,10 +380,10 @@ internal sealed partial class ReaderView : Grid
     }
 
     /// <summary>Says what is happening in a card over the canvas. With <paramref name="seconds"/> it goes by itself.</summary>
-    public void ShowNotice(string text, double seconds = 0)
+    public void ShowNotice(string text, double seconds = 0, Action? undo = null)
     {
         DismissNotice();
-        var notice = new Notice(text, DismissNotice) { Margin = NoticeMargin };
+        var notice = new Notice(text, DismissNotice, undo is null ? null : "Undo", undo) { Margin = NoticeMargin };
         _notice = notice;
         _overlay.Children.Add(notice);
         if (seconds > 0)
@@ -577,18 +580,51 @@ internal sealed partial class ReaderView : Grid
         return icon;
     }
 
+    private UsedByPanel? _usedByPanel;
+    private Side.UsedBy? _usedBySide;
+
     private void RefreshPanel(Model model, string view)
     {
+        if (_side is not Side.UsedBy && _usedByPanel is not null)
+        {
+            _usedByPanel = null;
+            _usedBySide = null;
+            _canvas.ShowUsed(new HashSet<string>(), new HashSet<string>());
+        }
         switch (_side)
         {
+            case Side.UsedBy used when Editing:
+                if (_usedByPanel is null || !ReferenceEquals(_usedBySide, used))
+                {
+                    _usedBySide = used;
+                    var fresh = new UsedByPanel(_panel, model, used.Targets, RunAsync);
+                    fresh.Marked += (going, flagged) => _canvas.ShowUsed(going, flagged);
+                    fresh.Done += text =>
+                    {
+                        CloseSide();
+                        ShowNotice(text, 0, () => _ = UndoAsync());
+                    };
+                    fresh.Cancelled += () =>
+                    {
+                        _side = used.Back;
+                        Refresh();
+                        Focus();
+                    };
+                    _usedByPanel = fresh;
+                    _panel.ShowUsedBy(fresh, model);
+                    fresh.Update(model); // now that the canvas is listening, it says which shapes are going
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => fresh.Focus());
+                }
+                else _panel.ShowUsedBy(_usedByPanel, model);
+                break;
             case Side.Box { Id: var id } when Editing:
-                _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
+                _panel.ShowObjectEditor(model, id, _folder!.Problems, RunAsync, OpenObject, SetHover, AskDelete);
                 break;
             case Side.Box { Id: var id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
             case Side.Line { From: var from, To: var to } when Editing:
-                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide);
+                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide, AskDelete);
                 break;
             case Side.Line { From: var from, To: var to }:
                 _panel.ShowLine(model, view, from, to, _folder!.Problems);
@@ -614,7 +650,7 @@ internal sealed partial class ReaderView : Grid
     {
         if (_right != RightPanel.Details) _panel.Clear();
         else if (view == Names.Root) _panel.ShowOverview(Totals());
-        else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, CloseSide);
+        else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, AskDelete);
         else _panel.ShowObject(model, view, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover);
     }
 
