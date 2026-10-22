@@ -27,6 +27,9 @@ internal sealed class CompareView : Grid
     private bool _stacked;
     private SwapStage? _stage;
     private string? _shownMode;
+    private (Flow Older, Flow Newer, FlowDiff Diff)? _diff; // the last diff, for as long as both flows are the ones in the model: it costs a pass over both flows' steps
+    private string? _older; // the flow that reads as older, and the one that holds the tag (else the second): the marks of each pane are its side's
+    private string? _newer;
 
     /// <summary>A box or a line was clicked in the pane with this key (in Swap, <see cref="SwapPick"/>).</summary>
     public event Action<string, ReaderView.Side>? Picked;
@@ -36,18 +39,30 @@ internal sealed class CompareView : Grid
 
     public CompareView()
     {
-        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
+        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)];
         Bar = new CompareBar();
+        Note = new CompareNote();
         SetRow(Bar, 0);
         SetRow(_panes, 1);
         SetRow(_swapHost, 1);
+        SetRow(Note, 2);
         Children.Add(Bar);
         Children.Add(_panes);
         Children.Add(_swapHost);
+        Children.Add(Note);
         Classes.Add("compare");
     }
 
     public CompareBar Bar { get; }
+
+    /// <summary>The note on the pair, under the panes (and under the canvas of Swap).</summary>
+    public CompareNote Note { get; }
+
+    /// <summary>What Show changes found, while it is on and the comparison is shown; null otherwise (for tests).</summary>
+    internal FlowDiff? Diff { get; private set; }
+
+    /// <summary>The flow whose marks are the older side's, and the one whose marks are the newer's (the holder of the tag, else the second of the pair).</summary>
+    internal (string Older, string Newer)? Sides => _older is null || _newer is null ? null : (_older, _newer);
 
     /// <summary>The pane the Details panel was opened from, so a second click on what it shows closes the panel, and the pane draws the outline of what is shown.</summary>
     public string? Last { get; set; }
@@ -73,14 +88,40 @@ internal sealed class CompareView : Grid
     /// Shows the comparison. A pane is kept for as long as its flow is in the comparison, so swapping the sides moves the panes instead of making them again: each keeps its place in
     /// its flow and its zoom. <paramref name="start"/> is the stop the first pane starts at (the flow was playing there when the comparison opened).
     /// </summary>
-    public void Show(CompareState state, Folder folder, string lineStyle, ReaderView.Side? selection, (string Flow, int Step)? start)
+    public void Show(CompareState state, Folder folder, string lineStyle, ReaderView.Side? selection, (string Flow, int Step)? start, bool changes = false)
     {
         var keys = KeysOf(state);
+        FindChanges(state, folder, changes);
         if (state.Mode == "swap") ShowSwap(state, keys, folder, lineStyle, selection, start);
         else ShowSide(state, keys, folder, lineStyle, selection, start);
         _shownMode = state.Mode;
         Bar.Mode = state.Mode;
+        // The key lists only what is drawn: both flows side by side, the one on show in Swap.
+        IReadOnlyList<string> sides = Stage is { } stage ? [SideOf(stage.Current.FlowId)] : [SideOf(state.A), SideOf(state.B)];
+        Bar.ShowChanges(Diff is not null, null, Diff is null ? null : new CompareKey(Diff, sides));
     }
+
+    /// <summary>
+    /// Finds what differs between the two flows, when Show changes is on. The flow that holds the tag (the newer; else the second of the pair) is compared with the other, whichever side the
+    /// panes show them on, and each pane draws its own side's marks, so Swap sides keeps them right.
+    /// </summary>
+    private void FindChanges(CompareState state, Folder folder, bool on)
+    {
+        var tags = CompareChoices.TagsOf(folder.Model, new Dictionary<string, LoadRun>(), "flow");
+        (_older, _newer) = CompareChoices.Order("flow", tags, state.A, state.B);
+        if (!on || !folder.Model.Flows.TryGetValue(_older, out var older) || !folder.Model.Flows.TryGetValue(_newer, out var newer))
+        {
+            Diff = null;
+            return;
+        }
+        if (_diff is not { } kept || !ReferenceEquals(kept.Older, older) || !ReferenceEquals(kept.Newer, newer)) _diff = kept = (older, newer, FlowDiffs.Diff(older, newer));
+        Diff = kept.Diff;
+    }
+
+    private string SideOf(string flowId) => flowId == _newer ? "newer" : "older";
+
+    /// <summary>The marks the pane (or the flow on show) of this flow draws, or null with Show changes off.</summary>
+    internal SideMarks? MarksOf(string flowId) => Diff is null ? null : SideOf(flowId) == "newer" ? Diff.Newer : Diff.Older;
 
     private void ShowSide(CompareState state, IReadOnlyList<string> keys, Folder folder, string lineStyle, ReaderView.Side? selection, (string Flow, int Step)? start)
     {
@@ -115,6 +156,7 @@ internal sealed class CompareView : Grid
         {
             var pane = _byKey[keys[slot]];
             pane.Focused = ReferenceEquals(pane, FocusedPane);
+            pane.Changes = MarksOf(pane.FlowId);
             pane.Show(folder, lineStyle, Last == keys[slot] ? selection : null);
         }
     }
@@ -147,6 +189,7 @@ internal sealed class CompareView : Grid
         }
         _panes.IsVisible = false;
         _swapHost.IsVisible = true;
+        foreach (var key in keys) _stage!.Flow(key).Changes = MarksOf(_stage.Flow(key).FlowId); // the marks follow the flow on show
         _stage!.Show(folder, lineStyle, selection);
         var names = keys.Select(k => _stage.Flow(k).Name).ToList();
         if (names[0] == names[1] && keys[1].Contains('#')) names[1] += " (2)"; // a flow against itself: told apart as its panes are

@@ -21,6 +21,19 @@ internal sealed partial class ReaderView
     private ComparePicker? _picker;
     private string? _pickerFlow;
 
+    // The note on the pair: what is typed in its editor is kept here, not in the strip, so it survives the strip going away (the Performance tab opening over the panes) and so leaving can ask
+    // first. It belongs to one pair; another pair starts with none. A pair with no tag has no file to hold it, so there it is a draft. It is only dropped by Discard, by saving it, or by opening
+    // another folder: closing the comparison any other way (a change on disk that takes a flow away) keeps it, and it is back when the pair is compared again.
+    private (string Pair, string Text)? _noteDraft;
+    private DraftAsk? _ask; // the question "Discard the note?", while it is asked
+    private Action? _afterDiscard; // what to do once the reader says to discard the note
+
+    /// <summary>Whether Show changes is on: the panes mark what differs between the flows. It is the reader's, kept between runs.</summary>
+    internal bool ShowChanges { get; set; }
+
+    /// <summary>The reader turned Show changes on or off: the app keeps it for the next window.</summary>
+    public event Action<bool>? ChangesPicked;
+
     /// <summary>Whether the comparison is on screen: it is open, and no tab that draws on the one canvas is in front of it.</summary>
     private bool Comparing => _compare is not null && !PerfOpen && !FailuresOpen;
 
@@ -49,9 +62,22 @@ internal sealed partial class ReaderView
         Refresh();
     }
 
-    /// <summary>Ends the comparison. What it showed was clicked in a pane, so the panel goes with it.</summary>
+    /// <summary>
+    /// Ends the comparison. What it showed was clicked in a pane, so the panel goes with it. Close, Esc and C come here with a redraw, and a note that isn't saved asks first (see
+    /// <see cref="UnlessDraft"/>); one more of them while it asks is a Keep. The ways that end it for the reader's own work (a level, edit mode, another flow) ask before they come here.
+    /// </summary>
     private void CloseCompare(bool redraw = true)
     {
+        if (redraw && _compare is not null)
+        {
+            if (_ask is not null)
+            {
+                KeepNote();
+                return;
+            }
+            if (UnlessDraft(() => CloseCompare())) return;
+        }
+        DropAsk();
         DropPicker();
         if (_compare is null) return;
         _compare = null;
@@ -125,8 +151,103 @@ internal sealed partial class ReaderView
         view.Bar.Flipped += FlipCompare;
         view.Bar.ModePicked += SetCompareMode;
         view.Bar.FlowPicked += reads => SwapCompare(reads);
+        view.Bar.ChangesToggled += () => SetShowChanges(!ShowChanges);
+        view.Note.DraftChanged += text => _noteDraft = text is null || _compare is null ? null : (PairNow, text);
+        view.Note.Save = SaveNoteAsync;
+        view.Note.Flipped += FlipCompare;
+        view.Note.Left += () =>
+        {
+            if (_ask is not null) KeepNote(); // the question is the innermost layer
+            else Focus(); // the keys are the reader's again; a second Esc closes the comparison
+        };
         _compareHost.Child = view;
         return view;
+    }
+
+    // ---- change marks and the note ---------------------------------------------------------------------------------
+
+    /// <summary>Show changes, from the bar: the app remembers it for the next window.</summary>
+    internal void SetShowChanges(bool on)
+    {
+        if (ShowChanges == on) return;
+        ShowChanges = on;
+        ChangesPicked?.Invoke(on);
+        Refresh();
+    }
+
+    /// <summary>The pair on show, as the draft is keyed: the same whichever way round the sides are.</summary>
+    private string PairNow => _compare is { } c ? $"{c.Kind}:{CompareUi.PairKey(c.A, c.B)}" : "";
+
+    private IReadOnlyDictionary<string, object?> TagsNow() => CompareChoices.TagsOf(_folder!.Model, new Dictionary<string, LoadRun>(), "flow");
+
+    /// <summary>The note the pair on show holds now, or "" when it holds none.</summary>
+    private string SavedNote() => _compare is { } c && _folder is not null ? CompareUi.NoteOf(TagsNow(), c.A, c.B).Text : "";
+
+    /// <summary>Whether leaving the comparison would lose a note: the editor holds text that is not what the pair holds.</summary>
+    private bool NoteDirty => _compare is not null && _noteDraft is { } draft && draft.Pair == PairNow && CompareUi.Unsaved(draft.Text, SavedNote());
+
+    /// <summary>
+    /// Runs nothing, but a note that isn't saved asks first: <paramref name="leave"/> waits for Discard (Keep stays where it is). True when it asked, and a caller must stop; false when there was
+    /// nothing to lose, and the caller goes on.
+    /// </summary>
+    private bool UnlessDraft(Action leave)
+    {
+        if (!NoteDirty) return false;
+        DropAsk();
+        _afterDiscard = leave;
+        _ask = new DraftAsk(DiscardNote, KeepNote);
+        _overlay.Children.Add(_ask);
+        return true;
+    }
+
+    private void DropAsk()
+    {
+        if (_ask is null) return;
+        _overlay.Children.Remove(_ask);
+        _ask = null;
+        _afterDiscard = null;
+    }
+
+    /// <summary>Discard: the note goes, and what was asked for goes ahead.</summary>
+    private void DiscardNote()
+    {
+        var leave = _afterDiscard;
+        _noteDraft = null;
+        DropAsk();
+        leave?.Invoke();
+    }
+
+    /// <summary>Keep: the note stays in its editor, and so does the comparison.</summary>
+    private void KeepNote()
+    {
+        DropAsk();
+        Focus();
+    }
+
+    /// <summary>Writes the tag (and its note) onto the flow in its own file, as one edit that can be undone. True once it is saved and on screen; a refusal has been said in a notice.</summary>
+    private Task<bool> SaveNoteAsync(string id, CompareTag tag) => RunAsync(d => EditOps.SetCompare(d, id, tag));
+
+    /// <summary>What the note strip is told: the tags, the names, the pair as it reads, why it can't be written, and the draft held for this pair.</summary>
+    private NoteInput NoteInputFor(Folder folder, CompareState state)
+    {
+        string NameOf(string id) => folder.Model.Flows.TryGetValue(id, out var flow) && !string.IsNullOrEmpty(flow.Name) ? flow.Name : id;
+        // The folder is open and can be written: not a sample inside the install, and no file that can't be read.
+        var off = CompareUi.NoteOff(_session is not null, !CanEdit || _banner.IsVisible);
+        return new NoteInput(TagsNow(), NameOf, state.A, state.B, off, _noteDraft is { } draft && draft.Pair == PairNow ? draft.Text : null);
+    }
+
+    /// <summary>Opens the confirm of Save as pair, which names the flow that gets the line (--pair, for a picture).</summary>
+    public void AskToPair() => _compareView?.Note.AskToPair();
+
+    /// <summary>Tries to close the comparison as Close does: a note that isn't saved asks first (--leave, for a picture).</summary>
+    public void TryCloseCompare() => CloseCompare();
+
+    /// <summary>Puts text in the note editor of the pair on show, as if it had been typed (--note, for a picture).</summary>
+    public void PrefillNote(string text)
+    {
+        if (_compare is null) return;
+        _noteDraft = (PairNow, text);
+        Refresh();
     }
 
     /// <summary>A box or a line was clicked in a pane: its panel shows in Details, and a second click on what the panel shows closes it.</summary>
@@ -160,7 +281,8 @@ internal sealed partial class ReaderView
         if (_zoomButtons is not null) _zoomButtons.IsVisible = !on;
         if (!on || _compare is not { } now) return;
         _compareView ??= BuildCompareView();
-        _compareView.Show(now, folder, LineStyle, _side, _compareStart);
+        _compareView.Show(now, folder, LineStyle, _side, _compareStart, ShowChanges);
+        _compareView.Note.Show(NoteInputFor(folder, now));
         _compareStart = null;
     }
 
@@ -212,6 +334,15 @@ internal sealed partial class ReaderView
     internal CompareView? CompareShown => _compareView is not null && Comparing ? _compareView : null;
 
     internal ComparePicker? PickerShown => _picker;
+
+    /// <summary>The text of the draft held for the pair on show, or null (for tests).</summary>
+    internal string? NoteDraftNow => _noteDraft is { } draft && draft.Pair == PairNow ? draft.Text : null;
+
+    /// <summary>Whether a note is held for any pair at all (for tests).</summary>
+    internal bool HoldsNote => _noteDraft is not null;
+
+    /// <summary>The question "Discard the note?", while it is asked (for tests).</summary>
+    internal DraftAsk? AskShown => _ask;
 
     /// <summary>
     /// Opens a comparison of two flows by id, for a picture (--compare). A pair that holds a tag reads with the one that holds it second. With <paramref name="swap"/> it opens in

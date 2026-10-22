@@ -59,6 +59,7 @@ internal sealed partial class ReaderView
     {
         if (on && ReadOnly) return;
         if (_editMode == on) return;
+        if (on && _compare is not null && UnlessDraft(() => SetEditing(true))) return; // editing ends the comparison: a note that isn't saved asks first
         _editMode = on;
         CloseCompare(false); // nor does a comparison: it shows the flows as they are
         LeavePerformance(); // editing and the Performance panel don't mix: the numbers would sit on a model that is changing

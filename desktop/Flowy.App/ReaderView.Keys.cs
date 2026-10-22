@@ -32,6 +32,12 @@ internal sealed partial class ReaderView
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_folder is null) return;
+        if (_ask is not null && e.Key == Key.Escape)
+        {
+            KeepNote(); // the question is the innermost layer, and Esc answers it with Keep
+            e.Handled = true;
+            return;
+        }
         var inNavigator = InNavigator(e.Source);
         if (e.Source is TextBox field)
         {
