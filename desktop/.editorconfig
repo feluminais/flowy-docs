@@ -1,0 +1,8 @@
+# Analyzer rules the compiler does not turn on by itself. Warnings are errors here (Directory.Build.props), so each of these fails the build.
+[*.cs]
+# Text and numbers must not depend on the machine's language: the browser and this app have to read a file the same way.
+dotnet_diagnostic.CA1305.severity = warning
+dotnet_diagnostic.CA1310.severity = warning
+# A cancellation token that is not passed on, and a type that owns something disposable without being disposable.
+dotnet_diagnostic.CA2016.severity = warning
+dotnet_diagnostic.CA1001.severity = warning
