@@ -3,7 +3,7 @@ import { tidyData } from './data.ts'
 import type { DataInput } from './data.ts'
 import { dependents, describeDependent, lineIndices, needsDecision } from './dependents.ts'
 import type { Action, Dependent, Target } from './dependents.ts'
-import { analysesText, usersOfConnection } from './failures.ts'
+import { analysesText } from './failures.ts'
 import { iconProblem } from './look.ts'
 import { checkRun } from './perf/check.ts'
 import type { Run } from './perf/types.ts'
@@ -21,6 +21,12 @@ import { chain, isView, parentOf } from './views.ts'
 /** A refused edit. The message is written for whoever asked for the edit. */
 export class OpError extends Error {
   name = 'OpError'
+  /** When the edit was refused because other parts depend on what it deletes: the rows that need a decision (see dependents), so a caller can show or settle them. */
+  dependents?: Dependent[]
+  constructor(message: string, dependents?: Dependent[]) {
+    super(message)
+    if (dependents !== undefined) this.dependents = dependents
+  }
 }
 
 export type ObjectInput = {
@@ -110,12 +116,12 @@ export function deleteObject(model: Model, id: string): Model {
   if (!getObject(model, id)) throw new OpError(`unknown object "${id}"`)
   const rows = dependents(model, [{ object: id }]).filter(needsDecision)
   const children = rows.filter(r => r.kind === 'child').map(r => r.child)
-  if (children.length) throw new OpError(`"${id}" still contains ${children.join(', ')}. Delete or move those first.`)
+  if (children.length) throw new OpError(`"${id}" still contains ${children.join(', ')}. Delete or move those first.`, rows)
   const flows = [...new Set(rows.filter(r => r.flow !== undefined).map(r => r.flow))]
   if (flows.length)
-    throw new OpError(`"${id}" is used by flow${flows.length > 1 ? 's' : ''} ${flows.join(', ')}. Change or delete those first.`)
+    throw new OpError(`"${id}" is used by flow${flows.length > 1 ? 's' : ''} ${flows.join(', ')}. Change or delete those first.`, rows)
   const analyses = [...new Set(rows.map(r => r.analysis).filter(a => a !== undefined))]
-  if (analyses.length) throw new OpError(`"${id}" is used by ${analysesText(analyses)}. Change or delete those first.`)
+  if (analyses.length) throw new OpError(`"${id}" is used by ${analysesText(analyses)}. Change or delete those first.`, rows)
   return deleteWith(model, [{ object: id }], [])
 }
 
@@ -288,15 +294,15 @@ export function disconnect(model: Model, { from, to, label }: ConnectionInput): 
       + (existing.length ? ` (there is ${existing.join(', ')})` : ''))
   }
   const connections = model.connections.filter(c => !matches(c))
-  keepLinesOfModes(model, connections, from, to)
+  refuseLineUsers(model, { from, to, ...(label === undefined ? {} : { label }), all: true })
   return { ...model, connections }
 }
 
-/** Refuses a change that would leave a line mode with no connection from → to, as a flow's shapes can't be deleted from under it. */
-function keepLinesOfModes(model: Model, remaining: Connection[], from: string, to: string) {
-  if (remaining.some(c => c.from === from && c.to === to)) return
-  const analyses = usersOfConnection(model, from, to)
-  if (analyses.length) throw new OpError(`connection ${from} → ${to} is used by ${analysesText(analyses)}. Change or delete those first.`)
+/** Refuses a change that would leave a line mode with no connection from → to, as a flow's shapes can't be deleted from under it. The refusal carries the rows. */
+function refuseLineUsers(model: Model, line: { from: string; to: string; label?: string; all?: boolean }) {
+  const rows = dependents(model, [{ line }]).filter(needsDecision)
+  const analyses = [...new Set(rows.map(r => r.analysis).filter(a => a !== undefined))]
+  if (analyses.length) throw new OpError(`connection ${line.from} → ${line.to} is used by ${analysesText(analyses)}. Change or delete those first.`, rows)
 }
 
 /** Where the first from → to connection labelled `label` ("" or none: unlabelled) is. */
@@ -309,7 +315,7 @@ function findConnection(model: Model, { from, to, label = '' }: ConnectionInput)
 /** Remove one connection: the first that matches. Unlike disconnect, exact duplicates go one at a time. */
 export function removeConnection(model: Model, which: ConnectionInput): Model {
   const connections = model.connections.toSpliced(findConnection(model, which), 1)
-  keepLinesOfModes(model, connections, which.from, which.to)
+  refuseLineUsers(model, { from: which.from, to: which.to, label: which.label ?? '' })
   return { ...model, connections }
 }
 
