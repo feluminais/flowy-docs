@@ -62,6 +62,7 @@ groups:
   charge:
     kind: repeat
     times: 3
+    until: the bank answers
     text: Backs off 1 s, 2 s, 4 s between tries
   outcome:
     kind: branch
@@ -85,9 +86,10 @@ This is a flow Plum doesn't have, written with Plum's shapes. A group is one of 
 | `branch` | Alternatives: one lane happens | Lanes, and optionally `text` |
 | `parallel` | Lanes that all happen at once | At least two lanes, and optionally `text` |
 
-- `times` is how many times the stretch runs in all, the first run included, a whole number from 2 to 99. It is a claim about a real
-  limit ("the client gives up after 3 tries"), not a number for illustration. `until` says in words what stops a repeat. A repeat
-  needs one of the two. Backoff, delays and timeouts aren't data: say them in the group's `text` or in the steps.
+- `times` is how many times the stretch runs in all, the first run included, a whole number from 2 to 99. On its own it is a rule: the
+  stretch runs that many times. `until` says in words what stops a repeat, and with it `times` becomes a limit ("up to 3 times, until
+  the bank answers"), because the repeat may stop sooner. Either is a claim about the real system, not a number for illustration. A
+  repeat needs one of the two. Backoff, delays and timeouts aren't data: say them in the group's `text` or in the steps.
 - A step's `group` is the group it belongs to, and it is in at most one. The steps of a group have to sit next to each other.
 - A step's `lane` starts a lane of a branch or a parallel group, and the steps after it in the same group, up to the next `lane`, belong
   to it. The first step of a branch or parallel group must have one. A lane is a label in plain words ("Card declined"), unique inside
@@ -114,7 +116,7 @@ sequenceDiagram
   participant n2 as Orders DB
   participant n3 as Kitchen tablet
   participant n4 as Order events
-  loop Up to 3 times: Backs off 1 s, 2 s, 4 s between tries
+  loop Up to 3 times, until the bank answers: Backs off 1 s, 2 s, 4 s between tries
     n0->>n1: Holds the amount on the card
     n1->>n0: Times out at the bank
   end
@@ -134,14 +136,15 @@ sequenceDiagram
 
 **In the player.** The player steps through *stops*, the things that are on screen at once. Every step is a stop of its own except in
 a parallel group, where stop *k* is the *k*-th step of every lane: five one-step lanes are one stop with five lines lit and moving
-together, and a lane that has run out simply drops out. The card says where you are: a chip names the group (`Repeats up to 3 times`,
+together, and a lane that has run out simply drops out. The card says where you are: a chip names the group (`Repeats 3 times`,
 `One of 2`, `At the same time, 2 lanes`), a branch lists its lanes as tabs with yours marked, the group's own `text` follows, and the
-progress bar has a cell for each stop, a branch's lanes on rows of their own and a bracket under each group. Point at a cell or a
-bracket to read what it means, or press the **?** on the card for a key to all of it. A parallel stop shows a block for each lane. On
-the canvas a small label on each lit line says how often it repeats or which lane it is, and the lanes of a branch you are not in
-are dashed and faint. A step with `flow:` has an **Open flow** button. It plays that flow on its own level and puts a bar at the top
+progress bar has a cell for each stop and a box around each group. A repeat's box says ×3, and it is dashed when the repeat has an
+`until` and may stop sooner ("up to 3"). A branch's box has a row for each lane with the lane's name above it, and the lanes you are
+not in are hollow. Point at a cell or a box to read what it means, or press the **?** on the card for a key to all of it. A parallel
+stop shows a block for each lane. On the canvas a small label on each lit line says how often it repeats or which lane it is, and the
+lanes of a branch you are not in are dashed and faint. A step with `flow:` has an **Open flow** button. It plays that flow on its own level and puts a bar at the top
 of the card, *Back to "…", step N*, that returns you to where you were (in the browser, the Back button does the same). The way back
-isn't in the address, so a reload drops it. Nothing moves when the system asks for less motion, and the chips, tabs, brackets and labels
+isn't in the address, so a reload drops it. Nothing moves when the system asks for less motion, and the chips, tabs, boxes and labels
 stay. A flow with none of these keys reads, plays and exports exactly as it did.
 
 The `put_flow` tool takes `groups` and a step's `group`, `lane` and `flow` (a `times` may be a number there), and its instructions say when

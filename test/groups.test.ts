@@ -55,7 +55,7 @@ test('repeatWords says times then until, and a heading asks for a capital', () =
   assert.equal(repeatWords({ times: '3', until: 'it works' }, true), 'Up to 3 times, until it works')
   assert.equal(repeatWords({ until: 'it works' }), 'until it works')
   assert.equal(repeatWords({ until: 'it works' }, true), 'Until it works')
-  assert.equal(repeatWords({ times: '2' }), 'up to 2 times')
+  assert.equal(repeatWords({ times: '2' }), '2 times')
   assert.equal(repeatWords({}, true), '')
   assert.equal(repeatWords(undefined), '')
 })
