@@ -19,6 +19,7 @@ export type Moved = { id: string; position: XYPosition; dragging?: boolean }
 export function useEditSession({ edit, undo, redo, restore, readOnly }: { edit: Edit; undo: Back; redo: Back; restore: Restore; readOnly: boolean }) {
   const [editMode, setEditMode] = useState(false)
   const [notice, setNotice] = useState<string>()
+  const [taken, setTaken] = useState<string>() // the notice of a delete, which Undo goes with
   // Where boxes are being dragged to. Nodes are controlled, so a box only moves through this.
   const [moved, setMoved] = useState(new Map<string, XYPosition>())
   const layoutSaves = useRef(0) // layout saves still queued; `moved` is cleared once the last one is back
@@ -41,6 +42,11 @@ export function useEditSession({ edit, undo, redo, restore, readOnly }: { edit: 
     const message = await edit(op)
     setNotice(message)
     return message === undefined
+  }
+  /** A notice for an edit that was just made, with Undo beside it for as long as it stands. */
+  const announce = (text: string) => {
+    setNotice(text)
+    setTaken(text)
   }
   const takeBack = async () => {
     didSomethingElse()
@@ -103,7 +109,7 @@ export function useEditSession({ edit, undo, redo, restore, readOnly }: { edit: 
   }
 
   return {
-    editing, notice, setNotice, moved, run, takeBack, bringBack, restoreVersion,
+    editing, notice, setNotice, announce, undoable: notice !== undefined && notice === taken, moved, run, takeBack, bringBack, restoreVersion,
     toggleEditMode, viewChanged, clearMoved, dragged, didSomethingElse,
     /** Whether Esc or Backspace should take back a drag now (read when the key is pressed, not when it renders). */
     justMoved: () => justMoved.current,
