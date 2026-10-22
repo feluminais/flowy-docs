@@ -113,8 +113,8 @@ test('moving along a run is not a step to go back to, nor is picking another mod
 test('an address can name a comparison of flows or of runs, side by side or swapped, and goes both ways', () => {
   assert.equal(toHash('shop', undefined, undefined, undefined, { kind: 'flow', a: 'old', b: 'new', mode: 'side' }), '#shop/compare/old/new')
   assert.equal(toHash('shop', undefined, undefined, undefined, { kind: 'flow', a: 'old', b: 'new', mode: 'swap' }), '#shop/compare/old/new/swap')
-  assert.equal(toHash('shop', undefined, undefined, undefined, { kind: 'run', a: 'before', b: 'after', mode: 'side' }), '#shop/compare/run/before/after')
-  assert.equal(toHash(ROOT, undefined, undefined, undefined, { kind: 'run', a: 'before', b: 'after', mode: 'swap' }), '#root/compare/run/before/after/swap')
+  assert.equal(toHash('shop', undefined, undefined, undefined, { kind: 'run', a: 'before', b: 'after', mode: 'side' }), '#shop/compare-runs/before/after')
+  assert.equal(toHash(ROOT, undefined, undefined, undefined, { kind: 'run', a: 'before', b: 'after', mode: 'swap' }), '#root/compare-runs/before/after/swap')
   const all: Compare[] = [
     { kind: 'flow', a: 'old', b: 'new', mode: 'side' }, { kind: 'flow', a: 'old', b: 'new', mode: 'swap' },
     { kind: 'run', a: 'before', b: 'after', mode: 'side' }, { kind: 'run', a: 'before', b: 'after', mode: 'swap' },
@@ -126,23 +126,29 @@ test('an address can name a comparison of flows or of runs, side by side or swap
   assert.equal(toHash('shop', undefined, { run: 'ramp', level: 1 }, undefined, all[0]), '#shop/perf/ramp/1', 'a run on show wins')
 })
 
-test('only the longer forms name a comparison: flows called compare, run or swap still read as flows', () => {
-  assert.deepEqual(readHash('#shop/compare'), { view: 'shop', flow: 'compare' })
-  assert.deepEqual(readHash('#shop/run'), { view: 'shop', flow: 'run' })
-  assert.deepEqual(readHash('#shop/swap'), { view: 'shop', flow: 'swap' })
+test('only the longer forms name a comparison: flows called compare, compare-runs, run or swap still read as flows', () => {
+  for (const flow of ['compare', 'compare-runs', 'run', 'swap']) {
+    assert.deepEqual(readHash(`#shop/${flow}`), { view: 'shop', flow }, flow)
+    assert.deepEqual(readHash(toHash('shop', flow)), { view: 'shop', flow }, flow)
+  }
   // a flow can be called run or swap and still be compared
   assert.deepEqual(readHash('#shop/compare/run/new'), { view: 'shop', compare: { kind: 'flow', a: 'run', b: 'new', mode: 'side' } })
   assert.deepEqual(readHash('#shop/compare/old/swap'), { view: 'shop', compare: { kind: 'flow', a: 'old', b: 'swap', mode: 'side' } })
   assert.deepEqual(readHash('#shop/compare/compare/compare/swap'), { view: 'shop', compare: { kind: 'flow', a: 'compare', b: 'compare', mode: 'swap' } })
-  // a flow called run, swapped: this reading wins over a run called swap, whose side by side address is the same text
-  assert.deepEqual(readHash('#shop/compare/run/new/swap'), { view: 'shop', compare: { kind: 'flow', a: 'run', b: 'new', mode: 'swap' } })
-  assert.deepEqual(readHash('#shop/compare/run/a/b/swap'), { view: 'shop', compare: { kind: 'run', a: 'a', b: 'b', mode: 'swap' } })
+  // no address reads two ways: runs have their own word, so the flow called run, swapped, is only that
+  assert.deepEqual(readHash('#shop/compare/run/a/swap'), { view: 'shop', compare: { kind: 'flow', a: 'run', b: 'a', mode: 'swap' } })
+  assert.deepEqual(readHash('#shop/compare-runs/run/swap'), { view: 'shop', compare: { kind: 'run', a: 'run', b: 'swap', mode: 'side' } })
+  assert.deepEqual(readHash('#shop/compare-runs/a/swap'), { view: 'shop', compare: { kind: 'run', a: 'a', b: 'swap', mode: 'side' } })
+  assert.deepEqual(readHash('#shop/compare-runs/a/b/swap'), { view: 'shop', compare: { kind: 'run', a: 'a', b: 'b', mode: 'swap' } })
+  for (const compare of [{ kind: 'run', a: 'run', b: 'swap', mode: 'swap' }, { kind: 'flow', a: 'run', b: 'swap', mode: 'swap' }, { kind: 'run', a: 'compare', b: 'compare-runs', mode: 'side' }] as Compare[])
+    assert.deepEqual(readHash(toHash('shop', undefined, undefined, undefined, compare)), { view: 'shop', compare })
 })
 
 test('a comparison address that is not one reads as the overview, and nothing throws', () => {
   for (const hash of [
     '#shop/compare/a', '#shop/compare/', '#shop/compare//b', '#shop/compare/Old/new', '#shop/compare/old/New', '#shop/compare/old/new/sway',
-    '#shop/compare/old/new/swap/x', '#shop/compare/run/a/Bad', '#shop/compare/run/a/b/sway', '#shop/compare/run/a/b/swap/x', '#shop/compares/a/b', '#Bad/compare/a/b',
+    '#shop/compare/old/new/swap/x', '#shop/compare/run/a/Bad', '#shop/compare/run/a/b/swap', '#shop/compare-runs/a', '#shop/compare-runs/', '#shop/compare-runs/a/Bad', '#shop/compare-runs/a/b/sway',
+    '#shop/compare-runs/a/b/swap/x', '#shop/compare-runs/a/b/c', '#shop/compares/a/b', '#Bad/compare/a/b', '#Bad/compare-runs/a/b',
   ]) assert.deepEqual(readHash(hash), { view: ROOT }, hash)
   assert.doesNotThrow(() => readHash('#shop/compare/' + 'a/'.repeat(5000)))
 })
@@ -154,7 +160,7 @@ test('picking another flow, run or mode in a comparison replaces the address; op
   assert.equal(addressChange({ ...base, address: '#shop/compare/older/new', compareAt: { ...was, a: 'older' } }), 'replace', 'another flow in the same comparison')
   assert.equal(addressChange({ ...base, current: '#shop', address: '#shop/compare/old/new', compareAt: was }), 'push', 'opening a comparison')
   assert.equal(addressChange({ ...base, current: '#shop/compare/old/new', address: '#shop', compareAt: undefined }), 'push', 'closing it')
-  assert.equal(addressChange({ ...base, current: '#shop/compare/old/new', address: '#shop/compare/run/a/b', compareAt: { kind: 'run', a: 'a', b: 'b', mode: 'side' } }), 'push', 'flows to runs is a new comparison')
+  assert.equal(addressChange({ ...base, current: '#shop/compare/old/new', address: '#shop/compare-runs/a/b', compareAt: { kind: 'run', a: 'a', b: 'b', mode: 'side' } }), 'push', 'flows to runs is a new comparison')
   assert.equal(addressChange({ ...base, address: '#other/compare/old/new', view: 'other', viewId: 'other', compareAt: was }), 'push', 'a zoom with a comparison open is a step')
   assert.equal(addressChange({ ...base, current: '#shop/compare/old/new', address: '#shop/compare/old/new', compareAt: was }), undefined, 'nothing changed')
 })
