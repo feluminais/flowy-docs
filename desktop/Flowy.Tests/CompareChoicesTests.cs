@@ -57,6 +57,51 @@ public class CompareChoicesTests
         }
     }
 
+    private static string? Null(JsonNode? node) => node?.GetValue<string>();
+
+    [Fact]
+    public void Compare_is_blocked_for_runs_as_the_TypeScript_runCompareOff_blocks_it()
+    {
+        var cases = Expected["runRules"]!["off"]!.AsArray();
+        Assert.NotEmpty(cases);
+        foreach (var c in cases)
+        {
+            var runs = Runs.Take(c!["count"]!.GetValue<int>()).ToDictionary(kv => kv.Key, kv => kv.Value);
+            Assert.Equal(Null(c["result"]), CompareChoices.RunOff(runs, c["editing"]!.GetValue<bool>()));
+        }
+    }
+
+    [Fact]
+    public void The_first_linked_run_and_the_runs_that_show_Linked_are_the_ones_the_TypeScript_says()
+    {
+        var rules = Expected["runRules"]!;
+        Assert.NotEmpty(rules["firstLinked"]!.AsArray());
+        foreach (var c in rules["firstLinked"]!.AsArray()) Assert.Equal(Null(c!["result"]), CompareChoices.FirstLinkedRun(Runs, c["id"]!.GetValue<string>()));
+        Assert.Equal(rules["linked"]!.AsArray().Select(n => n!.GetValue<string>()).ToArray(), CompareChoices.LinkedRuns(Runs).Order(StringComparer.Ordinal).ToArray());
+    }
+
+    [Fact]
+    public void A_pair_of_runs_opens_in_the_order_the_TypeScript_runPairOf_gives_and_a_missing_run_cannot_open()
+    {
+        var rules = Expected["runRules"]!;
+        Assert.NotEmpty(rules["pairs"]!.AsArray());
+        foreach (var c in rules["pairs"]!.AsArray())
+            Assert.Equal((c!["a"]!.GetValue<string>(), c["b"]!.GetValue<string>()), CompareChoices.RunPairOf(Runs, c["id"]!.GetValue<string>(), c["other"]!.GetValue<string>()));
+        foreach (var c in rules["openable"]!.AsArray()) Assert.Equal(c!["result"]!.GetValue<bool>(), CompareChoices.Openable(Runs, c["id"]!.GetValue<string>()));
+        Assert.False(CompareChoices.Openable(Runs, "nope"));
+    }
+
+    [Fact]
+    public void An_address_that_cannot_open_says_why_as_the_TypeScript_fromAddress_does()
+    {
+        var addresses = Expected["runRules"]!["addresses"]!.AsArray();
+        Assert.Contains(addresses, c => c!["kind"]!.GetValue<string>() == "run" && c["notice"] is not null);
+        Assert.Contains(addresses, c => c!["kind"]!.GetValue<string>() == "flow" && c["notice"] is null);
+        foreach (var c in addresses)
+            Assert.Equal(Null(c!["notice"]), CompareChoices.FromAddress(Case.Model, Runs, c["kind"]!.GetValue<string>(), c["a"]!.GetValue<string>(), c["b"]!.GetValue<string>()));
+        Assert.Equal("That run can't open.", CompareChoices.FromAddress(Case.Model, Runs, "run", "nope", "nope"));
+    }
+
     [Fact]
     public void A_tag_to_something_missing_is_kept_and_greyed_and_the_id_itself_is_never_listed()
     {

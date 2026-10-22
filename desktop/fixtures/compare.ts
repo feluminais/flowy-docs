@@ -6,7 +6,9 @@ import { setRunCompare } from '../../src/core/perf/comparetag.ts'
 import type { CompareTag } from '../../src/core/compare.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { loadState } from '../../src/node/files.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, keyItems, noteOf, noteOff, orderPair, pairKey, pairOff, removeNeedsConfirm, saveTarget, unsaved } from '../../ui/src/compare.ts'
+import {
+  CHANGE_NAMES, changeOfStop, choicesFor, firstLinkedRun, fromAddress, keyItems, linkedRuns, noteOf, noteOff, openable, orderPair, pairKey, pairOff, removeNeedsConfirm, runCompareOff, runPairOf, saveTarget, unsaved,
+} from '../../ui/src/compare.ts'
 import type { Choice } from '../../ui/src/compare.ts'
 import { crossfadeDuration, FADE_MS, planSwap, SWAP_MS, swapDuration } from '../../ui/src/swap.ts'
 import type { GraphNode } from '../../ui/src/swap.ts'
@@ -66,12 +68,29 @@ export async function dumpCompareChoices(): Promise<unknown> {
     const ids = Object.keys(items)
     return ids.flatMap(a => ids.map(b => ({ a, b, order: orderPair(kind, items, a, b) })))
   }
+  const runIds = Object.keys(runs)
+  const flowIds = Object.keys(model.flows)
+  // A run that is not there, to ask about as well.
+  const asked = [...runIds, 'nope']
+  const none = (id: string | undefined) => id ?? null
   return {
     folder: COMPARE,
-    flows: choices('flow', Object.keys(model.flows)),
-    runs: choices('run', Object.keys(runs)),
+    flows: choices('flow', flowIds),
+    runs: choices('run', runIds),
     flowOrders: orders('flow', model.flows),
     runOrders: orders('run', runs),
+    // The rules the Performance panel and the launch option ask about runs: whether Compare is blocked, the run C opens, which runs show Linked, the pair that opens and what an address says.
+    runRules: {
+      off: [0, 1, 2].flatMap(count => [false, true].map(editing => ({ count, editing, result: runCompareOff(Object.fromEntries(runIds.slice(0, count).map(id => [id, runs[id]])), editing) ?? null }))),
+      firstLinked: runIds.map(id => ({ id, result: none(firstLinkedRun(model, runs, id)) })),
+      linked: [...linkedRuns(runs)].sort(),
+      pairs: runIds.flatMap(id => runIds.map(other => { const c = runPairOf(runs, id, other); return { id, other, a: c.a, b: c.b } })),
+      openable: asked.map(id => ({ id, result: openable(runs, id) })),
+      addresses: [
+        ...asked.flatMap(a => asked.map(b => ({ kind: 'run', a, b, notice: none(fromAddress(model, runs, { kind: 'run', a, b, mode: 'side' }).notice) }))),
+        ...[...flowIds, 'nope'].flatMap(a => [...flowIds, 'nope'].map(b => ({ kind: 'flow', a, b, notice: none(fromAddress(model, runs, { kind: 'flow', a, b, mode: 'side' }).notice) }))),
+      ],
+    },
   }
 }
 

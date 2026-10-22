@@ -1849,5 +1849,1390 @@
         "same"
       ]
     }
-  ]
+  ],
+  "runRules": {
+    "off": [
+      {
+        "count": 0,
+        "editing": false,
+        "result": "No other run"
+      },
+      {
+        "count": 0,
+        "editing": true,
+        "result": "Not while editing"
+      },
+      {
+        "count": 1,
+        "editing": false,
+        "result": "No other run"
+      },
+      {
+        "count": 1,
+        "editing": true,
+        "result": "Not while editing"
+      },
+      {
+        "count": 2,
+        "editing": false,
+        "result": null
+      },
+      {
+        "count": 2,
+        "editing": true,
+        "result": "Not while editing"
+      }
+    ],
+    "firstLinked": [
+      {
+        "id": "after",
+        "result": "base"
+      },
+      {
+        "id": "bad-shape",
+        "result": null
+      },
+      {
+        "id": "bare",
+        "result": null
+      },
+      {
+        "id": "base",
+        "result": "after"
+      },
+      {
+        "id": "lost",
+        "result": null
+      },
+      {
+        "id": "noted",
+        "result": "base"
+      },
+      {
+        "id": "same",
+        "result": null
+      }
+    ],
+    "linked": [
+      "after",
+      "base",
+      "noted"
+    ],
+    "pairs": [
+      {
+        "id": "after",
+        "other": "after",
+        "a": "after",
+        "b": "after"
+      },
+      {
+        "id": "after",
+        "other": "bad-shape",
+        "a": "after",
+        "b": "bad-shape"
+      },
+      {
+        "id": "after",
+        "other": "bare",
+        "a": "after",
+        "b": "bare"
+      },
+      {
+        "id": "after",
+        "other": "base",
+        "a": "base",
+        "b": "after"
+      },
+      {
+        "id": "after",
+        "other": "lost",
+        "a": "after",
+        "b": "lost"
+      },
+      {
+        "id": "after",
+        "other": "noted",
+        "a": "after",
+        "b": "noted"
+      },
+      {
+        "id": "after",
+        "other": "same",
+        "a": "after",
+        "b": "same"
+      },
+      {
+        "id": "bad-shape",
+        "other": "after",
+        "a": "bad-shape",
+        "b": "after"
+      },
+      {
+        "id": "bad-shape",
+        "other": "bad-shape",
+        "a": "bad-shape",
+        "b": "bad-shape"
+      },
+      {
+        "id": "bad-shape",
+        "other": "bare",
+        "a": "bad-shape",
+        "b": "bare"
+      },
+      {
+        "id": "bad-shape",
+        "other": "base",
+        "a": "bad-shape",
+        "b": "base"
+      },
+      {
+        "id": "bad-shape",
+        "other": "lost",
+        "a": "bad-shape",
+        "b": "lost"
+      },
+      {
+        "id": "bad-shape",
+        "other": "noted",
+        "a": "bad-shape",
+        "b": "noted"
+      },
+      {
+        "id": "bad-shape",
+        "other": "same",
+        "a": "bad-shape",
+        "b": "same"
+      },
+      {
+        "id": "bare",
+        "other": "after",
+        "a": "bare",
+        "b": "after"
+      },
+      {
+        "id": "bare",
+        "other": "bad-shape",
+        "a": "bare",
+        "b": "bad-shape"
+      },
+      {
+        "id": "bare",
+        "other": "bare",
+        "a": "bare",
+        "b": "bare"
+      },
+      {
+        "id": "bare",
+        "other": "base",
+        "a": "bare",
+        "b": "base"
+      },
+      {
+        "id": "bare",
+        "other": "lost",
+        "a": "bare",
+        "b": "lost"
+      },
+      {
+        "id": "bare",
+        "other": "noted",
+        "a": "bare",
+        "b": "noted"
+      },
+      {
+        "id": "bare",
+        "other": "same",
+        "a": "bare",
+        "b": "same"
+      },
+      {
+        "id": "base",
+        "other": "after",
+        "a": "base",
+        "b": "after"
+      },
+      {
+        "id": "base",
+        "other": "bad-shape",
+        "a": "base",
+        "b": "bad-shape"
+      },
+      {
+        "id": "base",
+        "other": "bare",
+        "a": "base",
+        "b": "bare"
+      },
+      {
+        "id": "base",
+        "other": "base",
+        "a": "base",
+        "b": "base"
+      },
+      {
+        "id": "base",
+        "other": "lost",
+        "a": "base",
+        "b": "lost"
+      },
+      {
+        "id": "base",
+        "other": "noted",
+        "a": "base",
+        "b": "noted"
+      },
+      {
+        "id": "base",
+        "other": "same",
+        "a": "base",
+        "b": "same"
+      },
+      {
+        "id": "lost",
+        "other": "after",
+        "a": "lost",
+        "b": "after"
+      },
+      {
+        "id": "lost",
+        "other": "bad-shape",
+        "a": "lost",
+        "b": "bad-shape"
+      },
+      {
+        "id": "lost",
+        "other": "bare",
+        "a": "lost",
+        "b": "bare"
+      },
+      {
+        "id": "lost",
+        "other": "base",
+        "a": "lost",
+        "b": "base"
+      },
+      {
+        "id": "lost",
+        "other": "lost",
+        "a": "lost",
+        "b": "lost"
+      },
+      {
+        "id": "lost",
+        "other": "noted",
+        "a": "lost",
+        "b": "noted"
+      },
+      {
+        "id": "lost",
+        "other": "same",
+        "a": "lost",
+        "b": "same"
+      },
+      {
+        "id": "noted",
+        "other": "after",
+        "a": "noted",
+        "b": "after"
+      },
+      {
+        "id": "noted",
+        "other": "bad-shape",
+        "a": "noted",
+        "b": "bad-shape"
+      },
+      {
+        "id": "noted",
+        "other": "bare",
+        "a": "noted",
+        "b": "bare"
+      },
+      {
+        "id": "noted",
+        "other": "base",
+        "a": "base",
+        "b": "noted"
+      },
+      {
+        "id": "noted",
+        "other": "lost",
+        "a": "noted",
+        "b": "lost"
+      },
+      {
+        "id": "noted",
+        "other": "noted",
+        "a": "noted",
+        "b": "noted"
+      },
+      {
+        "id": "noted",
+        "other": "same",
+        "a": "noted",
+        "b": "same"
+      },
+      {
+        "id": "same",
+        "other": "after",
+        "a": "same",
+        "b": "after"
+      },
+      {
+        "id": "same",
+        "other": "bad-shape",
+        "a": "same",
+        "b": "bad-shape"
+      },
+      {
+        "id": "same",
+        "other": "bare",
+        "a": "same",
+        "b": "bare"
+      },
+      {
+        "id": "same",
+        "other": "base",
+        "a": "same",
+        "b": "base"
+      },
+      {
+        "id": "same",
+        "other": "lost",
+        "a": "same",
+        "b": "lost"
+      },
+      {
+        "id": "same",
+        "other": "noted",
+        "a": "same",
+        "b": "noted"
+      },
+      {
+        "id": "same",
+        "other": "same",
+        "a": "same",
+        "b": "same"
+      }
+    ],
+    "openable": [
+      {
+        "id": "after",
+        "result": true
+      },
+      {
+        "id": "bad-shape",
+        "result": true
+      },
+      {
+        "id": "bare",
+        "result": true
+      },
+      {
+        "id": "base",
+        "result": true
+      },
+      {
+        "id": "lost",
+        "result": true
+      },
+      {
+        "id": "noted",
+        "result": true
+      },
+      {
+        "id": "same",
+        "result": true
+      },
+      {
+        "id": "nope",
+        "result": false
+      }
+    ],
+    "addresses": [
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "after",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "base",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "lost",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "noted",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "same",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "after",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "after",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "base",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "lost",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "noted",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "same",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bad-shape",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "after",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "base",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "lost",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "noted",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "same",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "bare",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "after",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "base",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "lost",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "noted",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "same",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "base",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "after",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "base",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "lost",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "noted",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "same",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "lost",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "after",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "base",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "lost",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "noted",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "same",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "noted",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "after",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "base",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "lost",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "noted",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "same",
+        "notice": null
+      },
+      {
+        "kind": "run",
+        "a": "same",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "after",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "bad-shape",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "bare",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "base",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "lost",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "noted",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "same",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "run",
+        "a": "nope",
+        "b": "nope",
+        "notice": "That run can't open."
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bad-shape",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "bare",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v2",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout-v3",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "checkout",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "ghost",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-a",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "mutual-b",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "bad-shape",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "bare",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "checkout-v2",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "checkout-v3",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "checkout",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "ghost",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "mutual-a",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "mutual-b",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "selfish",
+        "notice": null
+      },
+      {
+        "kind": "flow",
+        "a": "selfish",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "bad-shape",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "bare",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "checkout-v2",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "checkout-v3",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "checkout",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "ghost",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "mutual-a",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "mutual-b",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "selfish",
+        "notice": "That flow can't play yet."
+      },
+      {
+        "kind": "flow",
+        "a": "nope",
+        "b": "nope",
+        "notice": "That flow can't play yet."
+      }
+    ]
+  }
 }
