@@ -5235,6 +5235,1949 @@
       "playing": {
         "ends": [
           [
+            "ordering",
+            "dispatch"
+          ],
+          [
+            "dispatch",
+            "fleet-db"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "courier-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "lit"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "tracking",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "courier",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "ordering",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "courier courier-app",
+          "source": "courier",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch ordering",
+          "source": "dispatch",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch fleet-db",
+          "source": "dispatch",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch mapbox",
+          "source": "dispatch",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch notifications",
+          "source": "dispatch",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app dispatch",
+          "source": "courier-app",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app tracking",
+          "source": "courier-app",
+          "target": "tracking",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app ordering",
+          "source": "courier-app",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app mapbox",
+          "source": "courier-app",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking fleet-db",
+          "source": "tracking",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking ordering",
+          "source": "tracking",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "ordering",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "playing": {
+        "ends": [
+          [
+            "ordering",
+            "dispatch"
+          ],
+          [
+            "dispatch",
+            "fleet-db"
+          ]
+        ],
+        "step": 1
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "courier-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [
+            "lit"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "tracking",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "courier",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "ordering",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "courier courier-app",
+          "source": "courier",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch ordering",
+          "source": "dispatch",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch fleet-db",
+          "source": "dispatch",
+          "target": "fleet-db",
+          "label": "finds idle couriers",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch mapbox",
+          "source": "dispatch",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "dispatch notifications",
+          "source": "dispatch",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app dispatch",
+          "source": "courier-app",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app tracking",
+          "source": "courier-app",
+          "target": "tracking",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app ordering",
+          "source": "courier-app",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app mapbox",
+          "source": "courier-app",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking fleet-db",
+          "source": "tracking",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "tracking ordering",
+          "source": "tracking",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "playing": {
+        "ends": [
+          [
+            "ordering",
+            "dispatch"
+          ],
+          [
+            "dispatch",
+            "fleet-db"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "courier-app",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "dispatch",
+          "classes": [],
+          "inside": 3
+        },
+        {
+          "id": "tracking",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "courier",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "ordering",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "courier courier-app",
+          "source": "courier",
+          "target": "courier-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch ordering",
+          "source": "dispatch",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch fleet-db",
+          "source": "dispatch",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch mapbox",
+          "source": "dispatch",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "dispatch notifications",
+          "source": "dispatch",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app dispatch",
+          "source": "courier-app",
+          "target": "dispatch",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app tracking",
+          "source": "courier-app",
+          "target": "tracking",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app ordering",
+          "source": "courier-app",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app mapbox",
+          "source": "courier-app",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "tracking fleet-db",
+          "source": "tracking",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "tracking ordering",
+          "source": "tracking",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "courier-app",
+        "dispatch",
+        "tracking",
+        "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "customer-app",
+            "order-api"
+          ],
+          [
+            "customer-app",
+            "customer-app"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": "REST",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "customer-app",
+            "order-api"
+          ],
+          [
+            "customer-app",
+            "customer-app"
+          ]
+        ],
+        "step": 1
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [
+            "dim"
+          ],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "customer-app",
+            "order-api"
+          ],
+          [
+            "customer-app",
+            "customer-app"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "playing": {
+        "ends": [
+          [
+            "matcher",
+            "eta"
+          ],
+          [
+            "eta",
+            "mapbox"
+          ],
+          [
+            "eta",
+            "eta"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "matcher",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "eta",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "offers",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "matcher fleet-db",
+          "source": "matcher",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "matcher eta",
+          "source": "matcher",
+          "target": "eta",
+          "label": "asks who is quickest",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "matcher offers",
+          "source": "matcher",
+          "target": "offers",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "eta mapbox",
+          "source": "eta",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "offers notifications",
+          "source": "offers",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "matcher",
+        "eta",
+        "offers"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "playing": {
+        "ends": [
+          [
+            "matcher",
+            "eta"
+          ],
+          [
+            "eta",
+            "mapbox"
+          ],
+          [
+            "eta",
+            "eta"
+          ]
+        ],
+        "step": 1
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "matcher",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "eta",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "offers",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "matcher fleet-db",
+          "source": "matcher",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "matcher eta",
+          "source": "matcher",
+          "target": "eta",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "matcher offers",
+          "source": "matcher",
+          "target": "offers",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "eta mapbox",
+          "source": "eta",
+          "target": "mapbox",
+          "label": "travel times",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "offers notifications",
+          "source": "offers",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "matcher",
+        "eta",
+        "offers"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "playing": {
+        "ends": [
+          [
+            "matcher",
+            "eta"
+          ],
+          [
+            "eta",
+            "mapbox"
+          ],
+          [
+            "eta",
+            "eta"
+          ]
+        ],
+        "step": 2
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "matcher",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "eta",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "offers",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "matcher fleet-db",
+          "source": "matcher",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "matcher eta",
+          "source": "matcher",
+          "target": "eta",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "matcher offers",
+          "source": "matcher",
+          "target": "offers",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "eta mapbox",
+          "source": "eta",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "offers notifications",
+          "source": "offers",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "matcher",
+        "eta",
+        "offers"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "playing": {
+        "ends": [
+          [
+            "matcher",
+            "eta"
+          ],
+          [
+            "eta",
+            "mapbox"
+          ],
+          [
+            "eta",
+            "eta"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "matcher",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "eta",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "offers",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "fleet-db",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 2
+        }
+      ],
+      "edges": [
+        {
+          "id": "matcher fleet-db",
+          "source": "matcher",
+          "target": "fleet-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "matcher eta",
+          "source": "matcher",
+          "target": "eta",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "matcher offers",
+          "source": "matcher",
+          "target": "offers",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "eta mapbox",
+          "source": "eta",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "offers notifications",
+          "source": "offers",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "matcher",
+        "eta",
+        "offers"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "playing": {
+        "ends": [
+          [
             "dispatch",
             "notifications"
           ],
@@ -6032,6 +7975,896 @@
         "dispatch",
         "tracking",
         "fleet-db"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "customer-app",
+            "order-api"
+          ],
+          [
+            "order-api",
+            "orders-db"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": "REST",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "customer-app",
+            "order-api"
+          ],
+          [
+            "order-api",
+            "orders-db"
+          ]
+        ],
+        "step": 1
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": "5 connections",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "customer-app",
+            "order-api"
+          ],
+          [
+            "order-api",
+            "orders-db"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
       ]
     },
     {
@@ -10559,6 +13392,1238 @@
           [
             "order-api",
             "stripe"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "stripe",
+            "order-api"
+          ],
+          [
+            "order-api",
+            "orders-db"
+          ],
+          [
+            "order-api",
+            "order-api"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "stripe",
+            "order-api"
+          ],
+          [
+            "order-api",
+            "orders-db"
+          ],
+          [
+            "order-api",
+            "order-api"
+          ]
+        ],
+        "step": 1
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": "5 connections",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "stripe",
+            "order-api"
+          ],
+          [
+            "order-api",
+            "orders-db"
+          ],
+          [
+            "order-api",
+            "order-api"
+          ]
+        ],
+        "step": 2
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "customer-app",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "web",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "kitchen-tablet",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "order-api",
+          "classes": [
+            "lit"
+          ],
+          "inside": 6
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "restaurant",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        }
+      ],
+      "edges": [
+        {
+          "id": "customer customer-app",
+          "source": "customer",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer web",
+          "source": "customer",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "restaurant kitchen-tablet",
+          "source": "restaurant",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app order-api",
+          "source": "customer-app",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "web order-api",
+          "source": "web",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "kitchen-tablet order-api",
+          "source": "kitchen-tablet",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api menu-cache",
+          "source": "order-api",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api orders-db",
+          "source": "order-api",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api mapbox",
+          "source": "order-api",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api stripe",
+          "source": "order-api",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api events",
+          "source": "order-api",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "order-api notifications",
+          "source": "order-api",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery events",
+          "source": "delivery",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery order-api",
+          "source": "delivery",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery customer-app",
+          "source": "delivery",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery web",
+          "source": "delivery",
+          "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice order-api",
+          "source": "backoffice",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events backoffice",
+          "source": "events",
+          "target": "backoffice",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "customer-app",
+        "web",
+        "kitchen-tablet",
+        "order-api",
+        "orders-db",
+        "menu-cache",
+        "events"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "playing": {
+        "ends": [
+          [
+            "stripe",
+            "order-api"
+          ],
+          [
+            "order-api",
+            "orders-db"
+          ],
+          [
+            "order-api",
+            "order-api"
           ]
         ]
       },

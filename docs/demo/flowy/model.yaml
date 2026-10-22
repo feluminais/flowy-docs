@@ -10,6 +10,7 @@ objects:
   courier:
     type: actor
     name: Courier
+    icon: truck
     description: Rides or drives the order from the restaurant to the customer's door.
   support:
     type: actor
@@ -42,10 +43,9 @@ objects:
     type: system
     name: Stripe
     external: true
-    description: |
-      Takes card payments and sends refunds. Plum never sees a card number.
-
-      [Provider status](https://status.stripe.com)
+    description: Takes card payments and sends refunds. Plum never sees a card number.
+    links:
+      - { url: "https://status.stripe.com", title: Provider status }
   twilio:
     type: system
     name: Twilio
@@ -56,12 +56,16 @@ objects:
     name: Mapbox
     external: true
     description: Maps, address lookup and travel times.
+    links:
+      - { url: "https://docs.mapbox.com/api/overview/#rate-limits", title: Rate limits }
   customer-app:
     type: app
     in: ordering
     name: Customer app
     tech: React Native
     code: [apps/customer/]
+    links:
+      - { url: apps/customer/README.md, title: Build and release notes }
     description: |
       The app on the customer's phone. Browse, order, pay and watch the courier arrive.
 
@@ -276,6 +280,7 @@ objects:
     type: store
     in: notifications
     name: Message templates
+    shape: document
     tech: Postgres
     description: The wording of every message, per language.
   admin:
