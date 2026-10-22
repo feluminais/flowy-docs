@@ -52,7 +52,7 @@ reads the way the code works.
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 
-**The tools.** The server has seventeen. What `get_model` shows can be sent straight back to the tool that writes it.
+**The tools.** The server has eighteen. What `get_model` shows can be sent straight back to the tool that writes it.
 
 | Tool | Does |
 | --- | --- |
@@ -67,8 +67,9 @@ notes in an object's `description` instead.
 | `put_failures`, `delete_failures` | A whole failure analysis, or removes it |
 | `put_failure`, `delete_failure` | One mode of an analysis, or removes it. `run` must be one of the runs `get_model` lists |
 | `put_icon`, `delete_icon` | Your own icon, or removes one nothing uses |
+| `set_compare` | The `compare` of a flow or a run: the older one it is compared with, and a note. Leave `with` out to remove it |
 
-Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those) and `layout.yaml`.
+Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those, and `set_compare` is the one thing over MCP that changes a run) and `layout.yaml`.
 
 Besides tools, the server offers the guides as resources (`flowy://docs/guide.md` says which page holds what, then `format.md`, `writing.md` and one page for each part, which a client can read when
 it has the clone) and the rules for the parts most requests leave out (`flowy://rules/flows`, `data`, `code` and `failures`) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
