@@ -36,6 +36,7 @@ internal readonly record struct KeyState(
     bool Recording,
     bool Flow, // a flow is playing
     bool Compare, // two flows are compared: the keys of a flow go to the pane last clicked
+    bool Swap, // ... and set to Swap, one canvas flipping between them: the keys of a flow go to the flow on show
     bool PerfOpen,
     bool HasLoad,
     bool FailuresOpen,
@@ -77,6 +78,10 @@ internal interface IKeyActions
     void ToggleCompare();
 
     void CloseCompare();
+
+    /// <summary>Swap: puts the other flow of the comparison on show.</summary>
+    void SwapCompare();
+
     void ClosePanel();
     void Up();
     void ToggleEdit();
@@ -172,6 +177,8 @@ internal static class KeyMap
         Do("flow-replay", "R", (p, s) => (s.Flow || s.Compare) && p.Tap(PhysicalKey.R), (_, _, a) => a.FlowReplay(), Flows("Replay the step")),
         // In edit mode the key is still taken, to say why it does nothing there.
         Do("compare", "C", (p, s) => p.Tap(PhysicalKey.C) && (s.Flow || s.Compare || s.Editing), (_, _, a) => a.ToggleCompare(), Flows("Compare with another flow, or close the comparison")),
+        // Only in Swap: side by side the key is not taken.
+        Do("swap", "X", (p, s) => p.Tap(PhysicalKey.X) && s.Swap, (_, _, a) => a.SwapCompare(), Flows("Swap to the other flow of a comparison")),
 
         // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
         new("enter", "Enter", (p, s) => p.Key == Key.Enter && !s.Recording, (_, _, a) => a.Enter(), Reading("Open the selected shape")),
@@ -259,7 +266,7 @@ internal static class KeyMap
     private static readonly IReadOnlyDictionary<HelpGroup, (string Id, string Keys, string What)[]> Order = new Dictionary<HelpGroup, (string, string, string)[]>
     {
         [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("perf"), R("failures"), R("edit"), R("shortcuts")],
-        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-replay"), R("compare"), R("escape")],
+        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
         [HelpGroup.Performance] = [R("perf-step"), R("perf-ends"), R("perf-ramp"), R("escape")],
         [HelpGroup.Failures] = [R("failure-step")],
         [HelpGroup.Editing] =

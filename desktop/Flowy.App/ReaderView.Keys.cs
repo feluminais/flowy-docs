@@ -26,7 +26,7 @@ internal sealed partial class ReaderView
     /// <summary>What the keys' conditions ask about, as the reader is now. <paramref name="inNavigator"/>: the press came from inside the navigator.</summary>
     private KeyState KeyStateNow(bool inNavigator) => new(
         Editing, ReadOnly, _undoMove, _search is not null, _shortcuts is not null, _side is Side.Boxes, Recording is not null,
-        PlayingFlow() is not null, Comparing, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
+        PlayingFlow() is not null, Comparing, Comparing && _compare is { Mode: "swap" }, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
         ShownTab is not null, _navUsed, inNavigator, RightOpen, CurrentView() != Names.Root);
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
@@ -94,6 +94,8 @@ internal sealed partial class ReaderView
 
         public void CloseCompare() => r.CloseCompare();
 
+        public void SwapCompare() => r.SwapCompare();
+
         public void ToggleCompare() => r.ToggleCompare();
 
         public void Up() => r.Up();
@@ -126,31 +128,31 @@ internal sealed partial class ReaderView
         // While two flows are compared the keys of a flow act on the pane that has the focus.
         public void FlowStep(int by)
         {
-            if (r._compareView is { } view && r.Comparing) view.FocusedPane.Step(by);
+            if (r._compareView is { } view && r.Comparing) view.Target.Step(by);
             else r.StepTo(r.StopIndex() + by);
         }
 
         public void FlowFirst()
         {
-            if (r._compareView is { } view && r.Comparing) view.FocusedPane.First();
+            if (r._compareView is { } view && r.Comparing) view.Target.First();
             else r.StepTo(0);
         }
 
         public void FlowLast()
         {
-            if (r._compareView is { } view && r.Comparing) view.FocusedPane.Last();
+            if (r._compareView is { } view && r.Comparing) view.Target.Last();
             else if (r.PlayingFlow() is { } flow) r.StepTo(r.StopsOf(flow.Flow).Count - 1);
         }
 
         public void FlowPlay()
         {
-            if (r._compareView is { } view && r.Comparing) view.FocusedPane.TogglePlay();
+            if (r._compareView is { } view && r.Comparing) view.Target.TogglePlay();
             else r._playback.ToggleAuto();
         }
 
         public void FlowReplay()
         {
-            if (r._compareView is { } view && r.Comparing) view.FocusedPane.Replay();
+            if (r._compareView is { } view && r.Comparing) view.Target.Replay();
             else r._playback.Replay();
         }
 

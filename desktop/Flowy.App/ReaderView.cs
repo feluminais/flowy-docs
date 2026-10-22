@@ -738,7 +738,7 @@ internal sealed partial class ReaderView : Grid
 
     public void FitNow()
     {
-        if (Comparing) _compareView?.FocusedPane.Fit(); // F fits the pane that has the focus
+        if (Comparing) _compareView?.Target.Fit(); // F fits the pane that has the focus, or the canvas of Swap
         else _canvas.Fit(RightOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
     }
 
