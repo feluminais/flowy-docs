@@ -17,13 +17,19 @@
   <a href="https://github.com/feluminais/flowy-docs/issues">Issues</a>
 </p>
 
-![Flowy Docs on Plum, a food-delivery service: the Ordering view with a store's tables open in its panel, search, a flow playing, the shape pickers of edit mode, a load-test replay, and the dark theme behind](docs/images/hero.png)
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/zoom-dark.gif">
+    <img alt="The browser version on Plum, a food-delivery service: zooming into Ordering and then Order API, back out, a flow playing step by step, a sideways move to Delivery, and a load test stepping up from 100 to 1200 orders a minute until Dispatch turns red" src="docs/images/zoom-light.gif" width="900">
+  </picture>
+</p>
 
 Flowy Docs draws a system as shapes you zoom into: people, systems, apps, stores and components, the connections between
 them, and step-by-step flows. The model is plain YAML in a `flowy/` folder, so it goes through git and review like the code it
 describes. You read it in the desktop app, a browser or VS Code. Claude can write it, or you can draw it on the canvas.
 
-The screenshots show Plum, a made-up delivery service. Its model is in [docs/demo/flowy](docs/demo/flowy).
+The animation is the browser version and the screenshots are the desktop app. Both show Plum, a made-up delivery service whose
+model is in [docs/demo/flowy](docs/demo/flowy).
 
 ## Features
 
@@ -39,18 +45,7 @@ The screenshots show Plum, a made-up delivery service. Its model is in [docs/dem
 | [Edit](docs/guide.md#edit-it) | Drag, connect and record flows on the canvas. Every save goes through the same checks |
 | [Share](docs/guide.md#share-it) | Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request |
 
-<table>
-  <tr>
-    <td width="33%"><img src="docs/images/desktop-flow.png" alt="A flow playing: Customer app to Order API is lit, and a card says what happens"></td>
-    <td width="33%"><img src="docs/images/desktop-performance.png" alt="The Delivery view at 900 orders a minute with the Performance panel open"></td>
-    <td width="33%"><img src="docs/images/desktop-failures.png" alt="The Failures tab beside the Ordering view, with Order API and the line to Stripe marked"></td>
-  </tr>
-  <tr>
-    <td align="center">Flows</td>
-    <td align="center">Performance</td>
-    <td align="center">Failure modes</td>
-  </tr>
-</table>
+![Flowy Docs on Plum, a food-delivery service: the Ordering view with a store's tables open in its panel, search, a flow playing, the shape pickers of edit mode, a load-test replay, and the dark theme behind](docs/images/hero.png)
 
 ## Install
 

@@ -45,8 +45,22 @@ density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size
 `--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, `--view delivery --run together --tab performance --at 800,400` (1280 by 760) for `desktop-sources.png`, `--view ordering --tab failures --select stripe-timeout` (1280 by 1000) for the failures one, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
-`docs/images/hero.png`, the picture at the top of the README, is cut from those screenshots. After retaking them, run
+`docs/images/hero.png`, the collage under the README's feature table, is cut from those screenshots. After retaking them, run
 `uv run --with pillow docs/images/hero.py` to build it again.
+
+`docs/images/zoom-light.gif` and `zoom-dark.gif`, the animation at the top of the README (GitHub shows the dark one in its dark theme), are recorded
+from the browser canvas on the demo by a script in headless Chrome, so no window opens. Build first, then run it:
+
+```bash
+npm run build
+npm install --no-save puppeteer-core
+node docs/images/record-zoom.mjs
+```
+
+It needs ffmpeg on the PATH and Chrome or Edge (`CHROME` names the browser if it isn't found). The story is the `await` lines in `record-zoom.mjs`:
+zoom into Ordering and Order API, back out, play Customer places an order, zoom sideways to Delivery, step up the Dinner rush run, and
+zoom out to the overview so the loop is seamless. Retake it when the canvas moves or looks different, and look at both GIFs before you commit,
+since each is about 4 MB.
 
 `docs/images/failures.png` and `docs/images/yaml.png` are the browser version in the light theme at twice the pixel density, in a 1200 by 800
 and a 1200 by 760 window. Serve a copy of `docs/demo` (`FLOWY_STATE_DIR=<empty folder> node src/cli.ts --dir <copy>/flowy --no-open`, so the
