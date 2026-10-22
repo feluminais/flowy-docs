@@ -16,6 +16,7 @@
 | P | Autoplay: step through the flow on its own, or pause (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own |
 | R | Replay the step's animation (in a comparison, on the pane you last clicked) |
 | C | Compare the flow playing with another flow, side by side, or close the comparison. F fits the pane you last clicked. In a comparison the diagrams keep their zoom when the window changes size, so press F to fit the focused pane (browser) |
+| X | Swap to the other flow of a comparison, when it is set to Swap. Swap flips one canvas between the two flows: shapes both flows draw glide to their new place, the others fade, and each flow keeps its step. The keys above act on the flow on show (browser) |
 | T | The Performance tab, where a folder has load-test runs |
 | M | The Failures tab, where a folder has failure analyses |
 | Y | The YAML tab: the files as text, and every change to them (browser) |

@@ -1093,6 +1093,23 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 /* The zoom buttons sit at the pane's own corner, not beside the navigator. */
 .canvas.nav .compare .react-flow__controls { margin-left: 16px; }
 .pane .player { bottom: 12px; width: calc(100% - 24px); max-width: 460px; max-height: calc(100% - 24px); overflow: auto; }
+/*
+ * Swap: one pane at full width. A swap puts both flows' boxes on the one canvas for a moment (see SwapCanvas): the boxes both flows draw glide on a transition of their transform,
+ * the others fade (the fade is on the box inside the node, as the node's own opacity is the diagram's dimming), and the lines fade out before the boxes move and back in once they
+ * have settled. The transitions exist only while a swap runs, so nothing else on the canvas is slowed down.
+ */
+.compare .panes.one { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.compare-bar .sep { align-self: center; width: 1px; height: 16px; margin: 0 6px; background: var(--line); }
+.compare-bar .flow-name { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.swap-canvas .react-flow__edges, .swap-canvas .react-flow__edgelabel-renderer { transition: opacity var(--fade-ms) ease; }
+.swap-canvas.swapping .react-flow__edges, .swap-canvas.swapping .react-flow__edgelabel-renderer { opacity: 0; }
+.swap-canvas.swapping .react-flow__node { transition: transform var(--swap-ms) ease; }
+.swap-canvas.swapping .react-flow__node > * { transition: opacity var(--swap-ms) ease; }
+.swap-canvas .react-flow__node.swap-hide { pointer-events: none; }
+.swap-canvas .react-flow__node.swap-hide > * { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .swap-canvas .react-flow__edges, .swap-canvas .react-flow__edgelabel-renderer, .swap-canvas .react-flow__node, .swap-canvas .react-flow__node > * { transition: none !important; }
+}
 /* The popover of the Compare button: over the player, with the flows it is linked to first and a field to find any other. */
 .cpick { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; box-sizing: border-box; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003; }
 .cpick ul { margin: 0; padding: 0; list-style: none; }

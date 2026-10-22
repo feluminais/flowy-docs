@@ -9,7 +9,7 @@ const press = (key: string, more: Partial<KeyEvent> = {}): KeyEvent => ({
 })
 
 const nothing: KeyState = {
-  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, halfStep: false, panel: false, inside: false, recording: false,
+  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, swap: false, halfStep: false, panel: false, inside: false, recording: false,
   perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, showFlows: false, showYaml: false, canPerf: false,
 }
 
@@ -200,6 +200,21 @@ test('with two flows side by side, the keys of a flow reach the actions that act
   assert.equal(idOf(press('ArrowRight'), { ...side, perfOpen: true }), 'perf-step', 'a load-test run still comes first')
 })
 
+test('X swaps the flow on show, only in a comparison set to Swap', () => {
+  const swap = { compare: true, swap: true }
+  assert.equal(idOf(press('x'), swap), 'swap')
+  assert.deepEqual(reach(press('x'), swap).calls, ['swap'])
+  assert.equal(idOf(press('x', { code: 'KeyX', key: 'ч' }), swap), 'swap', 'a Cyrillic layout')
+  assert.equal(idOf(press('x'), { compare: true }), undefined, 'side by side leaves X to the browser')
+  assert.equal(reach(press('x'), { compare: true }).handled, false)
+  assert.equal(idOf(press('x'), { flow: true }), undefined, 'a single flow has nothing to swap')
+  assert.equal(idOf(press('x')), undefined)
+  assert.equal(idOf(press('x', { repeat: true }), swap), undefined, 'a held key does not flip back and forth')
+  assert.equal(idOf(press('x', { ctrlKey: true }), swap), undefined, "Ctrl+X is the browser's cut")
+  assert.equal(idOf(press('x', { altKey: true }), swap), undefined)
+  assert.equal(idOf(press('ArrowRight'), swap), 'flow-step', 'the keys of a flow still work in Swap')
+})
+
 test('Enter opens the box in focus, unless a button, link or summary has it, or a flow is being recorded', () => {
   const button = { closest: (selector: string) => (selector.includes('button') ? {} : null) }
   const box = { closest: () => null }
@@ -298,6 +313,7 @@ test('the shortcut list says what it said before the table was built from the ke
     ['P', 'Step through the flow on its own, or pause'],
     ['R', 'Replay the step'],
     ['C', 'Compare with another flow, or close the comparison'],
+    ['X', 'Swap to the other flow of a comparison'],
     ['Esc', 'Stop the flow'],
   ])
   assert.deepEqual(rows.performance, [

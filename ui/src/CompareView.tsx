@@ -9,9 +9,10 @@ import { CompareBar } from './CompareBar.tsx'
 import { ComparePane } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
 import { lineId } from './graph.ts'
+import { SwapCanvas } from './SwapCanvas.tsx'
 
-/** What the reader can reach in the view: the pane that has the focus, which the keys of a flow act on. */
-export type CompareHandle = { focused(): PaneHandle | null }
+/** What the reader can reach in the view: the pane that has the focus (in Swap, the flow on show), which the keys of a flow act on, and the swap itself. */
+export type CompareHandle = { focused(): PaneHandle | null; swap(): void }
 
 type Shown = { kind: string; id?: string; from?: string; to?: string; view?: string }
 
@@ -42,6 +43,7 @@ type Props = {
 /**
  * Two flows side by side, each in a pane of its own, under the bar of the comparison. Every pane works alone (zoom, pan and play); they share the one Details panel, which shows
  * the last thing clicked in either. One pane has the focus (it is outlined): the first to start with, then the one last clicked or tabbed into. The keys of a flow act on it.
+ * In Swap there is one canvas instead (SwapCanvas), showing one flow at a time; the keys of a flow act on that one.
  */
 export function CompareView({ model, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onEmpty, start, onMode, onFlip, onClose, ref }: Props) {
   // A pane is keyed by its flow, so swapping the sides moves the panes (React moves their elements) instead of unmounting them: each keeps its place in its flow and its zoom.
@@ -53,28 +55,47 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
   const [last, setLast] = useState<string>() // the pane the Details panel was opened from
   const focused = Math.max(0, keys.indexOf(focusKey ?? keys[0])) as 0 | 1
   const refs = [useRef<PaneHandle>(null), useRef<PaneHandle>(null)]
-  useImperativeHandle(ref, () => ({ focused: () => refs[focused].current }))
+  // In Swap the flows keep a place that does not change when the sides swap (the sorted order), so each keeps its player; `on` is the one on show, as a place in it. It starts at
+  // the flow whose pane had the focus.
+  const places = flows[0] <= flows[1] ? flows : [flows[1], flows[0]]
+  const placeOf = (side: 0 | 1): 0 | 1 => (flows[0] === flows[1] ? side : flows[side] === places[0] ? 0 : 1)
+  const [on, setOn] = useState<0 | 1>(() => placeOf(focused))
+  const swapRef = useRef<PaneHandle>(null)
+  const swap = compare.mode === 'swap'
+  useImperativeHandle(ref, () => ({ focused: () => (swap ? swapRef.current : refs[focused].current), swap: () => setOn(i => (i === 0 ? 1 : 0)) }))
   const pick = (key: string, picked: Picked) => {
     setFocusKey(key)
     if (last === key && samePick(shown, picked)) return onClosePanel() // its panel is already open: a second click closes it
     setLast(key)
     onPick(picked)
   }
+  const mode = (m: Compare['mode']) => {
+    if (m === 'swap' && compare.mode !== 'swap') setOn(placeOf(focused)) // Swap opens on the flow whose pane has the focus
+    onMode(m)
+  }
+  const names = flows.map(id => model.flows[id].name || id) as [string, string]
   return (
     <div className={['compare', nav && 'nav', details && 'details'].filter(Boolean).join(' ')}>
-      <CompareBar mode={compare.mode} onMode={onMode} onFlip={onFlip} onClose={onClose} />
-      <div className="panes">
-        {([0, 1] as const).map(slot => {
-          const id = flows[slot]
-          const own = last === keys[slot] ? shown : undefined
-          return (
-            <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={`${id.replace(/[^A-Za-z0-9_-]/g, '_')}-${again(slot)}`} flowId={id} title={model.flows[id].name || id}
-              label={again(slot) ? `${model.flows[id].name || id} (2)` : undefined} startAt={start?.flow === id && !again(slot) ? start.step : undefined} onEmpty={onEmpty} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
-              onPick={p => pick(keys[slot], p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? lineId(own.from!, own.to!) : undefined}
-              fitKey={compare.mode} colorMode={colorMode} problems={problems} lines={lines} still={still} />
-          )
-        })}
-      </div>
+      <CompareBar mode={compare.mode} onMode={mode} onFlip={onFlip} onClose={onClose} swap={{ names, on: placeOf(0) === on ? 0 : 1, onShow: side => setOn(placeOf(side)) }} />
+      {swap ? (
+        <div className="panes one">
+          <SwapCanvas key={places.join('|')} ref={swapRef} model={model} paneId={`${places[0]}-${places[1]}`.replace(/[^A-Za-z0-9_-]/g, '_')} flows={[places[0], places[1]]} index={on} start={start} shown={shown}
+            onPick={picked => (samePick(shown, picked) ? onClosePanel() : onPick(picked))} onClosePanel={onClosePanel} onEmpty={onEmpty} fitKey="" colorMode={colorMode} problems={problems} lines={lines} still={still} />
+        </div>
+      ) : (
+        <div className="panes">
+          {([0, 1] as const).map(slot => {
+            const id = flows[slot]
+            const own = last === keys[slot] ? shown : undefined
+            return (
+              <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={`${id.replace(/[^A-Za-z0-9_-]/g, '_')}-${again(slot)}`} flowId={id} title={model.flows[id].name || id}
+                label={again(slot) ? `${model.flows[id].name || id} (2)` : undefined} startAt={start?.flow === id && !again(slot) ? start.step : undefined} onEmpty={onEmpty} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
+                onPick={p => pick(keys[slot], p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? lineId(own.from!, own.to!) : undefined}
+                fitKey={compare.mode} colorMode={colorMode} problems={problems} lines={lines} still={still} />
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
