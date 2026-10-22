@@ -26,7 +26,8 @@ public class CompareTests
             var rel = Path.GetRelativePath(Plum, file).Replace('\\', '/');
             var target = Path.Combine(dir, rel);
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            File.WriteAllText(target, change?.Invoke(rel, File.ReadAllText(file)) ?? File.ReadAllText(file));
+            var text = Untagged(File.ReadAllText(file));
+            File.WriteAllText(target, change?.Invoke(rel, text) ?? text);
         }
         var reader = new ReaderView();
         var window = new Window { Width = width, Height = 800, Content = reader };
@@ -35,6 +36,12 @@ public class CompareTests
         EditModeTests.Settle(window);
         return (temp, window, reader);
     }
+
+    /// <summary>
+    /// The text without a top-level <c>compare:</c> key, short or long form. Plum now tags two pairs of its own (refund and together-measured); these tests need a folder with no pair, and
+    /// add the tags they are about themselves.
+    /// </summary>
+    private static string Untagged(string text) => System.Text.RegularExpressions.Regex.Replace(text, @"^compare:[^\r\n]*\r?\n(?:[ \t]+[^\r\n]*\r?\n|\r?\n(?=[ \t]))*", "", System.Text.RegularExpressions.RegexOptions.Multiline);
 
     /// <summary>The refund that is not recorded holds a compare tag naming the refund that is.</summary>
     private static string Linked(string rel, string text) => rel == "flows/refund-not-recorded.yaml" ? "compare: refund\n" + text : text;
