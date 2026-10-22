@@ -42,13 +42,13 @@ public class FlowListHeadingsTests
     }
 
     [AvaloniaFact]
-    public void The_Linked_key_is_not_on_the_foot_while_no_listed_flow_is_in_a_pair()
+    public void The_Linked_key_is_on_the_foot_while_a_listed_flow_is_in_a_pair()
     {
         var (window, reader) = Open();
         reader.ClickRail(PanelTab.Flows);
         window.UpdateLayout();
-        Assert.False(reader.Navigator.Flows.LinkedKeyShown); // the Plum demo tags no flow
-        Assert.DoesNotContain(reader.Navigator.Flows.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Linked" && c.IsVisible);
+        Assert.True(reader.Navigator.Flows.LinkedKeyShown); // the Plum demo tags the refund flow; a folder with no pair is CompareTests'
+        Assert.Contains(reader.Navigator.Flows.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Linked" && c.IsVisible);
     }
 
     [AvaloniaFact]
