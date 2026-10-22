@@ -709,6 +709,30 @@ export function setLines(model: Model, style: LineStyle | undefined): Model {
   return { ...model, meta: Object.hasOwn(model.meta, 'lines') ? { ...model.meta, lines: style } : { lines: style, ...rest } }
 }
 
+/**
+ * Set the project's name and what it is: the top-level `name:` and `about:` in model.yaml. A field left
+ * out stays as it is; blank text removes the key. A new `name` goes first, a new `about` right after the
+ * name, and one that's there keeps its place.
+ */
+export function setProject(model: Model, fields: { name?: string; about?: string }): Model {
+  let meta = model.meta
+  for (const key of ['name', 'about'] as const) {
+    const given = fields[key]
+    if (given === undefined) continue
+    const text = given.trim()
+    if (text === '') {
+      const { [key]: _, ...rest } = meta
+      meta = rest
+    } else if (Object.hasOwn(meta, key)) meta = { ...meta, [key]: text }
+    else {
+      const entries = Object.entries(meta)
+      entries.splice(key === 'about' ? entries.findIndex(([k]) => k === 'name') + 1 : 0, 0, [key, text])
+      meta = Object.fromEntries(entries)
+    }
+  }
+  return { ...model, meta }
+}
+
 /** Forget where boxes were dragged in one view (its part of layout.yaml), so the computed layout shows again. */
 export function forgetLayout(model: Model, view: string): Model {
   if (!Object.hasOwn(model.layout, view)) throw new OpError('Nothing to tidy: no shape here was moved by hand.')

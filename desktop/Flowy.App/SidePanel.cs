@@ -22,6 +22,7 @@ internal sealed class SidePanel : Border
     private readonly Dictionary<(string Id, string Entry), bool> _openEntries = []; // which entries of a store's Data the reader opened or closed, kept when the panel is drawn again
     private ObjectEditor? _objectEditor;
     private LineEditor? _lineEditor;
+    private ProjectEditor? _projectEditor;
     private AddForm? _addForm;
     private Recorder? _recorder;
     private UsedByPanel? _usedBy;
@@ -31,6 +32,8 @@ internal sealed class SidePanel : Border
     internal ObjectEditor? CurrentObjectEditor => _objectEditor;
 
     internal LineEditor? CurrentLineEditor => _lineEditor;
+
+    internal ProjectEditor? CurrentProjectEditor => _projectEditor;
 
     internal AddForm? CurrentAddForm => _addForm;
 
@@ -64,6 +67,7 @@ internal sealed class SidePanel : Border
         _shown = null;
         _objectEditor = null;
         _lineEditor = null;
+        _projectEditor = null;
         _addForm = null;
         _recorder = null;
         _usedBy = null;
@@ -77,6 +81,7 @@ internal sealed class SidePanel : Border
         _holder.Children.Add(content);
         _objectEditor = null;
         _lineEditor = null;
+        _projectEditor = null;
         _addForm = null;
         _recorder = null;
         _usedBy = null;
@@ -85,13 +90,42 @@ internal sealed class SidePanel : Border
         if (!same) _scroll.Offset = default;
     }
 
-    /// <summary>What Details shows at the top level when nothing is picked: how much there is, and where to go next.</summary>
-    public void ShowOverview(OutlineTotals totals)
+    /// <summary>How much there is, as the line under the Overview's heading.</summary>
+    internal static string Summary(OutlineTotals totals)
     {
         static string Count(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
-        var summary = $"{Count(totals.Shapes, "shape")} · {Count(totals.Flows, "flow")}{(totals.Problems > 0 ? $" · {Count(totals.Problems, "problem")}" : "")}";
-        var advice = new TextBlock { Text = "Pick a shape to read about it. Press O for the Explorer.", TextWrapping = TextWrapping.Wrap };
-        Show(new StackPanel { Spacing = 14, Children = { Heading("Overview"), Muted(summary), advice } }, "overview");
+        return $"{Count(totals.Shapes, "shape")} · {Count(totals.Flows, "flow")}{(totals.Problems > 0 ? $" · {Count(totals.Problems, "problem")}" : "")}";
+    }
+
+    /// <summary>
+    /// What Details shows at the top level when nothing is picked: the system's name and what it is (the <c>name:</c> and <c>about:</c> of model.yaml),
+    /// how much there is, and where to go next.
+    /// </summary>
+    public void ShowOverview(Model model, OutlineTotals totals)
+    {
+        var column = new StackPanel { Spacing = 14 };
+        column.Children.Add(Heading(model.ProjectName == "" ? "Overview" : model.ProjectName));
+        column.Children.Add(Muted(Summary(totals)));
+        if (model.ProjectAbout != "") column.Children.Add(new MarkdownView(model.ProjectAbout, 14.5));
+        var hint = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        if (model.ProjectAbout == "") hint.Children.Add(Muted("Click a shape."));
+        hint.Children.Add(KeyHint.Of(("O", "Explorer")));
+        column.Children.Add(hint);
+        Show(column, "overview");
+    }
+
+    /// <summary>The form for the system's name and what it is, in the Overview in edit mode. Showing it again updates its fields in place, except one being typed in.</summary>
+    public void ShowProjectEditor(Model model, OutlineTotals totals, EditRun run)
+    {
+        if (_projectEditor is { } editor && _shown == "edit-overview")
+        {
+            editor.Update(model, totals);
+            return;
+        }
+        var fresh = new ProjectEditor(this, run);
+        fresh.Update(model, totals);
+        Show(fresh, "edit-overview");
+        _projectEditor = fresh;
     }
 
     internal Control Heading(string text) => new TextBlock { Text = text, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };

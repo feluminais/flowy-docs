@@ -45,7 +45,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   failure modes and runs there are in all. A Performance icon (T) and a Failures icon (M) sit with them, whether or not the folder has a
   load-test run or a failure analysis: with none, their panels offer to **Create** one. See [Performance](performance.md#performance) and
   [Failure modes](failures.md#failure-modes). Details, on the right (its own icon, or a click on a shape or a line), is what the
-  click picked, and it is all the right-hand side holds. Drag the inner edge of either panel to resize it,
+  click picked, and it is all the right-hand side holds. With nothing picked at the top level it shows the Overview: the system's name and
+  what it is (`name` and `about` in `model.yaml`), then how many shapes and flows there are. Inside a shape it shows that shape. Drag the inner edge of either panel to resize it,
   and double-click it to put the width back.
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
@@ -79,6 +80,8 @@ checks, and write the same text, so a change made in one looks the same in git a
 - Add (or N) puts a shape in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
+- With nothing picked at the top level, Details holds a form for the system's **Name** and **About** (Markdown). Both are optional; clearing a
+  field removes its key.
 - Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description, code and source. A field saves when you leave
   it. Source takes one file or folder per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
