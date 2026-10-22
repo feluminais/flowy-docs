@@ -437,7 +437,7 @@ internal sealed class SidePanel : Border
     }
 
     /// <summary>The panel for a flow being recorded or edited. The same flow shown again updates in place.</summary>
-    public void ShowRecorder(Model model, string view, Recording rec, EditRun run, Action<Recording> change, Func<string, string> makeId, Action closed)
+    public void ShowRecorder(Model model, string view, Recording rec, EditRun run, Action<Recording> change, Func<string, string> makeId, Action closed, Action<string> openFlow)
     {
         var key = rec.Id == "" ? "flow:new" : $"flow:{rec.Id}";
         if (_recorder is { } existing && _shown == key)
@@ -445,7 +445,7 @@ internal sealed class SidePanel : Border
             existing.Update(model, view, rec);
             return;
         }
-        var fresh = new Recorder(this, run, change, makeId, closed);
+        var fresh = new Recorder(this, run, change, makeId, closed, openFlow);
         fresh.Update(model, view, rec);
         Show(fresh, key);
         _recorder = fresh;

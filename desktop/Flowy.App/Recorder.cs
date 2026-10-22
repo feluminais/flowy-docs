@@ -69,7 +69,11 @@ internal sealed class Recorder : StackPanel
     private readonly Action<Recording> _change;
     private readonly Func<string, string> _makeId;
     private readonly Action _closed;
+    private readonly Action<string> _openFlow;
     private readonly StackPanel _head = new() { Spacing = 12 };
+    private readonly StackPanel _compare = new() { Spacing = 8 };
+    private string _compareSignature = "";
+    private string _compareQuery = "";
     private readonly StackPanel _steps = new() { Spacing = 16 };
     private readonly StackPanel _pick = new() { Spacing = 8 };
     private readonly StackPanel _groups = new() { Spacing = 12 };
@@ -87,14 +91,16 @@ internal sealed class Recorder : StackPanel
     private Action<string> _startNamed = _ => { };
 
     /// <param name="makeId">The id for a new flow with this name, one that no flow has yet.</param>
-    public Recorder(SidePanel owner, EditRun run, Action<Recording> change, Func<string, string> makeId, Action closed)
+    /// <param name="openFlow">Opens another flow's form (a tile of Compared by).</param>
+    public Recorder(SidePanel owner, EditRun run, Action<Recording> change, Func<string, string> makeId, Action closed, Action<string> openFlow)
     {
-        (_owner, _run, _change, _makeId, _closed) = (owner, run, change, makeId, closed);
+        (_owner, _run, _change, _makeId, _closed, _openFlow) = (owner, run, change, makeId, closed, openFlow);
         Spacing = 16;
         Children.Add(_head);
         Children.Add(_steps);
         Children.Add(_pick);
         Children.Add(_groups);
+        Children.Add(_compare);
         Children.Add(_buttons);
     }
 
@@ -175,6 +181,7 @@ internal sealed class Recorder : StackPanel
         if (rec.Id == "")
         {
             ShowNaming();
+            ShowCompare(model, "", "Name the flow first");
             return;
         }
         var flow = model.Flows.TryGetValue(rec.Id, out var f) ? f : null;
@@ -278,6 +285,8 @@ internal sealed class Recorder : StackPanel
                 : "Click the shape where the next step starts.")));
         }
 
+        ShowCompare(model, rec.Id, flow is null ? "Record a step first" : null);
+
         _buttons.Children.Clear();
         if (flow is not null)
         {
@@ -298,6 +307,47 @@ internal sealed class Recorder : StackPanel
         done.Click += (_, _) => _closed();
         _buttons.Children.Add(done);
     }
+
+    /// <summary>The compare tag a flow holds in the document an edit is changing now, as the file held it.</summary>
+    private static object? CompareIn(EditDoc d, string flowId) =>
+        d.Flows.TryGetValue(flowId, out var f) && f is OrderedDictionary<string, object?> map && map.TryGetValue("compare", out var raw) ? raw : null;
+
+    /// <summary>
+    /// Compare with: the flow this one is compared with, every other flow to pick instead, and the flows that compare with this one. A pick or a removal is one edit, so undo takes it back like any other,
+    /// and the note of the link stays when the partner changes. <paramref name="off"/> greys the section out with its reason while the flow has no file yet. The section is drawn again only when
+    /// what it shows changed, so a search being typed in keeps its focus; the search text itself is kept across a pick.
+    /// </summary>
+    private void ShowCompare(Model model, string flowId, string? off)
+    {
+        var flow = off is null && model.Flows.TryGetValue(flowId, out var f) ? f : null;
+        var tag = flow?.Compare;
+        PartnerTile? partner = tag is null ? null
+            : tag.With != flowId && model.Flows.Contains(tag.With) ? Tile(CompareUi.FlowTile(model, tag.With))
+            : new PartnerTile(tag.With, tag.With, "", true);
+        var choices = CompareUi.PartnerChoices(model, flowId);
+        var comparedBy = off is null ? CompareUi.TaggedBy(model, flowId) : [];
+        var signature = string.Join('\u0002', new[] { flowId, off ?? "", partner is null ? "" : $"{partner.Id}\u0001{partner.Name}\u0001{partner.View}\u0001{partner.Missing}", tag?.Note is null ? "" : "note" }
+            .Concat(choices.Select(c => $"{c.Id}\u0001{c.Name}\u0001{c.View}")).Append("by").Concat(comparedBy.Select(c => $"{c.Id}\u0001{c.Name}\u0001{c.View}")));
+        if (signature == _compareSignature) return;
+        if (_compareFlow != flowId) _compareQuery = ""; // another flow's form starts with an empty search
+        _compareFlow = flowId;
+        _compareSignature = signature;
+        _compare.Children.Clear();
+        _compare.Children.Add(Chrome.Section(Icons.Columns, "Compare with"));
+        PartnerPicker = new PartnerPicker(partner, choices, comparedBy, CompareUi.RemoveNeedsConfirm(tag), off, _compareQuery,
+            pick: id => _run(d => EditOps.SetCompare(d, flowId, CompareUi.TagKeepingNote(CompareIn(d, flowId), id))),
+            remove: () => _run(d => EditOps.SetCompare(d, flowId, null)),
+            open: _openFlow,
+            queryChanged: text => _compareQuery = text);
+        _compare.Children.Add(PartnerPicker);
+    }
+
+    private string? _compareFlow;
+
+    private static PartnerTile Tile(FlowTile t) => new(t.Id, t.Name, t.View);
+
+    /// <summary>The Compare with section's picker now on screen.</summary>
+    internal PartnerPicker? PartnerPicker { get; private set; }
 
     /// <summary>A flow that has no name yet: a name, and Start recording.</summary>
     private void ShowNaming()

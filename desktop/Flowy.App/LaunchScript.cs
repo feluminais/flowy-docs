@@ -72,6 +72,7 @@ internal sealed class LaunchScript
         }
         if (options.Has("--add")) _reader.OpenAddPanel();
         if (options.Value("--edit-flow") is { } editFlow) _reader.OpenFlowEditor(editFlow);
+        if (options.Has("--remove-link")) _reader.AskToRemoveFlowLink(); // the flow form's Remove, which asks "Remove the link and its note" when the link holds a note
         if (options.Value("--line") is { } line && line.Split(' ') is [var from, var to]) _reader.OpenLine(from, to);
         if (options.Value("--hover") is { } hover) _reader.SetHover(hover);
         if (options.Value("--search") is { } search) _reader.OpenSearch(search);

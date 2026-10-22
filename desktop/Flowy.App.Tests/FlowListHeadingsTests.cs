@@ -42,6 +42,16 @@ public class FlowListHeadingsTests
     }
 
     [AvaloniaFact]
+    public void The_Linked_key_is_not_on_the_foot_while_no_listed_flow_is_in_a_pair()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        window.UpdateLayout();
+        Assert.False(reader.Navigator.Flows.LinkedKeyShown); // the Plum demo tags no flow
+        Assert.DoesNotContain(reader.Navigator.Flows.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Linked" && c.IsVisible);
+    }
+
+    [AvaloniaFact]
     public void A_view_with_no_flow_of_its_own_says_so_without_counting_the_others_again()
     {
         var (window, reader) = Open();

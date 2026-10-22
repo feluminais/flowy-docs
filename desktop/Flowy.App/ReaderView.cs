@@ -185,6 +185,8 @@ internal sealed partial class ReaderView : Grid
         _detailsSash.Reset += () => ResizeDetails(Camera.Panel);
         _detailsSash.Settled += Remember;
         _nav.Flows.Opened += flow => OpenFlow(flow.Id);
+        _nav.Flows.CompareRequested += CompareFromRow;
+        _nav.Explorer.CompareRequested += CompareFromRow;
         _nav.Explorer.Picked += PickRow;
         _nav.Explorer.Opened += OpenRow;
         _nav.Explorer.Toggled += ToggleOpen;
@@ -600,7 +602,7 @@ internal sealed partial class ReaderView : Grid
                 break;
             case Side.Flow { Rec: var rec } when Editing:
                 _panel.ShowRecorder(model, view, rec, RunAsync,
-                    r => SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseSide);
+                    r => SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseSide, OpenFlow);
                 break;
             default:
                 ShowViewDetails(model, view);
@@ -624,7 +626,7 @@ internal sealed partial class ReaderView : Grid
     {
         if (flow is not { } f)
         {
-            DropPicker(); // its flyout hangs on the card of the flow playing
+            if (!_pickerOnRow) DropPicker(); // its flyout hangs on the card of the flow playing; one from a row of the navigator does not
             _player.Clear();
             _canvas.SetMarks([]);
             return;
