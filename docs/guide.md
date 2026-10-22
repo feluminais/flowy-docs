@@ -11,7 +11,7 @@ What every part of Flowy does, one page for each part. Read the page for the par
 | [Code](guide/code.md) | A few lines of code on a shape | Showing a formula, a query or a request |
 | [Failure modes](guide/failures.md) | Rating how each part fails | Writing or reading a failure analysis |
 | [Performance](guide/performance.md) | Replaying a load test | Working with runs in `perf/` |
-| [Claude and MCP](guide/claude.md) | Setup, the tools, the prompts, what to ask for | Letting Claude build or update the model |
+| [AI and MCP](guide/ai.md) | Setup, the tools, the prompts, what to ask for | Letting an AI build or update the model |
 | [Check it and share it](guide/share.md) | `check`, `export`, Mermaid | Gating a build or publishing the model |
 | [The desktop app](guide/desktop.md) | What the app does and where it differs | Using the app |
 
