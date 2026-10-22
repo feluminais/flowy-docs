@@ -9,11 +9,11 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>What a rail button opens: the Details panel on the right (or, beside it, the Performance panel that takes its place), or one tab of the navigator on the left (the whole documentation as a tree, every flow, or how things fail).</summary>
+/// <summary>What a rail button opens: the Details panel on the right, or one tab of the navigator on the left (the whole documentation as a tree, every flow, how things fail, or how they hold up under load).</summary>
 internal enum PanelTab { Details, Flows, Explorer, Performance, Failures }
 
 /// <summary>
-/// A slim column of icons on an edge, always there. The left one holds Flows and Explorer, and the counts on it say how much the documentation
+/// A slim column of icons on an edge, always there. The left one holds Explorer, Flows, Failures and Performance, and the counts on it say how much the documentation
 /// holds: the flows and the shapes in all. The right one holds Details. A click opens that panel, and a click on the open one closes it (ReaderView decides).
 /// </summary>
 internal sealed class NavRail : Border
@@ -45,12 +45,12 @@ internal sealed class NavRail : Border
             Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
             Add(column, PanelTab.Failures, Icons.Bolt, "Failures", "M");
             _entries[PanelTab.Failures].Show(false); // there only where the folder has a failure analysis
+            Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
+            _entries[PanelTab.Performance].Show(false); // there only where the folder has load-test runs
         }
         else
         {
             Add(column, PanelTab.Details, Icons.Info, "Details", null);
-            Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
-            _entries[PanelTab.Performance].Show(false); // there only where the folder has load-test runs
         }
         Child = column;
     }
@@ -88,7 +88,7 @@ internal sealed class NavRail : Border
         SetCount(PanelTab.Explorer, "Explorer", shapes);
     }
 
-    /// <summary>The right rail's Performance button: there only when the folder has runs (the number on it is how many), and greyed out while the reader is editing.</summary>
+    /// <summary>The left rail's Performance button: there only when the folder has runs (the number on it is how many), and greyed out while the reader is editing.</summary>
     public void UpdatePerformance(bool show, int runs, bool open, bool editing)
     {
         if (!_entries.TryGetValue(PanelTab.Performance, out var entry)) return;
@@ -127,7 +127,7 @@ internal sealed class NavRail : Border
     internal void Press(PanelTab tab) => Picked?.Invoke(tab);
 }
 
-/// <summary>The strip of tabs on top of the navigator: Explorer, Flows and Failures.</summary>
+/// <summary>The strip of tabs on top of the navigator: Explorer, Flows, Failures and Performance.</summary>
 internal sealed class NavTabs : StackPanel
 {
     private readonly Dictionary<PanelTab, Button> _buttons = [];
@@ -139,7 +139,7 @@ internal sealed class NavTabs : StackPanel
         Orientation = Orientation.Horizontal;
         Spacing = 2;
         Classes.Add("navtabs");
-        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Failures, "Failures") })
+        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Failures, "Failures"), (PanelTab.Performance, "Performance") })
         {
             var button = new Button { Content = label };
             button.Classes.Add("navtab");
@@ -150,15 +150,16 @@ internal sealed class NavTabs : StackPanel
         }
     }
 
-    public void Update(PanelTab active, bool showFlows, bool showFailures)
+    public void Update(PanelTab active, bool showFlows, bool showFailures, bool showPerf)
     {
         foreach (var (tab, button) in _buttons) button.Classes.Set("on", tab == active);
         _buttons[PanelTab.Flows].IsVisible = showFlows;
         _buttons[PanelTab.Failures].IsVisible = showFailures;
+        _buttons[PanelTab.Performance].IsVisible = showPerf;
     }
 }
 
-/// <summary>The panel of the Explorer, Flows and Failures tabs, on the left. It does no scrolling of its own: each tab scrolls what it holds.</summary>
+/// <summary>The panel of the Explorer, Flows, Failures and Performance tabs, on the left. It does no scrolling of its own: each tab scrolls what it holds.</summary>
 internal sealed class NavigatorPanel : Border
 {
     private readonly ContentControl _body = new();
@@ -174,6 +175,11 @@ internal sealed class NavigatorPanel : Border
 
     private readonly ScrollViewer _failuresScroll;
 
+    /// <summary>The Performance tab's panel, in a scroll view of its own. It lives as long as the reader.</summary>
+    public PerfPanel Perf { get; } = new();
+
+    private readonly ScrollViewer _perfScroll;
+
     public event Action? Closed;
 
     public NavigatorPanel()
@@ -181,6 +187,7 @@ internal sealed class NavigatorPanel : Border
         Classes.Add("panel");
         Classes.Add("navpanel");
         _failuresScroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = new Border { Padding = new Thickness(16, 6, 16, 16), Child = Failures } };
+        _perfScroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = new Border { Padding = new Thickness(16, 6, 16, 16), Child = Perf } };
         Width = Camera.Nav;
         HorizontalAlignment = HorizontalAlignment.Left;
         IsVisible = false;
@@ -195,10 +202,10 @@ internal sealed class NavigatorPanel : Border
         Child = new Grid { Children = { column, close } };
     }
 
-    public void Show(PanelTab tab, bool showFlows, bool showFailures)
+    public void Show(PanelTab tab, bool showFlows, bool showFailures, bool showPerf)
     {
-        Tabs.Update(tab, showFlows, showFailures);
-        _body.Content = tab == PanelTab.Flows ? Flows : tab == PanelTab.Failures ? _failuresScroll : Explorer;
+        Tabs.Update(tab, showFlows, showFailures, showPerf);
+        _body.Content = tab == PanelTab.Flows ? Flows : tab == PanelTab.Failures ? _failuresScroll : tab == PanelTab.Performance ? _perfScroll : Explorer;
         IsVisible = true;
     }
 

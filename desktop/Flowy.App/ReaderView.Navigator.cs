@@ -3,7 +3,7 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>The navigator on the left (its rail, the Flows list and the Explorer tree), the Details panel on the right and its rail, how wide the two panels are dragged, and what a click in them does.</summary>
+/// <summary>The navigator on the left (its rail, the Flows list, the Explorer tree, the Failures list and the Performance panel), the Details panel on the right and its rail, how wide the two panels are dragged, and what a click in them does.</summary>
 internal sealed partial class ReaderView
 {
     private string? _revealedView; // the level and the shape the tree last followed, so it follows a change and not every redraw
@@ -23,20 +23,22 @@ internal sealed partial class ReaderView
     /// <summary>The Flows tab is there whenever there is a flow to find, and always while editing.</summary>
     private bool ShowFlows => _folder is not null && (Totals().Flows > 0 || Editing);
 
-    /// <summary>The navigator's tab showing (Flows or Explorer): the one chosen on its rail or its strip, else none.</summary>
-    private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows) || (_tab == PanelTab.Failures && !CanFailures) ? null : _tab;
+    /// <summary>The navigator's tab showing (Explorer, Flows, Failures or Performance): the one chosen on its rail or its strip, else none.</summary>
+    private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows) || (_tab == PanelTab.Failures && !CanFailures) || (_tab == PanelTab.Performance && !CanPerf) ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
-    private bool DetailsOpen => (_right == RightPanel.Details || _side is not (null or Side.Boxes)) && !PerfOpen; // the Performance panel is in its place while it is open
+    private bool DetailsOpen => _right == RightPanel.Details || _side is not (null or Side.Boxes);
 
     private void SetTab(PanelTab tab)
     {
-        if (tab == PanelTab.Failures)
+        if (tab == PanelTab.Failures && !CanFailures) return;
+        if (tab == PanelTab.Performance)
         {
-            if (!CanFailures) return;
-            LeavePerformance(); // its traffic and the failure marks would draw over each other
+            if (!CanPerf || _folder?.Runs is null) return;
+            _perf.Open();
         }
-        _tab = tab;
+        if (tab != PanelTab.Performance) _perf.StopRamp(); // a ramp ends with its tab
+        _tab = tab; // one tab at a time, so the load's traffic and the failure marks never draw over each other
         _navUsed = true; // opened or switched on purpose: Escape takes it back until the reader clicks in the diagram
         Refresh();
         Remember();
@@ -45,13 +47,11 @@ internal sealed partial class ReaderView
     /// <summary>A click on a rail: open that panel, or close it when it is the one open.</summary>
     private void ToggleTab(PanelTab tab)
     {
-        if (tab == PanelTab.Performance) TogglePerf();
-        else if (tab == PanelTab.Details)
+        if (tab == PanelTab.Details)
         {
             if (DetailsOpen) CloseDetails();
             else
             {
-                LeavePerformance(); // Details takes the place of Performance
                 _right = RightPanel.Details;
                 Refresh();
             }
@@ -63,6 +63,7 @@ internal sealed partial class ReaderView
     private void CloseNav()
     {
         _tab = null;
+        _perf.StopRamp();
         _navUsed = false;
         Refresh();
         Focus();
@@ -184,9 +185,9 @@ internal sealed partial class ReaderView
         var showFlows = ShowFlows;
         _rail.Update(tab, totals.Flows, totals.Shapes, showFlows);
         _rail.UpdateFailures(ShowFailures, FailuresView.ModeCount(model), FailuresOpen, Editing);
-        _detailsRail.Update(DetailsOpen ? PanelTab.Details : PerfOpen ? PanelTab.Performance : null, 0, 0, false);
-        _detailsRail.UpdatePerformance(ShowPerf, _folder?.Runs?.Count ?? 0, PerfOpen, Editing);
-        if (tab is { } open) _nav.Show(open, showFlows, ShowFailures && CanFailures);
+        _rail.UpdatePerformance(ShowPerf, _folder?.Runs?.Count ?? 0, PerfOpen, Editing);
+        _detailsRail.Update(DetailsOpen ? PanelTab.Details : null, 0, 0, false);
+        if (tab is { } open) _nav.Show(open, showFlows, ShowFailures && CanFailures, ShowPerf && CanPerf);
         else _nav.Hide();
         ApplyWidths();
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
@@ -230,15 +231,13 @@ internal sealed partial class ReaderView
 
     internal (double Nav, double Details) PanelWidthsOnScreen => (_nav.Width, _panel.Width);
 
-    internal void ClickRail(PanelTab tab) => (tab is PanelTab.Details or PanelTab.Performance ? _detailsRail : _rail).Press(tab);
+    internal void ClickRail(PanelTab tab) => (tab == PanelTab.Details ? _detailsRail : _rail).Press(tab);
 
     /// <summary>Opens a panel by name ("details", "flows", "explorer", "performance" or "failures"), for a picture (--tab). Anything else is ignored.</summary>
     public void OpenTab(string name)
     {
         if (!Enum.TryParse<PanelTab>(name, true, out var tab)) return;
-        if (tab == PanelTab.Performance) OpenPerf();
-        else if (tab == PanelTab.Failures) OpenFailures();
-        else if (tab != PanelTab.Details) SetTab(tab);
+        if (tab != PanelTab.Details) SetTab(tab);
         else if (!DetailsOpen) ToggleTab(tab);
     }
 

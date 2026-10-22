@@ -85,11 +85,7 @@ internal sealed partial class ReaderView
 
         public void StopFlow() => r.Stop();
 
-        public void ClosePanel()
-        {
-            if (r.PerfOpen) r.ClosePerf();
-            else r.CloseDetails();
-        }
+        public void ClosePanel() => r.CloseDetails();
 
         public void Up() => r.Up();
 

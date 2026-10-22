@@ -232,8 +232,8 @@ Before merging a change to the app, look at what it could affect, in a real wind
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo` shows Plum. Double-click Ordering: the view zooms in, the breadcrumb reads
       Overview › Ordering, and Esc, Backspace or the breadcrumb zoom out. Double-click the faded Delivery while inside Ordering: the
       view slides across instead of zooming in.
-- [ ] `dotnet run --project desktop/Flowy.App -- perf-lab` (or `-- perf-lab --view shop --tab performance --shot out.png`): the right rail has a Performance
-      button under Details with a 2 on it, and T opens its panel (in Details' place) on the load where the Fulfilment worker first struggles
+- [ ] `dotnet run --project desktop/Flowy.App -- perf-lab` (or `-- perf-lab --view shop --tab performance --shot out.png`): the left rail has a Performance
+      button under Failures with a 2 on it, and T opens its tab on the load where the Fulfilment worker first struggles
       (200 req/s on the ramp). In Shop lab, shapes that carry numbers are outlined from green to red along their own outline, Order queue
       carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
       move between loads; P ramps up (from the top it starts again from the bottom) and a click on the slider stops it; a picked shape or
