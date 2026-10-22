@@ -1,0 +1,6 @@
+name: Compare before
+view: compare
+steps:
+  - { from: compare-client, to: compare-api, text: Asks for the record }
+  - { from: compare-api, to: compare-old, text: Asks the old service first }
+  - { from: compare-api, to: compare-db, text: Reads the record }
