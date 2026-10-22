@@ -46,6 +46,8 @@ internal sealed class LaunchScript
         if (options.Value("--lines") is { } lines) _reader.PickLines(lines);
         if (options.Value("--view") is { } view) _reader.GoTo(view);
         if (options.Value("--flow") is { } flow) _reader.Play(flow, int.TryParse(options.Value("--step"), out var step) ? step : 0);
+        // Two flows side by side: --compare a,b (the one that holds a compare tag reads second). A third part (swap) is for the Swap view, which is not built yet.
+        if (options.Value("--compare") is { } compare && compare.Split(',') is [var first, var second, ..]) _reader.OpenCompareById(first.Trim(), second.Trim());
         if (options.Value("--run") is { } run) _reader.PickRunById(run);
         if (options.Value("--tab") is { } tab) _reader.OpenTab(tab); // before --select: with Failures open, a select picks a failure mode
         if (options.Value("--select") is { } select) _reader.Select(select);

@@ -35,6 +35,7 @@ internal readonly record struct KeyState(
     bool PicksBoxes, // several boxes are picked
     bool Recording,
     bool Flow, // a flow is playing
+    bool Compare, // two flows are compared: the keys of a flow go to the pane last clicked
     bool PerfOpen,
     bool HasLoad,
     bool FailuresOpen,
@@ -71,6 +72,11 @@ internal interface IKeyActions
     void CloseShortcuts();
     void CloseNavigator();
     void StopFlow();
+
+    /// <summary>Compare on and off: close the comparison, or open it beside the flow playing (the picker when it has no linked one).</summary>
+    void ToggleCompare();
+
+    void CloseCompare();
     void ClosePanel();
     void Up();
     void ToggleEdit();
@@ -159,10 +165,13 @@ internal static class KeyMap
         Do("perf-ramp", "P", (p, s) => s.PerfOpen && p.Tap(PhysicalKey.P), (_, _, a) => a.PerfRamp(), Performance("Ramp the load or play the time, or pause")),
         new("failure-step", "→  ←", (p, s) => s.FailuresOpen && p.Arrow, (p, _, a) => a.StepFailures(p.Key), Failures("Next and previous failure")),
 
-        Do("flow-step", "→  ←", (p, s) => s.Flow && p.Arrow, (p, _, a) => a.FlowStep(p.By), Flows("Next and previous step")),
-        Do("flow-ends", "Home  End", (p, s) => s.Flow && p.Key is Key.Home or Key.End, (p, _, a) => { if (p.Key == Key.Home) a.FlowFirst(); else a.FlowLast(); }, Flows("First and last step")),
-        Do("flow-play", "P", (p, s) => s.Flow && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Step through the flow on its own, or pause")),
-        Do("flow-replay", "R", (p, s) => s.Flow && p.Tap(PhysicalKey.R), (_, _, a) => a.FlowReplay(), Flows("Replay the step")),
+        // The keys of a flow apply while one is playing, and while two are compared (they act on the pane last clicked).
+        Do("flow-step", "→  ←", (p, s) => (s.Flow || s.Compare) && p.Arrow, (p, _, a) => a.FlowStep(p.By), Flows("Next and previous step")),
+        Do("flow-ends", "Home  End", (p, s) => (s.Flow || s.Compare) && p.Key is Key.Home or Key.End, (p, _, a) => { if (p.Key == Key.Home) a.FlowFirst(); else a.FlowLast(); }, Flows("First and last step")),
+        Do("flow-play", "P", (p, s) => (s.Flow || s.Compare) && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Step through the flow on its own, or pause")),
+        Do("flow-replay", "R", (p, s) => (s.Flow || s.Compare) && p.Tap(PhysicalKey.R), (_, _, a) => a.FlowReplay(), Flows("Replay the step")),
+        // In edit mode the key is still taken, to say why it does nothing there.
+        Do("compare", "C", (p, s) => p.Tap(PhysicalKey.C) && (s.Flow || s.Compare || s.Editing), (_, _, a) => a.ToggleCompare(), Flows("Compare with another flow, or close the comparison")),
 
         // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
         new("enter", "Enter", (p, s) => p.Key == Key.Enter && !s.Recording, (_, _, a) => a.Enter(), Reading("Open the selected shape")),
@@ -191,7 +200,7 @@ internal static class KeyMap
 
     /// <summary>
     /// What Esc closes, innermost first: the search, a drag or a line being drawn, the drag just made, a half-picked step, the boxes picked, and then the
-    /// layers <see cref="Navigation.Escape"/> knows (the shortcut list, the navigator, a flow, the panel, a level). False when there was nothing to close.
+    /// layers <see cref="Navigation.Escape"/> knows (the shortcut list, the navigator, a flow, the panel, a comparison, a level). False when there was nothing to close.
     /// </summary>
     private static bool Escape(KeyState s, IKeyActions a)
     {
@@ -214,12 +223,13 @@ internal static class KeyMap
             return true;
         }
         var navigator = s.NavigatorShown && (s.NavigatorUsed || s.InNavigator);
-        switch (Navigation.Escape(s.ShortcutsOpen, navigator, s.Flow, s.RightOpen, s.Inside))
+        switch (Navigation.Escape(s.ShortcutsOpen, navigator, s.Flow, s.RightOpen, s.Compare, s.Inside))
         {
             case EscapeStep.Shortcuts: a.CloseShortcuts(); return true;
             case EscapeStep.Navigator: a.CloseNavigator(); return true;
             case EscapeStep.Flow: a.StopFlow(); return true;
             case EscapeStep.Panel: a.ClosePanel(); return true;
+            case EscapeStep.Compare: a.CloseCompare(); return true;
             case EscapeStep.Up: a.Up(); return true;
             default: return false;
         }
@@ -249,7 +259,7 @@ internal static class KeyMap
     private static readonly IReadOnlyDictionary<HelpGroup, (string Id, string Keys, string What)[]> Order = new Dictionary<HelpGroup, (string, string, string)[]>
     {
         [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("perf"), R("failures"), R("edit"), R("shortcuts")],
-        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-replay"), R("escape")],
+        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-replay"), R("compare"), R("escape")],
         [HelpGroup.Performance] = [R("perf-step"), R("perf-ends"), R("perf-ramp"), R("escape")],
         [HelpGroup.Failures] = [R("failure-step")],
         [HelpGroup.Editing] =

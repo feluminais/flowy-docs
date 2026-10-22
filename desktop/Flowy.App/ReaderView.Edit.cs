@@ -60,6 +60,7 @@ internal sealed partial class ReaderView
         if (on && ReadOnly) return;
         if (_editMode == on) return;
         _editMode = on;
+        CloseCompare(false); // nor does a comparison: it shows the flows as they are
         LeavePerformance(); // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
         if (_tab == PanelTab.Failures) _tab = null; // nor does the Failures tab: its marks would sit on a model that is changing, and it has no forms here yet
         DismissNotice();

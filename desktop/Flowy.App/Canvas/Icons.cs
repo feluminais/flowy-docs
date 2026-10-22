@@ -80,6 +80,9 @@ internal static class Icons
     // Our own, drawn for the rail: a folder with what is in it hanging below, and an i with no serifs, which stays sharp at 18 pixels.
     public const string Explorer = "M4 3h4l2 2h9a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-15a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v9.5h3M7 15.5h3M13 15.5h8M13 20.5h8";
     public const string Link = "M9 15l6 -6M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463";
+    // Compare: Tabler's columns (two panes side by side) and the arrows that put them on each other's side.
+    public const string Columns = "M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2zM12 4l0 16";
+    public const string ArrowsLeftRight = "M21 17l-18 0M6 10l-3 -3l3 -3M3 7l18 0M18 20l3 -3l-3 -3";
 
     /// <summary>The heading icon of an object's look (shape, colour, icon).</summary>
     public static string Sparkles => LookData.Icons["sparkles"];
