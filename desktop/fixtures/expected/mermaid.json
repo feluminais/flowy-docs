@@ -71,7 +71,7 @@
         },
         {
           "view": "notifications",
-          "text": "flowchart TB\n  n0[\"Notifier<br/>app · Node\"]\n  n1[(\"Message templates<br/>store · Postgres\")]\n  n2[\"Ordering<br/>system\"]\n  n3[\"Delivery<br/>system\"]\n  n4[\"Twilio<br/>system\"]\n  n2 -- \"2 connections\" --> n0\n  n3 -- \"sends the offer\" --> n0\n  n0 -- \"SMS\" --> n4\n  n0 -- \"reads the wording\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n2,n3,n4 outsider\n"
+          "text": "flowchart TB\n  n0[\"Notifier<br/>app · Node\"]\n  n1@{ shape: doc, label: \"Message templates<br/>store · Postgres\" }\n  n2[\"Ordering<br/>system\"]\n  n3[\"Delivery<br/>system\"]\n  n4[\"Twilio<br/>system\"]\n  n2 -- \"2 connections\" --> n0\n  n3 -- \"sends the offer\" --> n0\n  n0 -- \"SMS\" --> n4\n  n0 -- \"reads the wording\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n2,n3,n4 outsider\n"
         },
         {
           "view": "backoffice",
@@ -104,8 +104,24 @@
           "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  participant n3 as Notifications\n  actor n4 as Courier\n  participant n5 as Courier app\n  participant n6 as Live tracking\n  n0->>n1: Hears that an order was placed\n  n1->>n2: Finds idle couriers near the restaurant\n  Note over n1: Ranks them by how soon each could arrive\n  n1->>n3: Sends the offer as a push\n  n4->>n5: Accepts within 30 seconds\n  n5->>n6: Streams its position every 5 seconds\n  n6->>n0: The customer watches the courier come\n  n5->>n0: Marks the order delivered\n"
         },
         {
+          "flow": "events-arrive-late",
+          "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Dispatch\n  participant n2 as Fleet DB\n  n0->>n1: The placed event waits behind the dinner rush\n  Note over n0,n1: Delayed: Consumer lag\n  n1->>n2: Finds couriers minutes after the customer paid\n"
+        },
+        {
+          "flow": "hotel-wifi-takes-order",
+          "text": "sequenceDiagram\n  participant n0 as Customer app\n  participant n1 as Order API\n  n0->>n1: POST /orders reaches a sign-in page instead\n  Note over n0,n1: Taken by Hotel wifi portal\n  Note over n0: Waits for a reply and offers a Retry button\n"
+        },
+        {
+          "flow": "mapbox-rate-limit",
+          "text": "sequenceDiagram\n  participant n0 as Matcher\n  participant n1 as ETA\n  participant n2 as Mapbox\n  n0->>n1: Asks who is quickest\n  n1->>n2: Asks Mapbox for travel times and is turned away\n  Note over n1,n2: Rejected: Rate limit\n  Note over n1: Falls back to straight-line distance and ranks more roughly\n"
+        },
+        {
           "flow": "no-courier-answers",
           "text": "sequenceDiagram\n  participant n0 as Dispatch\n  participant n1 as Notifications\n  participant n2 as Courier app\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n0->>n1: Offers the job, and the nearest courier doesn't answer within 30 seconds\n    Note over n0: Moves on to the next courier on the list\n  end\n  alt A courier accepts\n    n2->>n0: Accepts, and the offers stop\n  else The list runs out\n    n0->>n1: Tells the customer that no courier is free yet\n    Note over n0: Searches again in a minute\n  end\n"
+        },
+        {
+          "flow": "order-sent-twice",
+          "text": "sequenceDiagram\n  participant n0 as Customer app\n  participant n1 as Order API\n  participant n2 as Orders DB\n  n0->>n1: The same order arrives twice\n  Note over n0,n1: Sent twice: Slow reply\n  n1->>n2: Saves the first copy and refuses the second\n"
         },
         {
           "flow": "place-order",
@@ -122,6 +138,10 @@
         {
           "flow": "stripe-outage",
           "text": "sequenceDiagram\n  participant n0 as Order API\n  participant n1 as Stripe\n  participant n2 as Customer app\n  participant n3 as Checkout\n  n0->>n1: The hold is slow while Stripe shuts down\n  Note over n1: Stopping\n  n0->>n1: The hold times out\n  Note over n0,n1: Times out\n  Note over n1: Stopped\n  n0->>n2: Offers pay at the door\n  Note over n3: Degraded\n  n0->>n1: The status page says Stripe is restarting\n  Note over n1: Restarting\n  n0->>n1: The next check finds it coming back up\n  Note over n1: Starting\n  n0->>n1: The hold goes through\n  Note over n1: Running\n  Note over n3: Running\n"
+        },
+        {
+          "flow": "stripe-webhook",
+          "text": "sequenceDiagram\n  participant n0 as Stripe\n  participant n1 as Order API\n  participant n2 as Orders DB\n  n0->>n1: Calls Plum's webhook to say the charge went through\n  n1->>n2: Marks the order paid\n  Note over n1: Carries on to announce the order\n  Note over n1: Continues in #quot;A paid order is announced#quot;\n"
         }
       ]
     },

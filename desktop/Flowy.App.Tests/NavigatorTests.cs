@@ -36,7 +36,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Explorer, 36", "Flows, 9", "Failures, 14", "Performance, 7"], icons.Select(i => i.Name)); // Failures and Performance are there only where there is an analysis or a run: Plum has 14 modes and seven runs
+        Assert.Equal(["Explorer, 36", "Flows, 14", "Failures, 14", "Performance, 7"], icons.Select(i => i.Name)); // Failures and Performance are there only where there is an analysis or a run: Plum has 14 modes and seven runs
         Assert.All(icons, i => Assert.True(i.Visible));
         Assert.Equal(["Details"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
@@ -89,7 +89,7 @@ public class NavigatorTests
         var (_, reader) = Open();
         reader.ClickRail(PanelTab.Explorer);
         var explorer = reader.Navigator.Explorer;
-        Assert.Equal("36 shapes · 9 flows", explorer.SummaryText);
+        Assert.Equal("36 shapes · 14 flows", explorer.SummaryText);
         Assert.Equal("shape:root", explorer.Rows[0].Key);
         Assert.Equal(36, explorer.Rows[0].Shapes);
         Assert.Contains(explorer.Rows, r => r.Key == "shape:ordering" && r.Depth == 1 && r.Expandable && !r.Expanded);
@@ -156,7 +156,7 @@ public class NavigatorTests
         reader.GoTo("delivery");
         reader.ClickRail(PanelTab.Flows);
         var listed = reader.Navigator.Flows.Listed;
-        Assert.Equal(9, listed.Count);
+        Assert.Equal(14, listed.Count);
         Assert.Equal("delivery", listed[0].View); // the flows in this level come first
         reader.Navigator.Flows.Open("place-order");
         Assert.Equal("ordering", reader.View);
@@ -269,7 +269,7 @@ public class NavigatorTests
         var explorer = reader.Navigator.Explorer;
         explorer.Filter = "order api";
         Assert.Equal(["Overview", "Ordering", "Order API"], explorer.Rows.Select(r => r.Name));
-        Assert.Equal("36 shapes · 9 flows", explorer.SummaryText); // the totals are of the whole model
+        Assert.Equal("36 shapes · 14 flows", explorer.SummaryText); // the totals are of the whole model
         explorer.Filter = "zzzzz";
         Assert.Empty(explorer.Rows);
         explorer.Filter = "";

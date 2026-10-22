@@ -415,6 +415,18 @@ Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 - [ ] Press E with the tab open: it stays, beside Details, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
 
+How a request ends in Plum (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
+
+- [ ] Play Mapbox turns the travel times away (`#dispatch/mapbox-rate-limit`): step 2 stops the call at a red bar by Mapbox and sends it back red, with "Rate limit" beside the bar.
+      The card says Rejected. In Failures, Mapbox calls fail at dinner rush has Show it and opens this step.
+- [ ] Play A double tap sends the order twice (`#ordering/order-sent-twice`): a second copy leaves the first, both wear one colour, and Order API takes both in. Play Hotel wifi
+      takes the order (`#ordering/hotel-wifi-takes-order`): the call leaves the line for a dashed marker named Hotel wifi portal, which lights. Play Dispatch hears about an order late
+      (`#delivery/events-arrive-late`): the bolt waits beside a turning dashed clock labelled Consumer lag, then goes on.
+- [ ] Play Stripe reports a charge (`#ordering/stripe-webhook`): a bolt drops onto Stripe first, then a bell runs to Order API with the words o_1042. The last step links to A paid order
+      is announced. In that flow the first step is an Event (a bolt, and Order events flashes), and the Dispatch lane is a Callback that flashes Order events first.
+- [ ] Click Stripe, Mapbox and Customer app: each has a link in Details (Provider status, Rate limits, Build and release notes). The last one opens the file in the repo. The courier has a truck
+      and Message templates is drawn as a document, in the browser and the desktop app, light and dark.
+
 Shape states (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 
 - [ ] Play Stripe goes down and comes back (`#ordering/stripe-outage`). Step 1: Stripe's outline drains and an hourglass sits on its corner. Step 2: Stripe goes grey and dashed with a power symbol.

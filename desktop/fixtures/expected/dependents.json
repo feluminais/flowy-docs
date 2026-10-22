@@ -1795,6 +1795,32 @@
             "described": "the view of flow capture-payment"
           },
           {
+            "key": "view:hotel-wifi-takes-order",
+            "kind": "view",
+            "of": "ordering",
+            "flow": "hotel-wifi-takes-order",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow hotel-wifi-takes-order"
+          },
+          {
+            "key": "view:order-sent-twice",
+            "kind": "view",
+            "of": "ordering",
+            "flow": "order-sent-twice",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow order-sent-twice"
+          },
+          {
             "key": "view:place-order",
             "kind": "view",
             "of": "ordering",
@@ -1886,6 +1912,19 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "the view of flow stripe-outage"
+          },
+          {
+            "key": "view:stripe-webhook",
+            "kind": "view",
+            "of": "ordering",
+            "flow": "stripe-webhook",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow stripe-webhook"
           },
           {
             "key": "child:customer-app",
@@ -2012,6 +2051,19 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "the view of flow deliver-order"
+          },
+          {
+            "key": "view:events-arrive-late",
+            "kind": "view",
+            "of": "delivery",
+            "flow": "events-arrive-late",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow events-arrive-late"
           },
           {
             "key": "view:no-courier-answers",
@@ -2441,6 +2493,24 @@
             "described": "flow stripe-outage, step 6"
           },
           {
+            "key": "step:stripe-webhook:1",
+            "kind": "step",
+            "of": "stripe",
+            "flow": "stripe-webhook",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 1"
+          },
+          {
             "key": "mode:ordering:stripe-timeout:to",
             "kind": "mode",
             "of": "stripe",
@@ -2564,6 +2634,24 @@
         ],
         "rows": [
           {
+            "key": "step:mapbox-rate-limit:2",
+            "kind": "step",
+            "of": "mapbox",
+            "flow": "mapbox-rate-limit",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow mapbox-rate-limit, step 2"
+          },
+          {
             "key": "mode:ordering:eta-mapbox-fails:to",
             "kind": "mode",
             "of": "mapbox",
@@ -2682,6 +2770,60 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow deliver-order, step 7"
+          },
+          {
+            "key": "step:hotel-wifi-takes-order:1",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "hotel-wifi-takes-order",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow hotel-wifi-takes-order, step 1"
+          },
+          {
+            "key": "step:hotel-wifi-takes-order:2",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "hotel-wifi-takes-order",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow hotel-wifi-takes-order, step 2"
+          },
+          {
+            "key": "step:order-sent-twice:1",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "order-sent-twice",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow order-sent-twice, step 1"
           },
           {
             "key": "step:place-order:1",
@@ -3208,6 +3350,60 @@
             "described": "flow deliver-order, step 8"
           },
           {
+            "key": "step:hotel-wifi-takes-order:1",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "hotel-wifi-takes-order",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow hotel-wifi-takes-order, step 1"
+          },
+          {
+            "key": "step:order-sent-twice:1",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "order-sent-twice",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow order-sent-twice, step 1"
+          },
+          {
+            "key": "step:order-sent-twice:2",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "order-sent-twice",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow order-sent-twice, step 2"
+          },
+          {
             "key": "step:place-order:2",
             "kind": "step",
             "of": "order-api",
@@ -3350,6 +3546,60 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow stripe-outage, step 5"
+          },
+          {
+            "key": "step:stripe-webhook:1",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "stripe-webhook",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 1"
+          },
+          {
+            "key": "step:stripe-webhook:2",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "stripe-webhook",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 2"
+          },
+          {
+            "key": "step:stripe-webhook:3",
+            "kind": "step",
+            "of": "order-api",
+            "flow": "stripe-webhook",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 3"
           },
           {
             "key": "mode:ordering:double-tap:on",
@@ -3553,6 +3803,24 @@
             "described": "flow capture-payment, step 4"
           },
           {
+            "key": "step:order-sent-twice:2",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "order-sent-twice",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow order-sent-twice, step 2"
+          },
+          {
             "key": "step:place-order:4",
             "kind": "step",
             "of": "orders-db",
@@ -3587,6 +3855,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow refund-not-recorded, step 2"
+          },
+          {
+            "key": "step:stripe-webhook:2",
+            "kind": "step",
+            "of": "orders-db",
+            "flow": "stripe-webhook",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 2"
           },
           {
             "key": "mode:ordering:orders-db-down:on",
@@ -3791,6 +4077,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow deliver-order, step 1"
+          },
+          {
+            "key": "step:events-arrive-late:1",
+            "kind": "step",
+            "of": "events",
+            "flow": "events-arrive-late",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow events-arrive-late, step 1"
           },
           {
             "key": "step:place-order:5",
@@ -4659,6 +4963,55 @@
             "described": "flow deliver-order, step 4"
           },
           {
+            "key": "step:events-arrive-late:1",
+            "kind": "step",
+            "of": "dispatch",
+            "flow": "events-arrive-late",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow events-arrive-late, step 1"
+          },
+          {
+            "key": "step:events-arrive-late:2",
+            "kind": "step",
+            "of": "dispatch",
+            "flow": "events-arrive-late",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow events-arrive-late, step 2"
+          },
+          {
+            "key": "view:mapbox-rate-limit",
+            "kind": "view",
+            "of": "dispatch",
+            "flow": "mapbox-rate-limit",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow mapbox-rate-limit"
+          },
+          {
             "key": "step:no-courier-answers:3",
             "kind": "step",
             "of": "dispatch",
@@ -5021,6 +5374,24 @@
             "described": "flow deliver-order, step 2"
           },
           {
+            "key": "step:events-arrive-late:2",
+            "kind": "step",
+            "of": "fleet-db",
+            "flow": "events-arrive-late",
+            "step": 2,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow events-arrive-late, step 2"
+          },
+          {
             "key": "mode:ordering:fleet-position-writes:on",
             "kind": "mode",
             "of": "fleet-db",
@@ -5073,6 +5444,24 @@
         ],
         "rows": [
           {
+            "key": "step:mapbox-rate-limit:1",
+            "kind": "step",
+            "of": "matcher",
+            "flow": "mapbox-rate-limit",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow mapbox-rate-limit, step 1"
+          },
+          {
             "key": "line:25",
             "kind": "line",
             "of": "matcher",
@@ -5123,6 +5512,60 @@
           }
         ],
         "rows": [
+          {
+            "key": "step:mapbox-rate-limit:1",
+            "kind": "step",
+            "of": "eta",
+            "flow": "mapbox-rate-limit",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow mapbox-rate-limit, step 1"
+          },
+          {
+            "key": "step:mapbox-rate-limit:2",
+            "kind": "step",
+            "of": "eta",
+            "flow": "mapbox-rate-limit",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow mapbox-rate-limit, step 2"
+          },
+          {
+            "key": "step:mapbox-rate-limit:3",
+            "kind": "step",
+            "of": "eta",
+            "flow": "mapbox-rate-limit",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow mapbox-rate-limit, step 3"
+          },
           {
             "key": "mode:ordering:eta-mapbox-fails:from",
             "kind": "mode",
