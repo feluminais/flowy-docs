@@ -13,37 +13,43 @@ namespace Flowy.App;
 /// <summary>
 /// The flyout over the player's Compare button: the flows the playing one is linked to first (a link icon and the word Linked; one a tag names that is not there is greyed out as
 /// Missing), then a field to find any other. A flow that can't play is greyed out too. Picking one calls <c>pick</c>; ↑ and ↓ move, Enter picks, Esc closes.
+/// The Performance panel's Compare and Link with use it too, over the runs (<c>kind</c> run): a run only needs to be there.
 /// </summary>
 internal sealed class ComparePicker : Border
 {
     private readonly Model _model;
+    private readonly string _kind;
+    private readonly IReadOnlyDictionary<string, LoadRun> _runs;
     private readonly Action<string> _pick;
     private readonly Action _close;
     private readonly IReadOnlyList<Choice> _linked;
     private readonly IReadOnlyList<Choice> _others;
-    private readonly TextBox _input = new() { PlaceholderText = "Find a flow", Classes = { "bare" } };
+    private readonly TextBox _input;
     private readonly StackPanel _linkedRows = new();
     private readonly StackPanel _otherRows = new();
     private readonly TextBlock _nothing = new() { Text = "Nothing called that", Classes = { "muted" }, Margin = new Thickness(8, 4), IsVisible = false };
     private List<Choice> _rows = []; // the choices on show, linked first
     private int _at = -1; // the one the arrow keys are on, or -1
 
-    public ComparePicker(Model model, string id, Action<string> pick, Action close)
+    /// <param name="kind"><c>flow</c> (the player's Compare) or <c>run</c> (the Performance panel's Compare and Link with; <paramref name="runs"/> are the runs to pick from).</param>
+    /// <param name="label">What the flyout is called, for a screen reader: <c>Compare with</c> or <c>Link with</c>.</param>
+    public ComparePicker(Model model, string id, Action<string> pick, Action close, string kind = "flow", IReadOnlyDictionary<string, LoadRun>? runs = null, string label = "Compare with")
     {
-        (_model, _pick, _close) = (model, pick, close);
-        (_linked, _others) = CompareChoices.For(model, new Dictionary<string, LoadRun>(), "flow", id);
+        (_model, _kind, _runs, _pick, _close) = (model, kind, runs ?? new Dictionary<string, LoadRun>(), pick, close);
+        (_linked, _others) = CompareChoices.For(model, _runs, kind, id);
+        _input = new TextBox { PlaceholderText = $"Find a {kind}", Classes = { "bare" } };
         Classes.Add("card");
         Classes.Add("comparepicker");
         Padding = new Thickness(6);
         HorizontalAlignment = HorizontalAlignment.Stretch;
-        AutomationProperties.SetName(this, "Compare with");
+        AutomationProperties.SetName(this, label);
 
         var glass = Icons.Make(Icons.Search, "rowicon", 16);
         glass.VerticalAlignment = VerticalAlignment.Center;
         glass.Margin = new Thickness(8, 0, 4, 0);
         var field = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { glass, _input } };
         Grid.SetColumn(_input, 1);
-        AutomationProperties.SetName(_input, "Find a flow");
+        AutomationProperties.SetName(_input, $"Find a {kind}");
         var column = new StackPanel { Children = { _linkedRows } };
         if (_linked.Count > 0) column.Children.Add(new Border { Height = 1, Margin = new Thickness(0, 4), Classes = { "hairline" } });
         column.Children.Add(field);
@@ -62,7 +68,7 @@ internal sealed class ComparePicker : Border
 
     internal TextBox Field => _input;
 
-    private bool Can(Choice c) => !c.Missing && CompareChoices.Playable(_model, c.Id);
+    private bool Can(Choice c) => !c.Missing && (_kind == "run" ? CompareChoices.Openable(_runs, c.Id) : CompareChoices.Playable(_model, c.Id));
 
     private void Rebuild(bool typed)
     {
@@ -82,7 +88,7 @@ internal sealed class ComparePicker : Border
         var off = c.Missing ? "Missing" : !Can(c) ? "Can't play yet" : null;
         var end = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, VerticalAlignment = VerticalAlignment.Center };
         if (c.Missing) end.Children.Add(new TextBlock { Text = "Missing", FontSize = 12, Classes = { "muted" } });
-        else if (_model.Flows.TryGetValue(c.Id, out var flow) && Views.IsView(_model, flow.View))
+        else if (_kind == "flow" && _model.Flows.TryGetValue(c.Id, out var flow) && Views.IsView(_model, flow.View))
             end.Children.Add(new TextBlock { Text = Views.NameOf(_model, flow.View!), FontSize = 12, Classes = { "muted" } });
         if (linked) end.Children.Add(Chrome.Chip("Linked", Icons.Link, "accent"));
         var name = new TextBlock { Text = c.Name, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };

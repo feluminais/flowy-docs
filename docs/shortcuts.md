@@ -15,8 +15,8 @@
 | Home, End | First and last step, or first and last tested level. In a comparison, of the pane you last clicked |
 | P | Autoplay: step through the flow on its own, or pause (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own (in a comparison of runs, on the pane you last clicked) |
 | R | Replay the step's animation (in a comparison, on the pane you last clicked) |
-| C | Compare the flow playing with another flow, or the run on the Performance tab with another run, side by side, or close the comparison. F fits the pane you last clicked. In a comparison the diagrams keep their zoom when the window changes size, so press F to fit the focused pane. The app compares flows only |
-| X | Swap to the other flow or run of a comparison, when it is set to Swap. Swap flips one canvas between the two: shapes both flows draw glide to their new place and the others fade, while two runs, which draw the same level, fade their traffic. Each keeps its own step or place, and the keys above act on the one on show. The app swaps flows; two runs are compared in the browser only |
+| C | Compare the flow playing with another flow, or the run on the Performance tab with another run, side by side, or close the comparison. F fits the pane you last clicked. In a comparison the diagrams keep their zoom when the window changes size, so press F to fit the focused pane |
+| X | Swap to the other flow or run of a comparison, when it is set to Swap. Swap flips one canvas between the two: shapes both flows draw glide to their new place and the others fade, while two runs, which draw the same level, fade their traffic. Each keeps its own step or place, and the keys above act on the one on show |
 | T | The Performance tab, where a folder has load-test runs |
 | M | The Failures tab, where a folder has failure analyses |
 | Y | The YAML tab: the files as text, and every change to them (browser) |

@@ -48,8 +48,13 @@ internal sealed class LaunchScript
         if (options.Value("--flow") is { } flow) _reader.Play(flow, int.TryParse(options.Value("--step"), out var step) ? step : 0);
         // Two flows side by side: --compare a,b (the one that holds a compare tag reads second). A third part, swap, opens them on one canvas that flips between them; it starts on the
         // flow that reads first, and --swapped flips it to the other (with motion on, a short --delay catches the swap half done).
+        // Two runs: the value starts with run: (--compare run:a,b[,swap]). The Performance panel is not open for it, and a run that is not there says so in a notice.
         if (options.Value("--compare") is { } compare && compare.Split(',') is [var first, var second, ..])
-            _reader.OpenCompareById(first.Trim(), second.Trim(), compare.Split(',') is [_, _, var way, ..] && way.Trim() == "swap", options.Has("--swapped"));
+        {
+            var swap = compare.Split(',') is [_, _, var way, ..] && way.Trim() == "swap";
+            if (first.Trim().StartsWith("run:", StringComparison.Ordinal)) _reader.OpenRunCompareById(first.Trim()["run:".Length..].Trim(), second.Trim(), swap, options.Has("--swapped"));
+            else _reader.OpenCompareById(first.Trim(), second.Trim(), swap, options.Has("--swapped"));
+        }
         // --changes turns Show changes on, and --note puts text in the note editor of the pair, as if it had been typed.
         if (options.Has("--changes")) _reader.SetShowChanges(true);
         if (options.Value("--note") is { } note) _reader.PrefillNote(note);

@@ -188,7 +188,7 @@ public class PerformanceTests
         Assert.Equal(1.0, reader.PerfPanelNow.SliderValue);
         Assert.Equal("25 req/s", reader.PerfPanelNow.LoadText);
         var picker = reader.PerfPanelNow.Picker!;
-        picker.SelectedIndex = ((IEnumerable<string>)picker.ItemsSource!).ToList().IndexOf("Latency only");
+        picker.SelectedIndex = reader.PerfPanelNow.RunChoices.Select(c => c.Name).ToList().IndexOf("Latency only");
         Assert.Equal("latency", reader.PerfState.Run);
         Assert.Equal("users", string.Join("", reader.PerfPanelNow.LoadText.Where(char.IsLetter)));
     }
