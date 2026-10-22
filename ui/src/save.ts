@@ -113,9 +113,9 @@ async function record(transport: Transport, model: Model, next: Model, changes: 
 export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSaved?: (undo: Undo, label: string) => void): Promise<string | undefined> {
   try {
     const transport = transportOf(via)
-    const { model, versions } = await fetchModel(transport)
+    const { model, versions, runs } = await fetchModel(transport)
     const next = op(model)
-    refuseNewProblems(model, next)
+    refuseNewProblems(model, next, undefined, runs)
     const changes = changesBetween(model, next)
     // A flow or analysis that didn't exist goes away again. model.yaml and layout.yaml can't be deleted, so they go back to empty.
     const steps = changes.map(({ file, data }): Step => ({ file, data, version: versions[file] ?? null, revert: versions[file] == null && isRemovableFile(file) ? null : fileData(model, file) }))

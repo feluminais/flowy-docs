@@ -56,7 +56,7 @@ const changedFile = (a: Record<string, string>, b: Record<string, string>): stri
 function opResult(move: McpMove, before: Report, dir: string): { files: Record<string, string> } | { refused: string } {
   try {
     const next = move.twin!.run(before.model)
-    refuseNewProblems(before.model, next, missingPaths(dir, before.model, next))
+    refuseNewProblems(before.model, next, missingPaths(dir, before.model, next), before.runs)
     return { files: modelFiles(next) }
   } catch (e) {
     return { refused: first(e) }

@@ -146,10 +146,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         const loaded = await loadDir(dir)
         const { model, versions } = loaded
         const next = op(model)
-        refuseNewProblems(model, next, missingPaths(dir, model, next)) // the canvas refuses the same edits, except missing code paths, which only Node can see
-        // A mode's run is a file in perf/, which the model doesn't hold, so only Node can tell that one doesn't exist.
+        // A run is a file in perf/, which the model doesn't hold: it can name a shape or a line the edit takes away, or be named by a failure mode.
+        const { runs } = await loadRuns(dir, model)
+        refuseNewProblems(model, next, missingPaths(dir, model, next), runs) // the canvas refuses the same edits, except missing code paths, which only Node can see
         if (next.failures !== model.failures) {
-          const { runs } = await loadRuns(dir, model)
           const links = (m: Model) => Object.entries(m.failures).flatMap(([aid, a]) => runLinkProblems(aid, a, runs))
           const added = newProblems(links(model), links(next))
           if (added.length > 0) {
