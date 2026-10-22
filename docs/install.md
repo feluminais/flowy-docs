@@ -7,7 +7,7 @@ desktop app and a browser can be open on one model at once.
 
 Download the installer for your system from [Releases](https://github.com/feluminais/flowy-docs/releases), start it, and open a repo with
 **File › Open Folder** (Ctrl+O). It finds the repo's `flowy/` folder, draws it, and redraws it whenever a file changes. No repo handy?
-**Help › Open the Demo** shows Plum. [The guide](guide.md#the-desktop-app) lists what the app does.
+**Help › Open the Demo** shows Plum. [The guide](guide/desktop.md#the-desktop-app) lists what the app does.
 
 Windows is where it has been built and tried. The macOS and Linux packages are built by the same workflow but haven't been run.
 None of them is signed yet, so Windows shows SmartScreen the first time, and the macOS app needs right-click, then Open, and
@@ -77,5 +77,5 @@ From the root of the repo you want to document, once the clone is built:
 claude mcp add flowy -- node /path/to/flowy-docs/dist/cli.js mcp
 ```
 
-Any other MCP client takes that command over stdio. Then ask Claude "map this repo into Flowy". [The guide](guide.md#let-claude-build-it)
+Any other MCP client takes that command over stdio. Then ask Claude "map this repo into Flowy". [The guide](guide/claude.md#let-claude-build-it)
 says what it writes and lists the tools.
