@@ -59,8 +59,8 @@ export const Keyboard = one('M2 6m0 2a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 
 export const Close = one('M18 6l-12 12M6 6l12 12')
 export const Check = one('M5 12l5 5l10 -10')
 export const Copy = one('M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667zM4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1')
-// Our own, drawn for the rail: an i with no serifs, which stays sharp at 18 pixels
-export const Info = one('M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 7.5h.01M12 11.5v5')
+// Our own, drawn for the rail: an i with no serifs in a rounded square, whose straight edges stay sharp at 18 pixels (a circle blurs)
+export const Info = one('M5.5 3h13a2.5 2.5 0 0 1 2.5 2.5v13a2.5 2.5 0 0 1 -2.5 2.5h-13a2.5 2.5 0 0 1 -2.5 -2.5v-13a2.5 2.5 0 0 1 2.5 -2.5zM12 7.5h.01M12 11.5v5')
 export const Activity = one('M3 12h4l3 8l4 -16l3 8h4')
 export const Bolt = one('M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11')
 // Our own: a folder with what is in it hanging below

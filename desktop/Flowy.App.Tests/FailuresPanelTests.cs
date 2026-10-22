@@ -57,7 +57,7 @@ public class FailuresPanelTests
     {
         var (_, reader) = Open();
         var count = FailuresView.ModeCount(reader.Folder!.Model);
-        Assert.DoesNotContain(reader.DetailsRail.Shown, i => i.Name.StartsWith("Failures")); // Details' rail on the right has Details and Performance only
+        Assert.DoesNotContain(reader.DetailsRail.Shown, i => i.Name.StartsWith("Failures")); // Details' rail on the right has Details only
         var item = reader.Rail.Shown.First(i => i.Name.StartsWith("Failures"));
         Assert.Equal($"Failures, {count}", item.Name);
         Assert.True(item.Visible);
