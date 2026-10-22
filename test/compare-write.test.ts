@@ -21,6 +21,7 @@ async function setup(t: TestContext) {
   }
   await put('model.yaml', SHOP)
   await put('perf/after.yaml', RUN)
+  for (const other of ['before', 'a', 'b']) await put(`perf/${other}.yaml`, RUN) // the runs the tests tag it with
   return { dir, put, read: (rel: string) => readFile(join(dir, rel), 'utf8') }
 }
 
@@ -82,6 +83,16 @@ test('a body that is not a tag is refused with 400', async t => {
   ]
   for (const body of bodies) assert.equal((await applyWrite(dir, 'PUT', 'perf/after.yaml', body)).status, 400, JSON.stringify(body))
   assert.equal(await read('perf/after.yaml'), RUN)
+})
+
+test('a tag to a run that is not there, or to the run itself, is refused with 400 and nothing is written', async t => {
+  const { dir, read } = await setup(t)
+  const version = hashText(RUN)
+  assert.deepEqual(await applyWrite(dir, 'PUT', 'perf/after.yaml', { version, data: { compare: 'nope' } }), { status: 400, body: { error: 'unknown run "nope"' } })
+  assert.deepEqual(await applyWrite(dir, 'PUT', 'perf/after.yaml', { version, data: { compare: { with: 'nope', note: 'x' } } }), { status: 400, body: { error: 'unknown run "nope"' } })
+  assert.deepEqual(await applyWrite(dir, 'PUT', 'perf/after.yaml', { version, data: { compare: 'after' } }), { status: 400, body: { error: 'run "after" cannot compare with itself' } })
+  assert.equal(await read('perf/after.yaml'), RUN)
+  assert.equal((await applyWrite(dir, 'PUT', 'perf/after.yaml', { version, data: { compare: null } })).status, 200, 'taking a tag out needs no target')
 })
 
 test('DELETE of a run and a run id with capitals are refused with 400', async t => {
