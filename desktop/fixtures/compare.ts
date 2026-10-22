@@ -7,7 +7,8 @@ import type { CompareTag } from '../../src/core/compare.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { loadState } from '../../src/node/files.ts'
 import {
-  CHANGE_NAMES, changeOfStop, choicesFor, firstLinkedRun, fromAddress, keyItems, linkedRuns, noteOf, noteOff, openable, orderPair, pairKey, pairOff, removeNeedsConfirm, runCompareOff, runPairOf, saveTarget, unsaved,
+  CHANGE_NAMES, changeOfStop, choicesFor, firstLinkedRun, flowTile, fromAddress, keyItems, linkedRuns, noteOf, noteOff, openable, orderPair, pairKey, pairOff, partnerChoices, removeNeedsConfirm, runCompareOff, runPairOf,
+  saveTarget, tagWith, taggedBy, unsaved,
 } from '../../ui/src/compare.ts'
 import type { Choice } from '../../ui/src/compare.ts'
 import { crossfadeDuration, FADE_MS, planSwap, SWAP_MS, swapDuration } from '../../ui/src/swap.ts'
@@ -217,6 +218,21 @@ const STOP_CASES: { name: string; steps: number[]; changes: Record<number, Chang
 const UNSAVED: [string | null, string][] = [[null, 'x'], ['', ''], ['  \n', ''], ['x', ''], ['x', 'x'], ['', 'x'], ['x', 'x\n'], ['x\n', 'x\n'], ['y', 'x\n']]
 const TAGS_FOR_REMOVE: (CompareTag | null)[] = [{ with: 'a', note: 'why' }, { with: 'a' }, null]
 
+/** What the flow form's Compare with offers for every flow of the compare case (and for ones that are not there): the tiles, who is tagged by whom, and the tag a pick writes. */
+async function dumpPartnerUi(): Promise<unknown> {
+  const state = await loadState(join(root, COMPARE))
+  if ('parseError' in state) throw new Error(`${COMPARE} can't be read`)
+  const model = modelOf(state)
+  const ids = Object.keys(model.flows)
+  const asked = [...ids, 'nope']
+  return {
+    tiles: ids.map(id => flowTile(model, id)),
+    choices: [...asked, ''].map(flowId => ({ flowId, result: partnerChoices(model, flowId) })),
+    taggedBy: asked.map(flowId => ({ flowId, result: taggedBy(model, flowId) })),
+    tagWith: asked.flatMap(flowId => [undefined, 'x', 'checkout'].map(partner => ({ flowId, partner: partner ?? null, result: tagWith(model, flowId, partner) ?? null }))),
+  }
+}
+
 /** What the comparison's key, stop marks, note and save target say, for the C# CompareUi to say the same. */
 export async function dumpCompareUi(): Promise<unknown> {
   const state = await loadState(join(root, FLOWDIFF))
@@ -236,6 +252,7 @@ export async function dumpCompareUi(): Promise<unknown> {
     noteOff: [[true, false], [false, false], [true, true], [false, true]].map(([live, readOnly]) => ({ live, readOnly, result: noteOff(live, readOnly) ?? null })),
     pairOff: [['flow', 'old', 'old'], ['flow', 'old', 'other'], ['run', 'r1', 'r1']].map(([kind, a, b]) => ({ kind, a, b, result: pairOff(kind as 'flow' | 'run', a, b) ?? null })),
     removeNeedsConfirm: TAGS_FOR_REMOVE.map(tag => ({ tag, result: removeNeedsConfirm(tag ?? undefined) })),
+    partners: await dumpPartnerUi(),
   }
 }
 

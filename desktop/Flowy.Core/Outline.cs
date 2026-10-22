@@ -2,16 +2,20 @@ using System.Text.RegularExpressions;
 
 namespace Flowy.Core;
 
-/// <summary>One line of the navigator's tree: the project, a shape, or a flow. <c>Key</c> is <c>shape:id</c> or <c>flow:id</c>.</summary>
+/// <summary>
+/// One line of the navigator's tree: the project, a shape, or a flow. <c>Key</c> is <c>shape:id</c> or <c>flow:id</c>. <c>Linked</c> is set on a flow row only: whether the flow is in a pair, by
+/// tagging a flow that is there or being tagged by one (see <see cref="Compares.Linked"/>).
+/// </summary>
 public sealed record OutlineRow(
     string Key, string Kind, string Id, string? Parent, int Depth, string Name, string? Type, bool External, int Shapes, int Flows, int? Steps,
-    bool Problem, bool Expandable, bool Expanded, bool Match);
+    bool Problem, bool Expandable, bool Expanded, bool Match, bool? Linked = null);
 
 public sealed record OutlineTotals(int Shapes, int Flows, int Problems);
 
 public sealed record Outline(IReadOnlyList<OutlineRow> Rows, OutlineTotals Totals);
 
-public sealed record FlowRef(string Id, string Name, int Steps, string? View);
+/// <summary>A flow on a list. <c>Linked</c>: it is in a pair (see <see cref="OutlineRow"/>).</summary>
+public sealed record FlowRef(string Id, string Name, int Steps, string? View, bool Linked = false);
 
 /// <summary>The flows that play in one view, with where that view is: its path of names from the top, without the project.</summary>
 public sealed record FlowGroup(string View, string Name, IReadOnlyList<string> Path, IReadOnlyList<FlowRef> Flows);
@@ -139,6 +143,9 @@ public static class Outlines
         return (shapes, flows);
     }
 
+    /// <summary>The flows that are in a pair (see <see cref="Compares.Linked"/>).</summary>
+    private static IReadOnlySet<string> LinkedFlows(Model model) => Compares.Linked(CompareChoices.TagsOf(model, new Dictionary<string, LoadRun>(), "flow"));
+
     /// <summary>The rows to draw, top to bottom. With a filter, only matching rows and the shapes holding them show, all open.</summary>
     public static Outline Build(Model model, IReadOnlyList<Problem> problems, IReadOnlySet<string> expanded, string? filter = null, bool editing = false)
     {
@@ -146,6 +153,7 @@ public static class Outlines
         var tree = TreeOf(model, editing);
         var counts = CountsOf(tree);
         var bad = ProblemsIn(model, problems);
+        var linked = LinkedFlows(model);
         var root = counts[Names.Root];
         var totals = new OutlineTotals(root.Shapes, root.Flows, problems.Count);
 
@@ -181,7 +189,7 @@ public static class Outlines
             {
                 var name = FlowName(id);
                 rows.Add(new OutlineRow($"flow:{id}", "flow", id, parent, depth, name, null, false, 0, 0, model.Flows[id].Steps.Count,
-                    bad.Flows.Contains(id), false, false, Matches(id, name)));
+                    bad.Flows.Contains(id), false, false, Matches(id, name), linked.Contains(id)));
                 continue;
             }
             var obj = model.GetObject(id);
@@ -209,22 +217,74 @@ public static class Outlines
         return next;
     }
 
-    /// <summary>The flows that play in <paramref name="view"/>, and all the others grouped by the view they play in, in tree order.</summary>
+    /// <summary>
+    /// <paramref name="ids"/> (the flows of one view, in name order) with partners together. A group is flows joined by tags to flows in the list. It sits where its first member sorts,
+    /// oldest first: a flow that tags none of the group, then the flows that tag it in key order, and so on, so a chain A &lt;- B &lt;- C reads A, B, C. A group with no oldest (a loop of tags)
+    /// starts at its first member. A flow with no partner is a group of one, so it does not move.
+    /// </summary>
+    private static List<string> WithPartners(Model model, IReadOnlyList<string> ids)
+    {
+        var listed = new HashSet<string>(ids);
+        string? Target(string id) => Compares.Of(model.Flows[id].CompareRaw)?.With is { } to && to != id && listed.Contains(to) ? to : null;
+        var newer = new Dictionary<string, List<string>>(); // the flows that tag a flow, in key order
+        foreach (var id in model.Flows.Keys)
+            if (listed.Contains(id) && Target(id) is { } to)
+            {
+                if (!newer.TryGetValue(to, out var tagging)) newer[to] = tagging = [];
+                tagging.Add(id);
+            }
+        var output = new List<string>();
+        var placed = new HashSet<string>();
+        void Place(string root)
+        {
+            // A stack, not recursion, so a long chain does not overflow; `placed` keeps a loop from repeating.
+            var stack = new Stack<string>([root]);
+            while (stack.Count > 0)
+            {
+                var id = stack.Pop();
+                if (!placed.Add(id)) continue;
+                output.Add(id);
+                if (newer.TryGetValue(id, out var below)) for (var i = below.Count - 1; i >= 0; i--) stack.Push(below[i]);
+            }
+        }
+        foreach (var id in ids)
+        {
+            if (placed.Contains(id)) continue;
+            var group = new HashSet<string> { id }; // everything joined to it by a tag, either way round
+            var queue = new Queue<string>([id]);
+            while (queue.Count > 0)
+            {
+                var member = queue.Dequeue();
+                var joined = new List<string>();
+                if (Target(member) is { } up) joined.Add(up);
+                if (newer.TryGetValue(member, out var down)) joined.AddRange(down);
+                foreach (var next in joined)
+                    if (group.Add(next)) queue.Enqueue(next);
+            }
+            var members = ids.Where(group.Contains).ToList();
+            foreach (var m in members.Where(m => Target(m) is null).Concat(members)) Place(m);
+        }
+        return output;
+    }
+
+    /// <summary>The flows that play in <paramref name="view"/>, and all the others grouped by the view they play in, in tree order. Partners are listed together (see <see cref="WithPartners"/>).</summary>
     public static FlowGroups Groups(Model model, string view, bool editing = false)
     {
         var tree = TreeOf(model, editing);
+        var linked = LinkedFlows(model);
         FlowRef Ref(string id)
         {
             var flow = model.Flows[id];
-            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View);
+            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View, linked.Contains(id));
         }
-        var here = (tree.FlowsIn.TryGetValue(view, out var own) ? own : []).Select(Ref).ToList();
+        List<FlowRef> Listed(string v) => WithPartners(model, tree.FlowsIn.TryGetValue(v, out var own) ? own : []).Select(Ref).ToList();
+        var here = Listed(view);
         var elsewhere = new List<FlowGroup>();
         foreach (var v in new[] { Names.Root }.Concat(tree.Preorder))
         {
-            if (v == view || !tree.FlowsIn.TryGetValue(v, out var ids)) continue;
+            if (v == view || !tree.FlowsIn.ContainsKey(v)) continue;
             var path = Views.Chain(model, v).AsEnumerable().Reverse().Skip(1).Select(id => Views.NameOf(model, id)).ToList();
-            elsewhere.Add(new FlowGroup(v, Views.NameOf(model, v), path, ids.Select(Ref).ToList()));
+            elsewhere.Add(new FlowGroup(v, Views.NameOf(model, v), path, Listed(v)));
         }
         return new FlowGroups(here, elsewhere, here.Count + elsewhere.Sum(g => g.Flows.Count));
     }
