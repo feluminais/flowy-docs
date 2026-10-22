@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CompareTag } from '../../src/core/compare.ts'
 import { Description } from './Box.tsx'
-import { noteOf, pairOff, saveTarget, unsaved } from './compare.ts'
+import { compareOf } from '../../src/core/compare.ts'
+import { noteOf, orderPair, pairKey, pairOff, saveTarget, unsaved } from './compare.ts'
 import { ArrowsLeftRight } from './icons.tsx'
 
 export type CompareNoteProps = {
@@ -24,7 +25,7 @@ export type CompareNoteProps = {
 
 /**
  * The note on a pair, under the panes. A pair with a tag shows its saved note as Markdown, and Note opens the editor on it; Save writes it with the tag. A pair with no
- * tag has no file to hold a note, so what is typed is a draft that lives only while the comparison is open, and Save as pair names the flow that gets the line, then writes
+ * tag has no file to hold a note, so what is typed is a draft (the reader keeps it until it is saved or discarded), and Save as pair names the flow that gets the line, then writes
  * the tag with the draft as its note. Nothing is hidden when a note can't be written: the controls are greyed out and the tooltip says why. Saved notes always show.
  */
 export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, onNotice, onFlip }: CompareNoteProps) {
@@ -44,7 +45,7 @@ export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, on
     el.focus()
     el.setSelectionRange(el.value.length, el.value.length) // to write on from the end of what is there
   }, [editing])
-  const pair = [a, b].sort().join('|')
+  const pair = pairKey(a, b)
   useEffect(() => setConfirming(false), [pair]) // another pair asks again from the start; the same pair with its sides swapped keeps asking
 
   const save = async (id: string, tag: CompareTag) => {
@@ -59,6 +60,9 @@ export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, on
   // Save as pair names the flow that gets the line before it writes. Swap sides (here and on the bar) changes it.
   const newer = target.id
   const older = target.tag.with
+  // The line goes to the right-hand flow, unless that one already links elsewhere and the other does not: then it goes to the other, and the confirm says why.
+  const usual = orderPair(kind, items, a, b)[1]
+  const moved = !tagged && newer !== usual ? usual : undefined
 
   return (
     <section className="compare-note" aria-label="Note">
@@ -84,8 +88,10 @@ export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, on
         {confirming ? (
           <>
             <span className="note-confirm">Tag <b>{nameOf(newer)}</b> as the newer of <b>{nameOf(older)}</b></span>
+            {moved !== undefined && <span className="note-confirm">{nameOf(moved)} already links to <b>{nameOf(compareOf(items[moved]?.compare)?.with ?? '')}</b></span>}
+            {target.replaces !== undefined && <span className="note-confirm warn">Replaces its link to <b>{nameOf(target.replaces)}</b></span>}
             <button className="icon" aria-label="Swap sides" title="Swap sides" onClick={onFlip}><ArrowsLeftRight size={16} /></button>
-            <button className="primary" disabled={busy} onClick={() => void save(target.id, target.tag)}>Save</button>
+            <button className="primary" disabled={off !== undefined || busy} title={off} onClick={() => void save(target.id, target.tag)}>Save</button>
             <button disabled={busy} onClick={() => setConfirming(false)}>Cancel</button>
           </>
         ) : (

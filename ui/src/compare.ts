@@ -52,14 +52,23 @@ export function noteOf(items: Tagged, a: string, b: string): { text: string; hol
 
 /**
  * Where a note on the pair `a`, `b` is saved and with what tag: on the line the pair has, else on the second of the pair (the newer, on the right), naming the first as the
- * older. `note` is trimmed; blank is no note, which writes the short form.
+ * older. A pair with no line never takes a link away without saying: when the newer already links to some other flow and the older links to none, the line goes to the older
+ * instead; when both link elsewhere, the newer is the target and `replaces` is the id its old link named, for the confirm to say. `note` is trimmed; blank is no note, which
+ * writes the short form.
  */
-export function saveTarget(kind: 'flow' | 'run', items: Tagged, a: string, b: string, note = ''): { id: string; tag: CompareTag } {
+export function saveTarget(kind: 'flow' | 'run', items: Tagged, a: string, b: string, note = ''): { id: string; tag: CompareTag; replaces?: string } {
   const [older, newer] = orderPair(kind, items, a, b)
-  const id = noteOf(items, a, b).holder ?? newer
+  const held = noteOf(items, a, b).holder
+  const linked = (id: string): string | undefined => compareOf(items[id]?.compare)?.with
+  const id = held ?? (linked(newer) !== undefined && linked(older) === undefined ? older : newer)
   const text = note.trim()
-  return { id, tag: text === '' ? { with: id === newer ? older : newer } : { with: id === newer ? older : newer, note: text } }
+  const tag: CompareTag = { with: id === newer ? older : newer, ...(text === '' ? {} : { note: text }) }
+  const replaces = held === undefined ? linked(id) : undefined
+  return replaces === undefined ? { id, tag } : { id, tag, replaces }
 }
+
+/** One key for the pair whichever way round it is given: the draft note and the confirm belong to the pair, not to a side. */
+export const pairKey = (a: string, b: string): string => [a, b].sort().join('|')
 
 /** Why a note can't be written, or undefined when it can: the page has to be one that saves. The reason is the tooltip of the greyed control. */
 export const noteOff = (live: boolean, readOnly: boolean): string | undefined => (live && !readOnly ? undefined : "This page can't save")
@@ -68,7 +77,7 @@ export const noteOff = (live: boolean, readOnly: boolean): string | undefined =>
 export const pairOff = (kind: 'flow' | 'run', a: string, b: string): string | undefined => (a === b ? `Needs two different ${kind}s` : undefined)
 
 /** Whether the text in the note editor would be lost by leaving: it is not what the pair holds, and it is not just blank where nothing is held. */
-export const unsaved = (draft: string | undefined, saved: string): boolean => draft !== undefined && draft.trim() !== saved
+export const unsaved = (draft: string | undefined, saved: string): boolean => draft !== undefined && draft.trim() !== saved.trim()
 
 /** What a click in a pane picked: a shape, or a line with the view its pane draws (the same two shapes can be joined differently in another view). */
 export type Picked = { kind: 'object'; id: string } | { kind: 'line'; from: string; to: string; view: string }

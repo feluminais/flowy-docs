@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { compareOf } from '../src/core/compare.ts'
 import { openHistory } from '../src/node/history.ts'
 import { startServer } from '../src/node/server.ts'
 import { httpHistory } from '../ui/src/historyclient.ts'
@@ -127,4 +128,40 @@ test('a folder with a file that can not be read says so, and nothing is written'
   assert.match(await saveCompare('run', 'y', { with: 'x' }, base) ?? '', /^Can't read flows\/c\.yaml/)
   assert.equal(await read('perf/y.yaml'), RUN('Lunch rush'))
 })
+
+// What people paste into a note: every one of these must come back from the file exactly as it went in, for a flow and for a run.
+const NOTES: Record<string, string> = {
+  'double quotes': 'He said "yes" twice',
+  'single quotes': "It's the 'old' one",
+  'a colon': 'Cause: a retry. Effect: two refunds',
+  'a hash': '# Heading\nnot a comment # either',
+  'a line break': 'first line\nsecond line',
+  'a blank line': 'first paragraph\n\nsecond paragraph',
+  'CRLF': 'first\r\nsecond',
+  'a trailing newline': 'ends with a break\n',
+  'Markdown': '**bold** and `code` and [a link](https://example.com)\n\n- one\n- two\n\n> quoted',
+  'a code fence': '```ts\nconst a = { b: 1 }\n```',
+  'unicode': 'Ünïcode ✓ 日本語 😀 العربية',
+  'a document marker': '---\nnot a new document\n...',
+  'a leading dash and spaces': '- item\n  indented',
+  'YAML look-alikes': 'null',
+  'a number': '12345',
+  'a flow mapping': '{ a: 1, b: [2, 3] }',
+  'an anchor and a tag': '&anchor !!str *alias',
+  'backslashes': 'C:\\path\\to\\file and \\n literally',
+  'a tab': 'a\tb',
+  'twenty thousand characters': `${'word '.repeat(3999)}end`,
+}
+
+for (const [what, note] of Object.entries(NOTES)) {
+  test(`a note with ${what} comes back as it went in, on a flow and on a run`, async t => {
+    const { base, read } = await setup(t)
+    assert.equal(await saveCompare('flow', 'b', { with: 'a', note }, base), undefined)
+    assert.equal(compareOf((await fetchModel(base)).model.flows.b.compare)?.note, note)
+    assert.equal(await saveCompare('run', 'y', { with: 'x', note }, base), undefined)
+    assert.equal(compareOf((await fetchModel(base)).runs.y.compare)?.note, note)
+    assert.equal(await read('flows/a.yaml'), 'name: Refund, old\nsteps: []\n', 'nothing else is touched')
+    assert.equal(await read('perf/x.yaml'), RUN('Dinner rush'))
+  })
+}
 

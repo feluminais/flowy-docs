@@ -1112,9 +1112,10 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .compare-note .note-text { font-size: 13.5px; }
 .compare-note textarea { display: block; width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: var(--hover); color: var(--fg); font-size: 13.5px; line-height: 1.5; resize: vertical; }
 .compare-note textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--tint); }
-.compare-note .note-actions { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-left: auto; }
+.compare-note .note-actions { flex: 0 1 auto; max-width: 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 2px; margin-left: auto; }
 .compare-note .note-confirm { margin-right: 6px; color: var(--muted); font-size: 13px; }
 .compare-note .note-confirm b { color: var(--fg); font-weight: 600; }
+.compare-note .note-confirm.warn { color: var(--warn); }
 .compare-note button, .draft-ask button {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-sizing: border-box; min-height: 30px; padding: 0 10px;
   border: 0; border-radius: 6px; background: none; color: var(--fg); line-height: 1; cursor: pointer;
