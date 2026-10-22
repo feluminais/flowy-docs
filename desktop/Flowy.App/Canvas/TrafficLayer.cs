@@ -12,8 +12,8 @@ namespace Flowy.App.Canvas;
 /// time on the window's animation frames, for as long as it has a line to draw. Each line's path is flattened once (<see cref="PathPoints"/>), so a
 /// particle's place is a lookup. Where its line runs behind a shape that is not one of its ends, or under a label, a particle is still drawn, going faint
 /// and a little smaller as it goes behind and back as it comes out, so the flow reads through what covers it. A line that ends at a shape that opens runs on a
-/// little way into it, thinning away as it goes in, and one that starts at such a shape comes out of it the same way, so the flow goes into and out of the shape
-/// and is not cut off at its edge. A run's source sets the particles' colour and
+/// way into it, and one that starts at such a shape comes out of it, but a particle is only drawn outside the shape (cut by its outline), so the flow goes in
+/// and out of it and is never seen on it. A run's source sets the particles' colour and
 /// size (a line's <c>Color</c> and <c>Radius</c>), and a line that says how its failing share fails draws a lost call as a ring where it pops and a rejected
 /// one as a call that stops at a bar at the end of the line and comes back in the danger tone. A line that several sources share has a stream for each (a line's
 /// <c>Source</c>), drawn in that source's colour and running a little to its side of the path (its <c>Offset</c>). Reduced motion draws none: the canvas leaves this empty then.
@@ -23,14 +23,14 @@ internal sealed class TrafficLayer : Control
     /// <summary>A shape a line may run behind: where it is and its outline (null: the box itself).</summary>
     internal readonly record struct ShapeCover(string Id, CoreRect Rect, double[]? Edge);
 
-    /// <summary>How far a particle runs on into a shape that opens, and out of one, while it thins away or comes in (in the diagram's units, whatever the zoom).</summary>
-    internal const double Reach = 24;
+    /// <summary>How far a particle runs on into a shape that opens, and starts out inside one, so it is wholly hidden before it is gone (in the diagram's units, whatever the zoom).</summary>
+    internal const double Reach = 48;
 
     /// <summary>
     /// A line's way for the layer: the path that runs on into the shapes at its ends that open, the same without the run into its end (a rejected call stops at
-    /// the bar there), and how far each runs.
+    /// the bar there), and the shapes at its start and end that open (null: it doesn't).
     /// </summary>
-    internal readonly record struct Way(FlatLine Path, FlatLine Bounce, double Before, double After);
+    internal readonly record struct Way(FlatLine Path, FlatLine Bounce, ShapeCover? From, ShapeCover? To);
 
     private sealed record Drawn(LineTraffic Line, Way Way, ParticleStream Stream, IReadOnlyList<ShapeCover> Behind);
 
@@ -153,6 +153,35 @@ internal sealed class TrafficLayer : Control
         return most;
     }
 
+    /// <summary>Everything but the inside of a shape: the drawing is cut to it where a particle goes into a shape that opens.</summary>
+    private static StreamGeometry Outside(ShapeCover s)
+    {
+        var geometry = new StreamGeometry();
+        using (var g = geometry.Open())
+        {
+            g.SetFillRule(FillRule.EvenOdd);
+            g.BeginFigure(new Point(-1e6, -1e6), true);
+            g.LineTo(new Point(1e6, -1e6));
+            g.LineTo(new Point(1e6, 1e6));
+            g.LineTo(new Point(-1e6, 1e6));
+            g.EndFigure(true);
+            if (s.Edge is not { Length: > 0 } edge)
+            {
+                g.BeginFigure(new Point(s.Rect.X, s.Rect.Y), true);
+                g.LineTo(new Point(s.Rect.Right, s.Rect.Y));
+                g.LineTo(new Point(s.Rect.Right, s.Rect.Bottom));
+                g.LineTo(new Point(s.Rect.X, s.Rect.Bottom));
+            }
+            else
+            {
+                g.BeginFigure(new Point(s.Rect.X + edge[0], s.Rect.Y + edge[1]), true);
+                for (var i = 1; i < edge.Length / 2; i++) g.LineTo(new Point(s.Rect.X + edge[2 * i], s.Rect.Y + edge[2 * i + 1]));
+            }
+            g.EndFigure(true);
+        }
+        return geometry;
+    }
+
     private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     private readonly Dictionary<(string, bool), IBrush> _tints = [];
@@ -186,7 +215,7 @@ internal sealed class TrafficLayer : Control
             // A rejected call stops at the bar at the end of the line, so it doesn't run on into the shape there.
             var rejected = d.Line.Failure == "rejected";
             var path = rejected ? d.Way.Bounce : d.Way.Path;
-            var after = rejected ? 0 : d.Way.After;
+            var opening = new[] { d.Way.From, rejected ? null : d.Way.To }.OfType<ShapeCover>().ToList();
             foreach (var m in d.Stream.Motes)
             {
                 var look = Flowy.Core.Particles.Look(m, d.Line.Failure);
@@ -202,10 +231,19 @@ internal sealed class TrafficLayer : Control
                     y += (bx - ax) / span * aside;
                 }
                 if (look.Bar is { } strength && strength > bar) bar = strength;
-                var (ghostAlpha, ghostScale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
-                var (goneAlpha, goneScale) = Flowy.Core.Particles.Swallow(Flowy.Core.Particles.WentIn(look.At * path.Total, path.Total, d.Way.Before, after));
-                ghostAlpha *= goneAlpha;
-                var r = radius * ghostScale * goneScale;
+                // Against the shapes it goes into or comes out of: wholly inside one (not drawn), or cut by the outline of one.
+                ShapeCover? cut = null;
+                var gone = false;
+                foreach (var s in opening)
+                {
+                    var how = Flowy.Core.Particles.CutBy(BoxGeometry.DepthIn(s.Rect, s.Edge, x, y), radius);
+                    if (how == Flowy.Core.Particles.Cut.Gone) gone = true;
+                    else if (how == Flowy.Core.Particles.Cut.Cut) cut = s;
+                }
+                if (gone) continue;
+                var (ghostAlpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
+                var r = radius * scale;
+                using var clip = cut is { } shape ? (IDisposable)context.PushGeometryClip(Outside(shape)) : null;
                 if (look.Pop is { } pop)
                 {
                     // A lost call: a ring where it died, growing and fading.
