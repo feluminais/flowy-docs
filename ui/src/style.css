@@ -1101,6 +1101,25 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .compare .panes.one { grid-template-columns: 1fr; grid-template-rows: 1fr; }
 .compare-bar .sep { align-self: center; width: 1px; height: 16px; margin: 0 6px; background: var(--line); }
 .compare-bar .flow-name { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compare-bar .marks-label { padding: 0 4px 0 6px; color: var(--muted); font-size: 12.5px; }
+.compare-bar .keyrow { margin-left: 10px; }
+/*
+ * Change marks (CompareKey): one colour and dash for each kind of change, shared by the outline round a shape, the halo along a line, a cell of the player's progress bar and the
+ * key's swatch, so the key is the mark. They only draw: the outline sits 5px outside the shape and the badge on its corner, so nothing moves. Selection, the lit step and the
+ * state outline sit on the shape itself, and the failure badges on the other corners, so none of them is covered.
+ */
+[data-change='new'] { --chg: var(--accent); --chg-dash: none; }
+[data-change='removed'] { --chg: var(--danger); --chg-dash: 6 4; }
+[data-change='changed'] { --chg: var(--warn); --chg-dash: none; }
+.change-outline { position: absolute; left: -5px; top: -5px; z-index: -1; width: calc(100% + 10px); height: calc(100% + 10px); overflow: visible; pointer-events: none; }
+.change-outline path, .sw.change rect { fill: none; stroke: var(--chg); stroke-width: 2.5; stroke-dasharray: var(--chg-dash); stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.change-badge { position: absolute; right: -7px; bottom: -9px; z-index: 2; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: var(--chg); color: var(--bg); font-size: 12px; font-weight: 700; line-height: 18px; text-align: center; pointer-events: none; }
+.change-line { stroke: var(--chg); stroke-width: 8; stroke-opacity: 0.3; stroke-dasharray: var(--chg-dash); pointer-events: none; }
+/* A shape or line off the step on show is dimmed to a ghost; a mark on one stays readable, so every change shows at every step. */
+.react-flow__node.dim:has(.box[data-change]), .react-flow__edge.dim:has(.change-line) { opacity: 0.6; }
+.progress [data-change] { background: color-mix(in srgb, var(--chg) 45%, var(--line)); outline: 1px solid var(--chg); }
+.progress .done[data-change] { background: var(--chg); }
+.progress [data-change='removed'] { outline-style: dashed; }
 .swap-canvas .react-flow__edges, .swap-canvas .react-flow__edgelabel-renderer { transition: opacity var(--fade-ms) ease; }
 .swap-canvas.swapping .react-flow__edges, .swap-canvas.swapping .react-flow__edgelabel-renderer { opacity: 0; }
 .swap-canvas.swapping .react-flow__node { transition: transform var(--swap-ms) ease; }

@@ -8,7 +8,7 @@ import type { Problem } from '../../src/core/problem.ts'
 import type { SideMarks } from '../../src/core/flowdiff.ts'
 import { usesStates } from '../../src/core/states.ts'
 import type { LineStyle } from '../../src/core/model.ts'
-import { Box, Frame } from './Box.tsx'
+import { Box, ChangeMarksContext, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import type { Picked } from './compare.ts'
 import { fitOptions, isStepLine } from './graph.ts'
@@ -52,7 +52,7 @@ type Props = {
   /** The shape and the line the shared panel shows, when it was this pane that showed them. */
   selectedBox?: string
   selectedLine?: string
-  /** What differs from the other flow, to draw on this one. The marks task fills it; the pane draws nothing for it yet. */
+  /** What differs from the other flow, to draw on this one. Without it (the switch is off) the pane draws nothing for it. */
   marks?: SideMarks
   /** Changes when the pane should fit its diagram again. A resize (a panel opening beside it) does not: a pane keeps its own zoom and pan. */
   fitKey: string
@@ -69,7 +69,7 @@ type Props = {
  * One flow of a comparison, drawn on its own view with a canvas of its own: its own zoom and pan, and its own player (a card at the foot of the pane), so acting in one pane
  * never moves another. It is the single canvas of the reader (App) cut down to what a flow needs: nothing is dragged, recorded or edited, and a double-click goes nowhere.
  */
-export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, fitKey, colorMode, problems, lines, still, ref }: Props) {
+export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, marks, fitKey, colorMode, problems, lines, still, ref }: Props) {
   const p = usePaneFlow({ model, flowId, startAt, problems, selectedBox, selectedLine, lines, still })
   const { flow, view, nodes, frame, edges, spots } = p
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
@@ -82,44 +82,46 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
           <LabelSpotsContext value={spots}>
-            <ReactFlow
-              id={`pane-${paneId}`}
-              nodes={[...frame, ...nodes]}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              minZoom={0.2}
-              colorMode={colorMode}
-              defaultMarkerColor="var(--edge)"
-              nodesDraggable={false}
-              nodesConnectable={false}
-              zoomOnDoubleClick={false}
-              deleteKeyCode={null}
-              onNodesChange={p.onNodesChange}
-              onNodeClick={(_, node) => {
-                if (node.type === 'box') onPick({ kind: 'object', id: node.id })
-              }}
-              onEdgeClick={(_, e) => {
-                if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view })
-              }}
-              onEdgeMouseEnter={(_, e) => p.setHovered(e.id)}
-              onEdgeMouseLeave={() => p.setHovered(undefined)}
-              onPaneClick={() => {
-                onFocus()
-                onEmpty() // as on the single canvas, a click on nothing closes the panel
-              }}
-              onInit={instance => {
-                fitNow.current = options => void instance.fitView(options)
-              }}
-            >
-              <Camera count={nodes.length + frame.length} fitKey={`${view} ${flowId} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
-              <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
-              <PaneMotions p={p} />
-            </ReactFlow>
+            <ChangeMarksContext value={marks}>
+              <ReactFlow
+                id={`pane-${paneId}`}
+                nodes={[...frame, ...nodes]}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                minZoom={0.2}
+                colorMode={colorMode}
+                defaultMarkerColor="var(--edge)"
+                nodesDraggable={false}
+                nodesConnectable={false}
+                zoomOnDoubleClick={false}
+                deleteKeyCode={null}
+                onNodesChange={p.onNodesChange}
+                onNodeClick={(_, node) => {
+                  if (node.type === 'box') onPick({ kind: 'object', id: node.id })
+                }}
+                onEdgeClick={(_, e) => {
+                  if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view })
+                }}
+                onEdgeMouseEnter={(_, e) => p.setHovered(e.id)}
+                onEdgeMouseLeave={() => p.setHovered(undefined)}
+                onPaneClick={() => {
+                  onFocus()
+                  onEmpty() // as on the single canvas, a click on nothing closes the panel
+                }}
+                onInit={instance => {
+                  fitNow.current = options => void instance.fitView(options)
+                }}
+              >
+                <Camera count={nodes.length + frame.length} fitKey={`${view} ${flowId} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
+                <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
+                <PaneMotions p={p} />
+              </ReactFlow>
+            </ChangeMarksContext>
           </LabelSpotsContext>
         </LineStyleContext>
       </div>
-      <PanePlayer model={model} p={p} />
+      <PanePlayer model={model} p={p} marks={marks} />
     </section>
   )
 }
@@ -137,12 +139,12 @@ export function PaneMotions({ p }: { p: PaneFlow }) {
   )
 }
 
-/** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. */
-export function PanePlayer({ model, p }: { model: Model; p: PaneFlow }) {
+/** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. With marks, its progress bar marks the steps that differ. */
+export function PanePlayer({ model, p, marks }: { model: Model; p: PaneFlow; marks?: SideMarks }) {
   const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
   if (!(flow && stop && caption && progress)) return null
   return (
     <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
-      repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
+      changes={marks?.steps} repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
   )
 }

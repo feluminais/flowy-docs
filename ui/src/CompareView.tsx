@@ -1,15 +1,21 @@
-import { useImperativeHandle, useRef, useState } from 'react'
+import { useImperativeHandle, useMemo, useRef, useState } from 'react'
 import type { Ref } from 'react'
 import type { ColorMode } from '@xyflow/react'
+import { diffFlows } from '../../src/core/flowdiff.ts'
+import type { SideMarks } from '../../src/core/flowdiff.ts'
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
-import { samePick } from './compare.ts'
+import { marksFor, orderPair, samePick } from './compare.ts'
 import type { Compare, Picked } from './compare.ts'
 import { CompareBar } from './CompareBar.tsx'
 import { ComparePane } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
 import { lineId } from './graph.ts'
 import { SwapCanvas } from './SwapCanvas.tsx'
+import { usePref } from './store.ts'
+
+/** Where the switch for the change marks is kept, so it is as last time. Storage may be blocked or empty: the marks then start off. */
+const MARKS_KEY = 'flowy.compare.marks'
 
 /** What the reader can reach in the view: the pane that has the focus (in Swap, the flow on show), which the keys of a flow act on, and the swap itself. */
 export type CompareHandle = { focused(): PaneHandle | null; swap(): void }
@@ -74,13 +80,21 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
     onMode(m)
   }
   const names = flows.map(id => model.flows[id].name || id) as [string, string]
+  // The change marks: the flow that holds the tag (the newer; else the one on the right) is compared with the other, and each pane draws its own side's marks. Runs have none.
+  const [marksPref, setMarksPref] = usePref(MARKS_KEY, 'off')
+  const marksOff = compare.kind === 'flow' ? undefined : 'Not for runs'
+  const marksOn = marksPref === 'on' && marksOff === undefined
+  const [older, newer] = orderPair('flow', model.flows, compare.a, compare.b)
+  const diff = useMemo(() => (marksOn ? diffFlows(model.flows[older], model.flows[newer]) : undefined), [marksOn, model.flows[older], model.flows[newer]])
+  const marksOf = (id: string): SideMarks | undefined => diff && marksFor(diff, id === newer ? 'newer' : 'older')
   return (
     <div className={['compare', nav && 'nav', details && 'details'].filter(Boolean).join(' ')}>
-      <CompareBar mode={compare.mode} onMode={mode} onFlip={onFlip} onClose={onClose} swap={{ names, on: placeOf(0) === on ? 0 : 1, onShow: side => setOn(placeOf(side)) }} />
+      <CompareBar mode={compare.mode} onMode={mode} onFlip={onFlip} onClose={onClose} swap={{ names, on: placeOf(0) === on ? 0 : 1, onShow: side => setOn(placeOf(side)) }}
+        changes={{ on: marksOn, onToggle: () => setMarksPref(marksOn ? 'off' : 'on'), off: marksOff, diff }} />
       {swap ? (
         <div className="panes one">
           <SwapCanvas key={places.join('|')} ref={swapRef} model={model} paneId={`${places[0]}-${places[1]}`.replace(/[^A-Za-z0-9_-]/g, '_')} flows={[places[0], places[1]]} index={on} start={start} shown={shown}
-            onPick={picked => (samePick(shown, picked) ? onClosePanel() : onPick(picked))} onClosePanel={onClosePanel} onEmpty={onEmpty} fitKey="" colorMode={colorMode} problems={problems} lines={lines} still={still} />
+            marks={diff && [marksOf(places[0])!, marksOf(places[1])!]} onPick={picked => (samePick(shown, picked) ? onClosePanel() : onPick(picked))} onClosePanel={onClosePanel} onEmpty={onEmpty} fitKey="" colorMode={colorMode} problems={problems} lines={lines} still={still} />
         </div>
       ) : (
         <div className="panes">
@@ -91,7 +105,7 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
               <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={`${id.replace(/[^A-Za-z0-9_-]/g, '_')}-${again(slot)}`} flowId={id} title={model.flows[id].name || id}
                 label={again(slot) ? `${model.flows[id].name || id} (2)` : undefined} startAt={start?.flow === id && !again(slot) ? start.step : undefined} onEmpty={onEmpty} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
                 onPick={p => pick(keys[slot], p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? lineId(own.from!, own.to!) : undefined}
-                fitKey={compare.mode} colorMode={colorMode} problems={problems} lines={lines} still={still} />
+                marks={marksOf(id)} fitKey={compare.mode} colorMode={colorMode} problems={problems} lines={lines} still={still} />
             )
           })}
         </div>
