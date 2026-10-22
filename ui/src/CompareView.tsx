@@ -40,28 +40,32 @@ type Props = {
  * the last thing clicked in either. One pane has the focus (it is outlined): the first to start with, then the one last clicked or tabbed into. The keys of a flow act on it.
  */
 export function CompareView({ model, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onMode, onFlip, onClose, ref }: Props) {
-  const [focused, setFocused] = useState<0 | 1>(0)
-  const [last, setLast] = useState<0 | 1>() // the pane the Details panel was opened from
+  // A pane is keyed by its flow, so swapping the sides moves the panes (React moves their elements) instead of unmounting them: each keeps its place in its flow and its zoom.
+  // A flow compared with itself has two panes, told apart by the second's suffix. The focus and the pane the panel came from follow the pane, not the side it is on.
+  const flows = [compare.a, compare.b]
+  const keys = flows.map((id, i) => (i === 1 && flows[0] === id ? `${id}#1` : id))
+  const [focusKey, setFocusKey] = useState<string>() // the first pane has it until one is clicked
+  const [last, setLast] = useState<string>() // the pane the Details panel was opened from
+  const focused = Math.max(0, keys.indexOf(focusKey ?? keys[0])) as 0 | 1
   const refs = [useRef<PaneHandle>(null), useRef<PaneHandle>(null)]
   useImperativeHandle(ref, () => ({ focused: () => refs[focused].current }))
-  const pick = (slot: 0 | 1, picked: Picked) => {
-    setFocused(slot)
-    if (last === slot && samePick(shown, picked)) return onClosePanel() // its panel is already open: a second click closes it
-    setLast(slot)
+  const pick = (key: string, picked: Picked) => {
+    setFocusKey(key)
+    if (last === key && samePick(shown, picked)) return onClosePanel() // its panel is already open: a second click closes it
+    setLast(key)
     onPick(picked)
   }
-  const flows = [compare.a, compare.b]
   return (
     <div className={['compare', nav && 'nav', details && 'details'].filter(Boolean).join(' ')}>
       <CompareBar mode={compare.mode} onMode={onMode} onFlip={onFlip} onClose={onClose} />
       <div className="panes">
         {([0, 1] as const).map(slot => {
           const id = flows[slot]
-          const own = last === slot ? shown : undefined
+          const own = last === keys[slot] ? shown : undefined
           return (
-            <ComparePane key={`${slot}:${id}`} ref={refs[slot]} model={model} slot={slot} flowId={id} title={model.flows[id].name || id} focused={focused === slot} onFocus={() => setFocused(slot)}
-              onPick={p => pick(slot, p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? lineId(own.from!, own.to!) : undefined}
-              fitKey={`${nav} ${details}`} colorMode={colorMode} problems={problems} lines={lines} still={still} />
+            <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={keys[slot]} flowId={id} title={model.flows[id].name || id} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
+              onPick={p => pick(keys[slot], p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? lineId(own.from!, own.to!) : undefined}
+              fitKey={compare.mode} colorMode={colorMode} problems={problems} lines={lines} still={still} />
           )
         })}
       </div>

@@ -36,8 +36,8 @@ export type PaneHandle = {
 
 type Props = {
   model: Model
-  /** Which of the two panes this is: React Flow wants an id of its own for each canvas on a page. */
-  slot: 0 | 1
+  /** An id of its own for this pane (React Flow wants one for each canvas on a page). It stays with the pane when the sides swap. */
+  paneId: string
   /** The flow this pane draws, on that flow's own view. It must be one that plays (see `playable`). */
   flowId: string
   /** The flow's own name: the pane has no other caption. */
@@ -51,7 +51,7 @@ type Props = {
   selectedLine?: string
   /** What differs from the other flow, to draw on this one. The marks task fills it; the pane draws nothing for it yet. */
   marks?: SideMarks
-  /** Changes when the pane should fit its diagram again. */
+  /** Changes when the pane should fit its diagram again. A resize (a panel opening beside it) does not: a pane keeps its own zoom and pan. */
   fitKey: string
   colorMode: ColorMode
   problems: Problem[]
@@ -66,7 +66,7 @@ type Props = {
  * One flow of a comparison, drawn on its own view with a canvas of its own: its own zoom and pan, and its own player (a card at the foot of the pane), so acting in one pane
  * never moves another. It is the single canvas of the reader (App) cut down to what a flow needs: nothing is dragged, recorded or edited, and a double-click goes nowhere.
  */
-export function ComparePane({ model, slot, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, fitKey, colorMode, problems, lines, still, ref }: Props) {
+export function ComparePane({ model, paneId, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, fitKey, colorMode, problems, lines, still, ref }: Props) {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   const view = flow?.view ?? ROOT
   const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = usePlayer({ initialFlow: () => flowId })
@@ -108,7 +108,7 @@ export function ComparePane({ model, slot, flowId, title, focused, onFocus, onPi
         <LineStyleContext value={lines}>
           <LabelSpotsContext value={spots}>
             <ReactFlow
-              id={`pane-${slot}`}
+              id={`pane-${paneId.replace('#', '-again-')}`} // the id ends up in url(#...) references
               nodes={[...frame, ...nodes]}
               edges={edges}
               nodeTypes={nodeTypes}
@@ -134,7 +134,7 @@ export function ComparePane({ model, slot, flowId, title, focused, onFocus, onPi
                 fitNow.current = options => void instance.fitView(options)
               }}
             >
-              <Camera count={nodes.length + frame.length} fitKey={`${view} ${flowId} ${fitKey}`} player panel={0} nav={0} />
+              <Camera count={nodes.length + frame.length} fitKey={`${view} ${flowId} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
               <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
               {flow && stop && animated.map(m => (
                 <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
