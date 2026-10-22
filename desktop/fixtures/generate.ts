@@ -10,12 +10,14 @@ import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
 import { dumpEditLabels } from './editlabel.ts'
 import { dumpFailures, dumpFailuresView } from './failures.ts'
+import { dumpUsedBy } from './usedby.ts'
 import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
+import { dumpNumbers } from './numbers.ts'
 import { dumpOutline } from './outline.ts'
 import { dumpPerf, dumpPerfView } from './perf.ts'
 import { dumpStates } from './states.ts'
@@ -40,9 +42,11 @@ await write('mermaid', await dumpMermaid())
 await write('yaml-write', await dumpYamlWrite())
 await write('ops', await dumpOps())
 await write('dependents', await dumpDependents())
+await write('usedby', await dumpUsedBy())
 await write('beats', dumpBeats())
 await write('outline', await dumpOutline())
 await write('formula', dumpFormula())
+await write('numbers', dumpNumbers())
 await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
 await write('failures-core', await dumpFailures())

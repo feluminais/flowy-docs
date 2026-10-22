@@ -1,3 +1,4 @@
+import { apiUrl } from './apiurl.ts'
 import type { StepInfo, StepView, YamlNow } from '../../src/core/history.ts'
 
 /** The steps of the folder's history, newest first, and whether the server is managing to save them. */
@@ -38,18 +39,18 @@ export async function clearOutcome(client: Pick<HistoryClient, 'clear'>): Promis
 const refused = (status: number) => Object.assign(new Error(`the server answered ${status}`), { status })
 
 /** The history client for the local server at `base`: '' for the page's own origin, or an address, for tests. */
-export function httpHistory(base = ''): HistoryClient {
+export function httpHistory(base = '', model?: string): HistoryClient {
   const read = async <T>(path: string): Promise<T> => {
-    const res = await fetch(`${base}${path}`)
+    const res = await fetch(apiUrl(base, path, model))
     if (!res.ok) throw refused(res.status)
     return (await res.json()) as T
   }
   const post = (path: string, body: unknown) =>
-    fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Flowy': '1' }, body: JSON.stringify(body) })
+    fetch(apiUrl(base, path, model), { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Flowy': '1' }, body: JSON.stringify(body) })
   return {
     list: () => read<HistoryList>('/api/history'),
     async step(id) {
-      const res = await fetch(`${base}/api/history/steps/${encodeURIComponent(id)}`)
+      const res = await fetch(apiUrl(base, `/api/history/steps/${encodeURIComponent(id)}`, model))
       if (res.status === 404) return undefined
       if (!res.ok) throw refused(res.status)
       return (await res.json()) as StepView

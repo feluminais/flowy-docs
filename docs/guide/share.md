@@ -31,7 +31,7 @@ node /path/to/flowy-docs/dist/cli.js export
 It writes a read-only copy of the canvas to `./flowy-site`, with the model inside its `index.html`.
 Put the folder on any static host, such as GitHub Pages, and send the link. Browsers won't run it
 straight from disk. To show it in Notion or Confluence, embed the link. `--dir` picks the model
-folder and `--out` the export folder. An export carries any load-test runs and failure analyses too, and has no YAML tab.
+folder and `--out` the export folder. An export carries any load-test runs and failure analyses too, and its YAML tab says it has no history.
 
 Export again after the model changes. Only what the export wrote is replaced, so a `.git` or a
 `CNAME` you keep next to it stays. A folder with other files in it is left alone, and so is one

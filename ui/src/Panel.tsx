@@ -4,13 +4,13 @@ import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import type { DataInput } from '../../src/core/data.ts'
 import { lineKey } from '../../src/core/failures.ts'
-import { getObject, isExternal, linksOf, ROOT } from '../../src/core/model.ts'
+import { getObject, isExternal, linksOf, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { parseData } from '../../src/core/data.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeGroup, removeStep, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeGroup, removeStep, setGroupKind, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
@@ -31,14 +31,29 @@ import type { Sketch } from './Pickers.tsx'
 import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
 import { CodeList, LinkList, linkLine, parseLinks, RepoPath } from './ObjectLinks.tsx'
 
-/** What Details shows at the top level when nothing is picked: how much there is, and where to go next. */
-export function OverviewPanel({ totals, onClose }: { totals: { shapes: number; flows: number; problems: number }; onClose: () => void }) {
+/**
+ * What Details shows at the top level when nothing is picked: the system's name and what it is (the
+ * `name:` and `about:` of model.yaml), how much there is, and where to go next. In edit mode a form for the two.
+ */
+export function OverviewPanel({ model, totals, editing, run, onClose }: Common & { totals: { shapes: number; flows: number; problems: number }; editing: boolean }) {
   const count = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+  const [name, about] = [projectName(model), projectAbout(model)]
   return (
     <Panel onClose={onClose}>
-      <h2>Overview</h2>
+      <h2>{name || 'Overview'}</h2>
       <p className="muted">{count(totals.shapes, 'shape')} · {count(totals.flows, 'flow')}{totals.problems > 0 && ` · ${count(totals.problems, 'problem')}`}</p>
-      <p>Pick a shape to read about it. Press O for the Explorer.</p>
+      {about && !editing && <div className="prose"><Description text={about} /></div>}
+      {editing ? (
+        <form className="form" onSubmit={e => e.preventDefault()}>
+          <Section icon={Pencil} title="Details" />
+          <div className="card">
+            <Field label="Name" value={name} onSave={value => run(m => setProject(m, { name: value }))} />
+          </div>
+          <Field label="About (Markdown)" value={about} multiline onSave={value => run(m => setProject(m, { about: value }))} />
+        </form>
+      ) : (
+        <p className="hint muted">{about ? '' : 'Click a shape. '}<kbd>O</kbd> Explorer</p>
+      )}
     </Panel>
   )
 }

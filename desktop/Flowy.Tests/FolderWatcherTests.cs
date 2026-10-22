@@ -7,15 +7,28 @@ public class FolderWatcherTests
 {
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// Whether saving <paramref name="file"/> wakes a new watcher. A system can take a moment to start reporting after a watcher is made, and a save before that goes
+    /// unheard, so the save is made again, up to five times, a second apart.
+    /// </summary>
+    private static bool NoticedWhenSaved(TempDir temp, string file)
+    {
+        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
+        using var seen = new ManualResetEventSlim();
+        watcher.Changed += seen.Set;
+        for (var attempt = 1; attempt <= 5; attempt++)
+        {
+            temp.Write(file, $"name: Save {attempt}{'\n'}");
+            if (seen.Wait(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken)) return true;
+        }
+        return false;
+    }
+
     [Fact]
     public void Saving_a_file_in_the_folder_is_noticed()
     {
         using var temp = new TempDir();
-        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
-        using var seen = new ManualResetEventSlim();
-        watcher.Changed += seen.Set;
-        temp.Write("model.yaml", "objects:\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(NoticedWhenSaved(temp, "model.yaml"));
     }
 
     [Fact]
@@ -23,11 +36,7 @@ public class FolderWatcherTests
     {
         using var temp = new TempDir();
         Directory.CreateDirectory(Path.Combine(temp.Dir, "flows"));
-        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
-        using var seen = new ManualResetEventSlim();
-        watcher.Changed += seen.Set;
-        temp.Write("flows/a.yaml", "name: A\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(NoticedWhenSaved(temp, "flows/a.yaml"));
     }
 
     [Fact]
@@ -35,11 +44,7 @@ public class FolderWatcherTests
     {
         using var temp = new TempDir();
         Directory.CreateDirectory(Path.Combine(temp.Dir, "perf"));
-        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
-        using var seen = new ManualResetEventSlim();
-        watcher.Changed += seen.Set;
-        temp.Write("perf/ramp.yaml", "name: Ramp\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(NoticedWhenSaved(temp, "perf/ramp.yaml"));
     }
 
     [Fact]
@@ -47,11 +52,7 @@ public class FolderWatcherTests
     {
         using var temp = new TempDir();
         Directory.CreateDirectory(Path.Combine(temp.Dir, "failures"));
-        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
-        using var seen = new ManualResetEventSlim();
-        watcher.Changed += seen.Set;
-        temp.Write("failures/ordering.yaml", "name: Ordering\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(NoticedWhenSaved(temp, "failures/ordering.yaml"));
     }
 
     [Fact]
@@ -67,7 +68,7 @@ public class FolderWatcherTests
             seen.Set();
         };
         for (var i = 0; i < 5; i++) temp.Write($"flows/f{i}.yaml", "name: F\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(seen.Wait(Patience, TestContext.Current.CancellationToken));
         Thread.Sleep(600);
         Assert.Equal(1, count);
     }

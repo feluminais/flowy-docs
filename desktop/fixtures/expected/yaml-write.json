@@ -1471,6 +1471,111 @@
       }
     },
     {
+      "s": "  \nx",
+      "value": {
+        "text": "k: \" \\ \\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \" \\ \\nx\"\n"
+      },
+      "key": {
+        "text": "\" \\ \\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \" \\ \\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n  \nx",
+      "value": {
+        "text": "k: \"\\n \\ \\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\n \\ \\nx\"\n"
+      },
+      "key": {
+        "text": "\"\\n \\ \\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\n \\ \\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": " \n\t\nx",
+      "value": {
+        "text": "k: \"\\ \\n\\t\\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\ \\n\\t\\nx\"\n"
+      },
+      "key": {
+        "text": "\"\\ \\n\\t\\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\ \\n\\t\\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\t\nx",
+      "value": {
+        "text": "k: \"\\t\\nx\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\t\\nx\"\n"
+      },
+      "key": {
+        "text": "\"\\t\\nx\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\t\\nx\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "   \n\n",
+      "value": {
+        "text": "k: \"  \\ \\n\\n\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"  \\ \\n\\n\"\n"
+      },
+      "key": {
+        "text": "\"  \\ \\n\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"  \\ \\n\\n\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n \n\t\n",
+      "value": {
+        "text": "k: \"\\n\\ \\n\\t\\n\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\n\\ \\n\\t\\n\"\n"
+      },
+      "key": {
+        "text": "\"\\n\\ \\n\\t\\n\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\n\\ \\n\\t\\n\"\n      d: x\n"
+      }
+    },
+    {
+      "s": "\n\n \n  y",
+      "value": {
+        "text": "k: \"\\n\\n\\ \\n  y\"\n"
+      },
+      "item": {
+        "text": "k:\n  - \"\\n\\n\\ \\n  y\"\n"
+      },
+      "key": {
+        "text": "\"\\n\\n\\ \\n  y\": v\n"
+      },
+      "nested": {
+        "text": "a:\n  b:\n    - c: \"\\n\\n\\ \\n  y\"\n      d: x\n"
+      }
+    },
+    {
       "s": "Line one\nLine two\n- a list\n- of things\n\n```ts\nconst x = 1\n```\n",
       "value": {
         "text": "k: |\n  Line one\n  Line two\n  - a list\n  - of things\n\n  ```ts\n  const x = 1\n  ```\n"
@@ -2297,6 +2402,8 @@
       "folder": "docs/demo/flowy",
       "rel": "model.yaml",
       "data": {
+        "name": "Plum",
+        "about": "Food delivery for one city. Customers order from the app or the website, restaurants cook, and couriers bring the food to the door.\n\nOpen **Ordering** first: every order passes through it. **Delivery** shows how a courier is found and followed.\n",
         "objects": {
           "customer": {
             "type": "actor",
@@ -2311,6 +2418,7 @@
           "courier": {
             "type": "actor",
             "name": "Courier",
+            "icon": "truck",
             "description": "Rides or drives the order from the restaurant to the customer's door."
           },
           "support": {
@@ -2342,7 +2450,13 @@
             "type": "system",
             "name": "Stripe",
             "external": "true",
-            "description": "Takes card payments and sends refunds. Plum never sees a card number.\n\n[Provider status](https://status.stripe.com)\n"
+            "description": "Takes card payments and sends refunds. Plum never sees a card number.",
+            "links": [
+              {
+                "url": "https://status.stripe.com",
+                "title": "Provider status"
+              }
+            ]
           },
           "twilio": {
             "type": "system",
@@ -2354,7 +2468,13 @@
             "type": "system",
             "name": "Mapbox",
             "external": "true",
-            "description": "Maps, address lookup and travel times."
+            "description": "Maps, address lookup and travel times.",
+            "links": [
+              {
+                "url": "https://docs.mapbox.com/api/overview/#rate-limits",
+                "title": "Rate limits"
+              }
+            ]
           },
           "customer-app": {
             "type": "app",
@@ -2363,6 +2483,12 @@
             "tech": "React Native",
             "code": [
               "apps/customer/"
+            ],
+            "links": [
+              {
+                "url": "apps/customer/README.md",
+                "title": "Build and release notes"
+              }
             ],
             "description": "The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\nKeeps nothing but the basket and the session.\n"
           },
@@ -2405,14 +2531,17 @@
                 "columns": [
                   {
                     "name": "id",
+                    "type": "uuid",
                     "key": "primary"
                   },
                   {
                     "name": "customer_id",
+                    "type": "uuid",
                     "to": "customers"
                   },
                   {
                     "name": "total",
+                    "type": "int",
                     "note": "Stored in cents because rounding broke the first tax run."
                   }
                 ],
@@ -2439,17 +2568,23 @@
                 "columns": [
                   {
                     "name": "order_id",
+                    "type": "uuid",
                     "key": "primary",
                     "to": "orders"
                   },
                   {
                     "name": "item_id",
+                    "type": "uuid",
                     "key": "primary"
                   },
-                  "quantity",
+                  {
+                    "name": "quantity",
+                    "type": "int"
+                  },
                   {
                     "name": "unit_price",
-                    "note": "Copied from the menu at order time. Menus change; receipts must not."
+                    "type": "int",
+                    "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
                   }
                 ],
                 "rows": [
@@ -2473,14 +2608,22 @@
                 "columns": [
                   {
                     "name": "id",
+                    "type": "uuid",
                     "key": "primary"
                   },
                   {
                     "name": "order_id",
+                    "type": "uuid",
                     "to": "orders"
                   },
-                  "amount",
-                  "reason"
+                  {
+                    "name": "amount",
+                    "type": "int"
+                  },
+                  {
+                    "name": "reason",
+                    "type": "text?"
+                  }
                 ],
                 "rows": [
                   [
@@ -2497,14 +2640,22 @@
                 "columns": [
                   {
                     "name": "id",
+                    "type": "uuid",
                     "key": "primary"
                   },
                   {
                     "name": "customer_id",
+                    "type": "uuid",
                     "to": "customers"
                   },
-                  "items",
-                  "expires_at"
+                  {
+                    "name": "items",
+                    "type": "json"
+                  },
+                  {
+                    "name": "expires_at",
+                    "type": "timestamp"
+                  }
                 ]
               }
             ]
@@ -2519,7 +2670,7 @@
               {
                 "name": "Keys",
                 "limits": "Oldest unused go first at 256 MB",
-                "note": "A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.",
+                "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
                 "columns": [
                   "Key",
                   "Value",
@@ -2692,6 +2843,7 @@
             "type": "store",
             "in": "notifications",
             "name": "Message templates",
+            "shape": "document",
             "tech": "Postgres",
             "description": "The wording of every message, per language."
           },
@@ -2940,7 +3092,7 @@
           }
         ]
       },
-      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone hungry, ordering from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: The kitchen staff who accept an order and mark it ready.\n  courier:\n    type: actor\n    name: Courier\n    description: Rides or drives the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customers and couriers when something goes wrong.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything a customer touches: browsing menus, building a basket, paying.\n\n      The **Order API** is the only way in. It keeps orders in Postgres and announces every new\n      order on the **Order events** bus, which is how **Delivery** hears about it.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Finds a courier for each order and follows it to the door.\n\n      Dispatch matches and offers. Live tracking keeps the customer's map moving.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: |\n      Takes card payments and sends refunds. Plum never sees a card number.\n\n      [Provider status](https://status.stripe.com)\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: Sends the SMS messages.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, address lookup and travel times.\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    description: |\n      The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\n      Keeps nothing but the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Every client talks to this, and nothing else talks to the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - {name: total, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, key: primary, to: orders}\n          - {name: item_id, key: primary}\n          - quantity\n          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, key: primary}\n          - {name: order_id, to: orders}\n          - amount\n          - reason\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - items\n          - expires_at\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch reads from it, and so does the warehouse.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds what the customer picked and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Works out the total: items, delivery fee (by distance) and any promotion.\n\n      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      Nothing is charged until the restaurant accepts. A rejected order releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Turns each new order into a courier on the way.\n\n      It reads `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, their vehicles, and their last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks the idle couriers near a restaurant by how soon each could be there.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and the courier's vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers a job to one courier at a time and waits 30 seconds for an answer.\n\n      A refusal or a timeout moves on to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    tech: Postgres\n    description: The wording of every message, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n  - from: checkout\n    to: orders-db\n    label: writes the order\n  - from: checkout\n    to: events\n    label: announces placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
+      "text": "name: Plum\nabout: |\n  Food delivery for one city. Customers order from the app or the website, restaurants cook, and couriers bring the food to the door.\n\n  Open **Ordering** first: every order passes through it. **Delivery** shows how a courier is found and followed.\nobjects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone hungry, ordering from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: The kitchen staff who accept an order and mark it ready.\n  courier:\n    type: actor\n    name: Courier\n    icon: truck\n    description: Rides or drives the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customers and couriers when something goes wrong.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything a customer touches: browsing menus, building a basket, paying.\n\n      The **Order API** is the only way in. It keeps orders in Postgres and announces every new\n      order on the **Order events** bus, which is how **Delivery** hears about it.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Finds a courier for each order and follows it to the door.\n\n      Dispatch matches and offers. Live tracking keeps the customer's map moving.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: Takes card payments and sends refunds. Plum never sees a card number.\n    links:\n      - url: https://status.stripe.com\n        title: Provider status\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: Sends the SMS messages.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, address lookup and travel times.\n    links:\n      - url: https://docs.mapbox.com/api/overview/#rate-limits\n        title: Rate limits\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    links:\n      - url: apps/customer/README.md\n        title: Build and release notes\n    description: |\n      The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\n      Keeps nothing but the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Every client talks to this, and nothing else talks to the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: total, type: int, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, type: uuid, key: primary, to: orders}\n          - {name: item_id, type: uuid, key: primary}\n          - {name: quantity, type: int}\n          - {name: unit_price, type: int, note: Copied from the menu when the order is placed. Later menu changes leave it alone.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: order_id, type: uuid, to: orders}\n          - {name: amount, type: int}\n          - {name: reason, type: text?}\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: items, type: json}\n          - {name: expires_at, type: timestamp}\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: Entries last five minutes because a shorter time put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch reads from it, and so does the warehouse.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds what the customer picked and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Works out the total: items, delivery fee (by distance) and any promotion.\n\n      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      Nothing is charged until the restaurant accepts. A rejected order releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Turns each new order into a courier on the way.\n\n      It reads `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, their vehicles, and their last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks the idle couriers near a restaurant by how soon each could be there.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and the courier's vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers a job to one courier at a time and waits 30 seconds for an answer.\n\n      A refusal or a timeout moves on to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    shape: document\n    tech: Postgres\n    description: The wording of every message, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n  - from: checkout\n    to: orders-db\n    label: writes the order\n  - from: checkout\n    to: events\n    label: announces placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -2957,7 +3109,8 @@
           {
             "from": "order-api",
             "to": "events",
-            "text": "Announces that the order is paid and carries on without waiting"
+            "text": "Announces that the order is paid and carries on without waiting",
+            "animation": "event"
           },
           {
             "from": "events",
@@ -2965,18 +3118,20 @@
             "text": "Hands the event to Dispatch, which starts looking for a courier",
             "group": "readers",
             "lane": "Delivery",
-            "flow": "deliver-order"
+            "flow": "deliver-order",
+            "animation": "callback"
           },
           {
             "from": "events",
             "to": "warehouse",
             "text": "Streams the same event to the warehouse for its own records",
             "group": "readers",
-            "lane": "Warehouse"
+            "lane": "Warehouse",
+            "animation": "event"
           }
         ]
       },
-      "text": "name: A paid order is announced\nview: ordering\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: order-api\n    to: events\n    text: Announces that the order is paid and carries on without waiting\n  - from: events\n    to: dispatch\n    text: Hands the event to Dispatch, which starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse for its own records\n    group: readers\n    lane: Warehouse\n"
+      "text": "name: A paid order is announced\nview: ordering\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: order-api\n    to: events\n    text: Announces that the order is paid and carries on without waiting\n    animation: event\n  - from: events\n    to: dispatch\n    text: Hands the event to Dispatch, which starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n    animation: callback\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse for its own records\n    group: readers\n    lane: Warehouse\n    animation: event\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -2988,6 +3143,7 @@
           "charge": {
             "kind": "repeat",
             "times": "3",
+            "until": "the bank answers",
             "text": "Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three."
           },
           "outcome": {
@@ -3033,7 +3189,7 @@
               "kind": "send",
               "outcome": "fail"
             },
-            "description": "A decline is final: it is not retried. The hold is released, and the app asks the customer\nfor another card.\n"
+            "description": "A declined card is not retried. The hold is released and the app asks the customer\nfor another card.\n"
           },
           {
             "from": "order-api",
@@ -3043,7 +3199,7 @@
           }
         ]
       },
-      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is final: it is not retried. The hold is released, and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
+      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A declined card is not retried. The hold is released and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3114,7 +3270,7 @@
             "from": "courier-app",
             "to": "tracking",
             "text": "Streams its position every 5 seconds",
-            "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map instead of jumping when it comes back.\n"
+            "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map until a fresh position comes in.\n"
           },
           {
             "from": "tracking",
@@ -3128,7 +3284,94 @@
           }
         ]
       },
-      "text": "name: A courier delivers it\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: Hears that an order was placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n  - from: dispatch\n    text: Ranks them by how soon each could arrive\n    description: |\n      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\n      vehicle. The quickest one is offered the job first.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    description: |\n      Only while a job is open. A position older than a minute is dropped, so a courier who loses\n      signal stops moving on the customer's map instead of jumping when it comes back.\n  - from: tracking\n    to: customer-app\n    text: The customer watches the courier come\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n"
+      "text": "name: A courier delivers it\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: Hears that an order was placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n  - from: dispatch\n    text: Ranks them by how soon each could arrive\n    description: |\n      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\n      vehicle. The quickest one is offered the job first.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    description: |\n      Only while a job is open. A position older than a minute is dropped, so a courier who loses\n      signal stops moving on the customer's map until a fresh position comes in.\n  - from: tracking\n    to: customer-app\n    text: The customer watches the courier come\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/events-arrive-late.yaml",
+      "data": {
+        "name": "Dispatch hears about an order late",
+        "view": "delivery",
+        "steps": [
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "The placed event waits behind the dinner rush",
+            "animation": {
+              "kind": "event",
+              "outcome": "delayed",
+              "reason": "Consumer lag"
+            },
+            "description": "One consumer reads every `placed` event. When orders arrive faster than it reads, each one waits in line.\n"
+          },
+          {
+            "from": "dispatch",
+            "to": "fleet-db",
+            "text": "Finds couriers minutes after the customer paid"
+          }
+        ]
+      },
+      "text": "name: Dispatch hears about an order late\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: The placed event waits behind the dinner rush\n    animation:\n      kind: event\n      outcome: delayed\n      reason: Consumer lag\n    description: |\n      One consumer reads every `placed` event. When orders arrive faster than it reads, each one waits in line.\n  - from: dispatch\n    to: fleet-db\n    text: Finds couriers minutes after the customer paid\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/hotel-wifi-takes-order.yaml",
+      "data": {
+        "name": "Hotel wifi takes the order",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "POST /orders reaches a sign-in page instead",
+            "animation": {
+              "kind": "call",
+              "outcome": "intercepted",
+              "by": {
+                "name": "Hotel wifi portal"
+              }
+            },
+            "description": "A hotel's wifi holds every request until the guest signs in. The call never reaches the **Order API**.\n"
+          },
+          {
+            "from": "customer-app",
+            "text": "Waits for a reply and offers a Retry button"
+          }
+        ]
+      },
+      "text": "name: Hotel wifi takes the order\nview: ordering\nsteps:\n  - from: customer-app\n    to: order-api\n    text: POST /orders reaches a sign-in page instead\n    animation:\n      kind: call\n      outcome: intercepted\n      by:\n        name: Hotel wifi portal\n    description: |\n      A hotel's wifi holds every request until the guest signs in. The call never reaches the **Order API**.\n  - from: customer-app\n    text: Waits for a reply and offers a Retry button\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/mapbox-rate-limit.yaml",
+      "data": {
+        "name": "Mapbox turns the travel times away",
+        "view": "dispatch",
+        "steps": [
+          {
+            "from": "matcher",
+            "to": "eta",
+            "text": "Asks who is quickest",
+            "animation": "call"
+          },
+          {
+            "from": "eta",
+            "to": "mapbox",
+            "text": "Asks Mapbox for travel times and is turned away",
+            "animation": {
+              "kind": "call",
+              "outcome": "rejected",
+              "reason": "Rate limit"
+            },
+            "description": "Plum passes Mapbox's limit once orders pass 900 a minute. Mapbox answers at once, so the call fails fast.\n"
+          },
+          {
+            "from": "eta",
+            "text": "Falls back to straight-line distance and ranks more roughly"
+          }
+        ]
+      },
+      "text": "name: Mapbox turns the travel times away\nview: dispatch\nsteps:\n  - from: matcher\n    to: eta\n    text: Asks who is quickest\n    animation: call\n  - from: eta\n    to: mapbox\n    text: Asks Mapbox for travel times and is turned away\n    animation:\n      kind: call\n      outcome: rejected\n      reason: Rate limit\n    description: |\n      Plum passes Mapbox's limit once orders pass 900 a minute. Mapbox answers at once, so the call fails fast.\n  - from: eta\n    text: Falls back to straight-line distance and ranks more roughly\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3183,6 +3426,34 @@
     },
     {
       "folder": "docs/demo/flowy",
+      "rel": "flows/order-sent-twice.yaml",
+      "data": {
+        "name": "A double tap sends the order twice",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "The same order arrives twice",
+            "animation": {
+              "kind": "send",
+              "outcome": "duplicated",
+              "reason": "Slow reply"
+            },
+            "description": "The app sends the order again when the first reply is slow. Both copies carry one idempotency key.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "text": "Saves the first copy and refuses the second",
+            "animation": "send"
+          }
+        ]
+      },
+      "text": "name: A double tap sends the order twice\nview: ordering\nsteps:\n  - from: customer-app\n    to: order-api\n    text: The same order arrives twice\n    animation:\n      kind: send\n      outcome: duplicated\n      reason: Slow reply\n    description: |\n      The app sends the order again when the first reply is slow. Both copies carry one idempotency key.\n  - from: order-api\n    to: orders-db\n    text: Saves the first copy and refuses the second\n    animation: send\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
       "rel": "flows/place-order.yaml",
       "data": {
         "name": "Customer places an order",
@@ -3197,7 +3468,7 @@
             "from": "customer-app",
             "to": "order-api",
             "text": "POST /orders with the basket",
-            "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places one order, not two.\n"
+            "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places a single order.\n"
           },
           {
             "from": "order-api",
@@ -3228,7 +3499,7 @@
           }
         ]
       },
-      "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places one order, not two.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
+      "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places a single order.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3375,6 +3646,39 @@
         ]
       },
       "text": "name: Stripe goes down and comes back\nview: ordering\nsteps:\n  - from: order-api\n    to: stripe\n    text: The hold is slow while Stripe shuts down\n    animation: call\n    states:\n      stripe: stopping\n  - from: checkout\n    to: stripe\n    text: The hold times out\n    animation:\n      kind: call\n      outcome: timeout\n    states:\n      stripe: stopped\n    description: |\n      Checkout waits five seconds for the hold and gets no answer. It does not retry while Stripe is down.\n  - from: checkout\n    to: customer-app\n    text: Offers pay at the door\n    states:\n      checkout: degraded\n  - from: order-api\n    to: stripe\n    text: The status page says Stripe is restarting\n    animation: call\n    states:\n      stripe: restarting\n  - from: order-api\n    to: stripe\n    text: The next check finds it coming back up\n    animation: call\n    states:\n      stripe: starting\n  - from: checkout\n    to: stripe\n    text: The hold goes through\n    animation: call\n    states:\n      stripe: running\n      checkout: running\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/stripe-webhook.yaml",
+      "data": {
+        "name": "Stripe reports a charge",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "stripe",
+            "to": "order-api",
+            "text": "Calls Plum's webhook to say the charge went through",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "o_1042"
+            },
+            "description": "Stripe starts this call itself, so nothing in Plum set it off. The order is marked paid when it arrives.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "text": "Marks the order paid",
+            "animation": "send"
+          },
+          {
+            "from": "order-api",
+            "text": "Carries on to announce the order",
+            "flow": "announce-order"
+          }
+        ]
+      },
+      "text": "name: Stripe reports a charge\nview: ordering\nsteps:\n  - from: stripe\n    to: order-api\n    text: Calls Plum's webhook to say the charge went through\n    animation:\n      kind: callback\n      trigger: outside\n      carries: o_1042\n    description: |\n      Stripe starts this call itself, so nothing in Plum set it off. The order is marked paid when it arrives.\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    animation: send\n  - from: order-api\n    text: Carries on to announce the order\n    flow: announce-order\n"
     },
     {
       "folder": "docs/showcase/flowy",
@@ -6818,19 +7122,28 @@
                 "columns": [
                   {
                     "name": "id",
+                    "type": "uuid",
                     "key": "primary"
                   },
                   {
                     "name": "customer_id",
+                    "type": "uuid",
                     "to": "customers"
                   },
                   "status",
                   {
                     "name": "total",
+                    "type": "int",
                     "note": "Cents, not decimals. Rounding broke the first tax run."
                   },
-                  "placed_at",
-                  "delivery_notes"
+                  {
+                    "name": "placed_at",
+                    "type": "timestamp"
+                  },
+                  {
+                    "name": "delivery_notes",
+                    "type": "text?"
+                  }
                 ],
                 "rows": [
                   [
@@ -6874,7 +7187,7 @@
                   "quantity",
                   {
                     "name": "unit_price",
-                    "note": "Copied from the menu at order time. Menus change; receipts must not."
+                    "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
                   }
                 ],
                 "rows": [
@@ -6926,7 +7239,7 @@
               {
                 "name": "Keys",
                 "limits": "Oldest unused go first at 256 MB",
-                "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+                "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
                 "columns": [
                   "Key",
                   "Value",
@@ -7647,7 +7960,7 @@
         },
         "connections": []
       },
-      "text": "objects:\n  shop:\n    type: system\n    name: Shop\n  orders-db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - status\n          - {name: total, note: \"Cents, not decimals. Rounding broke the first tax run.\"}\n          - placed_at\n          - delivery_notes\n        rows:\n          - [o_1042, c_77, placed, 2490, 2026-10-19 18:02, \"Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers\"]\n          - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05, \"\"]\n          - [o_1044, c_77, refunded, 990, 2026-10-19 18:09, \"<b>no onions</b> {please}\"]\n      - name: order_items\n        columns:\n          - {name: order_id, key: primary, to: orders}\n          - {name: item_id, key: primary}\n          - quantity\n          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n      - name: refunds\n        columns: [id, order_id, amount, reason]\n        limits: Kept with its order\n      - name: baskets\n        kind:\n        limits:\n        columns: [id, customer_id, items, expires_at]\n      - name: audit\n        columns: [at, who, what]\n  menu-cache:\n    type: store\n    in: shop\n    name: Menu cache\n    tech: Redis\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.\n        columns:\n          - Key\n          - Value\n          - {name: Expires, note: \"Set on every write, never extended on a read.\"}\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: shop\n    name: Order events\n    shape: queue\n    tech: Kafka\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n  profiles:\n    type: store\n    in: shop\n    name: Restaurant profiles\n    tech: MongoDB\n    data:\n      - name: restaurants\n        kind: collection\n        sample:\n          _id: r_42\n          name: Noodle Bar\n          tags: [ramen, vegan]\n          hours:\n            mon: 11-22\n            tue: 11-22\n          rating: 4.6\n          items:\n            - name: Pho\n            - name: Ramen\n          menu: [plain, second]\n        notes:\n          hours: Hours live inside the profile. They are only ever read with it.\n          hours.tue: Closed on public holidays.\n  hostile:\n    type: store\n    in: shop\n    name: Hostile cells\n    tech: Postgres\n    data:\n      - name: cells\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n        rows:\n          - [\"a: b\", \"# not a comment\", '\"quoted\"', it's, \"- dash\", \"[x]\", \"{x}\", \" leading\", \"trailing \", \"\", \"a, b\", é ü ✓ 日本]\n          - [null, ~, 007, 3.10, true, yes, \"- \", \"? x\", \"% x\", \"@x\", \"`x\", a  b]\n          - [http://example.com/a?b=c#d, C:\\path\\file, a | b, a > b, a & b, a * b, a ! b, --- x, ... x, x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z, \"&x\", \"*x\"]\n      - name: notes\n        columns:\n          - {name: a, note: \"a: b # c\"}\n          - {name: b, note: \"- x, [y] {z}\"}\n          - {name: c, note: \" lead\"}\n          - {name: d, note: \"\"}\n      - name: doc\n        sample:\n          list: [\"a: b\", \"# c\", \"x, y\", \"\", \"[z]\"]\n          text: \"a: b # c\"\n          quote: say \"hi\"\n        notes:\n          list: \"x: y, [z]\"\n  proto:\n    type: store\n    in: shop\n    name: Prototype names\n    tech: MongoDB\n    data:\n      - name: names\n        sample:\n          constructor: 1\n          toString: 2\n        notes:\n          constructor: A field named like a prototype member.\n      - name: loose\n        sample:\n          x: 1\n        notes:\n          toString: Names no field.\n  bad-entries:\n    type: store\n    in: shop\n    name: Bad entries\n    data:\n      - text\n      - columns: [a]\n      - name: \" \"\n        columns: [a]\n      - name: dup\n        columns: [x]\n      - name: dup\n        columns: [x]\n      - name: needs-body\n      - name: both\n        columns: [x]\n        sample:\n          x: 1\n      - name: rows-no-columns\n        sample:\n          x: 1\n        rows:\n          - [1]\n      - name: notes-no-sample\n        columns: [x]\n        notes:\n          x: n\n  bad-columns:\n    type: store\n    in: shop\n    name: Bad columns\n    data:\n      - name: not-a-list\n        columns: x\n      - name: empty\n        columns: []\n      - name: shapes\n        columns:\n          - - a\n          - {key: primary}\n          - {name: dup}\n          - {name: dup}\n          - {name: k, key: foreign}\n          - {name: n, note: [x]}\n          - {name: t, to: [y]}\n      - name: plain-text\n        kind:\n          - x\n        limits:\n          - y\n        note:\n          - z\n        columns: [a]\n      - name: too-many\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]\n      - name: exactly-twelve\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n  bad-rows:\n    type: store\n    in: shop\n    name: Bad rows\n    data:\n      - name: not-a-list\n        columns: [a, b]\n        rows: x\n      - name: shapes\n        columns: [a, b]\n        rows:\n          - x\n          - [a, [b]]\n          - [a]\n          - [a, b, c]\n      - name: one-column\n        columns: [a]\n        rows:\n          - [a, b]\n      - name: too-many\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n          - [9]\n      - name: exactly-eight\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n  bad-samples:\n    type: store\n    in: shop\n    name: Bad samples\n    data:\n      - name: a-list\n        sample: [x]\n      - name: empty\n        sample: {}\n      - name: too-deep\n        sample:\n          a:\n            b:\n              c:\n                d: 1\n      - name: deep-enough\n        sample:\n          a:\n            b:\n              c: 1\n      - name: too-many\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n          f20: 1\n      - name: exactly-twenty\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n      - name: notes-text\n        sample:\n          x: 1\n        notes: n\n      - name: note-list\n        sample:\n          x: 1\n        notes:\n          x:\n            - a\n      - name: note-nowhere\n        sample:\n          hours:\n            mon: 1\n        notes:\n          hours.fri: n\n      - name: list-in-list\n        sample:\n          grid:\n            - [a]\n            - [b]\n  bad-breaks:\n    type: store\n    in: shop\n    name: Bad breaks\n    data:\n      - name: cell\n        columns: [x]\n        rows:\n          - [\"a\\nb\"]\n      - name: note\n        columns: [x]\n        note: |\n          one\n      - name: carriage\n        sample:\n          \"k\\rk\": 1\n  junk-data:\n    type: store\n    in: shop\n    name: Data that is a mapping\n    data:\n      a: 1\n  tilde-data:\n    type: store\n    in: shop\n    name: Data that is a tilde\n    data: ~\n  blank-data:\n    type: store\n    in: shop\n    name: Blank data\n    data:\n  quoted-blank-data:\n    type: store\n    in: shop\n    name: Quoted blank data\n    data:\n  junk-entries:\n    type: store\n    in: shop\n    name: Junk entries\n    data:\n      - []\n      - {}\n      - null\n  on-a-system:\n    type: system\n    name: A system with data\n    data:\n      - name: orders\n        columns: [id]\nconnections: []\n"
+      "text": "objects:\n  shop:\n    type: system\n    name: Shop\n  orders-db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - status\n          - {name: total, type: int, note: \"Cents, not decimals. Rounding broke the first tax run.\"}\n          - {name: placed_at, type: timestamp}\n          - {name: delivery_notes, type: text?}\n        rows:\n          - [o_1042, c_77, placed, 2490, 2026-10-19 18:02, \"Ring twice, the bell is broken and the courier should leave it with the neighbour in flat 4 if nobody answers\"]\n          - [o_1043, c_12, accepted, 1380, 2026-10-19 18:05, \"\"]\n          - [o_1044, c_77, refunded, 990, 2026-10-19 18:09, \"<b>no onions</b> {please}\"]\n      - name: order_items\n        columns:\n          - {name: order_id, key: primary, to: orders}\n          - {name: item_id, key: primary}\n          - quantity\n          - {name: unit_price, note: Copied from the menu when the order is placed. Later menu changes leave it alone.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n      - name: refunds\n        columns: [id, order_id, amount, reason]\n        limits: Kept with its order\n      - name: baskets\n        kind:\n        limits:\n        columns: [id, customer_id, items, expires_at]\n      - name: audit\n        columns: [at, who, what]\n  menu-cache:\n    type: store\n    in: shop\n    name: Menu cache\n    tech: Redis\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: Entries last five minutes because a shorter time put too much load on Postgres.\n        columns:\n          - Key\n          - Value\n          - {name: Expires, note: \"Set on every write, never extended on a read.\"}\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: shop\n    name: Order events\n    shape: queue\n    tech: Kafka\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n  profiles:\n    type: store\n    in: shop\n    name: Restaurant profiles\n    tech: MongoDB\n    data:\n      - name: restaurants\n        kind: collection\n        sample:\n          _id: r_42\n          name: Noodle Bar\n          tags: [ramen, vegan]\n          hours:\n            mon: 11-22\n            tue: 11-22\n          rating: 4.6\n          items:\n            - name: Pho\n            - name: Ramen\n          menu: [plain, second]\n        notes:\n          hours: Hours live inside the profile. They are only ever read with it.\n          hours.tue: Closed on public holidays.\n  hostile:\n    type: store\n    in: shop\n    name: Hostile cells\n    tech: Postgres\n    data:\n      - name: cells\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n        rows:\n          - [\"a: b\", \"# not a comment\", '\"quoted\"', it's, \"- dash\", \"[x]\", \"{x}\", \" leading\", \"trailing \", \"\", \"a, b\", é ü ✓ 日本]\n          - [null, ~, 007, 3.10, true, yes, \"- \", \"? x\", \"% x\", \"@x\", \"`x\", a  b]\n          - [http://example.com/a?b=c#d, C:\\path\\file, a | b, a > b, a & b, a * b, a ! b, --- x, ... x, x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z x y z, \"&x\", \"*x\"]\n      - name: notes\n        columns:\n          - {name: a, note: \"a: b # c\"}\n          - {name: b, note: \"- x, [y] {z}\"}\n          - {name: c, note: \" lead\"}\n          - {name: d, note: \"\"}\n      - name: doc\n        sample:\n          list: [\"a: b\", \"# c\", \"x, y\", \"\", \"[z]\"]\n          text: \"a: b # c\"\n          quote: say \"hi\"\n        notes:\n          list: \"x: y, [z]\"\n  proto:\n    type: store\n    in: shop\n    name: Prototype names\n    tech: MongoDB\n    data:\n      - name: names\n        sample:\n          constructor: 1\n          toString: 2\n        notes:\n          constructor: A field named like a prototype member.\n      - name: loose\n        sample:\n          x: 1\n        notes:\n          toString: Names no field.\n  bad-entries:\n    type: store\n    in: shop\n    name: Bad entries\n    data:\n      - text\n      - columns: [a]\n      - name: \" \"\n        columns: [a]\n      - name: dup\n        columns: [x]\n      - name: dup\n        columns: [x]\n      - name: needs-body\n      - name: both\n        columns: [x]\n        sample:\n          x: 1\n      - name: rows-no-columns\n        sample:\n          x: 1\n        rows:\n          - [1]\n      - name: notes-no-sample\n        columns: [x]\n        notes:\n          x: n\n  bad-columns:\n    type: store\n    in: shop\n    name: Bad columns\n    data:\n      - name: not-a-list\n        columns: x\n      - name: empty\n        columns: []\n      - name: shapes\n        columns:\n          - - a\n          - {key: primary}\n          - {name: dup}\n          - {name: dup}\n          - {name: k, key: foreign}\n          - {name: n, note: [x]}\n          - {name: t, to: [y]}\n      - name: plain-text\n        kind:\n          - x\n        limits:\n          - y\n        note:\n          - z\n        columns: [a]\n      - name: too-many\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12]\n      - name: exactly-twelve\n        columns: [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11]\n  bad-rows:\n    type: store\n    in: shop\n    name: Bad rows\n    data:\n      - name: not-a-list\n        columns: [a, b]\n        rows: x\n      - name: shapes\n        columns: [a, b]\n        rows:\n          - x\n          - [a, [b]]\n          - [a]\n          - [a, b, c]\n      - name: one-column\n        columns: [a]\n        rows:\n          - [a, b]\n      - name: too-many\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n          - [9]\n      - name: exactly-eight\n        columns: [a]\n        rows:\n          - [1]\n          - [2]\n          - [3]\n          - [4]\n          - [5]\n          - [6]\n          - [7]\n          - [8]\n  bad-samples:\n    type: store\n    in: shop\n    name: Bad samples\n    data:\n      - name: a-list\n        sample: [x]\n      - name: empty\n        sample: {}\n      - name: too-deep\n        sample:\n          a:\n            b:\n              c:\n                d: 1\n      - name: deep-enough\n        sample:\n          a:\n            b:\n              c: 1\n      - name: too-many\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n          f20: 1\n      - name: exactly-twenty\n        sample:\n          f0: 1\n          f1: 1\n          f2: 1\n          f3: 1\n          f4: 1\n          f5: 1\n          f6: 1\n          f7: 1\n          f8: 1\n          f9: 1\n          f10: 1\n          f11: 1\n          f12: 1\n          f13: 1\n          f14: 1\n          f15: 1\n          f16: 1\n          f17: 1\n          f18: 1\n          f19: 1\n      - name: notes-text\n        sample:\n          x: 1\n        notes: n\n      - name: note-list\n        sample:\n          x: 1\n        notes:\n          x:\n            - a\n      - name: note-nowhere\n        sample:\n          hours:\n            mon: 1\n        notes:\n          hours.fri: n\n      - name: list-in-list\n        sample:\n          grid:\n            - [a]\n            - [b]\n  bad-breaks:\n    type: store\n    in: shop\n    name: Bad breaks\n    data:\n      - name: cell\n        columns: [x]\n        rows:\n          - [\"a\\nb\"]\n      - name: note\n        columns: [x]\n        note: |\n          one\n      - name: carriage\n        sample:\n          \"k\\rk\": 1\n  junk-data:\n    type: store\n    in: shop\n    name: Data that is a mapping\n    data:\n      a: 1\n  tilde-data:\n    type: store\n    in: shop\n    name: Data that is a tilde\n    data: ~\n  blank-data:\n    type: store\n    in: shop\n    name: Blank data\n    data:\n  quoted-blank-data:\n    type: store\n    in: shop\n    name: Quoted blank data\n    data:\n  junk-entries:\n    type: store\n    in: shop\n    name: Junk entries\n    data:\n      - []\n      - {}\n      - null\n  on-a-system:\n    type: system\n    name: A system with data\n    data:\n      - name: orders\n        columns: [id]\nconnections: []\n"
     },
     {
       "folder": "desktop/fixtures/cases/snippets/flowy",
@@ -8637,6 +8950,8 @@
       "folder": "docs/demo/flowy",
       "rel": "model.yaml",
       "data": {
+        "name": "Plum",
+        "about": "Food delivery for one city. Customers order from the app or the website, restaurants cook, and couriers bring the food to the door.\n\nOpen **Ordering** first: every order passes through it. **Delivery** shows how a courier is found and followed.\n",
         "objects": {
           "customer": {
             "type": "actor",
@@ -8651,6 +8966,7 @@
           "courier": {
             "type": "actor",
             "name": "Courier",
+            "icon": "truck",
             "description": "Rides or drives the order from the restaurant to the customer's door."
           },
           "support": {
@@ -8682,7 +8998,13 @@
             "type": "system",
             "name": "Stripe",
             "external": "true",
-            "description": "Takes card payments and sends refunds. Plum never sees a card number.\n\n[Provider status](https://status.stripe.com)\n"
+            "description": "Takes card payments and sends refunds. Plum never sees a card number.",
+            "links": [
+              {
+                "url": "https://status.stripe.com",
+                "title": "Provider status"
+              }
+            ]
           },
           "twilio": {
             "type": "system",
@@ -8694,7 +9016,13 @@
             "type": "system",
             "name": "Mapbox",
             "external": "true",
-            "description": "Maps, address lookup and travel times."
+            "description": "Maps, address lookup and travel times.",
+            "links": [
+              {
+                "url": "https://docs.mapbox.com/api/overview/#rate-limits",
+                "title": "Rate limits"
+              }
+            ]
           },
           "customer-app": {
             "type": "app",
@@ -8703,6 +9031,12 @@
             "tech": "React Native",
             "code": [
               "apps/customer/"
+            ],
+            "links": [
+              {
+                "url": "apps/customer/README.md",
+                "title": "Build and release notes"
+              }
             ],
             "description": "The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\nKeeps nothing but the basket and the session.\n"
           },
@@ -8745,14 +9079,17 @@
                 "columns": [
                   {
                     "name": "id",
+                    "type": "uuid",
                     "key": "primary"
                   },
                   {
                     "name": "customer_id",
+                    "type": "uuid",
                     "to": "customers"
                   },
                   {
                     "name": "total",
+                    "type": "int",
                     "note": "Stored in cents because rounding broke the first tax run."
                   }
                 ],
@@ -8779,17 +9116,23 @@
                 "columns": [
                   {
                     "name": "order_id",
+                    "type": "uuid",
                     "key": "primary",
                     "to": "orders"
                   },
                   {
                     "name": "item_id",
+                    "type": "uuid",
                     "key": "primary"
                   },
-                  "quantity",
+                  {
+                    "name": "quantity",
+                    "type": "int"
+                  },
                   {
                     "name": "unit_price",
-                    "note": "Copied from the menu at order time. Menus change; receipts must not."
+                    "type": "int",
+                    "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
                   }
                 ],
                 "rows": [
@@ -8813,14 +9156,22 @@
                 "columns": [
                   {
                     "name": "id",
+                    "type": "uuid",
                     "key": "primary"
                   },
                   {
                     "name": "order_id",
+                    "type": "uuid",
                     "to": "orders"
                   },
-                  "amount",
-                  "reason"
+                  {
+                    "name": "amount",
+                    "type": "int"
+                  },
+                  {
+                    "name": "reason",
+                    "type": "text?"
+                  }
                 ],
                 "rows": [
                   [
@@ -8837,14 +9188,22 @@
                 "columns": [
                   {
                     "name": "id",
+                    "type": "uuid",
                     "key": "primary"
                   },
                   {
                     "name": "customer_id",
+                    "type": "uuid",
                     "to": "customers"
                   },
-                  "items",
-                  "expires_at"
+                  {
+                    "name": "items",
+                    "type": "json"
+                  },
+                  {
+                    "name": "expires_at",
+                    "type": "timestamp"
+                  }
                 ]
               }
             ]
@@ -8859,7 +9218,7 @@
               {
                 "name": "Keys",
                 "limits": "Oldest unused go first at 256 MB",
-                "note": "A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.",
+                "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
                 "columns": [
                   "Key",
                   "Value",
@@ -9032,6 +9391,7 @@
             "type": "store",
             "in": "notifications",
             "name": "Message templates",
+            "shape": "document",
             "tech": "Postgres",
             "description": "The wording of every message, per language."
           },
@@ -9280,7 +9640,7 @@
           }
         ]
       },
-      "text": "objects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone hungry, ordering from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: The kitchen staff who accept an order and mark it ready.\n  courier:\n    type: actor\n    name: Courier\n    description: Rides or drives the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customers and couriers when something goes wrong.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything a customer touches: browsing menus, building a basket, paying.\n\n      The **Order API** is the only way in. It keeps orders in Postgres and announces every new\n      order on the **Order events** bus, which is how **Delivery** hears about it.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Finds a courier for each order and follows it to the door.\n\n      Dispatch matches and offers. Live tracking keeps the customer's map moving.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: |\n      Takes card payments and sends refunds. Plum never sees a card number.\n\n      [Provider status](https://status.stripe.com)\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: Sends the SMS messages.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, address lookup and travel times.\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    description: |\n      The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\n      Keeps nothing but the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Every client talks to this, and nothing else talks to the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - {name: total, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, key: primary, to: orders}\n          - {name: item_id, key: primary}\n          - quantity\n          - {name: unit_price, note: Copied from the menu at order time. Menus change; receipts must not.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, key: primary}\n          - {name: order_id, to: orders}\n          - amount\n          - reason\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, key: primary}\n          - {name: customer_id, to: customers}\n          - items\n          - expires_at\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch reads from it, and so does the warehouse.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds what the customer picked and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Works out the total: items, delivery fee (by distance) and any promotion.\n\n      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      Nothing is charged until the restaurant accepts. A rejected order releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Turns each new order into a courier on the way.\n\n      It reads `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, their vehicles, and their last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks the idle couriers near a restaurant by how soon each could be there.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and the courier's vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers a job to one courier at a time and waits 30 seconds for an answer.\n\n      A refusal or a timeout moves on to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    tech: Postgres\n    description: The wording of every message, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n  - from: checkout\n    to: orders-db\n    label: writes the order\n  - from: checkout\n    to: events\n    label: announces placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
+      "text": "name: Plum\nabout: |\n  Food delivery for one city. Customers order from the app or the website, restaurants cook, and couriers bring the food to the door.\n\n  Open **Ordering** first: every order passes through it. **Delivery** shows how a courier is found and followed.\nobjects:\n  customer:\n    type: actor\n    name: Customer\n    description: Someone hungry, ordering from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: The kitchen staff who accept an order and mark it ready.\n  courier:\n    type: actor\n    name: Courier\n    icon: truck\n    description: Rides or drives the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customers and couriers when something goes wrong.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything a customer touches: browsing menus, building a basket, paying.\n\n      The **Order API** is the only way in. It keeps orders in Postgres and announces every new\n      order on the **Order events** bus, which is how **Delivery** hears about it.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Finds a courier for each order and follows it to the door.\n\n      Dispatch matches and offers. Live tracking keeps the customer's map moving.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: Takes card payments and sends refunds. Plum never sees a card number.\n    links:\n      - url: https://status.stripe.com\n        title: Provider status\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: Sends the SMS messages.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, address lookup and travel times.\n    links:\n      - url: https://docs.mapbox.com/api/overview/#rate-limits\n        title: Rate limits\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    links:\n      - url: apps/customer/README.md\n        title: Build and release notes\n    description: |\n      The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\n      Keeps nothing but the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Every client talks to this, and nothing else talks to the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds; the order stays.\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: total, type: int, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, type: uuid, key: primary, to: orders}\n          - {name: item_id, type: uuid, key: primary}\n          - {name: quantity, type: int}\n          - {name: unit_price, type: int, note: Copied from the menu when the order is placed. Later menu changes leave it alone.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: order_id, type: uuid, to: orders}\n          - {name: amount, type: int}\n          - {name: reason, type: text?}\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: items, type: json}\n          - {name: expires_at, type: timestamp}\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.\n    data:\n      - name: Keys\n        limits: Oldest unused go first at 256 MB\n        note: Entries last five minutes because a shorter time put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch reads from it, and so does the warehouse.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so one order's messages stay in order.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds what the customer picked and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Works out the total: items, delivery fee (by distance) and any promotion.\n\n      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      Nothing is charged until the restaurant accepts. A rejected order releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Turns each new order into a courier on the way.\n\n      It reads `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, their vehicles, and their last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks the idle couriers near a restaurant by how soon each could be there.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and the courier's vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers a job to one courier at a time and waits 30 seconds for an answer.\n\n      A refusal or a timeout moves on to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    shape: document\n    tech: Postgres\n    description: The wording of every message, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n  - from: checkout\n    to: orders-db\n    label: writes the order\n  - from: checkout\n    to: events\n    label: announces placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -9297,7 +9657,8 @@
           {
             "from": "order-api",
             "to": "events",
-            "text": "Announces that the order is paid and carries on without waiting"
+            "text": "Announces that the order is paid and carries on without waiting",
+            "animation": "event"
           },
           {
             "from": "events",
@@ -9305,18 +9666,20 @@
             "text": "Hands the event to Dispatch, which starts looking for a courier",
             "group": "readers",
             "lane": "Delivery",
-            "flow": "deliver-order"
+            "flow": "deliver-order",
+            "animation": "callback"
           },
           {
             "from": "events",
             "to": "warehouse",
             "text": "Streams the same event to the warehouse for its own records",
             "group": "readers",
-            "lane": "Warehouse"
+            "lane": "Warehouse",
+            "animation": "event"
           }
         ]
       },
-      "text": "name: A paid order is announced\nview: ordering\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: order-api\n    to: events\n    text: Announces that the order is paid and carries on without waiting\n  - from: events\n    to: dispatch\n    text: Hands the event to Dispatch, which starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse for its own records\n    group: readers\n    lane: Warehouse\n"
+      "text": "name: A paid order is announced\nview: ordering\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: order-api\n    to: events\n    text: Announces that the order is paid and carries on without waiting\n    animation: event\n  - from: events\n    to: dispatch\n    text: Hands the event to Dispatch, which starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n    animation: callback\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse for its own records\n    group: readers\n    lane: Warehouse\n    animation: event\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -9328,6 +9691,7 @@
           "charge": {
             "kind": "repeat",
             "times": "3",
+            "until": "the bank answers",
             "text": "Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three."
           },
           "outcome": {
@@ -9373,7 +9737,7 @@
               "kind": "send",
               "outcome": "fail"
             },
-            "description": "A decline is final: it is not retried. The hold is released, and the app asks the customer\nfor another card.\n"
+            "description": "A declined card is not retried. The hold is released and the app asks the customer\nfor another card.\n"
           },
           {
             "from": "order-api",
@@ -9383,7 +9747,7 @@
           }
         ]
       },
-      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is final: it is not retried. The hold is released, and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
+      "text": "name: The payment is captured\nview: ordering\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Gives up after five seconds and tries again\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A declined card is not retried. The hold is released and the app asks the customer\n      for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -9454,7 +9818,7 @@
             "from": "courier-app",
             "to": "tracking",
             "text": "Streams its position every 5 seconds",
-            "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map instead of jumping when it comes back.\n"
+            "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map until a fresh position comes in.\n"
           },
           {
             "from": "tracking",
@@ -9468,7 +9832,94 @@
           }
         ]
       },
-      "text": "name: A courier delivers it\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: Hears that an order was placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n  - from: dispatch\n    text: Ranks them by how soon each could arrive\n    description: |\n      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\n      vehicle. The quickest one is offered the job first.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    description: |\n      Only while a job is open. A position older than a minute is dropped, so a courier who loses\n      signal stops moving on the customer's map instead of jumping when it comes back.\n  - from: tracking\n    to: customer-app\n    text: The customer watches the courier come\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n"
+      "text": "name: A courier delivers it\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: Hears that an order was placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n  - from: dispatch\n    text: Ranks them by how soon each could arrive\n    description: |\n      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\n      vehicle. The quickest one is offered the job first.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    description: |\n      Only while a job is open. A position older than a minute is dropped, so a courier who loses\n      signal stops moving on the customer's map until a fresh position comes in.\n  - from: tracking\n    to: customer-app\n    text: The customer watches the courier come\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/events-arrive-late.yaml",
+      "data": {
+        "name": "Dispatch hears about an order late",
+        "view": "delivery",
+        "steps": [
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "The placed event waits behind the dinner rush",
+            "animation": {
+              "kind": "event",
+              "outcome": "delayed",
+              "reason": "Consumer lag"
+            },
+            "description": "One consumer reads every `placed` event. When orders arrive faster than it reads, each one waits in line.\n"
+          },
+          {
+            "from": "dispatch",
+            "to": "fleet-db",
+            "text": "Finds couriers minutes after the customer paid"
+          }
+        ]
+      },
+      "text": "name: Dispatch hears about an order late\nview: delivery\nsteps:\n  - from: events\n    to: dispatch\n    text: The placed event waits behind the dinner rush\n    animation:\n      kind: event\n      outcome: delayed\n      reason: Consumer lag\n    description: |\n      One consumer reads every `placed` event. When orders arrive faster than it reads, each one waits in line.\n  - from: dispatch\n    to: fleet-db\n    text: Finds couriers minutes after the customer paid\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/hotel-wifi-takes-order.yaml",
+      "data": {
+        "name": "Hotel wifi takes the order",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "POST /orders reaches a sign-in page instead",
+            "animation": {
+              "kind": "call",
+              "outcome": "intercepted",
+              "by": {
+                "name": "Hotel wifi portal"
+              }
+            },
+            "description": "A hotel's wifi holds every request until the guest signs in. The call never reaches the **Order API**.\n"
+          },
+          {
+            "from": "customer-app",
+            "text": "Waits for a reply and offers a Retry button"
+          }
+        ]
+      },
+      "text": "name: Hotel wifi takes the order\nview: ordering\nsteps:\n  - from: customer-app\n    to: order-api\n    text: POST /orders reaches a sign-in page instead\n    animation:\n      kind: call\n      outcome: intercepted\n      by:\n        name: Hotel wifi portal\n    description: |\n      A hotel's wifi holds every request until the guest signs in. The call never reaches the **Order API**.\n  - from: customer-app\n    text: Waits for a reply and offers a Retry button\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/mapbox-rate-limit.yaml",
+      "data": {
+        "name": "Mapbox turns the travel times away",
+        "view": "dispatch",
+        "steps": [
+          {
+            "from": "matcher",
+            "to": "eta",
+            "text": "Asks who is quickest",
+            "animation": "call"
+          },
+          {
+            "from": "eta",
+            "to": "mapbox",
+            "text": "Asks Mapbox for travel times and is turned away",
+            "animation": {
+              "kind": "call",
+              "outcome": "rejected",
+              "reason": "Rate limit"
+            },
+            "description": "Plum passes Mapbox's limit once orders pass 900 a minute. Mapbox answers at once, so the call fails fast.\n"
+          },
+          {
+            "from": "eta",
+            "text": "Falls back to straight-line distance and ranks more roughly"
+          }
+        ]
+      },
+      "text": "name: Mapbox turns the travel times away\nview: dispatch\nsteps:\n  - from: matcher\n    to: eta\n    text: Asks who is quickest\n    animation: call\n  - from: eta\n    to: mapbox\n    text: Asks Mapbox for travel times and is turned away\n    animation:\n      kind: call\n      outcome: rejected\n      reason: Rate limit\n    description: |\n      Plum passes Mapbox's limit once orders pass 900 a minute. Mapbox answers at once, so the call fails fast.\n  - from: eta\n    text: Falls back to straight-line distance and ranks more roughly\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -9523,6 +9974,34 @@
     },
     {
       "folder": "docs/demo/flowy",
+      "rel": "flows/order-sent-twice.yaml",
+      "data": {
+        "name": "A double tap sends the order twice",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "The same order arrives twice",
+            "animation": {
+              "kind": "send",
+              "outcome": "duplicated",
+              "reason": "Slow reply"
+            },
+            "description": "The app sends the order again when the first reply is slow. Both copies carry one idempotency key.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "text": "Saves the first copy and refuses the second",
+            "animation": "send"
+          }
+        ]
+      },
+      "text": "name: A double tap sends the order twice\nview: ordering\nsteps:\n  - from: customer-app\n    to: order-api\n    text: The same order arrives twice\n    animation:\n      kind: send\n      outcome: duplicated\n      reason: Slow reply\n    description: |\n      The app sends the order again when the first reply is slow. Both copies carry one idempotency key.\n  - from: order-api\n    to: orders-db\n    text: Saves the first copy and refuses the second\n    animation: send\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
       "rel": "flows/place-order.yaml",
       "data": {
         "name": "Customer places an order",
@@ -9537,7 +10016,7 @@
             "from": "customer-app",
             "to": "order-api",
             "text": "POST /orders with the basket",
-            "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places one order, not two.\n"
+            "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places a single order.\n"
           },
           {
             "from": "order-api",
@@ -9568,7 +10047,7 @@
           }
         ]
       },
-      "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places one order, not two.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
+      "text": "name: Customer places an order\nview: ordering\nsteps:\n  - from: customer\n    to: customer-app\n    text: Fills a basket and taps Place order\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    description: |\n      The app sends an idempotency key with the request, so a double tap or a retry on a bad\n      connection places a single order.\n  - from: order-api\n    to: stripe\n    text: Holds the amount on the card\n    description: |\n      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\n      once the restaurant accepts, and the hold is released if it refuses.\n  - from: order-api\n    to: orders-db\n    text: Saves the order as placed\n  - from: order-api\n    to: events\n    text: Announces the order\n  - from: events\n    to: dispatch\n    text: Dispatch starts looking for a courier\n  - from: order-api\n    to: kitchen-tablet\n    text: The restaurant's tablet rings\n    description: |\n      The kitchen has two minutes to accept. After that the order is cancelled, the hold is\n      released and the customer is told.\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -9715,6 +10194,39 @@
         ]
       },
       "text": "name: Stripe goes down and comes back\nview: ordering\nsteps:\n  - from: order-api\n    to: stripe\n    text: The hold is slow while Stripe shuts down\n    animation: call\n    states:\n      stripe: stopping\n  - from: checkout\n    to: stripe\n    text: The hold times out\n    animation:\n      kind: call\n      outcome: timeout\n    states:\n      stripe: stopped\n    description: |\n      Checkout waits five seconds for the hold and gets no answer. It does not retry while Stripe is down.\n  - from: checkout\n    to: customer-app\n    text: Offers pay at the door\n    states:\n      checkout: degraded\n  - from: order-api\n    to: stripe\n    text: The status page says Stripe is restarting\n    animation: call\n    states:\n      stripe: restarting\n  - from: order-api\n    to: stripe\n    text: The next check finds it coming back up\n    animation: call\n    states:\n      stripe: starting\n  - from: checkout\n    to: stripe\n    text: The hold goes through\n    animation: call\n    states:\n      stripe: running\n      checkout: running\n"
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "rel": "flows/stripe-webhook.yaml",
+      "data": {
+        "name": "Stripe reports a charge",
+        "view": "ordering",
+        "steps": [
+          {
+            "from": "stripe",
+            "to": "order-api",
+            "text": "Calls Plum's webhook to say the charge went through",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "o_1042"
+            },
+            "description": "Stripe starts this call itself, so nothing in Plum set it off. The order is marked paid when it arrives.\n"
+          },
+          {
+            "from": "order-api",
+            "to": "orders-db",
+            "text": "Marks the order paid",
+            "animation": "send"
+          },
+          {
+            "from": "order-api",
+            "text": "Carries on to announce the order",
+            "flow": "announce-order"
+          }
+        ]
+      },
+      "text": "name: Stripe reports a charge\nview: ordering\nsteps:\n  - from: stripe\n    to: order-api\n    text: Calls Plum's webhook to say the charge went through\n    animation:\n      kind: callback\n      trigger: outside\n      carries: o_1042\n    description: |\n      Stripe starts this call itself, so nothing in Plum set it off. The order is marked paid when it arrives.\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    animation: send\n  - from: order-api\n    text: Carries on to announce the order\n    flow: announce-order\n"
     },
     {
       "folder": "example",

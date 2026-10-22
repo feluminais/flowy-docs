@@ -66,6 +66,9 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   if (model.meta.lines !== undefined && !LINE_STYLES.some(s => s === model.meta.lines))
     add('model.yaml', undefined, 'lines must be straight, curved or angled')
 
+  for (const key of ['name', 'about'])
+    if (model.meta[key] !== undefined && model.meta[key] !== '' && typeof model.meta[key] !== 'string') add('model.yaml', undefined, `${key} must be text`)
+
   for (const path of emptyKeys(model.meta)) add('model.yaml', undefined, emptyKeyMessage(path))
 
   const icons = model.meta.icons

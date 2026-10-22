@@ -5,7 +5,7 @@ import { parseFormula } from '../formula.ts'
 import { isColor } from '../look.ts'
 import { ID_RULE, isValidId, orEmpty, ParseError } from '../model.ts'
 import { readYaml } from '../yamltext.ts'
-import { isMap } from '../text.ts'
+import { isMap, plainNumber } from '../text.ts'
 import { isStateName, STATE_NAMES } from '../states.ts'
 import { AXES, FAILURES } from './types.ts'
 import type { Axis, Failure, Level, Metrics, Pair, Run, RunEvent, Source, SourceFormula, SourceInfo } from './types.ts'
@@ -26,11 +26,7 @@ export const MOST_ADDED = 4
 export const MOST_TESTED = 3
 
 /** A number written in a file. Files hold text, so "0.35" is read here. */
-const num = (v: unknown): number | undefined => {
-  if (typeof v !== 'string' || v.trim() === '') return undefined
-  const n = Number(v)
-  return Number.isFinite(n) ? n : undefined
-}
+const num = plainNumber
 
 /** The numbers `keys` name in `raw`. A value that isn't a number, or is out of range, is reported through `add` and left out. */
 function readMetrics(keys: readonly (keyof Metrics)[], raw: Record<string, unknown>, where: string, add: (message: string) => void): Metrics {

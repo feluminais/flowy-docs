@@ -20,11 +20,11 @@ const ROW = 30 // px: every row of the tree is this tall, which is what lets it 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-export function NavTabs({ tab, showFlows, showYaml, onPick }: { tab: NavTab; showFlows: boolean; showYaml: boolean; onPick: (tab: NavTab) => void }) {
+export function NavTabs({ tab, onPick }: { tab: NavTab; onPick: (tab: NavTab) => void }) {
   const tabs: [NavTab, string][] = [
     ['explorer', 'Explorer'],
-    ...(showFlows ? [['flows', 'Flows'] as [NavTab, string]] : []),
-    ...(showYaml ? [['yaml', 'YAML'] as [NavTab, string]] : []),
+    ['flows', 'Flows'],
+    ['yaml', 'YAML'],
   ]
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
@@ -53,20 +53,20 @@ function RailButton({ label, hint, Icon, pressed, count, off, onClick }: { label
 
 /**
  * The slim column of icons on the left edge for the Explorer tree, the Flows list, the Performance panel, the Failures panel and the YAML. It is always there, and the counts
- * on it say how much the documentation holds. Performance and Failures are there whether or not there is a run or an analysis: their panels offer to make one.
+ * on it say how much the documentation holds. Flows, Performance, Failures and YAML are there whether or not there is a flow, a run, an analysis or a history: their panels offer to make one or say why there is none.
  * `perf.off` greys the Performance button out and says why in its tooltip: the tab stays where it is while the panel can't be used.
  */
-export function NavRail({ tab, flows, shapes, showFlows, showYaml, perf, failures, onPick }: {
-  tab: NavTab | undefined; flows: number; shapes: number; showFlows: boolean; showYaml: boolean
+export function NavRail({ tab, flows, shapes, perf, failures, onPick }: {
+  tab: NavTab | undefined; flows: number; shapes: number
   perf: { runs: number; off?: string }; failures: { count: number }; onPick: (tab: NavTab) => void
 }) {
   return (
     <nav className="rail left" aria-label="Navigator">
       <RailButton label="Explorer" hint={keyOf('explorer')} Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
-      {showFlows && <RailButton label="Flows" hint={keyOf('flows')} Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
+      <RailButton label="Flows" hint={keyOf('flows')} Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />
       <RailButton label="Performance" hint={keyOf('perf')} Icon={Activity} count={perf.runs > 0 ? perf.runs : undefined} pressed={tab === 'performance'} off={perf.off} onClick={() => onPick('performance')} />
       <RailButton label="Failures" hint={keyOf('failures')} Icon={Bolt} count={failures.count > 0 ? failures.count : undefined} pressed={tab === 'failures'} onClick={() => onPick('failures')} />
-      {showYaml && <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
+      <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />
     </nav>
   )
 }
@@ -180,7 +180,7 @@ function RowCompareButton({ flow, name, compare }: { flow: string; name: string;
  * Every flow in the documentation: first those that play in the level you are in, then all the others under the level they play in.
  * Picking one goes to its level and plays it (or, while editing, opens it for editing). A flow in a pair has a link mark, and its partners are listed together.
  */
-export function FlowsTab({ model, view, editing, current, compare, onOpen }: { model: Model; view: string; editing: boolean; current?: string; compare: RowCompare; onOpen: (flow: FlowRef) => void }) {
+export function FlowsTab({ model, view, editing, canEdit, current, compare, onOpen }: { model: Model; view: string; editing: boolean; canEdit: boolean; current?: string; compare: RowCompare; onOpen: (flow: FlowRef) => void }) {
   const [query, setQuery] = useState('')
   const [closed, setClosed] = useState<ReadonlySet<string>>(new Set())
   const groups = useMemo(() => flowGroups(model, view, { editing }), [model, view, editing])
@@ -212,7 +212,7 @@ export function FlowsTab({ model, view, editing, current, compare, onOpen }: { m
           }
         }} />
       <div className="navscroll">
-        <h3 className="navhead"><span>This view</span><span className="muted">{groups.here.length}</span></h3>
+        {groups.total > 0 && <h3 className="navhead"><span>This view</span><span className="muted">{groups.here.length}</span></h3>}
         {here.length > 0 && here.map(row)}
         {groups.here.length === 0 && groups.total > 0 && <p className="muted navnote">No flows on this view.</p>}
         {groups.here.length > 0 && here.length === 0 && <p className="muted navnote">No matches.</p>}
@@ -231,7 +231,9 @@ export function FlowsTab({ model, view, editing, current, compare, onOpen }: { m
           )
         })}
         {needle !== '' && here.length === 0 && elsewhere.length === 0 && <p className="muted navnote">No flow matches “{query.trim()}”.</p>}
-        {groups.total === 0 && <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>}
+        {groups.total === 0 && (editing
+          ? <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>
+          : <p className="muted navnote">No flows yet.{canEdit && <span className="hint"><kbd>E</kbd> Edit to add one</span>}</p>)}
       </div>
       {listed.some(f => f.linked) && <LinkedKey />}
     </>

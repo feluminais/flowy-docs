@@ -75,7 +75,7 @@ public static partial class EditOps
     private static OrderedDictionary<string, object?> NormalizeLink(OrderedDictionary<string, object?> link)
     {
         var result = new OrderedDictionary<string, object?>();
-        if (link.TryGetValue("title", out var t) && t is string title && title.Trim() != "") result["title"] = title;
+        if (link.TryGetValue("title", out var t) && t is string title && !JsCompat.Blank(title)) result["title"] = title;
         foreach (var (key, value) in link)
             if (key != "title") result[key] = value;
         return result;
@@ -196,7 +196,7 @@ public static partial class EditOps
         var step = new OrderedDictionary<string, object?> { ["from"] = from };
         if (to is not null) step["to"] = to;
         step["text"] = text;
-        if (description is not null && description.Trim() != "") step["description"] = description;
+        if (description is not null && !JsCompat.Blank(description)) step["description"] = description;
         return step;
     }
 
@@ -216,7 +216,7 @@ public static partial class EditOps
         {
             var copy = Clone(s);
             // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
-            if (copy.TryGetValue("description", out var detail) && detail is string text && text.Trim() == "") copy.Remove("description");
+            if (copy.TryGetValue("description", out var detail) && detail is string text && JsCompat.Blank(text)) copy.Remove("description");
             if (copy.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> { Count: 0 }) copy.Remove("states");
             copies.Add(copy);
         }
@@ -632,6 +632,31 @@ public static partial class EditOps
         return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Layout = d.Layout };
     }
 
+    /// <summary>
+    /// Set the project's name and what it is: the top-level <c>name:</c> and <c>about:</c> in model.yaml. A field left null stays as it is; blank text removes the key.
+    /// A new <c>name</c> goes first, a new <c>about</c> right after the name, and one that's there keeps its place.
+    /// </summary>
+    public static EditDoc SetProject(EditDoc doc, string? name = null, string? about = null)
+    {
+        var d = doc.Clone();
+        var meta = d.Meta;
+        foreach (var (key, given) in new[] { ("name", name), ("about", about) })
+        {
+            if (given is null) continue;
+            var text = given.Trim();
+            if (text == "") meta.Remove(key);
+            else if (meta.ContainsKey(key)) meta[key] = text;
+            else
+            {
+                var entries = meta.ToList();
+                entries.Insert(key == "about" ? entries.FindIndex(e => e.Key == "name") + 1 : 0, new KeyValuePair<string, object?>(key, text));
+                meta = new OrderedDictionary<string, object?>();
+                foreach (var (k, v) in entries) meta[k] = v;
+            }
+        }
+        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Layout = d.Layout };
+    }
+
     /// <summary>Forget where boxes were dragged in one view, so the computed layout shows again.</summary>
     public static EditDoc ForgetLayout(EditDoc doc, string view)
     {
@@ -662,10 +687,16 @@ public static partial class EditOps
         return added;
     }
 
-    /// <summary>Refuse an edit that adds problems, naming them. Problems that were already there never block it.</summary>
-    public static void RefuseNewProblems(Model before, Model after, ISet<string>? absent = null)
+    /// <summary>
+    /// Refuse an edit that adds problems, naming them. Problems that were already there never block it. <paramref name="runs"/> are the load-test runs of the folder: a run is a file
+    /// the edit can't change, so an edit that leaves one naming a shape or a line that is gone is refused, as one that a flow or a failure analysis uses is. Twin of refuseNewProblems in src/core/ops.ts.
+    /// </summary>
+    public static void RefuseNewProblems(Model before, Model after, ISet<string>? absent = null, IdMap<LoadRun>? runs = null)
     {
-        var added = NewProblems(Checks.Run(before, absent), Checks.Run(after, absent));
-        if (added.Count > 0) throw new OpError("Refused, nothing saved. This would add:\n" + string.Join("\n", added.Select(p => $"- {p.File}: {p.Message}")));
+        List<Problem> Found(Model m) => [.. Checks.Run(m, absent), .. (runs ?? new IdMap<LoadRun>()).SelectMany(r => Perf.CheckRun(r.Key, r.Value, m))];
+        var added = NewProblems(Found(before), Found(after));
+        if (added.Count == 0) return;
+        var byRun = added.Any(p => p.File.StartsWith(FolderLayout.PerfDir + "/", StringComparison.Ordinal));
+        throw new OpError("Refused, nothing saved. This would add:\n" + string.Join("\n", added.Select(p => $"- {p.File}: {p.Message}")) + (byRun ? "\nChange or delete those runs first." : ""));
     }
 }

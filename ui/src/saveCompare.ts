@@ -23,6 +23,7 @@ export async function saveCompare(kind: 'flow' | 'run', id: string, tag: Compare
     if (!ok(reply)) return reply.status === 409 && errorOf(reply) === undefined ? CHANGED_OUTSIDE : failed('save', file, reply)
     // No step for it: the history keeps only the files Flowy writes whole (restoring a step puts those back and removes the rest), and a run is not one. A label asked for here would
     // find the files unchanged and go on the newest step, which is about something else.
+    return undefined
   } catch (e) {
     return e instanceof Error ? e.message : String(e)
   }

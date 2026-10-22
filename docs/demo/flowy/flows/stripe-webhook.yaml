@@ -1,0 +1,11 @@
+name: Stripe reports a charge
+view: ordering
+steps:
+  - from: stripe
+    to: order-api
+    text: Calls Plum's webhook to say the charge went through
+    animation: { kind: callback, trigger: outside, carries: o_1042 }
+    description: |
+      Stripe starts this call itself, so nothing in Plum set it off. The order is marked paid when it arrives.
+  - { from: order-api, to: orders-db, text: Marks the order paid, animation: send }
+  - { from: order-api, text: Carries on to announce the order, flow: announce-order }

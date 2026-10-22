@@ -2,8 +2,11 @@ using static Flowy.Core.YamlTree;
 
 namespace Flowy.Core;
 
-/// <summary>A column of a grid. <c>Key</c> is only ever "primary"; <c>To</c> names the table a foreign key points to.</summary>
-public sealed record DataColumn(string Name, string? Key, string? To, string? Note);
+/// <summary>
+/// A column of a grid. <c>Key</c> is only ever "primary"; <c>To</c> names the table a foreign key points to. <c>Type</c> is the data type as the author
+/// writes it ("int", "text"); a trailing "?" in the file ("int?") says the column can be empty, and is <c>Nullable</c> here, not part of the type.
+/// </summary>
+public sealed record DataColumn(string Name, string? Type, bool Nullable, string? Key, string? To, string? Note);
 
 /// <summary>One note under the data: the column's name, or the field's dotted path in a document, and what it says.</summary>
 public sealed record NoteLine(string Name, string Text);
@@ -20,7 +23,7 @@ public sealed record DataShown(
 public static class StoreData
 {
     /// <summary>How much the section shows, so it stays a picture of the few tables that matter and never a dump.</summary>
-    public const int MaxColumns = 12, MaxRows = 8, MaxDepth = 3, MaxFields = 20;
+    public const int MaxColumns = 12, MaxRows = 8, MaxDepth = 3, MaxFields = 20, MaxType = 40;
 
     private static bool JsBlank(string s) => s.All(JsCompat.IsSpace);
 
@@ -30,11 +33,22 @@ public static class StoreData
 
     private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
 
+    /// <summary>A written type split into the type and whether it can be empty: "int?" is "int" and nullable, "?" is nullable with no type.</summary>
+    private static (string? Type, bool Nullable) TypeOf(object? raw)
+    {
+        if (Text(raw) is not { } text) return (null, false);
+        var written = JsCompat.JsTrim(text);
+        var nullable = written.EndsWith('?');
+        var type = JsCompat.JsTrim(nullable ? written[..^1] : written);
+        return (type == "" ? null : type, nullable);
+    }
+
     private static DataColumn? ColumnOf(object? raw)
     {
-        if (raw is string s) return JsBlank(s) ? null : new DataColumn(s, null, null, null);
+        if (raw is string s) return JsBlank(s) ? null : new DataColumn(s, null, false, null, null, null);
         if (raw is not OrderedDictionary<string, object?> map || Text(Get(map, "name")) is not { } name) return null;
-        return new DataColumn(name, Get(map, "key") is "primary" ? "primary" : null, Text(Get(map, "to")), Text(Get(map, "note")));
+        var (type, nullable) = TypeOf(Get(map, "type"));
+        return new DataColumn(name, type, nullable, Get(map, "key") is "primary" ? "primary" : null, Text(Get(map, "to")), Text(Get(map, "note")));
     }
 
     private static List<IReadOnlyList<string>> RowsOf(object? raw, int width) =>
@@ -137,9 +151,9 @@ public static class StoreData
         if (c is not OrderedDictionary<string, object?> map) return c;
         var tidy = new OrderedDictionary<string, object?>();
         if (map.TryGetValue("name", out var name)) tidy["name"] = name;
-        foreach (var field in new[] { "key", "to", "note" })
+        foreach (var field in new[] { "type", "key", "to", "note" })
             if (map.TryGetValue(field, out var value) && !Blank(value)) tidy[field] = value;
-        foreach (var (key, value) in Rest(map, "name", "key", "to", "note")) tidy[key] = value;
+        foreach (var (key, value) in Rest(map, "name", "type", "key", "to", "note")) tidy[key] = value;
         return tidy.Count == 1 && name is string ? name : tidy;
     }
 
@@ -160,7 +174,7 @@ public static class StoreData
 
     /// <summary>
     /// The entries of a data as they go to disk: keys in the order name, kind, limits, note, columns, rows, sample, notes (others after); a blank kind,
-    /// limits, note, key or <c>to</c> left out; a column with only a name written as the bare name. A value of the wrong shape, a data that is not a
+    /// limits, note, type, key or <c>to</c> left out (a column's keys go name, type, key, to, note); a column with only a name written as the bare name. A value of the wrong shape, a data that is not a
     /// list included, is carried through unchanged for the checks to report. The twin of <c>tidyData</c> (numbers are already text in a tree).
     /// </summary>
     public static object? Tidy(object? input) => input is List<object?> entries ? entries.Select(TidyEntry).ToList() : input;
@@ -248,8 +262,9 @@ public static class StoreData
             if (!seen.Add(name)) output.Add($"{label}: column \"{name}\" appears twice");
             if (map is null) continue;
             if (Present(Get(map, "key")) && Get(map, "key") is not "primary") output.Add($"{label}: column \"{name}\": key must be primary");
-            foreach (var field in new[] { "to", "note" })
+            foreach (var field in new[] { "type", "to", "note" })
                 if (map.TryGetValue(field, out var value) && value is not string) output.Add($"{label}: column \"{name}\": \"{field}\" must be plain text");
+            if (Get(map, "type") is string type && JsCompat.JsTrim(type).Length > MaxType) output.Add($"{label}: column \"{name}\": type is longer than {MaxType} characters");
         }
         if (columns.Count > MaxColumns) output.Add($"{label}: {columns.Count} columns, at most {MaxColumns}");
         var rawRows = Get(entry, "rows");

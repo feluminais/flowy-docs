@@ -44,7 +44,7 @@ internal static class JsonDump
         if (entries.Count == 0) return null;
         return new JsonArray(entries.Select(e => (JsonNode?)Obj(
             ("name", e.Name), ("kind", e.Kind), ("limits", e.Limits), ("note", e.Note), ("summary", e.Summary),
-            ("columns", Arr(e.Columns.Select(c => Obj(("name", c.Name), ("key", c.Key), ("to", c.To), ("note", c.Note))))),
+            ("columns", Arr(e.Columns.Select(c => Obj(("name", c.Name), ("type", c.Type), ("nullable", c.Nullable ? JsonValue.Create(true) : null), ("key", c.Key), ("to", c.To), ("note", c.Note))))),
             ("rows", new JsonArray(e.Rows.Select(row => (JsonNode?)new JsonArray(row.Select(cell => (JsonNode?)JsonValue.Create(cell)).ToArray())).ToArray())),
             ("lines", Arr(e.Lines.Select(l => Obj(("depth", l.Depth), ("key", l.Key), ("value", l.Value), ("path", l.Path), ("noted", JsonValue.Create(l.Noted)))))),
             ("notes", Arr(e.Notes.Select(n => Obj(("name", n.Name), ("text", n.Text))))))).ToArray());
@@ -79,6 +79,8 @@ internal static class JsonDump
         var runsTagged = folder.Runs is { } loaded && loaded.Any(kv => kv.Value.Compare is not null);
         var result = Obj(
             ("lineStyle", m.LineStyle),
+            ("projectName", m.ProjectName),
+            ("projectAbout", m.ProjectAbout),
             ("objects", Arr(m.Objects.Select(kv => Obj(
                 ("id", kv.Key), ("type", kv.Value.Type), ("name", kv.Value.Name), ("in", kv.Value.In), ("external", kv.Value.External),
                 ("shape", kv.Value.Shape), ("color", kv.Value.Color), ("opacity", kv.Value.Opacity), ("icon", kv.Value.Icon),

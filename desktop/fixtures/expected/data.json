@@ -1,5 +1,7 @@
 {
   "lineStyle": "straight",
+  "projectName": "",
+  "projectAbout": "",
   "objects": [
     {
       "id": "shop",
@@ -22,19 +24,28 @@
           "columns": [
             {
               "name": "id",
+              "type": "uuid",
               "key": "primary"
             },
             {
               "name": "customer_id",
+              "type": "uuid",
               "to": "customers"
             },
             "status",
             {
               "name": "total",
+              "type": "int",
               "note": "Cents, not decimals. Rounding broke the first tax run."
             },
-            "placed_at",
-            "delivery_notes"
+            {
+              "name": "placed_at",
+              "type": "timestamp"
+            },
+            {
+              "name": "delivery_notes",
+              "type": "text?"
+            }
           ],
           "rows": [
             [
@@ -78,7 +89,7 @@
             "quantity",
             {
               "name": "unit_price",
-              "note": "Copied from the menu at order time. Menus change; receipts must not."
+              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ],
           "rows": [
@@ -130,10 +141,12 @@
           "columns": [
             {
               "name": "id",
+              "type": "uuid",
               "key": "primary"
             },
             {
               "name": "customer_id",
+              "type": "uuid",
               "to": "customers"
             },
             {
@@ -141,13 +154,17 @@
             },
             {
               "name": "total",
+              "type": "int",
               "note": "Cents, not decimals. Rounding broke the first tax run."
             },
             {
-              "name": "placed_at"
+              "name": "placed_at",
+              "type": "timestamp"
             },
             {
-              "name": "delivery_notes"
+              "name": "delivery_notes",
+              "type": "text",
+              "nullable": true
             }
           ],
           "rows": [
@@ -202,7 +219,7 @@
             },
             {
               "name": "unit_price",
-              "note": "Copied from the menu at order time. Menus change; receipts must not."
+              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ],
           "rows": [
@@ -217,7 +234,7 @@
           "notes": [
             {
               "name": "unit_price",
-              "text": "Copied from the menu at order time. Menus change; receipts must not."
+              "text": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ]
         },
@@ -294,7 +311,7 @@
         {
           "name": "Keys",
           "limits": "Oldest unused go first at 256 MB",
-          "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
           "columns": [
             "Key",
             "Value",
@@ -321,7 +338,7 @@
         {
           "name": "Keys",
           "limits": "Oldest unused go first at 256 MB",
-          "note": "Five minutes is how long a restaurant's edit can take to show up. Shorter put too much load on Postgres.",
+          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
           "summary": "3 columns",
           "columns": [
             {

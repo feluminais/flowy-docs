@@ -67,6 +67,7 @@ public class EditOpsTests
             case "placeBoxes":
                 return EditOps.PlaceBoxes(doc, Str(s, "view")!, s["boxes"]!.AsObject().Select(b => (b.Key, b.Value![0]!.GetValue<double>(), b.Value![1]!.GetValue<double>())));
             case "setLines": return EditOps.SetLines(doc, Str(s, "style"));
+            case "setProject": return EditOps.SetProject(doc, Str(s, "name"), Str(s, "about"));
             case "forgetLayout": return EditOps.ForgetLayout(doc, Str(s, "view")!);
             default: throw new InvalidOperationException($"unknown op {Str(s, "op")}");
         }

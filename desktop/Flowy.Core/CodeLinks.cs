@@ -39,6 +39,8 @@ public static partial class CodeLinks
         async Task<string> Git(params string[] args)
         {
             var start = new ProcessStartInfo("git") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true };
+            // A parent git (a hook, rebase --exec) passes GIT_DIR and the like down; they would point git at that repo, not at the folder asked about.
+            foreach (var name in start.Environment.Keys.Where(k => k.StartsWith("GIT_", StringComparison.OrdinalIgnoreCase)).ToList()) start.Environment.Remove(name);
             start.ArgumentList.Add("-C");
             start.ArgumentList.Add(root);
             foreach (var a in args) start.ArgumentList.Add(a);

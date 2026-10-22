@@ -45,7 +45,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   failure modes and runs there are in all. A Performance icon (T) and a Failures icon (M) sit with them, whether or not the folder has a
   load-test run or a failure analysis: with none, their panels offer to **Create** one. See [Performance](performance.md#performance) and
   [Failure modes](failures.md#failure-modes). Details, on the right (its own icon, or a click on a shape or a line), is what the
-  click picked, and it is all the right-hand side holds. Drag the inner edge of either panel to resize it,
+  click picked, and it is all the right-hand side holds. With nothing picked at the top level it shows the Overview: the system's name and
+  what it is (`name` and `about` in `model.yaml`), then how many shapes and flows there are. Inside a shape it shows that shape. Drag the inner edge of either panel to resize it,
   and double-click it to put the width back.
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
@@ -62,7 +63,7 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays each step once.
 - A flow whose steps are grouped (see [Repeats, branches and parallel steps](flows.md#repeats-branches-and-parallel-steps)) is played in
-  stops: a chip names the group, a branch shows its lanes as tabs, the bar has a bracket under each group, and the lanes of a parallel
+  stops: a chip names the group, a branch shows its lanes as tabs, the bar boxes each group, and the lanes of a parallel
   group are one stop, lit and moving together. A step that says `flow:` has an Open flow button, and a bar to come back.
 - F fits the whole view back on screen, and ? (or the ? button) lists every shortcut.
 - "N problems" in the top bar lists what's wrong in the files. Pick one to jump to it. Shapes with
@@ -80,6 +81,8 @@ checks, and write the same text, so a change made in one looks the same in git a
 - Add (or N) puts a shape in the current view. It offers only the types that fit there: actors and
   systems at the top, apps and stores inside a system, components inside an app or store.
   Double-click an empty system, app or store to open it and add what goes inside.
+- With nothing picked at the top level, Details holds a form for the system's **Name** and **About** (Markdown). Both are optional; clearing a
+  field removes its key.
 - Click a shape to change its name, type, tech, look (shape, colour, opacity, icon), description, code and source. A field saves when you leave
   it. Source takes one file or folder per line, relative to the folder that holds `flowy/`. A path that
   doesn't exist shows up as a problem.
@@ -96,6 +99,8 @@ checks, and write the same text, so a change made in one looks the same in git a
   remove the mode, repoint it. Click a row to outline the shapes it names. Remove all (Enter) settles every row by removing, Reroute all (R)
   sends steps and modes to one shape, and Delete stays grey until each row has a choice. Esc closes the panel and changes nothing. All of it
   is one edit, so Ctrl+Z puts everything back.
+
+  ![Orders DB about to be deleted in edit mode: the Used by panel with a row for each flow step and failure mode that names it, Remove step, Reroute to and Delete flow beside each, and Delete greyed out until every row has a choice](../images/desktop-used-by.png)
 - To work on several shapes at once, Ctrl+click (or Shift+click) adds a shape to the selection and takes it out again, Shift and drag on
   the empty canvas draws a box round the shapes to select, and Ctrl+A selects every shape in the view. Dragging any selected shape moves
   them all, and Esc straight after takes the whole move back. Delete removes them all as one edit, and what depends on any of them

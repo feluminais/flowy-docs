@@ -106,7 +106,9 @@ test('delete_failure removes a mode and delete_failures removes the file', async
 test('a shape or connection a mode names cannot be deleted, and the answer says why', async t => {
   const { call } = await setup(t)
   await call('put_failures', { id: 'ordering', name: 'Ordering', modes: MODES })
-  assert.deepEqual(await call('delete_object', { id: 'db' }), { error: true, text: '"db" is used by failure analysis ordering. Change or delete those first.' })
+  const refused = await call('delete_object', { id: 'db' })
+  assert.equal(refused.error, true)
+  assert.match(refused.text, /^"db" is used by failure analysis ordering\. Change or delete those first\.\n\n- mode:ordering:db-down:on \(mode db-down of ordering\): removeMode, repoint\n/)
 })
 
 test('a file in the way, with the name of a new analysis in other letters, is never written over', async t => {

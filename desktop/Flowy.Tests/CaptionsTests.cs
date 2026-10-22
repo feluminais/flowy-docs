@@ -25,8 +25,8 @@ public class CaptionsTests
     {
         ["cols"] = p.Cols,
         ["rows"] = p.Rows,
-        ["cells"] = new JsonArray(p.Cells.Select(c => (JsonNode?)new JsonObject { ["stop"] = c.Stop, ["col"] = c.Col, ["row"] = c.Row, ["title"] = c.Title }).ToArray()),
-        ["brackets"] = new JsonArray(p.Brackets.Select(b => (JsonNode?)new JsonObject { ["kind"] = b.Kind, ["from"] = b.From, ["to"] = b.To, ["text"] = b.Text, ["title"] = b.Title }).ToArray()),
+        ["cells"] = new JsonArray(p.Cells.Select(c => (JsonNode?)new JsonObject { ["stop"] = c.Stop, ["col"] = c.Col, ["row"] = c.Row, ["title"] = c.Title, ["group"] = c.Group }).ToArray()),
+        ["brackets"] = new JsonArray(p.Brackets.Select(b => (JsonNode?)new JsonObject { ["kind"] = b.Kind, ["from"] = b.From, ["to"] = b.To, ["text"] = b.Text, ["title"] = b.Title, ["lanes"] = Strings(b.Lanes), ["maybe"] = b.Maybe }).ToArray()),
     };
 
     [Fact]
