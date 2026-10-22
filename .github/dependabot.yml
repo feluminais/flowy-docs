@@ -8,6 +8,13 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    ignore:
+      # dependency-cruiser (npm run check:layers) can't read TypeScript 7 yet: it cruises 0 modules and still passes.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      # CI and the desktop app run Node 24, so its types stay on that line.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
@@ -18,6 +25,13 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # Pinned to the oldest VS Code the extension supports (engines.vscode). vsce refuses a newer one.
+      - dependency-name: "@types/vscode"
     groups:
       vscode-minor-and-patch:
         update-types: [minor, patch]
@@ -32,6 +46,10 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    ignore:
+      # xunit.v3 4 runs on Microsoft.Testing.Platform, which .NET 10 only runs through a new dotnet test setup (and a new coverage collector).
+      - dependency-name: xunit.v3
+        update-types: ["version-update:semver-major"]
     groups:
       nuget-minor-and-patch:
         update-types: [minor, patch]
