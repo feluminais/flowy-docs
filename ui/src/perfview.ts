@@ -396,7 +396,7 @@ export const overText = (mode: Mode, util: number | undefined): string | undefin
 
 /**
  * A run to start from: two levels with made-up numbers for the first shapes of the view and the connections between them, as a file to save in
- * perf/ and fill in. Flowy only reads runs, so this is the nearest it comes to making one.
+ * perf/ and fill in. Flowy reads runs and writes only their `compare` field, so this is the nearest it comes to making one.
  */
 export function starterRun(model: Model, view: string): string {
   const ids = memberIds(model, view).slice(0, 4)

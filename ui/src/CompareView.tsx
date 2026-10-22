@@ -5,6 +5,7 @@ import { diffFlows } from '../../src/core/flowdiff.ts'
 import type { SideMarks } from '../../src/core/flowdiff.ts'
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
+import type { Run } from '../../src/core/perf/types.ts'
 import { marksFor, orderPair, samePick } from './compare.ts'
 import type { Compare, Picked } from './compare.ts'
 import { CompareBar } from './CompareBar.tsx'
@@ -13,19 +14,28 @@ import type { CompareNoteProps } from './CompareNote.tsx'
 import { ComparePane } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
 import { lineId } from './graph.ts'
+import { PerfComparePane, PerfSwapPane } from './PerfComparePane.tsx'
+import type { RunPaneHandle } from './PerfComparePane.tsx'
 import { SwapCanvas } from './SwapCanvas.tsx'
 import { usePref } from './store.ts'
 
 /** Where the switch for the change marks is kept, so it is as last time. Storage may be blocked or empty: the marks then start off. */
 const MARKS_KEY = 'flowy.compare.marks'
 
-/** What the reader can reach in the view: the pane that has the focus (in Swap, the flow on show), which the keys of a flow act on, and the swap itself. */
-export type CompareHandle = { focused(): PaneHandle | null; swap(): void }
+/**
+ * What the reader can reach in the view: the pane that has the focus (in Swap, the flow or run on show), which the keys of a flow (or, for two runs, of the Performance tab) act on,
+ * and the swap itself.
+ */
+export type CompareHandle = { focused(): PaneHandle | null; focusedRun(): RunPaneHandle | null; swap(): void }
 
 type Shown = { kind: string; id?: string; from?: string; to?: string; view?: string }
 
 type Props = {
   model: Model
+  /** The runs, for a comparison of runs. */
+  runs: Record<string, Run>
+  /** The level a comparison of runs draws in both panes: the one the address names. (Flows draw their own.) */
+  view: string
   compare: Compare
   problems: Problem[]
   colorMode: ColorMode
@@ -55,7 +65,7 @@ type Props = {
  * the last thing clicked in either. One pane has the focus (it is outlined): the first to start with, then the one last clicked or tabbed into. The keys of a flow act on it.
  * In Swap there is one canvas instead (SwapCanvas), showing one flow at a time; the keys of a flow act on that one.
  */
-export function CompareView({ model, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onEmpty, start, onMode, onFlip, onClose, note, ref }: Props) {
+export function CompareView({ model, runs, view, compare, problems, colorMode, lines, still, shown, nav, details, onPick, onClosePanel, onEmpty, start, onMode, onFlip, onClose, note, ref }: Props) {
   // A pane is keyed by its flow, so swapping the sides moves the panes (React moves their elements) instead of unmounting them: each keeps its place in its flow and its zoom.
   // A flow compared with itself has two panes, told apart by the second's suffix. The focus and the pane the panel came from follow the pane, not the side it is on.
   const flows = [compare.a, compare.b]
@@ -65,14 +75,21 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
   const [last, setLast] = useState<string>() // the pane the Details panel was opened from
   const focused = Math.max(0, keys.indexOf(focusKey ?? keys[0])) as 0 | 1
   const refs = [useRef<PaneHandle>(null), useRef<PaneHandle>(null)]
+  const runRefs = [useRef<RunPaneHandle>(null), useRef<RunPaneHandle>(null)]
   // In Swap the flows keep a place that does not change when the sides swap (the sorted order), so each keeps its player; `on` is the one on show, as a place in it. It starts at
   // the flow whose pane had the focus.
   const places = flows[0] <= flows[1] ? flows : [flows[1], flows[0]]
   const placeOf = (side: 0 | 1): 0 | 1 => (flows[0] === flows[1] ? side : flows[side] === places[0] ? 0 : 1)
   const [on, setOn] = useState<0 | 1>(() => placeOf(focused))
   const swapRef = useRef<PaneHandle>(null)
+  const swapRunRef = useRef<RunPaneHandle>(null)
   const swap = compare.mode === 'swap'
-  useImperativeHandle(ref, () => ({ focused: () => (swap ? swapRef.current : refs[focused].current), swap: () => setOn(i => (i === 0 ? 1 : 0)) }))
+  const runs2 = compare.kind === 'run'
+  useImperativeHandle(ref, () => ({
+    focused: () => (swap ? swapRef.current : refs[focused].current),
+    focusedRun: () => (swap ? swapRunRef.current : runRefs[focused].current),
+    swap: () => setOn(i => (i === 0 ? 1 : 0)),
+  }))
   const pick = (key: string, picked: Picked) => {
     setFocusKey(key)
     if (last === key && samePick(shown, picked)) return onClosePanel() // its panel is already open: a second click closes it
@@ -83,30 +100,43 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
     if (m === 'swap' && compare.mode !== 'swap') setOn(placeOf(focused)) // Swap opens on the flow whose pane has the focus
     onMode(m)
   }
-  const names = flows.map(id => model.flows[id].name || id) as [string, string]
+  const items: Record<string, { name?: string; compare?: unknown }> = runs2 ? runs : model.flows
+  const names = flows.map(id => items[id]?.name || id) as [string, string]
   // The change marks: the flow that holds the tag (the newer; else the one on the right) is compared with the other, and each pane draws its own side's marks. Runs have none.
   const [marksPref, setMarksPref] = usePref(MARKS_KEY, 'off')
-  const marksOff = compare.kind === 'flow' ? undefined : 'Not for runs'
+  const marksOff = runs2 ? 'Not for runs' : undefined
   const marksOn = marksPref === 'on' && marksOff === undefined
-  const [older, newer] = orderPair('flow', model.flows, compare.a, compare.b)
+  const [older, newer] = orderPair(compare.kind, items, compare.a, compare.b)
   const diff = useMemo(() => (marksOn ? diffFlows(model.flows[older], model.flows[newer]) : undefined), [marksOn, model.flows[older], model.flows[newer]])
   const sideOf = (id: string): 'older' | 'newer' => (id === newer ? 'newer' : 'older')
   const marksOf = (id: string): SideMarks | undefined => diff && marksFor(diff, sideOf(id))
   const onScreen = swap ? [sideOf(places[on])] : [sideOf(flows[0]), sideOf(flows[1])] // the key lists only what is drawn: in Swap, the flow on show
   return (
     <div className={['compare', nav && 'nav', details && 'details'].filter(Boolean).join(' ')}>
-      <CompareBar mode={compare.mode} onMode={mode} onFlip={onFlip} onClose={onClose} swap={{ names, on: placeOf(0) === on ? 0 : 1, onShow: side => setOn(placeOf(side)) }}
+      <CompareBar kind={compare.kind} mode={compare.mode} onMode={mode} onFlip={onFlip} onClose={onClose} swap={{ names, on: placeOf(0) === on ? 0 : 1, onShow: side => setOn(placeOf(side)) }}
         changes={{ on: marksOn, onToggle: () => setMarksPref(marksOn ? 'off' : 'on'), off: marksOff, diff, sides: onScreen }} />
       {swap ? (
         <div className="panes one">
+          {runs2 ? (
+            <PerfSwapPane key={places.join('|')} ref={swapRunRef} model={model} runs={runs} view={view} ids={[places[0], places[1]]} titles={[names[flows.indexOf(places[0])], names[flows.indexOf(places[1])]]} index={on}
+              paneId={`${places[0]}-${places[1]}`.replace(/[^A-Za-z0-9_-]/g, '_')} focused={false} onFocus={() => undefined} shown={shown} onPick={picked => (samePick(shown, picked) ? onClosePanel() : onPick(picked))} onEmpty={onEmpty}
+              problems={problems} fitKey="" colorMode={colorMode} lines={lines} still={still} />
+          ) : (
           <SwapCanvas key={places.join('|')} ref={swapRef} model={model} paneId={`${places[0]}-${places[1]}`.replace(/[^A-Za-z0-9_-]/g, '_')} flows={[places[0], places[1]]} index={on} start={start} shown={shown}
             marks={diff && [marksOf(places[0])!, marksOf(places[1])!]} onPick={picked => (samePick(shown, picked) ? onClosePanel() : onPick(picked))} onClosePanel={onClosePanel} onEmpty={onEmpty} fitKey="" colorMode={colorMode} problems={problems} lines={lines} still={still} />
+          )}
         </div>
       ) : (
         <div className="panes">
           {([0, 1] as const).map(slot => {
             const id = flows[slot]
             const own = last === keys[slot] ? shown : undefined
+            if (runs2)
+              return (
+                <PerfComparePane key={keys[slot]} ref={runRefs[slot]} model={model} runs={runs} view={view} runId={id} title={names[slot]} label={again(slot) ? `${names[slot]} (2)` : undefined}
+                  paneId={`${id.replace(/[^A-Za-z0-9_-]/g, '_')}-${again(slot)}`} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])} onPick={p => pick(keys[slot], p)} onEmpty={onEmpty}
+                  shown={shown} problems={problems} fitKey={compare.mode} colorMode={colorMode} lines={lines} still={still} />
+              )
             return (
               <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={`${id.replace(/[^A-Za-z0-9_-]/g, '_')}-${again(slot)}`} flowId={id} title={model.flows[id].name || id}
                 label={again(slot) ? `${model.flows[id].name || id} (2)` : undefined} startAt={start?.flow === id && !again(slot) ? start.step : undefined} onEmpty={onEmpty} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
@@ -116,7 +146,7 @@ export function CompareView({ model, compare, problems, colorMode, lines, still,
           })}
         </div>
       )}
-      <CompareNote kind={compare.kind} a={compare.a} b={compare.b} items={model.flows} onFlip={onFlip} {...note} />
+      <CompareNote kind={compare.kind} a={compare.a} b={compare.b} items={items} onFlip={onFlip} {...note} />
     </div>
   )
 }

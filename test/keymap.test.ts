@@ -9,7 +9,7 @@ const press = (key: string, more: Partial<KeyEvent> = {}): KeyEvent => ({
 })
 
 const nothing: KeyState = {
-  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, swap: false, halfStep: false, panel: false, inside: false, recording: false,
+  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, swap: false, runCompare: false, halfStep: false, panel: false, inside: false, recording: false,
   perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, showFlows: false, showYaml: false, canPerf: false,
 }
 
@@ -198,6 +198,27 @@ test('with two flows side by side, the keys of a flow reach the actions that act
   assert.deepEqual(reach(press('f'), side).calls, ['fit'], 'F fits the pane too')
   assert.equal(idOf(press('ArrowRight')), undefined, 'no flow and no comparison: nothing to step')
   assert.equal(idOf(press('ArrowRight'), { ...side, perfOpen: true }), 'perf-step', 'a load-test run still comes first')
+})
+
+test('with two runs compared, the keys of the Performance tab reach the actions that act on the pane last clicked, and a flow has none', () => {
+  const runs = { compare: true, runCompare: true }
+  assert.equal(idOf(press('ArrowRight'), runs), 'perf-step')
+  assert.equal(idOf(press('Home'), runs), 'perf-ends')
+  assert.equal(idOf(press('p'), runs), 'perf-ramp')
+  assert.deepEqual(reach(press('ArrowLeft'), runs).calls, ['stepRun(-1)'])
+  assert.deepEqual(reach(press('End'), runs).calls, ['runEnd(last)'])
+  assert.deepEqual(reach(press('p'), runs).calls, ['ramp'])
+  assert.deepEqual(reach(press('f'), runs).calls, ['fit'], 'F fits the pane')
+  assert.equal(idOf(press('r'), runs), undefined, 'two runs have no step to replay')
+  assert.equal(idOf(press('c'), runs), 'compare', 'C closes the comparison')
+  assert.equal(idOf(press('x'), { ...runs, swap: true }), 'swap', 'X swaps in Swap')
+  assert.equal(idOf(press('ArrowRight'), { ...runs, swap: true }), 'perf-step', 'the keys of a run still work in Swap')
+})
+
+test('C on the Performance tab compares the run it shows', () => {
+  assert.equal(idOf(press('c'), { perfOpen: true }), 'compare')
+  assert.deepEqual(reach(press('c'), { perfOpen: true }).calls, ['compare'])
+  assert.equal(idOf(press('c')), undefined, 'nothing to compare when no run or flow is on show')
 })
 
 test('X swaps the flow on show, only in a comparison set to Swap', () => {
