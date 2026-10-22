@@ -168,7 +168,7 @@
             "quantity",
             {
               "name": "unit_price",
-              "note": "Copied from the menu at order time. Menus change; receipts must not."
+              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ],
           "rows": [
@@ -291,7 +291,7 @@
             },
             {
               "name": "unit_price",
-              "note": "Copied from the menu at order time. Menus change; receipts must not."
+              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ],
           "rows": [
@@ -312,7 +312,7 @@
           "notes": [
             {
               "name": "unit_price",
-              "text": "Copied from the menu at order time. Menus change; receipts must not."
+              "text": "Copied from the menu when the order is placed. Later menu changes leave it alone."
             }
           ]
         },
@@ -384,7 +384,7 @@
         {
           "name": "Keys",
           "limits": "Oldest unused go first at 256 MB",
-          "note": "A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.",
+          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
           "columns": [
             "Key",
             "Value",
@@ -408,7 +408,7 @@
         {
           "name": "Keys",
           "limits": "Oldest unused go first at 256 MB",
-          "note": "A restaurant's edit takes up to five minutes to show up. Shorter put too much load on Postgres.",
+          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
           "summary": "3 columns",
           "columns": [
             {
@@ -1135,7 +1135,7 @@
           "from": "courier-app",
           "to": "tracking",
           "text": "Streams its position every 5 seconds",
-          "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map instead of jumping when it comes back.\n",
+          "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map until a fresh position comes in.\n",
           "placed": [
             "courier-app",
             "tracking"
@@ -1255,7 +1255,7 @@
           "from": "customer-app",
           "to": "order-api",
           "text": "POST /orders with the basket",
-          "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places one order, not two.\n",
+          "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places a single order.\n",
           "placed": [
             "customer-app",
             "order-api"
@@ -1604,7 +1604,7 @@
           "status": "open",
           "flow": "refund-not-recorded",
           "step": "2",
-          "description": "The refund and the write are two steps, so one can happen without the other.\nThe nightly comparison finds the gap. It does not close it.\n",
+          "description": "The refund and the write are two steps, so one can happen without the other.\nThe nightly comparison only finds the gap.\n",
           "affects": [
             "support-console"
           ]
@@ -1778,7 +1778,7 @@
           "severity": "2",
           "occurrence": "7",
           "detection": "2",
-          "controls": "A position older than a minute is dropped, so the map holds still and does not jump when the signal returns.",
+          "controls": "A position older than a minute is dropped, so the map holds still until a fresh one comes in.",
           "owner": "Delivery",
           "status": "accepted",
           "flow": "deliver-order",
