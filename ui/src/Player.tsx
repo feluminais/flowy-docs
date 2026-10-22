@@ -5,8 +5,8 @@ import type { Change } from '../../src/core/flowdiff.ts'
 import type { Flow, Model } from '../../src/core/model.ts'
 import type { GroupKind, Stop } from '../../src/core/structure.ts'
 import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
-import { changeAt, Description } from './Box.tsx'
-import { CHANGE_NAMES } from './compare.ts'
+import { Description } from './Box.tsx'
+import { CHANGE_NAMES, changeOfStop } from './compare.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
 import type { ReactNode } from 'react'
@@ -56,12 +56,6 @@ type Props = {
 
 const IN_A_PANE = 'Not while comparing'
 
-/** The mark of a stop's cell: that of its steps when they agree, else Changed (a stop of parallel steps can hold a new one and an old one). */
-function changeOfStop(stop: Stop | undefined, changes: Record<number, Change>): Change | undefined {
-  const kinds = new Set((stop?.steps ?? []).flatMap(i => changeAt(changes, i) ?? []))
-  return kinds.size === 0 ? undefined : kinds.size === 1 ? [...kinds][0] : 'changed'
-}
-
 /** How far a flow has got: a cell a stop, a branch's lanes on rows of their own, and a bracket under each group. */
 function Bar({ progress, now, stops, changes }: { progress: Progress; now: number; stops: Stop[]; changes?: Record<number, Change> }) {
   const columns = `repeat(${progress.cols}, 1fr)`
@@ -69,7 +63,7 @@ function Bar({ progress, now, stops, changes }: { progress: Progress; now: numbe
     <div>
       <div className="progress" style={{ gridTemplateColumns: columns, gridTemplateRows: `repeat(${progress.rows}, 4px)` }}>
         {progress.cells.map(c => {
-          const change = changes && changeOfStop(stops[c.stop], changes)
+          const change = changes && changeOfStop(stops[c.stop]?.steps ?? [], changes)
           const title = [c.title, change && CHANGE_NAMES[change]].filter(Boolean).join(', ')
           return <span key={c.stop} title={title || undefined} data-change={change} className={c.stop <= now ? 'done' : undefined} style={{ gridColumn: c.col + 1, gridRow: c.row + 1 }} />
         })}

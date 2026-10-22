@@ -1116,7 +1116,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .change-badge { position: absolute; right: -7px; bottom: -9px; z-index: 2; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: var(--chg); color: var(--bg); font-size: 12px; font-weight: 700; line-height: 18px; text-align: center; pointer-events: none; }
 .change-line { stroke: var(--chg); stroke-width: 8; stroke-opacity: 0.3; stroke-dasharray: var(--chg-dash); pointer-events: none; }
 /* A shape or line off the step on show is dimmed to a ghost; a mark on one stays readable, so every change shows at every step. */
-.react-flow__node.dim:has(.box[data-change]), .react-flow__edge.dim:has(.change-line) { opacity: 0.6; }
+.react-flow__node.dim:has(.box[data-change]:not(.stated)), .react-flow__edge.dim:has(.change-line) { opacity: 0.6; } /* a shape in a state keeps its own dimming */
 .progress [data-change] { background: color-mix(in srgb, var(--chg) 45%, var(--line)); outline: 1px solid var(--chg); }
 .progress .done[data-change] { background: var(--chg); }
 .progress [data-change='removed'] { outline-style: dashed; }
