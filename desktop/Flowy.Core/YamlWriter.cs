@@ -24,6 +24,10 @@ public static partial class YamlWriter
     [GeneratedRegex(@"\n[\t ]+\z")]
     private static partial Regex EndsInBlankLine();
 
+    // A line of only spaces or tabs among the leading lines. As a block it loses its spaces or cannot be read, so it is quoted; the same rule as quoteBlankFirstLines in yamltext.ts.
+    [GeneratedRegex(@"\A\n*[ \t]+\n")]
+    private static partial Regex BlankLeadingLine();
+
     [GeneratedRegex(@"[ \t]\n|\n[ \t]")]
     private static partial Regex SpaceAroundBreak();
 
@@ -135,7 +139,7 @@ public static partial class YamlWriter
 
     private static string Scalar(string s, string indent, bool implicitKey, bool inFlow)
     {
-        if (ForcesDoubleQuotes(s)) return DoubleQuoted(s, indent, implicitKey);
+        if (ForcesDoubleQuotes(s) || BlankLeadingLine().IsMatch(s)) return DoubleQuoted(s, indent, implicitKey);
         if ((implicitKey && s.Contains('\n')) || (inFlow && s.IndexOfAny(['[', ']', '{', '}', ',']) >= 0)) return Quoted(s, indent, implicitKey);
         if (NotPlain().IsMatch(s))
             return implicitKey || inFlow || !s.Contains('\n') ? Quoted(s, indent, implicitKey) : Block(s, indent, implicitKey);
