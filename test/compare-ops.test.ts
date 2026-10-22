@@ -1,8 +1,9 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { OpError, setCompare } from '../src/core/ops.ts'
+import { deleteFlow, deleteWith, OpError, refuseNewProblems, setCompare } from '../src/core/ops.ts'
 import { compareOf } from '../src/core/compare.ts'
 import { ParseError } from '../src/core/model.ts'
+import type { Model } from '../src/core/model.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
 import { setRunCompare } from '../src/core/perf/comparetag.ts'
 import { shop } from './fixtures.ts'
@@ -118,4 +119,43 @@ test('setRunCompare keeps the comments and blank lines around a tag it replaces 
 
 test('setRunCompare refuses text that is not a mapping', () => {
   for (const bad of ['', '- a\n- b\n', 'just text\n', '[a, b]\n', '{ name: R }\n', 'name: [unclosed\n']) assert.throws(() => setRunCompare(bad, { with: 'o' }), ParseError, JSON.stringify(bad))
+})
+
+/** The shop with two more flows: `newer` (carrying `tag`) and `other`, both copies of the checkout flow. */
+function withTags(tag: unknown): Model {
+  const m = shop()
+  const [first] = flowIds()
+  return { ...m, flows: { ...m.flows, newer: { ...m.flows[first], name: 'Newer', compare: tag }, other: { ...m.flows[first], name: 'Other' } } } as Model
+}
+
+test('deleteFlow takes a tag without a note off the flow that held it, so the saved model has no tag to a missing flow', () => {
+  const [first] = flowIds()
+  const m = withTags(first)
+  const next = deleteFlow(m, first)
+  assert.deepEqual(Object.keys(next.flows), ['newer', 'other'])
+  assert.equal('compare' in next.flows.newer, false)
+  assert.doesNotThrow(() => refuseNewProblems(m, next))
+})
+
+test('deleteFlow refuses while a flow tags it with a note, naming that flow and what to do first', () => {
+  const [first] = flowIds()
+  const m = withTags({ with: first, note: 'Retries added' })
+  const before = structuredClone(m)
+  assert.throws(() => deleteFlow(m, first), (e: unknown) => e instanceof OpError && e.message === `flow "newer" compares with "${first}", and its link has a note: remove that link first (Compare with)`)
+  assert.deepEqual(m, before)
+  assert.deepEqual(Object.keys(deleteFlow(setCompare(m, 'newer', undefined), first).flows), ['newer', 'other'])
+})
+
+test('deleteFlow leaves a tag to another flow alone, and the flow that holds a tag can go whatever the tag says', () => {
+  const [first] = flowIds()
+  const m = withTags({ with: first, note: 'kept' })
+  assert.deepEqual(compareOf(deleteFlow(m, 'other').flows.newer.compare), { with: first, note: 'kept' })
+  assert.deepEqual(Object.keys(deleteFlow(m, 'newer').flows), [first, 'other'])
+})
+
+test('deleteWith deletes flows together, so a tag with a note between two flows that both go does not stop it', () => {
+  const m = withTags({ with: 'other', note: 'x' })
+  const both = { ...m, flows: { ...m.flows, newer: { ...m.flows.newer, steps: [{ from: 'customer', to: 'mail', text: 'Mails' }] }, other: { ...m.flows.other, steps: [{ from: 'customer', to: 'mail', text: 'Mails' }] } } }
+  const next = deleteWith(both, [{ object: 'mail' }], [{ key: 'step:newer:1', action: 'deleteFlow' }, { key: 'step:other:1', action: 'deleteFlow' }])
+  assert.deepEqual(Object.keys(next.flows), [flowIds()[0]])
 })

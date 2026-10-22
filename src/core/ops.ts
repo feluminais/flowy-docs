@@ -1,5 +1,5 @@
 import { check, newProblems } from './check.ts'
-import { withCompare } from './compare.ts'
+import { compareOf, withCompare } from './compare.ts'
 import type { CompareTag } from './compare.ts'
 import { tidyData } from './data.ts'
 import type { DataInput } from './data.ts'
@@ -213,12 +213,14 @@ export function deleteWith(model: Model, targets: Target[], resolutions: Resolut
 
   let m = model
   for (const fid of doomed) {
-    m = deleteFlow(editModes(m, mode => {
+    m = editModes(m, mode => {
       if (mode.flow !== fid) return undefined
       const { flow: _f, step: _s, ...rest } = mode
       return rest
-    }), fid)
+    })
   }
+  // All together, so a flow that is deleted too does not count as one that keeps a tag to a deleted flow.
+  m = deleteFlows(m, [...doomed])
   for (const [row, r] of of('view', 'changeView')) {
     const flow = m.flows[row.flow as string]
     m = setFlow(m, row.flow as string, { ...flow, view: viewed(row, r) })
@@ -572,9 +574,26 @@ export function removeGroup(model: Model, flowId: string, id: string): Model {
 }
 
 export function deleteFlow(model: Model, id: string): Model {
-  existingFlow(model, id)
+  return deleteFlows(model, [id])
+}
+
+/**
+ * Delete flows together. A flow that is not deleted and tags one of them loses its tag, so the delete leaves no tag to a flow that is gone
+ * (the saved model would be refused for it). A tag with a note holds the reader's words, so it is never dropped quietly: the delete is refused
+ * and names the flow, which has to remove that link first (Compare with).
+ */
+function deleteFlows(model: Model, ids: string[]): Model {
+  for (const id of ids) existingFlow(model, id)
+  const gone = new Set(ids)
   const flows = { ...model.flows }
-  delete flows[id]
+  for (const [other, flow] of Object.entries(model.flows)) {
+    if (gone.has(other)) continue
+    const tag = compareOf(flow.compare)
+    if (tag === undefined || !gone.has(tag.with)) continue
+    if (tag.note !== undefined) throw new OpError(`flow "${other}" compares with "${tag.with}", and its link has a note: remove that link first (Compare with)`)
+    own(flows, other, withCompare(flow, undefined))
+  }
+  for (const id of ids) delete flows[id]
   return { ...model, flows }
 }
 
