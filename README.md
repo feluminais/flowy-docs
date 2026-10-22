@@ -72,6 +72,15 @@ red as a shape fills up, and the panel says where the system first struggles. [M
 Rate how each part can fail on severity, likelihood and how hard it is to spot. The canvas badges the worst parts, outlines
 what a mode touches and plays the flow that tells it. [More](docs/guide/failures.md)
 
+## Compare
+
+<p align="center">
+  <img alt="Plum's refund flows side by side in the desktop app, with New, Removed and Changed outlines and a note under the panes" src="docs/images/desktop-compare.png" width="760">
+</p>
+
+Open a bug and its fix, an old flow and its replacement, or a slow run and a faster one in two panes, or swap one canvas between them. Show
+changes outlines what is New, Removed or Changed, and a note says why. Tag the newer one with `compare:` to make a pair. [More](docs/guide/compare.md)
+
 ## Data
 
 <p align="center">
