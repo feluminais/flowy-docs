@@ -114,7 +114,7 @@ public static class PerfView
     {
         var exact = Math.Abs(n).ToString("F" + (places + 25), CultureInfo.InvariantCulture);
         var dot = exact.IndexOf('.');
-        var kept = System.Numerics.BigInteger.Parse(exact[..dot] + exact.Substring(dot + 1, places));
+        var kept = System.Numerics.BigInteger.Parse(exact[..dot] + exact.Substring(dot + 1, places), CultureInfo.InvariantCulture);
         if (exact[dot + 1 + places] >= '5') kept += 1;
         var digits = kept.ToString(CultureInfo.InvariantCulture).PadLeft(places + 1, '0');
         var text = places == 0 ? digits : $"{digits[..^places]}.{digits[^places..]}";

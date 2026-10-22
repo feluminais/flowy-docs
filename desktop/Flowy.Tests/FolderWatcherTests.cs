@@ -15,7 +15,7 @@ public class FolderWatcherTests
         using var seen = new ManualResetEventSlim();
         watcher.Changed += seen.Set;
         temp.Write("model.yaml", "objects:\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(seen.Wait(Patience, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class FolderWatcherTests
         using var seen = new ManualResetEventSlim();
         watcher.Changed += seen.Set;
         temp.Write("flows/a.yaml", "name: A\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(seen.Wait(Patience, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class FolderWatcherTests
         using var seen = new ManualResetEventSlim();
         watcher.Changed += seen.Set;
         temp.Write("perf/ramp.yaml", "name: Ramp\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(seen.Wait(Patience, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class FolderWatcherTests
         using var seen = new ManualResetEventSlim();
         watcher.Changed += seen.Set;
         temp.Write("failures/ordering.yaml", "name: Ordering\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(seen.Wait(Patience, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class FolderWatcherTests
             seen.Set();
         };
         for (var i = 0; i < 5; i++) temp.Write($"flows/f{i}.yaml", "name: F\n");
-        Assert.True(seen.Wait(Patience));
+        Assert.True(seen.Wait(Patience, TestContext.Current.CancellationToken));
         Thread.Sleep(600);
         Assert.Equal(1, count);
     }
