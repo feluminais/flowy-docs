@@ -182,12 +182,14 @@ public class MultiSelectTests
         Assert.Equal(canvas.Scene!.Members.OrderBy(x => x), reader.PickedNow.OrderBy(x => x));
         Assert.Equal(5, reader.PickedNow.Count);
 
-        // The customer and the shop are used by flows, so deleting all of them is refused as a whole.
+        // The customer and the shop are used by flows, so the Used by panel opens for all of them, and Cancel changes nothing and picks them again.
         var before = Model(dir);
         Press(window, Key.Delete, PhysicalKey.Delete);
-        await Until(() => reader.NoticeText is not null);
-        Assert.Contains("is used by flow", reader.NoticeText);
+        await Until(() => reader.UsedByNow is not null);
+        Assert.Contains(reader.UsedByNow!.RowKeys, k => k.StartsWith("step:browse:"));
         Assert.Equal(before, Model(dir));
+        reader.UsedByNow.PressCancel();
+        Assert.Null(reader.UsedByNow);
         Assert.Equal(5, reader.PickedNow.Count);
 
         Click(window, Where(window, canvas, "customer", 60, 25), RawInputModifiers.Control);

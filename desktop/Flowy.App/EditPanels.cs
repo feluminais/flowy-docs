@@ -132,7 +132,7 @@ internal sealed class ObjectEditor : StackPanel
 
     public string Id { get; }
 
-    public ObjectEditor(SidePanel owner, string id, EditRun run, Action<string> pick, Action<string?> hover, Action deleted)
+    public ObjectEditor(SidePanel owner, string id, EditRun run, Action<string> pick, Action<string?> hover, Action<IReadOnlyList<Target>, Action?> askDelete)
     {
         (_owner, Id, _run, _pick, _hover) = (owner, id, run, pick, hover);
         Spacing = 12;
@@ -179,10 +179,7 @@ internal sealed class ObjectEditor : StackPanel
         delete.Classes.Add("tool");
         delete.Classes.Add("danger");
         Chrome.Fill(delete, Icons.Trash, "Delete");
-        delete.Click += async (_, _) =>
-        {
-            if (await run(d => EditOps.DeleteObject(d, id))) deleted();
-        };
+        delete.Click += (_, _) => askDelete([new Target(Object: id)], null);
         Children.Add(_header);
         Children.Add(_problems);
         Children.Add(Chrome.Section(Icons.Pencil, "Details"));
@@ -352,13 +349,14 @@ internal sealed class LineEditor : StackPanel
     private readonly string _to;
     private readonly EditRun _run;
     private readonly Action _closed;
+    private readonly Action<IReadOnlyList<Target>, Action?> _askDelete;
     private readonly StackPanel _header = new();
     private readonly StackPanel _rows = new() { Spacing = 12 };
     private readonly List<Row> _live = [];
 
-    public LineEditor(SidePanel owner, string from, string to, EditRun run, Action closed)
+    public LineEditor(SidePanel owner, string from, string to, EditRun run, Action closed, Action<IReadOnlyList<Target>, Action?> askDelete)
     {
-        (_owner, _from, _to, _run, _closed) = (owner, from, to, run, closed);
+        (_owner, _from, _to, _run, _closed, _askDelete) = (owner, from, to, run, closed, askDelete);
         Spacing = 12;
         Children.Add(_header);
         Children.Add(Chrome.Section(Icons.Route, "Connections"));
@@ -402,10 +400,7 @@ internal sealed class LineEditor : StackPanel
         delete.Classes.Add("tool");
         delete.Classes.Add("danger");
         Chrome.Fill(delete, Icons.Trash, "Delete");
-        delete.Click += async (_, _) =>
-        {
-            if (await _run(d => EditOps.RemoveConnection(d, row.Which)) && _live.Count <= 1) _closed();
-        };
+        delete.Click += (_, _) => _askDelete([new Target(Line: new LineTarget(row.Which.From, row.Which.To, row.Which.Label ?? ""))], _live.Count <= 1 ? _closed : null);
         _live.Add(row);
         return Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, label, problems, delete } });
     }

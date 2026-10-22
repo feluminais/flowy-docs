@@ -168,9 +168,19 @@ internal sealed class Notice : Border
 {
     public string Text { get; }
 
-    public Notice(string text, Action dismiss)
+    /// <summary>The words on the button beside the text (Undo, after a delete), or null when there is none. For tests.</summary>
+    public string? ActionText { get; }
+
+    /// <summary>For tests: presses the button beside the text.</summary>
+    internal void PressAction() => _action?.Invoke();
+
+    private readonly Action? _action;
+
+    public Notice(string text, Action dismiss, string? actionText = null, Action? action = null)
     {
         Text = text;
+        ActionText = actionText;
+        _action = action;
         Classes.Add("notice");
         HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Top;
@@ -180,7 +190,17 @@ internal sealed class Notice : Border
         close.Classes.Add("close");
         close.Click += (_, _) => dismiss();
         Avalonia.Automation.AutomationProperties.SetName(close, "Dismiss");
-        Child = new DockPanel { Children = { new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap }, close } };
+        var row = new DockPanel { Children = { new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap }, close } };
         DockPanel.SetDock(close, Dock.Right);
+        if (actionText is not null && action is not null)
+        {
+            var act = new Button { Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { Icons.Make(Icons.Undo, "btnicon", 16), new TextBlock { Text = actionText, FontWeight = FontWeight.SemiBold } } }, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(8, 0, 0, 0) };
+            act.Classes.Add("tool");
+            act.Click += (_, _) => action();
+            Avalonia.Automation.AutomationProperties.SetName(act, actionText);
+            row.Children.Insert(1, act);
+            DockPanel.SetDock(act, Dock.Right);
+        }
+        Child = row;
     }
 }
