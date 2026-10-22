@@ -4,10 +4,10 @@ groups:
   again:
     kind: repeat
     until: the write adds no problem
-    text: Claude reads the refusal, fixes the cause and writes again
+    text: The AI reads the refusal, fixes the cause and writes again
 steps:
-  - { from: claude, to: mcp, text: "put_flow, with a step that points at a shape that isn't there", group: again }
+  - { from: ai, to: mcp, text: "put_flow, with a step that points at a shape that isn't there", group: again }
   - { from: mcp, to: core, text: Applies it to a fresh read of the model, group: again }
   - { from: core, text: Refuses it because the write would add a problem, group: again }
-  - { from: mcp, to: claude, text: Answers with the problem in words and saves nothing, group: again }
+  - { from: mcp, to: ai, text: Answers with the problem in words and saves nothing, group: again }
   - { from: mcp, to: repo, text: Writes the changed files once a write adds no problem }

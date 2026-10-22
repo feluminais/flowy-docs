@@ -292,11 +292,11 @@ A long document can point back at the map. On a hosted export the address follow
 - **Show doubt.** If something is a guess, end the description with "Open question: ..." rather than a plausible sentence. This is a convention, not a feature.
 - **Export again after the model changes.** The static site is a snapshot.
 
-## Work with Claude
+## Work with an AI
 
 The server refuses what is broken: a path that doesn't exist, an unknown shape, a shape in the wrong parent, a step that can't be shown on its view. It doesn't judge wording, and it can't tell that a shape is invented. So the first pass is yours to review.
 
-Claude's usual mistakes are shapes at the wrong level (every class a shape), plausible shapes the code doesn't have (a Redis, a gateway), generic descriptions ("Handles requests"), labels like "uses", and outside services nobody told it about. What helps is structure more than longer prompts.
+An AI's usual mistakes are shapes at the wrong level (every class a shape), plausible shapes the code doesn't have (a Redis, a gateway), generic descriptions ("Handles requests"), labels like "uses", and outside services nobody told it about. What helps is structure more than longer prompts.
 
 - **Start with a survey, not with writing.** Over MCP the `map-repo` prompt does this and the passes below for you.
 
@@ -308,12 +308,12 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 
 - **Say what the model is for,** with the reader line from the start of this page. Level and detail follow from it.
 - **Allow "I can't tell".** Leaving out what it can't point to is the right answer.
-- **Name the outside services, schedulers and inbound callers yourself.** They live in config and in people's heads, which is where Claude misses them.
+- **Name the outside services, schedulers and inbound callers yourself.** They live in config and in people's heads, which is where an AI misses them.
 - **Work in passes and commit between them:** shapes, then connections, then flows, then the text.
 - **Reject descriptions you could have written from the name alone.**
 - **Review the diff** for shapes with no `code:`, duplicate names, deletions and descriptions that restate the name. A fresh session makes a good second reader.
-- **Check hand-written YAML before calling a model done.** Claude's writes through MCP are quoted for it, but a file it writes itself is only as good as its quoting. Run `flowy check`, or call `get_problems` over MCP: it lists every problem and exits 1 if there is one. A comma in an unquoted one-line step leaves a key with no value, which is listed as `step 3: "if the request has one" has no value`, and a file that loads but could not be saved again is listed too. Then run `flowy mermaid --flow <id>` for each flow and read every step text through to its end. The check can't see a text cut short at `, retries: 3 times`, because that is a valid extra key. [The file format](format.md) lists every key.
-- **After a code change, give Claude the change.**
+- **Check hand-written YAML before calling a model done.** An AI's writes through MCP are quoted for it, but a file it writes itself is only as good as its quoting. Run `flowy check`, or call `get_problems` over MCP: it lists every problem and exits 1 if there is one. A comma in an unquoted one-line step leaves a key with no value, which is listed as `step 3: "if the request has one" has no value`, and a file that loads but could not be saved again is listed too. Then run `flowy mermaid --flow <id>` for each flow and read every step text through to its end. The check can't see a text cut short at `, retries: 3 times`, because that is a valid extra key. [The file format](format.md) lists every key.
+- **After a code change, give the AI the change.**
 
   ```text
   Read flowy/model.yaml first. Here is my last change: <diff or branch>. Change only the parts
@@ -322,7 +322,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 
 - **Ask for a closing note:** what it read, what it inferred, what it left out.
 - **After two failed corrections, start over** with a better first message.
-- **Don't paste a generated overview into `CLAUDE.md`.** Keep it for what the code can't say: where the model lives and how to check it.
+- **Don't paste a generated overview into your agent's instructions file (`CLAUDE.md`, `AGENTS.md`).** Keep it for what the code can't say: where the model lives and how to check it.
 
 ## Review checklist
 
@@ -346,7 +346,7 @@ Claude's usual mistakes are shapes at the wrong level (every class a shape), pla
 - The [C4 model notation](https://c4model.com/diagrams/notation) and its [review checklist](https://c4model.com/diagrams/checklist): labelled one-way lines, no bare "uses", and what each level shows.
 - [arc42](https://docs.arc42.org/tips/5-5/): one or two sentences on what a block does, [two or three code references](https://docs.arc42.org/tips/5-14/), and [a few runtime scenarios](https://docs.arc42.org/tips/6-2/).
 - [Structurizr's inspections](https://docs.structurizr.com/workspaces/inspections) and its [dynamic-view cookbook](https://docs.structurizr.com/dsl/cookbook/dynamic-view): what a model should have filled in, and one general line against specific steps.
-- [IcePanel's docs](https://docs.icepanel.io/getting-started) and [Claude skill](https://github.com/IcePanel/icepanel-plugin/blob/main/skills/creating-c4-diagrams/SKILL.md): the short and long description, and rules for an agent that builds a model.
+- [IcePanel's docs](https://docs.icepanel.io/getting-started) and [agent skill](https://github.com/IcePanel/icepanel-plugin/blob/main/skills/creating-c4-diagrams/SKILL.md): the short and long description, and rules for an agent that builds a model.
 - [LikeC4's dynamic views](https://likec4.dev/dsl/views/dynamic/): a short label with longer notes on each step.
 - [Ilograph's diagram mistakes](https://www.ilograph.com/blog/posts/diagram-mistakes/): mixed levels and unlabelled arrows.
 - [Google's style guide for reference comments](https://developers.google.com/style/api-reference-comments): a first sentence that says more than the name.

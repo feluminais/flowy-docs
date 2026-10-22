@@ -10,7 +10,7 @@ body:
         - Desktop app
         - Browser version
         - VS Code extension
-        - MCP server (Claude)
+        - MCP server
         - CLI command
         - Docs
     validations:

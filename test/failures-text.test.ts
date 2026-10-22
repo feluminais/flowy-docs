@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
-// The project's UI text rules (.claude/ui-text.md, rule 11) allow no en or em dash in anything a person reads.
+// The project's UI text rules allow no en or em dash in anything a person reads.
 test('the Failures tab\'s text has no en or em dash', async () => {
   for (const file of ['Failures.tsx', 'FailuresEdit.tsx', 'failuresview.ts']) {
     const text = await readFile(new URL(`../ui/src/${file}`, import.meta.url), 'utf8')

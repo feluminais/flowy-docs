@@ -42,7 +42,7 @@ For a README or a pull request, the Mermaid button copies the view on screen (or
 playing) as a Mermaid diagram, fenced and ready to paste. GitHub and GitLab draw it. A diamond comes out as a
 diamond, a cylinder as a cylinder, and so on, and a colour becomes a `style` line (a folder has no Mermaid shape and stays a
 rectangle, and the queue, document, note and cloud shapes need Mermaid 11.3 or later). The same
-from the command line, or for Claude through MCP (`get_mermaid`):
+from the command line, or for an AI through MCP (`get_mermaid`):
 
 ```bash
 node /path/to/flowy-docs/dist/cli.js mermaid --view ordering

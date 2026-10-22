@@ -119,8 +119,8 @@ test('record: a labelled step is written over an identical outside one', async t
   await history.ensureCurrent('open')
   await put('model.yaml', 'a: 2\n')
   await history.ensureCurrent('watch') // another program noticed the change first
-  assert.ok(await history.record('Claude: put_object a', 'claude'))
-  assert.deepEqual((await history.list()).map(s => s.label), ['Claude: put_object a', 'First seen'])
+  assert.ok(await history.record('AI: put_object a', 'ai'))
+  assert.deepEqual((await history.list()).map(s => s.label), ['AI: put_object a', 'First seen'])
 })
 
 test('record with no label uses the fallback', async t => {
@@ -292,7 +292,7 @@ test('ensureCurrent names the step the whole list would, however long the run of
     ['one labelled step', [make(1, 'you', { 'model.yaml': hash })]],
     ['an outside step after a labelled one', [make(1, 'you', { 'model.yaml': hash }), make(2, 'outside', { 'model.yaml': hash })]],
     ['two outside steps', [make(1, 'you', { 'model.yaml': other }), make(2, 'outside', { 'model.yaml': hash }), make(3, 'outside', { 'model.yaml': hash })]],
-    ['a labelled step after an outside one', [make(1, 'outside', { 'model.yaml': hash }), make(2, 'claude', { 'model.yaml': hash })]],
+    ['a labelled step after an outside one', [make(1, 'outside', { 'model.yaml': hash }), make(2, 'ai', { 'model.yaml': hash })]],
     ['a run longer than the first look', [make(1, 'you', { 'model.yaml': other }), ...[2, 3, 4, 5, 6, 7].map(n => make(n, 'outside', { 'model.yaml': hash }))]],
     ['a long run with a labelled step in the middle', [make(1, 'you', { 'model.yaml': other }), ...[2, 3, 4, 5, 6, 7].map(n => make(n, n === 5 ? 'you' : 'outside', { 'model.yaml': hash }))]],
   ]
@@ -435,4 +435,13 @@ test('clear empties the trail', async t => {
   await history.record('Added a', 'you')
   await history.clear()
   assert.deepEqual(await history.list(), [])
+})
+
+test('a step stored with the old source name "claude" reads as "ai"', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'flowy-history-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await mkdir(join(root, 'steps'), { recursive: true })
+  const old = { time: '2026-10-20T10:00:00.000Z', label: 'Claude: put_object shop', source: 'claude', app: 'mcp', files: {} }
+  await writeFile(join(root, 'steps', stepId(new Date(old.time), 'aaaaaa') + '.json'), JSON.stringify(old))
+  assert.deepEqual((await openStore(root).steps()).map(s => [s.label, s.source]), [['Claude: put_object shop', 'ai']])
 })

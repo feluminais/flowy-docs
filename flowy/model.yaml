@@ -5,17 +5,17 @@ objects:
     description: |
       Someone on the team who wants to understand the repo. They open the canvas, zoom in where they
       need to, and in edit mode draw what isn't there yet.
-  claude:
+  ai:
     type: actor
-    name: Claude
-    description: Claude, or another MCP client, writing the model from what it reads in the code.
+    name: AI
+    description: An AI, or any other MCP client, writing the model from what it reads in the code.
   flowy:
     type: system
     name: Flowy Docs
     description: |
       Architecture docs you zoom into, kept in your repo.
 
-      One npm package with four ways in: the canvas in a browser, an MCP server for Claude, a static
+      One npm package with four ways in: the canvas in a browser, an MCP server for an AI, a static
       export, and Mermaid on the command line. They all read and write the same YAML through the
       same checks, so none of them can leave the folder in a state the others refuse.
 
@@ -90,7 +90,7 @@ objects:
 
       Press E to edit: the forms, dragging (one shape, or several picked together), connecting,
       recording flows, Undo and Redo of the canvas. Every edit goes through the same checks as the
-      browser's and Claude's, and a file changed elsewhere since it was read is never overwritten.
+      browser's and an AI's, and a file changed elsewhere since it was read is never overwritten.
       Opening never creates files in a repo; only an edit does.
   desktop-core:
     type: component
@@ -233,9 +233,9 @@ objects:
       Calls arrive in bursts and run one at a time, in order, so each one sees what the one before
       it wrote. A write that loses a race on the file is retried once.
 
-      Its instructions hand Claude the writing rules: survey the repo and check the list first, what
+      Its instructions hand the AI the writing rules: survey the repo and check the list first, what
       earns a shape, how to name one, and how to word a description, a label and a flow step. Before the first flow
-      Claude asks how much to animate: None, Key steps or Every step.
+      The AI asks how much to animate: None, Key steps or Every step.
   exporter:
     type: app
     in: flowy
@@ -257,7 +257,7 @@ objects:
       reads and edits there as it does in a browser. The page has no server to call, so it asks the
       extension: for the folder's state, and to write a file. The extension answers a write with the same
       code the local server runs, version check and all, and tells the page whenever anything under the
-      folder changes, so a save from the editor, the app, the canvas or Claude shows at once.
+      folder changes, so a save from the editor, the app, the canvas or an AI shows at once.
 
       It is at home in the editor. A path in a shape's `code` (or a link to a path in the repo) opens in
       the editor beside the panel, and a folder shows in the Explorer. `Show This File in the Docs`, on a
@@ -282,7 +282,7 @@ objects:
       What a model is and what may be done to it, with no Node and no browser in it: the canvas
       bundles the same files the server runs.
 
-      That is why an edit drawn on the canvas and the same edit from Claude are refused for the
+      That is why an edit drawn on the canvas and the same edit from an AI are refused for the
       same reasons.
   api:
     type: component
@@ -478,7 +478,7 @@ objects:
     description: |
       What a store holds: tables as columns and sample rows, key sets, topics and sample documents, each with a limits line and short notes. It works out what the Data section shows and what is wrong with the data: a row of the wrong width, a sample nested too deep, a note on a field that is not there.
 
-      The author types it, or Claude writes it from the code. Flowy never connects to a database. Nothing here draws: the canvas and the desktop app each draw the entries, and the desktop app's port (`StoreData.cs`) is kept equal by fixtures.
+      The author types it, or an AI writes it from the code. Flowy never connects to a database. Nothing here draws: the canvas and the desktop app each draw the entries, and the desktop app's port (`StoreData.cs`) is kept equal by fixtures.
   snippets:
     type: component
     in: core
@@ -594,7 +594,7 @@ connections:
   - { from: reader, to: shell, label: "reads it, draws in edit mode" }
   - { from: reader, to: host, label: opens the shared link }
   - { from: reader, to: vscode, label: reads it inside the editor }
-  - { from: claude, to: mcp, label: writes the model }
+  - { from: ai, to: mcp, label: writes the model }
   - { from: cli, to: server, label: serves the canvas }
   - { from: desktop-canvas, to: desktop-core, label: what to draw }
   - { from: desktop-canvas, to: outline, label: asks for the navigator's rows }

@@ -401,7 +401,7 @@ internal sealed partial class ReaderView : Grid
         _emptyTitle.Text = Editing ? "Nothing here yet" : "Nothing to show yet";
         _emptyBody.Text = Editing
             ? "Press Add to put the first shape here."
-            : "Add shapes to model.yaml, or ask Claude to map the repo. They appear here as soon as the file is saved. Press E to draw them yourself.";
+            : "Add shapes to model.yaml, or ask an AI to map the repo. They appear here as soon as the file is saved. Press E to draw them yourself.";
     }
 
     /// <summary>The view on screen, or the flow playing, as Mermaid text in a code fence: what the browser's Mermaid button copies.</summary>

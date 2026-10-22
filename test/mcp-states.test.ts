@@ -70,7 +70,7 @@ test('mcp: delete_object is refused while a flow\'s states name the shape', asyn
   assert.match(refused.text, /"cache" is used by flow warm/)
 })
 
-test('mcp: the instructions and the put_flow fields tell Claude about states', async t => {
+test('mcp: the instructions and the put_flow fields tell the AI about states', async t => {
   const { client } = await setup(t)
   const text = ((client.getInstructions() ?? '') + Object.values(RULES).map(r => r.text).join(' '))
   for (const phrase of ['A shape is Running unless a flow says otherwise', 'set the shape back to running when it recovers', 'running, starting, stopping, stopped, restarting, degraded']) assert.ok(text.includes(phrase), phrase)

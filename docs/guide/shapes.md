@@ -119,6 +119,6 @@ objects:
 ```
 
 To take one from an SVG file, copy the `d` of each `<path>` and join them one after another, as the built-in ones are. A name is
-lowercase letters, digits and dashes, and can't be one of the built-in names. Claude adds and removes them with the `put_icon` and
+lowercase letters, digits and dashes, and can't be one of the built-in names. An AI adds and removes them with the `put_icon` and
 `delete_icon` tools, and `get_model` lists the ones a model has. An icon that is still in use can't be deleted. There are no
 colour or image icons: an icon takes the colour of the shape that shows it.
