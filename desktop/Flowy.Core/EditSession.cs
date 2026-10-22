@@ -123,7 +123,9 @@ public sealed class EditSession(string dir)
             {
                 var disk = ReadDisk();
                 var next = op(disk.Doc);
-                EditOps.RefuseNewProblems(disk.Doc.ToModel(), next.ToModel());
+                var model = disk.Doc.ToModel();
+                // The load-test runs are files in perf/, which an edit can't change, so only they can tell that it leaves one naming a shape or a line that is gone.
+                EditOps.RefuseNewProblems(model, next.ToModel(), runs: FolderLoader.LoadRuns(dir, model).Runs);
                 var before = disk.Doc.ToFiles();
                 var after = next.ToFiles();
                 var changed = before.Keys.Union(after.Keys).Where(r => before.GetValueOrDefault(r) != after.GetValueOrDefault(r)).ToList();
