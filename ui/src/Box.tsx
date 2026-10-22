@@ -1,15 +1,17 @@
-import { Children, isValidElement, useEffect, useRef, useState } from 'react'
+import { Children, createContext, isValidElement, useContext, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import Markdown from 'react-markdown'
 import { BAND_NAMES } from '../../src/core/failures.ts'
 import type { Mark } from '../../src/core/failures.ts'
+import type { Change, SideMarks } from '../../src/core/flowdiff.ts'
 import { fillOpacity, isColor, onFill, SHAPE_DEFS, shapeOf, showsTile } from '../../src/core/look.ts'
 import { isExternal } from '../../src/core/model.ts'
 import { languageOf } from '../../src/core/snippets.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { CodeBlock } from './Code.tsx'
+import { CHANGE_NAMES } from './compare.ts'
 import { lookVars } from './Chrome.tsx'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { PathIcon, ZoomIn } from './icons.tsx'
@@ -40,6 +42,19 @@ export function Description({ text }: { text: string }) {
 export function FailBadge({ mark, className, style }: { mark: Mark; className?: string; style?: CSSProperties }) {
   const label = `${mark.count} failure${mark.count === 1 ? '' : 's'}, ${BAND_NAMES[mark.band]}`
   return <span className={['fail-badge', mark.band, className].filter(Boolean).join(' ')} style={style} role="img" aria-label={label} title={label}>{mark.count}</span>
+}
+
+/** What differs from the other flow of a comparison, on the canvas that draws this side of it. Without it (the usual canvas, or the marks off) nothing is marked. */
+export const ChangeMarksContext = createContext<SideMarks | undefined>(undefined)
+
+/** The kind of change a record marks for `key`, or nothing. The key may be any text an id can be, so only its own entries count. */
+export const changeAt = <K extends string | number>(marks: Record<K, Change> | undefined, key: K): Change | undefined => (marks && Object.hasOwn(marks, key) ? marks[key] : undefined)
+
+const CHANGE_GLYPHS: Record<Change, string> = { new: '+', removed: '−', changed: '~' }
+
+/** The small badge at a shape's corner: a sign for each kind, and its name for a screen reader, so the outline's colour is never the only copy. */
+export function ChangeBadge({ change }: { change: Change }) {
+  return <span className="change-badge" role="img" aria-label={CHANGE_NAMES[change]} title={CHANGE_NAMES[change]}>{CHANGE_GLYPHS[change]}</span>
 }
 
 /** The first paragraph of a description: everything up to the first blank line. */
@@ -78,6 +93,7 @@ export function Box({ id, data: { object, inside, icon, perf, fail, state, snap 
   const text = useRef<HTMLDivElement>(null)
   const { shown, leaving } = useStateMark(state, snap)
   const connecting = useConnection(c => c.inProgress)
+  const change = changeAt(useContext(ChangeMarksContext)?.shapes, id)
   const short = teaser(object.description)
   const external = isExternal(object)
   const { path, pad: [top, right, bottom, left], badge } = SHAPE_DEFS[shapeOf(object)]
@@ -88,10 +104,12 @@ export function Box({ id, data: { object, inside, icon, perf, fail, state, snap 
   return (
     <div
       className={`box box-${object.type} shape-${shape}${external ? ' external' : ''}${isColor(object.color) ? ' colored' : ''}${fillOpacity(object) > 0 ? ' tinted' : ''}${onFill(object) ? ' on' : ''}${perf?.strain !== undefined ? ' strained' : ''}${shown ? ` ${stateClasses(shown)}${leaving ? ' state-leaving' : ''}` : ''}`}
+      data-change={change}
       style={{ ...lookVars(object), ...(perf?.strain !== undefined && { '--strain': perf.strain }), padding: `${top}px ${right}px ${bottom}px ${left}px` }}
       onMouseEnter={() => { setHover(true); setClipped([...text.current?.children ?? []].some(e => e.scrollWidth > e.clientWidth)) }} onMouseLeave={() => setHover(false)}
     >
       <svg className="shape" viewBox="0 0 200 72" aria-hidden="true"><path d={path} /></svg>
+      {change && <svg className="change-outline" viewBox="0 0 200 72" preserveAspectRatio="none" aria-hidden="true"><path d={path} /></svg>}
       {shown && !shown.inside && <svg className="state-outline" viewBox="0 0 200 72" aria-hidden="true"><path d={path} pathLength={100} /></svg>}
       <Handle type="target" position={Position.Top} isConnectable={isConnectable} isConnectableStart={false} className={connecting ? 'drop' : undefined} />
       {showsTile(object) && <span className="tile" role="img" aria-label={kind} title={kind}><PathIcon d={icon} /></span>}
@@ -101,6 +119,7 @@ export function Box({ id, data: { object, inside, icon, perf, fail, state, snap 
       </div>
       {perf && perf.queue > 0 && <span className="queue-badge" title={`${perf.queue} waiting`}>{perf.queue}</span>}
       {fail && <FailBadge mark={fail} />}
+      {change && <ChangeBadge change={change} />}
       {shown && <StateGlyph mark={shown} />}
       {inside > 0 && <span className="inside" style={{ right: badge[0], bottom: badge[1] }}><ZoomIn />{inside} inside</span>}
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />

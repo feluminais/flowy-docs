@@ -1,4 +1,5 @@
 import { compareOf, partnersOf } from '../../src/core/compare.ts'
+import type { Change, FlowDiff, SideMarks } from '../../src/core/flowdiff.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { isView } from '../../src/core/views.ts'
@@ -63,4 +64,24 @@ export const flipped = (c: Compare): Compare => ({ ...c, a: c.b, b: c.a })
 export function pairOf(model: Model, id: string, other: string): Compare {
   const [a, b] = orderPair('flow', model.flows, id, other)
   return { kind: 'flow', a, b, mode: 'side' }
+}
+
+/** What the key and the marks call each kind of change. */
+export const CHANGE_NAMES: Record<Change, string> = { new: 'New', removed: 'Removed', changed: 'Changed' }
+
+/** The kinds in the order the key lists them. */
+const CHANGE_ORDER: Change[] = ['new', 'removed', 'changed']
+
+/** The marks one side of the comparison draws: the older flow's pane takes `older`, the newer flow's pane (the one that holds the tag) takes `newer`. */
+export const marksFor = (diff: FlowDiff, which: 'older' | 'newer'): SideMarks => diff[which]
+
+/**
+ * The kinds of change the key lists: those present on either side, in a fixed order. Flows that share no shape have no marks and no key items, only `related: false`,
+ * for the key to say so; it is never "everything changed".
+ */
+export function keyItems(diff: FlowDiff): { items: Change[]; related: boolean } {
+  if (!diff.related) return { items: [], related: false }
+  const present = new Set<Change>()
+  for (const side of [diff.older, diff.newer]) for (const marks of [side.steps, side.shapes, side.lines]) for (const kind of Object.values(marks)) present.add(kind)
+  return { items: CHANGE_ORDER.filter(kind => present.has(kind)), related: true }
 }

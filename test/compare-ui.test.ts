@@ -3,7 +3,9 @@ import assert from 'node:assert/strict'
 import { emptyModel } from '../src/core/model.ts'
 import type { Flow } from '../src/core/model.ts'
 import type { Run } from '../src/core/perf/types.ts'
-import { choicesFor, compareOff, firstLinked, flipped, fromAddress, orderPair, pairOf, playable, samePick } from '../ui/src/compare.ts'
+import { diffFlows } from '../src/core/flowdiff.ts'
+import type { FlowDiff } from '../src/core/flowdiff.ts'
+import { CHANGE_NAMES, choicesFor, compareOff, firstLinked, flipped, fromAddress, keyItems, marksFor, orderPair, pairOf, playable, samePick } from '../ui/src/compare.ts'
 import type { Compare } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -127,4 +129,35 @@ test('a click on what the panel already shows is the same pick', () => {
   assert.equal(samePick({ kind: 'line', from: 'a', to: 'b' }, { kind: 'line', from: 'a', to: 'b', view: 'root' }), false)
   assert.equal(samePick({ kind: 'add' }, { kind: 'object', id: 'db' }), false)
   assert.equal(samePick(undefined, { kind: 'object', id: 'db' }), false)
+})
+
+const side = (marks: Partial<FlowDiff['older']> = {}): FlowDiff['older'] => ({ steps: {}, shapes: {}, lines: {}, ...marks })
+const diffOf = (older: Partial<FlowDiff['older']>, newer: Partial<FlowDiff['older']>, related = true): FlowDiff => ({ related, older: side(older), newer: side(newer) })
+
+test('the key lists the kinds on screen, New then Removed then Changed', () => {
+  assert.deepEqual(keyItems(diffOf({}, { steps: { 2: 'new' }, shapes: { fee: 'changed' } })), { items: ['new', 'changed'], related: true })
+  assert.deepEqual(keyItems(diffOf({ lines: { 'a b': 'removed' } }, { shapes: { b: 'changed' }, steps: { 0: 'new' } })).items, ['new', 'removed', 'changed'], 'either side counts, whatever the order they were found in')
+  assert.deepEqual(keyItems(diffOf({ steps: { 1: 'removed' } }, {})).items, ['removed'], 'a kind on the older side alone still shows')
+})
+
+test('an empty diff has nothing in its key', () => {
+  assert.deepEqual(keyItems(diffOf({}, {})), { items: [], related: true })
+})
+
+test('flows with nothing in common say so and list no kinds', () => {
+  assert.deepEqual(keyItems(diffOf({}, {}, false)), { items: [], related: false })
+  const a: Flow = { name: 'A', view: 'root', steps: [{ from: 'x', to: 'y', text: 'one' }] }
+  const b: Flow = { name: 'B', view: 'root', steps: [{ from: 'p', to: 'q', text: 'two' }] }
+  assert.deepEqual(keyItems(diffFlows(a, b)), { items: [], related: false }, 'never everything changed')
+})
+
+test('each side takes its own marks', () => {
+  const diff = diffOf({ shapes: { gone: 'removed' } }, { shapes: { fresh: 'new' } })
+  assert.equal(marksFor(diff, 'older'), diff.older)
+  assert.equal(marksFor(diff, 'newer'), diff.newer)
+  assert.deepEqual(marksFor(diff, 'newer').shapes, { fresh: 'new' })
+})
+
+test('the kinds have one name each', () => {
+  assert.deepEqual(CHANGE_NAMES, { new: 'New', removed: 'Removed', changed: 'Changed' })
 })
