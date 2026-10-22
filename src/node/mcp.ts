@@ -10,7 +10,9 @@ import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
 import { getObject, OBJECT_TYPES, ROOT } from '../core/model.ts'
 import { changedFiles } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, disconnect, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems } from '../core/ops.ts'
+import { describeDependent } from '../core/dependents.ts'
+import type { Dependent } from '../core/dependents.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
@@ -73,11 +75,30 @@ function readout(model: Model, flow: FlowInput): string {
   return [`Saved flow ${flow.id}. On ${nameOf(model, flow.view)} it reads:`, ...steps.map(s => s.line), ...(steps.some(s => s.inside) ? [hint] : [])].join('\n')
 }
 
-type Result = { content: { type: 'text'; text: string }[]; isError?: boolean }
+type Result = { content: { type: 'text'; text: string }[]; structuredContent?: Record<string, unknown>; isError?: boolean }
 const ok = (value: unknown): Result => ({
   content: [{ type: 'text', text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }],
 })
-const fail = (e: unknown): Result => ({ ...ok(e instanceof Error ? e.message : String(e)), isError: true })
+
+/**
+ * A refusal because other parts depend on what was to be deleted says so in words, then lists each row that needs a decision with the actions it takes, and
+ * how to settle them: the same call again with `resolve`. The rows are also the result's structured content (`dependents`, as dependents() returns them).
+ */
+function refusedForDependents(message: string, rows: Dependent[]): Result {
+  const list = rows.map(r => `- ${r.key} (${describeDependent(r)}): ${r.actions.join(', ')}`).join('\n')
+  const how = 'To delete it anyway, call this tool again with "resolve": one { key, action, to } for each row above, taking one of the actions listed for it, the first being the usual one. "to" is the shape to send the step or mode to (reroute, repoint), a view for changeView, changeScope or moveOut ("root" is the top level), and is left out for the other actions. A row of a flow you delete needs nothing more. Lines, state entries and affects entries that name it go along without a choice. Nothing is saved until every row is settled.'
+  return { ...ok(`${message}\n\n${list}\n\n${how}`), structuredContent: { dependents: rows }, isError: true }
+}
+const fail = (e: unknown): Result =>
+  e instanceof OpError && e.dependents !== undefined && e.dependents.length > 0 ? refusedForDependents(e.message, e.dependents) : { ...ok(e instanceof Error ? e.message : String(e)), isError: true }
+
+/** How one row of a refusal is settled when the delete is asked again: the row's key, one of its actions, and where to when the action points somewhere. */
+const resolution = z.object({
+  key: z.string().max(200).describe('The key of a row of the refusal, e.g. "step:checkout:3"'),
+  action: z.enum(['removeStep', 'reroute', 'deleteFlow', 'changeView', 'removeMode', 'repoint', 'changeScope', 'moveOut', 'deleteWith']).describe('One of the actions the row lists'),
+  to: z.string().max(64).optional().describe('Where to, for reroute, repoint, changeView, changeScope and moveOut; "root" is the top level'),
+})
+const resolve = z.array(resolution).max(500).optional().describe('How to settle what depends on it, one entry for each row of an earlier refusal. Left out, the call is refused while anything depends on it.')
 
 /**
  * get_model shows every number and flag as the text the file holds ("7", "true"), so what was read can be sent straight back: digits are taken
@@ -306,10 +327,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }, input => write(m => deleteIcon(m, input.name), `Deleted icon ${input.name}.`, mcpLabel('delete_icon', input)))
 
   server.registerTool('delete_object', {
-    description: 'Delete an object, its connections, and the flow states and failure-mode affects entries that name it. Refused while it has children, a flow step or flow view uses it, or a failure mode names it.',
-    inputSchema: { id: id('Object id') },
+    description: 'Delete an object, its connections, and the flow states and failure-mode affects entries that name it. Refused while it has children, a flow step or flow view uses it, or a failure mode names it: the refusal lists each of those as a row with the actions that settle it (also as structured content), and the same call with `resolve` settles them and deletes in one edit, or saves nothing.',
+    inputSchema: { id: id('Object id'), resolve },
     annotations: destructive,
-  }, input => write(m => deleteObject(m, input.id), `Deleted ${input.id}.`, mcpLabel('delete_object', input)))
+  }, input => write(m => (input.resolve === undefined ? deleteObject(m, input.id) : deleteWith(m, [{ object: input.id }], input.resolve)), `Deleted ${input.id}.`, mcpLabel('delete_object', input)))
 
   server.registerTool('connect', {
     description: 'Add a connection. Direction matters: from → to. Duplicates and connecting an object to itself are refused.',
@@ -317,10 +338,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }, input => write(m => connect(m, input), `Connected ${input.from} → ${input.to}.`, mcpLabel('connect', input)))
 
   server.registerTool('disconnect', {
-    description: 'Remove connections from → to.',
-    inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.') },
+    description: 'Remove connections from → to. Refused while a failure mode is on that line and no other from → to line is left: the refusal lists the mode as a row, and the same call with `resolve` removes the mode and the line in one edit.',
+    inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.'), resolve },
     annotations: destructive,
-  }, input => write(m => disconnect(m, input), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
+  }, input => write(m => (input.resolve === undefined ? disconnect(m, input) : deleteWith(m, [{ line: { from: input.from, to: input.to, ...(input.label === undefined ? {} : { label: input.label }), all: true } }], input.resolve)), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
 
   server.registerTool('put_flow', {
     description: 'Create or replace a flow: a step-by-step walkthrough played on one view. Answers with how each step reads there.',
