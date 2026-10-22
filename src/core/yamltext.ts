@@ -1,4 +1,4 @@
-import { isMap as isYamlMap, isScalar, isSeq, parse, stringify, YAMLParseError } from 'yaml'
+import { Document, isMap as isYamlMap, isScalar, isSeq, parse, visit, YAMLParseError } from 'yaml'
 import type { Scalar, YAMLMap, YAMLSeq } from 'yaml'
 import { ParseError } from './model.ts'
 
@@ -25,7 +25,26 @@ export function readYaml(file: string, text: string): unknown {
 // (`legacy: true` stays unquoted). Model and flow values are always strings: they come from parsed
 // text or from string-only MCP fields; a stray number throws instead of being silently retyped.
 // Without aliasDuplicateObjects: false, an object used twice would be written as a YAML &anchor/*alias.
-export const dump = (value: unknown) => stringify(value, { schema: 'failsafe', lineWidth: 0, aliasDuplicateObjects: false })
+export function dump(value: unknown): string {
+  const doc = new Document(value, { schema: 'failsafe', aliasDuplicateObjects: false })
+  quoteBlankFirstLines(doc)
+  return doc.toString({ lineWidth: 0 })
+}
+
+const BLANK_LEADING_LINE = /^\n*[ \t]+\n/
+
+/**
+ * Text with a line of only spaces or tabs among its leading lines is quoted. Written as a block (`|`), it comes back with that
+ * line's spaces gone, or, with a tab among the lines after it, cannot be read at all ("more-indented leading empty lines must use an
+ * explicit indentation indicator"). Found by trying every short string of spaces, tabs, line breaks and letters.
+ */
+export function quoteBlankFirstLines(doc: Document) {
+  visit(doc, {
+    Scalar(_, node) {
+      if (typeof node.value === 'string' && BLANK_LEADING_LINE.test(node.value)) node.type = 'QUOTE_DOUBLE'
+    },
+  })
+}
 
 /**
  * Text that must be quoted in a flow collection: an empty string (`[a, , b]` does not parse) and anything with a line break, which
