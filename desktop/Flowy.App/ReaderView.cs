@@ -479,7 +479,7 @@ internal sealed partial class ReaderView : Grid
     {
         if (_folder is not { } folder) return;
         var model = folder.Model;
-        CloseCompareIfBroken(model);
+        CloseCompareIfBroken(folder);
         var view = CurrentView();
         var flow = PlayingFlow();
         var index = StopIndex();
@@ -658,7 +658,7 @@ internal sealed partial class ReaderView : Grid
     public void GoTo(string view)
     {
         if (_folder is null) return;
-        if (_compare is not null && UnlessDraft(() => GoTo(view))) return; // going to a level ends the comparison: a note that isn't saved asks first
+        if (_compare is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
         Interacted();
         _motion?.Dispose();
         _moving = false;
@@ -668,7 +668,7 @@ internal sealed partial class ReaderView : Grid
         _playback.Head = null;
         _playback.StopAuto();
         _hover = null;
-        CloseCompare(false); // two flows are compared on their own views, so going to a level ends it
+        if (_compare is { Kind: "flow" }) CloseCompare(false); // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level, and both follow it
         if (_side is not (null or Side.Box)) _side = null; // lines belong to one view
         Refresh();
     }
@@ -740,7 +740,7 @@ internal sealed partial class ReaderView : Grid
 
     public void FitNow()
     {
-        if (Comparing) _compareView?.Target.Fit(); // F fits the pane that has the focus, or the canvas of Swap
+        if (Comparing) _compareView?.FitFocused(); // F fits the pane that has the focus, or the canvas of Swap
         else _canvas.Fit(RightOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
     }
 
@@ -907,7 +907,7 @@ internal sealed partial class ReaderView : Grid
         _search = new SearchBox(_folder.Model, id =>
         {
             CloseSearch(true);
-            if (!Comparing) GoTo(Views.ParentOf(_folder.Model, id)); // the view the box sits in; a comparison of flows stays open, and the Details show the shape
+            if (!ComparingFlows) GoTo(Views.ParentOf(_folder.Model, id)); // the view the box sits in; a comparison of flows stays open, and the Details show the shape
             OpenObject(id);
         }, () => CloseSearch(true), query);
         _overlay.Children.Add(_search);

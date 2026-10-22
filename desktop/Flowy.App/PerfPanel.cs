@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -15,6 +16,12 @@ namespace Flowy.App;
 
 /// <summary>What is picked on the canvas while the Performance panel is open: a shape, or the line between two.</summary>
 internal sealed record PerfSelection(string? Id, string? From = null, string? To = null);
+
+/// <summary>One row of the run picker: the run's name, and whether it is in a pair (a link icon and the word Linked beside the name).</summary>
+internal sealed record RunChoice(string Name, bool Linked)
+{
+    public override string ToString() => Name;
+}
 
 //// <summary>
 /// Latency against load (or time), one point for each tested level: the expected call and the slowest 5%, a cursor where the slider is, and a dashed mark
@@ -296,6 +303,15 @@ internal sealed class PerfPanel : StackPanel
     private StateMark? _stateShown;
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the shapes in a state on the canvas now
     private ComboBox? _picker;
+    private bool _pane; // a panel inside a pane of a comparison: no run picker or title, the pane has them
+    private RunActions? _actions; // what the header offers for comparing, if anything
+    private StackPanel? _actionsHost; // the buttons and, under them, the picker one of them opened
+    private string? _pickerOpen; // "compare" or "link" while that button's picker is open
+    private Button? _compareButton;
+    private Button? _linkButton;
+    private Button? _unlinkButton;
+    private Control? _linkedMark;
+    private ComparePicker? _runPicker;
     private LoadRun? _run;
     private IdMap<LoadRun>? _runs;
     private string _runId = "";
@@ -343,6 +359,15 @@ internal sealed class PerfPanel : StackPanel
 
     /// <summary>The reader used a control that took the keyboard focus, so the reader gives it back and the keys work again.</summary>
     public event Action? Used;
+
+    /// <summary>The reader picked a run in the picker under Compare: it opens beside this one.</summary>
+    public event Action<string>? CompareChosen;
+
+    /// <summary>The reader picked a run in the picker under Link with: this run is to be linked to it.</summary>
+    public event Action<string>? LinkChosen;
+
+    /// <summary>The reader pressed Unlink: the link this run holds is to go.</summary>
+    public event Action? Unlinked;
 
     public PerfPanel()
     {
@@ -402,6 +427,23 @@ internal sealed class PerfPanel : StackPanel
     internal bool ScaledDownShown => _scaledRow is { IsVisible: true };
 
     internal ComboBox? Picker => _picker;
+
+    /// <summary>The run picker's rows: the name, and whether the run shows Linked.</summary>
+    internal IReadOnlyList<RunChoice> RunChoices => _picker?.ItemsSource?.Cast<RunChoice>().ToList() ?? [];
+
+    /// <summary>The header's Compare, Link with and Unlink, and the Linked mark; null where the header has none.</summary>
+    internal Button? CompareButton => _compareButton;
+
+    internal Button? LinkButton => _linkButton;
+
+    internal Button? UnlinkButton => _unlinkButton;
+
+    internal Control? LinkedMark => _linkedMark;
+
+    /// <summary>The picker under Compare or Link with, while one is open.</summary>
+    internal ComparePicker? RunPicker => _runPicker;
+
+    internal string? PickerOpen => _pickerOpen;
 
     /// <summary>The events as the list shows them: the time, the words, whether the run has got there and whether it is the latest it has.</summary>
     internal IReadOnlyList<(string Time, string Text, bool Passed, bool Current)> EventLines =>
@@ -463,8 +505,15 @@ internal sealed class PerfPanel : StackPanel
 
     private void Build(PerfPanelModel next)
     {
-        var (model, view, runs, runProblems, runId, pos, ramping, still, selection, places, active) = next;
+        var (model, view, runs, runProblems, runId, pos, ramping, still, selection, places, active, pane, actions) = next;
         Children.Clear();
+        _pane = pane;
+        _actions = actions;
+        _actionsHost = null;
+        _compareButton = _linkButton = _unlinkButton = null;
+        _linkedMark = null;
+        _runPicker = null;
+        _pickerOpen = null;
         _dialViews.Clear();
         _alongs.Clear();
         _over = null;
@@ -580,9 +629,15 @@ internal sealed class PerfPanel : StackPanel
     /// <summary>The run's name (a picker when there is more than one run) and, when it has one, the About line that opens to its note.</summary>
     private void AddHeader(IdMap<LoadRun> runs, string runId, LoadRun run)
     {
-        if (runs.Count > 1)
+        var linked = CompareChoices.LinkedRuns(RunDrawing.MapOf(runs));
+        if (_pane) { } // the pane has the run's name over its canvas, and the run is the pane's own
+        else if (runs.Count > 1)
         {
-            var picker = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 32, 0), ItemsSource = runs.Select(kv => kv.Value.Name).ToList(), SelectedIndex = runs.Keys.ToList().IndexOf(runId), Focusable = false };
+            var choices = runs.Select(kv => new RunChoice(kv.Value.Name, linked.Contains(kv.Key))).ToList();
+            var picker = new ComboBox
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 32, 0), ItemsSource = choices, ItemTemplate = RunRow, SelectedIndex = runs.Keys.ToList().IndexOf(runId), Focusable = false,
+            };
             AutomationProperties.SetName(picker, "Run");
             picker.SelectionChanged += (_, _) =>
             {
@@ -594,10 +649,12 @@ internal sealed class PerfPanel : StackPanel
             Children.Add(picker);
         }
         else Children.Add(new TextBlock { Text = run.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) });
+        if (_actions is { } actions) Children.Add(BuildRunActions(actions, runId, run, linked.Contains(runId)));
         if (run.About is { } about)
         {
             var note = Muted(about);
-            if (about.Length <= PerfView.AboutFoldsOver)
+            // In a pane of a comparison the load and the slider come first: the About note is always folded there, so it does not push them out of a short pane.
+            if (about.Length <= PerfView.AboutFoldsOver && !_pane)
             {
                 Children.Add(note);
                 return;
@@ -620,6 +677,93 @@ internal sealed class PerfPanel : StackPanel
             };
             Children.Add(new StackPanel { Children = { header, note } });
         }
+    }
+
+    /// <summary>A row of the run picker: the name, and the link icon with the word Linked beside it when the run is in a pair.</summary>
+    private static readonly FuncDataTemplate<RunChoice> RunRow = new((choice, _) =>
+    {
+        var name = new TextBlock { Text = choice?.Name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+        if (choice is not { Linked: true }) return name;
+        var mark = Chrome.Chip("Linked", Icons.Link, "accent");
+        var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { name, mark } };
+        Grid.SetColumn(mark, 1);
+        return row;
+    });
+
+    /// <summary>
+    /// Compare, Link with and Unlink under the run's name, with the Linked mark when the run is in a pair. Each is greyed out with its reason as the tooltip, never hidden. Unlink takes
+    /// away the line this run holds: a run that only others link to has none, and the line to remove is on the other run.
+    /// </summary>
+    private StackPanel BuildRunActions(RunActions actions, string runId, LoadRun run, bool linked)
+    {
+        _ = runId;
+        var unlinkOff = actions.LinkOff ?? (run.Compare is not null ? null : linked ? "The other run holds the link" : "Not linked");
+        var row = new WrapPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        Button Make(string? icon, string text, string tip, string? off, Action click)
+        {
+            var button = new Button { IsEnabled = off is null, Margin = new Thickness(0, 0, 6, 0) };
+            CompareBar.Make(button, icon, text, text, off ?? tip, click);
+            row.Children.Add(button);
+            return button;
+        }
+        _compareButton = Make(Icons.Columns, "Compare", "Compare with another run (C)", actions.CompareOff, () => TogglePicker("compare"));
+        _linkButton = Make(Icons.Link, "Link with", "Link this run with another", actions.LinkOff, () => TogglePicker("link"));
+        _unlinkButton = Make(null, "Unlink", "Take away the link", unlinkOff, () =>
+        {
+            ShowPicker(null);
+            Unlinked?.Invoke();
+            Used?.Invoke();
+        });
+        if (linked)
+        {
+            _linkedMark = Chrome.Chip("Linked", Icons.Link, "accent");
+            _linkedMark.Margin = new Thickness(4, 0, 0, 0);
+            row.Children.Add(_linkedMark);
+        }
+        return _actionsHost = new StackPanel { Spacing = 6, Children = { row } };
+    }
+
+    /// <summary>
+    /// Opens the picker under Compare (<c>compare</c>) or Link with (<c>link</c>) over the other runs, or closes it when it is the one open. False when the button is greyed out (or the
+    /// panel has none): the reason is in its tooltip.
+    /// </summary>
+    public bool TogglePicker(string which)
+    {
+        if (_actionsHost is null || _actions is null || (which == "compare" ? _actions.CompareOff : _actions.LinkOff) is not null) return false;
+        ShowPicker(_pickerOpen == which ? null : which);
+        return true;
+    }
+
+    private void ShowPicker(string? which)
+    {
+        if (_actionsHost is null || _model is null || _runs is null) return;
+        if (_runPicker is not null) _actionsHost.Children.Remove(_runPicker);
+        _runPicker = null;
+        _pickerOpen = which;
+        _compareButton?.Classes.Set("pressed", which == "compare");
+        _linkButton?.Classes.Set("pressed", which == "link");
+        if (which is null) return;
+        _runPicker = new ComparePicker(_model, _runId, other =>
+        {
+            ShowPicker(null);
+            (which == "compare" ? CompareChosen : LinkChosen)?.Invoke(other);
+        }, () =>
+        {
+            ShowPicker(null);
+            Used?.Invoke();
+        }, "run", RunDrawing.MapOf(_runs), which == "compare" ? "Compare with" : "Link with");
+        _actionsHost.Children.Add(_runPicker);
+    }
+
+    /// <summary>Closes the picker under Compare or Link with, if one is open.</summary>
+    public void CloseRunPicker() => ShowPicker(null);
+
+    /// <summary>A press anywhere but on the buttons or the picker closes the picker.</summary>
+    public void PressedOutside(object? source)
+    {
+        if (_runPicker is null || _actionsHost is null || source is not Visual pressed) return;
+        if (ReferenceEquals(pressed, _actionsHost) || pressed.GetVisualAncestors().Contains(_actionsHost)) return;
+        ShowPicker(null);
     }
 
     /// <summary>The Events list: a row for each event, with the time, the state it leaves a shape in drawn as the canvas draws it, and its words. A click on a row goes there.</summary>

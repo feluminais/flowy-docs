@@ -8,6 +8,8 @@ namespace Flowy.App;
 /// Two flows, under the bar of the comparison: side by side, each in a pane of its own, or in Swap, on one canvas that flips between them (see <see cref="SwapStage"/>). Every pane works
 /// alone (zoom, pan and play); they share the one Details panel, which shows the last thing clicked in either. One pane has the focus (it is outlined): the first to start with, then the
 /// one last clicked. The keys of a flow act on it, or in Swap on the flow on show. Changing the way to view carries each flow's step over.
+/// Two runs are compared the same way, each in a <see cref="PerfComparePane"/> with its own Performance panel, or in Swap on one canvas (<see cref="PerfSwapStage"/>); the keys of the
+/// Performance panel act on the focused pane's run, and each run keeps its own place along itself through every change of view.
 /// </summary>
 internal sealed class CompareView : Grid
 {
@@ -22,11 +24,15 @@ internal sealed class CompareView : Grid
     private readonly Grid _panes = new() { Margin = new Thickness(Gap) };
     private readonly Border _swapHost = new() { Margin = new Thickness(Gap), IsVisible = false };
     private readonly Dictionary<string, ComparePane> _byKey = [];
+    private readonly Dictionary<string, PaneRun> _runs = []; // for two runs: each run of the comparison by key, kept across Side by side, Swap and Swap sides (it holds the place along the run)
+    private readonly Dictionary<string, PerfComparePane> _runPanes = [];
+    private PerfSwapStage? _runStage;
     private IReadOnlyList<string> _keys = [];
     private string? _focusKey; // the first pane has the focus until one is clicked
     private bool _stacked;
     private SwapStage? _stage;
     private string? _shownMode;
+    private string? _shownKind;
     private (Flow Older, Flow Newer, FlowDiff Diff)? _diff; // the last diff, for as long as both flows are the ones in the model: it costs a pass over both flows' steps
     private string? _older; // the flow that reads as older, and the one that holds the tag (else the second): the marks of each pane are its side's
     private string? _newer;
@@ -36,6 +42,9 @@ internal sealed class CompareView : Grid
 
     /// <summary>The empty area of a pane was clicked.</summary>
     public event Action? EmptyClicked;
+
+    /// <summary>A control of a run's panel took the keyboard: the reader gives it back, so the keys work.</summary>
+    public event Action? ControlUsed;
 
     public CompareView()
     {
@@ -79,6 +88,34 @@ internal sealed class CompareView : Grid
     /// <summary>What the keys of a flow act on: the pane that has the focus, or in Swap the flow on show.</summary>
     public IFlowKeys Target => Stage is { } stage ? stage : FocusedPane;
 
+    /// <summary>The two panes of a comparison of runs in the order they read: the older run first.</summary>
+    public IReadOnlyList<PerfComparePane> RunPanes => [.. _keys.Where(_runPanes.ContainsKey).Select(k => _runPanes[k])];
+
+    /// <summary>The pane of a comparison of runs that the keys of the Performance panel act on.</summary>
+    public PerfComparePane FocusedRunPane => _runPanes[_keys[Math.Max(0, _keys.ToList().IndexOf(_focusKey ?? _keys[0]))]];
+
+    /// <summary>The canvas of Swap for two runs, while they are viewed that way; else null.</summary>
+    public PerfSwapStage? RunStage => _shownMode == "swap" ? _runStage : null;
+
+    /// <summary>What the keys of the Performance panel act on in a comparison of runs: the pane that has the focus, or in Swap the run on show.</summary>
+    public IRunKeys RunTarget => RunStage is { } stage ? stage : FocusedRunPane;
+
+    /// <summary>Fits the view of whatever the keys act on (F): the focused pane, or the canvas of Swap.</summary>
+    public void FitFocused()
+    {
+        if (_shownKind == "run") RunTarget.Fit();
+        else Target.Fit();
+    }
+
+    /// <summary>The run with this key, for a comparison of runs.</summary>
+    public PaneRun? RunOf(string key) => _runs.GetValueOrDefault(key);
+
+    /// <summary>Stops every run's ramp, where it is: the comparison is closed, or another tab is in front of it, and nothing should keep drawing behind.</summary>
+    public void StopRamps()
+    {
+        foreach (var run in _runs.Values) run.Session.StopRamp();
+    }
+
     public bool Stacked => _stacked;
 
     /// <summary>The key of each pane. A flow compared with itself has two panes, told apart by the second's suffix.</summary>
@@ -88,9 +125,16 @@ internal sealed class CompareView : Grid
     /// Shows the comparison. A pane is kept for as long as its flow is in the comparison, so swapping the sides moves the panes instead of making them again: each keeps its place in
     /// its flow and its zoom. <paramref name="start"/> is the stop the first pane starts at (the flow was playing there when the comparison opened).
     /// </summary>
-    public void Show(CompareState state, Folder folder, string lineStyle, ReaderView.Side? selection, (string Flow, int Step)? start, bool changes = false)
+    public void Show(CompareState state, Folder folder, string lineStyle, ReaderView.Side? selection, (string Flow, int Step)? start, bool changes = false, string view = Names.Root)
     {
         var keys = KeysOf(state);
+        if (state.Kind == "run")
+        {
+            ShowRuns(state, keys, folder, lineStyle, selection, view);
+            return;
+        }
+        _shownKind = "flow";
+        Bar.Kind = "flow";
         FindChanges(state, folder, changes);
         if (state.Mode == "swap") ShowSwap(state, keys, folder, lineStyle, selection, start);
         else ShowSide(state, keys, folder, lineStyle, selection, start);
@@ -196,9 +240,108 @@ internal sealed class CompareView : Grid
         Bar.ShowFlows(names, Math.Max(0, keys.ToList().IndexOf(_stage.OnKey)));
     }
 
-    /// <summary>Gives a pane the focus: it is outlined and the keys of a flow act on it.</summary>
+    // ---- two runs ------------------------------------------------------------------------------------------------
+
+    /// <summary>
+    /// Shows a comparison of two runs, in the level the reader is on. A run is kept for as long as it is in the comparison, so swapping the sides, or the way to view, moves the panes
+    /// instead of making them again: each run keeps its place along itself, its dial and its zoom. The change marks are for flows only.
+    /// </summary>
+    private void ShowRuns(CompareState state, IReadOnlyList<string> keys, Folder folder, string lineStyle, ReaderView.Side? selection, string view)
+    {
+        _shownKind = "run";
+        Bar.Kind = "run";
+        Diff = null;
+        foreach (var stale in _runs.Keys.Where(k => !keys.Contains(k)).ToList())
+        {
+            _runs.Remove(stale);
+            if (_runPanes.Remove(stale, out var gone)) _panes.Children.Remove(gone);
+        }
+        for (var slot = 0; slot < 2; slot++)
+            if (!_runs.ContainsKey(keys[slot])) _runs[keys[slot]] = new PaneRun(this, slot == 0 ? state.A : state.B);
+        if (state.Mode == "swap") ShowRunSwap(keys, folder, lineStyle, selection, view);
+        else ShowRunSide(keys, folder, lineStyle, selection, view);
+        _shownMode = state.Mode;
+        Bar.Mode = state.Mode;
+        Bar.ShowChanges(false, "Not for runs", null); // two runs are compared by eye: there are no marks to show
+    }
+
+    private void ShowRunSide(IReadOnlyList<string> keys, Folder folder, string lineStyle, ReaderView.Side? selection, string view)
+    {
+        var fromSwap = _shownMode == "swap" && _runStage is not null;
+        for (var slot = 0; slot < 2; slot++)
+        {
+            var key = keys[slot];
+            if (_runPanes.ContainsKey(key)) continue;
+            var pane = new PerfComparePane(_runs[key], key.Contains('#') ? 1 : 0);
+            pane.FocusRequested += () => FocusPane(key);
+            pane.Picked += side => Picked?.Invoke(key, side);
+            pane.EmptyClicked += () => EmptyClicked?.Invoke();
+            pane.Used += () => ControlUsed?.Invoke();
+            _runPanes[key] = pane;
+            _panes.Children.Add(pane);
+        }
+        if (fromSwap)
+        {
+            _runStage!.Settle();
+            _focusKey = _runStage.OnKey; // Side by side opens with the focus on the run that was on show
+        }
+        _keys = keys;
+        _panes.IsVisible = true;
+        _swapHost.IsVisible = false;
+        PlacePanes(_stacked);
+        // Both panes draw the shape or line the Details panel shows: it is the same shape in both, and each panel reads it out for its own run.
+        for (var slot = 0; slot < 2; slot++)
+        {
+            var pane = _runPanes[keys[slot]];
+            pane.Focused = ReferenceEquals(pane, FocusedRunPane);
+            pane.Show(folder, lineStyle, view, selection);
+        }
+    }
+
+    private void ShowRunSwap(IReadOnlyList<string> keys, Folder folder, string lineStyle, ReaderView.Side? selection, string view)
+    {
+        // The stage keeps its runs through Swap sides (the same two keys), so each keeps its place along itself; a different pair of runs is a new stage.
+        if (_runStage is null || !_runStage.Keys.Order().SequenceEqual(keys.Order()))
+        {
+            _runStage = new PerfSwapStage([.. keys.Select(k => _runs[k])], keys);
+            _runStage.Picked += side => Picked?.Invoke(SwapPick, side);
+            _runStage.EmptyClicked += () => EmptyClicked?.Invoke();
+            _runStage.Used += () => ControlUsed?.Invoke();
+            _swapHost.Child = _runStage;
+        }
+        var stage = _runStage;
+        if (_shownMode != "swap")
+        {
+            // Opened from Side by side: Swap starts on the run whose pane has the focus.
+            var onKey = _runPanes.Count > 0 && _keys.Count == 2 ? FocusedRunPane.Key : keys[0];
+            stage.Open(stage.Keys.Contains(onKey) ? onKey : keys[0]);
+            foreach (var key in keys)
+                if (key != stage.OnKey) stage.Run(key).Session.StopRamp(); // the run that is not on show stops where it is
+        }
+        _keys = keys;
+        _panes.IsVisible = false;
+        _swapHost.IsVisible = true;
+        stage.Show(folder, lineStyle, view, selection);
+        var names = keys.Select(k => stage.Run(k).Name).ToList();
+        if (names[0] == names[1] && keys[1].Contains('#')) names[1] += " (2)"; // a run against itself: told apart as its panes are
+        Bar.ShowFlows(names, Math.Max(0, keys.ToList().IndexOf(stage.OnKey)));
+    }
+
+    // ---- focus and layout ---------------------------------------------------------------------------------------
+
+    /// <summary>The control of the pane with this key, flow or run.</summary>
+    private Control? PaneOf(string key) => _shownKind == "run" ? _runPanes.GetValueOrDefault(key) : _byKey.GetValueOrDefault(key);
+
+    /// <summary>Gives a pane the focus: it is outlined and the keys of a flow (or, for runs, of the Performance panel) act on it.</summary>
     public void FocusPane(string key)
     {
+        if (_shownKind == "run")
+        {
+            if (!_runPanes.ContainsKey(key)) return;
+            _focusKey = key;
+            foreach (var (k, pane) in _runPanes) pane.Focused = k == FocusedRunPane.Key;
+            return;
+        }
         if (!_byKey.ContainsKey(key)) return;
         _focusKey = key;
         foreach (var (k, pane) in _byKey) pane.Focused = k == FocusedPane.Key;
@@ -221,8 +364,9 @@ internal sealed class CompareView : Grid
         }
         for (var slot = 0; slot < _keys.Count; slot++)
         {
-            SetColumn(_byKey[_keys[slot]], _stacked ? 0 : slot);
-            SetRow(_byKey[_keys[slot]], _stacked ? slot : 0);
+            if (PaneOf(_keys[slot]) is not { } pane) continue;
+            SetColumn(pane, _stacked ? 0 : slot);
+            SetRow(pane, _stacked ? slot : 0);
         }
     }
 

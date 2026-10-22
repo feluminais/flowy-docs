@@ -3,8 +3,16 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
+/// What the run header offers for comparing: Compare, Link with and Unlink, each greyed out with its reason as the tooltip (never hidden). <see cref="CompareOff"/> is why Compare is
+/// blocked (editing, no other run) and <see cref="LinkOff"/> why a link can't be written or taken away (the folder can't be saved), or null.
+/// </summary>
+internal sealed record RunActions(string? CompareOff, string? LinkOff);
+
+/// <summary>
 /// What the Performance panel shows: the run and where it stands, the shape or line picked, and (for a run with several sources) where each dial stands.
 /// The panel is built again when <see cref="SameBuild"/> says this differs from what it shows, and moved in place when only the position differs.
+/// <see cref="Pane"/> is a panel inside a pane of a comparison: the run is the pane's own, so the header has no picker and no title (the pane has it), and <see cref="Actions"/> is what the
+/// header offers for comparing, none in such a pane.
 /// </summary>
 internal sealed record PerfPanelModel(
     Model Model,
@@ -17,7 +25,9 @@ internal sealed record PerfPanelModel(
     bool Still,
     PerfSelection? Selection,
     IReadOnlyList<double>? Places = null,
-    int Active = 0)
+    int Active = 0,
+    bool Pane = false,
+    RunActions? Actions = null)
 {
     /// <summary>
     /// Whether the panel built for <paramref name="shown"/> still fits this one, so that moving it is enough: the same model and runs, the same run, view and
@@ -25,5 +35,5 @@ internal sealed record PerfPanelModel(
     /// </summary>
     public bool SameBuild(PerfPanelModel shown) =>
         ReferenceEquals(Model, shown.Model) && ReferenceEquals(Runs, shown.Runs) && RunProblems.Count == shown.RunProblems.Count && RunId == shown.RunId
-        && View == shown.View && Still == shown.Still && Selection == shown.Selection;
+        && View == shown.View && Still == shown.Still && Selection == shown.Selection && Pane == shown.Pane && Actions == shown.Actions;
 }
