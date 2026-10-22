@@ -8,7 +8,8 @@
  * - a note: `compare:` then `  with: <id>` and `  note: <text>` on lines of their own. A note on one line is double-quoted with JSON escapes
  *   (U+2028 and U+2029 written as \u2028 and \u2029 too). A note that holds a line break and can be held by a block scalar is written as
  *   `note: |-` with each line indented four spaces (an empty line stays empty), and any other note falls back to the quoted line.
- * - an id is written as it is when it is letters, digits, `.`, `_` or `-` (starting with a letter or digit), and double-quoted otherwise.
+ * - an id is written as it is when it is letters, digits, `.`, `_` or `-` (starting with a letter or digit), and double-quoted otherwise. (A run
+ *   called `null` can't be named by a tag: the readers take the text `null` for no value, quoted or not.)
  * - a key that is not there goes at the end of the file, after the text's last line break (one is added when it has none). A key that is there is
  *   replaced where it stands, and the line breaks of the text (LF or CRLF) are the ones written.
  */

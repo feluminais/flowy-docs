@@ -1,0 +1,4 @@
+name: proto-old
+view: root
+steps:
+  - { from: __proto__, to: b, text: Old }

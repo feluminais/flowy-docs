@@ -1,0 +1,299 @@
+[
+  {
+    "name": "add short",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare: before\n"
+  },
+  {
+    "name": "add short, no trailing newline",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }",
+    "tag": {
+      "with": "before"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare: before\n"
+  },
+  {
+    "name": "add short to an empty mapping value file",
+    "text": "name: r\n",
+    "tag": {
+      "with": "before"
+    },
+    "result": "name: r\ncompare: before\n"
+  },
+  {
+    "name": "add with a plain note",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": "Faster now"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: \"Faster now\"\n"
+  },
+  {
+    "name": "add with quotes, backslash and unicode",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": "He said \"hi\" \\ ✓   end"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: \"He said \\\"hi\\\" \\\\ ✓ \\u2028 end\"\n"
+  },
+  {
+    "name": "add with a note that holds a break",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": "line one\nline two"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: |-\n    line one\n    line two\n"
+  },
+  {
+    "name": "add with an empty line inside the note",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": "a\n\nb"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: |-\n    a\n\n    b\n"
+  },
+  {
+    "name": "add with a break and a leading space",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": " lead\nx"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: \" lead\\nx\"\n"
+  },
+  {
+    "name": "add with a trailing break",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": "x\ny\n"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: \"x\\ny\\n\"\n"
+  },
+  {
+    "name": "add with a tab and a break",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": "a\tb\nc"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: |-\n    a\tb\n    c\n"
+  },
+  {
+    "name": "add with a line of spaces",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "before",
+      "note": "a\n  \nb"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare:\n  with: before\n  note: \"a\\n  \\nb\"\n"
+  },
+  {
+    "name": "id that reads as null",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "null"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare: null\n"
+  },
+  {
+    "name": "id with a dot",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "v1.2-b"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare: v1.2-b\n"
+  },
+  {
+    "name": "id with a space",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "a b"
+    },
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\ncompare: \"a b\"\n"
+  },
+  {
+    "name": "replace short with short",
+    "text": "name: r\ncompare: old\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "new"
+    },
+    "result": "name: r\ncompare: new\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n"
+  },
+  {
+    "name": "replace short with long",
+    "text": "name: r\ncompare: old\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "new",
+      "note": "why"
+    },
+    "result": "name: r\ncompare:\n  with: new\n  note: \"why\"\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n"
+  },
+  {
+    "name": "replace long with short",
+    "text": "name: r\ncompare:\n  with: old\n  note: |-\n    one\n    two\n\n\n# keep this comment\nunit: req/s\nlevels:\n  - { load: 1 }\n",
+    "tag": {
+      "with": "new"
+    },
+    "result": "name: r\ncompare: new\n\n\n# keep this comment\nunit: req/s\nlevels:\n  - { load: 1 }\n"
+  },
+  {
+    "name": "replace long with long",
+    "text": "name: r\ncompare:\n  with: old\n  note: |-\n    one\n    two\n\n\n# keep this comment\nunit: req/s\nlevels:\n  - { load: 1 }\n",
+    "tag": {
+      "with": "new",
+      "note": "one\ntwo"
+    },
+    "result": "name: r\ncompare:\n  with: new\n  note: |-\n    one\n    two\n\n\n# keep this comment\nunit: req/s\nlevels:\n  - { load: 1 }\n"
+  },
+  {
+    "name": "replace a quoted value",
+    "text": "name: r\ncompare: \"old id\"\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "new"
+    },
+    "result": "name: r\ncompare: new\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n"
+  },
+  {
+    "name": "replace a flow-style value",
+    "text": "name: r\ncompare: { with: old, note: why }\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "new"
+    },
+    "result": "name: r\ncompare: new\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n"
+  },
+  {
+    "name": "replace keeps a trailing comment out",
+    "text": "name: r\ncompare: old # why\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": {
+      "with": "new"
+    },
+    "result": "name: r\ncompare: new\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n"
+  },
+  {
+    "name": "remove short",
+    "text": "name: r\ncompare: old\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": null,
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n"
+  },
+  {
+    "name": "remove long with a block note and blank lines",
+    "text": "name: r\ncompare:\n  with: old\n  note: |-\n    one\n    two\n\n\n# keep this comment\nunit: req/s\nlevels:\n  - { load: 1 }\n",
+    "tag": null,
+    "result": "name: r\n\n\n# keep this comment\nunit: req/s\nlevels:\n  - { load: 1 }\n"
+  },
+  {
+    "name": "remove when absent",
+    "text": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n",
+    "tag": null,
+    "result": "name: r\nunit: req/s\nlevels:\n  - { load: 1 }\n  - { load: 2 }\n"
+  },
+  {
+    "name": "comments and flow style elsewhere",
+    "text": "# a run\nname: r  # its name\nunit: req/s\nlevels: [ { load: 1 }, { load: 2 } ]\n",
+    "tag": {
+      "with": "before",
+      "note": "x"
+    },
+    "result": "# a run\nname: r  # its name\nunit: req/s\nlevels: [ { load: 1 }, { load: 2 } ]\ncompare:\n  with: before\n  note: \"x\"\n"
+  },
+  {
+    "name": "compare in the middle, replaced",
+    "text": "# top\nname: r\ncompare: old\n# between\nunit: req/s\nlevels:\n  - { load: 1 }\n",
+    "tag": {
+      "with": "new"
+    },
+    "result": "# top\nname: r\ncompare: new\n# between\nunit: req/s\nlevels:\n  - { load: 1 }\n"
+  },
+  {
+    "name": "nested compare is not the tag",
+    "text": "name: r\nsource:\n  compare: inner\nlevels:\n  - { load: 1 }\n",
+    "tag": {
+      "with": "outer"
+    },
+    "result": "name: r\nsource:\n  compare: inner\nlevels:\n  - { load: 1 }\ncompare: outer\n"
+  },
+  {
+    "name": "nested compare stays when removing",
+    "text": "name: r\nsource:\n  compare: inner\nlevels:\n  - { load: 1 }\n",
+    "tag": null,
+    "result": "name: r\nsource:\n  compare: inner\nlevels:\n  - { load: 1 }\n"
+  },
+  {
+    "name": "crlf add",
+    "text": "name: r\r\nunit: req/s\r\nlevels:\r\n  - { load: 1 }\r\n  - { load: 2 }\r\n",
+    "tag": {
+      "with": "before",
+      "note": "a\nb"
+    },
+    "result": "name: r\r\nunit: req/s\r\nlevels:\r\n  - { load: 1 }\r\n  - { load: 2 }\r\ncompare:\r\n  with: before\r\n  note: |-\r\n    a\r\n    b\r\n"
+  },
+  {
+    "name": "crlf replace",
+    "text": "name: r\r\ncompare: old\r\nunit: req/s\r\nlevels:\r\n  - { load: 1 }\r\n  - { load: 2 }\r\n",
+    "tag": {
+      "with": "new",
+      "note": "why"
+    },
+    "result": "name: r\r\ncompare:\r\n  with: new\r\n  note: \"why\"\r\nunit: req/s\r\nlevels:\r\n  - { load: 1 }\r\n  - { load: 2 }\r\n"
+  },
+  {
+    "name": "crlf remove",
+    "text": "name: r\r\ncompare: old\r\nunit: req/s\r\nlevels:\r\n  - { load: 1 }\r\n  - { load: 2 }\r\n",
+    "tag": null,
+    "result": "name: r\r\nunit: req/s\r\nlevels:\r\n  - { load: 1 }\r\n  - { load: 2 }\r\n"
+  },
+  {
+    "name": "last key replaced, no trailing newline",
+    "text": "name: r\ncompare: old",
+    "tag": {
+      "with": "new"
+    },
+    "result": "name: r\ncompare: new"
+  },
+  {
+    "name": "last key removed, no trailing newline",
+    "text": "name: r\ncompare: old",
+    "tag": null,
+    "result": "name: r\n"
+  },
+  {
+    "name": "not a mapping",
+    "text": "- a\n- b\n",
+    "tag": {
+      "with": "x"
+    },
+    "error": true
+  },
+  {
+    "name": "duplicate keys",
+    "text": "name: r\ncompare: a\ncompare: b\n",
+    "tag": {
+      "with": "x"
+    },
+    "error": true
+  },
+  {
+    "name": "top level in braces",
+    "text": "{ name: r }\n",
+    "tag": {
+      "with": "x"
+    },
+    "error": true
+  },
+  {
+    "name": "empty text",
+    "text": "",
+    "tag": {
+      "with": "x"
+    },
+    "error": true
+  }
+]

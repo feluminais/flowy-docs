@@ -1,0 +1,6 @@
+name: retexted
+view: root
+steps:
+  - { from: a, to: b, text: First }
+  - { from: b, to: c, text: "Second, reworded" }
+  - { from: c, to: d, text: Third }
