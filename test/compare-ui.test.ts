@@ -6,7 +6,7 @@ import type { Run } from '../src/core/perf/types.ts'
 import { nameOf } from '../src/core/views.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, firstLinkedRun, flipped, fromAddress, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, partnerChoices, playable, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, firstLinked, firstLinkedRun, flipped, fromAddress, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, partnerChoices, playable, removeNeedsConfirm, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved } from '../ui/src/compare.ts'
 import type { Compare } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -330,6 +330,12 @@ test('the tag a pick writes keeps the note, and no partner takes the tag out', (
   assert.deepEqual(tagWith(model, 'c', 'old'), { with: 'old' }, 'no note to keep')
   assert.equal(tagWith(model, 'a', undefined), undefined)
   assert.deepEqual(tagWith(model, 'old', 'a'), { with: 'a' })
+})
+
+test('removing a link asks only when it holds a note', () => {
+  assert.equal(removeNeedsConfirm({ with: 'a', note: 'why' }), true)
+  assert.equal(removeNeedsConfirm({ with: 'a' }), false)
+  assert.equal(removeNeedsConfirm(undefined), false)
 })
 
 test('the flows that tag a flow are listed by name with their view, a mutual pair once, a tag to nothing not at all', () => {

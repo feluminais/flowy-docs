@@ -47,6 +47,9 @@ export function tagWith(model: Model, flowId: string, partner: string | undefine
   return note === undefined ? { with: partner } : { with: partner, note }
 }
 
+/** Whether taking a tag out loses something the reader wrote: a note belongs to its link, so removing the link asks first. With no note, removing is one click. */
+export const removeNeedsConfirm = (tag: CompareTag | undefined): boolean => tag?.note !== undefined
+
 /** The pair in the order it reads: the one that holds the tag (the newer) second. With no tag between them, the order given. */
 export function orderPair(kind: 'flow' | 'run', items: Record<string, { name?: string; compare?: unknown }>, a: string, b: string): [string, string] {
   void kind
