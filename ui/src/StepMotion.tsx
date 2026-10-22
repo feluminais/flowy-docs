@@ -29,8 +29,8 @@ const HALO = 6
 const running = new Map<symbol, number>()
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
-/** The drawn tile of a box on the canvas, which a gulp squashes. */
-const tile = (id: string) => document.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"] .box`)
+/** The drawn tile of a box on the canvas, which a gulp squashes. Looked for in this canvas: two flows side by side can hold a box of the same name. */
+const tile = (id: string, canvas: ParentNode) => canvas.querySelector<HTMLElement>(`.react-flow__node[data-id="${CSS.escape(id)}"] .box`)
 
 /** The outline of the shape a box is drawn as, in the 200 by 72 area every shape is drawn in. */
 const outlineOf = (n: InternalNode): string => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].path
@@ -285,7 +285,8 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
       return
     }
 
-    const tiles = { from: tile(ends[0]), to: tile(ends[1]) }
+    const flow = svg.closest('.react-flow') ?? document
+    const tiles = { from: tile(ends[0], flow), to: tile(ends[1], flow) }
     // A timeout dims the lit lines through `--lit` on the canvas (see style.css). Only a motion that has a fade writes it, so the other steps of a stop never undo it.
     const fades = beats.some(b => b.do === 'fade')
     const canvas = fades ? svg.closest<HTMLElement>('.react-flow') : null

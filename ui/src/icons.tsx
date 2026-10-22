@@ -72,6 +72,8 @@ export const GitFork = one('M12 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 6m-2 0a2 
 export const ArrowsSplit = one('M21 17h-8l-3.5 -5h-6.5M21 7h-8l-3.495 5')
 export const Help = one('M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 17l0 .01M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4')
 export const Link = one('M9 15l6 -6M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463')
+export const Columns = one('M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2zM12 4l0 16')
+export const ArrowsLeftRight = one('M21 17l-18 0M6 10l-3 -3l3 -3M3 7l18 0M18 20l3 -3l-3 -3')
 
 export const Sparkles = one(ICONS.sparkles)
 

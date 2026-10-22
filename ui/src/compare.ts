@@ -1,6 +1,7 @@
 import { compareOf, partnersOf } from '../../src/core/compare.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
+import { isView } from '../../src/core/views.ts'
 
 /** What the comparison view shows: two flows or two runs, `a` first, side by side or swapped (one pane, flipping between them). The tag holder is `b`. */
 export type Compare = { kind: 'flow' | 'run'; a: string; b: string; mode: 'side' | 'swap' }
@@ -28,4 +29,38 @@ export function orderPair(kind: 'flow' | 'run', items: Record<string, { name?: s
   void kind
   if (a !== b && compareOf(items[a]?.compare)?.with === b) return [b, a]
   return [a, b]
+}
+
+/** What a click in a pane picked: a shape, or a line with the view its pane draws (the same two shapes can be joined differently in another view). */
+export type Picked = { kind: 'object'; id: string } | { kind: 'line'; from: string; to: string; view: string }
+
+/** Whether the panel already shows what was clicked, so a second click on it closes the panel, as on the single canvas. */
+export function samePick(shown: { kind: string; id?: string; from?: string; to?: string; view?: string } | undefined, picked: Picked): boolean {
+  if (shown === undefined || shown.kind !== picked.kind) return false
+  return picked.kind === 'object' ? shown.id === picked.id : shown.from === picked.from && shown.to === picked.to && shown.view === picked.view
+}
+
+/** A flow the player can play: it has steps and its view opens. Opening a comparison needs both flows to be one. */
+export const playable = (model: Model, id: string): boolean => Object.hasOwn(model.flows, id) && model.flows[id].steps.length > 0 && isView(model, model.flows[id].view)
+
+/** Why Compare is blocked, or undefined when it is not: the reason goes in the button's tooltip. */
+export const compareOff = (model: Model, editing: boolean): string | undefined =>
+  editing ? 'Not while editing' : Object.keys(model.flows).length < 2 ? 'No other flow' : undefined
+
+/** The first flow `id` is linked to that is there, or undefined: what C opens beside the flow playing. */
+export const firstLinked = (model: Model, id: string): string | undefined => choicesFor(model, {}, 'flow', id).linked.find(c => !c.missing)?.id
+
+/** The comparison an address names, side by side whatever mode it asked for (Swap is not built yet). `unplayable` when a flow of it is not there or can't play. */
+export function fromAddress(model: Model, named: Compare | undefined): { compare?: Compare; unplayable?: boolean } {
+  if (named === undefined || named.kind !== 'flow') return {}
+  return playable(model, named.a) && playable(model, named.b) ? { compare: { ...named, mode: 'side' } } : { unplayable: true }
+}
+
+/** The two sides the other way round. */
+export const flipped = (c: Compare): Compare => ({ ...c, a: c.b, b: c.a })
+
+/** The comparison of flow `id` with the pick `other`: the one that holds the tag (the newer) second, else `id` first. */
+export function pairOf(model: Model, id: string, other: string): Compare {
+  const [a, b] = orderPair('flow', model.flows, id, other)
+  return { kind: 'flow', a, b, mode: 'side' }
 }

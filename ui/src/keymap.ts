@@ -19,6 +19,7 @@ export type KeyState = {
   navigatorOpen: boolean
   navigatorUsed: boolean // the last click or key was in the navigator
   flow: boolean // a flow is playing
+  compare: boolean // two flows are side by side: the keys of a flow go to the pane last clicked
   halfStep: boolean // a step being recorded has its first end
   panel: boolean // a panel on the right is open, or several shapes are picked
   inside: boolean // not at the top level
@@ -40,6 +41,9 @@ export type KeyActions = {
   toggleShortcuts(): void
   closeNavigator(): void
   stopFlow(): void
+  /** Compare on and off: close the comparison, or open it beside the flow playing (the picker when it has no linked flow). */
+  compare(): void
+  closeCompare(): void
   clearStep(): void
   closePanel(): void
   up(): void
@@ -82,7 +86,7 @@ export type HelpGroupId = 'reading' | 'flows' | 'performance' | 'failures' | 'ed
 type Help = { keys?: string; text: string } // `keys` is the entry's own when left out
 
 export type KeyId =
-  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-replay'
+  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-replay' | 'compare'
   | 'enter' | 'shortcuts' | 'search' | 'fit' | 'flows' | 'explorer' | 'yaml' | 'perf' | 'failures' | 'edit' | 'add' | 'delete' | 'select-all' | 'redo' | 'undo' | 'up'
 
 export type Entry = {
@@ -116,12 +120,13 @@ export const KEYMAP: readonly Entry[] = [
     when: ({ e }) => e.key === 'Escape',
     run: ({ s, inNavigator, act }) => {
       const navigator = s.navigatorOpen && (s.navigatorUsed || inNavigator)
-      const layer = escapeStep({ shortcuts: s.shortcuts, navigator, flow: s.flow, halfStep: s.halfStep, panel: s.panel, inside: s.inside })
+      const layer = escapeStep({ shortcuts: s.shortcuts, navigator, flow: s.flow, halfStep: s.halfStep, panel: s.panel, compare: s.compare, inside: s.inside })
       if (layer === 'shortcuts') act.closeShortcuts()
       else if (layer === 'navigator') act.closeNavigator()
       else if (layer === 'flow') act.stopFlow()
       else if (layer === 'step' && s.recording) act.clearStep()
       else if (layer === 'panel') act.closePanel()
+      else if (layer === 'compare') act.closeCompare()
       else if (layer === 'up') act.up()
       else return false
     },
@@ -158,27 +163,34 @@ export const KEYMAP: readonly Entry[] = [
   },
   {
     id: 'flow-step', keys: '→  ←',
-    when: c => c.s.flow && arrow(c),
+    when: c => (c.s.flow || c.s.compare) && arrow(c),
     run: c => c.act.stepFlow(by(c)),
     help: { flows: { text: 'Next and previous step' } },
   },
   {
     id: 'flow-ends', keys: 'Home  End',
-    when: c => c.s.flow && home(c),
+    when: c => (c.s.flow || c.s.compare) && home(c),
     run: c => c.act.flowEnd(end(c)),
     help: { flows: { text: 'First and last step' } },
   },
   {
     id: 'flow-play', keys: 'P',
-    when: c => c.s.flow && tap(c, 'p'),
+    when: c => (c.s.flow || c.s.compare) && tap(c, 'p'),
     run: c => c.act.play(),
     help: { flows: { text: 'Step through the flow on its own, or pause' } },
   },
   {
     id: 'flow-replay', keys: 'R',
-    when: c => c.s.flow && tap(c, 'r'),
+    when: c => (c.s.flow || c.s.compare) && tap(c, 'r'),
     run: c => c.act.replay(),
     help: { flows: { text: 'Replay the step' } },
+  },
+  // In edit mode the key is still taken, to say why it does nothing there.
+  {
+    id: 'compare', keys: 'C',
+    when: c => tap(c, 'c') && (c.s.flow || c.s.compare || c.s.editing),
+    run: c => c.act.compare(),
+    help: { flows: { text: 'Compare with another flow, or close the comparison' } },
   },
   {
     id: 'enter', keys: 'Enter',
@@ -303,7 +315,7 @@ export const HELP_GROUPS: { id: HelpGroupId; title: string }[] = [
 /** The order of each group's rows. A row that is not a key (a click, a drag) is written out here. */
 const HELP_ORDER: Record<HelpGroupId, (KeyId | [string, string])[]> = {
   reading: ['enter', 'escape', 'up', 'search', 'fit', 'flows', 'explorer', 'yaml', 'perf', 'failures', 'shortcuts'],
-  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-replay', 'escape'],
+  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-replay', 'compare', 'escape'],
   performance: ['perf-step', 'perf-ends', 'perf-ramp', 'escape'],
   failures: ['failure-step'],
   editing: [

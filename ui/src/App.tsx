@@ -30,6 +30,11 @@ import { connectionsOf, locate, moveBetween } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { addressChange, readHash, runAddress, toHash } from './hash.ts'
+import { compareOff, firstLinked, flipped, fromAddress, pairOf, playable } from './compare.ts'
+import type { Compare } from './compare.ts'
+import { CompareView } from './CompareView.tsx'
+import type { CompareHandle } from './CompareView.tsx'
+import { ComparePicker } from './ComparePicker.tsx'
 import { contextOf, dispatch } from './keymap.ts'
 import type { KeyActions, KeyState } from './keymap.ts'
 import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor } from './failuresview.ts'
@@ -82,7 +87,7 @@ const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is 
 type Side =
   | { kind: 'object'; id: string }
   | { kind: 'objects'; ids: string[] } // several shapes picked in edit mode, to move or delete together
-  | { kind: 'line'; from: string; to: string }
+  | { kind: 'line'; from: string; to: string; view?: string } // `view` is the view of the pane of a comparison it was clicked in; on the single canvas it is the one on show
   | { kind: 'add' }
   | { kind: 'usedby'; targets: Target[]; back: Side | undefined } // what is waiting on the shapes or lines about to be deleted (see UsedBy)
   | ({ kind: 'flow' } & Recording)
@@ -141,6 +146,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     return m !== undefined && !drawnIn(model, named.view, m) ? homeView(model, m) : named.view
   })
   const [side, setSide] = useState<Side>()
+  // Two flows side by side (see CompareView), named by the address. While one is open the single canvas and its flow player wait behind it, as they do behind the Performance and Failures tabs.
+  const [compare, setCompare] = useState<Compare | undefined>(() => fromAddress(model, readHash(location.hash).compare).compare)
+  const [picking, setPicking] = useState(false) // the popover of the player's Compare button
+  const compareRef = useRef<CompareHandle>(null)
   const [flagged, setFlagged] = useState<string[]>([]) // the shapes the row of the Used by panel in focus names
   // The left-hand panel's tab (the navigator: Explorer, Flows, Performance, Failures or YAML), and whether the right-hand Details panel was opened from its rail. Details shows
   // `side`, or the level you are in, so a `side` opens it too. The Performance and Failures panels are tabs of the navigator too, and an address that names one opens on it.
@@ -224,8 +233,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (!perfOpen) perfRun.stopRamp()
   }, [perfOpen])
   const failuresOpen = nav === 'failures' // a tab of the navigator on the left, with Explorer, Flows and YAML
-  // A flow that was playing waits behind the Performance and Failures tabs, so a step's motion, the traffic and the risk marks never draw at once.
-  const flow = editing || perfOpen || failuresOpen ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
+  const comparing = compare && !editing && !perfOpen && !failuresOpen && playable(model, compare.a) && playable(model, compare.b) ? compare : undefined
+  // A flow that was playing waits behind the Performance and Failures tabs and a comparison, so a step's motion, the traffic and the risk marks never draw at once.
+  const flow = editing || perfOpen || failuresOpen || comparing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
   const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks } = useFlowStage({ model, view, flow, playing, replays, recording })
   // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. The marks are kept as text so
   // that the graph (which takes dagre tens of ms) is rebuilt only when a state changes, not on every step of a Play.
@@ -351,6 +361,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     zoom.cancelMotion()
     setViewId(id)
     setPlaying(undefined)
+    setCompare(undefined) // a comparison is of the flows, not of a level
     session.viewChanged()
     setSide(s => (s?.kind === 'object' ? s : undefined)) // lines, Add and recording belong to one view
   }
@@ -366,9 +377,41 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const openFlow = (id: string) => {
     const f = model.flows[id]
     if (f.view !== view) go(f.view)
+    setCompare(undefined)
     if (editing) show({ kind: 'flow', id, name: f.name })
     else setPlaying({ flow: id, step: 0 })
   }
+  /** Two flows side by side: `id` is the one that was playing, `other` the one picked to go with it. A flow that can't play doesn't open. */
+  const openCompare = (id: string, other: string) => {
+    setPicking(false)
+    if (!playable(model, id) || !playable(model, other)) return setNotice("That flow can't play yet.")
+    setSide(undefined)
+    setCompare(pairOf(model, id, other))
+  }
+  const closeCompare = () => {
+    setCompare(undefined)
+    setSide(undefined) // what it showed was clicked in a pane
+  }
+  /** C: close the comparison, or open it beside the flow playing, with the first flow it is linked to or else the picker. */
+  const toggleCompare = () => {
+    if (comparing) return closeCompare()
+    const off = compareOff(model, editing)
+    if (off !== undefined) return setNotice(off)
+    const id = flow ? playing?.flow : undefined
+    if (id === undefined) return
+    const other = firstLinked(model, id)
+    if (other === undefined) setPicking(open => !open)
+    else openCompare(id, other)
+  }
+  useEffect(() => {
+    if (!flow) setPicking(false) // the popover hangs on the player
+  }, [flow])
+  useEffect(() => {
+    if (fromAddress(model, readHash(location.hash).compare).unplayable) setNotice("That flow can't play yet.") // a link to a comparison that can't open
+  }, [])
+  useEffect(() => {
+    if (compare && !(playable(model, compare.a) && playable(model, compare.b))) setCompare(undefined) // a live reload took one of the flows away
+  }, [model, compare])
   /** Pick a mode in the Failures list; when its part is outside this view, the canvas goes to the view that draws it. */
   const selectMode = (id: string | undefined) => {
     setModeId(id)
@@ -386,6 +429,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (!f || f.steps.length === 0 || !isView(model, f.view)) return setNotice("That flow can't play yet.")
     closeFailures()
     if (f.view !== view) go(f.view)
+    setCompare(undefined)
     if (editing) show({ kind: 'flow', id, name: f.name })
     else setPlaying({ flow: id, step: stopIndexOf(stopsOf(f), step === undefined ? 0 : Math.max(0, step - 1)) })
   }
@@ -468,6 +512,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     session.toggleEditMode()
     leave('performance') // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
     setPlaying(undefined)
+    setCompare(undefined) // nor does a comparison: it shows the flows as they are
     setSide(s => (s?.kind === 'object' || s?.kind === 'line' ? s : undefined))
   }
   // Pressing on a box that isn't one of several picked starts over with that box alone. Otherwise dragging it would carry the others along.
@@ -511,7 +556,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     else if (spot.flow !== undefined) {
       // The player only lists flows with steps in a view that opens (flowsHere); locate() falls back to ROOT for a bad view.
       const f = model.flows[spot.flow]
-      if (f.view === spot.view && f.steps.length > 0) setPlaying({ flow: spot.flow, step: stopIndexOf(stopsOf(f), spot.step ?? 0) })
+      if (f.view === spot.view && f.steps.length > 0) {
+        setCompare(undefined)
+        setPlaying({ flow: spot.flow, step: stopIndexOf(stopsOf(f), spot.step ?? 0) })
+      }
       else setNotice(readOnly ? `This flow can't play yet. Fix ${p.file} first.` : 'Press E to fix this flow in edit mode.')
     }
   }
@@ -538,9 +586,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // falls back to another view.
   const failuresAt = failuresOpen && analysisKey !== undefined ? { analysis: analysisKey, ...(mode ? { mode: modeId } : {}) } : undefined
   const perfAt = perfOpen ? runAddress(runKey, here, multi, ramping) : undefined
-  const address = toHash(view, flow ? playing?.flow : undefined, perfAt, failuresAt)
+  const address = toHash(view, flow ? playing?.flow : undefined, perfAt, failuresAt, comparing)
   useEffect(() => {
-    const change = addressChange({ quiet: quiet.current, address, current: location.hash, view, viewId, perfOpen, runKey, failuresAt })
+    const change = addressChange({ quiet: quiet.current, address, current: location.hash, view, viewId, perfOpen, runKey, failuresAt, compareAt: comparing })
     if (change) history[change === 'replace' ? 'replaceState' : 'pushState'](null, '', address || location.pathname + location.search)
     quiet.current = false
     saveState({ hash: address }) // a VS Code panel that is restored opens where the reader was
@@ -573,6 +621,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         openFailures()
         if (m && !drawnIn(model, named.view, m)) go(homeView(model, m)) // the mode's part is outside the view the address names
       } else leave('failures')
+      const opened = fromAddress(model, named.compare)
+      setCompare(opened.compare)
+      if (opened.unplayable) setNotice("That flow can't play yet.")
     }
     window.addEventListener('popstate', follow)
     window.addEventListener('hashchange', follow)
@@ -602,8 +653,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement && e.target.closest('.navfind') !== null)) return
       }
       const state: KeyState = {
-        editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, halfStep: recording?.from !== undefined,
-        panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
+        editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, halfStep: recording?.from !== undefined,
+        panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
         showFlows, showYaml, canPerf,
       }
       const act: KeyActions = {
@@ -613,6 +664,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         toggleShortcuts: () => setShortcuts(open => !open),
         closeNavigator: () => setTab(undefined),
         stopFlow: () => setPlaying(undefined),
+        compare: toggleCompare,
+        closeCompare,
         clearStep: () => { if (recording) setSide({ ...recording, from: undefined, to: undefined }) },
         closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen ? closePerf() : closeFailures()),
         // A second press while a zoom out is still leaving goes up from where that one is heading.
@@ -624,20 +677,22 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         },
         ramp: () => perfRun.toggleRamp(),
         stepFailure: by => selectMode(neighbour([...rows.here, ...rows.elsewhere].map(r => r.id), mode ? modeId : undefined, by)),
-        stepFlow: by => stepTo(stopIndex + by),
-        flowEnd: end => stepTo(end === 'first' ? 0 : stops.length - 1),
-        play: togglePlay,
-        replay,
+        // With two flows side by side the keys of a flow act on the pane that has the focus.
+        stepFlow: by => (comparing ? compareRef.current?.focused()?.step(by) : stepTo(stopIndex + by)),
+        flowEnd: end => (comparing ? compareRef.current?.focused()?.end(end) : stepTo(end === 'first' ? 0 : stops.length - 1)),
+        play: () => (comparing ? compareRef.current?.focused()?.play() : togglePlay()),
+        replay: () => (comparing ? compareRef.current?.focused()?.replay() : replay()),
         enter: () => {
-          // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
+          // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel. A pane of a comparison does not open boxes.
           const id = (document.activeElement as HTMLElement | null)?.closest<HTMLElement>('.react-flow__node-box')?.dataset.id ?? selectedBox
           if (id === undefined) return false
-          if (canOpen(id)) zoomInto(id)
+          if (comparing) show({ kind: 'object', id })
+          else if (canOpen(id)) zoomInto(id)
           else show({ kind: 'object', id })
           return true
         },
         search: () => setSearching(true),
-        fit: () => fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 }),
+        fit: () => (comparing ? compareRef.current?.focused()?.fit() : fitNow.current?.({ ...fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0), duration: 300 })),
         toggleTab,
         togglePerf: () => toggleTab('performance'),
         toggleFailures: () => toggleTab('failures'),
@@ -705,90 +760,99 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           perf={{ runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined }} failures={{ count: modeCount(model) }} onPick={toggleTab} />
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
-          <LineStyleContext value={lines}>
-            <LineWidthsContext value={widths}>
-            <LineMarksContext value={lineMarks}>
-            <LabelSpotsContext value={spots}>
-            <ReactFlow
-              key={view} // a fresh canvas per view
-              nodes={[...frame, ...nodes]}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
-              colorMode={colorMode}
-              defaultMarkerColor="var(--edge)"
-              nodesDraggable={editing && !recording}
-              nodesConnectable={editing && !recording}
-              zoomOnDoubleClick={false}
-              deleteKeyCode={null}
-              selectionKeyCode={editing && !recording ? 'Shift' : null} // Shift and drag on the empty canvas draws a box round shapes to pick them
-              onSelectionStart={() => {
-                session.startBanding()
-                cancelOpen()
-              }}
-              onSelectionEnd={() => {
-                session.endBanding()
-              }}
-              onNodesChange={onNodesChange}
-              isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
-              onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
-                .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target }))}
-              onNodeClick={(e, node) => {
-                if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
+          {comparing ? (
+            <CompareView ref={compareRef} model={model} compare={comparing} problems={problems} colorMode={colorMode} lines={lines} still={still} shown={side} nav={nav !== undefined} details={detailsOpen}
+              onPick={picked => {
                 didSomethingElse()
-                const waiting = openingBox.current
-                cancelOpen()
-                if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
-                // Ctrl, Cmd or Shift adds the box to the shapes picked, or takes it out again. A box clicked a moment ago is picked too, though its panel hasn't opened yet.
-                if (editing && addsToSelection(e)) return show(sideFor(toggled(waiting === undefined ? chosen : [waiting], node.id)))
-                if (side?.kind === 'object' && side.id === node.id) return closeDetails() // its panel is already open: a second click closes it
-                const open = () => show({ kind: 'object', id: node.id })
-                // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
-                // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
-                if (canOpen(node.id) && side === undefined) {
-                  openingBox.current = node.id
-                  opening.current = setTimeout(() => {
-                    openingBox.current = undefined
-                    open()
-                  }, DOUBLE_CLICK)
-                } else open()
+                show(picked)
               }}
-              onNodeDoubleClick={(e, node) => {
-                if (recording || node.type !== 'box' || !canOpen(node.id) || addsToSelection(e)) return
-                zoomInto(node.id)
-              }}
-              onInit={instance => {
-                fitNow.current = options => void instance.fitView(options)
-              }}
-              onEdgeClick={(_, e) => {
-                didSomethingElse()
-                if (recording || isStepLine(e.id)) return
-                if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
-                else show({ kind: 'line', from: e.source, to: e.target })
-              }}
-              onEdgeMouseEnter={(_, e) => setHovered(e.id)}
-              onEdgeMouseLeave={() => setHovered(undefined)}
-              onPaneClick={() => {
-                didSomethingElse()
-                cancelOpen()
-                setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
-              }}
-            >
-              <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
-              {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-              <Controls showInteractive={false} fitViewOptions={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
-              {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
-              {flow && stop && animated.map(m => (
-                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
-              ))}
-              {flow && <GroupMarks marks={marks} />}
-            </ReactFlow>
-            </LabelSpotsContext>
-            </LineMarksContext>
-            </LineWidthsContext>
-          </LineStyleContext>
-          {nodes.length === 0 && (
+              onClosePanel={closeDetails} onMode={mode => setCompare(c => c && { ...c, mode })} onFlip={() => setCompare(c => c && flipped(c))} onClose={closeCompare} />
+          ) : (
+            <LineStyleContext value={lines}>
+              <LineWidthsContext value={widths}>
+              <LineMarksContext value={lineMarks}>
+              <LabelSpotsContext value={spots}>
+              <ReactFlow
+                key={view} // a fresh canvas per view
+                nodes={[...frame, ...nodes]}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
+                colorMode={colorMode}
+                defaultMarkerColor="var(--edge)"
+                nodesDraggable={editing && !recording}
+                nodesConnectable={editing && !recording}
+                zoomOnDoubleClick={false}
+                deleteKeyCode={null}
+                selectionKeyCode={editing && !recording ? 'Shift' : null} // Shift and drag on the empty canvas draws a box round shapes to pick them
+                onSelectionStart={() => {
+                  session.startBanding()
+                  cancelOpen()
+                }}
+                onSelectionEnd={() => {
+                  session.endBanding()
+                }}
+                onNodesChange={onNodesChange}
+                isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
+                onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
+                  .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target }))}
+                onNodeClick={(e, node) => {
+                  if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
+                  didSomethingElse()
+                  const waiting = openingBox.current
+                  cancelOpen()
+                  if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
+                  // Ctrl, Cmd or Shift adds the box to the shapes picked, or takes it out again. A box clicked a moment ago is picked too, though its panel hasn't opened yet.
+                  if (editing && addsToSelection(e)) return show(sideFor(toggled(waiting === undefined ? chosen : [waiting], node.id)))
+                  if (side?.kind === 'object' && side.id === node.id) return closeDetails() // its panel is already open: a second click closes it
+                  const open = () => show({ kind: 'object', id: node.id })
+                  // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
+                  // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
+                  if (canOpen(node.id) && side === undefined) {
+                    openingBox.current = node.id
+                    opening.current = setTimeout(() => {
+                      openingBox.current = undefined
+                      open()
+                    }, DOUBLE_CLICK)
+                  } else open()
+                }}
+                onNodeDoubleClick={(e, node) => {
+                  if (recording || node.type !== 'box' || !canOpen(node.id) || addsToSelection(e)) return
+                  zoomInto(node.id)
+                }}
+                onInit={instance => {
+                  fitNow.current = options => void instance.fitView(options)
+                }}
+                onEdgeClick={(_, e) => {
+                  didSomethingElse()
+                  if (recording || isStepLine(e.id)) return
+                  if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
+                  else show({ kind: 'line', from: e.source, to: e.target })
+                }}
+                onEdgeMouseEnter={(_, e) => setHovered(e.id)}
+                onEdgeMouseLeave={() => setHovered(undefined)}
+                onPaneClick={() => {
+                  didSomethingElse()
+                  cancelOpen()
+                  setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
+                }}
+              >
+                <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
+                {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
+                <Controls showInteractive={false} fitViewOptions={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
+                {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
+                {flow && stop && animated.map(m => (
+                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
+                ))}
+                {flow && <GroupMarks marks={marks} />}
+              </ReactFlow>
+              </LabelSpotsContext>
+              </LineMarksContext>
+              </LineWidthsContext>
+            </LineStyleContext>
+          )}
+          {!comparing && nodes.length === 0 && (
             <p className="empty">{editing
               ? 'Nothing here yet. Press Add to put the first shape here.'
               : live
@@ -816,7 +880,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {detailsOpen && side === undefined && view === ROOT && <OverviewPanel totals={totals} onClose={closeDetails} />}
           {detailsOpen && side?.kind === 'line' && (
-            <LinePanel model={model} view={view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} onDelete={askDelete} />
+            <LinePanel model={model} view={side.view ?? view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={closeDetails} onDelete={askDelete} />
           )}
           {editing && side?.kind === 'usedby' && (
             <UsedBy model={model} targets={side.targets} run={run} onFlag={setFlagged}
@@ -878,7 +942,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
-              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack} />
+              trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
+              compare={{ off: compareOff(model, editing), open: picking, onToggle: () => setPicking(open => !open),
+                picker: playing ? <ComparePicker model={model} flowId={playing.flow} onPick={id => openCompare(playing.flow, id)} onClose={() => setPicking(false)} /> : null }} />
           )}
         </main>
         <DetailsRail open={detailsOpen} onToggle={() => { if (detailsOpen) closeDetails(); else setDetails(true) }} />
