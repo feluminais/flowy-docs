@@ -250,9 +250,11 @@ public class EditSessionTests
         var heard = 0;
         watcher.Changed += () => Interlocked.Increment(ref heard);
         Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, Fresh)));
-        Thread.Sleep(600);
+        // A busy runner can be slow to deliver the event, so wait for it, then give a second one time to show up.
+        SpinWait.SpinUntil(() => Volatile.Read(ref heard) > 0, TimeSpan.FromSeconds(10));
+        Thread.Sleep(300);
         Assert.Equal(1, saves);
-        Assert.Equal(1, heard);
+        Assert.Equal(1, Volatile.Read(ref heard));
     }
 
     private static (TempDir Temp, string Dir) CopyCase(string name)
