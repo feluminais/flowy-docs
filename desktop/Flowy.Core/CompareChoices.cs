@@ -51,13 +51,50 @@ public static class CompareChoices
     /// <summary>Each flow's (or run's) raw <c>compare</c> value by id, in the order of the files: what <see cref="Compares.Partners"/> and <see cref="Order"/> read.</summary>
     public static IReadOnlyDictionary<string, object?> TagsOf(Model model, IReadOnlyDictionary<string, LoadRun> runs, string kind)
     {
+        if (kind != "flow") return RunTags(runs);
         var tags = new OrderedDictionary<string, object?>();
-        if (kind == "flow")
-            foreach (var (id, flow) in model.Flows) tags.Add(id, flow.CompareRaw);
-        else
-            foreach (var (id, run) in runs) tags.Add(id, run.Compare is { Note: { } note } tag ? (object?)new Dictionary<string, object?> { ["with"] = tag.With, ["note"] = note } : run.Compare?.With);
+        foreach (var (id, flow) in model.Flows) tags.Add(id, flow.CompareRaw);
         return tags;
     }
+
+    /// <summary>Each run's raw <c>compare</c> value by id, in the order of the files.</summary>
+    public static IReadOnlyDictionary<string, object?> RunTags(IReadOnlyDictionary<string, LoadRun> runs)
+    {
+        var tags = new OrderedDictionary<string, object?>();
+        foreach (var (id, run) in runs) tags.Add(id, run.Compare is { Note: { } note } tag ? (object?)new Dictionary<string, object?> { ["with"] = tag.With, ["note"] = note } : run.Compare?.With);
+        return tags;
+    }
+
+    // ---- runs ----------------------------------------------------------------------------------------------------
+
+    /// <summary>Why the Performance panel's Compare is blocked, or null: it needs a second run, and not while editing. A port of <c>runCompareOff</c>.</summary>
+    public static string? RunOff(IReadOnlyDictionary<string, LoadRun> runs, bool editing) => editing ? "Not while editing" : runs.Count < 2 ? "No other run" : null;
+
+    /// <summary>The first run <paramref name="id"/> is linked to that is there, or null: what C opens beside the run the Performance panel shows. A port of <c>firstLinkedRun</c>.</summary>
+    public static string? FirstLinkedRun(IReadOnlyDictionary<string, LoadRun> runs, string id) =>
+        For(new Model(), runs, "run", id).Linked.FirstOrDefault(c => !c.Missing)?.Id;
+
+    /// <summary>The runs that are linked to another run that is there, either way round: the Performance panel's run picker marks them. A port of <c>linkedRuns</c>.</summary>
+    public static IReadOnlySet<string> LinkedRuns(IReadOnlyDictionary<string, LoadRun> runs) => Compares.Linked(RunTags(runs));
+
+    /// <summary>A run the comparison can open: it is there. (A run needs no steps to be played: it is drawn at any place along it.) A port of <c>openable</c>.</summary>
+    public static bool Openable(IReadOnlyDictionary<string, LoadRun> runs, string id) => runs.ContainsKey(id);
+
+    /// <summary>The comparison of run <paramref name="id"/> with the pick <paramref name="other"/>: the one that holds the tag (the newer) second, else <paramref name="id"/> first. A port of <c>runPairOf</c>.</summary>
+    public static (string A, string B) RunPairOf(IReadOnlyDictionary<string, LoadRun> runs, string id, string other)
+    {
+        var (older, newer) = Order("run", RunTags(runs), id, other);
+        return (older, newer);
+    }
+
+    /// <summary>
+    /// Why the comparison an address names (<paramref name="kind"/> <c>flow</c> or <c>run</c>, <paramref name="a"/> and <paramref name="b"/>) can't open, or null when it can: a flow that is not there or
+    /// can't play, or a run that is not there. A port of <c>fromAddress</c>; a launch option that names a comparison says it the same way.
+    /// </summary>
+    public static string? FromAddress(Model model, IReadOnlyDictionary<string, LoadRun> runs, string kind, string a, string b) =>
+        kind == "run"
+            ? Openable(runs, a) && Openable(runs, b) ? null : "That run can't open."
+            : Playable(model, a) && Playable(model, b) ? null : "That flow can't play yet.";
 
     // Name, lower-cased, then id: the ordinal compare of lower-case text matches localeCompare for the ids and names a project holds.
     private static int ByName(Choice x, Choice y)
