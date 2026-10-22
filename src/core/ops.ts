@@ -5,6 +5,8 @@ import { dependents, describeDependent, lineIndices, needsDecision } from './dep
 import type { Action, Dependent, Target } from './dependents.ts'
 import { analysesText, usersOfConnection } from './failures.ts'
 import { iconProblem } from './look.ts'
+import { checkRun } from './perf/check.ts'
+import type { Run } from './perf/types.ts'
 import type { Shape } from './look.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
@@ -711,9 +713,13 @@ export function forgetLayout(model: Model, view: string): Model {
 
 /**
  * Refuse an edit that adds problems, naming them. Problems that were already there never block it.
- * `missing` holds the code paths that don't exist, in either model (see check).
+ * `missing` holds the code paths that don't exist, in either model (see check). `runs` are the load-test runs of the folder: a run is a file the edit
+ * can't change, so an edit that leaves one naming a shape or a line that is gone is refused, as one that a flow or a failure analysis uses is.
  */
-export function refuseNewProblems(before: Model, after: Model, missing: ReadonlySet<string> = new Set()): void {
-  const added = newProblems(check(before, missing), check(after, missing))
-  if (added.length) throw new OpError(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
+export function refuseNewProblems(before: Model, after: Model, missing: ReadonlySet<string> = new Set(), runs: Record<string, Run> = {}): void {
+  const found = (m: Model) => [...check(m, missing), ...Object.entries(runs).flatMap(([id, run]) => checkRun(id, run, m))]
+  const added = newProblems(found(before), found(after))
+  if (added.length === 0) return
+  const byRun = added.some(p => p.file.startsWith('perf/'))
+  throw new OpError(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}${byRun ? '\nChange or delete those runs first.' : ''}`)
 }

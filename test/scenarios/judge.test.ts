@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { OpError, putObject } from '../../src/core/ops.ts'
 import { shop } from '../fixtures.ts'
 import type { Maker } from './moves.ts'
+import { judgeAccepted } from './judge.ts'
 import { play } from './play.ts'
 import type { Fixture } from './play.ts'
 
@@ -33,15 +34,14 @@ test('an accepted op that did not do what it is for is named', () => {
   assert.ok(found.has('postcondition:bad'))
 })
 
-test('an op that leaves a load-test run pointing at nothing is named', () => {
+// The gate every edit goes through (refuseNewProblems) refuses this now, so the judge is asked about it directly.
+test('a result that leaves a load-test run pointing at nothing is named', () => {
   const run = { levels: [{ load: 1, overall: {}, objects: { mail: {} }, connections: [] }] } as unknown as Fixture['runs'][string]
-  const withRun: Fixture = { ...fixture, runs: { quiet: run } }
-  const drop: Maker = () => ({ op: 'bad', label: 'bad', run: model => {
-    const { mail: _, ...objects } = model.objects
-    return { ...model, objects, connections: model.connections.filter(c => c.from !== 'mail' && c.to !== 'mail') }
-  } })
-  const found = new Set(play(withRun, 1, 6, { planted: drop }).findings.map(f => `${f.rule}:${f.op}`))
-  assert.ok(found.has('run-dangling:bad'))
+  const before = shop()
+  const { mail: _, ...objects } = before.objects
+  const after = { ...before, objects, connections: before.connections.filter(c => c.from !== 'mail' && c.to !== 'mail') }
+  const found = judgeAccepted(before, after, { op: 'bad', label: 'bad', run: m => m }, { quiet: run }).map(v => `${v.rule}:${v.op}`)
+  assert.ok(found.includes('run-dangling:bad'))
 })
 
 test('an op that is fine finds nothing', () => {
