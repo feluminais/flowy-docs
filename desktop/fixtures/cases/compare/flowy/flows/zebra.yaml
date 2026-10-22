@@ -1,0 +1,5 @@
+name: Zebra
+view: shop
+steps:
+  - { from: web, to: api, text: Sends the order }
+  - { from: api, to: web, text: Answers }
