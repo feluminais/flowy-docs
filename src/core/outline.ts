@@ -3,6 +3,7 @@
  * by where they play, and the keys that move about the tree. Nothing here draws, so the canvas and the desktop app each draw
  * these rows and agree on what is on them. desktop/Flowy.Core/Outline.cs is a port, and desktop/fixtures/outline.ts keeps the two equal.
  */
+import { compareOf, linkedIds } from './compare.ts'
 import { FILE_KINDS, idOfPath } from './filekinds.ts'
 import type { Problem } from './problem.ts'
 import { getObject, isExternal, ROOT } from './model.ts'
@@ -28,6 +29,8 @@ export type OutlineRow = {
   flows: number
   /** A flow's number of steps. */
   steps?: number
+  /** A flow row only: whether the flow is in a pair, by tagging a flow that is there or being tagged by one (see linkedIds). */
+  linked?: boolean
   /** A problem in it, or in anything inside it. */
   problem: boolean
   /** Whether rows can sit below it. */
@@ -154,6 +157,9 @@ function problemsIn(model: Model, problems: readonly Problem[]): { shapes: Set<s
 // and for ordinary names, and a name in a script with unusual case rules may match in one reader and not the other.
 const lower = (text: string) => text.toLowerCase()
 
+/** The flows that are in a pair (see linkedIds). The named type lets a Flow, whose other keys are open, pass as something with a `compare`. */
+const linkedFlows = (model: Model): Set<string> => linkedIds(model.flows as Record<string, { name?: string; compare?: unknown }>)
+
 /**
  * The rows to draw, top to bottom. The project is the first row; below an expanded shape come its shapes, then its flows.
  * With a filter, only matching rows and the shapes holding them show, all open.
@@ -164,6 +170,7 @@ export function outline(model: Model, options: OutlineOptions): Outline {
   const tree = treeOf(model, editing)
   const counts = countsOf(tree)
   const bad = problemsIn(model, problems)
+  const linked = linkedFlows(model)
   const root = counts.get(ROOT)!
   const totals = { shapes: root.shapes, flows: root.flows, problems: problems.length }
 
@@ -196,7 +203,7 @@ export function outline(model: Model, options: OutlineOptions): Outline {
       const name = flow.name || id
       rows.push({
         key: `flow:${id}`, kind, id, parent, depth, name, external: false, shapes: 0, flows: 0, steps: flow.steps.length,
-        problem: bad.flows.has(id), expandable: false, expanded: false, match: matches(id, name),
+        linked: linked.has(id), problem: bad.flows.has(id), expandable: false, expanded: false, match: matches(id, name),
       })
       continue
     }
@@ -226,24 +233,96 @@ export function expandTo(model: Model, id: string, expanded: ReadonlySet<string>
   return next
 }
 
-export type FlowRef = { id: string; name: string; steps: number; view: string }
+export type FlowRef = { id: string; name: string; steps: number; view: string; /** In a pair, see OutlineRow.linked. */ linked: boolean }
 /** The flows that play in one view, with where that view is: its path of names from the top, without the project. */
 export type FlowGroup = { view: string; name: string; path: string[]; flows: FlowRef[] }
 export type FlowGroups = { here: FlowRef[]; elsewhere: FlowGroup[]; total: number }
 
+/**
+ * `ids` (the flows of one view, in name order) with partners together: each flow that tags another in the list goes right after the one it tags, so a chain
+ * A <- B <- C reads A, B, C, and the flows that tag one flow follow it in key order. A group of partners sits where its first member sat, and its oldest
+ * (a flow that tags none of the group) comes first. Flows that tag nothing and are tagged by nothing do not move.
+ */
+function withPartners(model: Model, ids: string[]): string[] {
+  const listed = new Set(ids)
+  const target = (id: string): string | undefined => {
+    const to = compareOf(model.flows[id].compare)?.with
+    return to !== undefined && to !== id && listed.has(to) ? to : undefined
+  }
+  const newer = new Map<string, string[]>() // by the flow they tag, in key order
+  for (const id of Object.keys(model.flows)) {
+    const to = listed.has(id) ? target(id) : undefined
+    if (to === undefined) continue
+    const list = newer.get(to)
+    if (list) list.push(id)
+    else newer.set(to, [id])
+  }
+  const done = new Set<string>()
+  const out: string[] = []
+  const place = (root: string) => {
+    // A stack, not recursion: a long chain must not overflow, and a pair that tag each other must not loop.
+    const stack = [root]
+    while (stack.length > 0) {
+      const id = stack.pop()!
+      if (done.has(id)) continue
+      done.add(id)
+      out.push(id)
+      const below = newer.get(id) ?? []
+      for (let i = below.length - 1; i >= 0; i--) stack.push(below[i])
+    }
+  }
+  for (const id of ids) {
+    if (done.has(id)) continue
+    // Everything joined to this flow by a tag, so the group is placed whole at the spot its first member sorts to.
+    const group = new Set([id])
+    for (const member of group) for (const next of [target(member), ...(newer.get(member) ?? [])]) if (next !== undefined) group.add(next)
+    const members = ids.filter(m => group.has(m)) // in name order
+    const oldest = members.filter(m => target(m) === undefined)
+    for (const root of oldest) place(root)
+    for (const m of members) place(m) // a loop of tags has no oldest: it starts at its first member
+  }
+  // The group a flow is in: everything joined to it by a tag, found once for the first flow of the group in the list.
+  const joined = new Map<string, string[]>()
+  for (const id of ids) {
+    const to = target(id)
+    if (to === undefined) continue
+    for (const [a, b] of [[id, to], [to, id]]) joined.set(a, [...(joined.get(a) ?? []), b])
+  }
+  for (const id of ids) {
+    if (done.has(id)) continue
+    if (!joined.has(id)) {
+      done.add(id)
+      out.push(id)
+      continue
+    }
+    const group: string[] = []
+    const seen = new Set([id])
+    for (let i = 0, queue = [id]; i < queue.length; i++) {
+      group.push(queue[i])
+      for (const next of joined.get(queue[i]) ?? []) if (!seen.has(next)) { seen.add(next); queue.push(next) }
+    }
+    const members = ids.filter(m => seen.has(m)) // in name order
+    const roots = members.filter(m => target(m) === undefined)
+    for (const root of roots.length > 0 ? roots : [members[0]]) place(root)
+    for (const m of members) place(m) // a loop of tags has no oldest: whatever is left follows
+  }
+  return out
+}
+
 /** The flows that play in `view`, and all the others grouped by the view they play in, in tree order. */
 export function flowGroups(model: Model, view: string, { editing = false }: { editing?: boolean } = {}): FlowGroups {
   const tree = treeOf(model, editing)
+  const linked = linkedFlows(model)
   const ref = (id: string): FlowRef => {
     const flow = model.flows[id]
-    return { id, name: flow.name || id, steps: flow.steps.length, view: flow.view }
+    return { id, name: flow.name || id, steps: flow.steps.length, view: flow.view, linked: linked.has(id) }
   }
-  const here = (tree.flowsIn.get(view) ?? []).map(ref)
+  const listed = (view: string) => withPartners(model, tree.flowsIn.get(view) ?? []).map(ref)
+  const here = listed(view)
   const elsewhere: FlowGroup[] = []
   for (const v of [ROOT, ...tree.preorder]) {
-    const ids = tree.flowsIn.get(v)
-    if (v === view || !ids) continue
-    elsewhere.push({ view: v, name: nameOf(model, v), path: chain(model, v).reverse().slice(1).map(id => nameOf(model, id)), flows: ids.map(ref) })
+    if (v === view || !tree.flowsIn.has(v)) continue
+    elsewhere.push({ view: v, name: nameOf(model, v), path: chain(model, v).reverse().slice(1).map(id => nameOf(model, id)), flows: listed(v) })
   }
   return { here, elsewhere, total: here.length + elsewhere.reduce((n, g) => n + g.flows.length, 0) }
 }
