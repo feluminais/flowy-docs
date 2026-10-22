@@ -4,7 +4,7 @@ import type { Edge, EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import type { Mark } from '../../src/core/failures.ts'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
-import { FailBadge } from './Box.tsx'
+import { ChangeMarksContext, changeAt, FailBadge } from './Box.tsx'
 import { lineEnds, ports, sizeOf } from './graph.ts'
 import { clip, placeLabels } from './labels.ts'
 import type { Spot } from './labels.ts'
@@ -81,6 +81,7 @@ export function Line({ id, source, target, label, markerEnd, interactionWidth, d
   const width = useContext(LineWidthsContext).get(id)
   const mark = useContext(LineMarksContext).get(id)
   const spot = useContext(LabelSpotsContext).get(id)
+  const change = changeAt(useContext(ChangeMarksContext)?.lines, id)
   const a = useInternalNode(source)
   const b = useInternalNode(target)
   if (!a || !b) return null
@@ -92,6 +93,7 @@ export function Line({ id, source, target, label, markerEnd, interactionWidth, d
   const [labelX, labelY] = spot && data?.lift !== true ? [spot.x, spot.y] : [x + aside.x, y + aside.y]
   return (
     <>
+      {change && <path className="change-line" data-change={change} d={path} fill="none" />}
       <BaseEdge id={id} path={path} label={text} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
       {mark && (
         <EdgeLabelRenderer>

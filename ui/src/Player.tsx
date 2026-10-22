@@ -1,10 +1,12 @@
 import { animationOf, outcomeLine } from '../../src/core/animation.ts'
 import { LEGEND } from '../../src/core/captions.ts'
 import type { Caption, Progress } from '../../src/core/captions.ts'
+import type { Change } from '../../src/core/flowdiff.ts'
 import type { Flow, Model } from '../../src/core/model.ts'
 import type { GroupKind, Stop } from '../../src/core/structure.ts'
 import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
-import { Description } from './Box.tsx'
+import { changeAt, Description } from './Box.tsx'
+import { CHANGE_NAMES } from './compare.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
 import type { ReactNode } from 'react'
@@ -38,6 +40,8 @@ type Props = {
   repeat: boolean
   /** The flow the reader came from and the step they left it at, when they opened this one from it. */
   trail?: { name: string; step: number }
+  /** What differs from the other flow of a comparison, by file step number: the bar's cell for a step takes the mark's colour. */
+  changes?: Record<number, Change>
   onStep: (stop: number) => void
   onAuto: () => void
   onReplay: () => void
@@ -52,13 +56,23 @@ type Props = {
 
 const IN_A_PANE = 'Not while comparing'
 
+/** The mark of a stop's cell: that of its steps when they agree, else Changed (a stop of parallel steps can hold a new one and an old one). */
+function changeOfStop(stop: Stop | undefined, changes: Record<number, Change>): Change | undefined {
+  const kinds = new Set((stop?.steps ?? []).flatMap(i => changeAt(changes, i) ?? []))
+  return kinds.size === 0 ? undefined : kinds.size === 1 ? [...kinds][0] : 'changed'
+}
+
 /** How far a flow has got: a cell a stop, a branch's lanes on rows of their own, and a bracket under each group. */
-function Bar({ progress, now }: { progress: Progress; now: number }) {
+function Bar({ progress, now, stops, changes }: { progress: Progress; now: number; stops: Stop[]; changes?: Record<number, Change> }) {
   const columns = `repeat(${progress.cols}, 1fr)`
   return (
     <div>
       <div className="progress" style={{ gridTemplateColumns: columns, gridTemplateRows: `repeat(${progress.rows}, 4px)` }}>
-        {progress.cells.map(c => <span key={c.stop} title={c.title || undefined} className={c.stop <= now ? 'done' : undefined} style={{ gridColumn: c.col + 1, gridRow: c.row + 1 }} />)}
+        {progress.cells.map(c => {
+          const change = changes && changeOfStop(stops[c.stop], changes)
+          const title = [c.title, change && CHANGE_NAMES[change]].filter(Boolean).join(', ')
+          return <span key={c.stop} title={title || undefined} data-change={change} className={c.stop <= now ? 'done' : undefined} style={{ gridColumn: c.col + 1, gridRow: c.row + 1 }} />
+        })}
       </div>
       {progress.brackets.length > 0 && (
         <div className="brackets" style={{ gridTemplateColumns: columns }}>
@@ -73,7 +87,7 @@ function Bar({ progress, now }: { progress: Progress; now: number }) {
 }
 
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
-export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, compare, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, changes, compare, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
@@ -111,7 +125,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
         <div className="tabs">{caption.tabs.map((t, i) => <span key={i} className={i === caption.tab ? 'tab on' : 'tab'}>{t}</span>)}</div>
       )}
       {caption.text !== '' && <p className="group-text">{caption.text}</p>}
-      <Bar progress={progress} now={stop} />
+      <Bar progress={progress} now={stop} stops={stops} changes={changes} />
       <StateKey marks={marks} />
       {here.steps.map((i, n) => {
         const step = flow.steps[i]

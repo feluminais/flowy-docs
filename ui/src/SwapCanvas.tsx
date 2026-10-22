@@ -3,9 +3,10 @@ import type { CSSProperties, Ref } from 'react'
 import { Controls, ReactFlow, useReactFlow } from '@xyflow/react'
 import type { ColorMode, FitViewOptions } from '@xyflow/react'
 import type { LineStyle, Model } from '../../src/core/model.ts'
+import type { SideMarks } from '../../src/core/flowdiff.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import { usesStates } from '../../src/core/states.ts'
-import { Box, Frame } from './Box.tsx'
+import { Box, ChangeMarksContext, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import type { Picked } from './compare.ts'
 import { BOX, FRAME, fitOptions, isStepLine, lineId } from './graph.ts'
@@ -49,6 +50,8 @@ type Props = {
   start?: { flow: string; step: number }
   /** What the shared Details panel shows. */
   shown: Shown | undefined
+  /** What differs from the other flow, for each of `flows` in the same order. Without it (the switch is off) nothing is marked. */
+  marks?: [SideMarks, SideMarks]
   onPick: (picked: Picked) => void
   onClosePanel: () => void
   onEmpty: () => void
@@ -66,7 +69,7 @@ type Props = {
  * drew fade out, and the lines fade out first and back in once the boxes have settled. The glide is a CSS transition on the boxes' transform, so a big flow costs React two renders,
  * not one for every frame. A swap during a swap goes back from where it is: the transitions retarget and nothing is left half faded. Under reduced motion it cuts.
  */
-export function SwapCanvas({ model, paneId, flows, index, start, shown, onPick, onClosePanel, onEmpty, fitKey, colorMode, problems, lines, still, ref }: Props) {
+export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, onPick, onClosePanel, onEmpty, fitKey, colorMode, problems, lines, still, ref }: Props) {
   const own = (i: 0 | 1) => index === i
   const selectedBox = shown?.kind === 'object' ? shown.id : undefined
   const selectedLine = shown?.kind === 'line' && shown.from !== undefined && shown.to !== undefined ? lineId(shown.from, shown.to) : undefined
@@ -143,45 +146,47 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, onPick, 
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
           <LabelSpotsContext value={spots}>
-            <ReactFlow
-              id={`swap-${paneId}`}
-              nodes={[...frames, ...boxes]}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              minZoom={0.2}
-              colorMode={colorMode}
-              defaultMarkerColor="var(--edge)"
-              nodesDraggable={false}
-              nodesConnectable={false}
-              zoomOnDoubleClick={false}
-              deleteKeyCode={null}
-              onNodesChange={changes => {
-                a.onNodesChange(changes)
-                b.onNodesChange(changes)
-              }}
-              onNodeClick={(_, node) => {
-                if (node.type === 'box') onPick({ kind: 'object', id: node.id })
-              }}
-              onEdgeClick={(_, e) => {
-                if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view: target.view })
-              }}
-              onEdgeMouseEnter={(_, e) => target.setHovered(e.id)}
-              onEdgeMouseLeave={() => target.setHovered(undefined)}
-              onPaneClick={onEmpty}
-              onInit={instance => {
-                fitNow.current = options => void instance.fitView(options)
-              }}
-            >
-              <Camera count={boxes.length + frames.length} fitKey={`${paneId} ${now.cuts} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
-              <SwapCamera go={now.phase === 'glide' ? now.run : 0} ids={[...target.frame.map(() => `${FRAME}${index}`), ...target.nodes.map(n => n.id)]} />
-              <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
-              {settled && <PaneMotions p={target} />}
-            </ReactFlow>
+            <ChangeMarksContext value={marks?.[index]}>
+              <ReactFlow
+                id={`swap-${paneId}`}
+                nodes={[...frames, ...boxes]}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                minZoom={0.2}
+                colorMode={colorMode}
+                defaultMarkerColor="var(--edge)"
+                nodesDraggable={false}
+                nodesConnectable={false}
+                zoomOnDoubleClick={false}
+                deleteKeyCode={null}
+                onNodesChange={changes => {
+                  a.onNodesChange(changes)
+                  b.onNodesChange(changes)
+                }}
+                onNodeClick={(_, node) => {
+                  if (node.type === 'box') onPick({ kind: 'object', id: node.id })
+                }}
+                onEdgeClick={(_, e) => {
+                  if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view: target.view })
+                }}
+                onEdgeMouseEnter={(_, e) => target.setHovered(e.id)}
+                onEdgeMouseLeave={() => target.setHovered(undefined)}
+                onPaneClick={onEmpty}
+                onInit={instance => {
+                  fitNow.current = options => void instance.fitView(options)
+                }}
+              >
+                <Camera count={boxes.length + frames.length} fitKey={`${paneId} ${now.cuts} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
+                <SwapCamera go={now.phase === 'glide' ? now.run : 0} ids={[...target.frame.map(() => `${FRAME}${index}`), ...target.nodes.map(n => n.id)]} />
+                <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
+                {settled && <PaneMotions p={target} />}
+              </ReactFlow>
+            </ChangeMarksContext>
           </LabelSpotsContext>
         </LineStyleContext>
       </div>
-      <PanePlayer model={model} p={target} />
+      <PanePlayer model={model} p={target} marks={marks?.[index]} />
     </section>
   )
 }
