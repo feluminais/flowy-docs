@@ -30,7 +30,7 @@ import { connectionsOf, locate, moveBetween } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { addressChange, readHash, runAddress, toHash } from './hash.ts'
-import { compareOff, firstLinked, flipped, fromAddress, pairOf, playable } from './compare.ts'
+import { compareOff, firstLinked, flipped, fromAddress, noteOf, noteOff, pairOf, playable, unsaved } from './compare.ts'
 import type { Compare } from './compare.ts'
 import { CompareView } from './CompareView.tsx'
 import type { CompareHandle } from './CompareView.tsx'
@@ -71,6 +71,7 @@ import { createHistoryStore } from './historystore.ts'
 import { clearOutcome } from './historyclient.ts'
 import type { HistoryClient } from './historyclient.ts'
 import { useModel } from './useModel.ts'
+import type { Tag } from './useModel.ts'
 import { useEditSession } from './useEditSession.ts'
 import { usePerfRun } from './usePerfRun.ts'
 import { usePlayback, usePlayer } from './usePlayer.ts'
@@ -103,11 +104,11 @@ function pick(rec: Recording, id: string): Recording {
 }
 
 export function App() {
-  const { loaded, banner, edit, undo, redo, restore, history, changes, live } = useModel()
+  const { loaded, banner, edit, undo, redo, restore, tag, history, changes, live } = useModel()
   return (
     <div className="app">
       {banner && <div className="banner" role="alert">{banner}</div>}
-      {loaded && <Reader {...loaded} edit={edit} undo={undo} redo={redo} restore={restore} historyApi={history} changes={changes} live={live} readOnly={!live || banner !== undefined} broken={banner !== undefined} />}
+      {loaded && <Reader {...loaded} edit={edit} undo={undo} redo={redo} restore={restore} tag={tag} historyApi={history} changes={changes} live={live} readOnly={!live || banner !== undefined} broken={banner !== undefined} />}
     </div>
   )
 }
@@ -134,8 +135,8 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 
 type Back = () => Promise<string | undefined>
 
-function Reader({ model, problems, codeBase, runs, runProblems, failureProblems, edit, undo, redo, restore, historyApi, changes, live, readOnly, broken }: Loaded & {
-  edit: Edit; undo: Back; redo: Back; restore: Restore; historyApi?: HistoryClient; changes: number; live: boolean; readOnly: boolean; broken: boolean
+function Reader({ model, problems, codeBase, runs, runProblems, failureProblems, edit, undo, redo, restore, tag, historyApi, changes, live, readOnly, broken }: Loaded & {
+  edit: Edit; undo: Back; redo: Back; restore: Restore; tag: Tag; historyApi?: HistoryClient; changes: number; live: boolean; readOnly: boolean; broken: boolean
 }) {
   const colorMode = useColorMode()
   // A link opens where its address says (see hash.ts). The effects below keep the address up to date.
@@ -152,6 +153,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [compareStart, setCompareStart] = useState<{ flow: string; step: number }>()
   const [picking, setPicking] = useState(false) // the popover of the player's Compare button
   const compareRef = useRef<CompareHandle>(null)
+  // The note on the pair: what is typed in its editor is kept here, not in the strip, so it survives the strip going away (the Performance tab opening over the panes) and so leaving can ask
+  // first. It belongs to one pair; another pair starts with none. A pair with no tag has no file to hold it, so there it is a draft that only lives as long as the comparison.
+  const [noteDraft, setNoteDraft] = useState<{ pair: string; text: string }>()
+  const pair = compare && `${compare.kind}:${[compare.a, compare.b].sort().join('|')}`
+  const draft = noteDraft && noteDraft.pair === pair ? noteDraft.text : undefined
+  const dirty = compare !== undefined && unsaved(draft, noteOf(compare.kind === 'flow' ? model.flows : runs, compare.a, compare.b).text)
+  const dirtyRef = useRef(false) // read by handlers an earlier render made, which are the ones a prompt holds on to
+  dirtyRef.current = dirty
+  const [asking, setAsking] = useState<{ leave: () => void }>() // what to do once the reader says to discard the note
   const [flagged, setFlagged] = useState<string[]>([]) // the shapes the row of the Used by panel in focus names
   // The left-hand panel's tab (the navigator: Explorer, Flows, Performance, Failures or YAML), and whether the right-hand Details panel was opened from its rail. Details shows
   // `side`, or the level you are in, so a `side` opens it too. The Performance and Failures panels are tabs of the navigator too, and an address that names one opens on it.
@@ -358,7 +368,23 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const copyFailures = (format: 'markdown' | 'csv') => {
     if (analysis) void copyText(table(model, analysis, format), format === 'csv' ? 'Copied this analysis as CSV.' : 'Copied this analysis as a table.')
   }
+  /** Runs `leave`, but a note that isn't saved asks first. True when it asked instead: `leave` then waits for Discard, and a caller must stop. */
+  const unlessDraft = (leave: () => void): boolean => {
+    if (!dirtyRef.current) return false
+    setAsking({ leave })
+    return true
+  }
+  const discardNote = () => {
+    const leave = asking?.leave
+    dirtyRef.current = false
+    setNoteDraft(undefined)
+    setAsking(undefined)
+    leave?.()
+  }
   const go = (id: string) => {
+    if (!unlessDraft(() => goNow(id))) goNow(id)
+  }
+  const goNow = (id: string) => {
     cancelOpen()
     zoom.cancelMotion()
     setViewId(id)
@@ -377,6 +403,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }
   /** Play a flow where it plays (going to its level first), or while editing open it to edit. */
   const openFlow = (id: string) => {
+    if (unlessDraft(() => openFlow(id))) return
     const f = model.flows[id]
     if (f.view !== view) go(f.view)
     setCompare(undefined)
@@ -392,7 +419,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (playing?.auto) setPlaying({ ...playing, auto: false }) // it must not start up again behind the panes, or when the comparison closes
     setCompare(pairOf(model, id, other))
   }
+  // Close, Esc and C all come here. With a note that isn't saved they ask first (see the prompt below); one more of them while it asks is a Keep.
   const closeCompare = () => {
+    if (asking) return setAsking(undefined)
+    if (unlessDraft(closeCompare)) return
     setCompare(undefined)
     setSide(undefined) // what it showed was clicked in a pane
   }
@@ -411,8 +441,21 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (!flow) setPicking(false) // the popover hangs on the player
   }, [flow])
   useEffect(() => {
-    if (!compare) setCompareStart(undefined)
+    if (!compare) {
+      setCompareStart(undefined)
+      setNoteDraft(undefined)
+    }
   }, [compare])
+  useEffect(() => {
+    if (!dirty) setAsking(undefined)
+  }, [dirty])
+  // Closing the tab or reloading with a note that isn't saved: the browser asks (it words the question itself).
+  useEffect(() => {
+    if (!dirty) return
+    const ask = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener('beforeunload', ask)
+    return () => window.removeEventListener('beforeunload', ask)
+  }, [dirty])
   useEffect(() => {
     if (fromAddress(model, readHash(location.hash).compare).unplayable) setNotice("That flow can't play yet.") // a link to a comparison that can't open
   }, [])
@@ -432,7 +475,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }
   /** Show it: play the flow that tells a failure, at the step it names (counted from 1), or open it to edit. */
   const showFlow = (id: string, step?: number) => {
-    const f = Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
+    if (unlessDraft(() => showFlow(id, step))) return
+    const f =Object.hasOwn(model.flows, id) ? model.flows[id] : undefined
     if (!f || f.steps.length === 0 || !isView(model, f.view)) return setNotice("That flow can't play yet.")
     closeFailures()
     if (f.view !== view) go(f.view)
@@ -515,6 +559,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     else own(style === projectLines ? undefined : style) // the project's own style isn't kept as a pick: the screen follows the project again
   }
   const toggleEdit = () => {
+    if (unlessDraft(toggleEdit)) return
     quiet.current = true // E isn't a step to go back to
     session.toggleEditMode()
     leave('performance') // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
@@ -548,6 +593,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (c) askDelete([{ line: { from: c.from, to: c.to, label: c.label ?? '' } }], close)
   }
   const jump = (p: Problem) => {
+    if (unlessDraft(() => jump(p))) return
     const spot = locate(model, p)
     go(spot.view)
     if (spot.failure) {
@@ -606,7 +652,14 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     const follow = () => {
       quiet.current = true
       const named = readHash(location.hash)
-      go(named.view)
+      // The browser has already moved on, and a Back or a typed address can't be held back, so unlike every other way out this one can't ask: the note is lost, and the reader is told.
+      // (Taking the address back and asking would need to know which way the reader went, which the History API doesn't say.)
+      const keeps = fromAddress(model, named.compare).compare
+      if (dirtyRef.current && !(keeps && compare && keeps.kind === compare.kind && [keeps.a, keeps.b].sort().join('|') === [compare.a, compare.b].sort().join('|'))) {
+        setNotice('The note was discarded')
+        setNoteDraft(undefined)
+      }
+      goNow(named.view)
       if (named.flow !== undefined) {
         // Back arrives twice (popstate, then hashchange), and the second must not undo the first: a flow already playing stays where it is.
         if (playing?.flow === named.flow) setPlaying(playing)
@@ -774,7 +827,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 didSomethingElse()
                 show(picked)
               }}
-              onClosePanel={closeDetails} onEmpty={close} onMode={mode => setCompare(c => c && { ...c, mode })} onFlip={() => setCompare(c => c && flipped(c))} onClose={closeCompare} />
+              onClosePanel={closeDetails} onEmpty={close} onMode={mode => setCompare(c => c && { ...c, mode })} onFlip={() => setCompare(c => c && flipped(c))} onClose={closeCompare}
+              note={{
+                off: noteOff(live, readOnly), draft, onDraft: text => setNoteDraft(text === undefined || pair === undefined ? undefined : { pair, text }),
+                onSave: (id, value) => tag(comparing.kind, id, value), onNotice: setNotice,
+              }} />
           ) : (
             <LineStyleContext value={lines}>
               <LineWidthsContext value={widths}>
@@ -875,6 +932,13 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             }} />
           )}
           {shortcuts && <Shortcuts editable={live && !readOnly} performance={canPerf} failures onClose={() => setShortcuts(false)} />}
+          {asking && (
+            <div className="draft-ask" role="alertdialog" aria-label="Discard the note?">
+              <span>Discard the note?</span>
+              <button onClick={discardNote}>Discard</button>
+              <button className="primary" autoFocus onClick={() => setAsking(undefined)}>Keep</button>
+            </div>
+          )}
           {notice && (
             <div className="notice" role="status">
               <span>{notice}</span>

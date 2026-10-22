@@ -1104,6 +1104,32 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .compare-bar .marks-label { padding: 0 4px 0 6px; color: var(--muted); font-size: 12.5px; }
 .compare-bar .keyrow { margin-left: 10px; }
 /*
+ * The note under the panes: a row of its own, so the diagrams keep their size and lose only the height it takes. The text is Markdown like a description; the buttons sit beside it,
+ * and wrap under it when the strip is narrow. A note too long for the strip scrolls inside it.
+ */
+.compare-note { flex: none; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px 12px; box-sizing: border-box; max-height: 40%; overflow: auto; padding: 8px 12px 10px; border-top: 1px solid var(--line); background: var(--bg); }
+.compare-note .note-body { flex: 1 1 320px; min-width: 0; }
+.compare-note .note-text { font-size: 13.5px; }
+.compare-note textarea { display: block; width: 100%; box-sizing: border-box; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: var(--hover); color: var(--fg); font-size: 13.5px; line-height: 1.5; resize: vertical; }
+.compare-note textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--tint); }
+.compare-note .note-actions { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin-left: auto; }
+.compare-note .note-confirm { margin-right: 6px; color: var(--muted); font-size: 13px; }
+.compare-note .note-confirm b { color: var(--fg); font-weight: 600; }
+.compare-note button, .draft-ask button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; box-sizing: border-box; min-height: 30px; padding: 0 10px;
+  border: 0; border-radius: 6px; background: none; color: var(--fg); line-height: 1; cursor: pointer;
+}
+.compare-note button.icon { width: 30px; padding: 0; }
+.compare-note button svg { color: var(--muted); position: relative; top: 1px; }
+.compare-note button:hover:not(:disabled, .primary), .draft-ask button:hover:not(:disabled, .primary) { background: var(--hover); }
+.compare-note button:disabled { cursor: default; opacity: 0.4; }
+.compare-note button:focus-visible, .draft-ask button:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.compare-note button.primary, .draft-ask button.primary { background: var(--accent); color: var(--bg); font-weight: 600; }
+.compare-note button.primary:hover:not(:disabled), .draft-ask button.primary:hover:not(:disabled) { opacity: 0.88; }
+/* Asked when a note that isn't saved is about to be lost. Over the top of the canvas, under the bar, so the note it is about stays in view, whatever the canvas is showing. */
+.draft-ask { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); z-index: 9; display: flex; align-items: center; gap: 4px; padding: 6px 8px 6px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); box-shadow: 0 4px 16px #0003; }
+.draft-ask span { margin-right: 8px; font-weight: 600; }
+/*
  * Change marks (CompareKey): one colour and dash for each kind of change, shared by the outline round a shape, the halo along a line, a cell of the player's progress bar and the
  * key's swatch, so the key is the mark. They only draw: the outline sits 5px outside the shape and the badge on its corner, so nothing moves. Selection, the lit step and the
  * state outline sit on the shape itself, and the failure badges on the other corners, so none of them is covered.
