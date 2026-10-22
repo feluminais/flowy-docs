@@ -52,6 +52,7 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
   player names the part too ("Scheduler in Core"), so two steps on two parts of one shape don't read
   as a round trip.
+- Every flow row in the Flows tab and the Explorer has a Compare button, and a flow that is half of a pair has a link mark. See [Compare](compare.md).
 - A step can carry an `animation:`. When you arrive at it, something runs
   along its line: `call` goes and comes back while the sender waits, `send` and `event` go one
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
@@ -110,7 +111,7 @@ checks, and write the same text, so a change made in one looks the same in git a
   to (or the same shape again, for a step it does on its own), type what happens and press Enter.
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
   delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
-  the flow for editing instead of playing it.
+  the flow for editing instead of playing it. A flow's form has **Compare with**, which links it to an older flow ([Compare](compare.md#making-a-pair)).
 - Each step's **Animation** is a form of drawn choices: the way it travels (None, Send, Call, Callback, Event) and the way its request ends (Arrives, Fail,
   Timeout, Lost, Rejected, Intercepted, Duplicated, Delayed), then a share of the requests, a reason, and for an interception the shape that takes it or a name. A choice
   the step cannot have is dimmed with the reason in its tooltip: an outcome needs a way to travel, Timeout needs a call, and a callback or a step on one shape has
