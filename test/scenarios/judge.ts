@@ -24,6 +24,19 @@ export const RULES = [
   'mode-run-link', // a failure mode now names a run that is not there
   'reader-crash', // something that reads the model throws on the result
   'unsaveable', // the result can't be written to files and read back
+  // MCP only (see mcp-play.ts)
+  'tool-crash', // a tool answered with an error that is a bug in the server, not a refusal
+  'garbled-answer', // an answer that says undefined or [object Object]
+  'wrote-on-error', // a call that was refused and still changed a file
+  'read-wrote', // a call that only reads and changed a file
+  'read-failed', // a read of something that is there, refused
+  'read-wrong', // a read whose answer does not match the folder
+  'echo-refused', // what a tool showed, sent back as it is, was refused
+  'echo-changed', // what a tool showed, sent back as it is, changed a file
+  'new-problem', // a write that was accepted and left the folder with a problem it did not have
+  'accepts-refused', // the tool took an edit that the op refuses
+  'refuses-accepted', // the tool refused an edit that the op takes, for no reason the tool is meant to have
+  'differs-from-op', // the tool and the op were both accepted and left different files
 ] as const
 export type Rule = (typeof RULES)[number]
 

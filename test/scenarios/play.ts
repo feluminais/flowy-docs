@@ -8,7 +8,8 @@ import { MAKERS } from './moves.ts'
 import type { Maker } from './moves.ts'
 import { Rng } from './rng.ts'
 
-export type Fixture = { name: string; model: Model; runs: Record<string, Run> }
+/** `dir` is the folder the model was read from, when there is one: the MCP scenarios copy it. */
+export type Fixture = { name: string; model: Model; runs: Record<string, Run>; dir?: string }
 
 /** A violation with where it happened: the seed to play again, and every move up to and including the one that broke. */
 export type Finding = Violation & { fixture: string; seed: number; step: number; trace: string[] }

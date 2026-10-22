@@ -17,6 +17,8 @@ export type Move = {
   /** The call in words, for the trace. */
   label: string
   run: (model: Model) => Model
+  /** The MCP tool that makes the same edit, and what an AI sends it. Left out for an edit no tool makes. */
+  call?: { tool: string; args: Record<string, unknown> }
   /** What must hold when the op was accepted, as a sentence about what is wrong when it does not. */
   expect?: (before: Model, after: Model) => string | undefined
 }
@@ -108,7 +110,7 @@ export const MAKERS: Record<string, Maker> = {
     const input: ops.ObjectInput = { id, type: rng.pick(OBJECT_TYPES), name: `Shape ${id}`, ...(rng.chance(0.7) ? { in: shape(m, rng) } : {}) }
     return {
       op: 'putObject', label: `putObject ${id} (${input.type}${input.in === undefined ? '' : ` in ${input.in || '""'}`})`,
-      run: model => ops.putObject(model, input),
+      call: { tool: 'put_object', args: input }, run: model => ops.putObject(model, input),
       expect: (_, after) => (Object.hasOwn(after.objects, id) ? undefined : `${id} was not added`),
     }
   },
@@ -118,12 +120,12 @@ export const MAKERS: Record<string, Maker> = {
       { id, tech: 'Rust' }, { id, description: 'Changed.' }, { id, in: shape(m, rng) }, { id, in: '' }, { id, color: 'blue' }, { id, shape: '' },
       { id, name: `Renamed ${rng.int(9)}` }, { id, type: rng.pick(OBJECT_TYPES) }, { id, external: true }, { id, code: ['src/x.ts'] },
     ])
-    return { op: 'putObject', label: `putObject ${JSON.stringify(input)}`, run: model => ops.putObject(model, input) }
+    return { op: 'putObject', label: `putObject ${JSON.stringify(input)}`, call: { tool: 'put_object', args: input }, run: model => ops.putObject(model, input) }
   },
   deleteObject: (m, rng) => {
     const id = shape(m, rng)
     return {
-      op: 'deleteObject', label: `deleteObject ${id}`, run: model => ops.deleteObject(model, id),
+      op: 'deleteObject', label: `deleteObject ${id}`, call: { tool: 'delete_object', args: { id } }, run: model => ops.deleteObject(model, id),
       expect: (before, after) => gone(before, after, [id]),
     }
   },
@@ -138,13 +140,13 @@ export const MAKERS: Record<string, Maker> = {
     const { from, to } = line(m, rng)
     const label = rng.chance(0.6) ? `calls ${rng.int(5)}` : undefined
     return {
-      op: 'connect', label: `connect ${from} → ${to}${label ? ` "${label}"` : ''}`, run: model => ops.connect(model, { from, to, label }),
+      op: 'connect', label: `connect ${from} → ${to}${label ? ` "${label}"` : ''}`, call: { tool: 'connect', args: { from, to, label } }, run: model => ops.connect(model, { from, to, label }),
       expect: (_, after) => (after.connections.some(c => c.from === from && c.to === to) ? undefined : 'the line is not there'),
     }
   },
   disconnect: (m, rng) => {
     const l = line(m, rng)
-    return { op: 'disconnect', label: `disconnect ${l.from} → ${l.to}`, run: model => ops.disconnect(model, l) }
+    return { op: 'disconnect', label: `disconnect ${l.from} → ${l.to}`, call: { tool: 'disconnect', args: l }, run: model => ops.disconnect(model, l) }
   },
   removeConnection: (m, rng) => {
     const l = line(m, rng)
@@ -160,7 +162,7 @@ export const MAKERS: Record<string, Maker> = {
     const view = rng.chance(0.05) ? shape(m, rng) : rng.pick(['root', ...objectIds(m)].filter(v => isView(m, v)))
     const input: ops.FlowInput = { id, name: `Flow ${id}`, view, steps: steps(m, rng, view) }
     return {
-      op: 'putFlow', label: `putFlow ${id} in ${input.view || '""'} (${input.steps.length} steps)`, run: model => ops.putFlow(model, input),
+      op: 'putFlow', label: `putFlow ${id} in ${input.view || '""'} (${input.steps.length} steps)`, call: { tool: 'put_flow', args: input }, run: model => ops.putFlow(model, input),
       expect: (_, after) => (Object.hasOwn(after.flows, id) ? undefined : `${id} was not saved`),
     }
   },
@@ -172,7 +174,7 @@ export const MAKERS: Record<string, Maker> = {
   },
   deleteFlow: (m, rng) => {
     const id = flow(m, rng)
-    return { op: 'deleteFlow', label: `deleteFlow ${id}`, run: model => ops.deleteFlow(model, id) }
+    return { op: 'deleteFlow', label: `deleteFlow ${id}`, call: { tool: 'delete_flow', args: { id } }, run: model => ops.deleteFlow(model, id) }
   },
   removeStep: (m, rng) => {
     const id = flow(m, rng)
@@ -230,7 +232,7 @@ export const MAKERS: Record<string, Maker> = {
       id, name: `Analysis ${id}`, scope: rng.chance(0.7) ? (rng.chance(0.05) ? shape(m, rng) : rng.pick(views)) : undefined,
       modes: Object.fromEntries(Array.from({ length: 1 + rng.int(3) }, (_, i) => [`m${i}`, modeInput(m, rng)])),
     }
-    return { op: 'putAnalysis', label: `putAnalysis ${id} scope ${input.scope ?? '-'}`, run: model => ops.putAnalysis(model, input) }
+    return { op: 'putAnalysis', label: `putAnalysis ${id} scope ${input.scope ?? '-'}`, call: { tool: 'put_failures', args: input }, run: model => ops.putAnalysis(model, input) }
   },
   updateAnalysis: (m, rng) => {
     const id = analysis(m, rng)
@@ -239,13 +241,13 @@ export const MAKERS: Record<string, Maker> = {
   },
   deleteAnalysis: (m, rng) => {
     const id = analysis(m, rng)
-    return { op: 'deleteAnalysis', label: `deleteAnalysis ${id}`, run: model => ops.deleteAnalysis(model, id) }
+    return { op: 'deleteAnalysis', label: `deleteAnalysis ${id}`, call: { tool: 'delete_failures', args: { id } }, run: model => ops.deleteAnalysis(model, id) }
   },
   putMode: (m, rng) => {
     const aid = analysis(m, rng)
     const mid = rng.chance(0.4) ? among(rng, modesOf(m, aid), 'x') : fresh(rng, 'm')
     const input = modeInput(m, rng)
-    return { op: 'putMode', label: `putMode ${aid}/${mid} ${JSON.stringify({ on: input.on, from: input.from, to: input.to })}`, run: model => ops.putMode(model, aid, mid, input) }
+    return { op: 'putMode', label: `putMode ${aid}/${mid} ${JSON.stringify({ on: input.on, from: input.from, to: input.to })}`, call: { tool: 'put_failure', args: { analysis: aid, id: mid, ...input } }, run: model => ops.putMode(model, aid, mid, input) }
   },
   updateMode: (m, rng) => {
     const aid = analysis(m, rng)
@@ -256,7 +258,7 @@ export const MAKERS: Record<string, Maker> = {
   deleteMode: (m, rng) => {
     const aid = analysis(m, rng)
     const mid = among(rng, modesOf(m, aid), 'x')
-    return { op: 'deleteMode', label: `deleteMode ${aid}/${mid}`, run: model => ops.deleteMode(model, aid, mid) }
+    return { op: 'deleteMode', label: `deleteMode ${aid}/${mid}`, call: { tool: 'delete_failure', args: { analysis: aid, id: mid } }, run: model => ops.deleteMode(model, aid, mid) }
   },
   placeBoxes: (m, rng) => {
     const view = rng.pick(['root', ...objectIds(m)])
@@ -273,11 +275,11 @@ export const MAKERS: Record<string, Maker> = {
   },
   putIcon: (_, rng) => {
     const name = fresh(rng, 'icon')
-    return { op: 'putIcon', label: `putIcon ${name}`, run: model => ops.putIcon(model, name, 'M0 0h10v10z') }
+    return { op: 'putIcon', label: `putIcon ${name}`, call: { tool: 'put_icon', args: { name, path: 'M0 0h10v10z' } }, run: model => ops.putIcon(model, name, 'M0 0h10v10z') }
   },
   deleteIcon: (m, rng) => {
     const names = Object.keys((m.meta.icons as Record<string, unknown> | undefined) ?? {})
     const name = among(rng, names, 'nope')
-    return { op: 'deleteIcon', label: `deleteIcon ${name}`, run: model => ops.deleteIcon(model, name) }
+    return { op: 'deleteIcon', label: `deleteIcon ${name}`, call: { tool: 'delete_icon', args: { name } }, run: model => ops.deleteIcon(model, name) }
   },
 }
