@@ -129,6 +129,7 @@ export async function saveEdit(op: (model: Model) => Model, via: Via = '', onSav
       return notPutBack(why, batch.stuck)
     }
     if (undo.length) await record(transport, model, next, changes, undo, onSaved)
+    return undefined
   } catch (e) {
     return text(e)
   }
@@ -158,6 +159,7 @@ export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) 
     const back = batch.written
     if (label !== undefined) await transport.history?.record(`${word === 'undo' ? 'Undid' : 'Redid'}: ${label}`.slice(0, MAX_LABEL))
     onDone?.(back)
+    return undefined
   } catch (e) {
     return text(e)
   }

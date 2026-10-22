@@ -15,6 +15,8 @@ const STRINGS = [
   'null', 'true', 'false', '007', '3.10', '~', 'yes', 'no', '1e3', '0x10', '.inf', 'a\nb', 'a\nb\n', 'a\nb\n\n', 'a\nb\n\n\n', '\nstart', '\n\nstart', 'a\n\nb', 'a\n\n\nb',
   'a\n  indented\nb', ' lead\nb', 'a\n lead2', '  two\nb', 'a\n', '\n', '\n\n', 'a \nb', 'a\nb \n', 'a\n \nb', 'tab\there', 'a\tb', '\ttab', 'trailing tab\t', 'a\n\tb',
   'back\\slash', 'unicode é ü ✓ 日本', 'emoji 😀', '---', '...', '--- x', '... x', 'a\r\nb', 'a\rb', 'x\u2028y', 'x\u2029y', 'x\u0085y', '\u00a0nbsp', 'a\u0007b', '\u001bx', 'a\u0000b', '\uFEFFbom',
+  // A line of only spaces or tabs among the leading lines: written as a block it lost its spaces or could not be read (found by trying every short string).
+  '  \nx', '\n  \nx', ' \n\t\nx', '\t\nx', '   \n\n', '\n \n\t\n', '\n\n \n  y',
   'Line one\nLine two\n- a list\n- of things\n\n```ts\nconst x = 1\n```\n',
   'key: value\nsecond: line', '# comment\nline', 'text with `code` and **bold**', 'GET /menus/:restaurant reads a menu', 'POST /orders → places', 'a — b', 'x y z'.repeat(60),
   'one very long line with many words '.repeat(12).trim(), 'a: b\n', '- a\n- b', '{"json": true}', '[1, 2]', 'http://example.com/a?b=c#d', 'C:\\path\\file', 'a | b', 'a > b', 'a ? b', 'a & b', 'a * b', 'a ! b', 'a @ b',

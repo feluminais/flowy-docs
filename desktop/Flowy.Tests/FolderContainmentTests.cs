@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Flowy.Core;
 using Xunit;
 
@@ -7,7 +8,7 @@ namespace Flowy.Tests;
 /// <summary>A test that needs the OS to make a link to a folder. Without the right to (Windows without developer mode or a junction), it is skipped, with the reason.</summary>
 public sealed class DirectoryLinkFactAttribute : FactAttribute
 {
-    public DirectoryLinkFactAttribute()
+    public DirectoryLinkFactAttribute([CallerFilePath] string? sourceFilePath = null, [CallerLineNumber] int sourceLineNumber = -1) : base(sourceFilePath, sourceLineNumber)
     {
         if (!LinkMaker.CanLinkDirectories) Skip = "this OS or account can't create a symbolic link or a junction to a folder";
     }
@@ -16,7 +17,7 @@ public sealed class DirectoryLinkFactAttribute : FactAttribute
 /// <summary>As <see cref="DirectoryLinkFactAttribute"/>, for a link to a file. Windows junctions are for folders only, so this needs the symbolic link right there.</summary>
 public sealed class FileLinkFactAttribute : FactAttribute
 {
-    public FileLinkFactAttribute()
+    public FileLinkFactAttribute([CallerFilePath] string? sourceFilePath = null, [CallerLineNumber] int sourceLineNumber = -1) : base(sourceFilePath, sourceLineNumber)
     {
         if (!LinkMaker.CanLinkFiles) Skip = "this OS or account can't create a symbolic link to a file";
     }

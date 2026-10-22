@@ -1,0 +1,47 @@
+# Weekly update pull requests. Updates of the same kind arrive as one pull request, and nothing newer than a week is offered:
+# the days just after a release are when a hijacked package does its damage. Security updates are not held back by the wait.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /vscode
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      vscode-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: nuget
+    directories:
+      - /desktop/Flowy.Core
+      - /desktop/Flowy.App
+      - /desktop/Flowy.Tests
+      - /desktop/Flowy.App.Tests
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      nuget-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
