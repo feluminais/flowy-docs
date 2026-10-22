@@ -310,12 +310,13 @@ public class NavigationTests
     [Fact]
     public void Escape_peels_one_layer_at_a_time_and_then_goes_up()
     {
-        Assert.Equal(EscapeStep.Shortcuts, Navigation.Escape(true, true, true, true, true));
-        Assert.Equal(EscapeStep.Navigator, Navigation.Escape(false, true, true, true, true));
-        Assert.Equal(EscapeStep.Flow, Navigation.Escape(false, false, true, true, true));
-        Assert.Equal(EscapeStep.Panel, Navigation.Escape(false, false, false, true, true));
-        Assert.Equal(EscapeStep.Up, Navigation.Escape(false, false, false, false, true));
-        Assert.Null(Navigation.Escape(false, false, false, false, false));
+        Assert.Equal(EscapeStep.Shortcuts, Navigation.Escape(true, true, true, true, true, true));
+        Assert.Equal(EscapeStep.Navigator, Navigation.Escape(false, true, true, true, true, true));
+        Assert.Equal(EscapeStep.Flow, Navigation.Escape(false, false, true, true, true, true));
+        Assert.Equal(EscapeStep.Panel, Navigation.Escape(false, false, false, true, true, true));
+        Assert.Equal(EscapeStep.Compare, Navigation.Escape(false, false, false, false, true, true)); // a panel over a comparison closes first; the comparison before going up a level
+        Assert.Equal(EscapeStep.Up, Navigation.Escape(false, false, false, false, false, true));
+        Assert.Null(Navigation.Escape(false, false, false, false, false, false));
     }
 }
 

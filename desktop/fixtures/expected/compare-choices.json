@@ -1,0 +1,1853 @@
+{
+  "folder": "desktop/fixtures/cases/compare/flowy",
+  "flows": [
+    {
+      "id": "bad-shape",
+      "linked": [],
+      "others": [
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "bare",
+      "linked": [],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "checkout-v2",
+      "linked": [
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": "before",
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": "after",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "checkout-v3",
+      "linked": [
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": "before",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "checkout",
+      "linked": [
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": "after",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "ghost",
+      "linked": [
+        {
+          "id": "nowhere",
+          "name": "nowhere",
+          "side": "before",
+          "missing": true
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "mutual-a",
+      "linked": [
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": "before",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "mutual-b",
+      "linked": [
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": "before",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "selfish",
+          "name": "selfish",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "selfish",
+      "linked": [],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout",
+          "name": "checkout",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v2",
+          "name": "checkout-v2",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "checkout-v3",
+          "name": "checkout-v3",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "ghost",
+          "name": "ghost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-a",
+          "name": "mutual-a",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "mutual-b",
+          "name": "mutual-b",
+          "side": null,
+          "missing": false
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "id": "after",
+      "linked": [
+        {
+          "id": "base",
+          "name": "base",
+          "side": "before",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "lost",
+          "name": "lost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "noted",
+          "name": "noted",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "same",
+          "name": "same",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "bad-shape",
+      "linked": [],
+      "others": [
+        {
+          "id": "after",
+          "name": "after",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "base",
+          "name": "base",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "lost",
+          "name": "lost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "noted",
+          "name": "noted",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "same",
+          "name": "same",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "bare",
+      "linked": [],
+      "others": [
+        {
+          "id": "after",
+          "name": "after",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "base",
+          "name": "base",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "lost",
+          "name": "lost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "noted",
+          "name": "noted",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "same",
+          "name": "same",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "base",
+      "linked": [
+        {
+          "id": "after",
+          "name": "after",
+          "side": "after",
+          "missing": false
+        },
+        {
+          "id": "noted",
+          "name": "noted",
+          "side": "after",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "lost",
+          "name": "lost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "same",
+          "name": "same",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "lost",
+      "linked": [
+        {
+          "id": "nope",
+          "name": "nope",
+          "side": "before",
+          "missing": true
+        }
+      ],
+      "others": [
+        {
+          "id": "after",
+          "name": "after",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "base",
+          "name": "base",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "noted",
+          "name": "noted",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "same",
+          "name": "same",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "noted",
+      "linked": [
+        {
+          "id": "base",
+          "name": "base",
+          "side": "before",
+          "missing": false
+        }
+      ],
+      "others": [
+        {
+          "id": "after",
+          "name": "after",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "lost",
+          "name": "lost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "same",
+          "name": "same",
+          "side": null,
+          "missing": false
+        }
+      ]
+    },
+    {
+      "id": "same",
+      "linked": [],
+      "others": [
+        {
+          "id": "after",
+          "name": "after",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bad-shape",
+          "name": "bad-shape",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "bare",
+          "name": "bare",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "base",
+          "name": "base",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "lost",
+          "name": "lost",
+          "side": null,
+          "missing": false
+        },
+        {
+          "id": "noted",
+          "name": "noted",
+          "side": null,
+          "missing": false
+        }
+      ]
+    }
+  ],
+  "flowOrders": [
+    {
+      "a": "bad-shape",
+      "b": "bad-shape",
+      "order": [
+        "bad-shape",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "bare",
+      "order": [
+        "bad-shape",
+        "bare"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "checkout-v2",
+      "order": [
+        "bad-shape",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "checkout-v3",
+      "order": [
+        "bad-shape",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "checkout",
+      "order": [
+        "bad-shape",
+        "checkout"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "ghost",
+      "order": [
+        "bad-shape",
+        "ghost"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "mutual-a",
+      "order": [
+        "bad-shape",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "mutual-b",
+      "order": [
+        "bad-shape",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "selfish",
+      "order": [
+        "bad-shape",
+        "selfish"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "bad-shape",
+      "order": [
+        "bare",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "bare",
+      "order": [
+        "bare",
+        "bare"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "checkout-v2",
+      "order": [
+        "bare",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "checkout-v3",
+      "order": [
+        "bare",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "checkout",
+      "order": [
+        "bare",
+        "checkout"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "ghost",
+      "order": [
+        "bare",
+        "ghost"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "mutual-a",
+      "order": [
+        "bare",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "mutual-b",
+      "order": [
+        "bare",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "selfish",
+      "order": [
+        "bare",
+        "selfish"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "bad-shape",
+      "order": [
+        "checkout-v2",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "bare",
+      "order": [
+        "checkout-v2",
+        "bare"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "checkout-v2",
+      "order": [
+        "checkout-v2",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "checkout-v3",
+      "order": [
+        "checkout-v2",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "checkout",
+      "order": [
+        "checkout",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "ghost",
+      "order": [
+        "checkout-v2",
+        "ghost"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "mutual-a",
+      "order": [
+        "checkout-v2",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "mutual-b",
+      "order": [
+        "checkout-v2",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "checkout-v2",
+      "b": "selfish",
+      "order": [
+        "checkout-v2",
+        "selfish"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "bad-shape",
+      "order": [
+        "checkout-v3",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "bare",
+      "order": [
+        "checkout-v3",
+        "bare"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "checkout-v2",
+      "order": [
+        "checkout-v2",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "checkout-v3",
+      "order": [
+        "checkout-v3",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "checkout",
+      "order": [
+        "checkout-v3",
+        "checkout"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "ghost",
+      "order": [
+        "checkout-v3",
+        "ghost"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "mutual-a",
+      "order": [
+        "checkout-v3",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "mutual-b",
+      "order": [
+        "checkout-v3",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "checkout-v3",
+      "b": "selfish",
+      "order": [
+        "checkout-v3",
+        "selfish"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "bad-shape",
+      "order": [
+        "checkout",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "bare",
+      "order": [
+        "checkout",
+        "bare"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "checkout-v2",
+      "order": [
+        "checkout",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "checkout-v3",
+      "order": [
+        "checkout",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "checkout",
+      "order": [
+        "checkout",
+        "checkout"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "ghost",
+      "order": [
+        "checkout",
+        "ghost"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "mutual-a",
+      "order": [
+        "checkout",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "mutual-b",
+      "order": [
+        "checkout",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "checkout",
+      "b": "selfish",
+      "order": [
+        "checkout",
+        "selfish"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "bad-shape",
+      "order": [
+        "ghost",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "bare",
+      "order": [
+        "ghost",
+        "bare"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "checkout-v2",
+      "order": [
+        "ghost",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "checkout-v3",
+      "order": [
+        "ghost",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "checkout",
+      "order": [
+        "ghost",
+        "checkout"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "ghost",
+      "order": [
+        "ghost",
+        "ghost"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "mutual-a",
+      "order": [
+        "ghost",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "mutual-b",
+      "order": [
+        "ghost",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "ghost",
+      "b": "selfish",
+      "order": [
+        "ghost",
+        "selfish"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "bad-shape",
+      "order": [
+        "mutual-a",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "bare",
+      "order": [
+        "mutual-a",
+        "bare"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "checkout-v2",
+      "order": [
+        "mutual-a",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "checkout-v3",
+      "order": [
+        "mutual-a",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "checkout",
+      "order": [
+        "mutual-a",
+        "checkout"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "ghost",
+      "order": [
+        "mutual-a",
+        "ghost"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "mutual-a",
+      "order": [
+        "mutual-a",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "mutual-b",
+      "order": [
+        "mutual-b",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "mutual-a",
+      "b": "selfish",
+      "order": [
+        "mutual-a",
+        "selfish"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "bad-shape",
+      "order": [
+        "mutual-b",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "bare",
+      "order": [
+        "mutual-b",
+        "bare"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "checkout-v2",
+      "order": [
+        "mutual-b",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "checkout-v3",
+      "order": [
+        "mutual-b",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "checkout",
+      "order": [
+        "mutual-b",
+        "checkout"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "ghost",
+      "order": [
+        "mutual-b",
+        "ghost"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "mutual-a",
+      "order": [
+        "mutual-a",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "mutual-b",
+      "order": [
+        "mutual-b",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "mutual-b",
+      "b": "selfish",
+      "order": [
+        "mutual-b",
+        "selfish"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "bad-shape",
+      "order": [
+        "selfish",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "bare",
+      "order": [
+        "selfish",
+        "bare"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "checkout-v2",
+      "order": [
+        "selfish",
+        "checkout-v2"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "checkout-v3",
+      "order": [
+        "selfish",
+        "checkout-v3"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "checkout",
+      "order": [
+        "selfish",
+        "checkout"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "ghost",
+      "order": [
+        "selfish",
+        "ghost"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "mutual-a",
+      "order": [
+        "selfish",
+        "mutual-a"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "mutual-b",
+      "order": [
+        "selfish",
+        "mutual-b"
+      ]
+    },
+    {
+      "a": "selfish",
+      "b": "selfish",
+      "order": [
+        "selfish",
+        "selfish"
+      ]
+    }
+  ],
+  "runOrders": [
+    {
+      "a": "after",
+      "b": "after",
+      "order": [
+        "after",
+        "after"
+      ]
+    },
+    {
+      "a": "after",
+      "b": "bad-shape",
+      "order": [
+        "after",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "after",
+      "b": "bare",
+      "order": [
+        "after",
+        "bare"
+      ]
+    },
+    {
+      "a": "after",
+      "b": "base",
+      "order": [
+        "base",
+        "after"
+      ]
+    },
+    {
+      "a": "after",
+      "b": "lost",
+      "order": [
+        "after",
+        "lost"
+      ]
+    },
+    {
+      "a": "after",
+      "b": "noted",
+      "order": [
+        "after",
+        "noted"
+      ]
+    },
+    {
+      "a": "after",
+      "b": "same",
+      "order": [
+        "after",
+        "same"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "after",
+      "order": [
+        "bad-shape",
+        "after"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "bad-shape",
+      "order": [
+        "bad-shape",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "bare",
+      "order": [
+        "bad-shape",
+        "bare"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "base",
+      "order": [
+        "bad-shape",
+        "base"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "lost",
+      "order": [
+        "bad-shape",
+        "lost"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "noted",
+      "order": [
+        "bad-shape",
+        "noted"
+      ]
+    },
+    {
+      "a": "bad-shape",
+      "b": "same",
+      "order": [
+        "bad-shape",
+        "same"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "after",
+      "order": [
+        "bare",
+        "after"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "bad-shape",
+      "order": [
+        "bare",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "bare",
+      "order": [
+        "bare",
+        "bare"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "base",
+      "order": [
+        "bare",
+        "base"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "lost",
+      "order": [
+        "bare",
+        "lost"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "noted",
+      "order": [
+        "bare",
+        "noted"
+      ]
+    },
+    {
+      "a": "bare",
+      "b": "same",
+      "order": [
+        "bare",
+        "same"
+      ]
+    },
+    {
+      "a": "base",
+      "b": "after",
+      "order": [
+        "base",
+        "after"
+      ]
+    },
+    {
+      "a": "base",
+      "b": "bad-shape",
+      "order": [
+        "base",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "base",
+      "b": "bare",
+      "order": [
+        "base",
+        "bare"
+      ]
+    },
+    {
+      "a": "base",
+      "b": "base",
+      "order": [
+        "base",
+        "base"
+      ]
+    },
+    {
+      "a": "base",
+      "b": "lost",
+      "order": [
+        "base",
+        "lost"
+      ]
+    },
+    {
+      "a": "base",
+      "b": "noted",
+      "order": [
+        "base",
+        "noted"
+      ]
+    },
+    {
+      "a": "base",
+      "b": "same",
+      "order": [
+        "base",
+        "same"
+      ]
+    },
+    {
+      "a": "lost",
+      "b": "after",
+      "order": [
+        "lost",
+        "after"
+      ]
+    },
+    {
+      "a": "lost",
+      "b": "bad-shape",
+      "order": [
+        "lost",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "lost",
+      "b": "bare",
+      "order": [
+        "lost",
+        "bare"
+      ]
+    },
+    {
+      "a": "lost",
+      "b": "base",
+      "order": [
+        "lost",
+        "base"
+      ]
+    },
+    {
+      "a": "lost",
+      "b": "lost",
+      "order": [
+        "lost",
+        "lost"
+      ]
+    },
+    {
+      "a": "lost",
+      "b": "noted",
+      "order": [
+        "lost",
+        "noted"
+      ]
+    },
+    {
+      "a": "lost",
+      "b": "same",
+      "order": [
+        "lost",
+        "same"
+      ]
+    },
+    {
+      "a": "noted",
+      "b": "after",
+      "order": [
+        "noted",
+        "after"
+      ]
+    },
+    {
+      "a": "noted",
+      "b": "bad-shape",
+      "order": [
+        "noted",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "noted",
+      "b": "bare",
+      "order": [
+        "noted",
+        "bare"
+      ]
+    },
+    {
+      "a": "noted",
+      "b": "base",
+      "order": [
+        "base",
+        "noted"
+      ]
+    },
+    {
+      "a": "noted",
+      "b": "lost",
+      "order": [
+        "noted",
+        "lost"
+      ]
+    },
+    {
+      "a": "noted",
+      "b": "noted",
+      "order": [
+        "noted",
+        "noted"
+      ]
+    },
+    {
+      "a": "noted",
+      "b": "same",
+      "order": [
+        "noted",
+        "same"
+      ]
+    },
+    {
+      "a": "same",
+      "b": "after",
+      "order": [
+        "same",
+        "after"
+      ]
+    },
+    {
+      "a": "same",
+      "b": "bad-shape",
+      "order": [
+        "same",
+        "bad-shape"
+      ]
+    },
+    {
+      "a": "same",
+      "b": "bare",
+      "order": [
+        "same",
+        "bare"
+      ]
+    },
+    {
+      "a": "same",
+      "b": "base",
+      "order": [
+        "same",
+        "base"
+      ]
+    },
+    {
+      "a": "same",
+      "b": "lost",
+      "order": [
+        "same",
+        "lost"
+      ]
+    },
+    {
+      "a": "same",
+      "b": "noted",
+      "order": [
+        "same",
+        "noted"
+      ]
+    },
+    {
+      "a": "same",
+      "b": "same",
+      "order": [
+        "same",
+        "same"
+      ]
+    }
+  ]
+}

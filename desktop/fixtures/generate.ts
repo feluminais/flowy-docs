@@ -4,7 +4,7 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { dumpBeats } from './beats.ts'
-import { dumpFlowDiffs, dumpRunCompareText } from './compare.ts'
+import { dumpCompareChoices, dumpFlowDiffs, dumpRunCompareText } from './compare.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
@@ -56,6 +56,7 @@ await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())
 await write('flow-diffs', await dumpFlowDiffs())
 await write('run-compare-text', dumpRunCompareText())
+await write('compare-choices', await dumpCompareChoices())
 
 // The sample trail: the step and blob files the TypeScript store writes, for the C# store to read.
 const trailDir = join(dirname(expectedPath('history')), 'history-trail')
