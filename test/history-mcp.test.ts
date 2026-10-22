@@ -34,10 +34,10 @@ async function setup(t: TestContext, blockStateDir = false) {
   return { dir, history, call, labels }
 }
 
-test('a write records one Claude step', async t => {
+test('a write records one AI step', async t => {
   const { history, call } = await setup(t)
   assert.equal((await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })).error, false)
-  assert.deepEqual((await history.list()).map(s => [s.label, s.source, s.app, s.changed]), [['Claude: put_object shop', 'claude', 'mcp', ['model.yaml']]])
+  assert.deepEqual((await history.list()).map(s => [s.label, s.source, s.app, s.changed]), [['AI: put_object shop', 'ai', 'mcp', ['model.yaml']]])
 })
 
 test('the first write over an existing model records a baseline first', async t => {
@@ -45,7 +45,7 @@ test('the first write over an existing model records a baseline first', async t 
   await mkdir(dir, { recursive: true })
   await writeFile(join(dir, 'model.yaml'), 'objects: {}\nconnections: []\n')
   await call('put_object', { id: 'x', type: 'system', name: 'X' })
-  assert.deepEqual(await labels(), ['Claude: put_object x', 'First seen'])
+  assert.deepEqual(await labels(), ['AI: put_object x', 'First seen'])
 })
 
 test('a hand edit between two writes is an outside step', async t => {
@@ -53,7 +53,7 @@ test('a hand edit between two writes is an outside step', async t => {
   await call('put_object', { id: 'a', type: 'system', name: 'A' })
   await writeFile(join(dir, 'model.yaml'), `${await readFile(join(dir, 'model.yaml'), 'utf8')}# a note by hand\n`)
   await call('put_object', { id: 'b', type: 'system', name: 'B' })
-  assert.deepEqual(await labels(), ['Claude: put_object b', 'Changed outside Flowy: model.yaml', 'Claude: put_object a'])
+  assert.deepEqual(await labels(), ['AI: put_object b', 'Changed outside Flowy: model.yaml', 'AI: put_object a'])
 })
 
 test('connect and disconnect read "a → b"', async t => {
@@ -62,7 +62,7 @@ test('connect and disconnect read "a → b"', async t => {
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
   await call('connect', { from: 'customer', to: 'shop', label: 'buys' })
   await call('disconnect', { from: 'customer', to: 'shop' })
-  assert.deepEqual((await labels()).slice(0, 2), ['Claude: disconnect customer → shop', 'Claude: connect customer → shop'])
+  assert.deepEqual((await labels()).slice(0, 2), ['AI: disconnect customer → shop', 'AI: connect customer → shop'])
 })
 
 test('a flow and an icon are named by their id and name', async t => {
@@ -72,7 +72,7 @@ test('a flow and an icon are named by their id and name', async t => {
   await call('put_icon', { name: 'stripe', path: 'M4 4h16v16h-16z' })
   await call('put_flow', { id: 'checkout', name: 'Checkout', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Buys' }] })
   await call('delete_flow', { id: 'checkout' })
-  assert.deepEqual((await labels()).slice(0, 3), ['Claude: delete_flow checkout', 'Claude: put_flow checkout', 'Claude: put_icon stripe'])
+  assert.deepEqual((await labels()).slice(0, 3), ['AI: delete_flow checkout', 'AI: put_flow checkout', 'AI: put_icon stripe'])
 })
 
 test('a refused write and a read record nothing', async t => {
@@ -80,7 +80,7 @@ test('a refused write and a read record nothing', async t => {
   await call('put_object', { id: 'shop', type: 'system', name: 'Shop' })
   assert.equal((await call('delete_object', { id: 'nope' })).error, true)
   assert.equal((await call('get_model')).error, false)
-  assert.deepEqual(await labels(), ['Claude: put_object shop'])
+  assert.deepEqual(await labels(), ['AI: put_object shop'])
 })
 
 test('Review Focus: an unwritable history never fails a tool call', async t => {

@@ -167,7 +167,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         if (unreadable) return fail(`Refused, nothing saved. The result couldn't be read back: ${unreadable.error instanceof Error ? unreadable.error.message : String(unreadable.error)}`)
         await history?.ensureCurrent('write')
         for (const [rel, text] of changes) await saveFile(dir, rel, text, versions[rel] ?? null)
-        await history?.record(label, 'claude')
+        await history?.record(label, 'ai')
         return ok(typeof done === 'function' ? done(model) : done)
       } catch (e) {
         if (!(e instanceof VersionConflict)) return fail(e)

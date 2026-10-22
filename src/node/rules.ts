@@ -2,7 +2,7 @@ import { SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 
 /**
- * What Claude is told about the parts of a model that most requests leave out. The server's instructions hold the default (shapes, connections, plain flows);
+ * What the AI is told about the parts of a model that most requests leave out. The server's instructions hold the default (shapes, connections, plain flows);
  * each of these is read as a resource, flowy://rules/<topic>, only when the user asked for that part.
  */
 export const RULES = {

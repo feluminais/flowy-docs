@@ -25,7 +25,7 @@ export async function findFolders(): Promise<string[]> {
 export async function chooseFolder(): Promise<string | undefined> {
   const folders = await findFolders()
   if (folders.length === 0) {
-    void vscode.window.showInformationMessage('No flowy/ folder with a model.yaml in this workspace. Ask Claude to map the repo into Flowy, or add one by hand.')
+    void vscode.window.showInformationMessage('No flowy/ folder with a model.yaml in this workspace. Ask an AI to map the repo into Flowy, or add one by hand.')
     return undefined
   }
   if (folders.length === 1) return folders[0]
