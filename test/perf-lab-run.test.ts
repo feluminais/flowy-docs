@@ -30,3 +30,19 @@ test('formatRun drops digits a reader does not need', () => {
   )
   assert.match(text, /overall: \{ rate: 12\.3, p50: 0, p95: 100, errors: 0 \}/)
 })
+
+const LEVELS: Level[] = [{ load: 1, overall: { rate: 1 }, objects: {}, connections: [] }, { load: 2, overall: {}, objects: {}, connections: [] }]
+const INFO = { name: 'N', about: 'A', unit: 'req/s', entry: 'e' }
+
+test('formatRun keeps the compare tag of the file it is written over', () => {
+  const short = formatRun(INFO, LEVELS, 'name: Old\ncompare: earlier\nunit: req/s\n')
+  assert.deepEqual(parseRun('x', short).run.compare, { with: 'earlier' })
+  const long = formatRun(INFO, LEVELS, 'name: Old\ncompare:\n  with: earlier\n  note: "after the cache"\nunit: req/s\n')
+  assert.deepEqual(parseRun('x', long).run.compare, { with: 'earlier', note: 'after the cache' })
+  assert.deepEqual(parseRun('x', long).problems, [])
+})
+
+test('formatRun adds no compare to a file that had none, or when nothing is there', () => {
+  assert.doesNotMatch(formatRun(INFO, LEVELS, 'name: Old\nunit: req/s\n'), /compare/)
+  assert.doesNotMatch(formatRun(INFO, LEVELS), /compare/)
+})

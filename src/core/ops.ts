@@ -372,7 +372,9 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states }:
   const written = groups && Object.keys(groups).length > 0 ? { groups: Object.fromEntries(Object.entries(groups).map(([gid, g]) => [gid, text(g)])) } : {}
   // Where shapes stand before step 1 goes right after the view, as the guide shows it.
   const start = states && Object.keys(states).length > 0 ? { states } : {}
-  return setFlow(model, id, { name, view, ...start, ...written, steps: steps.map(copy) })
+  // Replacing a flow keeps the tag it had: a flow's `compare` is set on its own (setCompare), not with its steps.
+  const kept = model.flows[id]?.compare
+  return setFlow(model, id, { name, view, ...start, ...written, steps: steps.map(copy), ...(kept === undefined ? {} : { compare: kept }) })
 }
 
 /** Change an existing flow's name, steps or groups, keeping everything else it has (and its groups when not given any). */

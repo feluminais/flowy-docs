@@ -27,7 +27,7 @@ test('docs/format.md names every key the files read', () => {
     model: ['objects', 'connections', 'lines', 'icons'],
     object: ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links', 'snippets', 'data'],
     connection: ['from', 'to', 'label'],
-    flow: ['name', 'view', 'steps', 'groups', 'states'],
+    flow: ['name', 'view', 'steps', 'groups', 'states', 'compare'],
     step: ['from', 'to', 'text', 'description', 'animation', 'group', 'lane', 'flow', 'states'],
     animation: ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at', 'effect'],
     group: ['kind', 'times', 'until', 'text'],
@@ -45,6 +45,12 @@ test('docs/format.md names every key the files read', () => {
     const missing = list.filter(k => !new RegExp(`^\\| [^|]*\`${k}\`[^|]*\\|`, 'm').test(parts[what as keyof typeof keys]))
     assert.deepEqual(missing, [], `${what} keys missing from docs/format.md`)
   }
+})
+
+test('docs/format.md describes the compare key of a run, its long form and who holds it', () => {
+  const runs = format.slice(format.indexOf('## perf/'), format.indexOf('## What writes what over MCP'))
+  for (const word of ['`compare`', '`with`', '`note`', 'The holder is the newer one']) assert.ok(runs.includes(word), `${word} missing from the perf part of docs/format.md`)
+  assert.match(format, /`set_compare`/)
 })
 
 test('every relative link and anchor in the docs leads somewhere', () => {

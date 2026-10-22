@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
@@ -108,7 +108,8 @@ async function main(): Promise<void> {
   // A level that took a second try says so in the run: the numbers are real, but a process had stopped once before them.
   const again = retried.length === 0 ? '' : ` The ${retried.join(', ')} req/s level${retried.length > 1 ? 's were' : ' was'} measured on a later try, after a process stopped.`
   const about = values.about || `Made by perf-lab on one machine: ${plan.duration} s measured at each level after ${plan.warmup} s of warm-up, a fresh lab for each level, open-loop, gateway about ${plan.gatewayDelay} ms. Absolute numbers belong to that machine.${again}`
-  const text = formatRun({ name: titleOf(name), about, unit: 'req/s', entry: 'shopper' }, levels)
+  const previous = await readFile(out, 'utf8').catch(() => undefined) // the run this one replaces: its compare tag stays
+  const text = formatRun({ name: titleOf(name), about, unit: 'req/s', entry: 'shopper' }, levels, previous)
   const { run } = parseRun(name, text) // before anything is written: a run that can't be played is not worth a file
   await mkdir(dirname(out), { recursive: true })
   await writeFile(out, text)
