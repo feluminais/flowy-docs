@@ -1,9 +1,9 @@
 import { compareOf } from '../core/compare.ts'
-import { isRunPath } from '../core/filekinds.ts'
+import { FILE_KINDS, idOfPath, isRunPath } from '../core/filekinds.ts'
 import { ParseError } from '../core/model.ts'
 import { isRemovableFile, serializeFile } from '../core/modelfiles.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
-import { isAllowedPath, loadDir, OutsideFolder, saveFile, saveRunCompare, VersionConflict } from './files.ts'
+import { isAllowedPath, loadDir, loadRuns, OutsideFolder, saveFile, saveRunCompare, VersionConflict } from './files.ts'
 
 /** What to answer a write with: an HTTP status and the JSON that goes with it. */
 export type Answer = { status: number; body: unknown }
@@ -27,6 +27,12 @@ async function applyRunCompare(dir: string, rel: string, body: unknown, beforeWr
     const loaded = await loadDir(dir)
     const blocked = firstBlocked(loaded, [rel])
     if (blocked) return { status: 409, body: { error: blockedMessage(blocked.blocking, rel) } }
+    // A tag to a run that is not there is not written, here as in set_compare and the page's own check.
+    if (tag !== undefined) {
+      const id = idOfPath(FILE_KINDS.run, rel)
+      if (tag.with === id) return { status: 400, body: { error: `run "${id}" cannot compare with itself` } }
+      if (!Object.hasOwn((await loadRuns(dir, loaded.model)).runs, tag.with)) return { status: 400, body: { error: `unknown run "${tag.with}"` } }
+    }
   } catch (e) {
     if (e instanceof ParseError) return { status: 409, body: { error: e.message } }
     throw e
