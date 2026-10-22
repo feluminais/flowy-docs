@@ -5,6 +5,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
+using Avalonia.Media;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.Core;
@@ -31,9 +32,9 @@ public class DataPanelTests
                 limits: Kept 7 years, then archived
                 note: One row per order. A refund adds a row to refunds; the order stays.
                 columns:
-                  - {name: id, key: primary}
+                  - {name: id, type: uuid, key: primary}
                   - {name: customer_id, to: customers}
-                  - status
+                  - {name: status, type: "text?"}
                   - {name: total, note: "Cents, not decimals. Rounding broke the first tax run."}
                 rows:
                   - [o_1042, c_77, placed, 2490]
@@ -152,10 +153,27 @@ public class DataPanelTests
         foreach (var heading in new[] { "id", "customer_id", "status", "total" }) Assert.Contains(heading, words);
         Assert.Contains("PK", words);
         Assert.Contains("FK customers", words);
+        Assert.Contains("uuid", words); // a type sits under its column's name
+        Assert.Contains("text", words);
+        Assert.Contains("NULL", words); // "text?" can be empty
         Assert.Contains("o_1042", words);
         Assert.Contains("total", words);
         Assert.Contains("Cents, not decimals. Rounding broke the first tax run.", words);
         Assert.DoesNotContain("4 columns", words); // the count is for a closed entry
+    }
+
+    [AvaloniaFact]
+    public void A_column_note_is_purple_the_colour_of_knowledge_and_not_the_warning_amber()
+    {
+        var (temp, reader) = Open("orders-db");
+        using var _ = temp;
+        Color Theme(string key) =>
+            Application.Current!.TryGetResource(key, reader.ActualThemeVariant, out var found) ? Assert.IsAssignableFrom<ISolidColorBrush>(found).Color : throw new InvalidOperationException(key);
+        var note = reader.Panel.GetVisualDescendants().OfType<TextBlock>().Single(t => t.Text == "Cents, not decimals. Rounding broke the first tax run.");
+        Assert.Equal(Theme("KnowFgBrush"), Assert.IsAssignableFrom<ISolidColorBrush>(note.Foreground).Color);
+        Assert.NotEqual(Theme("WarnFgBrush"), Theme("KnowFgBrush"));
+        var dot = reader.Panel.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Ellipse>().First(e => e.Classes.Contains("datadot"));
+        Assert.Equal(Theme("KnowBrush"), Assert.IsAssignableFrom<ISolidColorBrush>(dot.Fill).Color);
     }
 
     [AvaloniaFact]

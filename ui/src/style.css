@@ -9,6 +9,8 @@
   --warn-bg: #fef3c7;
   --warn-fg: #78350f;
   --warn: #d97706;
+  --know-fg: #5b21b6;
+  --know: #7c3aed;
   --danger: #b91c1c;
   --added: #15803d;
   --actor: #7f77dd;
@@ -37,6 +39,8 @@
     --warn-bg: #451a03;
     --warn-fg: #fde68a;
     --warn: #f59e0b;
+    --know-fg: #ddd6fe;
+    --know: #a78bfa;
     --danger: #f87171;
     --added: #4ade80;
     --actor: #afa9ec;
@@ -61,6 +65,8 @@
   --warn-bg: #451a03;
   --warn-fg: #fde68a;
   --warn: #f59e0b;
+  --know-fg: #ddd6fe;
+  --know: #a78bfa;
   --danger: #f87171;
   --added: #4ade80;
   --actor: #afa9ec;
@@ -331,6 +337,7 @@ svg { flex: none; }
 .data-grid { margin-top: 8px; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
 .data-grid:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .data-grid table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.data-type { display: block; color: var(--muted); font: 400 10.5px ui-monospace, monospace; }
 .data-grid th { padding: 4px 8px; text-align: left; font-weight: 600; white-space: nowrap; background: var(--hover); border-bottom: 1px solid var(--line); }
 .data-grid td {
   max-width: 22ch; padding: 3px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -341,15 +348,15 @@ svg { flex: none; }
   margin-left: 5px; padding: 0 4px; border: 1px solid var(--line); border-radius: 3px; color: var(--muted);
   font-size: 9.5px; font-weight: 600; text-decoration: none; vertical-align: 1px; cursor: help;
 }
-.data-dot { display: inline-block; width: 7px; height: 7px; margin-left: 5px; border-radius: 50%; background: var(--warn); vertical-align: 1px; }
+.data-dot { display: inline-block; width: 7px; height: 7px; margin-left: 5px; border-radius: 50%; background: var(--know); vertical-align: 1px; }
 .data-doc:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .data-doc { margin-top: 8px; padding: 8px 10px; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; font: 12px/1.6 ui-monospace, monospace; }
 .data-line { white-space: nowrap; }
 .data-key { margin-right: 10px; color: var(--muted); }
 .data-notes { display: grid; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; }
 .data-notes li {
-  padding: 4px 8px 4px 10px; border-left: 3px solid var(--warn); border-radius: 0 6px 6px 0;
-  background: color-mix(in srgb, var(--warn) 10%, transparent); color: var(--warn-fg); font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere;
+  padding: 4px 8px 4px 10px; border-left: 3px solid var(--know); border-radius: 0 6px 6px 0;
+  background: color-mix(in srgb, var(--know) 10%, transparent); color: var(--know-fg); font-size: 12.5px; line-height: 1.4; overflow-wrap: anywhere;
 }
 .data-notes code { margin-right: 6px; }
 .form textarea.data-yaml { font: 12px/1.5 ui-monospace, monospace; white-space: pre; overflow-x: auto; }
