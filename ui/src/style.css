@@ -726,8 +726,13 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .navbody > .perf { margin: -12px; padding: 14px 16px 26px; } /* the Performance and Failures panels fill the navigator's body */
 .perf h2 { margin: 0; font-size: 18px; }
 .perf select { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); color: var(--fg); }
-.perf .about summary { cursor: pointer; color: var(--muted); }
-.perf .about p { margin: 6px 0 0; color: var(--muted); }
+/* The twist sits where a section's icon does and the words where its title does, so the fold lines up with the headings below. */
+.perf .about { color: var(--muted); }
+.perf .about summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+.perf .about summary::-webkit-details-marker { display: none; }
+.perf .about summary svg { transition: transform 0.12s; }
+.perf .about[open] summary svg { transform: rotate(90deg); }
+.perf details.about p { margin: 6px 0 0 22px; }
 .loadnum { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
 .loadnum strong { font-size: 26px; font-weight: 650; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 .slide { position: relative; padding-bottom: 20px; }
