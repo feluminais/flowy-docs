@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ROOT } from '../src/core/model.ts'
+import type { Compare } from '../ui/src/compare.ts'
 import { addressChange, alongFailures, isSavedHash, readHash, runAddress, toHash } from '../ui/src/hash.ts'
 
 test('an address and what it names go both ways', () => {
@@ -109,6 +110,55 @@ test('moving along a run is not a step to go back to, nor is picking another mod
   assert.equal(addressChange({ ...failing, current: '#shop', address: '#shop/failures/a/two' }), 'push', 'opening the tab is a step')
 })
 
+test('an address can name a comparison of flows or of runs, side by side or swapped, and goes both ways', () => {
+  assert.equal(toHash('shop', undefined, undefined, undefined, { kind: 'flow', a: 'old', b: 'new', mode: 'side' }), '#shop/compare/old/new')
+  assert.equal(toHash('shop', undefined, undefined, undefined, { kind: 'flow', a: 'old', b: 'new', mode: 'swap' }), '#shop/compare/old/new/swap')
+  assert.equal(toHash('shop', undefined, undefined, undefined, { kind: 'run', a: 'before', b: 'after', mode: 'side' }), '#shop/compare/run/before/after')
+  assert.equal(toHash(ROOT, undefined, undefined, undefined, { kind: 'run', a: 'before', b: 'after', mode: 'swap' }), '#root/compare/run/before/after/swap')
+  const all: Compare[] = [
+    { kind: 'flow', a: 'old', b: 'new', mode: 'side' }, { kind: 'flow', a: 'old', b: 'new', mode: 'swap' },
+    { kind: 'run', a: 'before', b: 'after', mode: 'side' }, { kind: 'run', a: 'before', b: 'after', mode: 'swap' },
+    { kind: 'flow', a: 'same', b: 'same', mode: 'side' }, // a flow compared with itself
+  ]
+  for (const compare of all) for (const view of [ROOT, 'shop']) assert.deepEqual(readHash(toHash(view, undefined, undefined, undefined, compare)), { view, compare })
+  assert.deepEqual(readHash('#shop/compare/old/new'), { view: 'shop', compare: { kind: 'flow', a: 'old', b: 'new', mode: 'side' } })
+  assert.equal(toHash('shop', 'checkout', undefined, undefined, all[0]), '#shop/compare/old/new', 'a comparison wins over a flow on show')
+  assert.equal(toHash('shop', undefined, { run: 'ramp', level: 1 }, undefined, all[0]), '#shop/perf/ramp/1', 'a run on show wins')
+})
+
+test('only the longer forms name a comparison: flows called compare, run or swap still read as flows', () => {
+  assert.deepEqual(readHash('#shop/compare'), { view: 'shop', flow: 'compare' })
+  assert.deepEqual(readHash('#shop/run'), { view: 'shop', flow: 'run' })
+  assert.deepEqual(readHash('#shop/swap'), { view: 'shop', flow: 'swap' })
+  // a flow can be called run or swap and still be compared
+  assert.deepEqual(readHash('#shop/compare/run/new'), { view: 'shop', compare: { kind: 'flow', a: 'run', b: 'new', mode: 'side' } })
+  assert.deepEqual(readHash('#shop/compare/old/swap'), { view: 'shop', compare: { kind: 'flow', a: 'old', b: 'swap', mode: 'side' } })
+  assert.deepEqual(readHash('#shop/compare/compare/compare/swap'), { view: 'shop', compare: { kind: 'flow', a: 'compare', b: 'compare', mode: 'swap' } })
+  // a flow called run, swapped: this reading wins over a run called swap, whose side by side address is the same text
+  assert.deepEqual(readHash('#shop/compare/run/new/swap'), { view: 'shop', compare: { kind: 'flow', a: 'run', b: 'new', mode: 'swap' } })
+  assert.deepEqual(readHash('#shop/compare/run/a/b/swap'), { view: 'shop', compare: { kind: 'run', a: 'a', b: 'b', mode: 'swap' } })
+})
+
+test('a comparison address that is not one reads as the overview, and nothing throws', () => {
+  for (const hash of [
+    '#shop/compare/a', '#shop/compare/', '#shop/compare//b', '#shop/compare/Old/new', '#shop/compare/old/New', '#shop/compare/old/new/sway',
+    '#shop/compare/old/new/swap/x', '#shop/compare/run/a/Bad', '#shop/compare/run/a/b/sway', '#shop/compare/run/a/b/swap/x', '#shop/compares/a/b', '#Bad/compare/a/b',
+  ]) assert.deepEqual(readHash(hash), { view: ROOT }, hash)
+  assert.doesNotThrow(() => readHash('#shop/compare/' + 'a/'.repeat(5000)))
+})
+
+test('picking another flow, run or mode in a comparison replaces the address; opening or closing one is a step', () => {
+  const was = { kind: 'flow', a: 'old', b: 'new', mode: 'side' } as const
+  const base = { quiet: false, address: '#shop/compare/old/new/swap', current: '#shop/compare/old/new', view: 'shop', viewId: 'shop', perfOpen: false, runKey: '', failuresAt: undefined, compareAt: { ...was, mode: 'swap' } } as const
+  assert.equal(addressChange(base), 'replace', 'a mode switch')
+  assert.equal(addressChange({ ...base, address: '#shop/compare/older/new', compareAt: { ...was, a: 'older' } }), 'replace', 'another flow in the same comparison')
+  assert.equal(addressChange({ ...base, current: '#shop', address: '#shop/compare/old/new', compareAt: was }), 'push', 'opening a comparison')
+  assert.equal(addressChange({ ...base, current: '#shop/compare/old/new', address: '#shop', compareAt: undefined }), 'push', 'closing it')
+  assert.equal(addressChange({ ...base, current: '#shop/compare/old/new', address: '#shop/compare/run/a/b', compareAt: { kind: 'run', a: 'a', b: 'b', mode: 'side' } }), 'push', 'flows to runs is a new comparison')
+  assert.equal(addressChange({ ...base, address: '#other/compare/old/new', view: 'other', viewId: 'other', compareAt: was }), 'push', 'a zoom with a comparison open is a step')
+  assert.equal(addressChange({ ...base, current: '#shop/compare/old/new', address: '#shop/compare/old/new', compareAt: was }), undefined, 'nothing changed')
+})
+
 test('every address toHash writes is one a restored panel takes back, and anything else is not', () => {
   const written = [
     toHash('shop'),
@@ -116,6 +166,8 @@ test('every address toHash writes is one a restored panel takes back, and anythi
     toHash('shop', undefined, { run: 'dinner-rush', level: 3 }),
     toHash('shop', undefined, { run: 'dinner-rush', level: 3, levels: [2, 1.5] }),
     toHash('shop', undefined, undefined, { analysis: 'checkout', mode: 'timeout' }),
+    toHash('shop', undefined, undefined, undefined, { kind: 'flow', a: 'old', b: 'new', mode: 'swap' }),
+    toHash('shop', undefined, undefined, undefined, { kind: 'run', a: 'before', b: 'after', mode: 'side' }),
   ]
   for (const address of written) assert.equal(isSavedHash(address), true, address)
   for (const bad of ['', '#', 'shop', '#shop checkout', '#shop"x', '#a<b', '#javascript:alert(1)', '#//evil', '#shop/..']) assert.equal(isSavedHash(bad), false, bad)
