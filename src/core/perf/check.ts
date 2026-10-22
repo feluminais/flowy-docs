@@ -12,13 +12,15 @@ import { sharedColors, whyNotAdded } from './sources.ts'
 /**
  * What a run says about other runs, which one run alone can't see: each run an adder lists must be a load run of its own (not missing, not a run over time, not another
  * adder, not tested with several sources), and two of them may not draw in one colour. An adder with fewer than two runs it can add can't be played: the loader leaves it out
- * (see dialsOf). Each problem names the run it is about.
+ * (see dialsOf). A `compare` must name another run that is there. Each problem names the run it is about.
  */
 export function checkRuns(runs: Record<string, Run>): Problem[] {
   const problems: Problem[] = []
   for (const [id, run] of Object.entries(runs)) {
-    if (run.adds === undefined) continue
     const add = (message: string) => problems.push({ file: pathOf(FILE_KINDS.run, id), message })
+    if (run.compare?.with === id) add('compare points at this run itself')
+    else if (run.compare && !Object.hasOwn(runs, run.compare.with)) add(`compare "${brief(run.compare.with)}" is not a run`)
+    if (run.adds === undefined) continue
     const good: string[] = []
     for (const part of run.adds) {
       const why = whyNotAdded(runs, part)
@@ -58,4 +60,4 @@ export function checkRun(id: string, run: Run, model: Model): Problem[] {
   // A shape deleted after the run was written shows up here at the next load, never as a crash: runs are outside the edit pipeline.
   for (const e of eventsOf(run)) if (!getObject(model, e.on)) once(`unknown object "${e.on}"`)
   return problems
-}
+}

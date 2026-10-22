@@ -1,3 +1,4 @@
+import { compareOf, compareProblem } from '../compare.ts'
 import type { Problem } from '../problem.ts'
 import { FILE_KINDS, pathOf } from '../filekinds.ts'
 import { parseFormula } from '../formula.ts'
@@ -167,6 +168,11 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
   if (name === undefined) add('name is missing')
   const about = word('about')
   const axisText = orEmpty(doc.axis, undefined)
+  // The run it compares with. Whether that run exists is for checkRuns, which sees the other runs.
+  const compareText = orEmpty(doc.compare, undefined)
+  const compareWhy = compareProblem(compareText, 'run')
+  if (compareWhy !== undefined) add(compareWhy)
+  const compare = compareOf(compareText)
 
   // A run that adds others is a list of runs and nothing else: no levels of its own, no source (each run it adds has its own).
   const addsText = orEmpty(doc.adds, undefined)
@@ -175,7 +181,7 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
     const adds = readAdds(id, file, addsText, add)
     for (const own of ['levels', 'sources', 'source'] as const) if (orEmpty(doc[own], undefined) !== undefined) add(`a run that adds others has no ${own} of its own`)
     if (axisText === 'time') add('a run that adds others is measured over load, not time')
-    return { run: { name: name ?? id, ...(about === undefined ? {} : { about }), unit: '', adds, levels: [] }, problems }
+    return { run: { name: name ?? id, ...(about === undefined ? {} : { about }), unit: '', adds, levels: [], ...(compare === undefined ? {} : { compare }) }, problems }
   }
 
   // A run tested with several sources at once: its levels name a load for each.
@@ -265,6 +271,7 @@ export function parseRun(id: string, text: string): { run: Run; problems: Proble
     run: {
       name: name ?? id, ...(about === undefined ? {} : { about }), unit: runUnit, ...(entry === undefined || sources !== undefined ? {} : { entry }), ...(source === undefined ? {} : { source }),
       ...(axis === 'time' ? { axis } : {}), ...(events.length === 0 ? {} : { events }), ...(sources === undefined ? {} : { sources }), levels,
+      ...(compare === undefined ? {} : { compare }),
     },
     problems,
   }
@@ -407,4 +414,4 @@ function readBy(raw: unknown, sources: Record<string, SourceInfo> | undefined, w
     if (Object.keys(m).length > 0) put(out, sid, m)
   }
   return Object.keys(out).length === 0 ? undefined : out
-}
+}
