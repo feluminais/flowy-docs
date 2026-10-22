@@ -73,7 +73,7 @@ test('every tool, prompt and guide the instructions name is really there', async
 test('the guide lists every tool, and SECURITY.md and the guide count them as the server does', async t => {
   const client = await setup(t)
   const tools = (await client.listTools()).tools.map(x => x.name)
-  const guide = await readFile('docs/guide/claude.md', 'utf8')
+  const guide = await readFile('docs/guide/ai.md', 'utf8')
   const security = await readFile('SECURITY.md', 'utf8')
   const table = guide.slice(guide.indexOf('**The tools.**'), guide.indexOf('Not over MCP:'))
   assert.deepEqual(tools.filter(name => !table.includes(`\`${name}\``)), [], 'tools missing from the guide table')

@@ -160,4 +160,4 @@ and `sources` tests several at once. Tools write it. The format is in [the guide
 | A failure analysis, or one mode of it | `put_failures`, `put_failure` |
 | `lines`, `perf/`, `layout.yaml` | Not over MCP: write the file, or use the canvas |
 
-[The guide](guide/claude.md#let-claude-build-it) lists all the tools.
+[The guide](guide/ai.md#let-an-ai-build-it) lists all the tools.
