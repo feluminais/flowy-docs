@@ -1,26 +1,23 @@
-import { useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { useImperativeHandle, useRef } from 'react'
 import type { Ref } from 'react'
 import { Controls, ReactFlow } from '@xyflow/react'
-import type { ColorMode, FitViewOptions, NodeChange } from '@xyflow/react'
-import { followsLanding, leavesMarks } from '../../src/core/animation.ts'
+import type { ColorMode, FitViewOptions } from '@xyflow/react'
+import { followsLanding } from '../../src/core/animation.ts'
 import type { Model } from '../../src/core/model.ts'
-import { ROOT } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import type { SideMarks } from '../../src/core/flowdiff.ts'
 import { usesStates } from '../../src/core/states.ts'
-import { nameOf } from '../../src/core/views.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import type { Picked } from './compare.ts'
-import { fitOptions, focusEdges, frameNode, isStepLine, lineId, sizeOf, toGraph } from './graph.ts'
-import type { BoxNode, FrameNode } from './graph.ts'
+import { fitOptions, isStepLine } from './graph.ts'
 import { GroupMarks } from './GroupMarks.tsx'
-import { LabelSpotsContext, Line, LineStyleContext, labelSpots } from './Line.tsx'
+import { LabelSpotsContext, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
 import { StepMotion } from './StepMotion.tsx'
-import { usePlayback, usePlayer } from './usePlayer.ts'
-import { useFlowStage } from './useFlowStage.ts'
+import { usePaneFlow } from './usePaneFlow.ts'
+import type { PaneFlow } from './usePaneFlow.ts'
 
 const nodeTypes = { box: Box, frame: Frame }
 const edgeTypes = { line: Line }
@@ -73,39 +70,11 @@ type Props = {
  * never moves another. It is the single canvas of the reader (App) cut down to what a flow needs: nothing is dragged, recorded or edited, and a double-click goes nowhere.
  */
 export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, fitKey, colorMode, problems, lines, still, ref }: Props) {
-  const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
-  const view = flow?.view ?? ROOT
-  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = usePlayer({ initialFlow: () => flowId, initialStep: startAt })
-  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks: groupMarks } = useFlowStage({ model, view, flow, playing, replays })
-  const { finished, stepTo, togglePlay } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey })
-  const graph = useMemo(() => toGraph(model, view, shown, problems, flowMarks), [model, view, shown, problems, flowMarks])
-  const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
-  const sizes = useRef(new Map<string, { width: number; height: number }>()) // what each box measured (see Reader: React Flow forgets it on every new node object)
-  const [hovered, setHovered] = useState<string>()
+  const p = usePaneFlow({ model, flowId, startAt, problems, selectedBox, selectedLine, lines, still })
+  const { flow, view, nodes, frame, edges, spots } = p
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
   const fit = () => fitNow.current?.({ ...fitOptions(0, true), duration: 300 })
-  useImperativeHandle(ref, () => ({
-    step: by => stepTo(stopIndex + by),
-    end: which => stepTo(which === 'first' ? 0 : stops.length - 1),
-    play: togglePlay,
-    replay,
-    fit,
-  }))
-
-  const nodes = graph.nodes.map(n => ({ ...n, selected: n.id === selectedBox, measured: sizes.current.get(n.id) }))
-  const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
-  const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
-  // The lines a pipe plays along move their labels aside, as on the single canvas.
-  const pipes = animated.filter(m => !still || leavesMarks(m.animation)).map(m => lineId(m.placed[0], m.placed[1])).join('\n')
-  const edges = useMemo(() => {
-    const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
-    return focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
-  }, [graph, selectedBox, selectedLine, hovered, pipes])
-  const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
-  const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])
-  const onNodesChange = (changes: NodeChange<BoxNode | FrameNode>[]) => {
-    for (const c of changes) if (c.type === 'dimensions' && c.dimensions) sizes.current.set(c.id, c.dimensions)
-  }
+  useImperativeHandle(ref, () => ({ ...p.keys, fit }))
 
   return (
     <section className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={label ?? title} onFocus={onFocus} onPointerDownCapture={onFocus}>
@@ -126,15 +95,15 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
               nodesConnectable={false}
               zoomOnDoubleClick={false}
               deleteKeyCode={null}
-              onNodesChange={onNodesChange}
+              onNodesChange={p.onNodesChange}
               onNodeClick={(_, node) => {
                 if (node.type === 'box') onPick({ kind: 'object', id: node.id })
               }}
               onEdgeClick={(_, e) => {
                 if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view })
               }}
-              onEdgeMouseEnter={(_, e) => setHovered(e.id)}
-              onEdgeMouseLeave={() => setHovered(undefined)}
+              onEdgeMouseEnter={(_, e) => p.setHovered(e.id)}
+              onEdgeMouseLeave={() => p.setHovered(undefined)}
               onPaneClick={() => {
                 onFocus()
                 onEmpty() // as on the single canvas, a click on nothing closes the panel
@@ -145,18 +114,35 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
             >
               <Camera count={nodes.length + frame.length} fitKey={`${view} ${flowId} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
               <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
-              {flow && stop && animated.map(m => (
-                <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
-              ))}
-              <GroupMarks marks={groupMarks} />
+              <PaneMotions p={p} />
             </ReactFlow>
           </LabelSpotsContext>
         </LineStyleContext>
       </div>
-      {flow && stop && caption && progress && (
-        <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
-          repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
-      )}
+      <PanePlayer model={model} p={p} />
     </section>
+  )
+}
+
+/** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), and the marks of the stop's group. */
+export function PaneMotions({ p }: { p: PaneFlow }) {
+  const { flow, stop, animated, stepKey, shown, repeat, finished } = p
+  return (
+    <>
+      {flow && stop && animated.map(m => (
+        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
+      ))}
+      <GroupMarks marks={p.marks} />
+    </>
+  )
+}
+
+/** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. */
+export function PanePlayer({ model, p }: { model: Model; p: PaneFlow }) {
+  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
+  if (!(flow && stop && caption && progress)) return null
+  return (
+    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
+      repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
   )
 }
