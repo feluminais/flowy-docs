@@ -995,7 +995,7 @@
           "from": "stripe",
           "to": "order-api",
           "text": "Declines the card",
-          "description": "A decline is final: it is not retried. The hold is released, and the app asks the customer\nfor another card.\n",
+          "description": "A declined card is not retried. The hold is released and the app asks the customer\nfor another card.\n",
           "animation": {
             "kind": "send",
             "outcome": "fail"
