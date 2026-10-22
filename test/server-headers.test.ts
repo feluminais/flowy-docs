@@ -46,5 +46,6 @@ test('the live-update stream carries the same headers', async t => {
   const res = await fetch(`${base}/api/events`, { signal: controller.signal })
   assert.match(res.headers.get('content-security-policy') ?? '', /frame-ancestors 'none'/)
   assert.equal(res.headers.get('x-content-type-options'), 'nosniff')
+  await res.body?.cancel() // read nothing from the stream, and let go of it before the server is closed under it
   controller.abort()
 })
