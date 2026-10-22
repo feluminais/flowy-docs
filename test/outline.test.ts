@@ -190,6 +190,16 @@ test('flowGroups: a flow tagged by many lists them after it in key order, and a 
   assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['a', 'b', 'c', 'd', 'e'])
 })
 
+test('flowGroups: a loop of tags lists every flow once, from its first member, the same way every time', () => {
+  const m = paired()
+  m.flows.a.compare = 'b'
+  m.flows.b.compare = 'c'
+  m.flows.c.compare = 'a' // a -> b -> c -> a: nothing is oldest
+  const ids = flowGroups(m, 'shop').here.map(f => f.id)
+  assert.deepEqual(ids, ['a', 'c', 'b', 'd', 'e'])
+  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ids)
+})
+
 test('flowGroups: flows with no links keep their order exactly', () => {
   const m = paired()
   delete m.flows.b.compare

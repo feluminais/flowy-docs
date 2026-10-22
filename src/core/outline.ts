@@ -239,9 +239,9 @@ export type FlowGroup = { view: string; name: string; path: string[]; flows: Flo
 export type FlowGroups = { here: FlowRef[]; elsewhere: FlowGroup[]; total: number }
 
 /**
- * `ids` (the flows of one view, in name order) with partners together: each flow that tags another in the list goes right after the one it tags, so a chain
- * A <- B <- C reads A, B, C, and the flows that tag one flow follow it in key order. A group of partners sits where its first member sat, and its oldest
- * (a flow that tags none of the group) comes first. Flows that tag nothing and are tagged by nothing do not move.
+ * `ids` (the flows of one view, in name order) with partners together. A group is flows joined by tags to flows in the list. It sits where its first member sorts,
+ * oldest first: a flow that tags none of the group, then the flows that tag it in key order, and so on, so a chain A <- B <- C reads A, B, C. A group with no oldest
+ * (a loop of tags) starts at its first member. A flow with no partner is a group of one, so it does not move.
  */
 function withPartners(model: Model, ids: string[]): string[] {
   const listed = new Set(ids)
@@ -249,62 +249,30 @@ function withPartners(model: Model, ids: string[]): string[] {
     const to = compareOf(model.flows[id].compare)?.with
     return to !== undefined && to !== id && listed.has(to) ? to : undefined
   }
-  const newer = new Map<string, string[]>() // by the flow they tag, in key order
+  const newer = new Map<string, string[]>() // the flows that tag a flow, in key order
   for (const id of Object.keys(model.flows)) {
     const to = listed.has(id) ? target(id) : undefined
-    if (to === undefined) continue
-    const list = newer.get(to)
-    if (list) list.push(id)
-    else newer.set(to, [id])
+    if (to !== undefined) newer.set(to, [...(newer.get(to) ?? []), id])
   }
-  const done = new Set<string>()
   const out: string[] = []
+  const placed = new Set<string>()
   const place = (root: string) => {
-    // A stack, not recursion: a long chain must not overflow, and a pair that tag each other must not loop.
+    // A stack, not recursion, so a long chain does not overflow; `placed` keeps a loop from repeating.
     const stack = [root]
     while (stack.length > 0) {
       const id = stack.pop()!
-      if (done.has(id)) continue
-      done.add(id)
+      if (placed.has(id)) continue
+      placed.add(id)
       out.push(id)
-      const below = newer.get(id) ?? []
-      for (let i = below.length - 1; i >= 0; i--) stack.push(below[i])
+      stack.push(...(newer.get(id) ?? []).toReversed())
     }
   }
   for (const id of ids) {
-    if (done.has(id)) continue
-    // Everything joined to this flow by a tag, so the group is placed whole at the spot its first member sorts to.
-    const group = new Set([id])
+    if (placed.has(id)) continue
+    const group = new Set([id]) // everything joined to it by a tag, either way round
     for (const member of group) for (const next of [target(member), ...(newer.get(member) ?? [])]) if (next !== undefined) group.add(next)
-    const members = ids.filter(m => group.has(m)) // in name order
-    const oldest = members.filter(m => target(m) === undefined)
-    for (const root of oldest) place(root)
-    for (const m of members) place(m) // a loop of tags has no oldest: it starts at its first member
-  }
-  // The group a flow is in: everything joined to it by a tag, found once for the first flow of the group in the list.
-  const joined = new Map<string, string[]>()
-  for (const id of ids) {
-    const to = target(id)
-    if (to === undefined) continue
-    for (const [a, b] of [[id, to], [to, id]]) joined.set(a, [...(joined.get(a) ?? []), b])
-  }
-  for (const id of ids) {
-    if (done.has(id)) continue
-    if (!joined.has(id)) {
-      done.add(id)
-      out.push(id)
-      continue
-    }
-    const group: string[] = []
-    const seen = new Set([id])
-    for (let i = 0, queue = [id]; i < queue.length; i++) {
-      group.push(queue[i])
-      for (const next of joined.get(queue[i]) ?? []) if (!seen.has(next)) { seen.add(next); queue.push(next) }
-    }
-    const members = ids.filter(m => seen.has(m)) // in name order
-    const roots = members.filter(m => target(m) === undefined)
-    for (const root of roots.length > 0 ? roots : [members[0]]) place(root)
-    for (const m of members) place(m) // a loop of tags has no oldest: whatever is left follows
+    const members = ids.filter(m => group.has(m))
+    for (const m of [...members.filter(m => target(m) === undefined), ...members]) place(m)
   }
   return out
 }

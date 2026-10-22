@@ -462,7 +462,10 @@ svg { flex: none; }
 .pick-grid.states { grid-template-columns: repeat(4, 1fr); }
 /* Compare with: the partner now, a search over the other flows drawn as tiles, and the flows that compare with this one. */
 .pick-field.partners { display: flex; flex-direction: column; gap: 8px; }
-.partner-now { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; border: 1.5px solid var(--accent); border-radius: 10px; background: var(--tint); color: var(--accent); }
+.partner-ask { display: flex; flex: 1 0 100%; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--fg); font-size: 13px; }
+.partner-ask span { flex: 1; min-width: 0; }
+.panel .partner-ask button { min-height: 26px; padding: 0 10px; font-size: 12px; }
+.partner-now { flex-wrap: wrap; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 10px; border: 1.5px solid var(--accent); border-radius: 10px; background: var(--tint); color: var(--accent); }
 .partner-now.missing { border-color: var(--line); background: var(--hover); color: var(--muted); }
 .partner-now > svg { flex: none; }
 .partner-text { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 1px; text-align: left; }

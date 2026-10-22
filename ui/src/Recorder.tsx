@@ -9,7 +9,7 @@ import { deleteFlow, groupSteps, OpError, putFlow, putGroup, removeGroup, remove
 import type { StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
 import { nameOf } from '../../src/core/views.ts'
-import { flowTile, partnerChoices, taggedBy, tagWith } from './compare.ts'
+import { flowTile, partnerChoices, removeNeedsConfirm, taggedBy, tagWith } from './compare.ts'
 import { newId, pickStepState, stateOf, stepStateShapes, withKey } from './edit.ts'
 import { Field, Panel } from './forms.tsx'
 import type { Common, SaveEdit } from './forms.tsx'
@@ -197,7 +197,7 @@ function CompareSection({ model, flowId, run, off, onOpen }: { model: Model; flo
   return (
     <>
       <Section icon={Columns} title="Compare with" />
-      <PartnerPicker partner={partner} choices={partnerChoices(model, flowId)} comparedBy={off === undefined ? taggedBy(model, flowId) : []} hasNote={tag?.note !== undefined} off={off}
+      <PartnerPicker partner={partner} choices={partnerChoices(model, flowId)} comparedBy={off === undefined ? taggedBy(model, flowId) : []} hasNote={removeNeedsConfirm(tag)} off={off}
         onPick={id => void run(m => setCompare(m, flowId, tagWith(m, flowId, id)))}
         onRemove={() => void run(m => setCompare(m, flowId, undefined))}
         onOpen={onOpen} />
@@ -296,7 +296,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
         <p className="muted card">{rec.from ? `From ${nameOf(model, rec.from)}. Click where it goes, or the same shape if it acts alone.` : 'Click the shape where the next step starts.'}</p>
       )}
       {flow && <GroupsSection flowId={rec.id} steps={steps} groups={groups} edit={edit} />}
-      <CompareSection model={model} flowId={rec.id} run={run} off={flow ? undefined : 'Record a step first'} onOpen={onOpenFlow} />
+      <CompareSection key={rec.id} model={model} flowId={rec.id} run={run} off={flow ? undefined : 'Record a step first'} onOpen={onOpenFlow} />
       <div className="panel-buttons">
         {flow && <button className="danger" onClick={() => void run(m => deleteFlow(m, rec.id)).then(saved => saved && onClose())}><Trash size={16} />Delete flow</button>}
         <button className="primary" onClick={onClose}><Check size={16} />Done</button>

@@ -256,10 +256,12 @@ export type PartnerTile = FlowTile & { missing?: boolean }
  * compare with this one (read-only, each opens its own form). A pick or a removal is one edit. When `off` is set the tiles are greyed out and the reason is their tooltip.
  */
 export function PartnerPicker({ partner, choices, comparedBy, hasNote, off, onPick, onRemove, onOpen }: {
-  partner?: PartnerTile; choices: FlowTile[]; comparedBy: FlowTile[]; hasNote: boolean; off?: string
+  partner?: PartnerTile; choices: FlowTile[]; comparedBy: FlowTile[]; /** The link holds a note, which Remove would lose: it asks first. */ hasNote: boolean; off?: string
   onPick: (id: string) => void; onRemove: () => void; onOpen: (id: string) => void
 }) {
   const [query, setQuery] = useState('')
+  const [confirming, setConfirming] = useState(false) // Remove on a link that holds a note asks first
+  useEffect(() => setConfirming(false), [partner?.id]) // another flow's form, or the partner changed: the question was about the old link
   const needle = query.trim().toLowerCase()
   const found = needle === '' ? choices : choices.filter(c => c.name.toLowerCase().includes(needle) || c.id.includes(needle) || c.view.toLowerCase().includes(needle))
   const tile = (c: PartnerTile) => (
@@ -275,7 +277,15 @@ export function PartnerPicker({ partner, choices, comparedBy, hasNote, off, onPi
           <div className={partner.missing ? 'partner-now missing' : 'partner-now'}>
             <Link size={16} />
             <span className="partner-text"><strong>{partner.name}</strong><span className="muted">{partner.missing ? 'Missing' : partner.view}</span></span>
-            <button type="button" className="partner-remove" disabled={off !== undefined} title={off ?? (hasNote ? 'Remove the link and its note' : 'Remove the link')} onClick={onRemove}><Close size={14} />Remove</button>
+            <button type="button" className="partner-remove" disabled={off !== undefined || confirming} title={off ?? (hasNote ? 'Remove the link and its note' : 'Remove the link')}
+              onClick={() => (hasNote ? setConfirming(true) : onRemove())}><Close size={14} />Remove</button>
+            {confirming && (
+              <div className="partner-ask" role="alertdialog" aria-label="Remove the link and its note" onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setConfirming(false) } }}>
+                <span>Remove the link and its note</span>
+                <button type="button" className="danger" onClick={() => { setConfirming(false); onRemove() }}>Remove</button>
+                <button type="button" className="primary" autoFocus onClick={() => setConfirming(false)}>Keep</button>
+              </div>
+            )}
           </div>
         )
         : <p className="muted partner-none">None</p>}
