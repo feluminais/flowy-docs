@@ -1,8 +1,8 @@
 name: "Orders and pings, tested together"
-about: "Made-up numbers for the demo. Customer orders and courier pings sent at once, nine combinations: three loads of each. Fleet DB fills faster than the two runs added would say, because the two compete for it. ETA and Matcher answer orders only, and Courier app calls Live tracking with pings only."
+about: "Made-up numbers for the demo. Customer orders and courier pings sent together: nine combinations, three loads of each. Fleet DB fills faster than the two runs added, because the two compete for it. ETA and Matcher answer orders only, and Courier app calls Live tracking with pings only."
 compare:
   with: together
-  note: "Added is the sum of two separate runs. Tested together sends both at once, and Fleet DB fills faster: at 600 orders a minute and 400 pings a second it reads 99%, where the sum reads 93%."
+  note: "Added is the sum of two separate runs. Tested together sends both at once. At 600 orders a minute and 400 pings a second Fleet DB reads 99%, against 93% added."
 sources:
   orders: { name: Customer orders, entry: customer-app, unit: orders/min, color: blue, dot: rate / 4 }
   pings: { name: Courier pings, entry: courier-app, unit: pings/s, color: green, dot: rate / 20 }

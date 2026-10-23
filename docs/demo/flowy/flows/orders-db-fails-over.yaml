@@ -11,5 +11,5 @@ steps:
     text: A standby takes over as the primary
     states: { orders-db: starting }
     description: |
-      The standby has to catch up and be promoted. Plum rehearses this every quarter, and it has taken less than a minute so far.
+      The standby has to catch up and be promoted. Plum rehearses this quarterly. Promotion has taken under a minute so far.
   - { from: order-api, to: orders-db, text: The next write goes through, animation: { kind: call, carries: order }, states: { orders-db: running, order-api: running } }

@@ -6,13 +6,12 @@ steps:
   - from: desktop-core
     text: Applies it to the files' YAML and refuses it if it would add a problem
     description: |
-      The files are read fresh first, so the edit starts from what is on disk, not from what the
-      window last drew. A file that can't be read blocks editing, and nothing is written.
+      The files are read fresh first, so the edit starts from disk, not from what the window last drew. A file that can't be read blocks editing, and nothing is written.
   - from: desktop-core
     to: folder
     text: Writes only the files that changed
     description: |
-      Each goes to a temporary file and is moved over the real one, and only if the file still has
-      the version that was read. If another program changed it meanwhile, the edit is dropped and
+      Each goes to a temporary file that is moved over the real one, only if the file still has the
+      version that was read. If another program changed it meanwhile, the edit is dropped and
       the window says so.
   - { from: desktop-core, to: desktop-canvas, text: "The folder is read again, and the view redraws with the panel as it was" }

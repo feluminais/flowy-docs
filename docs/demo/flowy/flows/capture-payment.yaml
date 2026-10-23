@@ -10,7 +10,7 @@ groups:
     kind: branch
 steps:
   - { from: order-api, to: stripe, text: Captures the amount it held, group: charge, animation: { kind: call, outcome: timeout } }
-  - { from: order-api, text: Gives up after five seconds and tries again, group: charge }
+  - { from: order-api, text: Times out after 5 s and retries, group: charge }
   - { from: stripe, to: order-api, text: Confirms the charge, group: outcome, lane: The charge goes through, animation: { kind: send, carries: charged } }
   - { from: order-api, to: orders-db, text: Marks the order paid, group: outcome, animation: call }
   - from: stripe
@@ -20,6 +20,5 @@ steps:
     lane: The card is declined
     animation: { kind: send, outcome: fail }
     description: |
-      A declined card is not retried. The hold is released and the app asks the customer
-      for another card.
+      A decline is not retried. The hold is released and the app asks for another card.
   - { from: order-api, to: customer-app, text: Asks the customer to try another card, group: outcome, animation: { kind: send, carries: try another card } }
