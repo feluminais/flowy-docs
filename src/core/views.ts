@@ -23,12 +23,30 @@ export function chain(model: Model, id: string): string[] {
   return out
 }
 
-export function memberIds(model: Model, view: string): string[] {
-  return Object.keys(model.objects).filter(id => getObject(model, id) && parentOf(model, id) === view)
+/** Children by parent, built once per `objects` map. The model is immutable once loaded: an edit makes a new `objects`, so the map's identity is the key. */
+const childIndex = new WeakMap<Model['objects'], Map<string, string[]>>()
+
+function childrenOf(model: Model): Map<string, string[]> {
+  let byParent = childIndex.get(model.objects)
+  if (!byParent) {
+    byParent = new Map()
+    for (const id of Object.keys(model.objects)) {
+      if (!getObject(model, id)) continue
+      const parent = parentOf(model, id)
+      const list = byParent.get(parent)
+      if (list) list.push(id)
+      else byParent.set(parent, [id])
+    }
+    childIndex.set(model.objects, byParent)
+  }
+  return byParent
 }
 
-// Known limit: scans every object per call; fine for hundreds of objects, index children by parent if views get slow
-export const hasChildren = (model: Model, id: string) => memberIds(model, id).length > 0
+export function memberIds(model: Model, view: string): string[] {
+  return childrenOf(model).get(view)?.slice() ?? []
+}
+
+export const hasChildren = (model: Model, id: string) => childrenOf(model).has(id)
 
 /** Whether `id` can be the view of a flow, or the place a problem opens: the top level, or an object with children. */
 export const isView = (model: Model, id: string) => id === ROOT || (getObject(model, id) !== undefined && hasChildren(model, id))
@@ -86,12 +104,14 @@ export function placeStep(model: Model, v: string, step: { from: string; to?: st
 
 export function computeView(model: Model, v: string): View {
   const members = memberIds(model, v)
+  const inView = new Set(members)
   const outsiders: string[] = []
+  const seenOutside = new Set<string>()
   const edges = new Map<string, Edge>()
   for (const c of model.connections) {
     const ends = placeEnds(model, v, c.from, c.to)
     if (!ends) continue
-    for (const end of ends) if (!members.includes(end) && !outsiders.includes(end)) outsiders.push(end)
+    for (const end of ends) if (!inView.has(end) && !seenOutside.has(end)) { seenOutside.add(end); outsiders.push(end) }
     const key = JSON.stringify(ends)
     const edge = edges.get(key)
     if (edge) {
