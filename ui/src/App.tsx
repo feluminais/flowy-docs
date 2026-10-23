@@ -9,7 +9,7 @@ import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import { dependents, needsDecision } from '../../src/core/dependents.ts'
 import type { Target } from '../../src/core/dependents.ts'
-import { connect, deleteWith, placeBoxes, setLines, tidyLayout } from '../../src/core/ops.ts'
+import { connect, deleteWith, moveFlow, placeBoxes, setLines, tidyLayout } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { followsLanding, leavesMarks } from '../../src/core/animation.ts'
 import { usesStates } from '../../src/core/states.ts'
@@ -1135,7 +1135,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <FlowsTab model={model} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} />
+              <FlowsTab model={model} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} onMove={editing && live && !readOnly ? (id, folder) => void run(m => moveFlow(m, id, folder)) : undefined} />
               {rowPicker}
             </NavPanel>
           )}

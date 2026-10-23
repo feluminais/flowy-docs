@@ -54,8 +54,8 @@ objects:
     tech: YAML
     code: [flowy/]
     description: |
-      `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each),
-      `failures/<id>.yaml` (one failure analysis each) and `layout.yaml` (where shapes were dragged).
+      `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each, in folders if you like,
+      with tags such as happy path or error path), `failures/<id>.yaml` (one failure analysis each) and `layout.yaml` (where shapes were dragged).
 
       Saving rewrites the file, so YAML comments are lost: put notes in an object's `description`.
       This repo documents itself with the folder you are reading.
@@ -555,7 +555,7 @@ objects:
     code: [src/core/outline.ts, desktop/Flowy.Core/Outline.cs]
     description: |
       What the navigator shows: the shapes as a tree with the flows under the systems they play in,
-      the flows grouped by where they play, and what each key does in the tree.
+      the Flows list (the flows as the folders they are filed in, filtered by tag and search), and what each key does in the tree.
 
       It draws nothing. The canvas and the desktop app each draw these rows, so both show the same on every line: its counts, its problem mark and which rows a filter keeps.
   ops:
