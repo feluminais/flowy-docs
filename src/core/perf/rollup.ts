@@ -2,7 +2,7 @@ import { getObject, ROOT } from '../model.ts'
 import type { Model } from '../model.ts'
 import { chain, placeEnds } from '../views.ts'
 import type { Failure, Level, Metrics, Pair } from './types.ts'
-import { add, defined, either, meanBytes, newMean, put, takeBytes } from './util.ts'
+import { add, defined, either, hasConnection, meanBytes, newMean, put, takeBytes } from './util.ts'
 import type { Mean } from './util.ts'
 
 /** Rolling a level up into what one view draws. */
@@ -25,21 +25,6 @@ export function rollUpLoad(model: Model, level: Level, view: string): { objects:
 
 /** What rollUpLoad answered, by model, level and view: the tab asks for the same level of a tested run again on every render, and a model or a level never changes once loaded. Callers only read the answer. */
 const rolled = new WeakMap<Model, WeakMap<Level, Map<string, { objects: Record<string, Metrics>; lines: Pair[] }>>>()
-
-/** The lines of a model as from to a set, to ask whether a connection is there. */
-const linked = new WeakMap<Model['connections'], Map<string, Set<string>>>()
-function hasConnection(model: Model, from: string, to: string): boolean {
-  let byFrom = linked.get(model.connections)
-  if (!byFrom) {
-    linked.set(model.connections, (byFrom = new Map()))
-    for (const c of model.connections) {
-      const tos = byFrom.get(c.from)
-      if (tos) tos.add(c.to)
-      else byFrom.set(c.from, new Set([c.to]))
-    }
-  }
-  return byFrom.get(from)?.has(to) ?? false
-}
 
 function rollUp(model: Model, level: Level, view: string): { objects: Record<string, Metrics>; lines: Pair[] } {
   const objects: Record<string, Metrics> = {}

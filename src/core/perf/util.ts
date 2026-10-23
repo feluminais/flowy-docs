@@ -1,3 +1,4 @@
+import type { Model } from '../model.ts'
 import type { Dial, Metrics, Setting } from './types.ts'
 
 /** Small helpers the other modules of perf/ share. */
@@ -49,4 +50,20 @@ export const own = <T>(record: Record<string, T> | undefined, key: string): T | 
 /** The load a setting gives a dial; a dial it doesn't name is not a number. */
 export const settingFor = (setting: Setting, id: string): number => (Object.hasOwn(setting, id) ? setting[id] : Number.NaN)
 /** A load kept inside a dial's range, as interpolate keeps it: nothing is extrapolated past the tested loads (a dial that can be idle goes down to 0), and one that isn't a number is the lowest tested. */
-export const keep = (d: Dial, x: number): number => (Number.isFinite(x) ? Math.min(d.values[d.values.length - 1], Math.max(d.idle ? 0 : d.values[0], x)) : d.values[0])
+export const keep = (d: Dial, x: number): number => (Number.isFinite(x) ? Math.min(d.values[d.values.length - 1], Math.max(d.idle ? 0 : d.values[0], x)) : d.values[0])
+
+const linked = new WeakMap<Model['connections'], Map<string, Set<string>>>()
+
+/** Whether the model has a connection from one shape to another. The lines are read into a lookup once, as the model never changes after it is loaded. */
+export function hasConnection(model: Model, from: string, to: string): boolean {
+  let byFrom = linked.get(model.connections)
+  if (!byFrom) {
+    linked.set(model.connections, (byFrom = new Map()))
+    for (const c of model.connections) {
+      const tos = byFrom.get(c.from)
+      if (tos) tos.add(c.to)
+      else byFrom.set(c.from, new Set([c.to]))
+    }
+  }
+  return byFrom.get(from)?.has(to) ?? false
+}

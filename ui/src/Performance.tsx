@@ -216,8 +216,9 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   const multi = found !== undefined && found.mode !== 'single'
   const dial = Math.min(Math.max(0, active), Math.max(0, dials.length - 1))
   // A run with several sources: the numbers at the setting of its dials, and the level at each tested load of the active dial with the others held (what the Strip and the curves plot).
-  const positionKey = positions.join(',')
-  const along = useMemo(() => (multi ? activeSeries(runs, runId, dials, positions, dial) : undefined), [multi, runs, runId, found, positionKey, dial])
+  // The active dial is replaced by each of its tested loads, so only where the others stand matters: ramping it must not redo the series.
+  const heldKey = positions.filter((_, i) => i !== dial).join(',')
+  const along = useMemo(() => (multi ? activeSeries(runs, runId, dials, positions, dial) : undefined), [multi, runs, runId, found, heldKey, dial])
   const ids = Object.keys(runs)
   const linked = useMemo(() => linkedRuns(runs), [runs])
   const problems = (
