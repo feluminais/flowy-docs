@@ -363,25 +363,29 @@ public class PerformanceTests
     }
 
     [AvaloniaFact]
-    public void Edit_mode_closes_the_panel_and_greys_the_button_out()
+    public void Edit_mode_swaps_the_numbers_for_the_runs_to_link_and_keeps_the_button()
     {
         var (window, reader) = Open();
         Press(window, Key.T, PhysicalKey.T);
         Assert.True(reader.PerfOpenNow);
         reader.SetEditing(true);
-        Assert.False(reader.PerfOpenNow);
+        Assert.False(reader.PerfOpenNow); // no numbers, no load on the canvas
+        Assert.True(reader.RunsOpenNow); // the tab stays, and lists the runs
         var button = reader.Rail.Shown.First(i => i.Name.StartsWith("Performance"));
         Assert.True(button.Visible); // it stays where it is
-        Assert.False(button.Enabled);
-        Press(window, Key.T, PhysicalKey.T);
+        Assert.True(button.Enabled);
+        Press(window, Key.T, PhysicalKey.T); // T is for the numbers
         Assert.False(reader.PerfOpenNow);
+        reader.ClickRail(PanelTab.Performance); // the button closes the list
+        Assert.False(reader.RunsOpenNow);
         reader.ClickRail(PanelTab.Performance);
-        Assert.False(reader.PerfOpenNow);
+        Assert.True(reader.RunsOpenNow);
         reader.SetEditing(false);
         button = reader.Rail.Shown.First(i => i.Name.StartsWith("Performance"));
         Assert.True(button.Visible);
         Assert.True(button.Enabled);
-        Assert.False(reader.PerfOpenNow); // it does not come back on its own
+        Assert.False(reader.RunsOpenNow);
+        Assert.True(reader.PerfOpenNow); // the tab that was open shows the numbers again
     }
 
     [AvaloniaFact]
