@@ -209,6 +209,12 @@ export function modelFiles(m: Model): Record<string, string> {
   return files
 }
 
+/** layout.yaml when the layout differs between two models: the one file changedFiles leaves to the canvas, which tidy_layout and `flowy tidy` write too. */
+export function changedLayout(before: Model, after: Model): [string, string | null][] {
+  const text = serializeLayout(after.layout)
+  return text === serializeLayout(before.layout) ? [] : [[FILE_KINDS.layout.file, text]]
+}
+
 /** Files whose content differs between two models. A null text means delete the file. */
 export function changedFiles(before: Model, after: Model): [string, string | null][] {
   const a = modelFiles(before)

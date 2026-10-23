@@ -9,7 +9,7 @@ import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import { dependents, needsDecision } from '../../src/core/dependents.ts'
 import type { Target } from '../../src/core/dependents.ts'
-import { connect, deleteWith, forgetLayout, placeBoxes, setLines } from '../../src/core/ops.ts'
+import { connect, deleteWith, placeBoxes, setLines, tidyLayout } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { followsLanding, leavesMarks } from '../../src/core/animation.ts'
 import { usesStates } from '../../src/core/states.ts'
@@ -851,7 +851,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         {editing && <button className="icon" aria-label="Undo" title="Undo the last change (Ctrl+Z)" onClick={() => void takeBack()}><Undo size={16} /></button>}
         {editing && <button className="icon" aria-label="Redo" title="Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)" onClick={() => void bringBack()}><Redo size={16} /></button>}
         {editing && (
-          <button title="Forget where shapes here were dragged, and lay this view out again" onClick={() => void run(m => forgetLayout(m, view)).then(saved => {
+          <button title="Lay this view out again" onClick={() => void run(m => tidyLayout(m, view)).then(saved => {
             if (!saved) return
             clearMoved()
             setTidied(n => n + 1)

@@ -26,7 +26,7 @@ const DOCS = [
 const docsDir = fileURLToPath(new URL('../../docs/', import.meta.url))
 
 /** What every prompt ends with: the check, then the account the user is owed of how much of the model is read and how much guessed. */
-const FINISH = 'When you have written, call get_problems and fix what it lists. Then say what you read from the code, what you inferred and what you left out. Last, name what Flowy could add that the code gave you material for (data, code on shapes, failures, motion in flows, performance, more flows), one line each, and skip any you saw nothing for.'
+const FINISH = 'When you have written, call tidy_layout once, then get_problems and fix what it lists. Then say what you read from the code, what you inferred and what you left out. Last, name what Flowy could add that the code gave you material for (data, code on shapes, failures, motion in flows, performance, more flows), one line each, and skip any you saw nothing for.'
 
 type Prompt = { title: string; description: string; args?: Record<string, z.ZodType<string | undefined>>; text: (args: Record<string, string | undefined>) => string }
 
