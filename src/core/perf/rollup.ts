@@ -14,6 +14,34 @@ import type { Mean } from './util.ts'
  * the model doesn't have is left out. Objects are the same in every view; lines depend on `view`.
  */
 export function rollUpLoad(model: Model, level: Level, view: string): { objects: Record<string, Metrics>; lines: Pair[] } {
+  let byLevel = rolled.get(model)
+  if (!byLevel) rolled.set(model, (byLevel = new WeakMap()))
+  let byView = byLevel.get(level)
+  if (!byView) byLevel.set(level, (byView = new Map()))
+  let done = byView.get(view)
+  if (!done) byView.set(view, (done = rollUp(model, level, view)))
+  return done
+}
+
+/** What rollUpLoad answered, by model, level and view: the tab asks for the same level of a tested run again on every render, and a model or a level never changes once loaded. Callers only read the answer. */
+const rolled = new WeakMap<Model, WeakMap<Level, Map<string, { objects: Record<string, Metrics>; lines: Pair[] }>>>()
+
+/** The lines of a model as from to a set, to ask whether a connection is there. */
+const linked = new WeakMap<Model['connections'], Map<string, Set<string>>>()
+function hasConnection(model: Model, from: string, to: string): boolean {
+  let byFrom = linked.get(model.connections)
+  if (!byFrom) {
+    linked.set(model.connections, (byFrom = new Map()))
+    for (const c of model.connections) {
+      const tos = byFrom.get(c.from)
+      if (tos) tos.add(c.to)
+      else byFrom.set(c.from, new Set([c.to]))
+    }
+  }
+  return byFrom.get(from)?.has(to) ?? false
+}
+
+function rollUp(model: Model, level: Level, view: string): { objects: Record<string, Metrics>; lines: Pair[] } {
   const objects: Record<string, Metrics> = {}
   for (const [id, m] of Object.entries(level.objects)) {
     if (!getObject(model, id)) continue
@@ -27,7 +55,7 @@ export function rollUpLoad(model: Model, level: Level, view: string): { objects:
   const lines = new Map<string, Pair>()
   const sizes = new Map<string, Sizes>()
   for (const c of level.connections) {
-    if (!model.connections.some(m => m.from === c.from && m.to === c.to)) continue
+    if (!hasConnection(model, c.from, c.to)) continue
     const ends = placeEnds(model, view, c.from, c.to)
     if (!ends) continue
     const key = JSON.stringify(ends)
