@@ -1,0 +1,1882 @@
+{
+  "kinds": [
+    "stream",
+    "listener",
+    "job"
+  ],
+  "labels": [
+    "Open stream",
+    "Listening",
+    "Running job"
+  ],
+  "defaultEnd": [
+    "to",
+    "from",
+    "to"
+  ],
+  "isKind": [
+    {
+      "value": "stream",
+      "is": true
+    },
+    {
+      "value": "listener",
+      "is": true
+    },
+    {
+      "value": "job",
+      "is": true
+    },
+    {
+      "value": "Stream",
+      "is": false
+    },
+    {
+      "value": "pipe",
+      "is": false
+    },
+    {
+      "value": "",
+      "is": false
+    },
+    {
+      "value": " stream",
+      "is": false
+    },
+    {
+      "value": 3,
+      "is": false
+    },
+    {
+      "value": null,
+      "is": false
+    },
+    {
+      "value": [
+        "stream"
+      ],
+      "is": false
+    }
+  ],
+  "folders": [
+    {
+      "folder": "desktop/fixtures/cases/channels/flowy",
+      "flows": [
+        {
+          "id": "bad",
+          "problems": [
+            {
+              "step": 0,
+              "message": "closes \"Ghost\", but nothing by that name is open"
+            },
+            {
+              "step": 2,
+              "message": "closes \"Ghost\", but nothing by that name is open (open: Real)"
+            }
+          ],
+          "at": [
+            [],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 11,
+                "kind": "stream",
+                "name": "abcdefghijklmnopqrstuvwx",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 11,
+                "kind": "stream",
+                "name": "abcdefghijklmnopqrstuvwx",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 11,
+                "kind": "stream",
+                "name": "abcdefghijklmnopqrstuvwx",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 11,
+                "kind": "stream",
+                "name": "abcdefghijklmnopqrstuvwx",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Real",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              },
+              {
+                "step": 11,
+                "kind": "stream",
+                "name": "abcdefghijklmnopqrstuvwx",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ]
+          ],
+          "kinds": [
+            [],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ]
+          ],
+          "closable": [
+            [],
+            [],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              },
+              {
+                "name": "abcdefghijklmnopqrstuvwx",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              },
+              {
+                "name": "abcdefghijklmnopqrstuvwx",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              },
+              {
+                "name": "abcdefghijklmnopqrstuvwx",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Real",
+                "kind": "stream"
+              },
+              {
+                "name": "abcdefghijklmnopqrstuvwx",
+                "kind": "stream"
+              }
+            ]
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 16,
+              "channels": []
+            },
+            {
+              "k": 21,
+              "channels": []
+            }
+          ]
+        },
+        {
+          "id": "branching",
+          "problems": [
+            {
+              "step": 4,
+              "message": "closes \"B\", but nothing by that name is open"
+            }
+          ],
+          "at": [
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "A",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "A",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "A",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 2,
+                "kind": "job",
+                "name": "B",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "A",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              }
+            ],
+            [],
+            []
+          ],
+          "kinds": [
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream",
+              "job"
+            ],
+            [
+              "stream"
+            ],
+            [],
+            []
+          ],
+          "closable": [
+            [],
+            [
+              {
+                "name": "A",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "A",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "A",
+                "kind": "stream"
+              }
+            ],
+            [],
+            []
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            0,
+            3,
+            4
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 6,
+              "channels": []
+            },
+            {
+              "k": 11,
+              "channels": []
+            }
+          ]
+        },
+        {
+          "id": "lifecycle",
+          "problems": [],
+          "at": [
+            [],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 3,
+                "kind": "job",
+                "name": "Charge",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 3,
+                "kind": "job",
+                "name": "Charge",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              },
+              {
+                "step": 3,
+                "kind": "job",
+                "name": "Charge",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 3,
+                "kind": "job",
+                "name": "Charge",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 3,
+                "kind": "job",
+                "name": "Charge",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 7,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 3,
+                "kind": "job",
+                "name": "Charge",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              },
+              {
+                "step": 7,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 7,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ]
+          ],
+          "kinds": [
+            [],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream",
+              "job"
+            ],
+            [
+              "stream",
+              "job"
+            ],
+            [
+              "stream",
+              "job"
+            ],
+            [
+              "job"
+            ],
+            [
+              "stream",
+              "job"
+            ],
+            [
+              "stream",
+              "job"
+            ],
+            [
+              "stream"
+            ]
+          ],
+          "closable": [
+            [],
+            [],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              },
+              {
+                "name": "Charge",
+                "kind": "job"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              },
+              {
+                "name": "Charge",
+                "kind": "job"
+              }
+            ],
+            [
+              {
+                "name": "Charge",
+                "kind": "job"
+              }
+            ],
+            [
+              {
+                "name": "Charge",
+                "kind": "job"
+              }
+            ],
+            [
+              {
+                "name": "Charge",
+                "kind": "job"
+              },
+              {
+                "name": "Orders",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              }
+            ]
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 10,
+              "channels": []
+            },
+            {
+              "k": 15,
+              "channels": []
+            }
+          ]
+        },
+        {
+          "id": "parallel",
+          "problems": [],
+          "at": [
+            [
+              {
+                "step": 0,
+                "kind": "listener",
+                "name": "Hook",
+                "from": "web",
+                "to": "api",
+                "end": "from",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "listener",
+                "name": "Hook",
+                "from": "web",
+                "to": "api",
+                "end": "from",
+                "opening": false,
+                "closing": true
+              },
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Rows",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Rows",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "stream",
+                "name": "Rows",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              }
+            ]
+          ],
+          "kinds": [
+            [
+              "listener"
+            ],
+            [
+              "stream",
+              "listener"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ]
+          ],
+          "closable": [
+            [],
+            [
+              {
+                "name": "Hook",
+                "kind": "listener"
+              }
+            ],
+            [
+              {
+                "name": "Hook",
+                "kind": "listener"
+              }
+            ],
+            [
+              {
+                "name": "Rows",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Rows",
+                "kind": "stream"
+              }
+            ]
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 4,
+              "channels": []
+            },
+            {
+              "k": 9,
+              "channels": []
+            }
+          ]
+        },
+        {
+          "id": "reopen",
+          "problems": [
+            {
+              "step": 1,
+              "message": "opens \"Feed\", which is already open"
+            },
+            {
+              "step": 3,
+              "message": "closes \"Feed\", but nothing by that name is open"
+            }
+          ],
+          "at": [
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Feed",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "job",
+                "name": "Feed",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "job",
+                "name": "Feed",
+                "from": "api",
+                "to": "stripe",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              }
+            ],
+            [],
+            []
+          ],
+          "kinds": [
+            [
+              "stream"
+            ],
+            [
+              "job"
+            ],
+            [
+              "job"
+            ],
+            [],
+            []
+          ],
+          "closable": [
+            [],
+            [
+              {
+                "name": "Feed",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Feed",
+                "kind": "job"
+              }
+            ],
+            [],
+            []
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 5,
+              "channels": []
+            },
+            {
+              "k": 10,
+              "channels": []
+            }
+          ]
+        },
+        {
+          "id": "repeat",
+          "problems": [],
+          "at": [
+            [
+              {
+                "step": 0,
+                "kind": "job",
+                "name": "Retry",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "job",
+                "name": "Retry",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "job",
+                "name": "Retry",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              }
+            ]
+          ],
+          "kinds": [
+            [
+              "job"
+            ],
+            [
+              "job"
+            ],
+            [
+              "job"
+            ]
+          ],
+          "closable": [
+            [],
+            [
+              {
+                "name": "Retry",
+                "kind": "job"
+              }
+            ],
+            [
+              {
+                "name": "Retry",
+                "kind": "job"
+              }
+            ]
+          ],
+          "before": [
+            null,
+            0,
+            1
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 3,
+              "channels": []
+            },
+            {
+              "k": 8,
+              "channels": []
+            }
+          ]
+        },
+        {
+          "id": "unnamed",
+          "problems": [],
+          "at": [
+            [
+              {
+                "step": 0,
+                "kind": "listener",
+                "from": "web",
+                "to": "api",
+                "end": "from",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "listener",
+                "from": "web",
+                "to": "api",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "job",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "listener",
+                "from": "web",
+                "to": "api",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "job",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 2,
+                "kind": "stream",
+                "from": "api",
+                "to": "stripe",
+                "end": "from",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "listener",
+                "from": "web",
+                "to": "api",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "job",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 2,
+                "kind": "stream",
+                "from": "api",
+                "to": "stripe",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 3,
+                "kind": "stream",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "listener",
+                "from": "web",
+                "to": "api",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "job",
+                "from": "api",
+                "to": "db",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 2,
+                "kind": "stream",
+                "from": "api",
+                "to": "stripe",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 3,
+                "kind": "stream",
+                "from": "web",
+                "to": "api",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ]
+          ],
+          "kinds": [
+            [
+              "listener"
+            ],
+            [
+              "listener",
+              "job"
+            ],
+            [
+              "stream",
+              "listener",
+              "job"
+            ],
+            [
+              "stream",
+              "listener",
+              "job"
+            ],
+            [
+              "stream",
+              "listener",
+              "job"
+            ]
+          ],
+          "closable": [
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 5,
+              "channels": []
+            },
+            {
+              "k": 10,
+              "channels": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "flows": [
+        {
+          "id": "follow-the-courier",
+          "problems": [],
+          "at": [
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Live map",
+                "from": "customer-app",
+                "to": "tracking",
+                "end": "from",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Live map",
+                "from": "customer-app",
+                "to": "tracking",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Live map",
+                "from": "customer-app",
+                "to": "tracking",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Live map",
+                "from": "customer-app",
+                "to": "tracking",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Live map",
+                "from": "customer-app",
+                "to": "tracking",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Live map",
+                "from": "customer-app",
+                "to": "tracking",
+                "end": "from",
+                "opening": false,
+                "closing": true
+              }
+            ]
+          ],
+          "kinds": [
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ],
+            [
+              "stream"
+            ]
+          ],
+          "closable": [
+            [],
+            [
+              {
+                "name": "Live map",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Live map",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Live map",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Live map",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Live map",
+                "kind": "stream"
+              }
+            ]
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 6,
+              "channels": []
+            },
+            {
+              "k": 11,
+              "channels": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "folder": "docs/showcase/flowy",
+      "flows": [
+        {
+          "id": "open-channels",
+          "problems": [],
+          "at": [
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "chan-client",
+                "to": "chan-feed",
+                "end": "from",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "chan-client",
+                "to": "chan-feed",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "listener",
+                "name": "Payments",
+                "from": "chan-client",
+                "to": "chan-hook",
+                "end": "from",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "chan-client",
+                "to": "chan-feed",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "listener",
+                "name": "Payments",
+                "from": "chan-client",
+                "to": "chan-hook",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 2,
+                "kind": "job",
+                "name": "Report",
+                "from": "chan-client",
+                "to": "chan-worker",
+                "end": "to",
+                "opening": true,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "chan-client",
+                "to": "chan-feed",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "listener",
+                "name": "Payments",
+                "from": "chan-client",
+                "to": "chan-hook",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 2,
+                "kind": "job",
+                "name": "Report",
+                "from": "chan-client",
+                "to": "chan-worker",
+                "end": "to",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "chan-client",
+                "to": "chan-feed",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 1,
+                "kind": "listener",
+                "name": "Payments",
+                "from": "chan-client",
+                "to": "chan-hook",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              },
+              {
+                "step": 2,
+                "kind": "job",
+                "name": "Report",
+                "from": "chan-client",
+                "to": "chan-worker",
+                "end": "to",
+                "opening": false,
+                "closing": true
+              }
+            ],
+            [
+              {
+                "step": 0,
+                "kind": "stream",
+                "name": "Orders",
+                "from": "chan-client",
+                "to": "chan-feed",
+                "end": "from",
+                "opening": false,
+                "closing": true
+              },
+              {
+                "step": 1,
+                "kind": "listener",
+                "name": "Payments",
+                "from": "chan-client",
+                "to": "chan-hook",
+                "end": "from",
+                "opening": false,
+                "closing": false
+              }
+            ],
+            [
+              {
+                "step": 1,
+                "kind": "listener",
+                "name": "Payments",
+                "from": "chan-client",
+                "to": "chan-hook",
+                "end": "from",
+                "opening": false,
+                "closing": true
+              }
+            ]
+          ],
+          "kinds": [
+            [
+              "stream"
+            ],
+            [
+              "stream",
+              "listener"
+            ],
+            [
+              "stream",
+              "listener",
+              "job"
+            ],
+            [
+              "stream",
+              "listener",
+              "job"
+            ],
+            [
+              "stream",
+              "listener",
+              "job"
+            ],
+            [
+              "stream",
+              "listener"
+            ],
+            [
+              "listener"
+            ]
+          ],
+          "closable": [
+            [],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              },
+              {
+                "name": "Payments",
+                "kind": "listener"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              },
+              {
+                "name": "Payments",
+                "kind": "listener"
+              },
+              {
+                "name": "Report",
+                "kind": "job"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              },
+              {
+                "name": "Payments",
+                "kind": "listener"
+              },
+              {
+                "name": "Report",
+                "kind": "job"
+              }
+            ],
+            [
+              {
+                "name": "Orders",
+                "kind": "stream"
+              },
+              {
+                "name": "Payments",
+                "kind": "listener"
+              }
+            ],
+            [
+              {
+                "name": "Payments",
+                "kind": "listener"
+              }
+            ]
+          ],
+          "before": [
+            null,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "outside": [
+            {
+              "k": -1,
+              "channels": []
+            },
+            {
+              "k": 7,
+              "channels": []
+            },
+            {
+              "k": 12,
+              "channels": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
