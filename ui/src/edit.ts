@@ -1,5 +1,6 @@
 import type { Problem } from '../../src/core/problem.ts'
 import { homeView } from '../../src/core/failures.ts'
+import { FILE_KINDS, idOfPath } from '../../src/core/filekinds.ts'
 import { getObject, isValidId, ROOT } from '../../src/core/model.ts'
 import { changedFiles, fileData, serializeLayout } from '../../src/core/modelfiles.ts'
 import type { Connection, Model, Step } from '../../src/core/model.ts'
@@ -124,7 +125,7 @@ export function locate(model: Model, problem: Problem): Spot {
     const mode = Object.keys(modes).filter(id => problem.message.startsWith(`${id}: `)).sort((a, b) => b.length - a.length)[0]
     return mode === undefined ? { view: ROOT, failure: { analysis } } : { view: homeView(model, modes[mode]), failure: { analysis, mode } }
   }
-  const flow = /^flows\/(.+)\.yaml$/.exec(problem.file)?.[1]
+  const flow = idOfPath(FILE_KINDS.flow, problem.file)
   if (flow !== undefined && Object.hasOwn(model.flows, flow)) {
     const { view } = model.flows[flow]
     return { view: isView(model, view) ? view : ROOT, flow, step: problem.step }

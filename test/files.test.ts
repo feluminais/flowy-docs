@@ -101,9 +101,9 @@ test('a refused save does not block the one queued behind it', async t => {
 })
 
 test('only the flowy files themselves can be written', async t => {
-  for (const ok of ['model.yaml', 'layout.yaml', 'flows/a.yaml', 'flows/checkout-2.yaml']) assert.equal(isAllowedPath(ok), true, ok)
+  for (const ok of ['model.yaml', 'layout.yaml', 'flows/a.yaml', 'flows/checkout-2.yaml', 'flows/a/b.yaml', 'flows/Pay & refund/b.yaml', 'flows/a/b/c/d/e/f/g.yaml']) assert.equal(isAllowedPath(ok), true, ok)
   const bad: unknown[] = ['../model.yaml', '/model.yaml', 'x/flows/a.yaml', 'flows\\a.yaml', 'Model.yaml', 'model.yaml\n',
-    'flows/a/b.yaml', 'flows/a.yaml.', 'flows/-a.yaml', 'flows/A.yaml', 'flows/root.yaml', 'flows/../../evil.yaml', ['model.yaml']]
+    'flows/a/b/c/d/e/f/g/h.yaml', 'flows/.hidden/a.yaml', 'flows/a:b/c.yaml', 'flows/ a/c.yaml', 'flows/a./c.yaml', 'flows/a//c.yaml', 'flows/nul/c.yaml', 'flows/a/B.yaml', 'flows/a/.yaml', 'flows/a.yaml.', 'flows/-a.yaml', 'flows/A.yaml', 'flows/root.yaml', 'flows/../../evil.yaml', ['model.yaml']]
   for (const rel of bad) assert.equal(isAllowedPath(rel), false, JSON.stringify(rel))
   const dir = await tempDir(t)
   await assert.rejects(saveFile(dir, '../evil.yaml', 'x', null), /refusing/)

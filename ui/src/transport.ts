@@ -40,7 +40,7 @@ export function httpTransport(base = '', model?: string): Transport {
       return state
     },
     async write(method, file, body) {
-      const res = await fetch(apiUrl(base, `/api/file/${file}`, model), {
+      const res = await fetch(apiUrl(base, `/api/file/${file.split('/').map(encodeURIComponent).join('/')}`, model), { // a folder of flows may have a space in its name
         method,
         headers: { 'Content-Type': 'application/json', 'X-Flowy': '1' },
         body: JSON.stringify(body),

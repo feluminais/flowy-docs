@@ -82,6 +82,21 @@ export const CASES: EditLabelCase[] = [
   make('a flow deleted', 'Deleted the Customer checks out flow', m => { delete m.flows.checkout }),
   make('a flow renamed', 'Renamed the flow Customer checks out to Pay', m => { m.flows.checkout.name = 'Pay' }),
   make('a flow changed', 'Changed the Customer checks out flow', m => { m.flows.checkout.steps[0].text = 'Presses Buy' }),
+  make('a flow moved into a folder', 'Moved the Customer checks out flow into billing/refunds', m => { m.folders = { checkout: 'billing/refunds' } }),
+  make('a flow moved to the top', 'Moved the Customer checks out flow to the top', m => { delete m.folders }, m => { m.folders = { checkout: 'billing' } }),
+  make('a flow moved to another folder', 'Moved the Customer checks out flow into misc', m => { m.folders = { checkout: 'misc' } }, m => { m.folders = { checkout: 'billing' } }),
+  make('a long folder name is cut', `Moved the Customer checks out flow into ${'x'.repeat(40)}…`, m => { m.folders = { checkout: 'x'.repeat(60) } }),
+  make('a flow tagged', 'Changed the tags of the Customer checks out flow', m => { m.flows.checkout.tags = ['happy path'] }),
+  make('a flow untagged', 'Changed the tags of the Customer checks out flow', m => { delete m.flows.checkout.tags }, m => { m.flows.checkout.tags = ['happy path'] }),
+  make('a flow moved and changed', 'Changed the Customer checks out flow', m => {
+    m.folders = { checkout: 'billing' }
+    m.flows.checkout.steps[0].text = 'Presses Buy'
+  }),
+  make('a flow added in a folder', 'Added the Refund flow', m => {
+    m.flows.refund = { name: 'Refund', view: 'shop', steps: [{ from: 'web', to: 'api', text: 'Refunds' }] }
+    m.folders = { refund: 'billing' }
+  }),
+  make('a flow deleted from a folder', 'Deleted the Customer checks out flow', m => { delete m.flows.checkout; delete m.folders }, m => { m.folders = { checkout: 'billing' } }),
   make('a state set on a step', 'Set API to Stopped', m => { m.flows.checkout.steps[1].states = { api: 'stopped' } }),
   make('a state taken off a step', "Cleared API's state", m => { delete m.flows.checkout.steps[1].states }, m => { m.flows.checkout.steps[1].states = { api: 'stopped' } }),
   make('two flows', 'Changed 2 flows', m => {

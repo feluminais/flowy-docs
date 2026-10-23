@@ -6,7 +6,7 @@
 | --- | --- |
 | Ctrl+K, / | Find a shape |
 | O | The Explorer: everything as a tree |
-| L | The Flows tab: every flow, and play one |
+| L | The Flows tab: every flow by folder, and play one |
 | Enter | Open the selected shape |
 | Esc | Close what's open (a panel, then the comparison), then go back to the last level. The navigator closes only if your last click was in it |
 | Backspace, Z | Zoom out: go up a level |

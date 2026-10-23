@@ -4,12 +4,12 @@ import { ICON_GROUPS, ICONS } from '../../src/core/icons.ts'
 import { COLORS, COLOR_NAMES, colorPair, customIcons, fillOpacity, iconData, isColorName, isOpacity, SHAPE_DEFS, SHAPES, shapeOf, typeColor } from '../../src/core/look.ts'
 import type { Shape } from '../../src/core/look.ts'
 import type { FlowyObject, Model, ObjectType } from '../../src/core/model.ts'
-import { isExternal } from '../../src/core/model.ts'
+import { isExternal, isValidTag, MAX_TAG_LENGTH, SUGGESTED_TAGS, tagKey } from '../../src/core/model.ts'
 import { STATE_LABELS, STATE_NAMES } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { lookVars, TypeTile } from './Chrome.tsx'
 import type { FlowTile } from './compare.ts'
-import { ChevronRight, Close, Link, PathIcon, Route, Search as SearchIcon } from './icons.tsx'
+import { ChevronRight, Close, Link, PathIcon, Route, Search as SearchIcon, Tag } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
 import { PlainSwatch, Swatch } from './states.tsx'
 
@@ -27,6 +27,42 @@ const colorOf = (o: Pick<FlowyObject, 'type' | 'external' | 'color'>): CSSProper
 
 function Head({ label, value }: { label: string; value?: ReactNode }) {
   return <div className="pick-head"><span>{label}</span>{value !== undefined && <span className="pick-value">{value}</span>}</div>
+}
+
+/**
+ * The tags of a flow as buttons to switch on and off: the ones suggested, then the ones other flows have, then any the flow has besides, always in that order so a button does not
+ * move when it is pressed. A field adds a tag of your own. Each press is one edit, given the whole list of tags the flow has afterwards.
+ */
+export function TagPicker({ tags, used, onSet }: { tags: readonly string[]; used: readonly string[]; onSet: (next: string[]) => Promise<boolean> }) {
+  const [draft, setDraft] = useState('')
+  const on = new Set(tags.map(tagKey))
+  const seen = new Set<string>()
+  const options = [...SUGGESTED_TAGS, ...used, ...tags].filter(t => !seen.has(tagKey(t)) && seen.add(tagKey(t)))
+  const toggle = (tag: string) => void onSet(on.has(tagKey(tag)) ? tags.filter(t => tagKey(t) !== tagKey(tag)) : [...tags, tag])
+  const add = () => {
+    const tag = draft.trim()
+    if (tag === '' || !isValidTag(tag)) return
+    setDraft('')
+    if (!on.has(tagKey(tag))) void onSet([...tags, tag])
+  }
+  return (
+    <div className="pick-field">
+      <Head label="Tags" value={tags.length === 0 ? undefined : tags.join(', ')} />
+      <div className="tagbar" role="group" aria-label="Tags">
+        {options.map(t => (
+          <button key={tagKey(t)} type="button" className="tagchip" aria-pressed={on.has(tagKey(t))} onClick={() => toggle(t)}><Tag size={11} />{t}</button>
+        ))}
+      </div>
+      <label className="tagadd">
+        <input value={draft} placeholder="Add a tag" maxLength={MAX_TAG_LENGTH} aria-label="Add a tag" onChange={e => setDraft(e.target.value)}
+          onKeyDown={e => {
+            if (e.key !== 'Enter') return
+            e.preventDefault()
+            add()
+          }} />
+      </label>
+    </div>
+  )
 }
 
 /** Object types as their tiles, in the colours the canvas gives them. */

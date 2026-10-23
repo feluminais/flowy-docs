@@ -1,0 +1,14 @@
+name: Nobody accepts the order
+view: ordering
+tags: [error path]
+steps:
+  - from: order-api
+    to: kitchen-tablet
+    text: Rings the restaurant's tablet and gets no answer
+    animation: { kind: call, outcome: timeout, reason: Tablet offline }
+    description: |
+      The tablet lost its Wi-Fi or ran out of battery, so nobody sees the order. The kitchen has two minutes.
+  - { from: order-api, text: "Waits two minutes, then cancels the order" }
+  - { from: order-api, to: stripe, text: Releases the hold on the card, animation: { kind: call, carries: release } }
+  - { from: order-api, to: orders-db, text: Marks the order cancelled, animation: { kind: call, carries: cancelled } }
+  - { from: order-api, to: customer-app, text: Tells the customer the restaurant couldn't take it, animation: { kind: send, carries: cancelled } }

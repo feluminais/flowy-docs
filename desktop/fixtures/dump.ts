@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compareOf, compareProblem, linkedIds, partnersOf } from '../../src/core/compare.ts'
 import { dataShown } from '../../src/core/data.ts'
-import { lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
+import { folderOf, lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Analysis, Model } from '../../src/core/model.ts'
 import { computeView, isView, placeStep, stepEnds } from '../../src/core/views.ts'
@@ -61,6 +61,9 @@ export async function dumpFolder(dir: string): Promise<unknown> {
       }),
       groups: f.groups,
       states: f.states,
+      // Left out when the flow is at the top of flows/ or has no tags, so every older fixture is unchanged.
+      ...(folderOf(model, id) === '' ? {} : { folder: folderOf(model, id) }),
+      ...(f.tags === undefined ? {} : { tags: f.tags }),
       // Left out when the file has no compare, so every older fixture is unchanged. The tag as read, and what is wrong with it, are two things.
       ...(f.compare === undefined ? {} : { compare: compareOf(f.compare) ?? null, compareProblem: compareProblem(f.compare, 'flow') ?? null }),
     })),

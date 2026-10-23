@@ -1,5 +1,5 @@
 import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, OBJECT_TYPE_INFO, SHAPES } from './look.ts'
-import { getObject, ID_RULE, isValidId, LINE_STYLES, OBJECT_TYPES, ROOT } from './model.ts'
+import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, LINE_STYLES, MAX_TAG_LENGTH, OBJECT_TYPES, ROOT, tagKey } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { animationProblem, interceptorProblem } from './animation.ts'
 import { compareOf, compareProblem } from './compare.ts'
@@ -139,10 +139,19 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   })
 
   for (const [fid, f] of Object.entries(model.flows)) {
-    const p = (message: string, at?: { step: number }) => add(pathOf(FILE_KINDS.flow, fid), undefined, message, at)
+    const p = (message: string, at?: { step: number }) => add(pathOf(FILE_KINDS.flow, fid, folderOf(model, fid)), undefined, message, at)
     // A problem that belongs to a step reads "step N: ..." (N counts from 1) and points the canvas at it.
     const at = (message: string, step?: number) => (step === undefined ? p(message) : p(stepPrefix(step) + message, { step }))
     if (!isValidId(fid)) p(`"${fid}" is not a valid flow id: the file name must ${ID_RULE}`)
+    if (!isValidFolder(folderOf(model, fid))) p(`the folder "${folderOf(model, fid)}" can't be used: ${FOLDER_RULE}`)
+    if (Array.isArray(f.tags)) {
+      const seenTags = new Set<string>()
+      for (const tag of f.tags) {
+        if (!isValidTag(tag)) p(`tag ${JSON.stringify(tag)} must be 1 to ${MAX_TAG_LENGTH} characters of text, with no space at either end`)
+        else if (seenTags.has(tagKey(tag))) p(`tag "${tag}" is listed twice`)
+        else seenTags.add(tagKey(tag))
+      }
+    }
     if (!hasText(f.name)) p('name is missing')
     const viewOk = isView(model, f.view)
     if (missing(f.view)) p('view is missing')
