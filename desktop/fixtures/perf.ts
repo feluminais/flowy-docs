@@ -12,7 +12,7 @@ import { parseRun } from '../../src/core/perf/parse.ts'
 import { rollUpLoad } from '../../src/core/perf/rollup.ts'
 import { eventText, kneeText, kneeTextOf, scaleText, sourceKey, sourceKeyAt } from '../../src/core/perf/text.ts'
 import { idleOf } from '../../src/core/perf/idle.ts'
-import { amountOf, callSize } from '../../src/core/perf/measure.ts'
+import { amountOf, callPeak, callSize } from '../../src/core/perf/measure.ts'
 import { BARE_STRIPES, traffic, trafficAt } from '../../src/core/perf/traffic.ts'
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
@@ -594,6 +594,7 @@ export async function dumpPerf(): Promise<unknown> {
       scale: scaleText(read.run) ?? null,
       size: callSize({ [id]: read.run }, id) ?? null,
       bare: BARE_STRIPES,
+      peak: callPeak({ [id]: read.run }, id) ?? null,
       amounts: [amountOf({ rate: 10, bytes: 400 }, 'calls', 1000) ?? null, amountOf({ rate: 10, bytes: 400 }, 'data', 1000) ?? null, amountOf({ rate: 10 }, 'data', 1000) ?? null, amountOf({ bytes: 400 }, 'calls', 1000) ?? null],
       loads: loads.map(load => ({
         load,

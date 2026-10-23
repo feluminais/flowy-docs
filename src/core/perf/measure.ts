@@ -38,6 +38,22 @@ export function callSize(runs: Record<string, Run>, id: string): number | undefi
 }
 
 /**
+ * The most calls a second the run has on any line at any load, which the stripes are busy against: the busiest line at the top of the run has its stripes as close and quick as they get, so
+ * the stripes of a run that goes from 100 to 1,200 orders a minute visibly speed up. A run of added runs adds their peaks (a line they share carries the sum). Undefined when the run gives no rate.
+ */
+export function callPeak(runs: Record<string, Run>, id: string): number | undefined {
+  let sum = 0
+  let any = false
+  for (const run of partsOf(runs, id)) {
+    let most = 0
+    for (const l of run.levels) for (const c of l.connections) for (const m of [c, ...Object.values(c.by ?? {})]) if (m.rate !== undefined && m.rate > most) most = m.rate
+    if (most > 0) any = true
+    sum += most
+  }
+  return any ? sum : undefined
+}
+
+/**
  * What a line carries as a rate: its calls a second under Calls, and under Data and Mixed its data a second in units of `size` (so a call of that size is one), which is what its blobs
  * count. Undefined where the line gives nothing to count: no rate, or no size of a call.
  */
