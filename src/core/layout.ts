@@ -305,16 +305,20 @@ export function placeCached(members: string[], around: string[], edges: Edge[], 
  */
 export function spotsOf(model: Model, view: string, computed: View, boxes: string[]): Spots {
   const { members, edges } = computed
-  const placed = placeCached(members, boxes.filter(id => !members.includes(id)), edges)
   const saved = Object.hasOwn(model.layout, view) ? model.layout[view] : {}
   const at: Spots = new Map()
   for (const id of boxes) if (Object.hasOwn(saved, id)) at.set(id, { x: saved[id][0], y: saved[id][1] })
+  if (at.size === boxes.length) return at // every box has its place: auto layout is the slow part and would be thrown away
+  const inView = new Set(members)
+  const placed = placeCached(members, boxes.filter(id => !inView.has(id)), edges)
+  const taken: Point[] = [...at.values()]
   for (const id of boxes) {
     if (at.has(id)) continue
     const p = { ...placed.get(id)! }
     // Known limit: steps down one row at a time and checks every box; fine for a diagram's worth of boxes
-    while ([...at.values()].some(q => overlaps(p, q))) p.y += BOX.height + 30
+    while (taken.some(q => overlaps(p, q))) p.y += BOX.height + 30
     at.set(id, p)
+    taken.push(p)
   }
   return at
 }

@@ -6,7 +6,7 @@ import type { BoxTraffic } from '../../src/core/perf/types.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
-import { computeView, memberIds, placeEnds } from '../../src/core/views.ts'
+import { childCount, computeView, placeEnds } from '../../src/core/views.ts'
 import { BOX, arrange, membersOf, spotsOf, tangle, untangle } from '../../src/core/layout.ts'
 import type { Region } from '../../src/core/layout.ts'
 
@@ -83,12 +83,13 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     return e ? [{ i, e }] : []
   })
   const isFaint = (from: string, to: string) => faintSteps.some(f => f.e[0] === from && f.e[1] === to)
+  const inView = new Set(members)
   const nodes = boxes.map((id): BoxNode => ({
     id,
     type: 'box',
     position: at.get(id)!,
-    data: { object: model.objects[id], inside: memberIds(model, id).length, icon: iconData(model, model.objects[id]), ...(Object.hasOwn(states, id) ? { state: states[id] } : {}) },
-    className: classes(!members.includes(id) && 'outsider', dimming && (litBoxes.has(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
+    data: { object: model.objects[id], inside: childCount(model, id), icon: iconData(model, model.objects[id]), ...(Object.hasOwn(states, id) ? { state: states[id] } : {}) },
+    className: classes(!inView.has(id) && 'outsider', dimming && (litBoxes.has(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
   }))
   // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.
   const litLine = { zIndex: 1, markerEnd: { type: 'arrowclosed', color: 'var(--accent)' } } as const
