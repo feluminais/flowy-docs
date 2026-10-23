@@ -28,6 +28,7 @@
     "package:vscode": "npm run build:ui && npm run package --prefix vscode",
     "lab:run": "node perf-lab/load/run.ts",
     "lab:smoke": "node --test perf-lab/test/smoke.test.ts",
+    "bench": "node bench/views.ts && node bench/layout.ts && node bench/perf.ts && node bench/server.ts",
     "prepack": "npm run build",
     "prepublishOnly": "npm test && npm run typecheck",
     "test:coverage": "node --test --experimental-test-coverage \"test/**/*.test.ts\"",

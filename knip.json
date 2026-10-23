@@ -5,12 +5,13 @@
     "ui/vite.config.ts",
     "test/**/*.test.ts",
     "perf-lab/**/*.ts",
+    "bench/*.ts",
     "desktop/fixtures/*.ts",
     "desktop/tools/*",
     "docs/images/*.mjs",
     "browser-tests/**/*.ts"
   ],
-  "project": ["src/**/*.{ts,tsx}", "ui/src/**/*.{ts,tsx}", "perf-lab/**/*.ts", "desktop/fixtures/*.ts", "browser-tests/**/*.ts"],
+  "project": ["src/**/*.{ts,tsx}", "ui/src/**/*.{ts,tsx}", "perf-lab/**/*.ts", "bench/*.ts", "desktop/fixtures/*.ts", "browser-tests/**/*.ts"],
   "ignoreDependencies": ["puppeteer-core"],
   "ignoreBinaries": ["ffmpeg"],
   "rules": { "exports": "off", "types": "off" }
