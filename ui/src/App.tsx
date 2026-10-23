@@ -61,6 +61,8 @@ import { Shortcuts } from './Shortcuts.tsx'
 import { StepMotion } from './StepMotion.tsx'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
+import { cameBack, remember } from './levels.ts'
+import type { Levels } from './levels.ts'
 import { cameFrom, closeFlow, followBack, openFlow as leaveFlow } from './trail.ts'
 import type { Recording } from './Recorder.tsx'
 import { copyMessage } from '../../src/core/host.ts'
@@ -190,6 +192,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // Whether the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in
   // the diagram. A navigator that came back with the page has not been used.
   const navUsed = useRef(false)
+  const levels = useRef<Levels>([]) // the levels the reader has left, for Esc to go back through
+  const arriving = useRef<{ id: string; how: 'back' | 'jump' }>(undefined) // the level a way back or a jump up is heading for
   const setTab = (t: NavTab | undefined) => {
     navUsed.current = t !== undefined
     setNavTab(t)
@@ -401,6 +405,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (!unlessDraft(() => goNow(id))) goNow(id)
   }
   const goNow = (id: string) => {
+    // Where the reader was is where Esc takes them back to. A way back has already taken its level off the list, and a jump up (Z, the breadcrumb) forgets the list.
+    const arrived = arriving.current?.id === id ? arriving.current.how : undefined
+    arriving.current = undefined
+    if (arrived === 'jump') levels.current = []
+    else if (arrived !== 'back') levels.current = remember(levels.current, view, id)
     cancelOpen()
     zoom.cancelMotion()
     setViewId(id)
@@ -408,6 +417,20 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     setCompare(c => (c?.kind === 'run' ? c : undefined)) // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level
     session.viewChanged()
     setSide(s => (s?.kind === 'object' ? s : undefined)) // lines, Add and recording belong to one view
+  }
+  /** Up to `id` on purpose (Z, Backspace, the breadcrumb): Esc has nothing to go back to from there. */
+  const jumpTo = (id: string) => {
+    arriving.current = { id, how: 'jump' }
+    zoom.zoomOut(id)
+  }
+  /** Esc: back to the level the reader came from, or up a level when they did not come from one. A second press while the zoom is still leaving goes on from where it is heading. */
+  const back = () => {
+    const here = motion?.phase === 'leave' ? motion.to : view
+    const came = cameBack(levels.current, here, id => id === ROOT || canOpen(id))
+    const to = came?.to ?? parentOf(model, here)
+    levels.current = came?.rest ?? []
+    arriving.current = { id: to, how: came ? 'back' : 'jump' }
+    zoom.zoomAbout(to, moveBetween(model, here, to))
   }
   /** Open box `id`, from where it sits on screen: zoom in when it's inside this view, slide across when it sits beside it. */
   const zoomInto = (id: string) => {
@@ -786,7 +809,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         clearStep: () => { if (recording) setSide({ ...recording, from: undefined, to: undefined }) },
         closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen || runsOpen ? closePerf() : closeFailures()),
         // A second press while a zoom out is still leaving goes up from where that one is heading.
-        up: () => zoom.zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view)),
+        back,
+        up: () => jumpTo(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view)),
         // With two runs side by side the keys of the Performance tab act on the pane that has the focus.
         stepRun: by => (comparing ? compareRef.current?.focusedRun()?.step(by) : perfRun.stepLevel(stepFrom(here[activeDial], by))),
         runEnd: end => {
@@ -842,7 +866,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {chain(model, view).reverse().map((id, i) => (
             <Fragment key={id}>
               {i > 0 && <ChevronRight size={14} />}
-              <button disabled={id === view} onClick={() => zoom.zoomOut(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
+              <button disabled={id === view} onClick={() => jumpTo(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
             </Fragment>
           ))}
         </nav>

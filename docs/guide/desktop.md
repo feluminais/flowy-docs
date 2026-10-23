@@ -16,8 +16,8 @@ one that would add a problem is refused and a notice says why. A file changed el
 edit is dropped, and the view reloads. **Ctrl+Z** and **Ctrl+Y** undo and redo, but only where the files are still as that edit left
 them. The sample model that ships with the app can't be edited.
 
-What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc and Backspace go back up, and
-the breadcrumb works too), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
+What it has, as the canvas does: zoom into a shape (double-click it, or select it and press Enter; Esc goes back to the level you came from, Backspace and
+the breadcrumb go up), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
 zoom and drag to pan, **F** to fit, the side panel with the description, its code, what a store holds (its [Data](data.md#data) section), its links, the files a shape lives in (as links when the repo's
 origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one, **T** replays load-test runs, **M** lists failure modes; all four are always there, and one with nothing in it says so, as in the browser) and the one on the right for Details, flows that play with ← and → (Home and End go to the first and last
 step) with a step's animation, **R** to play it again and **P** to let the flow run on its own, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or

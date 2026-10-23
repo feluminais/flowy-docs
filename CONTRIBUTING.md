@@ -244,7 +244,8 @@ Before merging a change to the app, look at what it could affect, in a real wind
 
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo` shows Plum. Double-click Ordering: the view zooms in, the breadcrumb reads
       Overview › Ordering, and Esc, Backspace or the breadcrumb zoom out. Double-click the faded Delivery while inside Ordering: the
-      view slides across instead of zooming in.
+      view slides across instead of zooming in. Esc goes back to Ordering, and a second Esc to the overview. Backspace or Z in Delivery goes
+      straight to the overview, and Esc after it does nothing.
 - [ ] `dotnet run --project desktop/Flowy.App -- perf-lab` (or `-- perf-lab --view shop --tab performance --shot out.png`): the left rail has a Performance
       button under Failures with a 2 on it, and T opens its tab on the load where the Fulfilment worker first struggles
       (200 req/s on the ramp). In Shop lab, shapes that carry numbers are outlined from green to red along their own outline, Order queue
@@ -322,7 +323,7 @@ Reading:
       it reads Overview with "Click a shape." and an O key for the Explorer. Press E: the same panel holds Name and About (Markdown). Type a name and leave
       the field: the heading changes and `model.yaml` starts with `name:`. Clear it: the key goes. The same in the desktop app.
 - [ ] In edit mode, drag a box and press Esc (then try Backspace on another drag): the box goes back and the level stays; the next press goes
-      up. A click in between, or a second edit, turns that off. In the app, press Esc while still holding a drag: the box returns, nothing is saved.
+      back. A click in between, or a second edit, turns that off. In the app, press Esc while still holding a drag: the box returns, nothing is saved.
       Clicking the breadcrumb works too. The zoom buttons in the corner don't move while it zooms.
 - [ ] Click Shop and press Enter: it zooms in. Double-click API, click Auth (its panel opens),
       then press Esc three times: the panel closes, then it zooms out to Shop, then to the
@@ -330,7 +331,7 @@ Reading:
       focused one.
 - [ ] Add `  smtp: { type: app, name: SMTP, in: mail }` right under `objects:`, so Mail service
       opens. Inside Shop, double-click the faded Mail service: the view slides sideways, away from
-      it, instead of zooming in. Esc: it zooms out to the overview. Undo the line.
+      it, instead of zooming in. Esc: it goes back to Shop. Undo the line.
 - [ ] Zoom in with the wheel and press F: the whole view fits again. Press ?: the shortcut list
       opens; Esc closes it.
 - [ ] Inside API, Auth, Orders and Mail service sit in a row with Orders DB below them, and no
