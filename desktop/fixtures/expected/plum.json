@@ -1,63 +1,63 @@
 {
   "lineStyle": "straight",
   "projectName": "Plum",
-  "projectAbout": "Food delivery for one city. Customers order from the app or the website, restaurants cook, and couriers bring the food to the door.\n\nOpen **Ordering** first: every order passes through it. **Delivery** shows how a courier is found and followed.",
+  "projectAbout": "Food delivery for one city. Customers order in the app or on the website, restaurants cook, couriers deliver.\n\nStart with **Ordering**, which every order passes through. **Delivery** covers courier matching and tracking.",
   "objects": [
     {
       "id": "customer",
       "type": "actor",
       "name": "Customer",
-      "description": "Someone hungry, ordering from the Plum app or the website."
+      "description": "Orders from the Plum app or the website."
     },
     {
       "id": "restaurant",
       "type": "actor",
       "name": "Restaurant",
-      "description": "The kitchen staff who accept an order and mark it ready."
+      "description": "Kitchen staff. Accept orders and mark them ready."
     },
     {
       "id": "courier",
       "type": "actor",
       "name": "Courier",
       "icon": "truck",
-      "description": "Rides or drives the order from the restaurant to the customer's door."
+      "description": "Carries the order from the restaurant to the customer's door."
     },
     {
       "id": "support",
       "type": "actor",
       "name": "Support agent",
-      "description": "Answers customers and couriers when something goes wrong."
+      "description": "Handles customer and courier problems."
     },
     {
       "id": "ordering",
       "type": "system",
       "name": "Ordering",
-      "description": "Everything a customer touches: browsing menus, building a basket, paying.\n\nThe **Order API** is the only way in. It keeps orders in Postgres and announces every new\norder on the **Order events** bus, which is how **Delivery** hears about it.\n"
+      "description": "Everything customer-facing: menus, basket, payment.\n\nThe **Order API** is the only entry point. It stores orders in Postgres and publishes each\nnew order to **Order events**, which **Delivery** consumes.\n"
     },
     {
       "id": "delivery",
       "type": "system",
       "name": "Delivery",
-      "description": "Finds a courier for each order and follows it to the door.\n\nDispatch matches and offers. Live tracking keeps the customer's map moving.\n"
+      "description": "Assigns a courier to each order and tracks it to the door.\n\nDispatch matches and offers. Live tracking feeds the customer's map.\n"
     },
     {
       "id": "notifications",
       "type": "system",
       "name": "Notifications",
-      "description": "Push, SMS and email, from one place, so no other system talks to a messaging provider."
+      "description": "Push, SMS and email. The only system that talks to a messaging provider."
     },
     {
       "id": "backoffice",
       "type": "system",
       "name": "Back office",
-      "description": "Tools for Plum's own staff. Nothing here is visible to customers or couriers."
+      "description": "Internal tools for Plum staff. Not exposed to customers or couriers."
     },
     {
       "id": "stripe",
       "type": "system",
       "name": "Stripe",
       "external": "true",
-      "description": "Takes card payments and sends refunds. Plum never sees a card number.",
+      "description": "Card payments and refunds. Plum never handles card numbers.",
       "links": [
         {
           "url": "https://status.stripe.com",
@@ -70,14 +70,14 @@
       "type": "system",
       "name": "Twilio",
       "external": "true",
-      "description": "Sends the SMS messages."
+      "description": "SMS delivery."
     },
     {
       "id": "mapbox",
       "type": "system",
       "name": "Mapbox",
       "external": "true",
-      "description": "Maps, address lookup and travel times.",
+      "description": "Maps, geocoding and travel times.",
       "links": [
         {
           "url": "https://docs.mapbox.com/api/overview/#rate-limits",
@@ -91,7 +91,7 @@
       "name": "Customer app",
       "in": "ordering",
       "tech": "React Native",
-      "description": "The app on the customer's phone. Browse, order, pay and watch the courier arrive.\n\nKeeps nothing but the basket and the session.\n",
+      "description": "Mobile client. Browse, order, pay, follow the courier.\n\nStores only the basket and the session.\n",
       "code": [
         "apps/customer/"
       ],
@@ -108,7 +108,7 @@
       "name": "Website",
       "in": "ordering",
       "tech": "Next.js",
-      "description": "The same ordering flow in a browser. Menus are rendered on the server so search engines see them."
+      "description": "The same ordering flow in a browser. Menus are server-rendered so search engines can index them."
     },
     {
       "id": "kitchen-tablet",
@@ -116,7 +116,7 @@
       "name": "Kitchen tablet",
       "in": "ordering",
       "tech": "Android",
-      "description": "Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected."
+      "description": "Alerts on a new order. The kitchen taps **Accept**, then **Ready** for pickup."
     },
     {
       "id": "order-api",
@@ -124,7 +124,7 @@
       "name": "Order API",
       "in": "ordering",
       "tech": "Node, Fastify",
-      "description": "Every client talks to this, and nothing else talks to the **Orders DB**.\n\n- `GET /menus/:restaurant` reads a menu\n- `POST /orders` places an order\n- `POST /orders/:id/refund` refunds one\n",
+      "description": "Entry point for every client, and the only service that touches the **Orders DB**.\n\n- `GET /menus/:restaurant` reads a menu\n- `POST /orders` places an order\n- `POST /orders/:id/refund` refunds one\n",
       "code": [
         "services/order-api/"
       ]
@@ -141,7 +141,7 @@
           "name": "orders",
           "kind": "table",
           "limits": "Kept 7 years, then archived",
-          "note": "One row per order. A refund adds a row to refunds; the order stays.",
+          "note": "One row per order. A refund adds a row to refunds and leaves the order alone.",
           "columns": [
             {
               "name": "id",
@@ -198,7 +198,7 @@
             {
               "name": "unit_price",
               "type": "int",
-              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
+              "note": "Copied from the menu at order time. Later menu edits don't change it."
             }
           ],
           "rows": [
@@ -278,7 +278,7 @@
           "name": "orders",
           "kind": "table",
           "limits": "Kept 7 years, then archived",
-          "note": "One row per order. A refund adds a row to refunds; the order stays.",
+          "note": "One row per order. A refund adds a row to refunds and leaves the order alone.",
           "summary": "3 columns",
           "columns": [
             {
@@ -344,7 +344,7 @@
             {
               "name": "unit_price",
               "type": "int",
-              "note": "Copied from the menu when the order is placed. Later menu changes leave it alone."
+              "note": "Copied from the menu at order time. Later menu edits don't change it."
             }
           ],
           "rows": [
@@ -365,7 +365,7 @@
           "notes": [
             {
               "name": "unit_price",
-              "text": "Copied from the menu when the order is placed. Later menu changes leave it alone."
+              "text": "Copied from the menu at order time. Later menu edits don't change it."
             }
           ]
         },
@@ -441,12 +441,12 @@
       "name": "Menu cache",
       "in": "ordering",
       "tech": "Redis",
-      "description": "Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.",
+      "description": "Menus, 5 min TTL. A restaurant's edit appears when the entry expires.",
       "data": [
         {
           "name": "Keys",
-          "limits": "Oldest unused go first at 256 MB",
-          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
+          "limits": "LRU eviction at 256 MB",
+          "note": "5 min TTL. A shorter one put too much load on Postgres.",
           "columns": [
             "Key",
             "Value",
@@ -469,8 +469,8 @@
       "shown": [
         {
           "name": "Keys",
-          "limits": "Oldest unused go first at 256 MB",
-          "note": "Entries last five minutes because a shorter time put too much load on Postgres.",
+          "limits": "LRU eviction at 256 MB",
+          "note": "5 min TTL. A shorter one put too much load on Postgres.",
           "summary": "3 columns",
           "columns": [
             {
@@ -507,13 +507,13 @@
       "in": "ordering",
       "shape": "queue",
       "tech": "Kafka",
-      "description": "One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch reads from it, and so does the warehouse.\n",
+      "description": "One message per order change: `placed`, `accepted`, `picked-up`, `delivered`.\n\nDispatch and the warehouse are consumers.\n",
       "data": [
         {
           "name": "order-events",
           "kind": "topic",
           "limits": "Kept 7 days, 6 partitions",
-          "note": "Keyed by order id, so one order's messages stay in order.",
+          "note": "Keyed by order id, so each order's messages stay ordered.",
           "columns": [
             "Key",
             "Value"
@@ -539,7 +539,7 @@
           "name": "order-events",
           "kind": "topic",
           "limits": "Kept 7 days, 6 partitions",
-          "note": "Keyed by order id, so one order's messages stay in order.",
+          "note": "Keyed by order id, so each order's messages stay ordered.",
           "summary": "2 columns",
           "columns": [
             {
@@ -573,21 +573,21 @@
       "type": "component",
       "name": "Menu",
       "in": "order-api",
-      "description": "Serves a restaurant's menu from the cache, and from the database when the cache is cold."
+      "description": "Serves menus from the cache, and from the database on a miss."
     },
     {
       "id": "basket",
       "type": "component",
       "name": "Basket",
       "in": "order-api",
-      "description": "Holds what the customer picked and asks **Pricing** for the running total."
+      "description": "Holds the picked items and asks **Pricing** for the running total."
     },
     {
       "id": "pricing",
       "type": "component",
       "name": "Pricing",
       "in": "order-api",
-      "description": "Works out the total: items, delivery fee (by distance) and any promotion.\n\nThe delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.\n",
+      "description": "Computes the total: items, delivery fee and any promotion.\n\nThe fee is based on Mapbox travel distance, rounded up to the next 500 m.\n",
       "code": [
         "services/order-api/src/pricing.ts"
       ],
@@ -604,7 +604,7 @@
       "type": "component",
       "name": "Checkout",
       "in": "order-api",
-      "description": "Prices the basket, authorises the card and places the order.\n\nNothing is charged until the restaurant accepts. A rejected order releases the hold.\n",
+      "description": "Prices the basket, authorises the card and places the order.\n\nThe card is charged only when the restaurant accepts. A rejection releases the hold.\n",
       "code": [
         "services/order-api/src/checkout.ts"
       ]
@@ -614,7 +614,7 @@
       "type": "component",
       "name": "Order status",
       "in": "order-api",
-      "description": "Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.",
+      "description": "Advances an order through `placed`, `accepted`, `picked-up` and `delivered`, publishing each step.",
       "snippets": [
         {
           "title": "Accepting an order",
@@ -627,7 +627,7 @@
       "type": "component",
       "name": "Refunds",
       "in": "order-api",
-      "description": "Returns money to the card, then marks the order refunded. Support can refund in full or by line."
+      "description": "Refunds the card, then marks the order refunded. Full or per line."
     },
     {
       "id": "courier-app",
@@ -635,7 +635,7 @@
       "name": "Courier app",
       "in": "delivery",
       "tech": "Kotlin, Swift",
-      "description": "Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open."
+      "description": "Offers, navigation and proof of delivery. Reports position every 5 s while a job is open."
     },
     {
       "id": "dispatch",
@@ -643,7 +643,7 @@
       "name": "Dispatch",
       "in": "delivery",
       "tech": "Go",
-      "description": "Turns each new order into a courier on the way.\n\nIt reads `placed` events and offers the job to couriers one at a time, nearest first.\n",
+      "description": "Assigns a courier to each new order.\n\nConsumes `placed` events and offers the job to couriers one at a time, nearest first.\n",
       "code": [
         "services/dispatch/"
       ]
@@ -654,7 +654,7 @@
       "name": "Live tracking",
       "in": "delivery",
       "tech": "Go, WebSocket",
-      "description": "Passes the courier's position to the customer's map. A position older than a minute is dropped."
+      "description": "Relays courier position to the customer's map. Positions older than 1 min are dropped."
     },
     {
       "id": "fleet-db",
@@ -662,14 +662,14 @@
       "name": "Fleet DB",
       "in": "delivery",
       "tech": "Postgres, PostGIS",
-      "description": "Couriers, their vehicles, and their last known position."
+      "description": "Couriers, vehicles and last known position."
     },
     {
       "id": "matcher",
       "type": "component",
       "name": "Matcher",
       "in": "dispatch",
-      "description": "Ranks the idle couriers near a restaurant by how soon each could be there.",
+      "description": "Ranks idle couriers near a restaurant by estimated arrival.",
       "code": [
         "services/dispatch/matcher.go"
       ]
@@ -679,14 +679,14 @@
       "type": "component",
       "name": "ETA",
       "in": "dispatch",
-      "description": "Estimates travel time from distance, traffic and the courier's vehicle."
+      "description": "Estimates travel time from distance, traffic and vehicle."
     },
     {
       "id": "offers",
       "type": "component",
       "name": "Offers",
       "in": "dispatch",
-      "description": "Offers a job to one courier at a time and waits 30 seconds for an answer.\n\nA refusal or a timeout moves on to the next courier.\n"
+      "description": "Offers the job to one courier at a time with a 30 s timeout.\n\nA refusal or timeout moves to the next courier.\n"
     },
     {
       "id": "notifier",
@@ -694,7 +694,7 @@
       "name": "Notifier",
       "in": "notifications",
       "tech": "Node",
-      "description": "Picks push, SMS or email for each message and sends it. Never blocks the caller."
+      "description": "Chooses push, SMS or email per message and sends it. Never blocks the caller."
     },
     {
       "id": "templates",
@@ -703,7 +703,7 @@
       "in": "notifications",
       "shape": "document",
       "tech": "Postgres",
-      "description": "The wording of every message, per language."
+      "description": "Message text, per language."
     },
     {
       "id": "admin",
@@ -727,7 +727,7 @@
       "name": "Data warehouse",
       "in": "backoffice",
       "tech": "ClickHouse",
-      "description": "Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**."
+      "description": "Every order event, kept for reporting. Only the **Admin dashboard** reads it."
     }
   ],
   "connections": [
@@ -962,7 +962,7 @@
         {
           "from": "order-api",
           "to": "events",
-          "text": "Announces that the order is paid and carries on without waiting",
+          "text": "Publishes the paid event and carries on without waiting",
           "animation": {
             "kind": "event",
             "carries": "paid"
@@ -976,7 +976,7 @@
         {
           "from": "events",
           "to": "dispatch",
-          "text": "Hands the event to Dispatch, which starts looking for a courier",
+          "text": "Dispatch consumes it and starts looking for a courier",
           "animation": "callback",
           "group": "readers",
           "lane": "Delivery",
@@ -990,7 +990,7 @@
         {
           "from": "events",
           "to": "warehouse",
-          "text": "Streams the same event to the warehouse for its own records",
+          "text": "Streams the same event to the warehouse",
           "animation": {
             "kind": "event",
             "carries": "paid"
@@ -1032,7 +1032,7 @@
         },
         {
           "from": "order-api",
-          "text": "Gives up after five seconds and tries again",
+          "text": "Times out after 5 s and retries",
           "group": "charge",
           "placed": [
             "order-api",
@@ -1072,7 +1072,7 @@
           "from": "stripe",
           "to": "order-api",
           "text": "Declines the card",
-          "description": "A declined card is not retried. The hold is released and the app asks the customer\nfor another card.\n",
+          "description": "A decline is not retried. The hold is released and the app asks for another card.\n",
           "animation": {
             "kind": "send",
             "outcome": "fail"
@@ -1122,7 +1122,7 @@
           "from": "courier-app",
           "to": "tracking",
           "text": "About a third of the pings are lost on the way",
-          "description": "On a weak signal the app's position pings never reach **Live tracking**. The app does not\nretry them: a newer ping is coming in five seconds.\n",
+          "description": "On a weak signal, pings never reach **Live tracking**. The app does not retry them, since a\nnewer one follows in 5 s.\n",
           "animation": {
             "kind": "send",
             "outcome": "lost",
@@ -1152,7 +1152,7 @@
         {
           "from": "fleet-db",
           "text": "Keeps the last position it got",
-          "description": "Nothing was written for the lost pings, so the courier can look parked for ten seconds or more\nto anything that reads **Fleet DB**, such as the matcher ranking couriers for the next offer.\n",
+          "description": "Nothing is written for a lost ping, so the courier can look parked for 10 s or more to readers\nof **Fleet DB**, such as the matcher ranking couriers for the next offer.\n",
           "placed": [
             "fleet-db",
             "fleet-db"
@@ -1169,7 +1169,7 @@
         {
           "from": "events",
           "to": "dispatch",
-          "text": "Hears that an order was placed",
+          "text": "Receives the placed event",
           "animation": {
             "kind": "callback",
             "trigger": "outside",
@@ -1197,8 +1197,8 @@
         },
         {
           "from": "dispatch",
-          "text": "Ranks them by how soon each could arrive",
-          "description": "The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the\nvehicle. The quickest one is offered the job first.\n",
+          "text": "Ranks them by estimated arrival",
+          "description": "The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The\nquickest gets the first offer.\n",
           "placed": [
             "dispatch",
             "dispatch"
@@ -1238,7 +1238,7 @@
           "from": "courier-app",
           "to": "tracking",
           "text": "Streams its position every 5 seconds",
-          "description": "Only while a job is open. A position older than a minute is dropped, so a courier who loses\nsignal stops moving on the customer's map until a fresh position comes in.\n",
+          "description": "Only while a job is open. Positions older than 1 min are dropped, so a courier who loses\nsignal freezes on the map until a fresh position arrives.\n",
           "animation": {
             "kind": "send",
             "carries": "position",
@@ -1254,7 +1254,7 @@
         {
           "from": "tracking",
           "to": "customer-app",
-          "text": "The customer watches the courier come",
+          "text": "The customer's map follows the courier",
           "animation": {
             "kind": "send",
             "carries": "position"
@@ -1290,7 +1290,7 @@
           "from": "events",
           "to": "dispatch",
           "text": "The placed event waits behind the dinner rush",
-          "description": "One consumer reads every `placed` event. When orders arrive faster than it reads, each one waits in line.\n",
+          "description": "A single consumer reads every `placed` event. When orders arrive faster than it reads, they queue.\n",
           "animation": {
             "kind": "event",
             "outcome": "delayed",
@@ -1382,7 +1382,7 @@
         "updates": {
           "kind": "repeat",
           "until": "the order is delivered",
-          "text": "A new position every 5 seconds."
+          "text": "A position every 5 s."
         }
       }
     },
@@ -1395,7 +1395,7 @@
           "from": "customer-app",
           "to": "order-api",
           "text": "POST /orders reaches a sign-in page instead",
-          "description": "A hotel's wifi holds every request until the guest signs in. The call never reaches the **Order API**.\n",
+          "description": "Hotel wifi holds every request until the guest signs in, so the call never reaches the **Order API**.\n",
           "animation": {
             "kind": "call",
             "outcome": "intercepted",
@@ -1443,7 +1443,7 @@
           "from": "eta",
           "to": "mapbox",
           "text": "Asks Mapbox for travel times and is turned away",
-          "description": "Plum passes Mapbox's limit once orders pass 900 a minute. Mapbox answers at once, so the call fails fast.\n",
+          "description": "Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once, so the call fails fast.\n",
           "animation": {
             "kind": "call",
             "outcome": "rejected",
@@ -1502,14 +1502,14 @@
         {
           "from": "menu-cache",
           "to": "menu",
-          "text": "Hands back the stored menu",
-          "description": "Entries last five minutes, so a restaurant's edit can take that long to show.\n",
+          "text": "Returns the cached menu",
+          "description": "5 min TTL, so a restaurant's edit can take that long to appear.\n",
           "animation": {
             "kind": "send",
             "carries": "menu"
           },
           "group": "lookup",
-          "lane": "The entry is there",
+          "lane": "Cache hit",
           "placed": [
             "menu-cache",
             "menu"
@@ -1525,7 +1525,7 @@
             "carries": "menu"
           },
           "group": "lookup",
-          "lane": "The entry has expired",
+          "lane": "Cache miss",
           "placed": [
             "menu",
             "orders-db"
@@ -1535,7 +1535,7 @@
         {
           "from": "menu",
           "to": "menu-cache",
-          "text": "Stores it for five minutes",
+          "text": "Caches it for 5 min",
           "animation": {
             "kind": "send",
             "carries": "menu"
@@ -1576,7 +1576,7 @@
         {
           "from": "offers",
           "to": "notifier",
-          "text": "Offers the job, and the nearest courier doesn't answer within 30 seconds",
+          "text": "Offers the job; the nearest courier doesn't answer in 30 s",
           "animation": {
             "kind": "call",
             "outcome": "timeout",
@@ -1736,7 +1736,7 @@
           "from": "customer-app",
           "to": "order-api",
           "text": "The same order arrives twice",
-          "description": "The app sends the order again when the first reply is slow. Both copies carry one idempotency key.\n",
+          "description": "The app resends when the first reply is slow. Both copies carry the same idempotency key.\n",
           "animation": {
             "kind": "send",
             "outcome": "duplicated",
@@ -1805,7 +1805,7 @@
         {
           "from": "orders-db",
           "text": "A standby takes over as the primary",
-          "description": "The standby has to catch up and be promoted. Plum rehearses this every quarter, and it has taken less than a minute so far.\n",
+          "description": "The standby has to catch up and be promoted. Plum rehearses this quarterly. Promotion has taken under a minute so far.\n",
           "states": {
             "orders-db": "starting"
           },
@@ -1858,7 +1858,7 @@
           "from": "customer-app",
           "to": "order-api",
           "text": "POST /orders with the basket",
-          "description": "The app sends an idempotency key with the request, so a double tap or a retry on a bad\nconnection places a single order.\n",
+          "description": "The app sends an idempotency key, so a double tap or a retry places one order.\n",
           "animation": {
             "kind": "call",
             "carries": "POST /orders"
@@ -1873,7 +1873,7 @@
           "from": "order-api",
           "to": "stripe",
           "text": "Holds the amount on the card",
-          "description": "**Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves\nonce the restaurant accepts, and the hold is released if it refuses.\n",
+          "description": "**Checkout** asks Stripe to authorise the total. The charge happens on acceptance; a refusal\nreleases the hold.\n",
           "animation": {
             "kind": "call",
             "carries": "hold"
@@ -1901,7 +1901,7 @@
         {
           "from": "order-api",
           "to": "events",
-          "text": "Announces the order",
+          "text": "Publishes the order",
           "animation": {
             "kind": "event",
             "carries": "placed"
@@ -1931,7 +1931,7 @@
           "from": "order-api",
           "to": "kitchen-tablet",
           "text": "The restaurant's tablet rings",
-          "description": "The kitchen has two minutes to accept. After that the order is cancelled, the hold is\nreleased and the customer is told.\n",
+          "description": "The kitchen has two minutes to accept. Then the order is cancelled, the hold released and\nthe customer notified.\n",
           "animation": {
             "kind": "event",
             "carries": "new order",
@@ -1954,7 +1954,7 @@
           "from": "refunds",
           "to": "stripe",
           "text": "Stripe has refunded the charge",
-          "description": "The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.\n",
+          "description": "The money is already back on the card. What can still go wrong is Plum's own records.\n",
           "animation": {
             "kind": "call",
             "carries": "refund"
@@ -2041,7 +2041,7 @@
           "from": "ordering",
           "to": "stripe",
           "text": "The money goes back to the card",
-          "description": "Stripe refunds the original charge. The order is marked refunded only once Stripe has\nconfirmed, so the database never says money was returned that wasn't.\n",
+          "description": "Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\nso the database never records a refund that didn't happen.\n",
           "animation": {
             "kind": "call",
             "carries": "refund"
@@ -2055,7 +2055,7 @@
         {
           "from": "ordering",
           "to": "notifications",
-          "text": "Asks for a confirmation to be sent",
+          "text": "Requests a confirmation",
           "animation": {
             "kind": "send",
             "carries": "confirm"
@@ -2084,7 +2084,7 @@
       ],
       "compare": {
         "with": "refund-not-recorded",
-        "note": "The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
       },
       "compareProblem": null
     },
@@ -2125,7 +2125,7 @@
           "from": "order-api",
           "to": "stripe",
           "text": "Captures the amount it held",
-          "description": "Nothing was charged until now. The capture is its own flow, because the bank can be slow.\n",
+          "description": "The card is charged here for the first time. The capture is its own flow because the bank can be slow.\n",
           "animation": {
             "kind": "call",
             "carries": "capture"
@@ -2140,7 +2140,7 @@
         {
           "from": "order-api",
           "to": "events",
-          "text": "Announces that the order is accepted",
+          "text": "Publishes accepted",
           "animation": {
             "kind": "event",
             "carries": "accepted"
@@ -2168,7 +2168,7 @@
         {
           "from": "notifier",
           "to": "customer-app",
-          "text": "The customer is told the kitchen has started",
+          "text": "The customer is notified that the kitchen has started",
           "animation": {
             "kind": "send",
             "carries": "push",
@@ -2205,7 +2205,7 @@
           "from": "twilio",
           "to": "customer",
           "text": "The carrier drops it before it reaches the phone",
-          "description": "Twilio accepted the message, so Plum counts it as sent. Plum does not read Twilio's delivery receipts.\n",
+          "description": "Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n",
           "animation": {
             "kind": "send",
             "outcome": "lost",
@@ -2252,7 +2252,7 @@
           "from": "checkout",
           "to": "stripe",
           "text": "The hold times out",
-          "description": "Checkout waits five seconds for the hold and gets no answer. It does not retry while Stripe is down.\n",
+          "description": "Checkout waits 5 s for the hold and gets no answer. It does not retry while Stripe is down.\n",
           "animation": {
             "kind": "call",
             "outcome": "timeout"
@@ -2336,8 +2336,8 @@
         {
           "from": "stripe",
           "to": "order-api",
-          "text": "Calls Plum's webhook to say the charge went through",
-          "description": "Stripe starts this call itself, so nothing in Plum set it off. The order is marked paid when it arrives.\n",
+          "text": "Calls Plum's webhook: the charge went through",
+          "description": "Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n",
           "animation": {
             "kind": "callback",
             "trigger": "outside",
@@ -2365,7 +2365,7 @@
         },
         {
           "from": "order-api",
-          "text": "Carries on to announce the order",
+          "text": "Carries on to publish the order",
           "flow": "announce-order",
           "placed": [
             "order-api",
@@ -2381,7 +2381,7 @@
     {
       "id": "ordering",
       "name": "Plum fail scenario",
-      "about": "Made-up ratings for the demo, not a review of anything real.",
+      "about": "Made-up ratings for the demo.",
       "scale": {
         "severity": {
           "low": "Nobody notices",
@@ -2399,7 +2399,7 @@
       "modes": [
         {
           "id": "stripe-timeout",
-          "mode": "Stripe doesn't answer within five seconds",
+          "mode": "Stripe doesn't answer within 5 s",
           "from": "checkout",
           "to": "stripe",
           "effect": "The order waits on a hold that may or may not exist.",
@@ -2408,7 +2408,7 @@
           "occurrence": "4",
           "detection": "3",
           "controls": "Three tries with backoff. The idempotency key stops a double hold.",
-          "action": "Page when more than 1% of holds time out for five minutes.",
+          "action": "Page when over 1% of holds time out for 5 min.",
           "owner": "Payments",
           "status": "planned",
           "flow": "capture-payment",
@@ -2448,7 +2448,7 @@
           "mode": "Stripe refunds the money but the database write fails",
           "on": "refunds",
           "effect": "The customer has the money back, and Plum still shows the order as paid.",
-          "cause": "Orders DB is out of reach at the moment the refund is saved.",
+          "cause": "Orders DB is unreachable when the refund is saved.",
           "severity": "9",
           "occurrence": "2",
           "detection": "7",
@@ -2458,7 +2458,7 @@
           "status": "open",
           "flow": "refund-not-recorded",
           "step": "2",
-          "description": "The refund and the write are two steps, so one can happen without the other.\nThe nightly comparison only finds the gap.\n",
+          "description": "The refund and the write are separate steps, so one can succeed without the other.\nThe nightly comparison finds the gap but does not close it.\n",
           "affects": [
             "support-console"
           ]
@@ -2473,7 +2473,7 @@
           "occurrence": "2",
           "detection": "1",
           "controls": "A standby takes over within a minute.",
-          "action": "Rehearse the failover every quarter.",
+          "action": "Rehearse the failover quarterly.",
           "owner": "Platform",
           "status": "planned",
           "flow": "orders-db-fails-over",
@@ -2490,11 +2490,11 @@
           "mode": "A double tap places two orders",
           "on": "order-api",
           "effect": "The customer is charged twice for one basket.",
-          "cause": "The app sends the order again when the first reply is slow.",
+          "cause": "The app resends when the first reply is slow.",
           "severity": "6",
           "occurrence": "5",
           "detection": "4",
-          "controls": "Every order carries an idempotency key, and a second order with the same key is refused.",
+          "controls": "Every order carries an idempotency key. A repeated key is refused.",
           "owner": "Ordering",
           "status": "done",
           "flow": "order-sent-twice",
@@ -2510,10 +2510,10 @@
         },
         {
           "id": "menu-cache-stale",
-          "mode": "Serves a menu five minutes late",
+          "mode": "Serves a menu up to 5 min old",
           "on": "menu-cache",
           "effect": "A customer orders a dish the kitchen has just taken off.",
-          "cause": "The cache refreshes every five minutes.",
+          "cause": "Entries expire after 5 min.",
           "severity": "2",
           "occurrence": "8",
           "detection": "3",
@@ -2533,7 +2533,7 @@
           "from": "eta",
           "to": "mapbox",
           "effect": "Dispatch has no travel times, so couriers are matched on distance alone.",
-          "cause": "Plum passes Mapbox's rate limit once orders pass 900 a minute.",
+          "cause": "Plum exceeds Mapbox's rate limit above 900 orders a minute.",
           "severity": "6",
           "occurrence": "6",
           "detection": "3",
@@ -2570,11 +2570,11 @@
           "mode": "Dispatch reads events slower than they arrive",
           "on": "events",
           "effect": "A courier is matched minutes after the customer paid, and the arrival time shown is wrong.",
-          "cause": "A burst of orders, such as the dinner rush, outruns the one consumer Dispatch runs.",
+          "cause": "A burst of orders (the dinner rush) outruns Dispatch's single consumer.",
           "severity": "5",
           "occurrence": "5",
           "detection": "3",
-          "controls": "A lag alert fires at 30 seconds.",
+          "controls": "A lag alert fires at 30 s.",
           "action": "Run a second Dispatch consumer.",
           "owner": "Delivery",
           "status": "planned",
@@ -2594,7 +2594,7 @@
           "id": "kitchen-tablet-offline",
           "mode": "The tablet goes offline and nobody accepts within two minutes",
           "on": "kitchen-tablet",
-          "effect": "The customer waits two minutes and then hears that the order was cancelled.",
+          "effect": "The customer waits two minutes, then is told the order was cancelled.",
           "cause": "The tablet loses its Wi-Fi, or its battery runs out.",
           "severity": "4",
           "occurrence": "5",
@@ -2642,7 +2642,7 @@
           "severity": "2",
           "occurrence": "7",
           "detection": "2",
-          "controls": "A position older than a minute is dropped, so the map holds still until a fresh one comes in.",
+          "controls": "Positions older than 1 min are dropped, so the map holds still until a fresh one arrives.",
           "owner": "Delivery",
           "status": "accepted",
           "flow": "deliver-order",
@@ -2681,7 +2681,7 @@
           "severity": "2",
           "occurrence": "3",
           "detection": "4",
-          "controls": "Events wait on the stream and are replayed when it is back.",
+          "controls": "Events stay on the stream and replay when it recovers.",
           "owner": "Data",
           "status": "accepted",
           "affects": [
@@ -2710,14 +2710,14 @@
       {
         "id": "refund",
         "side": "after",
-        "note": "The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
       }
     ],
     "refund": [
       {
         "id": "refund-not-recorded",
         "side": "before",
-        "note": "The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
       }
     ],
     "restaurant-accepts": [],
@@ -2760,7 +2760,7 @@
       "name": "Orders and pings, tested together",
       "compare": {
         "with": "together",
-        "note": "Added is the sum of two separate runs. Tested together sends both at once, and Fleet DB fills faster: at 600 orders a minute and 400 pings a second it reads 99%, where the sum reads 93%."
+        "note": "Added is the sum of two separate runs. Tested together sends both at once. At 600 orders a minute and 400 pings a second Fleet DB reads 99%, against 93% added."
       }
     },
     {

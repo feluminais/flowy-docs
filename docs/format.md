@@ -133,7 +133,7 @@ A **mode** is one way a part fails:
 
 | Key | Takes |
 | --- | --- |
-| `mode` | The condition, as a fact: "Stripe doesn't answer within five seconds". Required |
+| `mode` | The condition, as a fact: "Stripe doesn't answer within 5 s". Required |
 | `on` | The id of the object that fails. Give this, or `from` and `to`, not both |
 | `from`, `to` | For a line: it must be a connection in the model, in that direction |
 | `effect`, `cause` | What a person or another part then sees, and why it happens |

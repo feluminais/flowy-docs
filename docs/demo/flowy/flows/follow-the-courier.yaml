@@ -4,7 +4,7 @@ groups:
   updates:
     kind: repeat
     until: the order is delivered
-    text: A new position every 5 seconds.
+    text: A position every 5 s.
 steps:
   - { from: courier-app, to: tracking, text: Sends its position, group: updates, animation: { kind: send, carries: position } }
   - { from: tracking, to: fleet-db, text: Stores it, group: updates, animation: send }

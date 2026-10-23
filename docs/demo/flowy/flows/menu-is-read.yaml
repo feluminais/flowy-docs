@@ -8,12 +8,12 @@ steps:
   - { from: menu, to: menu-cache, text: Looks the menu up, animation: { kind: call, carries: menu r_42 } }
   - from: menu-cache
     to: menu
-    text: Hands back the stored menu
+    text: Returns the cached menu
     group: lookup
-    lane: The entry is there
+    lane: Cache hit
     animation: { kind: send, carries: menu }
     description: |
-      Entries last five minutes, so a restaurant's edit can take that long to show.
-  - { from: menu, to: orders-db, text: Reads the menu from the database, group: lookup, lane: The entry has expired, animation: { kind: call, carries: menu } }
-  - { from: menu, to: menu-cache, text: Stores it for five minutes, group: lookup, animation: { kind: send, carries: menu } }
+      5 min TTL, so a restaurant's edit can take that long to appear.
+  - { from: menu, to: orders-db, text: Reads the menu from the database, group: lookup, lane: Cache miss, animation: { kind: call, carries: menu } }
+  - { from: menu, to: menu-cache, text: Caches it for 5 min, group: lookup, animation: { kind: send, carries: menu } }
   - { from: menu, to: customer-app, text: Returns the menu, animation: { kind: send, carries: menu } }

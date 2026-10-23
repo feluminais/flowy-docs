@@ -6,8 +6,7 @@ steps:
     to: server
     text: Starts the local server and opens the browser
     description: |
-      Port 4321, or the next free one up to twenty along, on 127.0.0.1 only. The `flowy/` folder is
-      created if it isn't there yet, so there is always something to watch.
+      Port 4321, or the next free one up to twenty along, on 127.0.0.1 only. The `flowy/` folder is created if missing, so there is always something to watch.
   - { from: canvas, to: server, text: "GET /api/state" }
   - from: server
     to: repo
@@ -18,5 +17,4 @@ steps:
   - from: canvas
     text: Lays the level out and draws it
     description: |
-      Shapes that were dragged keep their saved place; dagre places the rest. The view fits the
-      window before the first paint, so it never shows unfitted for a frame.
+      Shapes that were dragged keep their saved place; dagre places the rest. The view is fitted before the first paint, so it never shows unfitted for a frame.

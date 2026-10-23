@@ -490,7 +490,7 @@ Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, the
       the thumb moves evenly in time, Stripe goes stopped, then starting, then runs, and the Events rows fill in as it passes. Touching the slider stops it.
 - [ ] Pick Stripe while at 45 s: under its readings is a Stopped line. Pick Dinner rush in the run picker: the tab says Load and Ramp again, and Stripe is as it was. Pick Every state over time in the showcase (`--dir docs/showcase/flowy`):
       the service goes through all six states, and at 45 s the holder shows a dashed ring that reads Stopped inside. With the system's reduce-motion setting on there is no Play, and the states, marks and numbers still show.
-      Light and dark both read. In Plum's Failures tab, Stripe doesn't answer within five seconds has Seen in a run: it opens the tab at 45 s on this run.
+      Light and dark both read. In Plum's Failures tab, Stripe doesn't answer within 5 s has Seen in a run: it opens the tab at 45 s on this run.
 
 Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 

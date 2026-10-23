@@ -10,6 +10,6 @@ steps:
     description: |
       Only what the last export wrote is replaced, so a `.git` or a `CNAME` beside it stays.
 
-      Whoever opens the link needs neither the repo nor Node: the page carries the model, has no
-      Edit button and nothing to save to. Browsers won't run it straight from disk, so it wants a
-      host (or an embed, in Notion or Confluence).
+      Opening the link needs neither the repo nor Node: the page carries the model, has no Edit
+      button and nothing to save to. Browsers won't run it straight from disk, so it needs a host
+      (or an embed, in Notion or Confluence).

@@ -3,7 +3,7 @@ view: root
 compare:
   with: refund-not-recorded
   note: |
-    The same refund twice. On the right, what support sees, from the console to the customer's SMS. On the left, the refund inside Ordering on the day Orders DB doesn't answer: Stripe has returned the money, the order stays marked paid, and the customer still gets a confirmation.
+    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.
 
     Stripe is the one shape both flows draw.
 steps:
@@ -14,7 +14,7 @@ steps:
     text: The money goes back to the card
     animation: { kind: call, carries: refund }
     description: |
-      Stripe refunds the original charge. The order is marked refunded only once Stripe has
-      confirmed, so the database never says money was returned that wasn't.
-  - { from: ordering, to: notifications, text: Asks for a confirmation to be sent, animation: { kind: send, carries: confirm } }
+      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,
+      so the database never records a refund that didn't happen.
+  - { from: ordering, to: notifications, text: Requests a confirmation, animation: { kind: send, carries: confirm } }
   - { from: notifications, to: twilio, text: The customer gets an SMS, animation: { kind: send, carries: SMS, effect: bounce } }

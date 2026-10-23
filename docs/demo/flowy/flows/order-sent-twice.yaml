@@ -6,5 +6,5 @@ steps:
     text: The same order arrives twice
     animation: { kind: send, outcome: duplicated, reason: Slow reply, carries: order }
     description: |
-      The app sends the order again when the first reply is slow. Both copies carry one idempotency key.
+      The app resends when the first reply is slow. Both copies carry the same idempotency key.
   - { from: order-api, to: orders-db, text: Saves the first copy and refuses the second, animation: send }

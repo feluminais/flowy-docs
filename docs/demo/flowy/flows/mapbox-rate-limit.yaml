@@ -7,5 +7,5 @@ steps:
     text: Asks Mapbox for travel times and is turned away
     animation: { kind: call, outcome: rejected, reason: Rate limit }
     description: |
-      Plum passes Mapbox's limit once orders pass 900 a minute. Mapbox answers at once, so the call fails fast.
+      Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once, so the call fails fast.
   - { from: eta, text: Falls back to straight-line distance and ranks more roughly }

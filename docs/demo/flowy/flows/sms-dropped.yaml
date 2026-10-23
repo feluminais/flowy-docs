@@ -7,5 +7,5 @@ steps:
     text: The carrier drops it before it reaches the phone
     animation: { kind: send, outcome: lost, reason: Carrier drops it, at: 0.6 }
     description: |
-      Twilio accepted the message, so Plum counts it as sent. Plum does not read Twilio's delivery receipts.
+      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.
   - { from: notifications, text: Never hears that the customer got nothing }

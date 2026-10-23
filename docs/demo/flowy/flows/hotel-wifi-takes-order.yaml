@@ -6,5 +6,5 @@ steps:
     text: POST /orders reaches a sign-in page instead
     animation: { kind: call, outcome: intercepted, by: { name: Hotel wifi portal } }
     description: |
-      A hotel's wifi holds every request until the guest signs in. The call never reaches the **Order API**.
+      Hotel wifi holds every request until the guest signs in, so the call never reaches the **Order API**.
   - { from: customer-app, text: Waits for a reply and offers a Retry button }

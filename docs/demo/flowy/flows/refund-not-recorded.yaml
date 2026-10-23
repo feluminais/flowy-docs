@@ -6,7 +6,7 @@ steps:
     text: Stripe has refunded the charge
     animation: { kind: call, carries: refund }
     description: |
-      The money is already back on the customer's card. From here on, Plum's own records are what can go wrong.
+      The money is already back on the card. What can still go wrong is Plum's own records.
   - from: refunds
     to: orders-db
     text: Can't mark the order refunded, because Orders DB doesn't answer
