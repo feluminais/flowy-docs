@@ -37,15 +37,17 @@ internal static class RunDrawing
             session.EnsurePlaces();
             var runs = folder.Runs!;
             var setting = PerfView.SettingOf(several.Items, [.. several.Items.Select((d, i) => PerfView.ClampDial(d, session.Places[i]))]);
-            var made = Perf.FrameOf(folder.Model, runs, PerfView.ActiveRun(runs, session.RunId), setting, view);
+            var made = Perf.FrameOf(folder.Model, runs, PerfView.ActiveRun(runs, session.RunId), setting, view, session.MeasureNow);
             canvas.ShowLoad(made.Traffic);
+            panel.SetMeasure(session.MeasureNow, session.DataOff);
             canvas.ShowStates(Marks(folder.Model, run, session.Pos), snap);
             panel.SetPlaces(session.Places, session.Active, session.Ramping, made, canvas.StatesShown);
             return;
         }
         session.Clamp(run);
-        var frame = Perf.FrameAt(folder.Model, run, PerfView.LoadAt(run, session.Pos), view); // worked out once, for the canvas and the panel's readouts both
+        var frame = Perf.FrameAt(folder.Model, run, PerfView.LoadAt(run, session.Pos), view, session.MeasureNow, session.DataSize); // worked out once, for the canvas and the panel's readouts both
         canvas.ShowLoad(frame.Traffic);
+        panel.SetMeasure(session.MeasureNow, session.DataOff);
         canvas.ShowStates(Marks(folder.Model, run, session.Pos), snap);
         panel.SetPos(session.Pos, session.Ramping, frame, canvas.StatesShown); // the key lists the states that are on the canvas now
     }

@@ -303,6 +303,10 @@ internal sealed class PerfPanel : StackPanel
     private StateMark? _stateShown;
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the shapes in a state on the canvas now
     private ComboBox? _picker;
+    private LoadMeasure _measure = LoadMeasure.Calls; // what the lines and dots count now, which the key says
+    private string? _dataOff; // why Data is blocked for the run on show, or null
+    private Button? _callsButton;
+    private Button? _dataButton;
     private bool _pane; // a panel inside a pane of a comparison: no run picker or title, the pane has them
     private RunActions? _actions; // what the header offers for comparing, if anything
     private StackPanel? _actionsHost; // the buttons and, under them, the picker one of them opened
@@ -344,6 +348,9 @@ internal sealed class PerfPanel : StackPanel
 
     /// <summary>The reader pressed Ramp, Play or Pause.</summary>
     public event Action? RampClicked;
+
+    /// <summary>The Calls or Data button was pressed: what the lines and dots count.</summary>
+    public event Action<LoadMeasure>? MeasureChosen;
 
     /// <summary>A dial was moved or pressed: the keys act on it from now on. (Several sources.)</summary>
     public event Action<int>? DialActivated;
@@ -404,6 +411,8 @@ internal sealed class PerfPanel : StackPanel
     internal double SliderMaximum => _slider.Maximum;
 
     internal Button RampButton => _ramp;
+
+    internal Button? DataButton => _dataButton;
 
     internal Slider Slider => _slider;
 
@@ -545,6 +554,8 @@ internal sealed class PerfPanel : StackPanel
         _run = run;
         _runs = runs;
         _runId = runId;
+        _dataOff = Perf.DataOff(runs, runId);
+        if (_dataOff is not null) _measure = LoadMeasure.Calls;
         _model = model;
         _view = view;
         _pos = pos;
@@ -594,6 +605,7 @@ internal sealed class PerfPanel : StackPanel
         if (!still) buttons.Children.Add(_ramp);
         buttons.Children.Add(KeyHint.Of(still ? [("← →", "Step")] : [("← →", "Step"), ("P", play)]));
         Children.Add(buttons);
+        if (!_pane) Children.Add(MeasureRow());
         if (run.Events.Count > 0) Children.Add(BuildEvents(model, run));
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
@@ -880,6 +892,38 @@ internal sealed class PerfPanel : StackPanel
         }
     }
 
+    /// <summary>The Count switch: Calls and Data, one pressed. Data is greyed out with the reason as its tooltip when the run gives no size of a call, never hidden.</summary>
+    private StackPanel MeasureRow()
+    {
+        _callsButton = new Button();
+        _dataButton = new Button { IsEnabled = _dataOff is null };
+        CompareBar.Make(_callsButton, null, "Calls", "Calls", "Lines and dots count calls a second", () => MeasureChosen?.Invoke(LoadMeasure.Calls));
+        CompareBar.Make(_dataButton, null, "Data", "Data", _dataOff ?? "Lines and dots count data a second (calls times their size)", () => MeasureChosen?.Invoke(LoadMeasure.Data));
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { Muted("Count"), _callsButton, _dataButton } };
+        row.Children[0].VerticalAlignment = VerticalAlignment.Center;
+        ShowMeasure();
+        return row;
+    }
+
+    private void ShowMeasure()
+    {
+        _callsButton?.Classes.Set("pressed", _measure == LoadMeasure.Calls);
+        _dataButton?.Classes.Set("pressed", _measure == LoadMeasure.Data);
+        if (_dataButton is null) return;
+        _dataButton.IsEnabled = _dataOff is null;
+        ToolTip.SetTip(_dataButton, _dataOff ?? "Lines and dots count data a second (calls times their size)");
+    }
+
+    /// <summary>What the lines and dots count now, and why Data is blocked if it is: the key and the switch follow. The caller moves the panel to its place next, which draws the key again.</summary>
+    public void SetMeasure(LoadMeasure measure, string? dataOff)
+    {
+        if (measure == _measure && dataOff == _dataOff) return;
+        _measure = measure;
+        _dataOff = dataOff;
+        _keyShape = "";
+        ShowMeasure();
+    }
+
     /// <summary>
     /// The key: the marks of the panel that are always there, and what the lines on screen now add: the kinds of failing call, and what a run's source puts
     /// on screen (the scale in words, a bigger dot, a line scaled down). Drawn again only when what it shows changes, which a ramp does a few times.
@@ -888,9 +932,9 @@ internal sealed class PerfPanel : StackPanel
     {
         IReadOnlyList<LineTraffic> drawn = _still ? [] : frame.Traffic.Lines; // reduced motion draws no traffic, so the key says nothing of it
         var marks = PerfView.FailureMarksOf(drawn);
-        var source = Perf.SourceKeyOf(run, drawn);
+        var source = Perf.SourceKeyOf(run, drawn, _measure, _measure == LoadMeasure.Data ? Perf.CallSize(_runs!, _runId) : null);
         var states = StateKey.Distinct(_states.Values);
-        var shape = $"{marks}|{source}|{string.Join(",", states)}";
+        var shape = $"{_measure}|{marks}|{source}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
         var dark = AppTheme.IsDark(this);
@@ -903,7 +947,7 @@ internal sealed class PerfPanel : StackPanel
             marks.Fade ? (KeyRow.Mark("call", "bad"), "A call that fails") : null,
             marks.Lost ? (KeyRow.Mark("lost"), "Lost call") : null,
             marks.Rejected ? (KeyRow.Rejected(), "Rejected call") : null,
-            (KeyRow.Mark("busy"), "More calls"),
+            (KeyRow.Mark("busy"), _measure == LoadMeasure.Data ? "More data" : "More calls"),
             source?.Scale is { } scale ? (KeyRow.Dot(source.Color, dark), scale) : null,
             source is { Bigger: true } ? (KeyRow.Bigger(source.Color, dark), "Bigger call") : null,
             source is { ScaledDown: true } ? (KeyRow.Scaled(source.Color, dark), "Scaled down") : null));
@@ -937,7 +981,7 @@ internal sealed class PerfPanel : StackPanel
     public void SetPos(double pos, bool ramping)
     {
         if (_run is not { } run || _model is not { } model || _dials is { Mode: not Perf.ModeSingle }) return;
-        SetPos(pos, ramping, Perf.FrameAt(model, run, PerfView.LoadAt(run, pos), _view));
+        SetPos(pos, ramping, Perf.FrameAt(model, run, PerfView.LoadAt(run, pos), _view, _measure, _measure == LoadMeasure.Data ? Perf.CallSize(_runs!, _runId) : null));
     }
 
     /// <summary>
@@ -997,6 +1041,7 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(Chrome.Section(Icons.Activity, "Load"));
         for (var i = 0; i < dials.Items.Count; i++) Children.Add(BuildDial(i, dials.Items[i], still));
         Children.Add(KeyHint.Of(still ? [("← →", "Step")] : [("← →", "Step"), ("P", "Ramp")]));
+        if (!_pane) Children.Add(MeasureRow());
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
         var knee = Perf.KneeOf(runs, runId);
@@ -1077,7 +1122,7 @@ internal sealed class PerfPanel : StackPanel
     public void SetPlaces(IReadOnlyList<double> places, int active, bool ramping)
     {
         if (_runs is null || _dials is not { Mode: not Perf.ModeSingle } dials || _model is not { } model) return;
-        SetPlaces(places, active, ramping, Perf.FrameOf(model, _runs, _runId, PerfView.SettingOf(dials.Items, places), _view));
+        SetPlaces(places, active, ramping, Perf.FrameOf(model, _runs, _runId, PerfView.SettingOf(dials.Items, places), _view, _measure));
     }
 
     /// <summary>
@@ -1146,9 +1191,9 @@ internal sealed class PerfPanel : StackPanel
     {
         IReadOnlyList<LineTraffic> drawn = _still ? [] : frame.Traffic.Lines; // reduced motion draws no traffic, so the key says nothing of it
         var marks = PerfView.FailureMarksOf(drawn);
-        var keyed = Perf.SourceKeyAt(_runs!, _runId, drawn);
+        var keyed = Perf.SourceKeyAt(_runs!, _runId, drawn, _measure);
         var states = StateKey.Distinct(_states.Values);
-        var shape = $"{marks}|{string.Join(";", keyed.Sources.Select(s => $"{s.Id}/{s.Color}/{s.Scale}/{s.Bigger}"))}|{keyed.ScaledDown}|{keyed.Other}|{string.Join(",", states)}";
+        var shape = $"{_measure}|{marks}|{string.Join(";", keyed.Sources.Select(s => $"{s.Id}/{s.Color}/{s.Scale}/{s.Bigger}"))}|{keyed.ScaledDown}|{keyed.Other}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
         var dark = AppTheme.IsDark(this);
@@ -1162,7 +1207,7 @@ internal sealed class PerfPanel : StackPanel
         if (marks.Fade) items.Add((KeyRow.Mark("call", "bad"), "A call that fails"));
         if (marks.Lost) items.Add((KeyRow.Mark("lost"), "Lost call"));
         if (marks.Rejected) items.Add((KeyRow.Rejected(), "Rejected call"));
-        items.Add((KeyRow.Mark("busy"), "More calls"));
+        items.Add((KeyRow.Mark("busy"), _measure == LoadMeasure.Data ? "More data" : "More calls"));
         foreach (var source in keyed.Sources)
         {
             items.Add((KeyRow.Dot(source.Color, dark), source.Name));

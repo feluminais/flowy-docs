@@ -821,6 +821,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .event .state-key { margin: 6px 0 6px 6px; }
 .event:not(.passed) .swatch { opacity: 0.6; }
 .perf-buttons { display: flex; align-items: center; gap: 10px; }
+.measure { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.measure button[aria-pressed='true'] { background: var(--tint); color: var(--accent-ink); font-weight: 600; }
 .perf button.link { all: unset; cursor: pointer; color: var(--accent); font-weight: 600; }
 .perf button.link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .perf p { margin: 0; }

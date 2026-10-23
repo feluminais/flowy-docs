@@ -11,6 +11,7 @@ import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
 import { parseRun } from '../../src/core/perf/parse.ts'
 import { rollUpLoad } from '../../src/core/perf/rollup.ts'
 import { eventText, kneeText, kneeTextOf, scaleText, sourceKey, sourceKeyAt } from '../../src/core/perf/text.ts'
+import { amountOf, callSize } from '../../src/core/perf/measure.ts'
 import { traffic, trafficAt } from '../../src/core/perf/traffic.ts'
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
@@ -525,6 +526,10 @@ async function dumpSources(model: Model): Promise<unknown> {
               const t = trafficAt(model, runs, id, setting, view)
               return { view, ...t, key: sourceKeyAt(runs, id, t.lines) }
             }),
+            data: views(id).map(view => {
+              const t = trafficAt(model, runs, id, setting, view, 'data')
+              return { view, ...t, key: sourceKeyAt(runs, id, t.lines, 'data') }
+            }),
             rolled: views(id).map(view => ({ view, ...rollUpLoad(model, level, view) })),
           }
         }),
@@ -563,6 +568,7 @@ export async function dumpPerf(): Promise<unknown> {
         load,
         level: interpolate(run, load),
         traffic: views.map(view => ({ view, ...traffic(model, run, load, view) })),
+        data: views.map(view => ({ view, ...trafficAt(model, runs, id, { '': load }, view, 'data') })),
       })),
       rolled: run.levels.flatMap(level => views.map(view => ({ load: level.load, view, ...rollUpLoad(model, level, view) }))),
       knee: found ?? null,
@@ -579,12 +585,19 @@ export async function dumpPerf(): Promise<unknown> {
       text,
       ...read,
       scale: scaleText(read.run) ?? null,
+      size: callSize({ [id]: read.run }, id) ?? null,
+      amounts: [amountOf({ rate: 10, bytes: 400 }, 'calls', 1000) ?? null, amountOf({ rate: 10, bytes: 400 }, 'data', 1000) ?? null, amountOf({ rate: 10 }, 'data', 1000) ?? null, amountOf({ bytes: 400 }, 'calls', 1000) ?? null],
       loads: loads.map(load => ({
         load,
         level: interpolate(read.run, load),
         traffic: views.map(view => {
           const t = traffic(model, read.run, load, view)
           return { view, ...t, key: sourceKey(read.run, t.lines) ?? null }
+        }),
+        data: views.map(view => {
+          const size = callSize({ [id]: read.run }, id)
+          const t = traffic(model, read.run, load, view, 'data', size)
+          return { view, ...t, key: sourceKey(read.run, t.lines, 'data', size) ?? null }
         }),
         rolled: views.map(view => ({ view, ...rollUpLoad(model, interpolate(read.run, load), view) })),
       })),

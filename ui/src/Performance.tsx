@@ -6,6 +6,7 @@ import type { Model } from '../../src/core/model.ts'
 import { kneeOf } from '../../src/core/perf/analyse.ts'
 import { dialsOf, loadOfPosition } from '../../src/core/perf/dials.ts'
 import { levelAt } from '../../src/core/perf/levels.ts'
+import type { Measure } from '../../src/core/perf/measure.ts'
 import { eventText, kneeTextOf, sourceKeyAt } from '../../src/core/perf/text.ts'
 import { OTHER_COLOR } from '../../src/core/perf/traffic.ts'
 import type { Dial, Level, LineTraffic, Metrics, Run } from '../../src/core/perf/types.ts'
@@ -53,6 +54,11 @@ export type PerfProps = {
   /** The lines the canvas draws traffic on now (none with reduced motion), which the key and the selected line's readout are told by, so the tab makes no traffic of its own. */
   lines: LineTraffic[]
   ramping: boolean
+  /** What the lines and dots count now. A pane of a comparison counts calls and has no switch. */
+  measure?: Measure
+  /** Why Data is blocked (the run gives no size of a call), or undefined. */
+  dataOff?: string
+  onMeasure?: (measure: Measure) => void
   /** Reduced motion: no ramp, only the levels to step through. */
   still: boolean
   /** The states on the canvas now, for the key and for the state of the selected shape. */
@@ -210,7 +216,7 @@ function RunActions({ compare, linked, holds }: { compare: RunCompare; linked: b
 }
 
 /** The Performance tab's body: which run and where in it, what it says about where things first struggle, and the numbers of what is selected. */
-export function PerfBody({ model, view, runs, runProblems, runId, positions, active, lines, ramping, still, states, selection, onRun, onActive, onSlide, onJump, onPlace, onRamp, onCreate, pane, compare }: PerfProps) {
+export function PerfBody({ model, view, runs, runProblems, runId, positions, active, lines, ramping, measure = 'calls', dataOff, onMeasure, still, states, selection, onRun, onActive, onSlide, onJump, onPlace, onRamp, onCreate, pane, compare }: PerfProps) {
   const run: Run | undefined = Object.hasOwn(runs, runId) ? runs[runId] : undefined
   const found = useMemo(() => dialsOf(runs, runId), [runs, runId])
   const struggle = useMemo(() => (found ? kneeOf(runs, runId) : undefined), [runs, runId, found])
@@ -266,7 +272,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   }
   const chosen = selection?.kind === 'object' && Object.hasOwn(states, selection.id) && !states[selection.id].inside ? states[selection.id] : undefined
   const shown = selected?.keys.filter(key => selected.series(key).some(v => v !== undefined)) ?? []
-  const keyed = sourceKeyAt(runs, runId, lines)
+  const keyed = sourceKeyAt(runs, runId, lines, measure)
   const marks = failureMarks(lines)
   const scaledLine = selection?.kind === 'line' && lines.some(l => l.from === selection.from && l.to === selection.to && l.capped)
   // The source's colour for the dots drawn in the key, in both themes. A run with several sources draws each in its own, and the dots that stand for any call are neutral.
@@ -339,6 +345,13 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         {!multi && !still && <button className="primary" aria-pressed={ramping} onClick={() => onRamp(0)}>{ramping ? <><Pause size={16} />Pause</> : <><Play size={16} />{timed ? 'Play' : 'Ramp'}</>}</button>}
         <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step{!still && <><kbd>P</kbd>{timed ? 'Play' : 'Ramp'}</>}</span>
       </div>
+      {onMeasure && (
+        <div className="measure" role="group" aria-label="Count">
+          <span className="muted">Count</span>
+          <button type="button" aria-pressed={measure === 'calls'} onClick={() => onMeasure('calls')}>Calls</button>
+          <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff} onClick={() => onMeasure('data')}>Data</button>
+        </div>
+      )}
 
       {rows.length > 0 && !multi && (
         <>
@@ -384,7 +397,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         {marks.fade && <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>}
         {marks.lost && <KeyItem swatch={<span className="sw lost" />}>Lost call</KeyItem>}
         {marks.rejected && <KeyItem swatch={<span className="sw rejected" />}>Rejected call</KeyItem>}
-        <KeyItem swatch={<span className="sw busy" />}>More calls</KeyItem>
+        <KeyItem swatch={<span className="sw busy" />}>{measure === 'data' ? 'More data' : 'More calls'}</KeyItem>
         {multi
           ? (
             <>

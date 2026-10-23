@@ -258,6 +258,30 @@ public class PerfPanelTests
     }
 
     [AvaloniaFact]
+    public void Data_counts_the_size_of_a_call_in_the_key_and_is_greyed_out_for_a_run_that_gives_none()
+    {
+        var (panel, folder, temp) = OpenScaled();
+        using var _ = temp;
+        panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
+        Assert.True(panel.DataButton!.IsEnabled);
+        panel.SetMeasure(LoadMeasure.Data, null);
+        panel.SetPos(1, false);
+        var key = KeyOf(panel);
+        Assert.Contains("More data", key);
+        Assert.DoesNotContain("More calls", key);
+        Assert.DoesNotContain("Bigger call", key);
+        Assert.Matches(@"1 dot = [\d.]+ (K|M)?B/s", key);
+        panel.SetMeasure(LoadMeasure.Calls, null);
+        panel.SetPos(1, false);
+        Assert.Contains("1 dot = 50 calls/s", KeyOf(panel));
+
+        var (plain, plainFolder) = Open();
+        Show(plain, plainFolder, "ramp", 1);
+        Assert.False(plain.DataButton!.IsEnabled);
+        Assert.Equal(Perf.NoData, ToolTip.GetTip(plain.DataButton) as string);
+    }
+
+    [AvaloniaFact]
     public void The_key_says_scaled_down_when_a_line_is_past_the_cap_and_the_marks_follow_the_position_in_place()
     {
         var (panel, folder, temp) = OpenScaled();
