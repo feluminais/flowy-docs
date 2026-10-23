@@ -76,7 +76,7 @@ export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, on
               if (e.key === 'Escape') {
                 e.stopPropagation()
                 e.currentTarget.blur()
-              } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && tagged && off === undefined && !busy) {
+              } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && tagged && off === undefined && !busy && unsaved(draft, saved.text)) {
                 e.preventDefault()
                 void save(target.id, target.tag)
               }

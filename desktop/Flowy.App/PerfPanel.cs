@@ -369,6 +369,9 @@ internal sealed class PerfPanel : StackPanel
     /// <summary>The reader pressed Unlink: the link this run holds is to go.</summary>
     public event Action? Unlinked;
 
+    /// <summary>Create was pressed on the empty panel: copy a starter run.</summary>
+    public event Action? CreateClicked;
+
     public PerfPanel()
     {
         Spacing = 12;
@@ -535,6 +538,20 @@ internal sealed class PerfPanel : StackPanel
         _stateShown = null;
         _still = still;
         var problems = ProblemsFor(runProblems);
+        if (runs.Count == 0 && runProblems.Count == 0)
+        {
+            // Nothing to replay yet: say so, and offer the nearest Flowy comes to making a run, which is a file to fill in.
+            _run = null;
+            Children.Add(Muted("No load-test runs yet."));
+            var create = new Button { HorizontalAlignment = HorizontalAlignment.Left };
+            create.Classes.Add("tool");
+            create.Classes.Add("primary");
+            Chrome.Fill(create, Icons.Plus, "Create");
+            create.Click += (_, _) => CreateClicked?.Invoke();
+            Children.Add(create);
+            Children.Add(Muted("Copies a starter run for this view to fill in and save in flowy/perf/."));
+            return;
+        }
         if (!runs.TryGetValue(runId, out var run))
         {
             _run = null;

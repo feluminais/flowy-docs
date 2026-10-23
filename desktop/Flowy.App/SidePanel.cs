@@ -128,7 +128,7 @@ internal sealed class SidePanel : Border
         _projectEditor = fresh;
     }
 
-    internal Control Heading(string text) => new TextBlock { Text = text, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };
+    internal Control Heading(string text) => new SelectableTextBlock { Text = text, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };
 
     /// <summary>A heading with a round icon before it, for a panel that is about no box in particular (add, a new flow).</summary>
     internal Control IconHeading(string icon, string text)
@@ -144,7 +144,7 @@ internal sealed class SidePanel : Border
         return row;
     }
 
-    internal Control Muted(string text, double size = 14) => new TextBlock { Text = text, FontSize = size, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap };
+    internal Control Muted(string text, double size = 14) => new SelectableTextBlock { Text = text, FontSize = size, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap };
 
     private static string KindOf(string? type) => Names.ObjectTypes.Contains(type ?? "") ? type! : "system";
 
@@ -157,7 +157,7 @@ internal sealed class SidePanel : Border
         var list = messages.ToList();
         if (list.Count == 0) return new Panel();
         var items = new StackPanel { Spacing = 3 };
-        foreach (var m in list) items.Children.Add(new TextBlock { Text = m, Foreground = Resource("WarnFgBrush"), TextWrapping = TextWrapping.Wrap });
+        foreach (var m in list) items.Children.Add(new SelectableTextBlock { Text = m, Foreground = Resource("WarnFgBrush"), TextWrapping = TextWrapping.Wrap });
         var icon = Icons.Make(Icons.Alert, "warnicon", 16);
         icon.VerticalAlignment = VerticalAlignment.Top;
         icon.Margin = new Thickness(0, 1, 0, 0);
@@ -186,7 +186,7 @@ internal sealed class SidePanel : Border
         if (!string.IsNullOrEmpty(o.Tech)) chips.Add(Chrome.Chip(o.Tech, Icons.Code));
         if (external) chips.Add(Chrome.Chip("external", Icons.Cloud, "external"));
         if (problems > 0) chips.Add(Chrome.Chip(problems == 1 ? "1 problem" : $"{problems} problems", Icons.Alert, "warn"));
-        var name = new TextBlock { Text = string.IsNullOrEmpty(o.Name) ? id : o.Name, FontSize = 22, FontWeight = FontWeight.SemiBold, LetterSpacing = -0.2, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 26, 0) };
+        var name = new SelectableTextBlock { Text = string.IsNullOrEmpty(o.Name) ? id : o.Name, FontSize = 22, FontWeight = FontWeight.SemiBold, LetterSpacing = -0.2, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 26, 0) };
         var text = new StackPanel { Spacing = 6, VerticalAlignment = VerticalAlignment.Center, Children = { name, Chrome.Chips(chips.ToArray()) } };
         var tile = Chrome.ObjectTile(model, o, 48);
         tile.VerticalAlignment = VerticalAlignment.Center;
@@ -255,11 +255,11 @@ internal sealed class SidePanel : Border
             var now = LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp());
             var text = string.IsNullOrEmpty(link.Title) ? link.Url : link.Title;
             Control label = now.Kind == LinkKind.Refused
-                ? new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Foreground = Resource("MutedBrush") }
+                ? new SelectableTextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Foreground = Resource("MutedBrush") }
                 : Link(text, () => _ = context.Run(LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp())));
             var body = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { label } };
             if (!web && !string.IsNullOrEmpty(link.Title))
-                body.Children.Add(new TextBlock { Text = link.Url, FontFamily = Fonts.Mono, FontSize = 12, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap });
+                body.Children.Add(new SelectableTextBlock { Text = link.Url, FontFamily = Fonts.Mono, FontSize = 12, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap });
             var icon = Icons.Make(web ? Icons.Link : link.Url.EndsWith('/') ? Icons.Folder : Icons.File, "rowicon", 16);
             icon.VerticalAlignment = VerticalAlignment.Center;
             var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { icon, body } };
@@ -294,7 +294,7 @@ internal sealed class SidePanel : Border
             var address = codeBase is null || !Checks.IsRepoPath(path) ? null : codeBase + CodeLinks.EncodePath(path);
             Control label = address is not null && WebAddress.IsSafe(address)
                 ? Link(path, () => Open(address), mono: true)
-                : new TextBlock { Text = path, FontFamily = Fonts.Mono, FontSize = 13, TextWrapping = TextWrapping.Wrap };
+                : new SelectableTextBlock { Text = path, FontFamily = Fonts.Mono, FontSize = 13, TextWrapping = TextWrapping.Wrap };
             var icon = Icons.Make(path.EndsWith('/') ? Icons.Folder : Icons.File, "rowicon", 16);
             icon.VerticalAlignment = VerticalAlignment.Center;
             var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { icon, label } };
@@ -339,7 +339,7 @@ internal sealed class SidePanel : Border
         if (line.Connections.Count == 1)
         {
             var c = line.Connections[0];
-            body.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "no label", FontStyle = FontStyle.Italic, FontSize = 13, Foreground = Resource("MutedBrush") } : new TextBlock { Text = c.Label, TextWrapping = TextWrapping.Wrap });
+            body.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "no label", FontStyle = FontStyle.Italic, FontSize = 13, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, TextWrapping = TextWrapping.Wrap });
             if (c.From != line.From || c.To != line.To) body.Children.Add(Muted(Describe(model, c), 12));
         }
         else body.Children.Add(Disclosure($"{line.Connections.Count} connections", model, line.Connections));
@@ -417,7 +417,7 @@ internal sealed class SidePanel : Border
         foreach (var (index, c) in lines)
         {
             var section = new StackPanel { Spacing = 6 };
-            section.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "No label", FontStyle = FontStyle.Italic, Foreground = Resource("MutedBrush") } : new TextBlock { Text = c.Label, FontSize = 15, TextWrapping = TextWrapping.Wrap });
+            section.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "No label", FontStyle = FontStyle.Italic, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, FontSize = 15, TextWrapping = TextWrapping.Wrap });
             if (c.From != from || c.To != to) section.Children.Add(Muted(Describe(model, c), 12));
             var mine = problems.Where(p => p.Connection == index).Select(p => p.Message).ToList();
             if (mine.Count > 0) section.Children.Add(Problems(mine));

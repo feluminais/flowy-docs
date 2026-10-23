@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
-import { Controls, ReactFlow } from '@xyflow/react'
+import { ReactFlow } from '@xyflow/react'
 import type { FitViewOptions, NodeChange } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
@@ -22,6 +22,7 @@ import type { OutlineRow } from '../../src/core/outline.ts'
 import { chain, hasChildren, isView, nameOf, parentOf, placeEnds, stepEnds } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { ZoomControls } from './ZoomControls.tsx'
 import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
 import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
@@ -962,7 +963,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               >
                 <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
                 {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-                <Controls showInteractive={false} fitViewOptions={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
+                <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
                 {flow && stop && animated.map(m => (
                   <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
@@ -992,18 +993,18 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {asking && (
             <div className="draft-ask" role="alertdialog" aria-label="Discard the note?">
               <span>Discard the note?</span>
-              <button onClick={discardNote}>Discard</button>
-              <button className="primary" autoFocus onClick={() => setAsking(undefined)}>Keep</button>
+              <button title="Throw the note away" onClick={discardNote}>Discard</button>
+              <button className="primary" autoFocus title="Keep the note (Esc)" onClick={() => setAsking(undefined)}>Keep</button>
             </div>
           )}
           {dropping && (
-            <div className="draft-ask" role="alertdialog" aria-label="Remove the note?">
-              <span>Remove the note?</span>
-              <button onClick={() => {
+            <div className="draft-ask" role="alertdialog" aria-label="Remove the link and its note?">
+              <span>Remove the link and its note?</span>
+              <button title="Take away the link and the note it holds" onClick={() => {
                 writeLink(dropping.id, dropping.other)
                 setDropping(undefined)
               }}>Remove</button>
-              <button className="primary" autoFocus onClick={() => setDropping(undefined)}>Keep</button>
+              <button className="primary" autoFocus title="Keep the link (Esc)" onClick={() => setDropping(undefined)}>Keep</button>
             </div>
           )}
           {notice && (

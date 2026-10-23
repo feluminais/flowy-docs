@@ -105,7 +105,7 @@ export function ColorPicker({ object, onSave }: { object: FlowyObject; onSave: (
           <button key={c} type="button" role="radio" aria-checked={color === c} aria-label={cap(c)} title={cap(c)} className="dot" style={{ '--sw': cssColor(COLORS[c]) } as CSSProperties} onClick={() => color !== c && void onSave(c)} />
         ))}
         <label className={`dot custom${custom ? ' on' : ''}`} title="Any color" aria-checked={custom} role="radio" style={pair && custom ? { '--sw': cssColor(pair) } as CSSProperties : undefined}>
-          <input key={color} ref={picker} type="color" defaultValue={pair?.[0] ?? '#888888'} aria-label="Pick any color" />
+          <input key={color} ref={picker} type="color" defaultValue={pair?.[0] ?? '#888888'} aria-label="Any color" />
         </label>
       </div>
     </div>

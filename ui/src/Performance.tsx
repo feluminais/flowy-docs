@@ -233,7 +233,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   if (ids.length === 0 && runProblems.length === 0) {
     return (
       <div className="perf">
-        <p className="muted">No load-test runs yet. A run holds what each shape and connection measured at each tested load, and this panel replays it on the diagram.</p>
+        <p className="muted">No load-test runs yet.</p>
         {onCreate && <div className="perf-buttons"><button className="primary" onClick={onCreate}><Plus size={16} />Create</button></div>}
         {onCreate && <p className="muted">Copies a starter run for this view to fill in and save in <code>flowy/perf/</code>.</p>}
       </div>

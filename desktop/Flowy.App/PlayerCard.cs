@@ -195,7 +195,7 @@ internal sealed class PlayerCard : Border
             var title = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
             if (row.Kind is not null) title.Children.Add(Icons.Make(Icons.ForKind(row.Kind), "chipicon", 13));
             title.Children.Add(new TextBlock { Text = row.Title, FontWeight = FontWeight.SemiBold, FontSize = 12.5 });
-            var text = new TextBlock { Text = row.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(19, 0, 0, 0), Classes = { "muted" } };
+            var text = new SelectableTextBlock { Text = row.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(19, 0, 0, 0), Classes = { "muted" } };
             rows.Children.Add(new StackPanel { Children = { title, text } });
         }
         var box = new Border
@@ -224,14 +224,14 @@ internal sealed class PlayerCard : Border
             name.Classes.Add("lane");
             block.Children.Add(name);
         }
-        block.Children.Add(new TextBlock { Text = step.Ends, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
-        block.Children.Add(new TextBlock { Text = step.Text, TextWrapping = TextWrapping.Wrap });
+        block.Children.Add(new SelectableTextBlock { Text = step.Ends, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
+        block.Children.Add(new SelectableTextBlock { Text = step.Text, TextWrapping = TextWrapping.Wrap });
         if (step.Outcome is { } outcome)
         {
             // How the request ended: a fact the picture can't give, so it is text, with a mark beside it.
             var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Center };
             dot.Classes.Add("outcomedot");
-            var words = new TextBlock { Text = outcome, TextWrapping = TextWrapping.Wrap };
+            var words = new SelectableTextBlock { Text = outcome, TextWrapping = TextWrapping.Wrap };
             words.Classes.Add("outcome");
             block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { dot, words } });
         }
@@ -315,7 +315,7 @@ internal sealed class PlayerCard : Border
             }
             column.Children.Add(tabs);
         }
-        if (v.Caption.Text != "") column.Children.Add(new TextBlock { Text = v.Caption.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
+        if (v.Caption.Text != "") column.Children.Add(new SelectableTextBlock { Text = v.Caption.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
         column.Children.Add(Bar(v.Progress, v.Stop, v.Changes));
         // The key: one mark for each state that is on the canvas now, drawn as it looks there.
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
