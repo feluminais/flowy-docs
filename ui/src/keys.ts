@@ -19,11 +19,11 @@ export const undoesMove = (e: { key: string }, s: { editing: boolean; justMoved:
   s.editing && s.justMoved && !s.shortcuts && (e.key === 'Escape' || (e.key === 'Backspace' && s.plain))
 
 /** What one press of Escape closes, innermost first. */
-export type EscapeStep = 'shortcuts' | 'navigator' | 'flow' | 'step' | 'panel' | 'compare' | 'up'
+export type EscapeStep = 'shortcuts' | 'navigator' | 'flow' | 'step' | 'panel' | 'compare' | 'back'
 
 /**
  * Escape peels one layer per press: the shortcut list, the navigator (Explorer, Flows, Performance, Failures or YAML) when it is the last thing used, a flow playing,
- * a step half recorded, Details or a Performance or Failures panel the last click was not in, a comparison, and then the box you're inside, back up to the level above. At the top, with
+ * a step half recorded, Details or a Performance or Failures panel the last click was not in, a comparison, and then the level you are in, back to the one you came from (the level above, when there is none). At the top, with
  * nothing open, nothing. `navigator` is true only when the navigator is open and the last click or key was in it: Escape in the diagram
  * leaves it alone. A comparison takes the place of the flow playing, so the two are never open together.
  */
@@ -34,5 +34,5 @@ export function escapeStep(open: { shortcuts: boolean; navigator: boolean; flow:
   if (open.halfStep) return 'step'
   if (open.panel) return 'panel'
   if (open.compare) return 'compare'
-  return open.inside ? 'up' : undefined
+  return open.inside ? 'back' : undefined
 }

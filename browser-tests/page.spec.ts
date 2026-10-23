@@ -95,3 +95,34 @@ for (const [name, route] of ROUTES) {
 async function keep(page: Page, info: TestInfo, name: string) {
   await info.attach(name, { body: await page.screenshot(), contentType: 'image/png' })
 }
+
+test.describe('Esc goes back', () => {
+  test('to the level the reader came from, then to the one before, not up a level', async ({ page }) => {
+    await open(page, '/', 'light')
+    const level = () => page.evaluate(() => location.hash)
+    await page.locator('.react-flow__node[data-id="ordering"]').dblclick()
+    await expect.poll(level).toBe('#ordering')
+    await page.locator('.react-flow__node[data-id="backoffice"]').dblclick() // a shape that sits beside it: the view slides across
+    await expect.poll(level).toBe('#backoffice')
+    await page.mouse.click(5, 5) // keep the keys off any panel the double-click opened
+    await page.keyboard.press('Escape')
+    await expect.poll(level).toBe('#ordering') // not #root, the level above
+    await page.keyboard.press('Escape')
+    await expect.poll(level).toMatch(/^(#root)?$/)
+  })
+
+  test('Z goes up a level, and Esc then has nothing to go back to', async ({ page }) => {
+    await open(page, '/', 'light')
+    const level = () => page.evaluate(() => location.hash)
+    await page.locator('.react-flow__node[data-id="ordering"]').dblclick()
+    await expect.poll(level).toBe('#ordering')
+    await page.locator('.react-flow__node[data-id="backoffice"]').dblclick()
+    await expect.poll(level).toBe('#backoffice')
+    await page.mouse.click(5, 5)
+    await page.keyboard.press('z')
+    await expect.poll(level).toMatch(/^(#root)?$/)
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(600)
+    expect(await level()).toMatch(/^(#root)?$/)
+  })
+})

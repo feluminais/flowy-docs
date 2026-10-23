@@ -7,8 +7,9 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
 - Each shape shows an icon in a colour, which by default are its type's: person, system, app, store, component. Outside
   services you don't own are grey with a cloud. A shape can choose its own shape, colour, opacity and icon
   ([below](shapes.md#shapes-colour-and-icons)). "3 inside" means a shape opens: double-click it, or
-  select it and press Enter, to zoom in. Esc zooms back out, one level per press, once it has
-  closed whatever is open (a flow, the side panel; the navigator only if your last click was in it). Backspace, Z and the breadcrumb zoom out too.
+  select it and press Enter, to zoom in. Esc goes back to the level you came from, one per press, once it has
+  closed whatever is open (a flow, the side panel; the navigator only if your last click was in it): open Ordering, then Back office beside it, and Esc returns to Ordering, then the overview.
+  With nowhere to go back to, it goes up a level. Backspace, Z and the breadcrumb always zoom out to the level above.
   Inside a shape, a frame named after it wraps what's in it, and a click on the frame opens that shape's panel. A faded shape that opens sits beside the
   one you're in, not inside it, so opening it slides across instead of zooming in.
 - Hover a shape for its short description. Click it for the full text and its connections: every
