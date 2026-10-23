@@ -48,6 +48,9 @@ export function memberIds(model: Model, view: string): string[] {
 
 export const hasChildren = (model: Model, id: string) => childrenOf(model).has(id)
 
+/** How many shapes sit directly inside `id`. */
+export const childCount = (model: Model, id: string) => childrenOf(model).get(id)?.length ?? 0
+
 /** Whether `id` can be the view of a flow, or the place a problem opens: the top level, or an object with children. */
 export const isView = (model: Model, id: string) => id === ROOT || (getObject(model, id) !== undefined && hasChildren(model, id))
 
