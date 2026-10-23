@@ -30,14 +30,11 @@ internal sealed class BackLayer : Control
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
+    /// <summary>The camera, for the places a pointer is turned into the diagram's own. The layer is drawn in the diagram's units: the canvas moves it with the boxes, so a move of the camera draws nothing again.</summary>
     public Viewport Viewport
     {
         get => _viewport;
-        set
-        {
-            _viewport = value;
-            InvalidateVisual();
-        }
+        set => _viewport = value;
     }
 
     /// <summary>Draws the scene's lines in <paramref name="style"/>: "straight", "curved" or "angled".</summary>
@@ -167,8 +164,6 @@ internal sealed class BackLayer : Control
     {
         base.Render(context);
         if (_scene is null) return;
-        var matrix = Matrix.CreateScale(_viewport.Zoom, _viewport.Zoom) * Matrix.CreateTranslation(_viewport.X, _viewport.Y);
-        using var _ = context.PushTransform(matrix);
         var accent = Brush("AccentBrush");
 
         if (_scene.Frame is { } frame && _scene.FrameName != "")
