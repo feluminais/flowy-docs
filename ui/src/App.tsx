@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
+import type { CSSProperties, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { ReactFlow } from '@xyflow/react'
-import type { FitViewOptions, NodeChange } from '@xyflow/react'
+import type { Edge, FitViewOptions, NodeChange, ReactFlowInstance } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import { compareOf } from '../../src/core/compare.ts'
@@ -58,6 +58,8 @@ import { PickedBar } from './PickedBar.tsx'
 import { addsToSelection, banded, keepsSelection, toggled } from './selection.ts'
 import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
+import { keepSame, nothingKept, useLatest } from './stable.ts'
+import type { Kept } from './stable.ts'
 import { StepMotion } from './StepMotion.tsx'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
@@ -310,34 +312,44 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const going = side?.kind === 'usedby' ? side.targets.flatMap(t => ('object' in t ? [t.object] : [])) : []
   const usedClass = (id: string) => (going.includes(id) ? 'going' : flagged.includes(id) ? 'flagged' : undefined)
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
-  const nodes = graph.nodes.map(n => ({
+  const keptNodes = useRef<Kept<BoxNode>>(nothingKept)
+  keptNodes.current = keepSame(keptNodes.current, graph.nodes.map(n => ({
     ...n,
     data: loadTraffic || failMarks || scrubbing ? { ...n.data, ...(loadTraffic ? { perf: loadTraffic.boxes[n.id] } : {}), ...(failMarks && Object.hasOwn(failMarks.boxes, n.id) ? { fail: failMarks.boxes[n.id] } : {}), ...(scrubbing ? { snap: true } : {}) } : n.data,
     className: [n.className, litClass(n.id), usedClass(n.id)].filter(Boolean).join(' ') || undefined,
     position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id),
-  }))
+  })))
+  // The same objects as last time wherever a shape says the same: a hover or a drag changes one or two, and React Flow re-draws only those.
+  const nodes = keptNodes.current.list as BoxNode[]
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
   const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
   // A click on its outline is a click on that shape: its Details open, as the rail's button opens them. While a flow is recorded or a load shows,
   // the panel has its own work, so the outline takes no click.
-  const openLevel = recording || perfOpen ? undefined : () => {
+  const openLevelNow = recording || perfOpen ? undefined : () => {
     didSomethingElse()
     clearTimeout(opening.current)
     if (details && side === undefined) return closeDetails() // its Details are already showing: a second click closes them
     setSide(undefined)
     setDetails(true)
   }
+  const openLevelStable = useLatest(() => openLevelNow?.())
+  const openLevel = openLevelNow && openLevelStable
   const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })), openLevel)]
+  const keptFlowNodes = useRef<Kept<BoxNode | FrameNode>>(nothingKept)
+  keptFlowNodes.current = keepSame(keptFlowNodes.current, [...frame, ...nodes])
   const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
   const selectedBox = side?.kind === 'object' ? side.id : undefined
   // The lines a pipe plays along move their labels aside (see Line), unless motion is reduced and there is no pipe. A step that leaves marks (a cross, a bar) keeps its label clear of them.
   const pipes = animated.filter(m => !still || leavesMarks(m.animation)).map(m => lineId(m.placed[0], m.placed[1])).join('\n')
-  const edges = useMemo(() => {
+  const keptEdges = useRef<Kept<Edge>>(nothingKept)
+  const edgesNow = useMemo(() => {
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
     const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
     // A picked failure mode outlines its line and fades every other.
     return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, e.id === lit.failsLine ? 'fails' : 'dim'].filter(Boolean).join(' ') }))
   }, [graph, selectedBox, selectedLine, hovered, pipes, lit])
+  keptEdges.current = keepSame(keptEdges.current, edgesNow)
+  const edges = keptEdges.current.list as Edge[] // a hover changes one or two lines, and only those draw again
   // Labels that would overlap (the lines of a selected shape) are spread along their lines. They follow the boxes, so a drag moves them.
   const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
   const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])
@@ -863,6 +875,58 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (why) setNotice(why)
     await yamlStore?.refresh() // after a failure too, so the list shows what the server really has
   }
+  // The handlers of the canvas never change, and call the current ones: a new function for each would make React Flow take them in again on every render.
+  const onSelectionStart = useLatest(() => {
+    session.startBanding()
+    cancelOpen()
+  })
+  const onSelectionEnd = useLatest(() => {
+    session.endBanding()
+  })
+  const onNodesChangeStable = useLatest(onNodesChange)
+  const isValidConnection = useLatest((c: { source: string; target: string }) => placeEnds(model, view, c.source, c.target) !== null)
+  const onConnect = useLatest((c: { source: string; target: string }) => void run(m => connect(m, { from: c.source, to: c.target }))
+    .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target })))
+  const onNodeClick = useLatest((e: ReactMouseEvent, node: { id: string; type?: string }) => {
+    if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
+    didSomethingElse()
+    const waiting = openingBox.current
+    cancelOpen()
+    if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
+    // Ctrl, Cmd or Shift adds the box to the shapes picked, or takes it out again. A box clicked a moment ago is picked too, though its panel hasn't opened yet.
+    if (editing && addsToSelection(e)) return show(sideFor(toggled(waiting === undefined ? chosen : [waiting], node.id)))
+    if (side?.kind === 'object' && side.id === node.id) return closeDetails() // its panel is already open: a second click closes it
+    const open = () => show({ kind: 'object', id: node.id })
+    // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
+    // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
+    if (canOpen(node.id) && side === undefined) {
+      openingBox.current = node.id
+      opening.current = setTimeout(() => {
+        openingBox.current = undefined
+        open()
+      }, DOUBLE_CLICK)
+    } else open()
+  })
+  const onNodeDoubleClick = useLatest((e: ReactMouseEvent, node: { id: string; type?: string }) => {
+    if (recording || node.type !== 'box' || !canOpen(node.id) || addsToSelection(e)) return
+    zoomInto(node.id)
+  })
+  const onInit = useLatest((instance: ReactFlowInstance<BoxNode | FrameNode, Edge>) => {
+    fitNow.current = options => void instance.fitView(options)
+  })
+  const onEdgeClick = useLatest((_: ReactMouseEvent, e: Edge) => {
+    didSomethingElse()
+    if (recording || isStepLine(e.id)) return
+    if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
+    else show({ kind: 'line', from: e.source, to: e.target })
+  })
+  const onEdgeMouseEnter = useLatest((_: ReactMouseEvent, e: Edge) => setHovered(e.id))
+  const onEdgeMouseLeave = useLatest(() => setHovered(undefined))
+  const onPaneClick = useLatest(() => {
+    didSomethingElse()
+    cancelOpen()
+    setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
+  })
   return (
     <>
       <header className="bar">
@@ -928,7 +992,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               <LabelSpotsContext value={spots}>
               <ReactFlow
                 key={view} // a fresh canvas per view
-                nodes={[...frame, ...nodes]}
+                nodes={keptFlowNodes.current.list as (BoxNode | FrameNode)[]}
                 edges={edges}
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
@@ -940,57 +1004,18 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 zoomOnDoubleClick={false}
                 deleteKeyCode={null}
                 selectionKeyCode={editing && !recording ? 'Shift' : null} // Shift and drag on the empty canvas draws a box round shapes to pick them
-                onSelectionStart={() => {
-                  session.startBanding()
-                  cancelOpen()
-                }}
-                onSelectionEnd={() => {
-                  session.endBanding()
-                }}
-                onNodesChange={onNodesChange}
-                isValidConnection={c => placeEnds(model, view, c.source, c.target) !== null} // only lines this view can show
-                onConnect={c => void run(m => connect(m, { from: c.source, to: c.target }))
-                  .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target }))}
-                onNodeClick={(e, node) => {
-                  if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
-                  didSomethingElse()
-                  const waiting = openingBox.current
-                  cancelOpen()
-                  if (recording) return setSide({ kind: 'flow', ...pick(recording, node.id) })
-                  // Ctrl, Cmd or Shift adds the box to the shapes picked, or takes it out again. A box clicked a moment ago is picked too, though its panel hasn't opened yet.
-                  if (editing && addsToSelection(e)) return show(sideFor(toggled(waiting === undefined ? chosen : [waiting], node.id)))
-                  if (side?.kind === 'object' && side.id === node.id) return closeDetails() // its panel is already open: a second click closes it
-                  const open = () => show({ kind: 'object', id: node.id })
-                  // Zooming into a box is a double-click, and its first click must not open the panel. With a panel already open there's
-                  // nothing to open, only its box to change, so that goes at once: no wait between one box and the next.
-                  if (canOpen(node.id) && side === undefined) {
-                    openingBox.current = node.id
-                    opening.current = setTimeout(() => {
-                      openingBox.current = undefined
-                      open()
-                    }, DOUBLE_CLICK)
-                  } else open()
-                }}
-                onNodeDoubleClick={(e, node) => {
-                  if (recording || node.type !== 'box' || !canOpen(node.id) || addsToSelection(e)) return
-                  zoomInto(node.id)
-                }}
-                onInit={instance => {
-                  fitNow.current = options => void instance.fitView(options)
-                }}
-                onEdgeClick={(_, e) => {
-                  didSomethingElse()
-                  if (recording || isStepLine(e.id)) return
-                  if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
-                  else show({ kind: 'line', from: e.source, to: e.target })
-                }}
-                onEdgeMouseEnter={(_, e) => setHovered(e.id)}
-                onEdgeMouseLeave={() => setHovered(undefined)}
-                onPaneClick={() => {
-                  didSomethingElse()
-                  cancelOpen()
-                  setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
-                }}
+                onSelectionStart={onSelectionStart}
+                onSelectionEnd={onSelectionEnd}
+                onNodesChange={onNodesChangeStable}
+                isValidConnection={isValidConnection} // only lines this view can show
+                onConnect={onConnect}
+                onNodeClick={onNodeClick}
+                onNodeDoubleClick={onNodeDoubleClick}
+                onInit={onInit}
+                onEdgeClick={onEdgeClick}
+                onEdgeMouseEnter={onEdgeMouseEnter}
+                onEdgeMouseLeave={onEdgeMouseLeave}
+                onPaneClick={onPaneClick}
               >
                 <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
                 {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
