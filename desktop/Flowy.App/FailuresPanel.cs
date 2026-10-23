@@ -16,10 +16,11 @@ namespace Flowy.App;
 /// </summary>
 internal sealed record FailuresShown(
     Model Model, string View, string? AnalysisId, string? ModeId, RiskBand? Band, bool Left, FailurePart? Part,
-    IdMap<LoadRun> Runs, IReadOnlyList<Problem> Problems, IReadOnlyList<Problem> FailureProblems);
+    IdMap<LoadRun> Runs, IReadOnlyList<Problem> Problems, IReadOnlyList<Problem> FailureProblems,
+    EditRun? Edit = null, bool CanCreate = false);
 
 /// <summary>
-/// The Failures panel: which analysis, how it adds up, what to look at first, and everything about the mode picked. Read only. A port of Failures.tsx, with the
+/// The Failures panel: which analysis, how it adds up, what to look at first, and everything about the mode picked. While editing it carries the forms that write an analysis (see FailuresEdit.cs). A port of Failures.tsx, with the
 /// same words: the list's marks are the ones the canvas wears, and the key draws them. It takes Details' place on the right while it is open.
 /// </summary>
 internal sealed class FailuresPanel : StackPanel
@@ -57,9 +58,30 @@ internal sealed class FailuresPanel : StackPanel
     /// <summary>The reader used a control that took the keyboard focus, so the reader gives it back and the keys work again.</summary>
     public event Action? Used;
 
+    /// <summary>The reader pressed Create on the empty panel: turn on edit mode, where an analysis can be made.</summary>
+    public event Action? CreateClicked;
+
+    // The forms, built once and updated in place, so a field being typed in keeps the focus while the model reloads round it.
+    private NewAnalysisForm? _newForm;
+    private AnalysisForm? _analysisForm;
+    private AddModeForm? _addForm;
+    private ModePreset? _adding;
+    private ModeForm? _modeForm;
+    private bool _editOpen;
+    private bool _newOpen;
+    private FailuresShown? _last;
+
     public FailuresPanel() => Spacing = 12;
 
     // What a test can look at.
+    internal ModeForm? ModeFormNow => _modeForm;
+
+    internal AddModeForm? AddFormNow => _addForm;
+
+    internal NewAnalysisForm? NewFormNow => _newForm;
+
+    internal AnalysisForm? AnalysisFormNow => _analysisForm;
+
     internal IEnumerable<Button> Buttons => this.GetVisualDescendants().OfType<Button>();
 
     internal ComboBox? Picker => this.GetVisualDescendants().OfType<ComboBox>().FirstOrDefault();
@@ -79,11 +101,15 @@ internal sealed class FailuresPanel : StackPanel
     public void Show(FailuresShown s)
     {
         Children.Clear();
+        _last = s;
         var model = s.Model;
+        if (s.Edit is null) _adding = null;
         var problems = s.FailureProblems.Concat(s.Problems.Where(p => s.AnalysisId is not null && p.File == $"failures/{s.AnalysisId}.yaml")).ToList();
         if (s.AnalysisId is null || !model.Failures.TryGetValue(s.AnalysisId, out var analysis))
         {
             if (problems.Count == 0) Children.Add(Muted("No failure analyses yet."));
+            if (s.Edit is { } make) Children.Add(NewForm(make));
+            else if (s.CanCreate) Children.Add(CreateButton());
             Children.Add(ProblemList(problems));
             return;
         }
@@ -94,7 +120,8 @@ internal sealed class FailuresPanel : StackPanel
         var mode = FailuresView.ModeIn(model, s.AnalysisId, s.ModeId);
 
         Children.Add(Heading(s, analysis));
-        if (Failures.Has(analysis.About)) Children.Add(About(analysis.About!));
+        if (s.Edit is { } edit) Children.Add(EditSection(s, edit));
+        else if (Failures.Has(analysis.About)) Children.Add(About(analysis.About!));
         var copy = new WrapPanel { Orientation = Orientation.Horizontal };
         copy.Children.Add(CopyButton("Copy as table", "markdown"));
         copy.Children.Add(CopyButton("Copy as CSV", "csv"));
@@ -105,8 +132,9 @@ internal sealed class FailuresPanel : StackPanel
         Children.Add(summary);
         Children.Add(Coverage(analysed.Count, analysed.Count + left.Count, left.Count, s.Left));
         if (s.Part is { } part) Children.Add(PartChip(FailuresView.PartText(model, part)));
+        if (s.Edit is { } adder) Children.Add(AddModeSection(s, adder));
 
-        if (s.Left) Children.Add(NotAnalysed(model, left));
+        if (s.Left) Children.Add(NotAnalysed(model, left, s.Edit is not null));
         else
         {
             if (here.Count > 0) Children.Add(List("This view", model, here, s.ModeId));
@@ -114,7 +142,7 @@ internal sealed class FailuresPanel : StackPanel
             if (here.Count + elsewhere.Count == 0) Children.Add(Muted(analysis.Modes.Count == 0 ? "No failure modes yet." : "None here."));
         }
 
-        if (mode is not null) Children.Add(Detail(s, analysis, mode));
+        if (mode is not null) Children.Add(s.Edit is { } form ? ModeSection(s, form, mode) : Detail(s, analysis, mode));
 
         Children.Add(KeyHint.Of(("← →", "Step")));
         var lit = mode is null ? null : Failures.LightFor(model, s.View, mode);
@@ -156,6 +184,112 @@ internal sealed class FailuresPanel : StackPanel
             Used?.Invoke();
         };
         return picker;
+    }
+
+    private Control NewForm(EditRun run) => Detach(_newForm ??= new NewAnalysisForm(run, id => AnalysisPicked?.Invoke(id)));
+
+    /// <summary>A form kept between builds of the panel is let go of by what held it last time, so the new build can hold it.</summary>
+    private static T Detach<T>(T form) where T : Control
+    {
+        if (form.Parent is Panel holder) holder.Children.Remove(form);
+        return form;
+    }
+
+    private Control CreateButton()
+    {
+        var create = new Button { HorizontalAlignment = HorizontalAlignment.Left };
+        create.Classes.Add("tool");
+        create.Classes.Add("primary");
+        Chrome.Fill(create, Icons.Plus, "Create");
+        create.Click += (_, _) => CreateClicked?.Invoke();
+        return create;
+    }
+
+    /// <summary>A heading you press to open or close what it holds; whether it is open is kept here, because the panel is built again on every pick.</summary>
+    private Control Fold(string title, bool open, Action<bool> set, Control body)
+    {
+        Detach(body);
+        var header = new Button { Content = (open ? "▾ " : "▸ ") + title };
+        header.Classes.Add("disclosure");
+        AutomationProperties.SetName(header, title);
+        body.IsVisible = open;
+        header.Click += (_, _) =>
+        {
+            var now = !body.IsVisible;
+            set(now);
+            body.IsVisible = now;
+            header.Content = (now ? "▾ " : "▸ ") + title;
+        };
+        return new StackPanel { Children = { header, body } };
+    }
+
+    /// <summary>The analysis's own form (name, About, Scope, delete) and another analysis to make, each folded.</summary>
+    private Control EditSection(FailuresShown s, EditRun run)
+    {
+        if (_analysisForm is null || _analysisForm.Id != s.AnalysisId) _analysisForm = new AnalysisForm(s.AnalysisId!, run);
+        _analysisForm.Update(s.Model);
+        Detach(_analysisForm);
+        return new StackPanel
+        {
+            Spacing = 4,
+            Children =
+            {
+                Fold("Edit analysis", _editOpen, v => _editOpen = v, _analysisForm),
+                Fold("New analysis", _newOpen, v => _newOpen = v, NewForm(run)),
+            },
+        };
+    }
+
+    /// <summary>Starts a new mode, on the shape or line picked on the canvas when one is.</summary>
+    private void StartAdding(ModePreset preset)
+    {
+        _adding = preset;
+        _addForm = null;
+        if (_last is { } last) Show(last);
+    }
+
+    private static ModePreset PresetOf(FailurePart? part) => part switch
+    {
+        FailurePart.Box b => new ModePreset(On: b.Id),
+        FailurePart.Line l => new ModePreset(From: l.From, To: l.To),
+        _ => new ModePreset(),
+    };
+
+    private Control AddModeSection(FailuresShown s, EditRun run)
+    {
+        if (_adding is not { } preset)
+        {
+            var open = new Button { HorizontalAlignment = HorizontalAlignment.Left };
+            open.Classes.Add("tool");
+            Chrome.Fill(open, Icons.Plus, "Add failure mode");
+            open.Click += (_, _) => StartAdding(PresetOf(s.Part));
+            return open;
+        }
+        _addForm ??= new AddModeForm(s.AnalysisId!, preset, run, id =>
+        {
+            _adding = null;
+            _addForm = null;
+            ModePicked?.Invoke(id);
+        }, () =>
+        {
+            _adding = null;
+            _addForm = null;
+            if (_last is { } last) Show(last);
+        });
+        _addForm.Update(s.Model);
+        return Detach(_addForm);
+    }
+
+    /// <summary>The picked mode's form, with Show it under it.</summary>
+    private Control ModeSection(FailuresShown s, EditRun run, FailureMode mode)
+    {
+        if (_modeForm is null || _modeForm.Analysis != s.AnalysisId || _modeForm.Id != s.ModeId)
+        {
+            _modeForm = new ModeForm(s.AnalysisId!, s.ModeId!, run);
+            _modeForm.FlowShown += (flow, step) => FlowShown?.Invoke(flow, step);
+        }
+        _modeForm.Update(s.Model, s.Runs);
+        return new StackPanel { Spacing = 12, Children = { Chrome.Section(Icons.Alert, Failures.PartName(s.Model, mode)), Detach(_modeForm) } };
     }
 
     private bool _aboutOpen; // kept here, not in the control: the panel is built again on every pick, and About stays as the reader left it
@@ -244,7 +378,7 @@ internal sealed class FailuresPanel : StackPanel
         return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, HorizontalAlignment = HorizontalAlignment.Left, Children = { Chrome.Chip(name), clear } };
     }
 
-    private Control NotAnalysed(Model model, IReadOnlyList<string> left)
+    private Control NotAnalysed(Model model, IReadOnlyList<string> left, bool editing)
     {
         var rows = new StackPanel { Spacing = 2 };
         foreach (var id in left)
@@ -258,7 +392,18 @@ internal sealed class FailuresPanel : StackPanel
                 ShapePicked?.Invoke(shape);
                 Used?.Invoke();
             };
-            rows.Children.Add(row);
+            if (!editing)
+            {
+                rows.Children.Add(row);
+                continue;
+            }
+            var add = new Button { Content = "Add failure mode", VerticalAlignment = VerticalAlignment.Center };
+            add.Classes.Add("link");
+            AutomationProperties.SetName(add, $"Add failure mode to {Failures.ShapeName(model, id)}");
+            add.Click += (_, _) => StartAdding(new ModePreset(On: shape));
+            var line = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { row, add } };
+            Grid.SetColumn(add, 1);
+            rows.Children.Add(line);
         }
         return new StackPanel { Children = { Chrome.Section(Icons.Info, "Not analysed", left.Count), rows } };
     }

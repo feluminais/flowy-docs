@@ -259,8 +259,9 @@ Before merging a change to the app, look at what it could affect, in a real wind
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo --view ordering --tab failures --select stripe-timeout`: the left rail has a Failures button under
       Performance with a 14 on it, and M opens its tab beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
-      narrows the list). Opening Performance closes it. It only reads: there are no forms, and while editing the button is greyed out
-      with "Failures (not while editing)" in its tooltip. Order API wears a red 2 and is outlined red, so is Stripe, the line between them wears an amber 2 and
+      narrows the list). Opening Performance closes it. Press E: the tab stays open, with Edit analysis and New analysis folded under the name, and Add failure mode
+      under the key; the mode picked has a form (part, effect, cause, the three ratings and their After ratings, controls, next action, owner, status, affects, flow,
+      step, run, More) where a pick or a typed field is saved at once, and the arrows no longer step through the list. Order API wears a red 2 and is outlined red, so is Stripe, the line between them wears an amber 2 and
       is red, Kitchen tablet and Customer app are in a lighter outline and the rest fades. The panel reads Risk 96 Medium and "After: 96 to 32", and the
       key draws a dot for each band that has modes, then Fails and Affects. The list runs Refunds (126), Orders DB (20) and on down; a click on a row picks
       it and a second click puts it away; ← → step down the list and stop at its ends; a click on a shape narrows the list to its modes and the chip clears

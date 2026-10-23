@@ -189,7 +189,7 @@ internal sealed partial class ReaderView
         var totals = Totals();
         var tab = ShownTab;
         _rail.Update(tab, totals.Flows, totals.Shapes);
-        _rail.UpdateFailures(FailuresView.ModeCount(model), FailuresOpen, Editing);
+        _rail.UpdateFailures(FailuresView.ModeCount(model), FailuresOpen);
         _rail.UpdatePerformance(_folder?.Runs?.Count ?? 0, PerfOpen, Editing);
         _detailsRail.Update(DetailsOpen ? PanelTab.Details : null, 0, 0);
         if (tab is { } open) _nav.Show(open);

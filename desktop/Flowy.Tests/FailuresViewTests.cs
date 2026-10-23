@@ -22,6 +22,22 @@ public class FailuresViewTests
     private static readonly (string Name, RiskBand? Band)[] Bands =
         [("none", null), ("high", RiskBand.High), ("medium", RiskBand.Medium), ("low", RiskBand.Low), ("unrated", RiskBand.Unrated)];
 
+    private static FailureMode ModeOn(string? on = null, string? from = null, string? to = null) =>
+        new("x", on, from, to, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+
+    [Fact]
+    public void A_shape_mode_becomes_a_line_on_a_connection_the_shape_starts_and_a_line_mode_becomes_a_shape_again()
+    {
+        var model = FolderLoader.Load(Path.Combine(Fixtures, "cases", "failures", "flowy")).Model;
+        Assert.Equal(["on", "from", "to"], FailuresView.ToLine(model, ModeOn(on: "web"))!.Changes.Select(c => c.Key));
+        Assert.Equal(new object?[] { "", "web", "api" }, FailuresView.ToLine(model, ModeOn(on: "web"))!.Changes.Select(c => c.Value));
+        Assert.Equal(new object?[] { "", "customer", "web" }, FailuresView.ToLine(model, ModeOn(on: "customer"))!.Changes.Select(c => c.Value));
+        Assert.Null(FailuresView.ToLine(model, ModeOn(on: "db"))); // nothing leaves it, so there is no line to put the mode on
+        Assert.Null(FailuresView.ToLine(model, ModeOn(on: "gone")));
+        Assert.Null(FailuresView.ToLine(model, ModeOn()));
+        Assert.Equal(new object?[] { "web", "", "" }, FailuresView.ToShape(ModeOn(from: "web", to: "api")).Changes.Select(c => c.Value));
+    }
+
     [Fact]
     public void A_rating_is_ten_cells_the_first_of_them_filled()
     {
