@@ -505,6 +505,38 @@ objects:
     in: compare
     name: Compare · cache
     description: Only the newer flow calls it, so it is New.
+  channels:
+    type: system
+    name: Open channels
+    description: |
+      Three things a step can leave open for the steps after it: an **Open stream**, **Listening** and a **Running job**.
+
+      Play **Every open channel**: each one stays drawn until a step closes it, so you can see it keep running while the story moves on.
+  chan-client:
+    type: app
+    in: channels
+    name: Channels · client
+    tech: opens and closes
+    description: Opens a stream, registers a listener and starts a job, then closes each one.
+  chan-feed:
+    type: app
+    in: channels
+    name: Channels · feed
+    tech: stream
+    description: "`opens: stream`. Dots keep running along the line, towards the client, until a step closes it."
+  chan-hook:
+    type: app
+    in: channels
+    external: "true"
+    name: Channels · webhook
+    tech: listener
+    description: "`opens: listener`. A bell rings out from the client, which keeps listening for what the webhook sends."
+  chan-worker:
+    type: app
+    in: channels
+    name: Channels · worker
+    tech: job
+    description: "`opens: job`. An arc keeps turning on the worker while the job runs."
 connections:
   - from: send-from
     to: send-to
@@ -665,3 +697,15 @@ connections:
   - from: compare-api
     to: compare-cache
     label: keeps
+  - from: chan-client
+    to: chan-feed
+    label: opens a stream
+  - from: chan-client
+    to: chan-hook
+    label: registers a webhook
+  - from: chan-hook
+    to: chan-client
+    label: calls back
+  - from: chan-client
+    to: chan-worker
+    label: starts a job

@@ -6,7 +6,9 @@ groups:
     until: the order is delivered
     text: A position every 5 s.
 steps:
+  - { from: customer-app, to: tracking, text: Opens the live map, animation: { kind: call, opens: stream, name: Live map, towards: from } }
   - { from: courier-app, to: tracking, text: Sends its position, group: updates, animation: { kind: send, carries: position } }
   - { from: tracking, to: fleet-db, text: Stores it, group: updates, animation: send }
   - { from: tracking, to: customer-app, text: Moves the courier on the customer's map, group: updates, animation: { kind: send, carries: position, effect: pulse } }
   - { from: courier-app, to: order-api, text: Marks the order delivered, animation: { kind: call, carries: delivered } }
+  - { from: customer-app, to: tracking, text: Closes the live map, animation: { kind: send, closes: Live map } }

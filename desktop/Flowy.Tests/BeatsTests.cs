@@ -21,6 +21,10 @@ public class BeatsTests
         if (a.By is { } by) o["by"] = by.Name is not null ? new JsonObject { ["name"] = by.Name } : new JsonObject { ["shape"] = by.Shape };
         if (a.At is { } at) o["at"] = at;
         if (a.Effect is not null) o["effect"] = a.Effect;
+        if (a.Opens is not null) o["opens"] = a.Opens;
+        if (a.Name is not null) o["name"] = a.Name;
+        if (a.Towards is not null) o["towards"] = a.Towards;
+        if (a.Closes is not null) o["closes"] = a.Closes;
         return o;
     }
 
@@ -141,6 +145,15 @@ public class BeatsTests
     }
 
     [Fact]
+    public void The_channel_line_is_the_one_the_browser_shows()
+    {
+        var all = Expected()["channelLines"]!.AsArray();
+        Assert.True(all.Count > 50);
+        Assert.True(all.Count(l => l!["line"] is not null) >= 8);
+        foreach (var l in all) Assert.Equal(l!["line"]?.GetValue<string>(), Animations.ChannelLine(Animations.Read(Tagged(l["animation"]))!));
+    }
+
+    [Fact]
     public void A_step_leaves_marks_when_the_browser_says_it_does()
     {
         var all = Expected()["marks"]!.AsArray();
@@ -165,6 +178,8 @@ public class BeatsTests
         var sketches = Expected()["sketches"]!;
         Assert.Equal(sketches["kinds"]!.AsArray().Select(k => (k![0]!.GetValue<string>(), k[1]!.GetValue<string>())), Animations.KindSketches);
         Assert.Equal(sketches["outcomes"]!.AsArray().Select(k => (k![0]!.GetValue<string>(), k[1]!.GetValue<string>())), Animations.OutcomeSketches);
+        Assert.Equal(sketches["channels"]!.AsArray().Select(k => (k![0]!.GetValue<string>(), k[1]!.GetValue<string>())), Animations.ChannelSketches);
+        Assert.Equal(sketches["ends"]!.AsArray().Select(k => (k![0]!.GetValue<string>(), k[1]!.GetValue<string>())), Animations.EndSketches);
         var blocks = Expected()["blocks"]!.AsArray();
         Assert.True(blocks.Count > 40);
         foreach (var b in blocks) Assert.Equal(b!["block"]?.GetValue<string>(), Animations.OutcomeBlock(b["kind"]?.GetValue<string>(), b["outcome"]!.GetValue<string>()));
