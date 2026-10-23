@@ -8,7 +8,7 @@ import { dialsOf } from '../src/core/perf/dials.ts'
 import { interpolate, levelAt } from '../src/core/perf/levels.ts'
 import { callSize } from '../src/core/perf/measure.ts'
 import { kneeTextOf, scaleText } from '../src/core/perf/text.ts'
-import { trafficAt } from '../src/core/perf/traffic.ts'
+import { trafficAt } from './dots.ts'
 import { loadState } from '../src/node/files.ts'
 import { nameOf } from '../src/core/views.ts'
 

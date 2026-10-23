@@ -35,7 +35,7 @@ export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; 
   const [positions, setPositions] = useState(() => startPositions(runId, named()?.level, named()?.levels))
   const [active, setActive] = useState(0)
   const [ramping, setRamping] = useState(false)
-  const [asked, setMeasure] = useState<Measure>('calls') // what the lines and dots count, as the reader chose it (see `measure` for what is drawn)
+  const [asked, setMeasure] = useState<Measure>() // what the lines show, as the reader chose it: none yet means the run's own best (see `measure` for what is drawn)
   const [scrubbing, setScrubbing] = useState(false) // the slider of a run is being dragged: the states of shapes snap instead of moving
   const scrubTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(scrubTimer.current), [])
@@ -50,7 +50,9 @@ export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; 
   const multi = found !== undefined && found.mode !== 'single'
   // Data needs the run to give the size of a call. A run that doesn't draws Calls whatever was chosen, and the switch says why.
   const dataOff = useMemo(() => (runKey && callSize(runs, runKey) === undefined ? 'No size of a call in this run' : undefined), [runs, runKey])
-  const measure: Measure = asked === 'data' && dataOff === undefined ? 'data' : 'calls'
+  // Mixed (stripes for the calls and blobs for the data) when the run gives both, else the calls. A run with no sizes draws Calls whatever was chosen.
+  const wanted: Measure = asked ?? (dataOff === undefined ? 'mixed' : 'calls')
+  const measure: Measure = wanted !== 'calls' && dataOff !== undefined ? 'calls' : wanted
   const activeDial = Math.min(active, Math.max(0, dials.length - 1))
   const here = multi ? dials.map((d, i) => clampDial(d, positions[i] ?? 0)) : [loadTest ? clampPos(loadTest, positions[0] ?? 0) : 0]
   const hereKey = here.join(',')
