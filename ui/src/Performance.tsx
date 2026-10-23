@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
-import { compareOf } from '../../src/core/compare.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import type { Model } from '../../src/core/model.ts'
 import { kneeOf } from '../../src/core/perf/analyse.ts'
@@ -25,19 +24,15 @@ import { KeyItem, KeyRow } from './legend.tsx'
 import { RangeSlider } from './RangeSlider.tsx'
 import { PlainSwatch, StateGlyph, StateKey, Swatch } from './states.tsx'
 
-/** What the run header offers for comparing: Compare and Link with. Both are greyed out with the reason as their tooltip, never hidden. */
+/** What the run header offers for comparing: Compare, greyed out with the reason as its tooltip, never hidden. Linking a run is done while editing (see RunLinks). */
 export type RunCompare = {
-  /** Why Compare is blocked (editing, no other run), or undefined. */
+  /** Why Compare is blocked (no other run), or undefined. */
   off: string | undefined
-  /** Why a link can't be written or taken away (the page can't save), or undefined. */
-  linkOff: string | undefined
-  /** Which popover is open under the header, if one is. */
-  open: 'compare' | 'link' | undefined
-  onToggle: (which: 'compare' | 'link') => void
-  /** The popover `open` names: a ComparePicker over the other runs. */
+  /** Whether the picker under the header is open. */
+  open: boolean
+  onToggle: () => void
+  /** The popover: a ComparePicker over the other runs. */
   picker: ReactNode
-  /** Takes away the link this run holds. */
-  onUnlink: () => void
 }
 
 /** What the Performance tab's body is told: the runs, which is showing and where in it, and what is selected on the canvas. */
@@ -80,7 +75,7 @@ export type PerfProps = {
   onCreate?: () => void
   /** A pane of a comparison: the run is the pane's own, so the header has no picker and no title (the pane has it). */
   pane?: boolean
-  /** Compare and Link with in the header. A pane of a comparison has neither. */
+  /** Compare in the header. A pane of a comparison has none. */
   compare?: RunCompare
 }
 
@@ -201,15 +196,11 @@ function Along({ dials, positions, active }: { dials: readonly Dial[]; positions
   )
 }
 
-/** Compare, Link with and Unlink under the run's name, with the Linked mark when the run is in a pair. */
-function RunActions({ compare, linked, holds }: { compare: RunCompare; linked: boolean; holds: boolean }) {
-  // Unlink takes away the line this run holds. A run that only others link to has none: the line to remove is on the other run.
-  const unlinkOff = compare.linkOff ?? (holds ? undefined : linked ? 'The other run holds the link' : 'Not linked')
+/** Compare under the run's name, with the Linked mark when the run is in a pair. */
+function RunActions({ compare, linked }: { compare: RunCompare; linked: boolean }) {
   return (
     <div className="run-actions">
-      <button data-compare-toggle aria-pressed={compare.open === 'compare'} disabled={compare.off !== undefined} title={compare.off ?? 'Compare with another run (C)'} onClick={() => compare.onToggle('compare')}><Columns size={14} />Compare</button>
-      <button data-link-toggle aria-pressed={compare.open === 'link'} disabled={compare.linkOff !== undefined} title={compare.linkOff ?? 'Link this run with another'} onClick={() => compare.onToggle('link')}><Link size={14} />Link with</button>
-      <button disabled={unlinkOff !== undefined} title={unlinkOff ?? 'Take away the link'} onClick={compare.onUnlink}>Unlink</button>
+      <button data-compare-toggle aria-pressed={compare.open} disabled={compare.off !== undefined} title={compare.off ?? 'Compare with another run (C)'} onClick={compare.onToggle}><Columns size={14} />Compare</button>
       {linked && <span className="linked"><Link size={13} />Linked</span>}
       {compare.open && compare.picker}
     </div>
@@ -285,7 +276,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       {pane ? null : ids.length > 1
         ? <select aria-label="Run" value={runId} onChange={e => { onRun(e.target.value); e.target.blur() }}>{ids.map(id => <option key={id} value={id}>{runs[id].name}{linked.has(id) ? ' (Linked)' : ''}</option>)}</select>
         : <h2>{run.name}</h2>}
-      {compare && <RunActions compare={compare} linked={linked.has(runId)} holds={compareOf(run.compare) !== undefined} />}
+      {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
       {run.about && (run.about.length > ABOUT_FOLDS_OVER
         ? <details className="about"><summary><ChevronRight size={14} />About this run</summary><p>{run.about}</p></details>
         : <p className="about">{run.about}</p>)}
