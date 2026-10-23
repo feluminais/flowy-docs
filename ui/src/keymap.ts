@@ -25,6 +25,7 @@ export type KeyState = {
   halfStep: boolean // a step being recorded has its first end
   panel: boolean // a panel on the right is open, or several shapes are picked
   inside: boolean // not at the top level
+  paneInside: boolean // the pane of a comparison that has the focus is zoomed into a shape: Esc, Backspace and Z take it up a level
   recording: boolean // a flow is being recorded
   perfOpen: boolean
   failuresOpen: boolean
@@ -126,7 +127,7 @@ export const KEYMAP: readonly Entry[] = [
     when: ({ e }) => e.key === 'Escape',
     run: ({ s, inNavigator, act }) => {
       const navigator = s.navigatorOpen && (s.navigatorUsed || inNavigator)
-      const layer = escapeStep({ shortcuts: s.shortcuts, navigator, flow: s.flow, halfStep: s.halfStep, panel: s.panel, compare: s.compare, inside: s.inside })
+      const layer = escapeStep({ shortcuts: s.shortcuts, navigator, flow: s.flow, halfStep: s.halfStep, panel: s.panel, compare: s.compare, inside: s.inside, paneInside: s.paneInside })
       if (layer === 'shortcuts') act.closeShortcuts()
       else if (layer === 'navigator') act.closeNavigator()
       else if (layer === 'flow') act.stopFlow()
@@ -300,7 +301,7 @@ export const KEYMAP: readonly Entry[] = [
   // Z zooms out, always: Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
   {
     id: 'up', keys: 'Backspace  Z',
-    when: c => (c.e.key === 'Backspace' || (c.key === 'z' && c.plain)) && c.s.inside && !c.s.recording,
+    when: c => (c.e.key === 'Backspace' || (c.key === 'z' && c.plain)) && (c.s.inside || c.s.paneInside) && !c.s.recording,
     run: c => c.act.up(),
     help: { reading: { text: 'Zoom out: go up a level' } },
   },

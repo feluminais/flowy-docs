@@ -369,6 +369,13 @@ internal sealed class SwapStage : Border, IFlowKeys
         Current.Replay();
     }
 
+    /// <summary>Swap has no levels of its own to go up from: a flow is shown on its own view.</summary>
+    public bool Inside => false;
+
+    public void Up()
+    {
+    }
+
     /// <summary>Fits the whole flow's view in the canvas, as F does.</summary>
     public void Fit()
     {
