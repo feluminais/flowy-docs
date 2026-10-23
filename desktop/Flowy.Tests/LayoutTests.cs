@@ -195,14 +195,16 @@ public class LayoutParityTests
     public void Outsiders_are_measured_arranged_and_untangled_as_the_browser_canvas_does()
     {
         var scenarios = Expected()["scenarios"]!.AsArray();
-        Assert.True(scenarios.Count >= 9);
+        Assert.True(scenarios.Count >= 10);
+        Assert.Contains(scenarios, s => s!["fixed"]!.AsObject().Count > 0);
         foreach (var s in scenarios)
         {
             var name = s!["name"]!.GetValue<string>();
             var (inner, outsiders, edges) = (Spots(s["inner"]!), Strings(s["outsiders"]!), Edges(s["edges"]!));
             var regions = s["regions"]!.AsObject().ToDictionary(kv => kv.Key, kv => Enum.Parse<Region>(kv.Value!.GetValue<string>(), true));
+            var given = s["fixed"]!.AsObject().ToDictionary(kv => kv.Key, kv => Enum.Parse<Region>(kv.Value!.GetValue<string>(), true));
 
-            var m = Layout.MembersOf(inner, outsiders, edges);
+            var m = Layout.MembersOf(inner, outsiders, edges, given);
             var want = s["members"]!;
             Assert.Equal(want["left"]!.GetValue<double>(), m.Left);
             Assert.Equal(want["right"]!.GetValue<double>(), m.Right);
@@ -222,6 +224,35 @@ public class LayoutParityTests
             var tidy = Layout.Untangle(arranged.At, edges, arranged.Rows, arranged.Columns);
             SameSpots(Spots(s["tidy"]!), tidy, $"{name} untangled");
             Assert.Equal(s["tangleTidy"]!.GetValue<int>(), Layout.Tangle(tidy, edges));
+        }
+    }
+
+    [Fact]
+    public void The_side_of_one_box_seen_from_another_reads_from_the_centres()
+    {
+        var sides = Expected()["sides"]!.AsArray();
+        Assert.True(sides.Count >= 10);
+        foreach (var s in sides)
+        {
+            var got = Tidy.SideOf(new Pt(0, 0), new Pt(s!["dx"]!.GetValue<double>(), s["dy"]!.GetValue<double>()));
+            Assert.Equal(s["side"]!.GetValue<string>(), got.ToString().ToLowerInvariant());
+        }
+    }
+
+    [Fact]
+    public void An_outsider_meets_its_view_where_the_browser_says()
+    {
+        var folders = new Dictionary<string, Model>();
+        var meetings = Expected()["meetings"]!.AsArray();
+        Assert.True(meetings.Count > 20);
+        foreach (var n in meetings)
+        {
+            var (folder, view, box) = (n!["folder"]!.GetValue<string>(), n["view"]!.GetValue<string>(), n["box"]!.GetValue<string>());
+            if (!folders.TryGetValue(folder, out var model)) folders[folder] = model = FolderLoader.Load(Path.Combine(Repo.Root, folder.Replace('/', Path.DirectorySeparatorChar))).Model;
+            var want = n["meets"];
+            var got = Views.Meeting(model, view, box);
+            if (want is null) Assert.Null(got);
+            else Assert.Equal((want["view"]!.GetValue<string>(), want["here"]!.GetValue<string>(), want["there"]!.GetValue<string>()), got);
         }
     }
 

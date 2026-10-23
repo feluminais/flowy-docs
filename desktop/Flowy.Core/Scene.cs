@@ -57,10 +57,41 @@ public static class SceneBuilder
     // toGraph runs again on every flow step and selection change, so placements are kept by what they're made from.
     private static readonly BoundedCache<string, OrderedDictionary<string, Pt>> Placements = new(50);
 
-    private static OrderedDictionary<string, Pt> PlaceCached(List<string> members, List<string> around, IReadOnlyList<Edge> edges)
+    public static OrderedDictionary<string, Pt> PlaceCached(List<string> members, List<string> around, IReadOnlyList<Edge> edges, IReadOnlyDictionary<string, Region>? fixedSides = null)
     {
-        var key = $"{string.Join('\u0001', members)}\u0002{string.Join('\u0001', around)}\u0002{string.Join('\u0001', edges.Select(e => e.From + "\u0003" + e.To))}";
-        return Placements.GetOrAdd(key, _ => Layout.Place(members, around, edges));
+        fixedSides ??= new Dictionary<string, Region>();
+        var key = $"{string.Join('\u0001', members)}\u0002{string.Join('\u0001', around)}\u0002{string.Join('\u0001', edges.Select(e => e.From + "\u0003" + e.To))}\u0002{string.Join('\u0001', fixedSides.Select(f => f.Key + "\u0003" + f.Value))}";
+        return Placements.GetOrAdd(key, _ => Layout.Place(members, around, edges, fixedSides));
+    }
+
+    /// <summary>
+    /// Where each box of a view is drawn: where layout.yaml has it, else where <see cref="Layout.Place"/> puts it, moved down past any saved box it
+    /// would cover. <paramref name="boxes"/> are the view's members and outsiders, and any box only a flow brings in.
+    /// </summary>
+    public static OrderedDictionary<string, Pt> SpotsOf(Model model, string view, View computed, IReadOnlyList<string> boxes)
+    {
+        var members = computed.Members.ToList();
+        var isMember = members.ToHashSet();
+        var placed = PlaceCached(members, boxes.Where(id => !isMember.Contains(id)).ToList(), computed.Edges);
+        var saved = model.Layout.TryGetValue(view, out var s2) ? s2 : new Dictionary<string, LayoutPoint>();
+        var at = new OrderedDictionary<string, Pt>();
+        foreach (var id in boxes)
+            if (saved.TryGetValue(id, out var p)) at[id] = new Pt(p.X, p.Y);
+        foreach (var id in boxes)
+        {
+            if (at.ContainsKey(id)) continue;
+            var p = placed[id];
+            while (at.Values.Any(q => Overlaps(p, q))) p = p with { Y = p.Y + BoxGeometry.BoxHeight + Gap };
+            at[id] = p;
+        }
+        return at;
+    }
+
+    /// <summary>Where the members and outsiders of a view are drawn now.</summary>
+    public static OrderedDictionary<string, Pt> ViewSpots(Model model, string view)
+    {
+        var v = Views.Compute(model, view);
+        return SpotsOf(model, view, v, [.. v.Members, .. v.Outsiders]);
     }
 
     /// <summary>
@@ -90,20 +121,7 @@ public static class SceneBuilder
         var litEnds = (stepsLit ?? []).Select(PlacedAt).Where(e => e is not null).Select(e => e!.Value).ToList();
         var litBoxes = litEnds.SelectMany(e => new[] { e.From, e.To }).Concat(playing?.Also ?? []).ToHashSet(); // Also: a shape that takes a request off a line is lit with the step
         var faintSteps = (playing?.Faint ?? []).Select(i => (I: i, E: PlacedAt(i))).Where(f => f.E is not null).Select(f => (f.I, E: f.E!.Value)).ToList();
-        var around = boxes.Where(id => !isMember.Contains(id)).ToList();
-        var placed = PlaceCached(members, around, computed.Edges);
-
-        var saved = model.Layout.TryGetValue(view, out var s2) ? s2 : new Dictionary<string, LayoutPoint>();
-        var at = new OrderedDictionary<string, Pt>();
-        foreach (var id in boxes)
-            if (saved.TryGetValue(id, out var p)) at[id] = new Pt(p.X, p.Y);
-        foreach (var id in boxes)
-        {
-            if (at.ContainsKey(id)) continue;
-            var p = placed[id];
-            while (at.Values.Any(q => Overlaps(p, q))) p = p with { Y = p.Y + BoxGeometry.BoxHeight + Gap };
-            at[id] = p;
-        }
+        var at = SpotsOf(model, view, computed, boxes);
 
         var badBoxes = problems.Where(p => p.Id is not null).Select(p => p.Id!).ToHashSet();
         var badLines = problems.Select(p =>

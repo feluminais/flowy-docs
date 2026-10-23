@@ -51,6 +51,21 @@ public static class Views
         return -1;
     }
 
+    /// <summary>
+    /// Where an outsider of view v meets v: the view both branches share, the box standing for v there (<c>Here</c>) and the box standing for x
+    /// (<c>There</c>). Both are members of that view. Null for x itself being v or above it.
+    /// </summary>
+    public static (string View, string Here, string There)? Meeting(Model model, string v, string x)
+    {
+        var index = ModelIndex.Of(model);
+        var cx = index.ChainOf(x);
+        var cv = index.ChainOf(v);
+        var i = -1;
+        for (var k = 0; k < cx.Count && i < 0; k++) if (cv.Contains(cx[k])) i = k;
+        var j = i < 0 ? -1 : IndexOf(cv, cx[i]);
+        return i <= 0 || j <= 0 ? null : (cx[i], cv[j - 1], cx[i - 1]);
+    }
+
     /// <summary>Where a from → to line lands in view v, or null when v can't show it (or an end doesn't exist).</summary>
     public static (string From, string To)? PlaceEnds(Model model, string? v, string? from, string? to)
     {

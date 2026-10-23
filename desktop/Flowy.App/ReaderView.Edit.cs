@@ -50,7 +50,7 @@ internal sealed partial class ReaderView
         Make(_newFlowButton, Icons.Route, "New flow", "New flow", "Record a flow", NewFlow);
         Make(_undoButton, Icons.Undo, null, "Undo", "Undo the last change (Ctrl+Z)", () => _ = UndoAsync());
         Make(_redoButton, Icons.Redo, null, "Redo", "Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)", () => _ = RedoAsync());
-        Make(_tidyButton, Icons.Grid, "Tidy", "Tidy", "Forget where shapes here were dragged, and lay this view out again", () => _ = TidyAsync());
+        Make(_tidyButton, Icons.Grid, "Tidy", "Tidy", "Lay this view out again", () => _ = TidyAsync());
         foreach (var b in new[] { _newFlowButton, _addButton, _undoButton, _redoButton, _tidyButton }) _editTools.Children.Add(b);
     }
 
@@ -147,7 +147,7 @@ internal sealed partial class ReaderView
     private async Task TidyAsync()
     {
         var view = CurrentView();
-        if (await RunAsync(d => EditOps.ForgetLayout(d, view)))
+        if (await RunAsync(d => EditOps.TidyLayout(d, view)))
         {
             _fitKey = ""; // the camera fits the new layout
             Refresh();

@@ -4,12 +4,15 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { sideReport } from './core/layout.ts'
 import { flowToMermaid, viewToMermaid } from './core/mermaid.ts'
+import { changedLayout } from './core/modelfiles.ts'
+import { tidyViews } from './core/ops.ts'
 import { analysisText } from './core/failures.ts'
 import { FILE_KINDS, kindOfPath, pathOf } from './core/filekinds.ts'
 import { modelOf } from './core/state.ts'
 import { exportSite } from './node/export.ts'
-import { loadDir, loadReport, loadState } from './node/files.ts'
+import { loadDir, loadReport, loadState, saveFiles } from './node/files.ts'
 import { openHistory } from './node/history.ts'
 import { entryOf, findModels } from './node/models.ts'
 import { createMcpServer } from './node/mcp.ts'
@@ -29,6 +32,7 @@ const args = (() => {
         view: { type: 'string' },
         analysis: { type: 'string' },
         format: { type: 'string' },
+        check: { type: 'boolean' }, // belongs to tidy
       },
     })
   } catch {
@@ -55,6 +59,8 @@ const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? on
 const mermaidFlags = args?.values.flow !== undefined || args?.values.view !== undefined
 // --analysis and --format belong to failures, in the same way.
 const failuresFlags = args?.values.analysis !== undefined || args?.values.format !== undefined
+// --check belongs to tidy.
+const tidyFlags = args?.values.check !== undefined
 
 /**
  * `flowy failures`: each analysis as a table. What is wrong with the files goes to stderr, one line each, and makes the exit code 1, so the
@@ -102,10 +108,26 @@ async function printCheck(dir: string): Promise<number> {
   return problems.length > 0 ? 1 : 0
 }
 
+/**
+ * `flowy tidy`: puts each neighbour in a view on the side it has in the view above, and says which views it changed. `--check` only lists
+ * them, on stderr, and exits 1 if there are any, so a build can gate on it. Resolves to the exit code.
+ */
+async function printTidy(dir: string, only: boolean): Promise<number> {
+  const { model, versions } = await loadDir(dir)
+  const { model: next, found } = tidyViews(model)
+  if (only && found.length > 0) {
+    console.error(sideReport(model, found, false))
+    return 1
+  }
+  console.log(sideReport(model, found, true))
+  if (found.length > 0) await saveFiles(dir, changedLayout(model, next).map(([rel, text]) => ({ rel, text, expected: versions[rel] ?? null })))
+  return 0
+}
+
 if (args?.positionals[0] === 'mcp') {
   const dir = oneDir
   await createMcpServer(dir, openHistory(dir, { app: 'mcp' })).connect(new StdioServerTransport())
-} else if (args?.positionals[0] === 'export' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags) {
+} else if (args?.positionals[0] === 'export' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags && !tidyFlags) {
   const out = resolve(args.values.out)
   try {
     const { boxes, flows, problems } = await exportSite({ dir: oneDir, ui, out })
@@ -116,7 +138,7 @@ if (args?.positionals[0] === 'mcp') {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
-} else if (args?.positionals[0] === 'mermaid' && args.positionals.length === 1 && !failuresFlags && (args.values.flow === undefined) !== (args.values.view === undefined)) {
+} else if (args?.positionals[0] === 'mermaid' && args.positionals.length === 1 && !failuresFlags && !tidyFlags && (args.values.flow === undefined) !== (args.values.view === undefined)) {
   try {
     const { model } = await loadDir(oneDir)
     process.stdout.write(args.values.flow === undefined ? viewToMermaid(model, args.values.view!) : flowToMermaid(model, args.values.flow))
@@ -124,21 +146,28 @@ if (args?.positionals[0] === 'mcp') {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
-} else if (args?.positionals[0] === 'check' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags) {
+} else if (args?.positionals[0] === 'check' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags && !tidyFlags) {
   try {
     process.exitCode = await printCheck(oneDir)
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
-} else if (args?.positionals[0] === 'failures' && args.positionals.length === 1 && !mermaidFlags) {
+} else if (args?.positionals[0] === 'failures' && args.positionals.length === 1 && !mermaidFlags && !tidyFlags) {
   try {
     process.exitCode = await printFailures(oneDir, args.values.analysis, args.values.format ?? 'markdown')
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
     process.exitCode = 1
   }
-} else if (args?.positionals.length === 0 && !mermaidFlags && !failuresFlags && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
+} else if (args?.positionals[0] === 'tidy' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags) {
+  try {
+    process.exitCode = await printTidy(oneDir, args.values.check === true)
+  } catch (e) {
+    console.error(e instanceof Error ? e.message : String(e))
+    process.exitCode = 1
+  }
+} else if (args?.positionals.length === 0 && !mermaidFlags && !failuresFlags && !tidyFlags && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
   try {
     const named = args.values.dir ?? []
     // Without --dir every flowy/ folder in the repo is shown; with it, only the ones named.
@@ -153,6 +182,6 @@ if (args?.positionals[0] === 'mcp') {
     process.exitCode = 1
   }
 } else {
-  console.error('Usage: flowy [--dir flowy ...] [--port 4321] [--no-open]\n       flowy export [--dir flowy] [--out flowy-site]\n       flowy mermaid (--flow <id> | --view <id>) [--dir flowy]\n       flowy check [--dir flowy]\n       flowy failures [--analysis <id>] [--format markdown|csv] [--dir flowy]\n       flowy mcp [--dir flowy]')
+  console.error('Usage: flowy [--dir flowy ...] [--port 4321] [--no-open]\n       flowy export [--dir flowy] [--out flowy-site]\n       flowy mermaid (--flow <id> | --view <id>) [--dir flowy]\n       flowy check [--dir flowy]\n       flowy tidy [--check] [--dir flowy]\n       flowy failures [--analysis <id>] [--format markdown|csv] [--dir flowy]\n       flowy mcp [--dir flowy]')
   process.exitCode = 1
 }

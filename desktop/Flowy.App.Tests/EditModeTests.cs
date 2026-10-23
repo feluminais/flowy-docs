@@ -512,14 +512,17 @@ public class EditModeTests
     }
 
     [AvaloniaFact]
-    public async Task Tidy_forgets_where_boxes_were_dragged_in_this_view_and_says_so_when_there_is_nothing_to_forget()
+    public async Task Tidy_lays_this_view_out_again_and_saves_every_box_of_it()
     {
         var (temp, dir, _, reader) = Open();
         using var _ = temp;
         reader.SetEditing(true);
         await reader.TidyForTestAsync();
-        Assert.DoesNotContain("customer: [10, 20]", File.ReadAllText(Path.Combine(dir, "layout.yaml")));
-        await reader.TidyForTestAsync();
-        Assert.StartsWith("Nothing to tidy", reader.NoticeText);
+        var layout = File.ReadAllText(Path.Combine(dir, "layout.yaml"));
+        Assert.DoesNotContain("customer: [10, 20]", layout);
+        Assert.Contains("shop: [", layout);
+        Assert.Contains("customer: [", layout);
+        await reader.TidyForTestAsync(); // nothing dragged any more: it still lays the view out, and never says there is nothing to tidy
+        Assert.False(reader.NoticeText?.StartsWith("Nothing to tidy") ?? false);
     }
 }

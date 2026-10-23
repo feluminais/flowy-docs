@@ -49,6 +49,16 @@
     "FORMULA_NAMES",
     "Formula"
   ],
+  "layout": [
+    "BOX",
+    "neighbourSides",
+    "placeCached",
+    "sideProblems",
+    "sideReport",
+    "spotsOf",
+    "tidySpots",
+    "viewSpots"
+  ],
   "look": [
     "COLOR_NAMES",
     "ICON_NAME_RULE",
@@ -81,6 +91,8 @@
     "putAnalysis",
     "putIcon",
     "putMode",
+    "tidyLayout",
+    "tidyViews",
     "updateAnalysis",
     "updateMode"
   ],
