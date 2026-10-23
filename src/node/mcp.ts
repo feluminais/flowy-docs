@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { ANIMATION_KINDS, EFFECTS } from '../core/animation.ts'
+import { ANIMATION_KINDS, CHANNEL_KINDS, EFFECTS } from '../core/animation.ts'
 import { check, newProblems } from '../core/check.ts'
 import { compareOf } from '../core/compare.ts'
 import type { CompareTag } from '../core/compare.ts'
@@ -408,6 +408,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
             kind: z.string(), trigger: z.string().optional(), carries: z.string().optional(), outcome: z.string().optional(),
             share: z.union([z.number(), z.string()]).optional(), reason: z.string().optional(),
             by: z.union([z.string(), z.strictObject({ name: z.string() })]).optional(), at: z.union([z.number(), z.string()]).optional(),
+            opens: z.enum(CHANNEL_KINDS).optional().describe('Leaves something open once the request arrives, drawn on the next steps too until a step closes it: stream (data keeps flowing along the line), listener (a shape keeps listening for callbacks) or job (work keeps running on a shape). Only where the story really keeps it open.'),
+            name: z.string().optional().describe('With opens: a short name for the channel (at most 24 characters), so a later step can close it.'),
+            towards: z.enum(['from', 'to']).optional().describe('With opens: the end of the line it points at. A stream flows to "to" and a job runs on "to"; a listener sits at "from". Say it only when the story is the other way round.'),
+            closes: z.string().optional().describe('The name of a channel an earlier step opened; it stops being drawn after this step. The step must arrive (no outcome).'),
             effect: z.enum(EFFECTS).optional().describe('Only for fun: what the moving label does on its way, without bending its shape. Leave it out for the plain default.'),
           }),
         ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word, outcome (only where the step really ends that way): "fail" (a send or call that is refused) | "timeout" (a call nobody answers) | "lost" (vanishes on the way; at: how far along the line, 0.1 to 0.9) | "rejected" (turned away at the receiver's door) | "intercepted" (taken by a third party, which needs by: a shape id that is not an end of the step, or { name: up to 24 characters }) | "duplicated" (handled twice) | "delayed" (held up on the way), reason: up to 40 characters on why, share: the whole percent of the requests that meet the outcome (1 to 100; leave it out for one request) }. Optional: a step without one does not move.`),

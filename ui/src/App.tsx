@@ -60,6 +60,7 @@ import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
 import { keepSame, nothingKept, useLatest } from './stable.ts'
 import type { Kept } from './stable.ts'
+import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
@@ -280,7 +281,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const flowsCompared = comparing?.kind === 'flow' // two flows stay on their own views; two runs share the level the address names, and going to another one moves both panes
   // A flow that was playing waits behind the Performance and Failures tabs and a comparison, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen || comparing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
-  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks } = useFlowStage({ model, view, flow, playing, replays, recording })
+  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds } = useFlowStage({ model, view, flow, playing, replays, recording })
   // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. A pane of a comparison of runs draws its run the same way (see useRunDrawing).
   const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
   const stateMarks = flow ? flowMarks : runMarks
@@ -1033,6 +1034,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
                 <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} nav={nav ? navWidth : undefined} />
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
+                {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
                 {flow && stop && animated.map(m => (
                   <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
                 ))}
@@ -1170,7 +1172,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(detailsOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
           {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
-            <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
+            <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} auto={playing?.auto === true} moving={moving}
               trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
               compare={{ off: compareOff(model, editing), open: picking, onToggle: () => setPicking(open => !open),
                 picker: playing ? <ComparePicker model={model} id={playing.flow} onPick={id => openCompare(playing.flow, id)} onClose={() => setPicking(false)} /> : null }} />

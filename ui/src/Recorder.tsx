@@ -2,12 +2,13 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { getObject } from '../../src/core/model.ts'
 import type { Group, Model, Step } from '../../src/core/model.ts'
-import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
-import type { AnimationKey } from '../../src/core/animation.ts'
+import { ANIMATION_KINDS, animationFields, animationWith, CHANNEL_KINDS, CHANNEL_SKETCHES, END_SKETCHES, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
+import type { AnimationKey, ChannelKind } from '../../src/core/animation.ts'
+import { CHANNEL_LABELS, closableAt } from '../../src/core/channels.ts'
 import { compareOf } from '../../src/core/compare.ts'
 import { deleteFlow, groupSteps, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { StateName } from '../../src/core/states.ts'
-import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
+import { declaredGroups, hasLanes, stopsOf, takesOption } from '../../src/core/structure.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { flowTile, partnerChoices, removeNeedsConfirm, taggedBy, tagWith } from './compare.ts'
 import { newId, pickStepState, stateOf, stepStateShapes, withKey } from './edit.ts'
@@ -30,18 +31,31 @@ function withDescription(step: Step, description: string): Step {
 const cap = (word: string) => word.charAt(0).toUpperCase() + word.slice(1)
 /** How a step travels and how its request ends, as sketches to pick from. A step on one shape does not travel, so nothing but None is open to it. */
 const KIND_CHOICES: Sketch[] = [{ id: '', name: 'None', sketch: KIND_SKETCHES.none }, ...ANIMATION_KINDS.map(k => ({ id: k, name: cap(k), sketch: KIND_SKETCHES[k] }))]
+const OPENS_CHOICES: Sketch[] = [{ id: '', name: 'Nothing', sketch: CHANNEL_SKETCHES.none }, ...CHANNEL_KINDS.map(k => ({ id: k, name: CHANNEL_LABELS[k], sketch: CHANNEL_SKETCHES[k] }))]
+const TOWARDS_CHOICES: Sketch[] = [{ id: '', name: 'Usual end', sketch: END_SKETCHES.none }, { id: 'from', name: 'From', sketch: END_SKETCHES.from }, { id: 'to', name: 'To', sketch: END_SKETCHES.to }]
 const OUTCOME_CHOICES: Sketch[] = [{ id: '', name: 'Arrives', sketch: OUTCOME_SKETCHES.none }, ...OUTCOMES.map(o => ({ id: o, name: cap(o), sketch: OUTCOME_SKETCHES[o] }))]
 
 /**
  * How a step plays: the way it travels, the way its request ends, and what goes with an outcome (a share of the requests, a reason, and for an interception
  * who takes it). Each pick or field is one edit. What the step cannot have is greyed out with the reason in its tooltip, so the form never changes shape.
  */
-function StepAnimation({ step, takers, onSet }: { step: Step; takers: { id: string; type: string; name: string; end: boolean }[]; onSet: (key: AnimationKey, value: string) => Promise<boolean> }) {
-  const { kind, outcome, share, reason, by: taken, byName: named } = animationFields(step)
+function StepAnimation({ step, takers, closable, onSet }: {
+  step: Step; takers: { id: string; type: string; name: string; end: boolean }[]; closable: { name: string; kind: ChannelKind }[]; onSet: (key: AnimationKey, value: string) => Promise<boolean>
+}) {
+  const { kind, outcome, share, reason, by: taken, byName: named, opens, name, towards, closes } = animationFields(step)
   const travels = typeof step.to === 'string' && step.to !== '' && step.to !== step.from
   const kinds = KIND_CHOICES.map(c => ({ ...c, block: c.id !== '' && !travels ? 'Needs two shapes' : undefined }))
-  const outcomes = OUTCOME_CHOICES.map(c => ({ ...c, block: outcomeBlock(kind, c.id) }))
   const ended = outcome !== ''
+  // A request that arrives is what leaves a channel open or closes one, so an outcome and a channel exclude each other, each greyed out with why.
+  const channelled = opens !== '' || closes !== ''
+  const outcomes = OUTCOME_CHOICES.map(c => ({ ...c, block: outcomeBlock(kind, c.id) ?? (c.id !== '' && channelled ? 'Not while it opens or closes something' : undefined) }))
+  const leaves = OPENS_CHOICES.map(c => ({ ...c, block: c.id === '' ? undefined : !travels ? 'Needs two shapes' : kind === '' ? 'Pick how it travels first' : ended ? 'Not while it ends as something else' : closes !== '' ? 'Not while it closes something' : undefined }))
+  const points = TOWARDS_CHOICES.map(c => ({ ...c, block: opens === '' ? 'Pick what it leaves open first' : undefined }))
+  const closing: Sketch[] = [
+    { id: '', name: 'Nothing', sketch: CHANNEL_SKETCHES.none },
+    ...closable.map(c => ({ id: c.name, name: c.name, sketch: CHANNEL_SKETCHES[c.kind], block: !travels ? 'Needs two shapes' : kind === '' ? 'Pick how it travels first' : ended ? 'Not while it ends as something else' : opens !== '' ? 'Not while it leaves something open' : undefined })),
+    ...(closes !== '' && !closable.some(c => c.name === closes) ? [{ id: closes, name: `${closes} · not open`, sketch: CHANNEL_SKETCHES.none }] : []),
+  ]
   const intercepted = outcome === 'intercepted'
   const off = (why: string, on: boolean) => (on ? undefined : why)
   return (
@@ -64,6 +78,10 @@ function StepAnimation({ step, takers, onSet }: { step: Step; takers: { id: stri
           </div>
         </div>
         <Field label={`Or a name (${NAME_MAX} characters)`} value={named} placeholder="e.g. Café wifi proxy" disabled={!intercepted} title={off('Only for Intercepted', intercepted)} onSave={v => onSet('byName', v)} />
+        <SketchPicker label="Leaves open" choices={leaves} value={opens} onPick={id => void onSet('opens', id)} />
+        <Field label={`Name (${NAME_MAX} characters)`} value={name} placeholder="e.g. Orders" disabled={opens === ''} title={off('Pick what it leaves open first', opens !== '')} onSave={v => onSet('name', v)} />
+        <SketchPicker label="Points at" choices={points} value={towards} onPick={id => void onSet('towards', id)} />
+        <SketchPicker label="Closes" choices={closing} value={closes} onPick={id => void onSet('closes', id)} />
       </div>
     </details>
   )
@@ -264,6 +282,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
             </details>
             <StepAnimation
               step={s} takers={Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name || id, end: id === s.from || id === s.to }))}
+              closable={flow ? closableAt(flow, stopsOf(flow), i) : []}
               onSet={(key, value) => run(m => {
                 const now = stepsIn(m)[i]
                 onScreen(m)
