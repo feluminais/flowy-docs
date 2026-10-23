@@ -26,10 +26,10 @@ const near = (actual: number | undefined, expected: number, within = 1e-9) => as
 test('a position along a dial is a load and a load is a position, one way round or the other', () => {
   assert.deepEqual(dials.map(dialTop), [2, 4])
   assert.deepEqual(settingOf(dials, [1.5, 3]), { orders: 250, pings: 40 })
-  assert.deepEqual(settingOf(dials, [9, -2]), { orders: 300, pings: 10 }, 'past either end is that end')
+  assert.deepEqual(settingOf(dials, [9, -2]), { orders: 300, pings: 0 }, 'past the top is the top, and past no load is no load')
   assert.deepEqual(settingOf(dials, [Number.NaN, Number.POSITIVE_INFINITY]), { orders: 100, pings: 10 }, 'a position that is not a number is the lowest')
   assert.deepEqual(positionsOf(dials, { orders: 250, pings: 40 }), [1.5, 3])
-  assert.deepEqual(positionsOf(dials, { orders: 999, pings: 1 }), [2, 0])
+  assert.deepEqual(positionsOf(dials, { orders: 999, pings: 1 }), [2, -0.9], 'a load under the first is on the way down to no load')
   assert.deepEqual(positionsOf(dials, {}), [0, 0], 'a dial the setting does not name is at its lowest')
   assert.deepEqual(positionsOf(dials, { orders: Number.NaN, pings: Number.NaN }), [0, 0])
   for (const pos of [0, 0.25, 1, 1.75, 2]) near(positionOf(dials[0], settingOf(dials, [pos, 0]).orders), pos)
@@ -53,7 +53,8 @@ test('the arrow keys step the active dial to the next tested load and leave the 
   assert.deepEqual(stepActive(dials, [1, 2], 1, -1), [1, 1])
   assert.deepEqual(stepActive(dials, [1.5, 2.5], 1, 1), [1.5, 3])
   assert.deepEqual(stepActive(dials, [2, 4], 0, 1), [2, 4], 'it stops at the top')
-  assert.deepEqual(stepActive(dials, [0, 0], 1, -1), [0, 0], 'and at the bottom')
+  assert.deepEqual(stepActive(dials, [0, 0], 1, -1), [0, -1], 'from the first load it goes down to no load')
+  assert.deepEqual(stepActive(dials, [0, -1], 1, -1), [0, -1], 'and stops there')
   assert.deepEqual(edgeActive(dials, [1, 2], 1, 'end'), [1, 4])
   assert.deepEqual(edgeActive(dials, [1, 2], 0, 'start'), [0, 2])
   assert.deepEqual(placeActive(dials, [1, 2], 0, 7), [2, 2])
@@ -64,9 +65,9 @@ test('a ramp moves the active dial from its bottom to its top in the same time w
   assert.deepEqual(rampActive(dials, [0, 1], 0, RAMP_MS / 2), [1, 1])
   assert.deepEqual(rampActive(dials, [0, 1], 1, RAMP_MS / 2), [0, 3])
   assert.deepEqual(rampActive(dials, [0, 1], 1, RAMP_MS * 10), [0, 4], 'it stops at the top')
-  assert.deepEqual(rampFromActive(dials, [2, 1], 0), [0, 1], 'at the top a ramp starts again from the bottom')
+  assert.deepEqual(rampFromActive(dials, [2, 1], 0), [-1, 1], 'at the top a ramp starts again from no load')
   assert.deepEqual(rampFromActive(dials, [1, 1], 0), [1, 1])
-  assert.deepEqual(rampFromActive(dials, [2, 4], 1), [2, 0])
+  assert.deepEqual(rampFromActive(dials, [2, 4], 1), [2, -1])
 })
 
 test('the series along the active dial are the levels at its loads with the others held, and a single run along its only dial is its own levels', () => {
@@ -95,9 +96,9 @@ test('the held dials are named with where they stand', () => {
 })
 
 test('the labels under a dial are its loads at their places along it, thinned when there are many', () => {
-  assert.deepEqual(dialTicks(dials[0]), [{ fraction: 0, label: '100' }, { fraction: 0.5, label: '200' }, { fraction: 1, label: '300' }])
-  assert.deepEqual(dialTicks(dials[1], 2).map(t => t.label), ['10', '40', '50'])
-  const many = { ...dials[1], values: Array.from({ length: 20 }, (_, i) => i) }
+  assert.deepEqual(dialTicks(dials[0]), [{ fraction: 0, label: '0' }, { fraction: 1 / 3, label: '100' }, { fraction: 2 / 3, label: '200' }, { fraction: 1, label: '300' }])
+  assert.deepEqual(dialTicks(dials[1], 2).map(t => t.label), ['0', '10', '40', '50'])
+  const many = { id: '', name: 'Many', unit: 'x', color: 'blue', values: Array.from({ length: 20 }, (_, i) => i) }
   assert.deepEqual(dialTicks(many).map(t => t.label), ['0', '3', '6', '9', '12', '15', '18', '19'])
 })
 
@@ -106,6 +107,8 @@ test('a position is tested or between two loads, and the loads either side say w
   assert.deepEqual(bracketOf(dials[0], 2), { lower: 200, upper: 300, tested: true })
   assert.deepEqual(bracketOf(dials[0], 0), { lower: 100, upper: 200, tested: true })
   assert.deepEqual(bracketOf(dials[0], 1.5), { lower: 200, upper: 300, tested: false })
+  assert.deepEqual(bracketOf(dials[0], -0.5), { lower: 0, upper: 100, tested: false }, 'under the first load it is on the way down to none')
+  assert.deepEqual(bracketOf(dials[0], -1), { lower: 0, upper: 100, tested: false })
   assert.deepEqual(bracketOf(dials[1], 0.25), { lower: 10, upper: 20, tested: false })
   assert.deepEqual(bracketOf(dials[1], 99), { lower: 40, upper: 50, tested: true })
 })

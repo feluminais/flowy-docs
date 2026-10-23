@@ -27,19 +27,23 @@ public static class PerfView
     /// <summary>The top of the slider: the position of the last level.</summary>
     public static int Top(LoadRun run) => run.Levels.Count - 1;
 
-    public static double ClampPos(LoadRun run, double pos) => Math.Min(Top(run), Math.Max(0, double.IsFinite(pos) ? pos : 0));
+    /// <summary>The lowest position of a run: -1, where there is no load at all, for a load run that can be idle (see <see cref="Perf.IdleOf"/>), else 0.</summary>
+    public static int FloorPos(LoadRun run) => Perf.IdleOf(run) is null ? 0 : -1;
 
-    /// <summary>The load at a position: a tested level's own load exactly, and a straight line between two.</summary>
+    public static double ClampPos(LoadRun run, double pos) => Math.Min(Top(run), Math.Max(FloorPos(run), double.IsFinite(pos) ? pos : 0));
+
+    /// <summary>The load at a position: a tested level's own load exactly, and a straight line between two. Below the first level it runs down to 0 at -1.</summary>
     public static double LoadAt(LoadRun run, double pos)
     {
         var p = ClampPos(run, pos);
+        if (p < 0) return run.Levels[0].Load * (1 + p);
         var i = Math.Min(Top(run) - 1, (int)Math.Floor(p));
         var (a, b) = (run.Levels[i].Load, run.Levels[i + 1].Load);
         return a + (b - a) * (p - i);
     }
 
-    /// <summary>Whether a position is a tested level, not somewhere between two.</summary>
-    public static bool IsTested(double pos) => Math.Abs(pos - Perf.JsRound(pos)) < 1e-6;
+    /// <summary>Whether a position is a tested level, not somewhere between two (or below the first, where no load is tested).</summary>
+    public static bool IsTested(double pos) => pos > -1e-6 && Math.Abs(pos - Perf.JsRound(pos)) < 1e-6;
 
     /// <summary>
     /// The position of a time or load <paramref name="x"/>, the other way round from <see cref="LoadAt"/>: a tested level's own number is its whole position, and between two it is a
@@ -69,7 +73,7 @@ public static class PerfView
     /// a step to each level, whatever the loads are.
     /// </summary>
     public static double SliderFraction(LoadRun run, double pos) =>
-        run.IsTime ? Math.Min(1, Math.Max(0, Along(run, XOfPos(run, pos)))) : Top(run) == 0 ? 0 : ClampPos(run, pos) / Top(run);
+        run.IsTime ? Math.Min(1, Math.Max(0, Along(run, XOfPos(run, pos)))) : Top(run) == FloorPos(run) ? 0 : (ClampPos(run, pos) - FloorPos(run)) / (Top(run) - FloorPos(run));
 
     /// <summary>The events of a time run with where each sits along the slider, 0 to 1, in time order. Nothing for a load run.</summary>
     public static IReadOnlyList<(double Fraction, RunEvent Event)> EventFractions(LoadRun run) =>
@@ -83,26 +87,40 @@ public static class PerfView
     }
 
     /// <summary>What the slider's own numbers run between: a time run's are times, a load run's are positions.</summary>
-    public static (double Min, double Max) SliderRange(LoadRun run) => run.IsTime ? (run.Levels[0].Load, run.Levels[Top(run)].Load) : (0, Top(run));
+    public static (double Min, double Max) SliderRange(LoadRun run) => run.IsTime ? (run.Levels[0].Load, run.Levels[Top(run)].Load) : (FloorPos(run), Top(run));
 
     /// <summary>The number the slider holds at a position (see <see cref="SliderRange"/>).</summary>
     public static double SliderValue(LoadRun run, double pos) => run.IsTime ? XOfPos(run, pos) : ClampPos(run, pos);
 
-    /// <summary>The position a dragged slider stands for. A time run goes where it is put, so an event can be stood on; a load run snaps to a tested level.</summary>
-    public static double SlidePos(LoadRun run, double value) => run.IsTime ? PosAt(run, value) : Snap(run, value);
+    /// <summary>How many stops a gap between two levels has on a dragged load slider: the load changes in steps of a fiftieth of the gap, so a drag draws at most that many times and no finer.</summary>
+    public const int SlideSteps = 50;
+
+    /// <summary>How close to a tested level (in gaps) a dragged slider is pulled onto it, so the tested level can be stood on exactly.</summary>
+    public const double SlideMagnet = 0.04;
+
+    /// <summary>A dragged position put on the slider's stops, and on a tested level when it is that close to one.</summary>
+    public static double Settle(double pos)
+    {
+        var stop = Perf.JsRound(pos * SlideSteps) / SlideSteps;
+        var level = Perf.JsRound(stop);
+        return (Math.Abs(stop - level) <= SlideMagnet ? level : stop) + 0;
+    }
+
+    /// <summary>The position a dragged slider stands for. A time run goes where it is put, so an event can be stood on; a load run goes where it is put too, on the stops of <see cref="Settle"/>.</summary>
+    public static double SlidePos(LoadRun run, double value) => run.IsTime ? PosAt(run, value) : Settle(ClampPos(run, value));
 
     /// <summary>The position <paramref name="ms"/> further on in a ramp (it stops at the last level). A time run goes on evenly in time, a load run evenly from level to level.</summary>
     public static double RampPos(LoadRun run, double pos, double ms) =>
         run.IsTime ? PosAt(run, XOfPos(run, pos) + ms * Span(run) / RampMs) : ClampPos(run, pos + ms * Top(run) / RampMs);
 
-    /// <summary>Where a ramp starts: from the bottom when it is at the top already, else from where it is.</summary>
-    public static double RampFrom(LoadRun run, double pos) => pos >= Top(run) ? 0 : pos;
+    /// <summary>Where a ramp starts: from no load (or the first level) when it is at the top already, else from where it is.</summary>
+    public static double RampFrom(LoadRun run, double pos) => pos >= Top(run) ? FloorPos(run) : pos;
 
     /// <summary>The run the panel shows: the one asked for if there is such a run, else the first, else none (a run can come and go while the panel is open).</summary>
     public static string ActiveRun(IdMap<LoadRun> runs, string id) => runs.Contains(id) ? id : runs.Keys.FirstOrDefault() ?? "";
 
-    /// <summary>A position as the slider can hold it, snapped to a tested level.</summary>
-    public static double Snap(LoadRun run, double pos) => Perf.JsRound(ClampPos(run, pos));
+    /// <summary>A position snapped to a tested level (or to no load, at the bottom of a run that can be idle).</summary>
+    public static double Snap(LoadRun run, double pos) => Perf.JsRound(ClampPos(run, pos)) + 0;
 
     // ---- numbers in words ---------------------------------------------------------------------------------------
 
@@ -193,7 +211,7 @@ public static class PerfView
     public static double LevelX(LoadRun run, Area box, int i) => run.IsTime ? box.X + box.Width * Along(run, run.Levels[i].Load) : XAt(box, i, run.Levels.Count);
 
     /// <summary>Where a position sits across an area, for the cursor of a curve.</summary>
-    public static double CursorX(LoadRun run, Area box, double pos) => run.IsTime ? box.X + box.Width * SliderFraction(run, pos) : XAt(box, pos, run.Levels.Count);
+    public static double CursorX(LoadRun run, Area box, double pos) => run.IsTime ? box.X + box.Width * SliderFraction(run, pos) : XAt(box, Math.Max(0, pos), run.Levels.Count);
 
     public static double YAt(Area box, Scale scale, double v) => box.Y + box.Height * (1 - Place(scale, v));
 
@@ -260,8 +278,12 @@ public static class PerfView
         [.. Labelled(run, most).Select(i => (Round1(LevelX(run, box, i)), JsCompat.Raw(run.Levels[i].Load)))];
 
     /// <summary>The labels under the slider: a level's time or load at its place along it (0 to 1), thinned the way <see cref="LevelLabels"/> is.</summary>
-    public static IReadOnlyList<(double Fraction, string Label)> TickLabels(LoadRun run, int most = 8) =>
-        [.. Labelled(run, most).Select(i => (run.IsTime ? Along(run, run.Levels[i].Load) : Top(run) == 0 ? 0 : (double)i / Top(run), JsCompat.Raw(run.Levels[i].Load)))];
+    public static IReadOnlyList<(double Fraction, string Label)> TickLabels(LoadRun run, int most = 8)
+    {
+        var floor = run.IsTime ? 0 : FloorPos(run);
+        var ticks = Labelled(run, most).Select(i => (run.IsTime ? Along(run, run.Levels[i].Load) : Top(run) == floor ? 0 : (double)(i - floor) / (Top(run) - floor), JsCompat.Raw(run.Levels[i].Load))).ToList();
+        return floor < 0 ? [(0, "0"), .. ticks] : ticks;
+    }
 
     // ---- readings -----------------------------------------------------------------------------------------------
 
@@ -319,7 +341,10 @@ public static class PerfView
     /// <summary>The top of a dial's slider: the position of its last tested load.</summary>
     public static int DialTop(Dial d) => d.Values.Count - 1;
 
-    public static double ClampDial(Dial d, double pos) => Math.Min(DialTop(d), Math.Max(0, double.IsFinite(pos) ? pos : 0));
+    /// <summary>The lowest position of a dial: -1, where there is no load at all, for one that can be idle (see <see cref="Dial.Idle"/>), else 0.</summary>
+    public static int FloorOf(Dial d) => d.Idle ? -1 : 0;
+
+    public static double ClampDial(Dial d, double pos) => Math.Min(DialTop(d), Math.Max(FloorOf(d), double.IsFinite(pos) ? pos : 0));
 
     /// <summary>The setting that puts every dial at its position (see <see cref="Perf.SettingAt"/>).</summary>
     public static IdMap<double> SettingOf(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions) => Perf.SettingAt(dials, positions);
@@ -328,7 +353,8 @@ public static class PerfView
     public static double PositionOf(Dial d, double x)
     {
         var top = DialTop(d);
-        if (!double.IsFinite(x) || x <= d.Values[0]) return 0;
+        if (!double.IsFinite(x)) return 0;
+        if (x <= d.Values[0]) return d.Idle ? Math.Max(-1, -1 + x / d.Values[0]) : 0;
         if (x >= d.Values[top]) return top;
         for (var i = 0; i < top; i++)
             if (x < d.Values[i + 1]) return i + (x - d.Values[i]) / (d.Values[i + 1] - d.Values[i]);
@@ -346,8 +372,8 @@ public static class PerfView
     public static List<double> OpeningPositions(IReadOnlyList<Dial> dials, Knee? knee) =>
         knee is null ? [.. dials.Select(d => (double)DialTop(d))] : Perf.LockstepPositions(dials, knee.Index);
 
-    /// <summary>The position a dragged slider of a dial stands for: it snaps to a tested load, as a single load run's does.</summary>
-    public static double SlideDial(Dial d, double value) => Perf.JsRound(ClampDial(d, value));
+    /// <summary>The position a dragged slider of a dial stands for: on the stops of <see cref="Settle"/>, as a single load run's is.</summary>
+    public static double SlideDial(Dial d, double value) => Settle(ClampDial(d, value));
 
     /// <summary>The positions with the dial <paramref name="active"/> at <paramref name="pos"/> (kept inside the dial); the others stay where they are.</summary>
     public static List<double> PlaceActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, double pos) =>
@@ -358,7 +384,7 @@ public static class PerfView
 
     /// <summary>The positions with the dial <paramref name="active"/> one tested load further on (it stops at either end). Arrow keys.</summary>
     public static List<double> StepActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, int direction) =>
-        PlaceActive(dials, positions, active, Perf.JsRound(ClampDial(dials[active], StepFrom(positions[active], direction))));
+        PlaceActive(dials, positions, active, Perf.JsRound(ClampDial(dials[active], StepFrom(positions[active], direction))) + 0);
 
     /// <summary>The positions with the dial <paramref name="active"/> at its first or last tested load. Home and End.</summary>
     public static List<double> EdgeActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, bool end) =>
@@ -370,7 +396,7 @@ public static class PerfView
 
     /// <summary>Where a ramp of the dial <paramref name="active"/> starts: from its bottom when it is at the top already, else from where it is.</summary>
     public static List<double> RampFromActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active) =>
-        positions[active] >= DialTop(dials[active]) ? PlaceActive(dials, positions, active, 0) : [.. positions];
+        positions[active] >= DialTop(dials[active]) ? PlaceActive(dials, positions, active, FloorOf(dials[active])) : [.. positions];
 
     /// <summary>
     /// The level at each tested load of the dial <paramref name="active"/>, with the others held where they stand: what the Strip and the small curves plot, as a single run plots the levels it
@@ -402,9 +428,11 @@ public static class PerfView
     {
         var n = d.Values.Count;
         var every = (int)Math.Ceiling(n / (double)most);
+        var floor = FloorOf(d);
         var output = new List<(double, string)>();
+        if (floor < 0) output.Add((0, "0"));
         for (var i = 0; i < n; i++)
-            if (i % every == 0 || i == n - 1) output.Add((n == 1 ? 0 : (double)i / (n - 1), JsCompat.Raw(d.Values[i])));
+            if (i % every == 0 || i == n - 1) output.Add((n - 1 == floor ? 0 : (double)(i - floor) / (n - 1 - floor), JsCompat.Raw(d.Values[i])));
         return output;
     }
 
@@ -413,12 +441,19 @@ public static class PerfView
     {
         var top = DialTop(d);
         var p = ClampDial(d, pos);
+        if (p < 0) return (0, d.Values[0], false);
         return (d.Values[Math.Min(top - 1, (int)Math.Floor(p))], d.Values[Math.Min(top, (int)Math.Floor(p) + 1)], IsTested(p));
     }
 
     /// <summary>The note beside a load number: "Tested" on one of the tested levels, otherwise "Between 600 and 900, estimated".</summary>
-    public static string LoadNote(LoadRun run, double pos) =>
-        IsTested(pos) ? "Tested" : Between(run.Levels[Math.Min(Top(run) - 1, (int)Math.Floor(pos))].Load, run.Levels[Math.Min(Top(run), (int)Math.Floor(pos) + 1)].Load);
+    public static string LoadNote(LoadRun run, double pos)
+    {
+        var p = ClampPos(run, pos);
+        if (IsTested(p)) return "Tested";
+        if (p < 0) return Between(0, run.Levels[0].Load);
+        var i = Math.Min(Top(run) - 1, (int)Math.Floor(p));
+        return Between(run.Levels[i].Load, run.Levels[i + 1].Load);
+    }
 
     /// <summary>The same note for one dial of a run with several sources.</summary>
     public static string LoadNote(Dial d, double pos)

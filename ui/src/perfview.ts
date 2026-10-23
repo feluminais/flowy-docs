@@ -2,6 +2,7 @@ import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
 import { memberIds } from '../../src/core/views.ts'
 import { loadOfPosition, lockstepPositions, settingAt } from '../../src/core/perf/dials.ts'
+import { idleOf } from '../../src/core/perf/idle.ts'
 import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
 import { rollUpLoad } from '../../src/core/perf/rollup.ts'
 import { eventsOf, isTime } from '../../src/core/perf/types.ts'
@@ -23,21 +24,34 @@ export const RAMP_MS = 30_000
  */
 export const RAMP_STEP_MS = 50
 
+/** The note beside a load: "Tested" on a tested level, else "Between 600 and 900, estimated" (and under the first level "Between 0 and 100, estimated"). */
+export function loadNote(run: Run, pos: number): string {
+  const p = clampPos(run, pos)
+  if (isTested(p)) return 'Tested'
+  if (p < 0) return `Between 0 and ${run.levels[0].load}, estimated`
+  const i = Math.min(top(run) - 1, Math.floor(p))
+  return `Between ${run.levels[i].load} and ${run.levels[i + 1].load}, estimated`
+}
+
 /** The top of the slider: the position of the last level. A position is a place along the tested levels: 0 is the first, 1.5 halfway from the second to the third. */
 export const top = (run: Run): number => run.levels.length - 1
 
-export const clampPos = (run: Run, pos: number): number => Math.min(top(run), Math.max(0, Number.isFinite(pos) ? pos : 0))
+/** The lowest position of a run: -1, where there is no load at all, for a load run that can be idle (see idleOf), else 0. */
+export const floorPos = (run: Run): number => (idleOf(run) ? -1 : 0)
 
-/** The load at a position: a tested level's own load exactly, and a straight line between two. */
+export const clampPos = (run: Run, pos: number): number => Math.min(top(run), Math.max(floorPos(run), Number.isFinite(pos) ? pos : 0))
+
+/** The load at a position: a tested level's own load exactly, and a straight line between two. Below the first level it runs down to 0 at -1. */
 export function loadAt(run: Run, pos: number): number {
   const p = clampPos(run, pos)
+  if (p < 0) return run.levels[0].load * (1 + p)
   const i = Math.min(top(run) - 1, Math.floor(p))
   const [a, b] = [run.levels[i].load, run.levels[i + 1].load]
   return a + (b - a) * (p - i)
 }
 
-/** Whether a position is a tested level, not somewhere between two. */
-export const isTested = (pos: number): boolean => Math.abs(pos - Math.round(pos)) < 1e-6
+/** Whether a position is a tested level, not somewhere between two (or below the first, where no load is tested). */
+export const isTested = (pos: number): boolean => pos > -1e-6 && Math.abs(pos - Math.round(pos)) < 1e-6
 
 /**
  * The position of a time or load `x`, the other way round from loadAt: a tested level's own number is its whole position, and between two it is a straight line.
@@ -68,7 +82,7 @@ const along = (run: Run, x: number): number => (x - run.levels[0].load) / span(r
  */
 export function sliderFraction(run: Run, pos: number): number {
   if (isTime(run)) return Math.min(1, Math.max(0, along(run, xOfPos(run, pos))))
-  return top(run) === 0 ? 0 : clampPos(run, pos) / top(run)
+  return top(run) === floorPos(run) ? 0 : (clampPos(run, pos) - floorPos(run)) / (top(run) - floorPos(run))
 }
 
 /** The events of a time run with where each sits along the slider, 0 to 1, in time order. Nothing for a load run. */
@@ -85,26 +99,38 @@ export function eventRows(run: Run, x: number): { event: RunEvent; passed: boole
 }
 
 /** What the slider's own numbers run between: a time run's are times, a load run's are positions. */
-export const sliderRange = (run: Run): { min: number; max: number } => (isTime(run) ? { min: run.levels[0].load, max: run.levels[top(run)].load } : { min: 0, max: top(run) })
+export const sliderRange = (run: Run): { min: number; max: number } => (isTime(run) ? { min: run.levels[0].load, max: run.levels[top(run)].load } : { min: floorPos(run), max: top(run) })
 
 /** The number the slider holds at a position (see sliderRange). */
 export const sliderValue = (run: Run, pos: number): number => (isTime(run) ? xOfPos(run, pos) : clampPos(run, pos))
 
-/** The position a dragged slider stands for. A time run goes where it is put, so an event can be stood on; a load run snaps to a tested level. */
-export const slidePos = (run: Run, value: number): number => (isTime(run) ? posAt(run, value) : snap(run, value))
+/** How many stops a gap between two levels has on a dragged load slider: the load changes in steps of a fiftieth of the gap, so a drag draws at most that many times and no finer. */
+export const SLIDE_STEPS = 50
+/** How close to a tested level (in gaps) a dragged slider is pulled onto it, so the tested level can be stood on exactly. */
+export const SLIDE_MAGNET = 0.04
+
+/** A dragged position put on the slider's stops, and on a tested level when it is that close to one. */
+export function settle(pos: number): number {
+  const stop = Math.round(pos * SLIDE_STEPS) / SLIDE_STEPS
+  const level = Math.round(stop)
+  return (Math.abs(stop - level) <= SLIDE_MAGNET ? level : stop) + 0
+}
+
+/** The position a dragged slider stands for. A time run goes where it is put, so an event can be stood on; a load run goes where it is put too, on the stops of settle. */
+export const slidePos = (run: Run, value: number): number => (isTime(run) ? posAt(run, value) : settle(clampPos(run, value)))
 
 /** The position `ms` further on in a ramp (it stops at the last level). A time run goes on evenly in time, a load run evenly from level to level. */
 export const rampPos = (run: Run, pos: number, ms: number): number =>
   isTime(run) ? posAt(run, xOfPos(run, pos) + (ms * span(run)) / RAMP_MS) : clampPos(run, pos + (ms * top(run)) / RAMP_MS)
 
 /** Where a ramp starts: from the bottom when it is at the top already, else from where it is. */
-export const rampFrom = (run: Run, pos: number): number => (pos >= top(run) ? 0 : pos)
+export const rampFrom = (run: Run, pos: number): number => (pos >= top(run) ? floorPos(run) : pos)
 
 /** The run the tab shows: the one asked for if there is such a run, else the first, else none (a run can come and go while the tab is open). */
 export const activeRun = (runs: Record<string, Run>, id: string): string => (Object.hasOwn(runs, id) ? id : Object.keys(runs)[0] ?? '')
 
-/** A position as the slider can hold it, snapped to a tested level. */
-export const snap = (run: Run, pos: number): number => Math.round(clampPos(run, pos))
+/** A position snapped to a tested level (or to no load, at the bottom of a run that can be idle). */
+export const snap = (run: Run, pos: number): number => Math.round(clampPos(run, pos)) + 0
 
 // ---- Numbers in words
 
@@ -169,7 +195,7 @@ export const xAt = (box: Area, i: number, n: number): number => box.x + (n <= 1 
 /** Where level `i` of a run sits across `box`: evenly for a load run, as xAt has it, and by its time for a time run. */
 export const levelX = (run: Run, box: Area, i: number): number => (isTime(run) ? box.x + box.width * along(run, run.levels[i].load) : xAt(box, i, run.levels.length))
 /** Where a position sits across `box`, for the cursor of a curve. */
-export const cursorX = (run: Run, box: Area, pos: number): number => (isTime(run) ? box.x + box.width * sliderFraction(run, pos) : xAt(box, pos, run.levels.length))
+export const cursorX = (run: Run, box: Area, pos: number): number => (isTime(run) ? box.x + box.width * sliderFraction(run, pos) : xAt(box, Math.max(0, pos), run.levels.length))
 export const yAt = (box: Area, scale: Scale, v: number): number => box.y + box.height * (1 - place(scale, v))
 
 const round1 = (n: number) => Math.round(n * 10) / 10
@@ -227,7 +253,9 @@ export function levelLabels(run: Run, box: Area, most = 8): { x: number; label: 
 
 /** The labels under the slider: a level's time or load at its place along it (0 to 1), thinned the way levelLabels is. */
 export function tickLabels(run: Run, most = 8): { fraction: number; label: string }[] {
-  return labelled(run, most).map(i => ({ fraction: isTime(run) ? along(run, run.levels[i].load) : top(run) === 0 ? 0 : i / top(run), label: String(run.levels[i].load) }))
+  const floor = isTime(run) ? 0 : floorPos(run)
+  const ticks = labelled(run, most).map(i => ({ fraction: isTime(run) ? along(run, run.levels[i].load) : top(run) === floor ? 0 : (i - floor) / (top(run) - floor), label: String(run.levels[i].load) }))
+  return floor < 0 ? [{ fraction: 0, label: '0' }, ...ticks] : ticks
 }
 
 // ---- Readings
@@ -308,7 +336,10 @@ export type Positions = number[]
 /** The top of a dial's slider: the position of its last tested load. */
 export const dialTop = (d: Dial): number => d.values.length - 1
 
-export const clampDial = (d: Dial, pos: number): number => Math.min(dialTop(d), Math.max(0, Number.isFinite(pos) ? pos : 0))
+/** The lowest position of a dial: -1, where there is no load at all, for one that can be idle (see Dial.idle), else 0. */
+export const floorOf = (d: Dial): number => (d.idle ? -1 : 0)
+
+export const clampDial = (d: Dial, pos: number): number => Math.min(dialTop(d), Math.max(floorOf(d), Number.isFinite(pos) ? pos : 0))
 
 /** The setting that puts every dial at its position (see settingAt). */
 export const settingOf = (dials: readonly Dial[], positions: Positions): Setting => settingAt(dials, positions)
@@ -316,7 +347,8 @@ export const settingOf = (dials: readonly Dial[], positions: Positions): Setting
 /** The position of a load along a dial, the other way round from loadOfPosition: a tested load is its whole position, and between two it is a straight line. Outside the loads it is the nearest end. */
 export function positionOf(d: Dial, x: number): number {
   const top = dialTop(d)
-  if (!Number.isFinite(x) || x <= d.values[0]) return 0
+  if (!Number.isFinite(x)) return 0
+  if (x <= d.values[0]) return d.idle ? Math.max(-1, -1 + x / d.values[0]) : 0
   if (x >= d.values[top]) return top
   for (let i = 0; i < top; i++) if (x < d.values[i + 1]) return i + (x - d.values[i]) / (d.values[i + 1] - d.values[i])
   return top
@@ -333,8 +365,8 @@ export function openingPositions(dials: readonly Dial[], knee?: Pick<Knee, 'inde
   return knee === undefined ? dials.map(dialTop) : lockstepPositions(dials, knee.index)
 }
 
-/** The position a dragged slider of a dial stands for: it snaps to a tested load, as a single load run's does. */
-export const slideDial = (d: Dial, value: number): number => Math.round(clampDial(d, value))
+/** The position a dragged slider of a dial stands for: on the stops of settle, as a single load run's is. */
+export const slideDial = (d: Dial, value: number): number => settle(clampDial(d, value))
 
 /** `positions` with the dial `active` at `pos` (kept inside the dial); the others stay where they are. */
 export const placeActive = (dials: readonly Dial[], positions: Positions, active: number, pos: number): Positions =>
@@ -345,7 +377,7 @@ export const stepFrom = (pos: number, direction: 1 | -1): number => (direction =
 
 /** `positions` with the dial `active` one tested load further on (it stops at either end). Arrow keys. */
 export const stepActive = (dials: readonly Dial[], positions: Positions, active: number, direction: 1 | -1): Positions =>
-  placeActive(dials, positions, active, Math.round(clampDial(dials[active], stepFrom(positions[active], direction))))
+  placeActive(dials, positions, active, Math.round(clampDial(dials[active], stepFrom(positions[active], direction))) + 0)
 
 /** `positions` with the dial `active` at its first or last tested load. Home and End. */
 export const edgeActive = (dials: readonly Dial[], positions: Positions, active: number, edge: 'start' | 'end'): Positions =>
@@ -357,7 +389,7 @@ export const rampActive = (dials: readonly Dial[], positions: Positions, active:
 
 /** Where a ramp of the dial `active` starts: from its bottom when it is at the top already, else from where it is. */
 export const rampFromActive = (dials: readonly Dial[], positions: Positions, active: number): Positions =>
-  positions[active] >= dialTop(dials[active]) ? placeActive(dials, positions, active, 0) : positions
+  positions[active] >= dialTop(dials[active]) ? placeActive(dials, positions, active, floorOf(dials[active])) : positions
 
 /**
  * The level at each tested load of the dial `active`, with the others held where they stand: what the Strip and the small curves plot, as a single run plots the levels it was
@@ -378,13 +410,16 @@ export function heldText(dials: readonly Dial[], positions: Positions, active: n
 export function dialTicks(d: Dial, most = 8): { fraction: number; label: string }[] {
   const n = d.values.length
   const every = Math.ceil(n / most)
-  return d.values.flatMap((v, i) => (i % every === 0 || i === n - 1 ? [{ fraction: n === 1 ? 0 : i / (n - 1), label: String(v) }] : []))
+  const floor = floorOf(d)
+  const ticks = d.values.flatMap((v, i) => (i % every === 0 || i === n - 1 ? [{ fraction: n - 1 === floor ? 0 : (i - floor) / (n - 1 - floor), label: String(v) }] : []))
+  return floor < 0 ? [{ fraction: 0, label: '0' }, ...ticks] : ticks
 }
 
 /** The tested loads either side of a position (the same when it is on one), for "Between 600 and 900, estimated". */
 export function bracketOf(d: Dial, pos: number): { lower: number; upper: number; tested: boolean } {
   const top = dialTop(d)
   const p = clampDial(d, pos)
+  if (p < 0) return { lower: 0, upper: d.values[0], tested: false }
   return { lower: d.values[Math.min(top - 1, Math.floor(p))], upper: d.values[Math.min(top, Math.floor(p) + 1)], tested: isTested(p) }
 }
 

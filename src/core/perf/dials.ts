@@ -1,3 +1,4 @@
+import { idleOf } from './idle.ts'
 import type { Dial, Mode, Run, Setting, Source } from './types.ts'
 import { put } from './util.ts'
 import { sameColor, whyNotAdded } from './sources.ts'
@@ -34,7 +35,7 @@ export function dialsOf(runs: Record<string, Run>, id: string): { mode: Mode; di
     const parts = run.adds.filter(part => whyNotAdded(runs, part) === undefined)
     if (parts.length < 2) return undefined
     const colors = colorsOf(parts.map(part => runs[part].source))
-    return { mode: 'added', dials: parts.map((part, i) => ({ id: part, name: runs[part].name, unit: runs[part].unit, values: loads(runs[part]), ...(runs[part].source ? { source: runs[part].source } : {}), color: colors[i] })) }
+    return { mode: 'added', dials: parts.map((part, i) => ({ id: part, name: runs[part].name, unit: runs[part].unit, values: loads(runs[part]), ...(runs[part].source ? { source: runs[part].source } : {}), color: colors[i], ...(idleOf(runs[part]) ? { idle: true as const } : {}) })) }
   }
   if (run.sources !== undefined) {
     const ids = Object.keys(run.sources)
@@ -48,14 +49,16 @@ export function dialsOf(runs: Record<string, Run>, id: string): { mode: Mode; di
       }),
     }
   }
-  return { mode: 'single', dials: [{ id: '', name: run.name, unit: run.unit, values: loads(run), ...(run.source ? { source: run.source } : {}), color: run.source?.color ?? SOURCE_PALETTE[0] }] }
+  return { mode: 'single', dials: [{ id: '', name: run.name, unit: run.unit, values: loads(run), ...(run.source ? { source: run.source } : {}), color: run.source?.color ?? SOURCE_PALETTE[0], ...(idleOf(run) ? { idle: true as const } : {}) }] }
 }
 
 /**
- * The load at a position along a dial's tested loads: a tested load exactly at a whole number, a straight line between two in between. A position past either end is that end;
- * one that isn't a number is the lowest.
+ * The load at a position along a dial's tested loads: a tested load exactly at a whole number, a straight line between two in between. A position past the top is the top;
+ * one that isn't a number is the lowest. Below the first load a position runs from -1, where there is no load at all, to 0, the first load (only a dial that can be idle has any: see
+ * Dial.idle); a position under -1 is -1.
  */
 export function loadOfPosition(values: readonly number[], pos: number): number {
+  if (pos < 0) return values[0] * (1 + Math.max(-1, pos))
   const top = values.length - 1
   const p = Math.min(top, Math.max(0, Number.isFinite(pos) ? pos : 0))
   const i = Math.min(top - 1, Math.floor(p))
