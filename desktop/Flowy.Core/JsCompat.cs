@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Flowy.Core;
@@ -24,6 +25,32 @@ public static class JsCompat
         while (start < end && IsSpace(s[start])) start++;
         while (end > start && IsSpace(s[end - 1])) end--;
         return start == 0 && end == s.Length ? s : s[start..end];
+    }
+
+    /// <summary>The text as JavaScript's <c>JSON.stringify</c> writes it, quotes included: what a message that shows a bad value in quotes says.</summary>
+    public static string Json(string s)
+    {
+        var sb = new StringBuilder("\"");
+        for (var i = 0; i < s.Length; i++)
+        {
+            var c = s[i];
+            switch (c)
+            {
+                case '"': sb.Append("\\\""); break;
+                case '\\': sb.Append("\\\\"); break;
+                case '\b': sb.Append("\\b"); break;
+                case '\f': sb.Append("\\f"); break;
+                case '\n': sb.Append("\\n"); break;
+                case '\r': sb.Append("\\r"); break;
+                case '\t': sb.Append("\\t"); break;
+                default:
+                    if (char.IsHighSurrogate(c) && i + 1 < s.Length && char.IsLowSurrogate(s[i + 1])) sb.Append(c).Append(s[++i]);
+                    else if (c < 0x20 || char.IsSurrogate(c)) sb.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture)); // a lone surrogate is escaped
+                    else sb.Append(c);
+                    break;
+            }
+        }
+        return sb.Append('"').ToString();
     }
 
     private static readonly Regex PlainNumberText = new(@"^[ \t\n\v\f\r]*[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?[ \t\n\v\f\r]*\z");

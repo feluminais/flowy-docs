@@ -126,4 +126,61 @@ public class FolderLoaderTests
         var folder = FolderLoader.Load(Path.Combine(temp.Dir, "flowy"));
         Assert.Equal(["api: link path \"docs/gone.md\" doesn't exist"], folder.Problems.Select(p => p.Message));
     }
+
+    private const string Flow = "name: F\nview: root\nsteps:\n  - { from: a, text: Waits }\n";
+
+    [Fact]
+    public void A_flow_in_a_folder_is_read_by_its_file_name_alone_and_the_folder_is_kept_apart()
+    {
+        using var temp = new TempDir();
+        temp.Write("flowy/model.yaml", "objects:\n  a: { type: actor, name: A }\n");
+        temp.Write("flowy/flows/billing/refunds/refund.yaml", Flow);
+        temp.Write("flowy/flows/billing/pay.yaml", "name: Pay\nview: root\ntags: [happy path, Error path]\nsteps:\n  - { from: a, text: Waits }\n");
+        temp.Write("flowy/flows/top.yaml", Flow);
+        var folder = FolderLoader.Load(Path.Combine(temp.Dir, "flowy"));
+        Assert.Equal(["pay", "refund", "top"], folder.Model.Flows.Keys); // by file name, wherever the files are
+        Assert.Equal("billing/refunds", folder.Model.FolderOf("refund"));
+        Assert.Equal("", folder.Model.FolderOf("top"));
+        Assert.Equal(["billing", "billing/refunds"], folder.Model.FolderPaths());
+        Assert.Equal(["happy path", "Error path"], folder.Model.Flows["pay"].Tags);
+        Assert.Empty(folder.Problems);
+    }
+
+    [Fact]
+    public void Of_two_files_with_one_name_the_first_folder_in_path_order_is_read_and_the_other_is_a_problem()
+    {
+        using var temp = new TempDir();
+        temp.Write("flowy/model.yaml", "objects:\n  a: { type: actor, name: A }\n");
+        temp.Write("flowy/flows/zeta/pay.yaml", Flow);
+        temp.Write("flowy/flows/alpha/pay.yaml", Flow);
+        var folder = FolderLoader.Load(Path.Combine(temp.Dir, "flowy"));
+        Assert.Equal("alpha", folder.Model.FolderOf("pay"));
+        var problem = Assert.Single(folder.Problems);
+        Assert.Equal(new Problem("flows/zeta/pay.yaml", null, "Flowy reads one flow for each name, and flows/alpha/pay.yaml already has \"pay\", so this one is ignored. Rename it."), problem);
+    }
+
+    [Fact]
+    public void A_folder_that_starts_with_a_dot_is_left_alone_and_one_with_a_name_that_cannot_be_used_is_skipped_and_reported()
+    {
+        using var temp = new TempDir();
+        temp.Write("flowy/model.yaml", "objects:\n  a: { type: actor, name: A }\n");
+        temp.Write("flowy/flows/.drafts/hidden.yaml", Flow);
+        temp.Write("flowy/flows/a#b/zed.yaml", Flow);
+        temp.Write("flowy/flows/ok/fine.yaml", Flow);
+        var folder = FolderLoader.Load(Path.Combine(temp.Dir, "flowy"));
+        Assert.Equal(["fine"], folder.Model.Flows.Keys);
+        var problem = Assert.Single(folder.Problems);
+        Assert.Equal(new Problem("flows/a#b", null, $"Flowy skips this folder, since its name can't be used: {Names.FolderRule}."), problem);
+    }
+
+    [Fact]
+    public void Tags_that_are_not_a_list_of_words_are_a_parse_error_at_the_flows_real_path()
+    {
+        using var temp = new TempDir();
+        temp.Write("flowy/model.yaml", "objects:\n  a: { type: actor, name: A }\n");
+        temp.Write("flowy/flows/billing/oops.yaml", "name: F\nview: root\ntags: happy\nsteps: []\n");
+        var e = Assert.Throws<ParseError>(() => FolderLoader.Load(Path.Combine(temp.Dir, "flowy")));
+        Assert.Equal("flows/billing/oops.yaml", e.File);
+        Assert.Equal("\"tags\" must be a list of words", e.Reason);
+    }
 }

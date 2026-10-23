@@ -386,4 +386,34 @@ public class EditSessionTests
         Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
         Assert.Equal("name: Broken\nmodes: [not, a, map]\n", File.ReadAllText(Path.Combine(dir, "failures", "broken.yaml")));
     }
+
+    [Fact]
+    public void Moving_a_flow_writes_its_file_in_the_new_folder_and_deletes_the_old_one_and_undo_puts_it_back()
+    {
+        var (temp, dir) = CopyCase("folders");
+        using var _ = temp;
+        var before = Snapshot(dir);
+        var session = new EditSession(dir);
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.MoveFlow(d, "pay", "billing/refunds")));
+        Assert.False(File.Exists(Path.Combine(dir, "flows", "billing", "pay.yaml")));
+        Assert.StartsWith("name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n", Read(dir, "flows/billing/refunds/pay.yaml")); // written as the browser writes a flow
+        Assert.True(File.Exists(Path.Combine(dir, "flows", ".drafts", "hidden.yaml"))); // what the loader leaves out is left alone
+        Assert.True(File.Exists(Path.Combine(dir, "flows", "other", "dup.yaml")));
+        Assert.Equal("billing/refunds", FolderLoader.Load(dir).Model.FolderOf("pay"));
+        Assert.Equal(EditResult.Ok, session.Undo());
+        Assert.Equal(before, Snapshot(dir));
+    }
+
+    [Fact]
+    public void A_new_flow_is_filed_in_its_folder_and_tagged_and_deleting_it_forgets_the_folder()
+    {
+        var (temp, dir) = CopyCase("folders");
+        using var _ = temp;
+        var session = new EditSession(dir);
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutFlow(d, "fresh", "Fresh", "shop", [EditOps.NewStep("web", "api", "Sends it")], folder: "new/deep", tags: ["happy path"])));
+        Assert.Equal("name: Fresh\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n", Read(dir, "flows/new/deep/fresh.yaml"));
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.DeleteFlow(d, "fresh")));
+        Assert.False(File.Exists(Path.Combine(dir, "flows", "new", "deep", "fresh.yaml")));
+        Assert.DoesNotContain("fresh", FolderLoader.Load(dir).Model.Folders.Keys);
+    }
 }

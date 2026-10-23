@@ -11,8 +11,8 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// Every flow in the documentation: first those that play in the level you are in, then all the others under the level they play in.
-/// Picking one goes to its level and plays it (or, while editing, opens it for editing). A flow in a pair has a link mark and its partners are listed together; each row has a Compare button.
+/// Every flow in the documentation, listed as the folders they are filed in.
+/// Picking one goes to its level and plays it (or, while editing, opens it for editing). A flow in a pair has a link mark; each row has a Compare button.
 /// </summary>
 internal sealed class FlowsView : Grid
 {
@@ -23,7 +23,6 @@ internal sealed class FlowsView : Grid
     private readonly StackPanel _list = new() { Spacing = 0, Margin = new Thickness(0, 0, Inset, 0) };
     private readonly HashSet<string> _closed = [];
     private Model? _model;
-    private string _view = Names.Root;
     private bool _editing;
     private string? _current;
     private readonly Border _foot = LinkedKey();
@@ -139,7 +138,6 @@ internal sealed class FlowsView : Grid
     {
         CompareOff = CompareChoices.Off(model, editing);
         _model = model;
-        _view = view;
         _editing = editing;
         _current = current;
         Rebuild();
@@ -148,16 +146,6 @@ internal sealed class FlowsView : Grid
     private static TextBlock Muted(string text, double size = 12) => new() { Text = text, FontSize = size, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
 
     private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
-
-    private Control Heading(string text, int count)
-    {
-        var title = new TextBlock { Text = text.ToUpperInvariant(), FontSize = 11, FontWeight = FontWeight.SemiBold, Classes = { "muted" } };
-        var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Margin = new Thickness(4, 12, 4, 4), Children = { title } };
-        var number = Muted(count.ToString(), 11);
-        SetColumn(number, 1);
-        row.Children.Add(number);
-        return row;
-    }
 
     private Control Row(FlowRef f)
     {
@@ -182,64 +170,53 @@ internal sealed class FlowsView : Grid
         return new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 2, Children = { button, compare } };
     }
 
+    // The list is Outlines.FlowList: a folder row, then the flows filed in it, indented by Depth. This is the plain version of it (a folder is a line that folds); the folder tree and the tag filter replace it.
     private void Rebuild()
     {
         if (_model is null) return;
-        var groups = Outlines.Groups(_model, _view, _editing);
-        var needle = (_find.Text ?? "").Trim().ToLowerInvariant();
-        bool Keep(FlowRef f) => needle == "" || f.Name.ToLowerInvariant().Contains(needle, StringComparison.Ordinal) || f.Id.Contains(needle, StringComparison.Ordinal);
-        var here = groups.Here.Where(Keep).ToList();
-        var elsewhere = groups.Elsewhere.Select(g => (Group: g, Flows: g.Flows.Where(Keep).ToList())).Where(g => g.Flows.Count > 0).ToList();
-        var other = groups.Total - groups.Here.Count;
+        var needle = (_find.Text ?? "").Trim();
+        var list = Outlines.FlowList(_model, new FlowListOptions(_editing, needle, Closed: _closed));
         var shown = new List<FlowRef>();
 
         _list.Children.Clear();
-        _list.Children.Add(Heading("This view", groups.Here.Count));
-        foreach (var f in here)
+        foreach (var row in list.Rows)
         {
-            _list.Children.Add(Row(f));
-            shown.Add(f);
-        }
-        if (groups.Here.Count == 0) { if (groups.Total > 0) _list.Children.Add(Note("No flows on this view.")); }
-        else if (here.Count == 0) _list.Children.Add(Note("No matches."));
-        if (groups.Elsewhere.Count > 0) _list.Children.Add(Heading("Other views", other));
-        foreach (var (group, flows) in elsewhere)
-        {
-            var open = needle != "" || !_closed.Contains(group.View);
-            _list.Children.Add(GroupHead(group, flows.Count, open));
-            if (!open) continue;
-            foreach (var f in flows)
+            if (row is FolderRow folder)
             {
-                var row = Row(f);
-                row.Margin = new Thickness(16, 0, 0, 0);
-                _list.Children.Add(row);
-                shown.Add(f);
+                _list.Children.Add(FolderHead(folder));
+                continue;
             }
+            var item = (FlowItemRow)row;
+            var control = Row(item.Flow);
+            control.Margin = new Thickness(16 * item.Depth, 0, 0, 0);
+            _list.Children.Add(control);
+            shown.Add(item.Flow);
         }
-        if (needle != "" && here.Count == 0 && elsewhere.Count == 0) _list.Children.Add(Note($"No flow matches “{needle}”."));
-        if (groups.Total == 0) _list.Children.Add(Note("No flows yet. New flow in the bar starts one."));
+        if (needle != "" && list.Shown == 0 && list.Total > 0) _list.Children.Add(Note($"No flow matches “{needle}”."));
+        if (list.Total == 0) _list.Children.Add(Note("No flows yet. New flow in the bar starts one."));
         Listed = shown;
-        _foot.IsVisible = shown.Any(f => f.Linked); // only while a flow in a pair is on the list: one in a group that is folded away is not
+        _foot.IsVisible = shown.Any(f => f.Linked); // only while a flow in a pair is on the list: one in a folder that is folded away is not
     }
 
     private static Control Note(string text) => new TextBlock { Text = text, FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(6, 8), Classes = { "muted" } };
 
-    private Control GroupHead(FlowGroup group, int count, bool open)
+    private Control FolderHead(FolderRow folder)
     {
         var chevron = Icons.Make(Icons.ChevronRight, "navicon", 14);
-        chevron.RenderTransform = new RotateTransform(open ? 90 : 0);
+        chevron.RenderTransform = new RotateTransform(folder.Open ? 90 : 0);
         chevron.VerticalAlignment = VerticalAlignment.Center;
-        var name = new TextBlock { Text = group.Path.Count > 0 ? string.Join(" › ", group.Path) : group.Name, FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } };
-        var number = Muted(count.ToString(), 12);
+        var name = new TextBlock { Text = folder.Name, FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } };
+        var number = Muted(folder.Flows.ToString(), 12);
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { chevron, name, number } };
         SetColumn(name, 1);
         SetColumn(number, 2);
-        var button = new Button { Content = grid, MinHeight = 32 };
+        var button = new Button { Content = grid, MinHeight = 32, Margin = new Thickness(16 * folder.Depth, 0, 0, 0) };
         button.Classes.Add("flowrow");
-        AutomationProperties.SetName(button, group.Path.Count > 0 ? string.Join(" › ", group.Path) : group.Name);
+        button.Classes.Add("folderrow"); // a folder, not a flow: it folds
+        AutomationProperties.SetName(button, folder.Path);
         button.Click += (_, _) =>
         {
-            if (!_closed.Remove(group.View)) _closed.Add(group.View);
+            if (!_closed.Remove(folder.Path)) _closed.Add(folder.Path);
             Rebuild();
         };
         return button;

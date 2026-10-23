@@ -40,6 +40,14 @@ public class FolderWatcherTests
     }
 
     [Fact]
+    public void A_flow_saved_in_a_folder_of_flows_is_noticed_too()
+    {
+        using var temp = new TempDir();
+        Directory.CreateDirectory(Path.Combine(temp.Dir, "flows", "billing", "refunds"));
+        Assert.True(NoticedWhenSaved(temp, "flows/billing/refunds/refund.yaml"));
+    }
+
+    [Fact]
     public void A_load_test_run_saved_in_perf_is_noticed_too()
     {
         using var temp = new TempDir();

@@ -75,7 +75,7 @@ public class ReentrancyTests
         var (window, reader) = Open();
         reader.ClickRail(PanelTab.Flows);
         window.UpdateLayout();
-        var row = reader.Navigator.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("flowrow"));
+        var row = reader.Navigator.GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("flowrow") && !b.Classes.Contains("folderrow"));
         Click(window, row);
         Assert.NotNull(reader.PlayingFlowId);
         Assert.Contains(reader.Navigator.GetVisualDescendants().OfType<Button>(), b => b.Classes.Contains("flowrow"));
