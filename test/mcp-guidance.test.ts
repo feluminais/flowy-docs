@@ -53,7 +53,7 @@ test('the prompts hold the usual jobs, and the ones that take an argument put it
   assert.match(await text('failure-analysis', { scope: 'ordering' }), /failure analysis for ordering\./)
   assert.match(await text('review-model'), /Change nothing: report\./)
   // Each job that writes ends by checking and by owning up to what was guessed.
-  for (const name of ['map-repo', 'update-after-change']) assert.match(await text(name), /call get_problems[^]*what you inferred/, name)
+  for (const name of ['map-repo', 'update-after-change']) assert.match(await text(name), /call tidy_layout once, then get_problems[^]*what you inferred/, name)
   await assert.rejects(client.getPrompt({ name: 'write-flow' }), /goal/)
 })
 
