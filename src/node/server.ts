@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { watch } from 'node:fs'
 import { mkdir, readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
@@ -5,7 +6,10 @@ import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
 import { json } from 'node:stream/consumers'
+import { promisify } from 'node:util'
+import { gzip } from 'node:zlib'
 import type { ModelList } from '../core/modellist.ts'
+import type { State } from '../core/state.ts'
 import { loadState } from './files.ts'
 import type { History } from './history.ts'
 import { createHistoryApi } from './history-api.ts'
@@ -45,6 +49,38 @@ const SECURITY_HEADERS = {
 function send(res: ServerResponse, status: number, body: unknown) {
   res.writeHead(status, { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
   res.end(JSON.stringify(body))
+}
+
+/** A state as it is sent: its text and tag made once, and its compressed text the first time a page asks for it. */
+type Sent = { body: Buffer; etag: string; packed?: Promise<Buffer> }
+const sent = new WeakMap<State, Sent>()
+const GZIP_FROM = 32 * 1024 // under this the saving is not worth the wait
+
+/**
+ * GET /api/state. The same state (loadState gives the same object while the files are unchanged) is turned into text once, tagged with a hash of it and compressed once. A page that
+ * already holds that text is told so (304) instead of being sent it again; the tag is why the answer is `no-cache` (keep it, but ask) and not `no-store`.
+ */
+async function sendState(req: IncomingMessage, res: ServerResponse, state: State) {
+  let made = sent.get(state)
+  if (!made) {
+    const body = Buffer.from(JSON.stringify(state))
+    sent.set(state, (made = { body, etag: `"${createHash('sha256').update(body).digest('hex').slice(0, 16)}"` }))
+  }
+  const headers = { ...SECURITY_HEADERS, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache', ETag: made.etag, Vary: 'Accept-Encoding' }
+  if (req.headers['if-none-match'] === made.etag) {
+    res.writeHead(304, headers)
+    res.end()
+    return
+  }
+  if (made.body.length >= GZIP_FROM && /\bgzip\b/.test(String(req.headers['accept-encoding'] ?? ''))) {
+    made.packed ??= promisify(gzip)(made.body)
+    const packed = await made.packed
+    res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', 'Content-Length': packed.length })
+    res.end(packed)
+    return
+  }
+  res.writeHead(200, { ...headers, 'Content-Length': made.body.length })
+  res.end(made.body)
 }
 
 /** PUT /api/file/<path> { version, data } writes a file; DELETE /api/file/flows/<id>.yaml { version } removes a flow. See applyWrite. */
@@ -178,7 +214,7 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
       if (url.pathname.startsWith('/api/') && !host) return send(res, 404, { error: 'unknown model' })
       if (host) {
         const { served: { dir }, steps, clients } = host
-        if (req.method === 'GET' && url.pathname === '/api/state') return send(res, 200, await loadState(dir))
+        if (req.method === 'GET' && url.pathname === '/api/state') return await sendState(req, res, await loadState(dir))
         if (req.method === 'GET' && url.pathname === '/api/events') {
           res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
           // Reconnect 1 s after flowy restarts. Writing at once also pushes the headers through proxies (Vite's dev server).
