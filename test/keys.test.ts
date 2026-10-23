@@ -30,6 +30,8 @@ test('Escape closes one layer per press, then goes back a level', () => {
   assert.equal(escapeStep({ ...none, panel: true, inside: true }), 'panel')
   assert.equal(escapeStep({ ...none, compare: true, panel: true, inside: true }), 'panel', 'a panel over a comparison closes first')
   assert.equal(escapeStep({ ...none, compare: true, inside: true }), 'compare', 'before going up a level')
+  assert.equal(escapeStep({ ...none, compare: true, paneInside: true }), 'back', 'a pane zoomed into a shape goes up before the comparison closes')
+  assert.equal(escapeStep({ ...none, compare: true, panel: true, paneInside: true }), 'panel', 'but a panel closes first')
   assert.equal(escapeStep({ ...none, inside: true }), 'back')
   assert.equal(escapeStep(none), undefined, 'at the top with nothing open')
 })

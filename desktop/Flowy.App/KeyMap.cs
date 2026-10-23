@@ -48,7 +48,8 @@ internal readonly record struct KeyState(
     bool NavigatorUsed, // the last click or key was in the navigator
     bool InNavigator, // this press came from inside it
     bool RightOpen,
-    bool Inside) // not at the top level
+    bool Inside, // not at the top level
+    bool PaneInside = false) // the pane of a comparison that has the focus is zoomed into a shape: Esc, Backspace and Z take it up a level
 {
     /// <summary>
     /// Right after a box was dragged, Esc or Backspace take the drag back, which is what someone who just moved a box and got it wrong reaches for.
@@ -198,7 +199,7 @@ internal static class KeyMap
         Do("perf", "T", (p, s) => p.Tap(PhysicalKey.T) && s.CanPerf, (_, _, a) => a.TogglePerf(), Reading("Show a load-test run on the diagram, where there is one")),
         Do("failures", "M", (p, s) => p.Tap(PhysicalKey.M) && s.CanFailures, (_, _, a) => a.ToggleFailures(), Reading("Show how things fail, worst first")),
         // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
-        Do("up", "Backspace  Z", (p, s) => (p.Key == Key.Back || p.Physical == PhysicalKey.Z) && p.Plain && s.Inside && !s.Recording, (_, _, a) => a.Up(), Reading("Zoom out: go up a level")),
+        Do("up", "Backspace  Z", (p, s) => (p.Key == Key.Back || p.Physical == PhysicalKey.Z) && p.Plain && (s.Inside || s.PaneInside) && !s.Recording, (_, _, a) => a.Up(), Reading("Zoom out: go up a level")),
     ];
 
     /// <summary>The entry that takes this press, if any.</summary>
@@ -237,7 +238,7 @@ internal static class KeyMap
             return true;
         }
         var navigator = s.NavigatorShown && (s.NavigatorUsed || s.InNavigator);
-        switch (Navigation.Escape(s.ShortcutsOpen, navigator, s.Flow, s.RightOpen, s.Compare, s.Inside))
+        switch (Navigation.Escape(s.ShortcutsOpen, navigator, s.Flow, s.RightOpen, s.Compare, s.Inside, s.PaneInside))
         {
             case EscapeStep.Shortcuts: a.CloseShortcuts(); return true;
             case EscapeStep.Navigator: a.CloseNavigator(); return true;

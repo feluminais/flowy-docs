@@ -131,6 +131,57 @@ public class CompareTests
     }
 
     [AvaloniaFact]
+    public void Double_clicking_a_shape_that_opens_zooms_that_pane_into_it_and_leaves_the_other_pane_alone()
+    {
+        var (temp, window, reader) = Open(width: 1800);
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var (left, right) = (view.Panes[0], view.Panes[1]);
+        var (leftLevel, rightLevel) = (left.Level, right.Level);
+        Assert.False(right.CrumbsShown);
+        Assert.False(right.Inside);
+        var at = EditModeTests.Where(window, right.Canvas, "order-api", 20, 10);
+        Click(window, at);
+        Click(window, at);
+        EditModeTests.Settle(window);
+        Assert.Equal("order-api", right.Level);
+        Assert.True(right.Inside);
+        Assert.True(right.CrumbsShown);
+        Assert.Equal(leftLevel, left.Level);
+        Assert.False(left.Inside);
+        Assert.False(reader.HasPanel); // the first click of a double-click opens no panel
+        Assert.NotNull(reader.CompareShown);
+        Assert.Equal("order-api", right.Canvas.Scene!.View);
+        Assert.Equal("order-api", right.Canvas.Scene.Boxes.First(b => !b.Outsider).Object.In);
+    }
+
+    [AvaloniaFact]
+    public void Esc_takes_a_zoomed_pane_back_up_and_a_second_Esc_closes_the_comparison()
+    {
+        var (temp, window, reader) = Open(width: 1800);
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var right = view.Panes[1];
+        var own = right.Level;
+        var at = EditModeTests.Where(window, right.Canvas, "order-api", 20, 10);
+        Click(window, at);
+        Click(window, at);
+        EditModeTests.Settle(window);
+        Assert.Equal("order-api", right.Level);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        EditModeTests.Settle(window);
+        Assert.Equal(own, right.Level);
+        Assert.False(right.CrumbsShown);
+        Assert.NotNull(reader.CompareShown);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.CompareShown);
+    }
+
+    [AvaloniaFact]
     public void A_line_clicked_in_a_pane_carries_the_view_that_pane_draws()
     {
         var (temp, window, reader) = Open();

@@ -23,6 +23,7 @@ internal sealed class PaneFlow
     private ReaderView.Side? _selection;
     private string? _hover;
     private bool _fitted;
+    private string? _zoomed; // the level the reader zoomed the pane to; none, and the flow draws its own view
     private (Flow Flow, IReadOnlyList<Stop> Stops)? _stops;
 
     /// <param name="host">The control the flow's animations run on (they wait on its window's frames).</param>
@@ -57,6 +58,40 @@ internal sealed class PaneFlow
     public SideMarks? Changes { get; set; }
 
     public string FlowId => _flowId;
+
+    /// <summary>The view the flow was written on.</summary>
+    private string FlowView => _folder is not null && _folder.Model.Flows.TryGetValue(_flowId, out var flow) ? flow.View ?? Names.Root : Names.Root;
+
+    /// <summary>The level the pane draws the flow on: the one the reader zoomed it to, else the flow's own view.</summary>
+    public string Level => _folder is null ? Names.Root : CompareUi.PaneLevel(_folder.Model, FlowView, _zoomed);
+
+    /// <summary>Whether Esc, Backspace and Z take the pane up a level: it is zoomed into a shape, and not at the top.</summary>
+    public bool Inside => CompareUi.PaneInside(Level, FlowView);
+
+    /// <summary>Whether a double-click on this shape zooms the pane into it.</summary>
+    public bool CanOpen(string id) => _folder is not null && Views.HasChildren(_folder.Model, id);
+
+    /// <summary>Whether the shape or line the shared Details panel shows is this flow's (it is outlined here).</summary>
+    public bool HasSelection => _selection is not null;
+
+    /// <summary>The breadcrumb of the level the pane is zoomed to (null while it is on its flow's own view), with <paramref name="jump"/> called for the level a crumb names.</summary>
+    public Control? Crumbs(Action<string> jump) => _folder is null ? null : PaneChrome.Crumbs(_folder.Model, Level, Level != FlowView, jump);
+
+    /// <summary>Draws the flow on another level, as a double-click on a shape or a click on a level in the breadcrumb does. The step on show plays again there.</summary>
+    public void ZoomTo(string level)
+    {
+        if (_folder is null || Level == level) return;
+        _zoomed = level;
+        _fitted = false;
+        _canvas.StopStep();
+        _playback.Replay(); // redraws the pane too
+    }
+
+    /// <summary>Up a level from the one the pane is on, when it is zoomed into a shape.</summary>
+    public void Up()
+    {
+        if (_folder is not null && Inside) ZoomTo(CompareUi.PaneUp(_folder.Model, Level));
+    }
 
     /// <summary>How the lines are drawn (straight, curved or angled), as the reader last said.</summary>
     public string LineStyle => _lineStyle;
@@ -107,7 +142,7 @@ internal sealed class PaneFlow
     {
         if (!Drawing || _folder is null || StopsNow() is not { } stops || !_folder.Model.Flows.TryGetValue(_flowId, out var flow)) return;
         var model = _folder.Model;
-        var view = flow.View ?? Names.Root;
+        var view = Level;
         var index = StopNow;
         Drew?.Invoke();
 
@@ -137,7 +172,7 @@ internal sealed class PaneFlow
     {
         if (_folder is null || StopsNow() is not { } stops || !_folder.Model.Flows.TryGetValue(_flowId, out var flow)) return null;
         var model = _folder.Model;
-        var view = flow.View ?? Names.Root;
+        var view = Level;
         var shown = FlowStage.PlayingAt(model, view, flow, stops, StopNow);
         var box = _selection is ReaderView.Side.Box b ? b.Id : null;
         // A line is the same two shapes joined in this view only: another pane on another view is not outlined for it.
@@ -168,8 +203,8 @@ internal sealed class PaneFlow
     /// <summary>The line with this id on the canvas, as the side the Details panel shows it with: the two shapes it joins and the view this flow draws them in.</summary>
     public ReaderView.Side? LineSide(string edgeId)
     {
-        if (_canvas.Scene?.Edges.FirstOrDefault(e => e.Id == edgeId) is not { } edge || _folder?.Model.Flows.TryGetValue(_flowId, out var flow) != true) return null;
-        return new ReaderView.Side.Line(edge.From, edge.To, flow!.View ?? Names.Root);
+        if (_canvas.Scene?.Edges.FirstOrDefault(e => e.Id == edgeId) is not { } edge || _folder is null) return null;
+        return new ReaderView.Side.Line(edge.From, edge.To, Level);
     }
 
     // ---- what the keys and the card do --------------------------------------------------------------------------
