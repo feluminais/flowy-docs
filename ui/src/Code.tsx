@@ -115,12 +115,12 @@ function LanguagePicker({ snippet, onPick }: { snippet: Snippet; onPick: (langua
 }
 
 /** One snippet's fields. A title and the code save when you leave them; a language saves when you pick it. */
-function SnippetFields({ snippet, onChange, onRemove }: { snippet: Snippet; onChange: (next: Snippet) => Promise<boolean>; onRemove: () => void }) {
+function SnippetFields({ snippet, onChange, onRemove }: { snippet: Snippet; onChange: (changes: Partial<Pick<Snippet, 'title' | 'text' | 'language'>>) => Promise<boolean>; onRemove: () => void }) {
   const blur = (field: 'title' | 'text') => async (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const input = e.currentTarget
     if (input.value === (snippet[field] ?? '')) return
     // A refused title goes back to what was saved. Refused code stays in the box, so a slip in a long snippet is fixed where it is, not typed again.
-    if (!(await onChange({ ...snippet, [field]: input.value })) && field === 'title') input.value = snippet.title ?? ''
+    if (!(await onChange({ [field]: input.value })) && field === 'title') input.value = snippet.title ?? ''
   }
   return (
     <div className="card code-card">
@@ -128,7 +128,7 @@ function SnippetFields({ snippet, onChange, onRemove }: { snippet: Snippet; onCh
         Title
         <input key={snippet.title ?? ''} defaultValue={snippet.title ?? ''} onBlur={blur('title')} onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()} />
       </label>
-      <LanguagePicker snippet={snippet} onPick={language => void onChange({ ...snippet, language })} />
+      <LanguagePicker snippet={snippet} onPick={language => void onChange({ language })} />
       <label>
         Code
         <textarea key={snippet.text} className="code-edit" defaultValue={snippet.text} rows={8} spellCheck={false} wrap="off" onBlur={blur('text')} />
@@ -168,8 +168,9 @@ export function CodeFields({ object, onSave }: { object: FlowyObject; onSave: (s
       inFlight.current--
     }
   }
-  const change = async (i: number, next: Snippet): Promise<boolean> => {
+  const change = async (i: number, changes: Partial<Pick<Snippet, 'title' | 'text' | 'language'>>): Promise<boolean> => {
     const base = working.current
+    const next = { ...(base[i] ?? draft ?? { text: '' }), ...changes }
     if (i < base.length) return send(base.map((s, j) => (j === i ? next : s)))
     if (isBlankCode(next.text)) {
       setDraft(next)

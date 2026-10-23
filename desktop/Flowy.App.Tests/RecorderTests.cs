@@ -182,7 +182,11 @@ public class RecorderTests
     [AvaloniaFact]
     public async Task A_step_moves_up_and_down_and_is_deleted_and_the_buttons_know_the_ends()
     {
-        var (temp, dir, _, reader) = Open();
+        var (temp, dir, _, reader) = Open(dir =>
+        {
+            Directory.CreateDirectory(Path.Combine(dir, "failures"));
+            File.WriteAllText(Path.Combine(dir, "failures", "ordering.yaml"), "name: Ordering\nmodes:\n  rejected: { mode: Payment rejected, on: api, flow: order, step: 2 }\n");
+        });
         using var _ = temp;
         EditFlow(reader, "order");
         var recorder = reader.Panel.CurrentRecorder!;
@@ -191,6 +195,7 @@ public class RecorderTests
         Press(Named(recorder, "Move down", 0));
         await Until(() => reader.Folder!.Model.Flows["order"].Steps[0].Text == "Takes payment");
         Assert.Equal(["Takes payment", "Places an order"], reader.Folder!.Model.Flows["order"].Steps.Select(s => s.Text));
+        Assert.Equal("1", reader.Folder.Model.Failures["ordering"].Modes["rejected"].Step);
         await Until(() => reader.Panel.CurrentRecorder!.StepTexts[0].Text == "Takes payment"); // the rows were rebuilt for the new order
 
         Press(Named(reader.Panel.CurrentRecorder!, "Delete step", 0));

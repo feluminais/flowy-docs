@@ -41,6 +41,7 @@ export function createHistoryStore(client: HistoryClient): HistoryStore {
   let view: HistoryView = { ready: false, saving: true, steps: [], compare: false }
   const listeners = new Set<() => void>()
   let latest = 0
+  let selection = 0
 
   const set = (next: HistoryView) => {
     view = next
@@ -82,15 +83,17 @@ export function createHistoryStore(client: HistoryClient): HistoryStore {
     },
     refresh,
     async pick(id) {
+      const call = ++selection
       if (id !== undefined) {
         // Picked and shown change together, once the step is read, so the banner and Restore never name a step the text is not showing.
         let read: Awaited<ReturnType<HistoryClient['step']>>
         try {
           read = await client.step(id)
         } catch (e) {
-          set({ ...view, error: e instanceof Error ? e.message : String(e) }) // the tab keeps showing the step it had
+          if (call === selection) set({ ...view, error: e instanceof Error ? e.message : String(e) }) // the tab keeps showing the step it had
           return
         }
+        if (call !== selection) return
         if (read !== undefined) set({ ...view, picked: id, shownId: id, shown: read })
       } else {
         const { picked: _was, ...rest } = view

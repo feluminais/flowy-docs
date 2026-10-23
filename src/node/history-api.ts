@@ -68,8 +68,7 @@ export function createHistoryApi(history: History, options: { gateMs?: number } 
     if (req.headers['x-flowy'] !== '1') return { status: 403, body: { error: 'missing X-Flowy: 1 header' } }
 
     if (pathname === '/api/history/clear') {
-      await history.clear()
-      return { status: 200, body: {} }
+      return await history.clear() ? { status: 200, body: {} } : { status: 500, body: { error: history.failure } }
     }
     const body = await objectBody(req)
     if (pathname === '/api/history/steps') {

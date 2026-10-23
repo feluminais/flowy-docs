@@ -1,8 +1,10 @@
 import { test } from 'node:test'
 import type { TestContext } from 'node:test'
 import assert from 'node:assert/strict'
+import fs from 'node:fs/promises'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
+import { syncBuiltinESMExports } from 'node:module'
 import type { AddressInfo } from 'node:net'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
@@ -176,6 +178,28 @@ test('POST /api/history/clear empties the trail', async t => {
   await history.record('One', 'you')
   assert.deepEqual(await post('/api/history/clear', {}), { status: 200, body: {} })
   assert.deepEqual((await get('/api/history')).body.steps, [])
+})
+
+test('a failed history clear returns an error and a later successful clear recovers', async t => {
+  const { history, post, put } = await setup(t)
+  await put('model.yaml', 'a: 1\n')
+  await history.record('One', 'you')
+  const remove = fs.rm
+  let blocked = true
+  t.mock.method(fs, 'rm', async (path: Parameters<typeof fs.rm>[0], options: Parameters<typeof fs.rm>[1]) => {
+    if (blocked && path === history.root) throw new Error('history deletion refused')
+    return remove(path, options)
+  })
+  syncBuiltinESMExports()
+  t.after(() => { t.mock.restoreAll(); syncBuiltinESMExports() })
+  const refused = await post('/api/history/clear', {})
+  assert.equal(refused.status, 500)
+  assert.equal(refused.body.error, 'history deletion refused')
+  assert.equal((await history.list()).length, 1)
+  blocked = false
+  assert.deepEqual(await post('/api/history/clear', {}), { status: 200, body: {} })
+  assert.deepEqual(await history.list(), [])
+  assert.equal(history.failure, undefined)
 })
 
 test('other paths and methods are not for the history routes', async t => {
