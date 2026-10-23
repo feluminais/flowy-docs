@@ -10,13 +10,15 @@ import { analysisText, BAND_NAMES, bandOf, riskOf, runLinkProblems, STATUSES } f
 import { FILE_KINDS, kindOfPath, pathOf } from '../core/filekinds.ts'
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
+import { sideReport } from '../core/layout.ts'
+import type { SideProblem } from '../core/layout.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
 import { getObject, OBJECT_TYPES, projectAbout, projectName, ROOT } from '../core/model.ts'
-import { changedFiles } from '../core/modelfiles.ts'
+import { changedFiles, changedLayout } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { describeDependent } from '../core/dependents.ts'
 import type { Dependent } from '../core/dependents.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare, setProject } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare, setProject, tidyViews } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
@@ -33,7 +35,7 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_project (the system's name and what it is), put_icon, set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
 - A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the system's name and a short about (put_project), the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
@@ -63,7 +65,7 @@ Writing a flow, so it reads the way the code works:
 - Play the flow on the view where its ends are separate shapes. put_flow answers with how each step reads there: an end written "X in Y" is drawn as Y.
 - A step's More (its description) holds why, timing, failure behaviour or limits, not a repeat of the step.
 - Write plain steps. Motion (animation), repeats, branches, parallel lanes and shape states are for a user who asked for them: read flowy://rules/flows first.
-After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. After a run of writes, or after you change a file by hand, call get_problems: no problems means it is sound. Finish by saying what you read from the code, what you inferred and what you left out.`
+After writing: every write is checked, and a write that would add a problem is refused and nothing is saved. Read the answer, fix the cause (find the right path, name or end) and write again. Don't repeat the same call or drop the field to get past it. After a run of writes, or after you change a file by hand, call get_problems: no problems means it is sound. When the shapes and connections are in, call tidy_layout once: it puts each neighbour in a view on the side it has in the view above, so zooming from one box to the next doesn't lead the same way twice. Finish by saying what you read from the code, what you inferred and what you left out.`
 
 /** `{ compare }` when the flow or run has a readable tag, so an entry without one stays as it was. */
 const withTag = (value: unknown): { compare?: CompareTag } => {
@@ -175,7 +177,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
    * Load fresh, apply, refuse new problems, write changed files. Retries once if a file changed underneath. With history on, the files as
    * they were become a step first, and `label` is the step the write makes.
    */
-  const write = (op: (model: Model) => Model, done: string | ((before: Model) => string), label: string) => inOrder(async () => {
+  const write = (op: (model: Model) => Model, done: string | ((before: Model) => string), label: string, withLayout = false) => inOrder(async () => {
     for (let attempt = 1; ; attempt++) {
       try {
         const loaded = await loadDir(dir)
@@ -192,7 +194,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
             return fail(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}\n${known.length > 0 ? `The runs in perf/ are: ${known.join(', ')}.` : 'There are no load-test runs in perf/, so leave run out.'}`)
           }
         }
-        const changes = changedFiles(model, next)
+        const changes = [...changedFiles(model, next), ...(withLayout ? changedLayout(model, next) : [])]
         // An analysis file that was skipped because it can't be read holds someone's work: it is never replaced or deleted.
         const blocked = firstBlocked(loaded, changes.map(([rel]) => rel))
         if (blocked) return fail(`Refused, nothing saved. ${blockedMessage(blocked.blocking, blocked.rel)}`)
@@ -365,6 +367,22 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.'), resolve },
     annotations: destructive,
   }, input => write(m => (input.resolve === undefined ? disconnect(m, input) : deleteWith(m, [{ line: { from: input.from, to: input.to, ...(input.label === undefined ? {} : { label: input.label }), all: true } }], input.resolve)), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
+
+  server.registerTool('tidy_layout', {
+    description: 'Put the shapes of a view where they read the same from every side. A view shows the shapes around it too, and each one belongs on the side it has in the view above: if Back office is right of Ordering at the top level, Ordering shows it on the right and Back office shows Ordering on the left. Views that already agree are left as they are, and the rest are laid out again (layout.yaml, which replaces any positions dragged by hand there). Call it once when the shapes and connections are in. check: true only lists what is on the wrong side and saves nothing.',
+    inputSchema: {
+      view: z.string().max(64).optional().describe('"root" for the top level, or the id of an object with children. Leave it out for every view.'),
+      check: z.boolean().optional().describe('true: only list what is on the wrong side.'),
+    },
+  }, ({ view, check: only }) => {
+    if (only === true) return read(m => sideReport(m, tidyViews(m, view).found, false))
+    let found: SideProblem[] = []
+    return write(m => {
+      const tidied = tidyViews(m, view)
+      found = tidied.found
+      return tidied.model
+    }, before => sideReport(before, found, true), mcpLabel('tidy_layout', { id: view ?? 'all views' }), true)
+  })
 
   server.registerTool('put_flow', {
     description: 'Create or replace a flow: a step-by-step walkthrough played on one view. Answers with how each step reads there.',

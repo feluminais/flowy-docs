@@ -683,6 +683,20 @@ public static partial class EditOps
         return d;
     }
 
+    /// <summary>
+    /// Tidy one view: save where each box of it goes, with every neighbour on the side it sits on in the view above (see <see cref="Tidy.NeighbourSides"/>),
+    /// wherever boxes were dragged before. Positions are whole numbers.
+    /// </summary>
+    public static EditDoc TidyLayout(EditDoc doc, string view)
+    {
+        if (view != Names.Root && ObjectOf(doc, view) is null) throw new OpError($"unknown view \"{view}\"");
+        // Math.Round would take a half to the even number; JavaScript's Math.round takes it up.
+        var boxes = Tidy.TidySpots(doc.ToModel(), view).Select(kv => (kv.Key, Math.Floor(kv.Value.X + 0.5), Math.Floor(kv.Value.Y + 0.5))).ToList();
+        var d = doc.Clone();
+        d.Layout.Remove(view);
+        return PlaceBoxes(d, view, boxes);
+    }
+
     // ---- problems ------------------------------------------------------------------------------------------------
 
     // A step's number is left out: deleting or moving a step renumbers the problems after it, and they're still the same problems.

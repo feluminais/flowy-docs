@@ -51,6 +51,18 @@ function outsider(model: Model, x: string, v: string): string {
   return i <= 0 ? x : cx[i - 1]
 }
 
+/**
+ * Where an outsider of view v meets v: the view both branches share, the box standing for v there (`here`) and the box standing for x
+ * (`there`). Both are members of that view, so it shows how they sit side by side. Undefined for x itself being v or above it.
+ */
+export function meeting(model: Model, v: string, x: string): { view: string; here: string; there: string } | undefined {
+  const cx = chain(model, x)
+  const cv = chain(model, v)
+  const i = cx.findIndex(a => cv.includes(a))
+  const j = i < 0 ? -1 : cv.indexOf(cx[i])
+  return i <= 0 || j <= 0 ? undefined : { view: cx[i], here: cv[j - 1], there: cx[i - 1] }
+}
+
 /** Where a from → to line lands in view v, or null when v can't show it (or an end doesn't exist). */
 export function placeEnds(model: Model, v: string, from: string, to: string): [string, string] | null {
   if (!getObject(model, from) || !getObject(model, to)) return null

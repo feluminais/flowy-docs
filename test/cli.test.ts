@@ -220,3 +220,43 @@ test('flowy check names the file it cannot read, and belongs to no flags of the 
     assert.match(run.stderr, /^Usage: flowy[^]*flowy check \[--dir flowy\]/, args.join(' '))
   }
 })
+
+test('flowy tidy puts neighbours on the side they have in the view above, and --check only lists them', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-cli-tidy-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  await writeFile(join(dir, 'model.yaml'), `objects:
+  ordering: { type: system, name: Ordering }
+  backoffice: { type: system, name: Back office }
+  api: { type: app, name: Order API, in: ordering }
+  web: { type: app, name: Website, in: ordering }
+  admin: { type: app, name: Admin, in: backoffice }
+  console: { type: app, name: Console, in: backoffice }
+connections:
+  - { from: web, to: api }
+  - { from: admin, to: api }
+  - { from: console, to: api }
+  - { from: api, to: admin }
+`)
+  const flowy = (...args: string[]) => spawnSync(process.execPath, ['src/cli.ts', ...args, '--dir', dir], { encoding: 'utf8' })
+  const found = flowy('tidy', '--check')
+  assert.equal(found.status, 1)
+  assert.match(found.stderr, /^Found \d views?:\n- /)
+  assert.equal(found.stdout, '')
+  assert.deepEqual(await readdir(dir), ['model.yaml'], '--check writes nothing')
+
+  const tidied = flowy('tidy')
+  assert.equal(tidied.status, 0, tidied.stderr)
+  assert.match(tidied.stdout, /^Tidied \d views?:\n- /)
+  assert.ok((await readdir(dir)).includes('layout.yaml'))
+  const clean = flowy('tidy', '--check')
+  assert.equal(clean.status, 0, clean.stderr)
+  assert.match(clean.stdout, /^Every neighbour is on the side it has in the view above\./)
+})
+
+test('--check belongs to flowy tidy, and anywhere else prints the usage line', () => {
+  for (const args of [['check', '--check'], ['export', '--check'], ['--check'], ['failures', '--check'], ['mermaid', '--view', 'shop', '--check'], ['tidy', '--flow', 'x'], ['tidy', 'more']]) {
+    const run = spawnSync(process.execPath, ['src/cli.ts', ...args], { encoding: 'utf8' })
+    assert.equal(run.status, 1, args.join(' '))
+    assert.match(run.stderr, /^Usage: flowy[^]*flowy tidy \[--check\] \[--dir flowy\]/, args.join(' '))
+  }
+})

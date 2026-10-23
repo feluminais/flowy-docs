@@ -36,13 +36,13 @@
     "check:unused": "knip --no-progress"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.1.1",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
-    "@dagrejs/dagre": "^3.1.1",
     "@playwright/test": "^1.64.1",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",

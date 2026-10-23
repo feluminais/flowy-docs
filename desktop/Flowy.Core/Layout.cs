@@ -8,16 +8,17 @@ public enum Region { Left, Right, Below, Above }
 /// <summary>
 /// A view's members where the layered layout put them (<c>At</c>), how far they reach, and for each outsider the average place of
 /// the members it connects to (the middle when it connects to none). None of this changes while the outsiders move around.
-/// <c>People</c> only start lines and always wait above.
+/// <c>People</c> only start lines and always wait above, unless <c>Fixed</c> says where they wait: those outsiders stay on the side given
+/// (see <see cref="Tidy.NeighbourSides"/>) and never move.
 /// </summary>
 public sealed record Members(
     OrderedDictionary<string, Pt> At, double Left, double Right, double Top, double Bottom, Pt Middle,
-    OrderedDictionary<string, Pt> Mean, List<string> People, List<string> Rest);
+    OrderedDictionary<string, Pt> Mean, List<string> People, List<string> Rest, IReadOnlyDictionary<string, Region> Fixed);
 
 public sealed record Arranged(OrderedDictionary<string, Pt> At, List<List<string>> Rows, List<List<string>> Columns);
 
 /// <summary>
-/// Where the boxes of a view go when nothing is saved. A port of the placement half of ui/src/graph.ts: the same measure of how
+/// Where the boxes of a view go when nothing is saved. A port of the placement half of src/core/layout.ts: the same measure of how
 /// tangled a layout looks, the same arrangement of outsiders around the members, the same swaps. Only the layered layout under it
 /// (<see cref="LayeredLayout"/>) is the app's own, where the browser uses dagre.
 /// </summary>
@@ -211,8 +212,9 @@ public static class Layout
     /// <summary>Outsiders that only start lines (people, mostly). They always wait above.</summary>
     private static bool StartsOnly(string id, IReadOnlyList<Ends> edges) => edges.Any(e => e.From == id) && !edges.Any(e => e.To == id);
 
-    public static Members MembersOf(OrderedDictionary<string, Pt> inner, IReadOnlyList<string> outsiders, IReadOnlyList<Ends> edges)
+    public static Members MembersOf(OrderedDictionary<string, Pt> inner, IReadOnlyList<string> outsiders, IReadOnlyList<Ends> edges, IReadOnlyDictionary<string, Region>? fixedSides = null)
     {
+        fixedSides ??= new Dictionary<string, Region>();
         var spots = inner.Values.ToList();
         var left = spots.Count == 0 ? double.PositiveInfinity : spots.Min(p => p.X);
         var right = spots.Count == 0 ? double.NegativeInfinity : spots.Max(p => p.X) + BoxGeometry.BoxWidth;
@@ -226,8 +228,8 @@ public static class Layout
                 .SelectMany(end => inner.TryGetValue(end, out var p) ? [p] : Array.Empty<Pt>()).ToList();
             mean[id] = ps.Count == 0 ? middle : new Pt(ps.Sum(p => p.X) / ps.Count, ps.Sum(p => p.Y) / ps.Count);
         }
-        var people = outsiders.Where(id => StartsOnly(id, edges)).ToList();
-        return new Members(inner, left, right, top, bottom, middle, mean, people, outsiders.Where(id => !people.Contains(id)).ToList());
+        var people = outsiders.Where(id => StartsOnly(id, edges) && !fixedSides.ContainsKey(id)).ToList();
+        return new Members(inner, left, right, top, bottom, middle, mean, people, outsiders.Where(id => !people.Contains(id)).ToList(), fixedSides);
     }
 
     /// <summary>
@@ -283,7 +285,7 @@ public static class Layout
         {
             var changed = false;
             foreach (var id in region.Keys.ToList())
-                foreach (var r in Regions)
+                foreach (var r in m.Fixed.ContainsKey(id) ? [] : Regions)
                 {
                     var was = region[id];
                     if (r == was) continue;
@@ -324,8 +326,9 @@ public static class Layout
     /// outsiders from two places (split between the side columns, or all in rows below). From each start, outsiders move between sides while
     /// that helps, then boxes trade places. The least tangled wins, the first on a tie, so a clean view keeps its side columns.
     /// </summary>
-    public static OrderedDictionary<string, Pt> Place(IReadOnlyList<string> members, IReadOnlyList<string> around, IReadOnlyList<Edge> edges)
+    public static OrderedDictionary<string, Pt> Place(IReadOnlyList<string> members, IReadOnlyList<string> around, IReadOnlyList<Edge> edges, IReadOnlyDictionary<string, Region>? fixedSides = null)
     {
+        fixedSides ??= new Dictionary<string, Region>();
         var lines = edges.Select(e => new Ends(e.From, e.To)).ToList();
         int Degree(string id) => lines.Count(e => e.From == id || e.To == id);
         // Known limit: a big view tries one starting order with fewer passes, so it still opens without a pause.
@@ -358,12 +361,15 @@ public static class Layout
                 Consider(LayeredLayout.Place(all, lines, 60, 90), [all], []);
                 continue;
             }
-            var m = MembersOf(LayeredLayout.Place(order(members.ToList()), lines, 40, 70), order(around.ToList()), lines);
-            // Split by where their members are: the left half of them in the left column, the rest on the right.
-            var rest = m.Rest.OrderBy(id => m.Mean[id].X).ToList();
+            var m = MembersOf(LayeredLayout.Place(order(members.ToList()), lines, 40, 70), order(around.ToList()), lines, fixedSides);
+            // Split by where their members are: the left half of them in the left column, the rest on the right. Fixed outsiders keep their side.
+            var rest = m.Rest.Where(id => !fixedSides.ContainsKey(id)).OrderBy(id => m.Mean[id].X).ToList();
+            var given = m.Rest.Where(fixedSides.ContainsKey).ToList();
             var split = new OrderedDictionary<string, Region>();
+            foreach (var id in given) split[id] = fixedSides[id];
             for (var i = 0; i < rest.Count; i++) split[rest[i]] = i < rest.Count / 2 ? Region.Left : Region.Right;
             var below = new OrderedDictionary<string, Region>();
+            foreach (var id in given) below[id] = fixedSides[id];
             foreach (var id in rest) below[id] = Region.Below;
             foreach (var start in new[] { split, below })
             {
