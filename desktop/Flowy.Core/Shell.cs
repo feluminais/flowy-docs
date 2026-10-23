@@ -69,7 +69,7 @@ public static class RepoModels
     private const int Deepest = 5;
 
     /// <summary>Folders a model is never looked for in: dependencies, build output and the repo's own bookkeeping.</summary>
-    private static readonly HashSet<string> Skipped = ["node_modules", "dist", "build", "out", "bin", "obj", "target", "vendor", "coverage"];
+    private static readonly HashSet<string> Skipped = ["node_modules", "dist", "build", "out", "bin", "obj", "target", "vendor", "coverage", "publish", "fixtures", "AppData", "$RECYCLE.BIN", "System Volume Information"];
 
     /// <summary>The model folder at <paramref name="dir"/> as an entry: named for the repo folder or system it sits in.</summary>
     public static ModelEntry EntryOf(string root, string dir)
