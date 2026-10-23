@@ -26,5 +26,6 @@
   "states": "desktop/fixtures/cases/states/flowy",
   "failures": "desktop/fixtures/cases/failures/flowy",
   "no-value": "desktop/fixtures/cases/no-value/flowy",
-  "compare": "desktop/fixtures/cases/compare/flowy"
+  "compare": "desktop/fixtures/cases/compare/flowy",
+  "channels": "desktop/fixtures/cases/channels/flowy"
 }

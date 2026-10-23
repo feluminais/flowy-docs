@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { readdir, readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { dumpBeats } from '../desktop/fixtures/beats.ts'
+import { dumpChannels } from '../desktop/fixtures/channels.ts'
 import { dumpDetect, dumpHighlight } from '../desktop/fixtures/detect.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from '../desktop/fixtures/dump.ts'
 import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
@@ -111,6 +112,11 @@ test('desktop captions and progress bars still match what the TypeScript core sa
 test('desktop shape states, their problems and their marks still match what the TypeScript core says', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('state-folds'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(await dumpStates())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('desktop open channels, their problems and their kinds still match what the TypeScript core says', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('channel-folds'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpChannels())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('desktop history rules still match the TypeScript ones: diff, list, retention, labels, keys', async () => {

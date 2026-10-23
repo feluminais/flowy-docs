@@ -11,8 +11,11 @@ public sealed record Interceptor(string? Shape = null, string? Name = null);
 /// (an entry of <see cref="Animations.Outcomes"/>, or null). <c>Share</c> is the whole percent of the requests that meet the outcome (a burst plays when it is
 /// set), <c>Reason</c> says why in a few words, <c>By</c> is who takes an intercepted request and <c>At</c> how far along its line a lost one vanishes.
 /// <c>Effect</c> is what the blob does on its way besides travelling (an entry of <see cref="Animations.Effects"/>, or null for nothing).
+/// <c>Opens</c> is the kind of channel the step leaves open (an entry of <see cref="Animations.ChannelKinds"/>), <c>Name</c> its name, <c>Towards</c> the end it points at
+/// (from or to) and <c>Closes</c> the name of a channel the step closes.
 /// </summary>
-public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null, int? Share = null, string? Reason = null, Interceptor? By = null, double? At = null, string? Effect = null);
+public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null, int? Share = null, string? Reason = null, Interceptor? By = null, double? At = null, string? Effect = null,
+    string? Opens = null, string? Name = null, string? Towards = null, string? Closes = null);
 
 /// <summary>
 /// One thing to draw, in the order beats are listed. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop or fade (the lit line dims and stays dim), or one of
@@ -42,7 +45,18 @@ public static class Animations
     /// <summary>The outcomes that came after fail and timeout. They are valid on a send, a call and an event, never on a callback.</summary>
     private static readonly string[] TravelOutcomes = ["lost", "rejected", "intercepted", "duplicated", "delayed"];
 
-    private static readonly string[] Options = ["kind", "trigger", "carries", "outcome", "share", "reason", "by", "at"];
+    private static readonly string[] Options = ["kind", "trigger", "carries", "outcome", "share", "reason", "by", "at", "opens", "name", "towards", "closes"];
+
+    /// <summary>What a step can leave open once its request has arrived, so the story's later steps still show it: a stream, a listener or a job.</summary>
+    public static readonly string[] ChannelKinds = ["stream", "listener", "job"];
+
+    public static bool IsChannelKind(object? v) => v is string s && ChannelKinds.Contains(s);
+
+    /// <summary>The end a channel sits at when the step does not say: a stream heads to the step's <c>to</c>, a job runs there, and a listener is the shape that asked (<c>from</c>).</summary>
+    public static readonly IReadOnlyDictionary<string, string> DefaultEnd = new Dictionary<string, string> { ["stream"] = "to", ["listener"] = "from", ["job"] = "to" };
+
+    /// <summary>The options that leave a channel open, name it, point it, or close one.</summary>
+    private static readonly string[] ChannelOptions = ["opens", "name", "towards", "closes"];
 
     /// <summary>The longest a reason and an interceptor's name may be, in characters.</summary>
     public const int ReasonMax = 40;
@@ -123,6 +137,29 @@ public static class Animations
         return JsCompat.JsTrim((string)name!).Length > NameMax ? $"animation by name can be at most {NameMax} characters" : null;
     }
 
+    /// <summary>What is wrong with the channel options of an animation (opens, name, towards, closes), or null. A channel is left open or closed by a request that arrives.</summary>
+    private static string? ChannelProblem(IReadOnlyDictionary<string, object?> map, object? outcome)
+    {
+        map.TryGetValue("opens", out var opens);
+        map.TryGetValue("towards", out var towards);
+        if (opens is not null && !IsChannelKind(opens)) return $"animation opens must be {OrList(ChannelKinds)}";
+        if (towards is not null && towards is not ("from" or "to")) return "animation towards must be from or to";
+        foreach (var option in new[] { "name", "closes" })
+        {
+            if (!map.TryGetValue(option, out var value) || value is null) continue;
+            if (!PlainLine(value)) return $"animation {option} must be plain text on one line";
+            if (JsCompat.JsTrim((string)value).Length > NameMax) return $"animation {option} can be at most {NameMax} characters";
+        }
+        var closes = map.TryGetValue("closes", out var c) ? c : null;
+        if (opens is null)
+        {
+            foreach (var option in new[] { "name", "towards" }) if (map.TryGetValue(option, out var value) && value is not null) return $"animation {option} needs opens";
+        }
+        if (opens is not null && closes is not null) return "animation opens and closes cannot be on one step";
+        if ((opens is not null || closes is not null) && outcome is not null) return $"animation {(opens is null ? "closes" : "opens")} only applies to a request that arrives, not to outcome {outcome}";
+        return null;
+    }
+
     /// <summary>What is wrong with a step's <c>animation</c>, worded to follow "step N: ", or null. A blank tag is no tag; <paramref name="hasTo"/> is whether the step has a "to".</summary>
     public static string? Problem(object? raw, bool hasTo)
     {
@@ -171,6 +208,7 @@ public static class Animations
                 if (LostAtOf(at) is null) return "animation at must be a number from 0.1 to 0.9";
                 if (outcome is not "lost") return "animation at only applies to outcome lost";
             }
+            if (ChannelProblem(map, outcome) is { } channel) return channel;
         }
         return hasTo ? null : $"animation \"{name}\" needs a \"to\"";
     }
@@ -202,6 +240,10 @@ public static class Animations
         int? share = null;
         double? at = null;
         string? effect = null;
+        string? opens = null;
+        string? channelName = null;
+        string? towards = null;
+        string? closes = null;
         var trigger = "inside";
         if (map is not null)
         {
@@ -217,8 +259,15 @@ public static class Animations
             }
             if (map.TryGetValue("at", out var a)) at = LostAtOf(a);
             if (map.TryGetValue("effect", out var e) && e is string chosen && Effects.Contains(chosen)) effect = chosen;
+            if (map.TryGetValue("opens", out var op) && op is string opened && ChannelKinds.Contains(opened))
+            {
+                opens = opened;
+                if (map.TryGetValue("name", out var called) && called is string callName) channelName = JsCompat.JsTrim(callName);
+                if (map.TryGetValue("towards", out var end) && end is "from" or "to") towards = (string)end!;
+            }
+            if (map.TryGetValue("closes", out var cl) && cl is string closed) closes = JsCompat.JsTrim(closed);
         }
-        return new StepAnimation(kind, trigger, carries, outcome, share, reason, by, at, effect);
+        return new StepAnimation(kind, trigger, carries, outcome, share, reason, by, at, effect, opens, channelName, towards, closes);
     }
 
     /// <summary>How long something takes to run the length of a line: at least 1.2 seconds, so the eye can follow it, and at most 2.2.</summary>
@@ -267,6 +316,23 @@ public static class Animations
         ("delayed", "M6 12H15M29 12H38M22 6a6 6 0 1 0 .01 0M22 9v3l2 2"),
     ];
 
+    /// <summary>The drawings the edit pickers offer for what a step leaves open ("none" for nothing), on the same 44 by 24 grid as the sketches above.</summary>
+    public static readonly (string Id, string Path)[] ChannelSketches =
+    [
+        ("none", "M6 12H38"),
+        ("stream", "M5 12h.01M12 12h.01M19 12h.01M26 12h.01M33 12h.01M36 6l6 6l-6 6"),
+        ("listener", "M16 4a4 4 0 0 0 -4 4v3l-2 3h12l-2 -3v-3a4 4 0 0 0 -4 -4zM14 17a2 2 0 0 0 4 0M26 7a7 7 0 0 1 0 10M31 4a11 11 0 0 1 0 16"),
+        ("job", "M22 4a8 8 0 1 0 8 8M24 1l-3 3l3 3"),
+    ];
+
+    /// <summary>The drawings for which end of its line a channel points at ("none" is the usual end).</summary>
+    public static readonly (string Id, string Path)[] EndSketches =
+    [
+        ("none", "M6 12H38"),
+        ("from", "M6 12H38M6 5v14"),
+        ("to", "M6 12H38M38 5v14"),
+    ];
+
     /// <summary>
     /// Why an outcome cannot be picked for a step that travels as <paramref name="kind"/>, in a few words for a tooltip, or null when it can. The picker greys the choice
     /// out with this beside it, and the checks refuse the same pairs. An outcome of "" (the request arrives) always fits.
@@ -290,7 +356,7 @@ public static class Animations
     /// <summary>
     /// A step's <c>animation</c> with one key set, as the pickers of edit mode make it: a port of animationWith in src/core/animation.ts. The keys are kind, outcome,
     /// share, reason, at, carries, by (the id of a shape that takes the request) and byName (the name of a party that is not in the model). Null is no animation, a
-    /// string is the bare kind, and a mapping keeps the order of the keys that were there.
+    /// string is the bare kind, and a mapping keeps the order of the keys that were there. The channel keys are opens, name, towards and closes.
     /// </summary>
     public static object? With(object? current, string key, string value)
     {
@@ -317,6 +383,24 @@ public static class Animations
                     map["outcome"] = text;
                     if (text != "intercepted") Drop("by");
                     if (text != "lost") Drop("at");
+                    // A request that does not arrive leaves nothing open and closes nothing.
+                    Drop(ChannelOptions);
+                }
+                break;
+            case "opens":
+                if (text == "") Drop("opens", "name", "towards");
+                else
+                {
+                    map["opens"] = text;
+                    Drop(["closes", "outcome", .. NeedsOutcome]);
+                }
+                break;
+            case "closes":
+                if (text == "") Drop("closes");
+                else
+                {
+                    map["closes"] = text;
+                    Drop([.. ChannelOptions.Where(o => o != "closes"), "outcome", .. NeedsOutcome]);
                 }
                 break;
             case "byName":
@@ -338,6 +422,19 @@ public static class Animations
     /// moves aside so they never sit on it.
     /// </summary>
     public static bool LeavesMarks(StepAnimation a) => BeatsFor(a, 0, false).Beats.Any(b => b.Do is "pop" or "bar" or "clock" or "note" or "marker");
+
+    /// <summary>What each kind of channel is said to do when a step opens one, as the start of a line.</summary>
+    private static readonly IReadOnlyDictionary<string, string> OpensWords = new Dictionary<string, string> { ["stream"] = "Opens a stream", ["listener"] = "Starts listening", ["job"] = "Starts a job" };
+
+    /// <summary>
+    /// How the step's channel reads on the step card and in the Mermaid note, as a fragment: "Opens a stream: Orders", "Starts listening", "Closes Orders".
+    /// Null when the step neither opens nor closes one. A step that opens or closes has no outcome, so this and <see cref="OutcomeLine"/> never both say something.
+    /// </summary>
+    public static string? ChannelLine(StepAnimation a)
+    {
+        if (a.Opens is { } kind) return a.Name is null ? OpensWords[kind] : $"{OpensWords[kind]}: {a.Name}";
+        return a.Closes is null ? null : $"Closes {a.Closes}";
+    }
 
     private static string LowerFirst(string s) => s.Length == 0 ? s : char.ToLowerInvariant(s[0]) + s[1..];
 

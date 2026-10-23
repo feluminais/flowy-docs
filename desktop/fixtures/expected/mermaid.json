@@ -109,7 +109,7 @@
         },
         {
           "flow": "follow-the-courier",
-          "text": "sequenceDiagram\n  participant n0 as Courier app\n  participant n1 as Live tracking\n  participant n2 as Fleet DB\n  participant n3 as Ordering\n  loop Until the order is delivered: A position every 5 s.\n    n0->>n1: Sends its position\n    n1->>n2: Stores it\n    n1->>n3: Moves the courier on the customer's map\n  end\n  n0->>n3: Marks the order delivered\n"
+          "text": "sequenceDiagram\n  participant n0 as Ordering\n  participant n1 as Live tracking\n  participant n2 as Courier app\n  participant n3 as Fleet DB\n  n0->>n1: Opens the live map\n  Note over n0,n1: Opens a stream: Live map\n  loop Until the order is delivered: A position every 5 s.\n    n2->>n1: Sends its position\n    n1->>n3: Stores it\n    n1->>n0: Moves the courier on the customer's map\n  end\n  n2->>n0: Marks the order delivered\n  n0->>n1: Closes the live map\n  Note over n0,n1: Closes Live map\n"
         },
         {
           "flow": "hotel-wifi-takes-order",

@@ -1,0 +1,43 @@
+objects:
+  customer:
+    type: actor
+    name: Customer
+  shop:
+    type: system
+    name: Shop
+  web:
+    type: app
+    in: shop
+    name: Web app
+  api:
+    type: app
+    in: shop
+    name: API
+  orders:
+    type: component
+    in: api
+    name: Orders
+  auth:
+    type: component
+    in: api
+    name: Auth
+  db:
+    type: store
+    in: shop
+    name: Orders DB
+  stripe:
+    type: system
+    name: Stripe
+    external: "true"
+  "2":
+    type: system
+    name: Two
+  "10":
+    type: system
+    name: Ten
+connections:
+  - { from: customer, to: web, label: browses }
+  - { from: web, to: api, label: REST }
+  - { from: orders, to: db, label: reads/writes }
+  - { from: auth, to: db, label: checks users }
+  - { from: api, to: stripe, label: charges with }

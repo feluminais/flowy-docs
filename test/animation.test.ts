@@ -48,7 +48,7 @@ test('problems say what to fix', () => {
     [{ kind: '' }, true, `animation needs a kind (${kinds})`],
     [{ kind: ['send'] }, true, 'animation kind must be text'],
     [['send'], true, 'animation must be a kind or a mapping with a kind'],
-    [{ kind: 'send', speed: 'fast' }, true, 'unknown animation option "speed" (use kind, trigger, carries, outcome, share, reason, by, at)'],
+    [{ kind: 'send', speed: 'fast' }, true, 'unknown animation option "speed" (use kind, trigger, carries, outcome, share, reason, by, at, opens, name, towards, closes)'],
     [{ kind: 'callback', trigger: 'sideways' }, true, 'animation trigger must be inside or outside'],
     [{ kind: 'send', trigger: 'outside' }, true, 'animation trigger only applies to callback'],
     [{ kind: 'send', carries: ' ' }, true, 'animation carries must be a word'],
@@ -622,7 +622,7 @@ test('picking in edit mode builds the animation key by key and keeps it valid', 
 })
 
 test('animationFields gives the text each form field shows, for a tag, a mapping, a mistake or nothing', () => {
-  const none = { kind: '', outcome: '', share: '', reason: '', by: '', byName: '' }
+  const none = { kind: '', outcome: '', share: '', reason: '', by: '', byName: '', opens: '', name: '', towards: '', closes: '' }
   assert.deepEqual(animationFields({}), none)
   assert.deepEqual(animationFields({ animation: '' }), none)
   assert.deepEqual(animationFields({ animation: 'call' }), { ...none, kind: 'call' })
@@ -633,9 +633,9 @@ test('animationFields gives the text each form field shows, for a tag, a mapping
 
 test('animationFields keeps what is wrong so the form can show it, and ignores what is not text', () => {
   assert.equal(animationOf({ to: 'api', animation: { kind: 'teleport' } }), undefined)
-  assert.deepEqual(animationFields({ animation: { kind: 'teleport', outcome: 'vanished', share: 'many' } }), { kind: 'teleport', outcome: 'vanished', share: 'many', reason: '', by: '', byName: '' })
-  assert.deepEqual(animationFields({ animation: { kind: ['call'], share: true, by: { name: 4 } } }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '4' })
-  assert.deepEqual(animationFields({ animation: 7 }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '' })
+  assert.deepEqual(animationFields({ animation: { kind: 'teleport', outcome: 'vanished', share: 'many' } }), { kind: 'teleport', outcome: 'vanished', share: 'many', reason: '', by: '', byName: '', opens: '', name: '', towards: '', closes: '' })
+  assert.deepEqual(animationFields({ animation: { kind: ['call'], share: true, by: { name: 4 } } }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '4', opens: '', name: '', towards: '', closes: '' })
+  assert.deepEqual(animationFields({ animation: 7 }), { kind: '', outcome: '', share: '', reason: '', by: '', byName: '', opens: '', name: '', towards: '', closes: '' })
 })
 
 test('an effect is what a blob does on its way: read, kept after the other keys, and a wrong one is refused', () => {
@@ -656,7 +656,7 @@ test('an effect is what a blob does on its way: read, kept after the other keys,
   assert.equal(animationProblem({ kind: 'send', outcome: 'lost', share: 30, effect: 'wiggle' }, true), undefined)
   assert.equal('effect' in animationOf({ to: 'b', animation: { kind: 'send' } })!, false)
   // The message for an option nobody knows is as it was: an effect is an extra key and not one of the options it lists.
-  assert.equal(animationProblem({ kind: 'send', speed: 'fast' }, true), 'unknown animation option "speed" (use kind, trigger, carries, outcome, share, reason, by, at)')
+  assert.equal(animationProblem({ kind: 'send', speed: 'fast' }, true), 'unknown animation option "speed" (use kind, trigger, carries, outcome, share, reason, by, at, opens, name, towards, closes)')
   // The pickers of edit mode keep an effect that was written by hand.
   assert.deepEqual(animationWith({ kind: 'call', effect: 'bounce' }, 'outcome', 'timeout'), { kind: 'call', effect: 'bounce', outcome: 'timeout' })
   assert.deepEqual(animationWith({ kind: 'call', effect: 'bounce' }, 'kind', 'send'), { kind: 'send', effect: 'bounce' })

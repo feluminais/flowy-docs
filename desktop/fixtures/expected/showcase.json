@@ -655,6 +655,45 @@
       "name": "Compare · cache",
       "in": "compare",
       "description": "Only the newer flow calls it, so it is New."
+    },
+    {
+      "id": "channels",
+      "type": "system",
+      "name": "Open channels",
+      "description": "Three things a step can leave open for the steps after it: an **Open stream**, **Listening** and a **Running job**.\n\nPlay **Every open channel**: each one stays drawn until a step closes it, so you can see it keep running while the story moves on.\n"
+    },
+    {
+      "id": "chan-client",
+      "type": "app",
+      "name": "Channels · client",
+      "in": "channels",
+      "tech": "opens and closes",
+      "description": "Opens a stream, registers a listener and starts a job, then closes each one."
+    },
+    {
+      "id": "chan-feed",
+      "type": "app",
+      "name": "Channels · feed",
+      "in": "channels",
+      "tech": "stream",
+      "description": "`opens: stream`. Dots keep running along the line, towards the client, until a step closes it."
+    },
+    {
+      "id": "chan-hook",
+      "type": "app",
+      "name": "Channels · webhook",
+      "in": "channels",
+      "external": "true",
+      "tech": "listener",
+      "description": "`opens: listener`. A bell rings out from the client, which keeps listening for what the webhook sends."
+    },
+    {
+      "id": "chan-worker",
+      "type": "app",
+      "name": "Channels · worker",
+      "in": "channels",
+      "tech": "job",
+      "description": "`opens: job`. An arc keeps turning on the worker while the job runs."
     }
   ],
   "connections": [
@@ -924,6 +963,26 @@
       "from": "compare-api",
       "to": "compare-cache",
       "label": "keeps"
+    },
+    {
+      "from": "chan-client",
+      "to": "chan-feed",
+      "label": "opens a stream"
+    },
+    {
+      "from": "chan-client",
+      "to": "chan-hook",
+      "label": "registers a webhook"
+    },
+    {
+      "from": "chan-hook",
+      "to": "chan-client",
+      "label": "calls back"
+    },
+    {
+      "from": "chan-client",
+      "to": "chan-worker",
+      "label": "starts a job"
     }
   ],
   "layout": {
@@ -1063,6 +1122,24 @@
       "share-to": [
         360,
         1450
+      ]
+    },
+    "channels": {
+      "chan-client": [
+        0,
+        150
+      ],
+      "chan-feed": [
+        420,
+        0
+      ],
+      "chan-hook": [
+        420,
+        150
+      ],
+      "chan-worker": [
+        420,
+        300
       ]
     },
     "structure": {
@@ -1960,6 +2037,119 @@
       ]
     },
     {
+      "id": "open-channels",
+      "name": "Every open channel",
+      "view": "channels",
+      "steps": [
+        {
+          "from": "chan-client",
+          "to": "chan-feed",
+          "text": "Opens a stream of orders",
+          "description": "The call goes and the answer comes back, then dots keep running along the line towards the client.",
+          "animation": {
+            "kind": "call",
+            "opens": "stream",
+            "name": "Orders",
+            "towards": "from"
+          },
+          "placed": [
+            "chan-client",
+            "chan-feed"
+          ],
+          "ends": "Channels · client → Channels · feed"
+        },
+        {
+          "from": "chan-client",
+          "to": "chan-hook",
+          "text": "Registers a webhook",
+          "description": "Once the webhook has answered, a bell stays on the client, with a dotted line to the shape it listens to.",
+          "animation": {
+            "kind": "call",
+            "opens": "listener",
+            "name": "Payments"
+          },
+          "placed": [
+            "chan-client",
+            "chan-hook"
+          ],
+          "ends": "Channels · client → Channels · webhook"
+        },
+        {
+          "from": "chan-client",
+          "to": "chan-worker",
+          "text": "Starts a report job",
+          "description": "Once the job has started, an arc keeps turning on the worker.",
+          "animation": {
+            "kind": "send",
+            "opens": "job",
+            "name": "Report"
+          },
+          "placed": [
+            "chan-client",
+            "chan-worker"
+          ],
+          "ends": "Channels · client → Channels · worker"
+        },
+        {
+          "from": "chan-hook",
+          "to": "chan-client",
+          "text": "A payment arrives",
+          "description": "The bell runs to the client while the stream, the listener and the job all stay open.",
+          "animation": "callback",
+          "placed": [
+            "chan-hook",
+            "chan-client"
+          ],
+          "ends": "Channels · webhook → Channels · client"
+        },
+        {
+          "from": "chan-client",
+          "to": "chan-worker",
+          "text": "Cancels the report",
+          "description": "The arc goes when the request has landed.",
+          "animation": {
+            "kind": "send",
+            "closes": "Report"
+          },
+          "placed": [
+            "chan-client",
+            "chan-worker"
+          ],
+          "ends": "Channels · client → Channels · worker"
+        },
+        {
+          "from": "chan-client",
+          "to": "chan-feed",
+          "text": "Closes the stream",
+          "description": "The dots go when the request has landed.",
+          "animation": {
+            "kind": "send",
+            "closes": "Orders"
+          },
+          "placed": [
+            "chan-client",
+            "chan-feed"
+          ],
+          "ends": "Channels · client → Channels · feed"
+        },
+        {
+          "from": "chan-client",
+          "to": "chan-hook",
+          "text": "Removes the webhook",
+          "description": "The bell goes, and nothing is left open.",
+          "animation": {
+            "kind": "send",
+            "closes": "Payments"
+          },
+          "placed": [
+            "chan-client",
+            "chan-hook"
+          ],
+          "ends": "Channels · client → Channels · webhook"
+        }
+      ]
+    },
+    {
       "id": "parallel",
       "name": "Parallel",
       "view": "structure",
@@ -2368,6 +2558,7 @@
     "intercepted-by-name": [],
     "intercepted": [],
     "lost": [],
+    "open-channels": [],
     "parallel": [],
     "rejected": [],
     "repeat": [],
@@ -2393,7 +2584,8 @@
         "time",
         "compare",
         "scale",
-        "sources"
+        "sources",
+        "channels"
       ],
       "outsiders": [],
       "edges": []
@@ -2893,6 +3085,42 @@
           "from": "gateway",
           "to": "audit",
           "label": "logs",
+          "count": 1
+        }
+      ]
+    },
+    "channels": {
+      "id": "channels",
+      "members": [
+        "chan-client",
+        "chan-feed",
+        "chan-hook",
+        "chan-worker"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "chan-client",
+          "to": "chan-feed",
+          "label": "opens a stream",
+          "count": 1
+        },
+        {
+          "from": "chan-client",
+          "to": "chan-hook",
+          "label": "registers a webhook",
+          "count": 1
+        },
+        {
+          "from": "chan-hook",
+          "to": "chan-client",
+          "label": "calls back",
+          "count": 1
+        },
+        {
+          "from": "chan-client",
+          "to": "chan-worker",
+          "label": "starts a job",
           "count": 1
         }
       ]
