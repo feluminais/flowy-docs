@@ -120,8 +120,8 @@ export function Box({ id, data: { object, inside, icon, perf, fail, state, snap 
       {shown && <StateGlyph mark={shown} />}
       {inside > 0 && <span className="inside" style={{ right: badge[0], bottom: badge[1] }}><ZoomIn />{inside} inside</span>}
       <Handle type="source" position={Position.Bottom} isConnectable={isConnectable} />
-      {(short || clipped) && (
-        <NodeToolbar isVisible={hover} position={Position.Bottom} className="teaser">
+      {hover && (short || clipped) && ( // mounted only while pointed at: a toolbar asks the store about every shape on every pan and zoom, even one that shows nothing
+        <NodeToolbar isVisible position={Position.Bottom} className="teaser">
           {clipped && <div className="teaser-name"><b>{name}</b><span>{meta}</span></div>}
           {short && <Description text={short} />}
         </NodeToolbar>
