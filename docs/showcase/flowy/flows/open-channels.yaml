@@ -1,0 +1,38 @@
+name: Every open channel
+view: channels
+steps:
+  - from: chan-client
+    to: chan-feed
+    text: Opens a stream of orders
+    animation: { kind: call, opens: stream, name: Orders, towards: from }
+    description: The call goes and the answer comes back, then dots keep running along the line towards the client.
+  - from: chan-client
+    to: chan-hook
+    text: Registers a webhook
+    animation: { kind: call, opens: listener, name: Payments }
+    description: Once the webhook has answered, a bell stays on the client, with a dotted line to the shape it listens to.
+  - from: chan-client
+    to: chan-worker
+    text: Starts a report job
+    animation: { kind: send, opens: job, name: Report }
+    description: Once the job has started, an arc keeps turning on the worker.
+  - from: chan-hook
+    to: chan-client
+    text: A payment arrives
+    animation: callback
+    description: The bell runs to the client while the stream, the listener and the job all stay open.
+  - from: chan-client
+    to: chan-worker
+    text: Cancels the report
+    animation: { kind: send, closes: Report }
+    description: The arc goes when the request has landed.
+  - from: chan-client
+    to: chan-feed
+    text: Closes the stream
+    animation: { kind: send, closes: Orders }
+    description: The dots go when the request has landed.
+  - from: chan-client
+    to: chan-hook
+    text: Removes the webhook
+    animation: { kind: send, closes: Payments }
+    description: The bell goes, and nothing is left open.

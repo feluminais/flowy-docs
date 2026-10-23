@@ -21,3 +21,9 @@ test('Plum plays every kind of step, and uses states and every kind of group', (
   const groups = new Set(flows.flatMap(([, flow]) => Object.values(flow.groups ?? {}).map(g => g.kind)))
   assert.deepEqual([...groups].sort(), ['branch', 'parallel', 'repeat'])
 })
+
+test('Plum keeps something open: the live map is a stream that a later step closes', () => {
+  const live = flows.find(([id]) => id === 'follow-the-courier')![1].steps.map(s => animationOf(s))
+  assert.equal(live[0]?.opens, 'stream')
+  assert.equal(live.at(-1)?.closes, live[0]?.name)
+})

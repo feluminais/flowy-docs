@@ -45,8 +45,12 @@ internal sealed class Recorder : StackPanel
         public required FieldBox Reason;
         public required Chooser Takers;
         public required FieldBox TakerName;
+        public required Chooser Opens;
+        public required FieldBox ChannelName;
+        public required Chooser Towards;
+        public required Chooser Closes;
         public required Control Panel;
-        public required Action<Step> Sync;
+        public required Action<Step, IReadOnlyList<(string Name, string Kind)>> Sync;
     }
 
     private sealed class GroupCard
@@ -124,6 +128,14 @@ internal sealed class Recorder : StackPanel
     internal IReadOnlyList<Chooser> StepTakers => _rows.Select(r => r.Animation.Takers).ToList();
 
     internal IReadOnlyList<FieldBox> StepTakerNames => _rows.Select(r => r.Animation.TakerName).ToList();
+
+    internal IReadOnlyList<Chooser> StepOpens => _rows.Select(r => r.Animation.Opens).ToList();
+
+    internal IReadOnlyList<FieldBox> StepChannelNames => _rows.Select(r => r.Animation.ChannelName).ToList();
+
+    internal IReadOnlyList<Chooser> StepTowards => _rows.Select(r => r.Animation.Towards).ToList();
+
+    internal IReadOnlyList<Chooser> StepCloses => _rows.Select(r => r.Animation.Closes).ToList();
 
     internal IReadOnlyList<ComboBox> StepFlowBoxes => _rows.Select(r => r.Flow.Box).ToList();
 
@@ -248,6 +260,8 @@ internal sealed class Recorder : StackPanel
             _steps.Children.Clear();
             for (var i = 0; i < steps.Count; i++) _steps.Children.Add(BuildRow(model, rec.Id, steps, i, declared, others));
         }
+        // What a step can close is what is open when its stop is reached, which the other steps' animations decide, so it is worked out afresh at every update.
+        var stops = flow is null ? [] : Structure.Stops(flow);
         for (var i = 0; i < steps.Count; i++)
         {
             _rows[i].Text.Sync(steps[i].Text ?? "");
@@ -257,7 +271,7 @@ internal sealed class Recorder : StackPanel
             _rows[i].Flow.Sync(JsCompat.JsTrim(steps[i].FlowId ?? ""));
             _rows[i].Lane.Sync(steps[i].Lane ?? "");
             _rows[i].Lane.IsVisible = group != "" && FlowForm.HasLanes(FlowForm.KindOf(declared, group));
-            _rows[i].Animation.Sync(steps[i]);
+            _rows[i].Animation.Sync(steps[i], flow is null ? [] : Channels.ClosableAt(flow, stops, i));
             foreach (var (shape, tiles) in _rows[i].States) tiles.Show(FlowForm.StateWord(steps[i].States, shape));
         }
         if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
@@ -671,15 +685,31 @@ internal sealed class Recorder : StackPanel
                 Children = { Chrome.ObjectTile(model, o, 20), new TextBlock { Text = name, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis } },
             });
         }
-        var panel = new StackPanel { Spacing = 10, Children = { kind, outcome, share, reason, takers, takerName } };
-        void Sync(Step step)
+        // What it leaves open, the name it goes by, the end it points at, and what it closes (the names open at its stop, listed by Sync).
+        var opens = new Chooser("Leaves open", new UniformGrid { Columns = 4 }, id => Set("opens", id), id => id == "" ? "Nothing" : Channels.Labels.GetValueOrDefault(id, id)); // a file may name a kind nobody knows: its own word stands
+        foreach (var (id, path) in Animations.ChannelSketches)
         {
-            var (k, o, s, r, by, byName) = FlowForm.ReadAnimation(step.Animation);
+            var name = id == "none" ? "Nothing" : Channels.Labels[id];
+            opens.Add(id == "none" ? "" : id, name, SketchCell(path, name));
+        }
+        var channelName = new FieldBox($"Name ({Animations.NameMax} characters)", "", false, v => Set("name", v), "e.g. Orders");
+        var towards = new Chooser("Points at", new UniformGrid { Columns = 3 }, id => Set("towards", id), id => id == "" ? "Usual end" : Title(id));
+        foreach (var (id, path) in Animations.EndSketches)
+        {
+            var name = id == "none" ? "Usual end" : Title(id);
+            towards.Add(id == "none" ? "" : id, name, SketchCell(path, name));
+        }
+        var openNames = new HashSet<string>();
+        var closes = new Chooser("Closes", new UniformGrid { Columns = 4 }, id => Set("closes", id), id => id == "" ? "Nothing" : openNames.Contains(id) ? id : $"{id} · not open");
+        var closeOptions = "";
+        var panel = new StackPanel { Spacing = 10, Children = { kind, outcome, share, reason, takers, takerName, opens, channelName, towards, closes } };
+        void Sync(Step step, IReadOnlyList<(string Name, string Kind)> closable)
+        {
+            var (k, o, s, r, by, byName, op, called, toward, closing) = FlowForm.ReadAnimation(step.Animation);
             var travels = FlowForm.Travels(step);
             kind.Show(k);
             foreach (var id in kind.Ids) kind.Allow(id, FlowForm.KindBlock(id, travels));
             outcome.Show(o);
-            foreach (var id in outcome.Ids) outcome.Allow(id, Animations.OutcomeBlock(k, id));
             var noOutcome = FlowForm.OutcomeFieldsBlock(o);
             share.Sync(s);
             share.IsEnabled = noOutcome is null;
@@ -693,10 +723,38 @@ internal sealed class Recorder : StackPanel
             takerName.Sync(byName);
             takerName.IsEnabled = noTakerName is null;
             ToolTip.SetTip(takerName, noTakerName);
+
+            // A request that arrives is what leaves a channel open or closes one, so an outcome and a channel exclude each other, each dimmed with the reason in its tooltip.
+            var channelled = op != "" || closing != "";
+            foreach (var id in outcome.Ids) outcome.Allow(id, Animations.OutcomeBlock(k, id) ?? (id != "" && channelled ? "Not while it opens or closes something" : null));
+            string? Away(bool closesIt) => !travels ? "Needs two shapes" : k == "" ? "Pick how it travels first" : o != "" ? "Not while it ends as something else" : closesIt ? "Not while it closes something" : null;
+            opens.Show(op);
+            foreach (var id in opens.Ids) opens.Allow(id, id == "" ? null : Away(closing != ""));
+            var noName = op == "" ? "Pick what it leaves open first" : null;
+            channelName.Sync(called);
+            channelName.IsEnabled = noName is null;
+            ToolTip.SetTip(channelName, noName);
+            towards.Show(toward);
+            foreach (var id in towards.Ids) towards.Allow(id, noName);
+            // The names open at this step's stop; one the step still names that is not open stays on offer, marked, so it can be seen and changed.
+            var stale = closing != "" && !closable.Any(c => c.Name == closing) ? closing : "";
+            var listed = string.Join('', closable.Select(c => $"{c.Name}{c.Kind}")) + '' + stale;
+            openNames.Clear();
+            foreach (var (name, _) in closable) openNames.Add(name);
+            if (listed != closeOptions)
+            {
+                closeOptions = listed;
+                closes.Clear();
+                closes.Add("", "Nothing", SketchCell(Animations.ChannelSketches[0].Path, "Nothing"));
+                foreach (var (name, kindOf) in closable) closes.Add(name, name, SketchCell(Animations.ChannelSketches.First(c => c.Id == kindOf).Path, name));
+                if (stale != "") closes.Add(stale, $"{stale} · not open", SketchCell(Animations.ChannelSketches[0].Path, $"{stale} · not open"));
+            }
+            closes.Show(closing);
+            foreach (var id in closes.Ids) closes.Allow(id, id == "" ? null : !travels ? "Needs two shapes" : k == "" ? "Pick how it travels first" : o != "" ? "Not while it ends as something else" : op != "" ? "Not while it leaves something open" : null);
         }
         panel.IsVisible = first.Animation is not null && first.Animation is not "";
-        var row = new AnimationRow { Kind = kind, Outcome = outcome, Share = share, Reason = reason, Takers = takers, TakerName = takerName, Panel = panel, Sync = Sync };
-        Sync(first);
+        var row = new AnimationRow { Kind = kind, Outcome = outcome, Share = share, Reason = reason, Takers = takers, TakerName = takerName, Opens = opens, ChannelName = channelName, Towards = towards, Closes = closes, Panel = panel, Sync = Sync };
+        Sync(first, []);
         return row;
     }
 

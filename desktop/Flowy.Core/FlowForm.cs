@@ -1,7 +1,7 @@
 namespace Flowy.Core;
 
 /// <summary>What a step's animation says, read for the edit form: its kind, outcome, share, reason, the shape that takes it and the name that does. All text, "" when not there.</summary>
-public readonly record struct AnimationFields(string Kind, string Outcome, string Share, string Reason, string By, string ByName);
+public readonly record struct AnimationFields(string Kind, string Outcome, string Share, string Reason, string By, string ByName, string Opens = "", string Name = "", string Towards = "", string Closes = "");
 
 /// <summary>
 /// The rules behind the flow edit form that need no controls: what text stands for a step, which fields an outcome switches on, and how a pick
@@ -69,7 +69,8 @@ public static class FlowForm
         var map = raw as OrderedDictionary<string, object?> ?? (raw is string bare && bare != "" ? new OrderedDictionary<string, object?> { ["kind"] = bare } : []);
         string Text(string key) => map.TryGetValue(key, out var v) && v is string s ? s : "";
         var by = map.TryGetValue("by", out var taker) ? taker : null;
-        return new(Text("kind"), Text("outcome"), Text("share"), Text("reason"), by as string ?? "", by is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name ? name : "");
+        return new(Text("kind"), Text("outcome"), Text("share"), Text("reason"), by as string ?? "", by is OrderedDictionary<string, object?> named && named.TryGetValue("name", out var n) && n is string name ? name : "",
+            Text("opens"), Text("name"), Text("towards"), Text("closes"));
     }
 
     /// <summary>Whether the step moves a request between two shapes. A step on one shape travels nowhere.</summary>

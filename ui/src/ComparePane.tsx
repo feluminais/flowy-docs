@@ -20,6 +20,7 @@ import { GroupMarks } from './GroupMarks.tsx'
 import { ChevronRight, Home } from './icons.tsx'
 import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
+import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
 import { usePaneFlow } from './usePaneFlow.ts'
 import type { PaneFlow } from './usePaneFlow.ts'
@@ -164,9 +165,10 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
 
 /** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), and the marks of the stop's group. */
 export function PaneMotions({ p }: { p: PaneFlow }) {
-  const { flow, stop, animated, stepKey, shown, repeat, finished } = p
+  const { flow, stop, animated, stepKey, shown, repeat, finished, open } = p
   return (
     <>
+      {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
       {flow && stop && animated.map(m => (
         <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
       ))}
@@ -177,10 +179,10 @@ export function PaneMotions({ p }: { p: PaneFlow }) {
 
 /** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. With marks, its progress bar marks the steps that differ. */
 export function PanePlayer({ model, p, marks }: { model: Model; p: PaneFlow; marks?: SideMarks }) {
-  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
+  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
   if (!(flow && stop && caption && progress)) return null
   return (
-    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
+    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} auto={playing?.auto === true} moving={moving}
       changes={marks?.steps} repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
   )
 }
