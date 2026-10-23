@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src", "test", "perf-lab"]
+  "include": ["src", "test", "perf-lab", "bench"]
 }
