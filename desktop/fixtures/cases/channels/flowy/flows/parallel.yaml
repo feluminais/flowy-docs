@@ -1,0 +1,10 @@
+name: One stop that opens and closes together
+view: shop
+groups:
+  both: { kind: parallel }
+steps:
+  - { from: web, to: api, text: Asks, animation: { kind: call, opens: listener, name: Hook } }
+  - { from: api, to: db, text: Opens a stream, group: both, lane: Order, animation: { kind: send, opens: stream, name: Rows } }
+  - { from: api, to: stripe, text: Closes the hook, group: both, lane: Pay, animation: { kind: send, closes: Hook } }
+  - { from: web, to: api, text: Then }
+  - { from: web, to: api, text: Closes the rows, animation: { kind: send, closes: Rows } }

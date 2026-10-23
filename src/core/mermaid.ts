@@ -1,4 +1,4 @@
-import { animationOf, outcomeLine } from './animation.ts'
+import { animationOf, channelLine, outcomeLine } from './animation.ts'
 import { colorPair, isColor, isOpacity, fillOpacity, shapeOf, typeColor } from './look.ts'
 import type { Shape } from './look.ts'
 import { getObject, ROOT } from './model.ts'
@@ -83,7 +83,7 @@ export function flowToMermaid(model: Model, flowId: string): string {
   // A step that ends in an outcome (lost, rejected, a share of the calls) says so in a note over its ends, in the words of the step card.
   const outcome = (s: (typeof flow.steps)[number]) => {
     const a = animationOf(s)
-    const line = a && outcomeLine(a, id => String(getObject(model, id)?.name || id))
+    const line = a && (outcomeLine(a, id => String(getObject(model, id)?.name || id)) ?? channelLine(a))
     return line === undefined ? undefined : mermaidText(line)
   }
   const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')), outcome: outcome(s) }))

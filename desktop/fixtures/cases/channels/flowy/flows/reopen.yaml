@@ -1,0 +1,8 @@
+name: A name that is opened while it is open
+view: shop
+steps:
+  - { from: api, to: db, text: Opens it, animation: { kind: send, opens: stream, name: Feed } }
+  - { from: api, to: stripe, text: Opens it again, animation: { kind: send, opens: job, name: Feed } }
+  - { from: web, to: api, text: Then, animation: { kind: send, closes: Feed } }
+  - { from: web, to: api, text: Closes it again, animation: { kind: send, closes: Feed } }
+  - { from: web, to: api, text: End }

@@ -1,4 +1,4 @@
-import { animationOf, outcomeLine } from '../../src/core/animation.ts'
+import { animationOf, channelLine, outcomeLine } from '../../src/core/animation.ts'
 import { LEGEND } from '../../src/core/captions.ts'
 import type { Caption, Progress } from '../../src/core/captions.ts'
 import type { Change } from '../../src/core/flowdiff.ts'
@@ -7,10 +7,12 @@ import type { GroupKind, Stop } from '../../src/core/structure.ts'
 import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CHANGE_NAMES, changeOfStop } from './compare.ts'
+import type { ChannelKind } from '../../src/core/animation.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
 import type { ReactNode } from 'react'
 import { ArrowLeft, ArrowRight, ArrowsSplit, Close, Columns, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
+import { ChannelKey } from './Channels.tsx'
 import { StateKey } from './states.tsx'
 import { usePref } from './store.ts'
 
@@ -34,6 +36,8 @@ type Props = {
   progress: Progress
   /** The shapes on the canvas that are in a state at this stop (see marksOf), for the key. */
   marks: Record<string, StateMark>
+  /** The kinds of channel open at this stop (see channelsAt), for the key. */
+  channels: ChannelKind[]
   auto: boolean
   moving: boolean
   /** Whether a step that moves plays again after a rest. */
@@ -108,7 +112,7 @@ function Bar({ progress, now, stops, changes }: { progress: Progress; now: numbe
 }
 
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
-export function Player({ model, flow, stops, stop, ends, caption, progress, marks, auto, moving, repeat, trail, changes, compare, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, auto, moving, repeat, trail, changes, compare, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
@@ -148,18 +152,22 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
       {caption.text !== '' && <p className="group-text">{caption.text}</p>}
       <Bar progress={progress} now={stop} stops={stops} changes={changes} />
       <StateKey marks={marks} />
+      <ChannelKey kinds={channels} />
       {here.steps.map((i, n) => {
         const step = flow.steps[i]
         const link = typeof step.flow === 'string' && step.flow.trim() !== '' ? step.flow.trim() : undefined
         const target = link !== undefined && Object.hasOwn(model.flows, link) ? model.flows[link] : undefined
         const animation = animationOf(step)
-        const outcome = animation && outcomeLine(animation, id => nameOf(model, id))
+        const ended = animation && outcomeLine(animation, id => nameOf(model, id))
+        // What a step leaves open or closes is not a failure, so it is told in the accent colour, not the outcome's red.
+        const channel = animation && ended === undefined ? channelLine(animation) : undefined
+        const outcome = ended ?? channel
         return (
           <div key={i} className={here.steps.length > 1 ? 'lane-block' : undefined}>
             {caption.lanes[n] && <p className="lane-name">{caption.lanes[n]}</p>}
             <p className="player-ends">{stepEnds(model, step, ends[i])}</p>
             <p>{step.text}</p>
-            {outcome !== undefined && <p className="player-outcome">{outcome}</p>}
+            {outcome !== undefined && <p className={channel === undefined ? 'player-outcome' : 'player-outcome channel'}>{outcome}</p>}
             {step.description && (
               <details key={`${stop}-${i}`} className="more">
                 <summary>More</summary>

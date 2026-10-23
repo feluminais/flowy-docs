@@ -1321,6 +1321,22 @@
       "view": "delivery",
       "steps": [
         {
+          "from": "customer-app",
+          "to": "tracking",
+          "text": "Opens the live map",
+          "animation": {
+            "kind": "call",
+            "opens": "stream",
+            "name": "Live map",
+            "towards": "from"
+          },
+          "placed": [
+            "ordering",
+            "tracking"
+          ],
+          "ends": "Customer app in Ordering → Live tracking"
+        },
+        {
           "from": "courier-app",
           "to": "tracking",
           "text": "Sends its position",
@@ -1376,6 +1392,20 @@
             "ordering"
           ],
           "ends": "Courier app → Order API in Ordering"
+        },
+        {
+          "from": "customer-app",
+          "to": "tracking",
+          "text": "Closes the live map",
+          "animation": {
+            "kind": "send",
+            "closes": "Live map"
+          },
+          "placed": [
+            "ordering",
+            "tracking"
+          ],
+          "ends": "Customer app in Ordering → Live tracking"
         }
       ],
       "groups": {

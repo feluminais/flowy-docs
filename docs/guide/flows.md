@@ -1,6 +1,6 @@
 # Flows
 
-How a request ends, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
+How a request ends, streams and listeners that stay open, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
 
 ## How a request ends
 
@@ -50,6 +50,33 @@ too long or has a line break, `by` on any other outcome, `intercepted` with no `
 or on any other outcome.
 
 The `put_flow` tool takes the same keys, and is told to give a step an outcome only where it really ends that way.
+
+## Streams, listeners and jobs
+
+Some steps leave something running. A subscribe opens a stream, a webhook registration makes a shape listen, a start request begins a job. A step's `animation` can say so with `opens`, and the mark stays drawn on every step after it until a step `closes` it.
+
+| `opens` | What you see | Where |
+| --- | --- | --- |
+| `stream` | Dots keep running along the line, in the direction the data goes | On the step's line, towards `to` |
+| `listener` | A bell on the shape that listens, with rings going out and a dotted line to the shape it listens to | At `from` |
+| `job` | An arc keeps turning on the shape the work runs on | At `to` |
+
+```yaml
+- { from: client, to: feed, text: Opens a stream of orders, animation: { kind: call, opens: stream, name: Orders, towards: from } }
+- { from: client, to: hook, text: Registers a webhook, animation: { kind: call, opens: listener, name: Payments } }
+- { from: hook, to: client, text: A payment arrives, animation: callback }
+- { from: client, to: feed, text: Closes the stream, animation: { kind: send, closes: Orders } }
+```
+
+- `towards` says which end of the line the mark points at, when the story runs the other way. A stream that the server pushes back to the caller is `towards: from`.
+- `name` is up to 24 characters and is drawn beside the mark. A channel with no name stays open to the end of the flow. A step that has a `closes` finds its channel by name.
+- A channel appears when its step's motion has landed and goes when the closing step's motion has landed. The step card says it in a few words ("Opens a stream: Orders", "Closes Orders"), and so does the Mermaid export.
+- The state at any stop is worked out from the steps before it, so stepping back needs no undo. In a branch each lane starts from what was open before the branch, and what the last lane opened carries on after it.
+- The player card has a key for the kinds that are open now. With reduced motion nothing moves: the dots, the bell and the arc are drawn still.
+
+Only a request that arrives can open or close one, so `opens` and `closes` refuse an `outcome`. The checker also refuses a `closes` for a name nothing has open at that step, an `opens` for a name that is already open, and a `name` or `towards` with no `opens`.
+
+The showcase has a flow for it, [Every open channel](../showcase/flowy/flows/open-channels.yaml). The `put_flow` tool takes the same keys.
 
 ## Repeats, branches and parallel steps
 

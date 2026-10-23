@@ -152,13 +152,14 @@ internal sealed class PaneFlow
             _fitted = true;
             _canvas.Fit(0, true, 0, 0, refit: false); // once, when the pane first has a size; after that the reader's zoom stays through a resize
         }
-        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.Auto, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps);
+        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.Auto, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps, _canvas.ChannelKindsShown);
         _player.Show(card);
         _canvas.SetMarks(marks);
 
         // The motion of the step on show starts once for each step and replay: a hover, a theme or a change on disk redraws without starting it again.
         if (!_playback.Begin(_flowId, index, out var key)) return;
         _canvas.StopStep();
+        _canvas.RestartChannels();
         if (shown is not null)
         {
             var runs = FlowStage.RunsOf(model, view, flow, stops, index, shown);
@@ -189,6 +190,7 @@ internal sealed class PaneFlow
         _canvas.SetScene(frame.Scene, _lineStyle, frame.Selected);
         _canvas.ShowChanges(Changes);
         _canvas.ShowStates(States.Marks(_folder.Model, States.At(flow, stops, StopNow)));
+        _canvas.ShowChannels(FlowStage.OpenAt(_folder.Model, Level, flow, stops, StopNow));
         return frame.Shown;
     }
 
