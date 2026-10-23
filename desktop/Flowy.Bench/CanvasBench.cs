@@ -67,6 +67,38 @@ internal static class CanvasBench
         double Frame() => Time(() => target.Render(window));
 
         var folder = FolderLoader.Load(dir);
+        if (Environment.GetEnvironmentVariable("OPENSPLIT") is not null)
+        {
+            var scene = SceneBuilder.Build(folder.Model, "sys-0");
+            Row("  build the scene", Time(() => SceneBuilder.Build(folder.Model, "sys-0")));
+            var made = new List<Flowy.App.Canvas.BoxControl>();
+            Row("  make the box controls", Time(() => { foreach (var b in scene.Boxes) made.Add(new Flowy.App.Canvas.BoxControl(b)); }));
+            var cv = new Flowy.App.Canvas.CanvasView();
+            var w2 = new Window { Width = 1400, Height = 900, Content = cv };
+            w2.Show();
+            Row("  set the scene on a canvas (make + attach)", Time(() => cv.SetScene(scene, "straight", [])));
+            Row("  layout and styles", Time(() => Dispatcher.UIThread.RunJobs()));
+            w2.Close();
+            foreach (var kind in new[] { "Grid", "Path", "TextBlock", "Border" })
+            {
+                var holder = new Avalonia.Controls.Canvas();
+                var w4 = new Window { Width = 1400, Height = 900, Content = holder };
+                w4.Show();
+                var items = Enumerable.Range(0, 9000).Select(_ => kind switch { "Grid" => (Control)new Grid(), "Path" => new Avalonia.Controls.Shapes.Path { Width = 10, Height = 10 }, "TextBlock" => new TextBlock { Text = "x" }, _ => new Border() }).ToList();
+                Row($"  attach 9000 plain {kind}", Time(() => { foreach (var c in items) holder.Children.Add(c); Dispatcher.UIThread.RunJobs(); }));
+                w4.Close();
+            }
+            foreach (var withClass in new[] { true, false })
+            {
+                var fresh = scene.Boxes.Select(b => new Flowy.App.Canvas.BoxControl(b)).ToList();
+                if (!withClass) foreach (var c in fresh) c.Classes.Remove("box");
+                var holder = new Avalonia.Controls.Canvas();
+                var w3 = new Window { Width = 1400, Height = 900, Content = holder };
+                w3.Show();
+                Row($"  attach {fresh.Count} boxes, class box {(withClass ? "on" : "off")}", Time(() => { foreach (var c in fresh) holder.Children.Add(c); Dispatcher.UIThread.RunJobs(); }));
+                w3.Close();
+            }
+        }
         Row("open the view (build scene, make every box)", Time(() => { reader.Load(folder, dir); reader.GoTo("sys-0"); Settle(); }));
         Row("first frame drawn", Frame());
         if (Environment.GetEnvironmentVariable("SHOT") is { } shot) { using var file = File.Create(shot);
