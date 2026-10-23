@@ -289,6 +289,8 @@ public class KeyMapTests
         Assert.Equal("undo-move", Pick(Key.Back, PhysicalKey.Backspace, State(editing: true, drag: true, inside: true)));
         Assert.Equal("up", Pick(Key.Back, PhysicalKey.Backspace, State(editing: true, drag: true, shortcuts: true, inside: true))); // the list is open: Backspace goes up
         Assert.Equal("up", Pick(Key.Z, PhysicalKey.Z, State(editing: true, drag: true, inside: true)));
+        Assert.Equal("up", Pick(Key.Z, PhysicalKey.Z, State() with { Compare = true, PaneInside = true })); // a pane of a comparison zoomed into a shape
+        Assert.NotEqual("up", Pick(Key.Z, PhysicalKey.Z, State() with { Compare = true }));
         Assert.Null(Pick(Key.Back, PhysicalKey.Backspace, State(), KeyModifiers.Control));
         Assert.Equal("perf-step", Pick(Key.Right, PhysicalKey.ArrowRight, State(perf: true, flow: true)));
         Assert.Equal("flow-step", Pick(Key.Right, PhysicalKey.ArrowRight, State(flow: true)));

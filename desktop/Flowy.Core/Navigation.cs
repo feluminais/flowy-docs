@@ -133,17 +133,17 @@ public static class Navigation
 
     /// <summary>
     /// Escape peels one layer per press: the shortcut list, the navigator (Flows and Explorer) when it is the last thing you used, a flow playing,
-    /// the Details or Performance panel, a comparison of two flows (which takes the place of the flow playing, so the two are never open together), and then the level you are in, back to the one you came from
+    /// the Details or Performance panel, a pane of a comparison zoomed into a shape, a comparison of two flows (which takes the place of the flow playing, so the two are never open together), and then the level you are in, back to the one you came from
     /// (the level above, when there is none). At the top, with nothing open, nothing.
     /// <paramref name="navigator"/> is true only when the navigator is open and your last click or key was in it: Escape in the diagram leaves it alone.
     /// </summary>
-    public static EscapeStep? Escape(bool shortcuts, bool navigator, bool flow, bool panel, bool compare, bool inside)
+    public static EscapeStep? Escape(bool shortcuts, bool navigator, bool flow, bool panel, bool compare, bool inside, bool paneInside = false)
     {
         if (shortcuts) return EscapeStep.Shortcuts;
         if (navigator) return EscapeStep.Navigator;
         if (flow) return EscapeStep.Flow;
         if (panel) return EscapeStep.Panel;
-        if (compare) return EscapeStep.Compare;
+        if (compare) return paneInside ? EscapeStep.Back : EscapeStep.Compare; // a pane zoomed into a shape goes back up before the comparison closes
         return inside ? EscapeStep.Back : null;
     }
 }
