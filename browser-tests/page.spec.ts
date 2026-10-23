@@ -126,3 +126,44 @@ test.describe('Esc goes back', () => {
     expect(await level()).toMatch(/^(#root)?$/)
   })
 })
+
+test.describe('pointing at a line', () => {
+  test('marks that line, and only that one; moving off takes the mark away', async ({ page }) => {
+    await open(page, '/#ordering', 'light')
+    // A point on each line, in pixels.
+    const lines = await page.evaluate(() => Array.from(document.querySelectorAll<SVGPathElement>('.react-flow__edge')).flatMap(edge => {
+      const path = edge.querySelector<SVGPathElement>('.react-flow__edge-path')
+      const m = path?.getScreenCTM()
+      if (!path || !m) return []
+      const at = path.getPointAtLength(path.getTotalLength() / 2)
+      return [{ id: edge.getAttribute('data-id') ?? '', x: at.x * m.a + at.y * m.c + m.e, y: at.x * m.b + at.y * m.d + m.f }]
+    }))
+    expect(lines.length).toBeGreaterThan(1)
+    const target = lines[0]
+    await page.mouse.move(target.x, target.y)
+    await expect(page.locator('.react-flow__edge-path.hot')).toHaveCount(1)
+    await expect(page.locator(`.react-flow__edge[data-id="${target.id}"] .react-flow__edge-path.hot`)).toHaveCount(1)
+    await page.mouse.move(5, 500)
+    await expect(page.locator('.react-flow__edge-path.hot')).toHaveCount(0)
+  })
+
+  test('a line that has a label shows it while it is pointed at, and not after', async ({ page }) => {
+    await open(page, '/#ordering', 'light')
+    const points = await page.evaluate(() => Array.from(document.querySelectorAll<SVGPathElement>('.react-flow__edge-path')).flatMap(path => {
+      const m = path.getScreenCTM()
+      if (!m) return []
+      const at = path.getPointAtLength(path.getTotalLength() / 2)
+      return [{ x: at.x * m.a + at.y * m.c + m.e, y: at.x * m.b + at.y * m.d + m.f }]
+    }))
+    const labels = () => page.locator('.react-flow__edge-text').count()
+    const quiet = await labels()
+    let showed = 0
+    for (const p of points) {
+      await page.mouse.move(p.x, p.y)
+      if ((await labels()) > quiet) showed++
+      await page.mouse.move(5, 500)
+      expect(await labels()).toBe(quiet)
+    }
+    expect(showed).toBeGreaterThan(0)
+  })
+})

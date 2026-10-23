@@ -12,7 +12,7 @@ import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { BOX, FRAME, fitOptions, isStepLine, lineId } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
-import { LabelSpotsContext, Line, LineStyleContext } from './Line.tsx'
+import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { PaneMotions, PanePlayer } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
 import { FADE_MS, planSwap, SWAP_MS, swapDuration } from './swap.ts'
@@ -146,7 +146,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
       <h2 className="pane-title" title={name}>{name}</h2>
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
-          <LabelSpotsContext value={spots}>
+          <LabelSpots spots={spots}>
             <ChangeMarksContext value={marks?.[index]}>
               <ReactFlow
                 id={`swap-${paneId}`}
@@ -184,7 +184,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
                 {settled && <PaneMotions p={target} />}
               </ReactFlow>
             </ChangeMarksContext>
-          </LabelSpotsContext>
+          </LabelSpots>
         </LineStyleContext>
       </div>
       <PanePlayer model={model} p={target} marks={marks?.[index]} />
