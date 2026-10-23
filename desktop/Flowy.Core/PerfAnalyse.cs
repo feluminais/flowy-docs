@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Flowy.Core;
 
 /// <summary>A run played back: events up to a time, and the numbers interpolated between tested levels. Twin of src/core/perf/analyse.ts.</summary>
@@ -39,26 +41,82 @@ public static partial class Perf
         return null;
     }
 
-    private static Metrics MetricsAt(IReadOnlyList<Level> levels, Func<Level, Metrics?> pick, string[] keys, double load)
+    private sealed class Series(int keys)
     {
-        var m = new Metrics();
-        foreach (var key in keys)
+        /// <summary>For each key, the level loads that carry it and what they carry, in level order.</summary>
+        public readonly List<(double Load, double Value)>?[] ByKey = new List<(double, double)>?[keys];
+
+        public readonly List<(double Load, string Failure)> Failures = [];
+
+        public void Add(double load, Metrics? m, string[] keys)
         {
-            var series = levels.Select(l => (l.Load, Value: pick(l)?[key])).Where(p => p.Value is not null).Select(p => (p.Load, p.Value!.Value)).ToList();
-            if (ValueAt(series, load) is { } v) m = m.With(key, v);
+            if (m is null) return;
+            for (var i = 0; i < keys.Length; i++)
+                if (m[keys[i]] is { } v) (ByKey[i] ??= []).Add((load, v));
         }
-        return m;
+
+        public Metrics At(string[] keys, double load)
+        {
+            var m = new Metrics();
+            for (var i = 0; i < keys.Length; i++)
+                if (ByKey[i] is { } series && ValueAt(series, load) is { } v) m = m.With(keys[i], v);
+            return m;
+        }
     }
 
+    /// <summary>What a run says about each shape, line and the whole, level by level: the series <see cref="Interpolate"/> reads, kept for as long as the run is.</summary>
+    private sealed class RunIndex
+    {
+        public IReadOnlyList<Level> Levels = [];
+        public readonly List<string> ObjectIds = [];
+        public readonly Dictionary<string, Series> Objects = [];
+        public readonly List<(string From, string To)> PairIds = [];
+        public readonly Dictionary<(string From, string To), Series> Pairs = [];
+        public readonly Series Overall = new(EdgeKeys.Length);
+    }
+
+    private static readonly ConditionalWeakTable<LoadRun, RunIndex> Indexes = new();
+
+    private static RunIndex IndexOf(LoadRun run) => Indexes.GetValue(run, r =>
+    {
+        var index = new RunIndex { Levels = IdleOf(r) is { } idle ? [idle, .. r.Levels] : (IReadOnlyList<Level>)r.Levels };
+        foreach (var l in index.Levels)
+        {
+            foreach (var id in l.Objects.Keys)
+            {
+                if (!index.Objects.TryGetValue(id, out var series))
+                {
+                    index.Objects[id] = series = new Series(ObjectKeys.Length);
+                    index.ObjectIds.Add(id);
+                }
+                series.Add(l.Load, l.Objects[id], ObjectKeys);
+            }
+            var here = new HashSet<(string, string)>(); // the first connection of a pair in a level is the one that counts
+            foreach (var c in l.Connections)
+            {
+                var key = (c.From, c.To);
+                if (!here.Add(key)) continue;
+                if (!index.Pairs.TryGetValue(key, out var series))
+                {
+                    index.Pairs[key] = series = new Series(EdgeKeys.Length);
+                    index.PairIds.Add(key);
+                }
+                series.Add(l.Load, c, EdgeKeys);
+                if (c.Failure is { } f) series.Failures.Add((l.Load, f));
+            }
+            index.Overall.Add(l.Load, l.Overall, EdgeKeys);
+        }
+        return index;
+    });
+
     /// <summary>How a connection's failing share fails at <paramref name="load"/>: what the nearest level at or below it says, else the lowest level above that says one. Not interpolated: it is a kind, not a number.</summary>
-    private static string? FailureAt(IReadOnlyList<Level> levels, Func<Level, Pair?> pick, double load)
+    private static string? FailureAt(List<(double Load, string Failure)> failures, double load)
     {
         string? below = null;
         string? above = null;
-        foreach (var l in levels)
+        foreach (var (at, f) in failures)
         {
-            if (pick(l)?.Failure is not { } f) continue;
-            if (l.Load <= load) below = f;
+            if (at <= load) below = f;
             else above ??= f;
         }
         return below ?? above;
@@ -67,31 +125,28 @@ public static partial class Perf
     /// <summary>
     /// The run at any load from no load to the top tested one, as a <see cref="Level"/>. Below the first tested level it runs toward the idle level (see <see cref="IdleOf"/>); a load outside that
     /// range is clamped to the nearest end, so nothing is ever extrapolated. Each metric is interpolated on the levels that carry it; one with no value at that load is left out (not measured),
-    /// never zero. A load that isn't a number is the lowest level.
+    /// never zero. A load that isn't a number is the lowest level. What the run says about each shape and line is read once and kept with the run, so a frame only walks those series.
     /// </summary>
     public static Level Interpolate(LoadRun run, double load)
     {
-        var levels = IdleOf(run) is { } idle ? [idle, .. run.Levels] : (IReadOnlyList<Level>)run.Levels;
+        var index = IndexOf(run);
+        var levels = index.Levels;
         var at = double.IsFinite(load) ? Math.Min(levels[^1].Load, Math.Max(levels[0].Load, load)) : run.Levels[0].Load;
 
         var objects = new IdMap<Metrics>();
-        var ids = new List<string>();
-        foreach (var id in levels.SelectMany(l => l.Objects.Keys)) if (!ids.Contains(id)) ids.Add(id);
-        foreach (var id in ids)
+        foreach (var id in index.ObjectIds)
         {
-            var m = MetricsAt(levels, l => l.Objects.TryGetValue(id, out var found) ? found : null, ObjectKeys, at);
+            var m = index.Objects[id].At(ObjectKeys, at);
             if (!m.IsEmpty) objects.Add(id, m);
         }
 
-        var pairs = new List<(string From, string To)>();
-        foreach (var l in levels) foreach (var c in l.Connections) if (!pairs.Contains((c.From, c.To))) pairs.Add((c.From, c.To));
         var connections = new List<Pair>();
-        foreach (var (from, to) in pairs)
+        foreach (var key in index.PairIds)
         {
-            Pair? Pick(Level l) => l.Connections.FirstOrDefault(c => c.From == from && c.To == to);
-            var m = MetricsAt(levels, Pick, EdgeKeys, at);
-            if (!m.IsEmpty) connections.Add(new Pair(from, to) { Rate = m.Rate, Bytes = m.Bytes, P50 = m.P50, P95 = m.P95, Errors = m.Errors, Failure = FailureAt(levels, Pick, at) });
+            var series = index.Pairs[key];
+            var m = series.At(EdgeKeys, at);
+            if (!m.IsEmpty) connections.Add(new Pair(key.From, key.To) { Rate = m.Rate, Bytes = m.Bytes, P50 = m.P50, P95 = m.P95, Errors = m.Errors, Failure = FailureAt(series.Failures, at) });
         }
-        return new Level(at, MetricsAt(levels, l => l.Overall, EdgeKeys, at), objects, connections);
+        return new Level(at, index.Overall.At(EdgeKeys, at), objects, connections);
     }
 }

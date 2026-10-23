@@ -66,7 +66,7 @@ public static partial class Perf
             {
                 var unknown = new[] { c.From, c.To }.Where(end => model.GetObject(end) is null).ToList();
                 foreach (var end in unknown) Once($"unknown object \"{end}\"");
-                if (unknown.Count == 0 && !model.Connections.Any(m => m.From == c.From && m.To == c.To)) Once($"{c.From} → {c.To} is not a connection in the model");
+                if (unknown.Count == 0 && !HasConnection(model, c.From, c.To)) Once($"{c.From} → {c.To} is not a connection in the model");
             }
         }
         // A shape deleted after the run was written shows up here at the next load, never as a crash: runs are outside the edit pipeline.

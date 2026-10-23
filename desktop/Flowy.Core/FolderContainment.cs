@@ -20,7 +20,9 @@ public static class FolderContainment
     /// <summary>Whether <paramref name="rel"/> (relative to <paramref name="dir"/>, which need not exist) resolves to a place inside the real <paramref name="dir"/>.</summary>
     public static bool IsInside(string dir, string rel)
     {
-        if (RealPath(dir) is not { } root || RealPath(Path.Combine(dir, rel)) is not { } real) return false;
+        if (RealPath(dir) is not { } root) return false;
+        // The folder is resolved, so the file only needs its own parts followed from there (the same place as following the whole path, which starts with the folder's).
+        if ((Path.IsPathRooted(rel) || rel.Contains("..") ? RealPath(Path.Combine(dir, rel)) : RealPath(root, rel)) is not { } real) return false;
         var prefix = root.EndsWith(Path.DirectorySeparatorChar) ? root : root + Path.DirectorySeparatorChar;
         return real.Equals(root, Comparison) || real.StartsWith(prefix, Comparison);
     }
@@ -33,7 +35,15 @@ public static class FolderContainment
     {
         var full = Path.GetFullPath(path);
         var current = Path.GetPathRoot(full)!;
-        var parts = new Queue<string>(Split(full[current.Length..]));
+        return RealPath(current, Split(full[current.Length..]));
+    }
+
+    /// <summary>The place <paramref name="rel"/> leads to from <paramref name="start"/>, which is a real path already: only the parts of <paramref name="rel"/> are followed.</summary>
+    private static string? RealPath(string start, string rel) => RealPath(start, Split(rel));
+
+    private static string? RealPath(string current, string[] start)
+    {
+        var parts = new Queue<string>(start);
         var followed = 0;
         while (parts.Count > 0)
         {
