@@ -14,7 +14,7 @@ import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { fitOptions, isStepLine } from './graph.ts'
 import { GroupMarks } from './GroupMarks.tsx'
-import { LabelSpotsContext, Line, LineStyleContext } from './Line.tsx'
+import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
 import { StepMotion } from './StepMotion.tsx'
 import { usePaneFlow } from './usePaneFlow.ts'
@@ -82,7 +82,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
       <h2 className="pane-title" title={title}>{title}</h2>
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
-          <LabelSpotsContext value={spots}>
+          <LabelSpots spots={spots}>
             <ChangeMarksContext value={marks}>
               <ReactFlow
                 id={`pane-${paneId}`}
@@ -119,7 +119,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
                 <PaneMotions p={p} />
               </ReactFlow>
             </ChangeMarksContext>
-          </LabelSpotsContext>
+          </LabelSpots>
         </LineStyleContext>
       </div>
       <PanePlayer model={model} p={p} marks={marks} />

@@ -53,6 +53,8 @@ try {
   /** Runs `steps` actions, each followed by two frames, and says what the page spent per step. */
   async function measure(what: string, steps: number, act: (i: number) => Promise<void>) {
     await frames()
+    const profiling = process.env.PROFILE !== undefined && what.includes(process.env.PROFILE)
+    if (profiling) { await cdp.send('Profiler.enable'); await cdp.send('Profiler.setSamplingInterval', { interval: 100 }); await cdp.send('Profiler.start') }
     const before = await metrics()
     const start = performance.now()
     for (let i = 0; i < steps; i++) {
@@ -63,6 +65,17 @@ try {
     const after = await metrics()
     const per = (k: string) => ((after[k] - before[k]) * 1000) / steps
     console.log(`${what.padEnd(44)}${fmt(wall / steps).padStart(8)} ms/step   script ${fmt(per('ScriptDuration')).padStart(7)}   style ${fmt(per('RecalcStyleDuration')).padStart(7)}   layout ${fmt(per('LayoutDuration')).padStart(7)}`)
+    if (profiling) {
+      const { profile } = await cdp.send('Profiler.stop')
+      const self = new Map<string, number>()
+      const byId = new Map(profile.nodes.map(n => [n.id, n]))
+      profile.samples?.forEach((id, i) => {
+        const n = byId.get(id)!
+        const key = `${n.callFrame.functionName || '(anonymous)'} ${n.callFrame.url.split('/').pop()}:${n.callFrame.lineNumber}`
+        self.set(key, (self.get(key) ?? 0) + (profile.timeDeltas?.[i] ?? 0))
+      })
+      for (const [k, v] of [...self].sort((a, b) => b[1] - a[1]).slice(0, 12)) console.log(`${(v / 1000).toFixed(0).padStart(8)} ms  ${k}`)
+    }
   }
 
   // Points on the lines, in screen pixels.
@@ -75,6 +88,13 @@ try {
   }).slice(0, 40))
   console.log(`lines to point at: ${onLines.length} of ${await page.locator('.react-flow__edge-interaction').count()} (edges ${await page.locator('.react-flow__edge').count()}); viewport ${await page.locator('.react-flow__viewport').getAttribute('style')}`)
   const empty: [number, number] = [700, 880]
+  const renders = () => page.evaluate(() => JSON.stringify((window as unknown as { __r?: object }).__r ?? {}))
+  const countRenders = async (what: string, act: () => Promise<void>) => { const a = await renders(); await act(); await frames(); console.log(`  renders for ${what}: before ${a} after ${await renders()}`) }
+  if (process.env.COUNT) {
+    await countRenders('one hover on a line', async () => { await page.mouse.move(...onLines[0]) })
+    await countRenders('moving off it', async () => { await page.mouse.move(...empty) })
+    await countRenders('a click on a box', async () => { await page.mouse.click(...onLines[1]) })
+  }
   await measure('point at a line, then away', Math.min(20, onLines.length), async i => {
     await page.mouse.move(...onLines[i % onLines.length])
     await page.mouse.move(...empty)
@@ -86,13 +106,17 @@ try {
     await page.mouse.move(...at)
     await page.mouse.move(...empty)
   })
+  const readerRenders = () => page.evaluate(() => (window as unknown as { __r?: { reader?: number } }).__r?.reader ?? 0)
+  const r0 = await readerRenders()
   await page.mouse.move(...empty)
   await page.mouse.down()
   let x = 700
   await measure('drag the canvas', 30, async i => { await page.mouse.move((x += i % 2 ? 6 : -4), 880 - (i % 3)) })
   await page.mouse.up()
+  if (process.env.COUNT) console.log(`  the page drew ${(await readerRenders()) - r0} times during the pan`)
   await page.getByRole('button', { name: /explorer/i }).first().click().catch(() => page.mouse.click(22, 66))
   await page.waitForTimeout(500)
+  if (process.env.SHOT_NAV) await page.screenshot({ path: process.env.SHOT_NAV })
   const sash = page.locator('.sash').first()
   if ((await sash.count()) > 0) {
     const box = (await sash.boundingBox())!
@@ -105,6 +129,16 @@ try {
     const moved = (await sash.boundingBox())!.x - box.x
     console.log(`  (the edge moved ${Math.round(moved)} px)`)
   }
+  // Edit mode: pick a shape up and move it about (nothing is dropped, so nothing is written).
+  await page.getByRole('button', { name: 'Edit' }).click()
+  await page.waitForTimeout(500)
+  const grab = boxes[Math.floor(boxes.length / 2)]
+  await page.mouse.move(grab[0] + 6, grab[1])
+  await page.mouse.down()
+  let gx = grab[0] + 6
+  await measure('move a shape in edit mode', 30, async i => { await page.mouse.move((gx += i % 2 ? 5 : -3), grab[1] + (i % 5)) })
+  await page.keyboard.press('Escape')
+  await page.mouse.up()
   await measure('click a box, then the empty canvas', 10, async i => {
     const at = boxes[i % boxes.length]
     await page.mouse.click(...at)

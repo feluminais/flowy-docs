@@ -417,7 +417,7 @@ svg { flex: none; }
 .mark { position: absolute; z-index: 3; transform: translate(-50%, calc(-100% - 12px)); display: flex; align-items: center; gap: 4px; padding: 1px 9px; border-radius: 99px; background: var(--accent); color: var(--bg); font-size: 11px; font-weight: 600; white-space: nowrap; pointer-events: none; }
 
 .grow { flex: 1; }
-.react-flow__edge.selected .react-flow__edge-path, .react-flow__edge.hover .react-flow__edge-path { stroke: var(--accent); stroke-width: 2; }
+.react-flow__edge.selected .react-flow__edge-path, .react-flow__edge.hover .react-flow__edge-path, .react-flow__edge-path.hot { stroke: var(--accent); stroke-width: 2; }
 
 .problems { position: relative; }
 .problems summary { color: var(--warn-fg); font-weight: 600; list-style: none; }
@@ -711,7 +711,9 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .panel .navtabs button:hover:not(:disabled) { background: none; color: var(--fg); }
 .panel .navtabs button[aria-selected='true'] { color: var(--fg); border-bottom-color: var(--accent); }
 .navpanel { right: auto; left: 0; width: min(var(--nav-w, 320px), 100%); padding: 0; gap: 0; overflow: hidden; border-left: 0; border-right: 1px solid var(--line); box-shadow: 12px 0 32px #0000001a; } /* NAV in graph.ts */
-.canvas.nav .react-flow__controls { margin-left: calc(var(--nav-w) + 16px); }
+.canvas.nav .react-flow__controls { margin-left: calc(var(--nav-w) + 16px); } /* ZoomControls sets --nav-w on itself */
+/* The widths of the panels are no concern of the shapes: set apart here, a dragged panel edge does not make every shape and line check its style again. */
+.canvas .main-flow { --nav-w: initial; --panel-w: initial; }
 .canvas.nav .notice { left: calc(var(--nav-w) + 16px); }
 /* The strip you drag to resize a side panel: on the panel's inner edge, wider than it looks so it is easy to grab, and lit like VS Code's after a beat. */
 .sash { position: absolute; top: 0; bottom: 0; width: 6px; z-index: 6; cursor: col-resize; touch-action: none; outline: 0; background: transparent; transition: background 0.1s; }
