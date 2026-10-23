@@ -6,6 +6,69 @@ import { add, BY_KEYS, defined, EDGE_KEYS, either, keep, meanBytes, newMean, OBJ
 /** A run at a load or at a setting of its dials. */
 
 type Series = [load: number, value: number][]
+type SeriesOf = Partial<Record<keyof Metrics, Series>>
+
+/** What a run says about each shape, line and the whole, level by level: the series interpolate reads, kept for as long as the run is. */
+type RunIndex = {
+  levels: Level[]
+  objects: Map<string, SeriesOf>
+  pairs: Map<string, { from: string; to: string; series: SeriesOf; failures: [load: number, failure: Failure][] }>
+  overall: SeriesOf
+}
+
+const indexes = new WeakMap<Run, RunIndex>()
+
+function addTo(into: SeriesOf, at: number, m: Metrics | undefined, keys: readonly (keyof Metrics)[]) {
+  if (!m) return
+  for (const key of keys) {
+    const v = m[key]
+    if (v !== undefined) (into[key] ??= []).push([at, v])
+  }
+}
+
+const paired = new WeakMap<Level, Map<string, Pair>>()
+
+/** The first connection of a level from one shape to another. */
+function pairOf(level: Level, from: string, to: string): Pair | undefined {
+  let byKey = paired.get(level)
+  if (!byKey) {
+    paired.set(level, (byKey = new Map()))
+    for (const c of level.connections) {
+      const key = JSON.stringify([c.from, c.to])
+      if (!byKey.has(key)) byKey.set(key, c)
+    }
+  }
+  return byKey.get(JSON.stringify([from, to]))
+}
+
+function indexOf(run: Run): RunIndex {
+  let index = indexes.get(run)
+  if (!index) {
+    const idle = idleOf(run)
+    const levels = idle ? [idle, ...run.levels] : run.levels
+    index = { levels, objects: new Map(), pairs: new Map(), overall: {} }
+    for (const l of levels) {
+      for (const [id, m] of Object.entries(l.objects)) {
+        let series = index.objects.get(id)
+        if (!series) index.objects.set(id, (series = {}))
+        addTo(series, l.load, m, OBJECT_KEYS)
+      }
+      const here = new Set<string>() // the first connection of a pair in a level is the one that counts
+      for (const c of l.connections) {
+        const key = JSON.stringify([c.from, c.to])
+        if (here.has(key)) continue
+        here.add(key)
+        let pair = index.pairs.get(key)
+        if (!pair) index.pairs.set(key, (pair = { from: c.from, to: c.to, series: {}, failures: [] }))
+        addTo(pair.series, l.load, c, EDGE_KEYS)
+        if (c.failure !== undefined) pair.failures.push([l.load, c.failure])
+      }
+      addTo(index.overall, l.load, l.overall, EDGE_KEYS)
+    }
+    indexes.set(run, index)
+  }
+  return index
+}
 
 /** A series' value at `load`: exact at a point, a straight line between two, nothing outside the series. */
 function valueAt(series: Series, load: number): number | undefined {
@@ -21,28 +84,23 @@ function valueAt(series: Series, load: number): number | undefined {
   return undefined
 }
 
-/** `keys` of whatever `pick` finds at each level, each metric read on the levels that carry it. */
-function metricsAt(levels: Level[], pick: (level: Level) => Metrics | undefined, keys: readonly (keyof Metrics)[], load: number): Metrics {
+/** `keys` of these series at `load`, each metric read on the levels that carry it. */
+function metricsAt(series: SeriesOf, keys: readonly (keyof Metrics)[], load: number): Metrics {
   const out: Metrics = {}
   for (const key of keys) {
-    const series: Series = levels.flatMap(l => {
-      const v = pick(l)?.[key]
-      return v === undefined ? [] : [[l.load, v] as [number, number]]
-    })
-    const v = valueAt(series, load)
+    const s = series[key]
+    const v = s && valueAt(s, load)
     if (v !== undefined) out[key] = v
   }
   return out
 }
 
 /** How a connection's failing share fails at `load`: what the nearest level at or below it says, else the lowest level above that says one. Not interpolated: it is a kind, not a number. */
-function failureAt(levels: Level[], pick: (level: Level) => Pair | undefined, load: number): Failure | undefined {
+function failureAt(failures: [load: number, failure: Failure][], load: number): Failure | undefined {
   let below: Failure | undefined
   let above: Failure | undefined
-  for (const l of levels) {
-    const f = pick(l)?.failure
-    if (f === undefined) continue
-    if (l.load <= load) below = f
+  for (const [at, f] of failures) {
+    if (at <= load) below = f
     else if (above === undefined) above = f
   }
   return below ?? above
@@ -52,31 +110,26 @@ function failureAt(levels: Level[], pick: (level: Level) => Pair | undefined, lo
  * The run at any load from no load to the top tested one, as a Level. Below the first tested level it runs toward the idle level (see idleOf); a load outside that range is
  * clamped to the nearest end, so nothing is ever extrapolated. Each metric is interpolated on the levels that carry it; one that has no value at
  * that load is left out (not measured), never zero. A load that isn't a number is the lowest level.
- * Known limit: every pair is looked up in every level for each metric; fine for a run of a few dozen
- * connections, index the pairs once if the tab calls this on every frame.
+ * What the run says about each shape and line is read once and kept with the run (see indexOf), so a frame only walks those series.
  */
 export function interpolate(run: Run, load: number): Level {
-  const idle = idleOf(run)
-  const levels = idle ? [idle, ...run.levels] : run.levels
+  const { levels, objects: byObject, pairs, overall } = indexOf(run)
   const at = Number.isFinite(load) ? Math.min(levels[levels.length - 1].load, Math.max(levels[0].load, load)) : run.levels[0].load
 
   const objects: Record<string, Metrics> = {}
-  for (const id of new Set(levels.flatMap(l => Object.keys(l.objects)))) {
-    const m = metricsAt(levels, l => (Object.hasOwn(l.objects, id) ? l.objects[id] : undefined), OBJECT_KEYS, at)
+  for (const [id, series] of byObject) {
+    const m = metricsAt(series, OBJECT_KEYS, at)
     if (Object.keys(m).length > 0) put(objects, id, m)
   }
 
-  const pairs = new Map<string, [string, string]>()
-  for (const l of levels) for (const c of l.connections) pairs.set(JSON.stringify([c.from, c.to]), [c.from, c.to])
   const connections: Pair[] = []
-  for (const [from, to] of pairs.values()) {
-    const pick = (l: Level) => l.connections.find(c => c.from === from && c.to === to)
-    const m = metricsAt(levels, pick, EDGE_KEYS, at)
-    const failure = failureAt(levels, pick, at)
+  for (const { from, to, series, failures } of pairs.values()) {
+    const m = metricsAt(series, EDGE_KEYS, at)
+    const failure = failureAt(failures, at)
     if (Object.keys(m).length > 0) connections.push({ from, to, ...m, ...(failure === undefined ? {} : { failure }) })
   }
 
-  return { load: at, overall: metricsAt(levels, l => l.overall, EDGE_KEYS, at), objects, connections }
+  return { load: at, overall: metricsAt(overall, EDGE_KEYS, at), objects, connections }
 }
 
 /** What several parts carry together on a line or overall: rates added, the worst latency and failing share, and the size of a call weighted by rate. */
@@ -181,7 +234,7 @@ function blendGrid(run: Run, dials: Dial[], setting: Setting): Level {
   for (const { level } of corners) for (const c of level.connections) pairs.set(JSON.stringify([c.from, c.to]), [c.from, c.to])
   const connections: Pair[] = []
   for (const [from, to] of pairs.values()) {
-    const pick = (l: Level) => l.connections.find(c => c.from === from && c.to === to)
+    const pick = (l: Level) => pairOf(l, from, to)
     const m = blend(pick, EDGE_KEYS)
     const by: Record<string, Metrics> = {}
     for (const d of dials) {
