@@ -2,6 +2,12 @@ using System.Diagnostics;
 using System.Text;
 using Flowy.Core;
 
+if (args.Length > 0 && args[0] == "canvas")
+{
+    Flowy.Bench.CanvasBench.Run(args.Length > 1 ? int.Parse(args[1]) : 300);
+    return;
+}
+
 // dotnet run -c Release --project desktop/Flowy.Bench -- [systems apps components lines flows levels runObjects runLines]
 int Arg(int i, int d) => args.Length > i ? int.Parse(args[i]) : d;
 int systems = Arg(0, 10), apps = Arg(1, 10), components = Arg(2, 20), lines = Arg(3, 4000), flows = Arg(4, 200), levels = Arg(5, 20), runObjects = Arg(6, 400), runLines = Arg(7, 400);

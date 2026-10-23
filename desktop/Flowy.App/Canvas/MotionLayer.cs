@@ -33,22 +33,11 @@ internal sealed class MotionLayer : Control
     private IReadOnlyList<Run> _runs = [];
     private double _t;
     private bool _still;
-    private Viewport _viewport = new(0, 0, 1);
 
     public MotionLayer()
     {
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
-    }
-
-    public Viewport Viewport
-    {
-        get => _viewport;
-        set
-        {
-            _viewport = value;
-            InvalidateVisual();
-        }
     }
 
     /// <summary>One step to draw: its animation, whether it follows a landing, the line style, the two boxes (with the outline each shape has), and who takes it when it is intercepted.</summary>
@@ -166,8 +155,6 @@ internal sealed class MotionLayer : Control
     {
         base.Render(context);
         if (_runs.Count == 0) return;
-        var matrix = Matrix.CreateScale(_viewport.Zoom, _viewport.Zoom) * Matrix.CreateTranslation(_viewport.X, _viewport.Y);
-        using var _ = context.PushTransform(matrix);
 
         if (_still)
         {
