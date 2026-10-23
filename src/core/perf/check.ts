@@ -4,7 +4,7 @@ import { getObject } from '../model.ts'
 import type { Model } from '../model.ts'
 import { eventsOf } from './types.ts'
 import type { Run } from './types.ts'
-import { brief } from './util.ts'
+import { brief, hasConnection } from './util.ts'
 import { sharedColors, whyNotAdded } from './sources.ts'
 
 /** Checking a run against the other runs and against the model. */
@@ -54,7 +54,7 @@ export function checkRun(id: string, run: Run, model: Model): Problem[] {
     for (const { from, to } of level.connections) {
       const unknown = [from, to].filter(end => !getObject(model, end))
       for (const end of unknown) once(`unknown object "${end}"`)
-      if (unknown.length === 0 && !model.connections.some(c => c.from === from && c.to === to)) once(`${from} → ${to} is not a connection in the model`)
+      if (unknown.length === 0 && !hasConnection(model, from, to)) once(`${from} → ${to} is not a connection in the model`)
     }
   }
   // A shape deleted after the run was written shows up here at the next load, never as a crash: runs are outside the edit pipeline.
