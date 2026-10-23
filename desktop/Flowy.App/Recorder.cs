@@ -480,8 +480,8 @@ internal sealed class Recorder : StackPanel
             Spacing = 6,
             Children =
             {
-                Small(Icons.ArrowUp, "Move up", i > 0, () => Change(steps => (steps[i - 1], steps[i]) = (steps[i], steps[i - 1]))),
-                Small(Icons.ArrowDown, "Move down", i < shown.Count - 1, () => Change(steps => (steps[i + 1], steps[i]) = (steps[i], steps[i + 1]))),
+                Small(Icons.ArrowUp, "Move up", i > 0, () => Edit(flowId, d => EditOps.SwapSteps(d, flowId, i, i - 1))),
+                Small(Icons.ArrowDown, "Move down", i < shown.Count - 1, () => Edit(flowId, d => EditOps.SwapSteps(d, flowId, i, i + 1))),
                 Small(Icons.Trash, "Delete step", true, () => Edit(flowId, d => EditOps.RemoveStep(d, flowId, i)), danger: true),
             },
         };

@@ -25,7 +25,11 @@ public sealed class FolderWatcher : IDisposable
         _watcher.Changed += changed;
         _watcher.Created += changed;
         _watcher.Deleted += changed;
-        _watcher.Renamed += (_, e) => Touch(e.Name);
+        _watcher.Renamed += (_, e) =>
+        {
+            Touch(e.OldName);
+            Touch(e.Name);
+        };
         _watcher.Error += (_, e) => Failed?.Invoke(e.GetException());
         _watcher.EnableRaisingEvents = true;
     }
