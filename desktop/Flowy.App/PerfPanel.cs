@@ -310,10 +310,8 @@ internal sealed class PerfPanel : StackPanel
     private bool _pane; // a panel inside a pane of a comparison: no run picker or title, the pane has them
     private RunActions? _actions; // what the header offers for comparing, if anything
     private StackPanel? _actionsHost; // the buttons and, under them, the picker one of them opened
-    private string? _pickerOpen; // "compare" or "link" while that button's picker is open
+    private string? _pickerOpen; // "compare" while the picker of that button is open
     private Button? _compareButton;
-    private Button? _linkButton;
-    private Button? _unlinkButton;
     private Control? _linkedMark;
     private ComparePicker? _runPicker;
     private LoadRun? _run;
@@ -369,12 +367,6 @@ internal sealed class PerfPanel : StackPanel
 
     /// <summary>The reader picked a run in the picker under Compare: it opens beside this one.</summary>
     public event Action<string>? CompareChosen;
-
-    /// <summary>The reader picked a run in the picker under Link with: this run is to be linked to it.</summary>
-    public event Action<string>? LinkChosen;
-
-    /// <summary>The reader pressed Unlink: the link this run holds is to go.</summary>
-    public event Action? Unlinked;
 
     /// <summary>Create was pressed on the empty panel: copy a starter run.</summary>
     public event Action? CreateClicked;
@@ -443,16 +435,12 @@ internal sealed class PerfPanel : StackPanel
     /// <summary>The run picker's rows: the name, and whether the run shows Linked.</summary>
     internal IReadOnlyList<RunChoice> RunChoices => _picker?.ItemsSource?.Cast<RunChoice>().ToList() ?? [];
 
-    /// <summary>The header's Compare, Link with and Unlink, and the Linked mark; null where the header has none.</summary>
+    /// <summary>The header's Compare and the Linked mark; null where the header has none.</summary>
     internal Button? CompareButton => _compareButton;
-
-    internal Button? LinkButton => _linkButton;
-
-    internal Button? UnlinkButton => _unlinkButton;
 
     internal Control? LinkedMark => _linkedMark;
 
-    /// <summary>The picker under Compare or Link with, while one is open.</summary>
+    /// <summary>The picker under Compare, while it is open.</summary>
     internal ComparePicker? RunPicker => _runPicker;
 
     internal string? PickerOpen => _pickerOpen;
@@ -522,7 +510,7 @@ internal sealed class PerfPanel : StackPanel
         _pane = pane;
         _actions = actions;
         _actionsHost = null;
-        _compareButton = _linkButton = _unlinkButton = null;
+        _compareButton = null;
         _linkedMark = null;
         _runPicker = null;
         _pickerOpen = null;
@@ -678,7 +666,7 @@ internal sealed class PerfPanel : StackPanel
             Children.Add(picker);
         }
         else Children.Add(new TextBlock { Text = run.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) });
-        if (_actions is { } actions) Children.Add(BuildRunActions(actions, runId, run, linked.Contains(runId)));
+        if (_actions is { } actions) Children.Add(BuildRunActions(actions, linked.Contains(runId)));
         if (run.About is { } about)
         {
             var note = Muted(about);
@@ -719,14 +707,9 @@ internal sealed class PerfPanel : StackPanel
         return row;
     });
 
-    /// <summary>
-    /// Compare, Link with and Unlink under the run's name, with the Linked mark when the run is in a pair. Each is greyed out with its reason as the tooltip, never hidden. Unlink takes
-    /// away the line this run holds: a run that only others link to has none, and the line to remove is on the other run.
-    /// </summary>
-    private StackPanel BuildRunActions(RunActions actions, string runId, LoadRun run, bool linked)
+    /// <summary>Compare under the run's name, with the Linked mark when the run is in a pair. It is greyed out with its reason as the tooltip, never hidden.</summary>
+    private StackPanel BuildRunActions(RunActions actions, bool linked)
     {
-        _ = runId;
-        var unlinkOff = actions.LinkOff ?? (run.Compare is not null ? null : linked ? "The other run holds the link" : "Not linked");
         var row = new WrapPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
         Button Make(string? icon, string text, string tip, string? off, Action click)
         {
@@ -736,13 +719,6 @@ internal sealed class PerfPanel : StackPanel
             return button;
         }
         _compareButton = Make(Icons.Columns, "Compare", "Compare with another run (C)", actions.CompareOff, () => TogglePicker("compare"));
-        _linkButton = Make(Icons.Link, "Link with", "Link this run with another", actions.LinkOff, () => TogglePicker("link"));
-        _unlinkButton = Make(null, "Unlink", "Take away the link", unlinkOff, () =>
-        {
-            ShowPicker(null);
-            Unlinked?.Invoke();
-            Used?.Invoke();
-        });
         if (linked)
         {
             _linkedMark = Chrome.Chip("Linked", Icons.Link, "accent");
@@ -753,12 +729,12 @@ internal sealed class PerfPanel : StackPanel
     }
 
     /// <summary>
-    /// Opens the picker under Compare (<c>compare</c>) or Link with (<c>link</c>) over the other runs, or closes it when it is the one open. False when the button is greyed out (or the
-    /// panel has none): the reason is in its tooltip.
+    /// Opens the picker under Compare (<c>compare</c>) over the other runs, or closes it when it is open. False when the button is greyed out (or the panel has none): the reason is in
+    /// its tooltip.
     /// </summary>
     public bool TogglePicker(string which)
     {
-        if (_actionsHost is null || _actions is null || (which == "compare" ? _actions.CompareOff : _actions.LinkOff) is not null) return false;
+        if (_actionsHost is null || _actions is null || _actions.CompareOff is not null) return false;
         ShowPicker(_pickerOpen == which ? null : which);
         return true;
     }
@@ -770,21 +746,20 @@ internal sealed class PerfPanel : StackPanel
         _runPicker = null;
         _pickerOpen = which;
         _compareButton?.Classes.Set("pressed", which == "compare");
-        _linkButton?.Classes.Set("pressed", which == "link");
         if (which is null) return;
         _runPicker = new ComparePicker(_model, _runId, other =>
         {
             ShowPicker(null);
-            (which == "compare" ? CompareChosen : LinkChosen)?.Invoke(other);
+            CompareChosen?.Invoke(other);
         }, () =>
         {
             ShowPicker(null);
             Used?.Invoke();
-        }, "run", RunDrawing.MapOf(_runs), which == "compare" ? "Compare with" : "Link with");
+        }, "run", RunDrawing.MapOf(_runs), "Compare with");
         _actionsHost.Children.Add(_runPicker);
     }
 
-    /// <summary>Closes the picker under Compare or Link with, if one is open.</summary>
+    /// <summary>Closes the picker under Compare, if it is open.</summary>
     public void CloseRunPicker() => ShowPicker(null);
 
     /// <summary>A press anywhere but on the buttons or the picker closes the picker.</summary>

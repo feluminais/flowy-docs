@@ -1284,6 +1284,9 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 @media (prefers-reduced-motion: reduce) { .traffic.fade-in, .traffic.fade-out { animation: none; } }
 
 /* Compare, Link with and Unlink under the run's name on the Performance tab. */
+.run-link { display: flex; flex-direction: column; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.run-link-name { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 600; }
+.run-link-name .linked { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 12.5px; font-weight: 400; }
 .run-actions { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .run-actions button { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 6px; background: none; color: var(--fg); font: inherit; font-size: 12.5px; cursor: pointer; }
 .run-actions button:hover:not(:disabled), .run-actions button[aria-pressed='true'] { background: var(--tint); color: var(--accent); }

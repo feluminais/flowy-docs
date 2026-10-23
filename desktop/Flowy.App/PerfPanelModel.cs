@@ -3,10 +3,10 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// What the run header offers for comparing: Compare, Link with and Unlink, each greyed out with its reason as the tooltip (never hidden). <see cref="CompareOff"/> is why Compare is
-/// blocked (editing, no other run) and <see cref="LinkOff"/> why a link can't be written or taken away (the folder can't be saved), or null.
+/// What the run header offers for comparing: Compare, greyed out with its reason as the tooltip (never hidden). <see cref="CompareOff"/> is why Compare is blocked (editing, no other run),
+/// or null. Linking a run is done while editing (see <see cref="RunLinksPanel"/>).
 /// </summary>
-internal sealed record RunActions(string? CompareOff, string? LinkOff);
+internal sealed record RunActions(string? CompareOff);
 
 /// <summary>
 /// What the Performance panel shows: the run and where it stands, the shape or line picked, and (for a run with several sources) where each dial stands.
