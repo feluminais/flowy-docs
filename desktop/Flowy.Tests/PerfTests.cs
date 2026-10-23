@@ -267,6 +267,11 @@ public class PerfTests
                     var view = t!["view"]!.GetValue<string>();
                     Same(t, Json(Perf.TrafficFor(Loaded.Model, run, load, view), view), $"{id} at {load} in {view}: the traffic");
                 }
+                foreach (var t in at["data"]!.AsArray())
+                {
+                    var view = t!["view"]!.GetValue<string>();
+                    Same(t, Json(Perf.TrafficAt(Loaded.Model, Loaded.Runs!, id, new IdMap<double> { { "", load } }, view, LoadMeasure.Data), view), $"{id} at {load} in {view}: the traffic as data");
+                }
             }
             foreach (var r in c["rolled"]!.AsArray())
             {
@@ -293,6 +298,12 @@ public class PerfTests
             Same(item["run"], Json(run), $"{id}: the run");
             Same(item["problems"], Json(problems), $"{id}: its problems");
             Assert.Equal(item["scale"]?.GetValue<string>(), Perf.ScaleText(run));
+            Assert.Equal(item["size"]?.GetValue<double>(), Perf.CallSize(new IdMap<LoadRun> { { id, run } }, id));
+            var amounts = item["amounts"]!.AsArray();
+            Assert.Equal(amounts[0]?.GetValue<double>(), Perf.AmountOf(new Metrics { Rate = 10, Bytes = 400 }, LoadMeasure.Calls, 1000));
+            Assert.Equal(amounts[1]?.GetValue<double>(), Perf.AmountOf(new Metrics { Rate = 10, Bytes = 400 }, LoadMeasure.Data, 1000));
+            Assert.Equal(amounts[2]?.GetValue<double>(), Perf.AmountOf(new Metrics { Rate = 10 }, LoadMeasure.Data, 1000));
+            Assert.Equal(amounts[3]?.GetValue<double>(), Perf.AmountOf(new Metrics { Bytes = 400 }, LoadMeasure.Calls, 1000));
             foreach (var at in item["loads"]!.AsArray())
             {
                 var load = at!["load"]!.GetValue<double>();
@@ -305,6 +316,16 @@ public class PerfTests
                     expected.Remove("key");
                     Same(expected, Json(drawn, view), $"{id} at {load} in {view}: the traffic");
                     Same(t["key"], Json(Perf.SourceKeyOf(run, drawn.Lines)), $"{id} at {load} in {view}: the key");
+                }
+                var size = Perf.CallSize(new IdMap<LoadRun> { { id, run } }, id);
+                foreach (var t in at["data"]!.AsArray())
+                {
+                    var view = t!["view"]!.GetValue<string>();
+                    var drawn = Perf.TrafficFor(Loaded.Model, run, load, view, LoadMeasure.Data, size);
+                    var expected = t.DeepClone().AsObject();
+                    expected.Remove("key");
+                    Same(expected, Json(drawn, view), $"{id} at {load} in {view}: the traffic as data");
+                    Same(t["key"], Json(Perf.SourceKeyOf(run, drawn.Lines, LoadMeasure.Data, size)), $"{id} at {load} in {view}: the key as data");
                 }
                 foreach (var r in at["rolled"]!.AsArray())
                 {
@@ -395,6 +416,15 @@ public class PerfTests
                     expected.Remove("key");
                     Same(expected, Json(drawn, view), $"{id} at {at["setting"]!.ToJsonString()} in {view}: the traffic");
                     Same(t["key"], Json(Perf.SourceKeyAt(runs, id, drawn.Lines)), $"{id} at {at["setting"]!.ToJsonString()} in {view}: the key");
+                }
+                foreach (var t in at["data"]!.AsArray())
+                {
+                    var view = t!["view"]!.GetValue<string>();
+                    var drawn = Perf.TrafficAt(Loaded.Model, runs, id, setting, view, LoadMeasure.Data);
+                    var expected = t.DeepClone().AsObject();
+                    expected.Remove("key");
+                    Same(expected, Json(drawn, view), $"{id} at {at["setting"]!.ToJsonString()} in {view}: the traffic as data");
+                    Same(t["key"], Json(Perf.SourceKeyAt(runs, id, drawn.Lines, LoadMeasure.Data)), $"{id} at {at["setting"]!.ToJsonString()} in {view}: the key as data");
                 }
                 foreach (var r in at["rolled"]!.AsArray())
                 {

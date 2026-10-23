@@ -28,7 +28,7 @@ public static partial class Perf
     private static int TravelOf(double? p50) => p50 is null ? 1000 : (int)JsRound(Clamp(500 + 1000 * Math.Log10(1 + p50.Value / 10), 500, 4000));
 
     /// <summary>A line that carried <paramref name="rate"/> calls a second: logarithmic and capped, because a screen can't draw 1000 particles a second, unless the run's source says how many dots to show.</summary>
-    private static LineTraffic LineTrafficOf(Pair l, double rate, Source? source, double? wide = null, (double Dots, bool Capped)? counted = null)
+    private static LineTraffic LineTrafficOf(Pair l, double rate, Source? source, double? wide = null, (double Dots, bool Capped)? counted = null, LoadMeasure measure = LoadMeasure.Calls)
     {
         var errors = Round2(l.Errors ?? 0);
         var travelMs = TravelOf(l.P50);
@@ -47,7 +47,8 @@ public static partial class Perf
             dots = Round2(counts[0]);
             capped = wasCapped;
         }
-        if (source?.Size is { } size && Formulas.Eval(size.Formula, new FormulaVars(rate, l.Bytes, l.P50)) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
+        // Under Data the size of a call is already in the count and the thickness, so a dot's size says nothing more: dots are the usual size.
+        if (measure == LoadMeasure.Calls && source?.Size is { } size && Formulas.Eval(size.Formula, new FormulaVars(rate, l.Bytes, l.P50)) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
         return new LineTraffic(l.From, l.To, Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + (wide ?? rate)), 1.5, 6)), perSecond, travelMs, errors >= 0.01 ? Math.Max(errors, 0.05) : errors)
         {
             Color = source?.Color,
@@ -70,10 +71,10 @@ public static partial class Perf
     /// formula is a plain ratio of the rate and a line follows it; whether any dot is bigger or smaller than usual; whether any line is scaled down to fit.
     /// Null when the run sets no source or no line is on screen, so the key shows only what the picture shows.
     /// </summary>
-    public static SourceKey? SourceKeyOf(LoadRun run, IReadOnlyList<LineTraffic> lines)
+    public static SourceKey? SourceKeyOf(LoadRun run, IReadOnlyList<LineTraffic> lines, LoadMeasure measure = LoadMeasure.Calls, double? size = null)
     {
         if (run.Source is not { } source || lines.Count == 0) return null;
-        var scale = lines.Any(l => l.Dots is not null) ? ScaleText(run) : null;
+        var scale = lines.Any(l => l.Dots is not null) ? ScaleText(run, measure, size) : null;
         return new SourceKey(run.Name, source.Color, scale, lines.Any(l => l.Radius is not null), lines.Any(l => l.Capped));
     }
 
@@ -82,13 +83,13 @@ public static partial class Perf
     /// null when nothing was measured) and queue of each shape that was measured or holds something that was, and the traffic on each line that has
     /// a rate. Shapes and lines with nothing measured are left out: they stay neutral, never drawn as zero.
     /// </summary>
-    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view) => FrameAt(model, run, load, view).Traffic;
+    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null) => FrameAt(model, run, load, view, measure, size).Traffic;
 
     /// <summary>The run at a load as a view draws it, interpolated and rolled up once: <see cref="TrafficFor"/> and the panel's readouts are both made from it.</summary>
-    public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view)
+    public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null)
     {
         var (objects, lines) = RollUp(model, Interpolate(run, load), view);
-        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), lines.Where(l => l.Rate is not null).Select(l => LineTrafficOf(l, l.Rate!.Value, run.Source)).ToList()));
+        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), lines.Select(l => (Line: l, Amount: AmountOf(l, measure, size))).Where(x => x.Amount is not null).Select(x => LineTrafficOf(x.Line, x.Amount!.Value, run.Source, null, null, measure)).ToList()));
     }
 
     /// <summary>

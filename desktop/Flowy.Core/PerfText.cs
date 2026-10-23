@@ -22,15 +22,21 @@ public static partial class Perf
 
     /// <summary>
     /// "1 dot = 50 calls/s" for a run whose <c>dot</c> formula is a constant times the rate and nothing else; null for any other, because a scale in words
-    /// that is not true for every line is worse than none. Also null for a scale nobody reads (under a thousandth of a call or over a billion).
+    /// that is not true for every line is worse than none. Also null for a scale nobody reads (under a thousandth of a call or over a billion). Under Data it is the same dot in data ("1 dot = 10 KB/s"):
+    /// the calls times the size of a call that Data counts against (<paramref name="size"/>, see <see cref="CallSize"/>).
     /// </summary>
-    public static string? ScaleText(LoadRun run) => SourceScale(run.Source);
+    public static string? ScaleText(LoadRun run, LoadMeasure measure = LoadMeasure.Calls, double? size = null) => SourceScale(run.Source, measure, size);
 
     /// <summary>The scale in words of one source (see <see cref="ScaleText"/>).</summary>
-    private static string? SourceScale(Source? source)
+    private static string? SourceScale(Source? source, LoadMeasure measure, double? size)
     {
         if (source?.Dot is not { } dot || Formulas.LinearInRate(dot.Formula) is not { } k) return null;
         var calls = 1 / k;
-        return calls >= 0.001 && calls < 1e9 ? $"1 dot = {Plain(calls)} calls/s" : null;
+        if (!(calls >= 0.001 && calls < 1e9)) return null;
+        if (measure == LoadMeasure.Calls) return $"1 dot = {Plain(calls)} calls/s";
+        return size is { } s ? $"1 dot = {DataRate(calls * s)}" : null;
     }
+
+    /// <summary>A data rate as a person reads it: 400 B/s, 2 KB/s, 1.5 MB/s.</summary>
+    private static string DataRate(double bytes) => bytes >= 1e6 ? $"{Plain(bytes / 1e6)} MB/s" : bytes >= 1e3 ? $"{Plain(bytes / 1e3)} KB/s" : $"{Plain(bytes)} B/s";
 }

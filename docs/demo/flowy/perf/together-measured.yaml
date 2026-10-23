@@ -4,7 +4,7 @@ compare:
   with: together
   note: "Added is the sum of two separate runs. Tested together sends both at once, and Fleet DB fills faster: at 600 orders a minute and 400 pings a second it reads 99%, where the sum reads 93%."
 sources:
-  orders: { name: Customer orders, entry: customer-app, unit: orders/min, color: blue, dot: rate / 4, size: bytes / 400 }
+  orders: { name: Customer orders, entry: customer-app, unit: orders/min, color: blue, dot: rate / 4 }
   pings: { name: Courier pings, entry: courier-app, unit: pings/s, color: green, dot: rate / 20 }
 levels:
   - load: { orders: 100, pings: 50 }
