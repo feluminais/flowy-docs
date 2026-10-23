@@ -33,8 +33,10 @@ node /path/to/flowy-docs/dist/cli.js
 
 It prints a local address (port 4321, or the next free one) and opens it in your browser. The model lives in `./flowy`,
 which Flowy creates if it's missing. `--dir <folder>` uses another folder, `--port <number>` picks the port, and
-`--no-open` skips the browser. A repo with a model per system (`services/billing/flowy`, `services/dispatch/flowy`) shows every
-`flowy/` folder it finds, with a Model picker in the top bar. Repeat `--dir` to show only some. The other commands take one `--dir`. It does everything the app does, plus the commands below, each of which takes `--dir`:
+`--no-open` skips the browser. A repo with a model per system (`services/billing/flowy`, `services/dispatch/flowy`) lists every
+`flowy/` folder under the folder you started in, as a folder tree in the Model picker in the top bar. The first search looks 3 levels down and stops at
+2,000 folders or 1.5 seconds, so a wrong folder (a whole drive, say) costs a moment. **Scan deeper** in the picker looks 8 levels down and can be stopped.
+Hidden folders and `node_modules`, `dist`, `build`, `out`, `bin`, `obj`, `target`, `vendor`, `coverage`, `publish` and `fixtures` are skipped. In a whole drive or your home folder with no model, it stops instead of creating a `flowy/` folder there. Repeat `--dir` to show only some. The other commands take one `--dir`. It does everything the app does, plus the commands below, each of which takes `--dir`:
 
 | Command | Does |
 | --- | --- |

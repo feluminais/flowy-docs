@@ -11,7 +11,8 @@ import { modelOf } from './core/state.ts'
 import { exportSite } from './node/export.ts'
 import { loadDir, loadReport, loadState } from './node/files.ts'
 import { openHistory } from './node/history.ts'
-import { entryOf, findModels } from './node/models.ts'
+import { broadOf, Catalog, entryOf, QUICK } from './node/models.ts'
+import type { ModelEntry } from './node/models.ts'
 import { createMcpServer } from './node/mcp.ts'
 import { startServer } from './node/server.ts'
 
@@ -141,12 +142,26 @@ if (args?.positionals[0] === 'mcp') {
 } else if (args?.positionals.length === 0 && !mermaidFlags && !failuresFlags && /^\d{1,5}$/.test(args.values.port) && Number(args.values.port) <= 65535) {
   try {
     const named = args.values.dir ?? []
-    // Without --dir every flowy/ folder in the repo is shown; with it, only the ones named.
-    const found = named.length > 0 ? named.map(d => entryOf(process.cwd(), resolve(d))) : await findModels(process.cwd())
-    const models = (found.length > 0 ? found : [entryOf(process.cwd(), oneDir)]).map(e => ({ ...e, history: openHistory(e.dir, { app: 'browser' }) }))
-    const { port } = await startServer({ dir: models[0].dir, ui, port: Number(args.values.port), history: models[0].history, models })
+    // With --dir only the folders named are shown. Without it the folder flowy was started in is searched for models: a quick search first, so a
+    // wrong folder costs a moment, and a deeper one when the page asks for it.
+    const catalog = named.length === 0 ? new Catalog(process.cwd()) : undefined
+    if (catalog) await catalog.scan(QUICK)
+    const found = catalog ? catalog.entries() : named.map(d => entryOf(process.cwd(), resolve(d)))
+    // Nothing is made in a drive or home folder: flowy would otherwise add a flowy/ folder there for a model nobody meant to start.
+    const broad = catalog && found.length === 0 ? broadOf(process.cwd()) : undefined
+    if (broad) throw new Error(`${process.cwd()} is ${broad === 'drive' ? 'a whole drive' : 'the home folder'} and holds no Flowy model. Start flowy in a project folder, or pass --dir.`)
+    const shown = found.length > 0 ? found : [entryOf(process.cwd(), oneDir)]
+    const history = (e: ModelEntry) => openHistory(e.dir, { app: 'browser' })
+    const models = shown.slice(0, catalog ? 1 : undefined).map(e => ({ ...e, history: history(e) }))
+    if (catalog && found.length === 0) catalog.add(shown[0])
+    const { port } = await startServer({ dir: models[0].dir, ui, port: Number(args.values.port), history: models[0].history, models, discovery: catalog && { catalog, historyFor: history } })
     const url = `http://127.0.0.1:${port}/`
-    console.log(`Flowy Docs: ${url}\nShowing ${models.length === 1 ? models[0].dir : `${count(models.length, 'model')}: ${models.map(m => m.where).join(', ')}`}. Press Ctrl+C to stop.`)
+    const list = catalog?.list()
+    const stopped = list?.stoppedBy ? ` (stopped after ${count(list.looked, 'folder')}; Scan deeper in the page looks further)` : ''
+    const showing = list?.scope
+      ? `Searched ${list.scope.root}, ${count(list.scope.depth, 'level')} deep: ${count(found.length, 'model')}${stopped}`
+      : `Showing ${models.length === 1 ? models[0].dir : `${count(models.length, 'model')}: ${models.map(m => m.where).join(', ')}`}`
+    console.log(`Flowy Docs: ${url}\n${showing}. Press Ctrl+C to stop.`)
     if (args.values.open) openBrowser(url)
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e))
