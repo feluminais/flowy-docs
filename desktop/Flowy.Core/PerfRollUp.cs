@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Flowy.Core;
 
 /// <summary>A level as one view draws it: shapes and lines rolled up from what they hold and from the connections that land on them.</summary>
@@ -11,6 +13,41 @@ public static partial class Perf
     /// the view draws takes the connections that land on it: rates added, worst latency, worst errors. A connection the model doesn't have is left out.
     /// </summary>
     public static (IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines) RollUp(Model model, Level level, string view)
+    {
+        var byLevel = Rolled.GetValue(model, _ => new RolledLevels());
+        var byView = byLevel.Levels.GetValue(level, _ => new Dictionary<string, (IdMap<Metrics>, IReadOnlyList<Pair>)>());
+        lock (byView)
+        {
+            if (!byView.TryGetValue(view, out var done)) byView[view] = done = RollUpNow(model, level, view);
+            return done;
+        }
+    }
+
+    /// <summary>What <see cref="RollUp"/> answered, by model, level and view: the tab asks for the same level of a tested run again on every render, and a model or a level never changes once loaded. Callers only read the answer.</summary>
+    private sealed class RolledLevels
+    {
+        public readonly ConditionalWeakTable<Level, Dictionary<string, (IdMap<Metrics>, IReadOnlyList<Pair>)>> Levels = new();
+    }
+
+    private static readonly ConditionalWeakTable<Model, RolledLevels> Rolled = new();
+
+    private sealed record Linked(int Count, HashSet<(string?, string?)> Ends);
+
+    private static readonly ConditionalWeakTable<IReadOnlyList<Connection>, Linked> Linkeds = new();
+
+    /// <summary>Whether the model has a connection from one shape to another. The lines are read into a set once.</summary>
+    internal static bool HasConnection(Model model, string from, string to)
+    {
+        var lines = model.Connections;
+        if (!Linkeds.TryGetValue(lines, out var linked) || linked.Count != lines.Count)
+        {
+            linked = new Linked(lines.Count, [.. lines.Select(c => (c.From, c.To))]);
+            Linkeds.AddOrUpdate(lines, linked);
+        }
+        return linked.Ends.Contains((from, to));
+    }
+
+    private static (IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines) RollUpNow(Model model, Level level, string view)
     {
         var held = new Dictionary<string, Metrics>();
         var order = new List<string>();
@@ -33,7 +70,7 @@ public static partial class Perf
         var index = new Dictionary<(string, string), int>();
         foreach (var c in level.Connections)
         {
-            if (!model.Connections.Any(m => m.From == c.From && m.To == c.To)) continue;
+            if (!HasConnection(model, c.From, c.To)) continue;
             if (Views.PlaceEnds(model, view, c.From, c.To) is not { } ends) continue;
             var so = index.TryGetValue(ends, out var at) ? lines[at] : null;
             var line = new Pair(ends.From, ends.To)

@@ -319,6 +319,7 @@ internal sealed class PerfPanel : StackPanel
     private string _runId = "";
     private Dials? _dials; // for a run with several sources: what it is turned up on (null for a run of one)
     private List<double> _places = []; // where each dial stands
+    private (object Runs, string RunId, int Active, string Held, IReadOnlyList<Level> Levels)? _alongMemo;
     private int _active; // the dial the keys act on, the chart and the curves follow
     private readonly List<DialView> _dialViews = [];
     private readonly List<AlongRow> _alongs = [];
@@ -1051,7 +1052,7 @@ internal sealed class PerfPanel : StackPanel
             Children.Add(new WrapPanel { Children = { sentence, go } });
         }
         Children.Add(AlongLine());
-        var along = PerfView.ActiveSeries(runs, runId, dials.Items, _places, _active);
+        var along = AlongSeries(runs, runId, dials.Items);
         _strip = new LatencyStrip(along, dials.Items[_active], _places[_active]);
         Children.Add(_strip);
         Children.Add(KeyRow.Of((KeyRow.Mark("p50"), "Expected call"), (KeyRow.Mark("p95"), "Slowest 5%")));
@@ -1101,6 +1102,19 @@ internal sealed class PerfPanel : StackPanel
     }
 
     /// <summary>The line that says which dial the chart and the curves follow and which are held; SetPlaces writes it.</summary>
+    /// <summary>
+    /// What the Strip and the curves plot: each tested load of the active dial with the others held. The active dial is replaced by each of its loads, so only where the others stand matters, and
+    /// ramping it must not work the levels out again on every frame.
+    /// </summary>
+    private IReadOnlyList<Level> AlongSeries(IdMap<LoadRun> runs, string runId, IReadOnlyList<Dial> dials)
+    {
+        var held = string.Join(',', _places.Where((_, i) => i != _active));
+        if (_alongMemo is { } m && ReferenceEquals(m.Runs, runs) && m.RunId == runId && m.Active == _active && m.Held == held) return m.Levels;
+        var levels = PerfView.ActiveSeries(runs, runId, dials, _places, _active);
+        _alongMemo = (runs, runId, _active, held, levels);
+        return levels;
+    }
+
     private Control AlongLine()
     {
         var dot = new Border { VerticalAlignment = VerticalAlignment.Center };
@@ -1146,7 +1160,7 @@ internal sealed class PerfPanel : StackPanel
             view.Dot.Child = KeyRow.Dot(view.Dial.Color, dark);
         }
         _syncing = false;
-        var along = PerfView.ActiveSeries(_runs, _runId, dials.Items, _places, _active);
+        var along = AlongSeries(_runs, _runId, dials.Items);
         _strip?.SetLevels(along);
         _strip?.SetPos(_places[_active]);
         var held = string.Join(", ", PerfView.HeldText(dials.Items, _places, _active));
