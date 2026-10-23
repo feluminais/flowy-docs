@@ -11,12 +11,13 @@ import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
 import { parseRun } from '../../src/core/perf/parse.ts'
 import { rollUpLoad } from '../../src/core/perf/rollup.ts'
 import { eventText, kneeText, kneeTextOf, scaleText, sourceKey, sourceKeyAt } from '../../src/core/perf/text.ts'
+import { idleOf } from '../../src/core/perf/idle.ts'
 import { amountOf, callSize } from '../../src/core/perf/measure.ts'
 import { traffic, trafficAt } from '../../src/core/perf/traffic.ts'
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
-  activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, slideDial, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
+  activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, slideDial, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, loadNote, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../../ui/src/perfview.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -570,6 +571,7 @@ export async function dumpPerf(): Promise<unknown> {
         traffic: views.map(view => ({ view, ...traffic(model, run, load, view) })),
         data: views.map(view => ({ view, ...trafficAt(model, runs, id, { '': load }, view, 'data') })),
       })),
+      idle: idleOf(run) ?? null,
       rolled: run.levels.flatMap(level => views.map(view => ({ load: level.load, view, ...rollUpLoad(model, level, view) }))),
       knee: found ?? null,
       text: found ? kneeText(run, found, oid => nameOf(model, oid)) : null,
@@ -637,7 +639,7 @@ const MARKS: { failed: number; failure?: 'lost' | 'rejected' }[][] = [
 ]
 /** A source's colour as the key draws it: a name for both themes, a hex as written, and what is neither. */
 const COLOURS: (string | undefined)[] = ['blue', 'gray', '#1D9E75', '#abc', '#ABCDEF', 'chartreuse', '#12', '', undefined]
-const POSITIONS = [-1, 0, 0.25, 0.5, 1, 1.5, 2.999, 3, 9]
+const POSITIONS = [-3, -1, -0.5, -0.25, 0, 0.013, 0.25, 0.5, 0.987, 1, 1.2345, 1.5, 2.999, 3, 9]
 /**
  * Runs over time for the panel's maths: the outage of the design (levels at 0, 45 and 120 s, events at 40, 70 and 85), Plum's seven levels, levels that crowd
  * together, a run whose last two levels are close, and one that starts away from zero.
@@ -732,7 +734,7 @@ export async function dumpPerfView(): Promise<unknown> {
       id,
       top: top(run),
       at: POSITIONS.map(pos => ({
-        pos, clamp: clampPos(run, pos), load: loadAt(run, pos), tested: isTested(pos), snap: snap(run, pos), from: rampFrom(run, pos),
+        pos, clamp: clampPos(run, pos), load: loadAt(run, pos), tested: isTested(pos), snap: snap(run, pos), from: rampFrom(run, pos), note: loadNote(run, pos), slide: slidePos(run, pos),
         ramp: [0, 16, 1000, RAMP_MS / 2, RAMP_MS].map(ms => rampPos(run, pos, ms)),
       })),
     })),

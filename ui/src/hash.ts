@@ -68,8 +68,9 @@ export function readHash(hash: string): { view: string; flow?: string; perf?: Pe
  * screen stands still, and rounds to a load during a ramp, which would otherwise rewrite the address every step.
  */
 export function runAddress(run: string, here: number[], multi: boolean, ramping: boolean): Perf {
-  const level = Math.round(here[0])
-  return multi ? { run, level, levels: here.map(p => (ramping ? Math.round(p) : Math.round(p * 100) / 100)) } : { run, level }
+  // The address names a place along the tested levels; no load, below the first, is the first.
+  const level = Math.max(0, Math.round(here[0]))
+  return multi ? { run, level, levels: here.map(p => Math.max(0, ramping ? Math.round(p) : Math.round(p * 100) / 100)) } : { run, level }
 }
 
 /**
