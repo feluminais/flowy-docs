@@ -39,3 +39,18 @@ for (const L of Ls) {
   rec('checkRun', time(() => check.checkRun('r', run, m), 200, 20))
 }
 table('a run; levels =', Ls, rows)
+
+// Four runs added together: the Strip and the curves follow one dial with the others held, and each tested load of it is a level to work out.
+const added: Record<string, Run> = {}
+const rows2: Record<string, number[]> = {}
+for (const L of [10, 20, 40]) {
+  const r = rng(L)
+  const parts = ['a', 'b', 'c', 'd']
+  for (const id of parts) added[id] = { name: id, unit: 'req/s', levels: Array.from({ length: L }, (_, i) => mkLevel((i + 1) * 10, 100, 120, r)) }
+  const all = { ...added, sum: { name: 'sum', unit: '', adds: parts, levels: [] } as Run }
+  const dials = (await load<typeof import('../src/core/perf/dials.ts')>('src/core/perf/dials.ts')).dialsOf(all, 'sum')!.dials
+  const positions = dials.map(() => L / 2)
+  ;(rows2['activeSeries: the curves with one dial moving'] ??= []).push(time(() => perfview.activeSeries(all, 'sum', dials, positions, 0), 300, 10))
+  ;(rows2['one frame of trafficAt'] ??= []).push(time(() => traffic.trafficAt(m, all, 'sum', Object.fromEntries(dials.map(d => [d.id, d.values[L / 2]])), 'root'), 300, 20))
+}
+table('four runs added; levels in each =', [10, 20, 40], rows2)
