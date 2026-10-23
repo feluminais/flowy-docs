@@ -79,7 +79,7 @@ a shape or a line shows the modes on it. **Show it** plays the flow that tells t
 and the part has errors in it, and opens Performance at the first load where it does. The address is
 `#<view>/failures/<analysis>/<mode>`.
 
-**Writing it.** In edit mode the tab stays open and gains **New analysis** (a name and a scope), **Add failure mode** and a form for
+**Writing it.** In the browser and in the desktop app, in edit mode the tab stays open and gains **New analysis** (a name and a scope), **Add failure mode** and a form for
 each mode: the part, the text, the three ratings, the status, what it affects, the flow and the run. Every save goes through the same
 checks as the rest of the model. An AI does the same through the MCP server: `get_failures` answers with the ranked table, the
 coverage and the problems, `put_failure` writes one mode, `delete_failure` removes one, and `put_failures` and `delete_failures`
@@ -104,6 +104,5 @@ names. A file that can't be read at all is a problem too, and it never stops the
 is. Renaming a shape by hand in `model.yaml` leaves its modes pointing at nothing, and the checks say so.
 
 **Where it works.** The browser version, the desktop app and an exported page show failure modes, with the same badges, list and words.
-The desktop app only reads them: it has no forms for an analysis, its Failures button is greyed out while you edit, and it doesn't
-know a mode names a shape, so deleting that shape there goes through and the browser then lists the mode as a problem. Plum has an
+The browser version and the desktop app also write them (see Writing it); an exported page only reads. Plum has an
 analysis, [Order to door](../demo/flowy/failures/ordering.yaml), and `node dist/cli.js --dir docs/demo/flowy` from a clone opens it.

@@ -342,18 +342,22 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
-    public void While_editing_the_button_is_greyed_out_and_the_panel_goes_away()
+    public void While_editing_the_tab_stays_open_and_the_button_stays_enabled_and_the_arrows_leave_the_list_alone()
     {
         var (window, reader) = Open();
         Press(window, Key.M, PhysicalKey.M);
         reader.SetEditing(true);
-        Assert.False(reader.FailuresOpenNow);
+        Assert.True(reader.FailuresOpenNow);
         var item = reader.Rail.Shown.First(i => i.Name.StartsWith("Failures"));
         Assert.True(item.Visible);
-        Assert.False(item.Enabled);
+        Assert.True(item.Enabled);
+        var before = reader.FailuresState.Mode;
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
+        Assert.Equal(before, reader.FailuresState.Mode); // in edit mode the arrows are the form's, not a step through the list
         Press(window, Key.M, PhysicalKey.M);
         Assert.False(reader.FailuresOpenNow);
-        Assert.Equal((null, FailLight.None), reader.Canvas.FailureOnBox("db"));
+        Press(window, Key.M, PhysicalKey.M);
+        Assert.True(reader.FailuresOpenNow);
     }
 
     [AvaloniaFact]
@@ -404,12 +408,138 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
-    public void A_problem_of_an_analysis_while_editing_says_the_panel_is_not_there()
+    public void A_problem_of_an_analysis_while_editing_opens_the_panel_where_it_can_be_fixed()
     {
         var (_, reader) = Open();
         reader.SetEditing(true);
         reader.JumpToProblem(reader.Folder!.Problems.First(p => p.File == "failures/ordering.yaml"));
-        Assert.False(reader.FailuresOpenNow);
+        Assert.True(reader.FailuresOpenNow);
+    }
+
+    /// <summary>The small shop of the delete case (one analysis, five modes, flows that name them), copied so a test may write to it.</summary>
+    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) OpenEditable(bool empty = false)
+    {
+        var temp = new TempFolder();
+        var dir = Path.Combine(temp.Path, "flowy");
+        Directory.CreateDirectory(dir);
+        var source = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "delete", "flowy");
+        foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+        {
+            if (empty && file.Contains("failures")) continue;
+            var target = Path.Combine(dir, Path.GetRelativePath(source, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.WriteAllText(target, File.ReadAllText(file));
+        }
+        var reader = new ReaderView();
+        var window = new Window { Width = 1280, Height = 900, Content = reader };
+        window.Show();
+        reader.Load(FolderLoader.Load(dir), dir);
+        Dispatcher.UIThread.RunJobs();
+        reader.SetEditing(true);
+        Press(window, Key.M, PhysicalKey.M);
+        Dispatcher.UIThread.RunJobs();
+        return (temp, dir, window, reader);
+    }
+
+    private static async Task WaitFor(Func<bool> done)
+    {
+        for (var i = 0; i < 200 && !done(); i++)
+        {
+            Dispatcher.UIThread.RunJobs();
+            await Task.Delay(10);
+        }
+        Assert.True(done());
+    }
+
+    private static string Analysis(string dir) => File.ReadAllText(Path.Combine(dir, "failures", "ordering.yaml"));
+
+    [AvaloniaFact]
+    public async Task A_rating_picked_in_the_mode_form_is_saved_and_the_risk_follows()
+    {
+        var (temp, dir, _, reader) = OpenEditable();
+        using var _t = temp;
+        reader.PickModeById("db-down");
+        var form = reader.FailuresPanelNow.ModeFormNow!;
+        Assert.True(await form.Press("severity", "7"));
+        await WaitFor(() => Analysis(dir).Contains("severity: 7"));
+        Assert.Equal("7", form.Ratings["severity"].View.Chosen);
+        Assert.Contains(reader.FailuresPanelNow.Texts, t => t == "42"); // 7 x 2 x 3: the risk the form says is the one the list ranks by
+    }
+
+    [AvaloniaFact]
+    public async Task A_text_field_of_the_mode_is_saved_when_it_is_left_and_a_refused_one_puts_the_old_words_back()
+    {
+        var (temp, dir, _, reader) = OpenEditable();
+        using var _t = temp;
+        reader.PickModeById("db-down");
+        var form = reader.FailuresPanelNow.ModeFormNow!;
+        form.ModeField.Text = "The database burns";
+        await form.ModeField.Commit();
+        await WaitFor(() => Analysis(dir).Contains("mode: The database burns"));
+        form.ModeField.Text = "";
+        await form.ModeField.Commit(); // a mode with no words is refused by the checker
+        Assert.Equal("The database burns", form.ModeField.Text);
+        Assert.Contains("mode: The database burns", Analysis(dir));
+    }
+
+    [AvaloniaFact]
+    public async Task Add_failure_mode_starts_on_the_shape_picked_on_the_canvas_makes_the_mode_and_picks_it()
+    {
+        var (temp, dir, window, reader) = OpenEditable();
+        using var _t = temp;
+        reader.GoTo(Views.ParentOf(reader.Folder!.Model, "cache"));
+        reader.OpenObject("cache");
+        Dispatcher.UIThread.RunJobs();
+        Click(Named(reader, "Add failure mode"));
+        var form = reader.FailuresPanelNow.AddFormNow!;
+        Assert.Equal("cache", form.ShapeChooser.View.Chosen);
+        form.Sentence.Text = "The cache is cold";
+        Click(reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("primary") && Avalonia.Automation.AutomationProperties.GetName(b) == "Add"));
+        await WaitFor(() => reader.FailuresState.Mode == "the-cache-is-cold");
+        Assert.Contains("the-cache-is-cold:", Analysis(dir));
+        Assert.Contains("on: cache", Analysis(dir));
+        Assert.Null(reader.FailuresPanelNow.AddFormNow); // the form is gone once the mode exists
+        Assert.NotNull(reader.FailuresPanelNow.ModeFormNow);
+    }
+
+    [AvaloniaFact]
+    public async Task A_mode_can_be_deleted_from_its_form()
+    {
+        var (temp, dir, _, reader) = OpenEditable();
+        using var _t = temp;
+        reader.PickModeById("cache-cold");
+        Click(Named(reader, "Delete mode"));
+        await WaitFor(() => !Analysis(dir).Contains("cache-cold:"));
+        Assert.Null(reader.FailuresState.Mode);
+    }
+
+    [AvaloniaFact]
+    public async Task Another_analysis_is_made_from_a_name_and_shown()
+    {
+        var (temp, dir, _, reader) = OpenEditable();
+        using var _t = temp;
+        Click(Named(reader, "New analysis")); // the fold's heading
+        var form = reader.FailuresPanelNow.NewFormNow!;
+        form.Box.Text = "Payments";
+        Click(reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("primary") && Avalonia.Automation.AutomationProperties.GetName(b) == "New analysis"));
+        await WaitFor(() => reader.FailuresState.Analysis == "payments");
+        Assert.True(File.Exists(Path.Combine(dir, "failures", "payments.yaml")));
+        Assert.Contains("name: Payments", File.ReadAllText(Path.Combine(dir, "failures", "payments.yaml")));
+    }
+
+    [AvaloniaFact]
+    public async Task With_no_analysis_the_panel_offers_the_name_and_without_edit_mode_a_Create_button_turns_it_on()
+    {
+        var (temp, dir, window, reader) = OpenEditable(empty: true);
+        using var _t = temp;
+        Assert.NotNull(reader.FailuresPanelNow.NewFormNow);
+        reader.SetEditing(false);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Null(reader.FailuresPanelNow.Buttons.FirstOrDefault(b => Avalonia.Automation.AutomationProperties.GetName(b) == "New analysis"));
+        Click(Named(reader, "Create"));
+        Assert.True(reader.Editing);
+        Assert.NotNull(reader.FailuresPanelNow.NewFormNow);
+        await Task.CompletedTask;
     }
 
     [AvaloniaFact]
