@@ -89,14 +89,21 @@ public class PerformanceTests
     }
 
     [AvaloniaFact]
-    public void A_folder_without_runs_has_no_Performance_button_and_T_does_nothing()
+    public void A_folder_without_runs_still_has_the_Performance_button_and_T_opens_a_panel_whose_Create_copies_a_starter_run()
     {
         using var temp = Runless();
         var (window, reader) = Open(temp.Path);
-        Assert.False(reader.Rail.Shown.First(i => i.Name.StartsWith("Performance")).Visible);
+        var item = reader.Rail.Shown.First(i => i.Name.StartsWith("Performance"));
+        Assert.True(item.Visible);
+        Assert.Equal("Performance", item.Name); // no count while there is nothing to count
+        Assert.Null(item.Count);
         Press(window, Key.T, PhysicalKey.T);
-        Assert.False(reader.PerfOpenNow);
-        Assert.False(reader.HasPanel);
+        Assert.True(reader.PerfOpenNow);
+        Assert.Contains(reader.PerfPanelNow.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "No load-test runs yet.");
+        var create = reader.PerfPanelNow.GetVisualDescendants().OfType<Button>().Single(b => Avalonia.Automation.AutomationProperties.GetName(b) == "Create");
+        create.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.StartsWith("# Replace these numbers", reader.CopiedText);
     }
 
     [AvaloniaFact]
@@ -326,7 +333,7 @@ public class PerformanceTests
     }
 
     [AvaloniaFact]
-    public void The_shortcut_list_names_the_performance_keys_only_where_there_is_a_run()
+    public void The_shortcut_list_names_the_performance_keys_with_or_without_a_run_but_not_while_editing()
     {
         var (_, reader) = Open();
         reader.ShowShortcuts();
@@ -338,7 +345,12 @@ public class PerformanceTests
         var (_, plain) = Open(temp.Path);
         plain.ShowShortcuts();
         var without = string.Join("|", plain.GetVisualDescendants().OfType<ShortcutsCard>().SelectMany(c => c.GetVisualDescendants().OfType<TextBlock>()).Select(t => t.Text));
-        Assert.DoesNotContain("Ramp the load", without);
+        Assert.Contains("Ramp the load", without); // the tab is there with no run, and T opens a panel that says so
+        var (_, edited) = Open(temp.Path);
+        edited.SetEditing(true);
+        edited.ShowShortcuts();
+        var editing = string.Join("|", edited.GetVisualDescendants().OfType<ShortcutsCard>().SelectMany(c => c.GetVisualDescendants().OfType<TextBlock>()).Select(t => t.Text));
+        Assert.DoesNotContain("Ramp the load", editing); // the tab is greyed out while editing
     }
 
     [AvaloniaFact]

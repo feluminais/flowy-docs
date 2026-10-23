@@ -4,6 +4,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowy.Core;
 using Xunit;
 
@@ -36,7 +37,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Explorer, 36", "Flows, 20", "Failures, 14", "Performance, 7"], icons.Select(i => i.Name)); // Failures and Performance are there only where there is an analysis or a run: Plum has 14 modes and seven runs
+        Assert.Equal(["Explorer, 36", "Flows, 20", "Performance, 7", "Failures, 14"], icons.Select(i => i.Name)); // Plum has seven runs and 14 failure modes
         Assert.All(icons, i => Assert.True(i.Visible));
         Assert.Equal(["Details"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
@@ -46,12 +47,19 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public void There_is_no_Flows_icon_when_there_is_no_flow()
+    public void The_Flows_Performance_and_Failures_icons_are_there_when_there_is_nothing_to_show_and_their_panels_say_so()
     {
         var (window, reader) = Open(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "text", "flowy"));
-        Assert.False(reader.Rail.Shown.First(i => i.Name.StartsWith("Flows")).Visible);
+        Assert.All(["Flows", "Performance", "Failures"], name => Assert.True(reader.Rail.Shown.First(i => i.Name.StartsWith(name)).Visible));
+        Assert.Equal(["Explorer", "Flows", "Performance", "Failures"], reader.Rail.Shown.Select(i => i.Name.Split(',')[0]));
         Press(window, Key.L, PhysicalKey.L);
-        Assert.False(reader.HasPanel); // L has nothing to open
+        Assert.Equal(PanelTab.Flows, reader.ShownTabNow); // the panel says there is no flow
+        Press(window, Key.T, PhysicalKey.T);
+        Assert.Equal(PanelTab.Performance, reader.ShownTabNow);
+        Assert.Contains(reader.PerfPanelNow.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "No load-test runs yet.");
+        Press(window, Key.M, PhysicalKey.M);
+        Assert.Equal(PanelTab.Failures, reader.ShownTabNow);
+        Assert.Contains(reader.FailuresPanelNow.Texts, t => t == "No failure analyses yet.");
         Press(window, Key.O, PhysicalKey.O);
         Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
     }

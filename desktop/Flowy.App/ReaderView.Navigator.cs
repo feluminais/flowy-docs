@@ -20,8 +20,8 @@ internal sealed partial class ReaderView
         return t.Totals;
     }
 
-    /// <summary>The Flows tab is there whenever there is a flow to find, and always while editing.</summary>
-    private bool ShowFlows => _folder is not null && (Totals().Flows > 0 || Editing);
+    /// <summary>The Flows tab is always there, and says so when there is no flow.</summary>
+    private bool ShowFlows => _folder is not null;
 
     /// <summary>The navigator's tab showing (Explorer, Flows, Failures or Performance): the one chosen on its rail or its strip, else none.</summary>
     private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows) || (_tab == PanelTab.Failures && !CanFailures) || (_tab == PanelTab.Performance && !CanPerf) ? null : _tab;
@@ -34,7 +34,7 @@ internal sealed partial class ReaderView
         if (tab == PanelTab.Failures && !CanFailures) return;
         if (tab == PanelTab.Performance)
         {
-            if (!CanPerf || _folder?.Runs is null) return;
+            if (!CanPerf) return;
             _perf.Open();
         }
         if (tab != PanelTab.Performance) _perf.StopRamp(); // a ramp ends with its tab
@@ -188,12 +188,11 @@ internal sealed partial class ReaderView
         if (Editing && _picker is not null) DropPicker(); // Compare is blocked while editing, and so is a flyout it opened
         var totals = Totals();
         var tab = ShownTab;
-        var showFlows = ShowFlows;
-        _rail.Update(tab, totals.Flows, totals.Shapes, showFlows);
-        _rail.UpdateFailures(ShowFailures, FailuresView.ModeCount(model), FailuresOpen, Editing);
-        _rail.UpdatePerformance(ShowPerf, _folder?.Runs?.Count ?? 0, PerfOpen, Editing);
-        _detailsRail.Update(DetailsOpen ? PanelTab.Details : null, 0, 0, false);
-        if (tab is { } open) _nav.Show(open, showFlows, ShowFailures && CanFailures, ShowPerf && CanPerf);
+        _rail.Update(tab, totals.Flows, totals.Shapes);
+        _rail.UpdateFailures(FailuresView.ModeCount(model), FailuresOpen, Editing);
+        _rail.UpdatePerformance(_folder?.Runs?.Count ?? 0, PerfOpen, Editing);
+        _detailsRail.Update(DetailsOpen ? PanelTab.Details : null, 0, 0);
+        if (tab is { } open) _nav.Show(open);
         else _nav.Hide();
         ApplyWidths();
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);

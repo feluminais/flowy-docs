@@ -1,6 +1,6 @@
 import { useEffect, useImperativeHandle, useRef, useState } from 'react'
 import type { CSSProperties, Ref } from 'react'
-import { Controls, ReactFlow, useReactFlow } from '@xyflow/react'
+import { ReactFlow, useReactFlow } from '@xyflow/react'
 import type { ColorMode, FitViewOptions } from '@xyflow/react'
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import type { SideMarks } from '../../src/core/flowdiff.ts'
@@ -8,6 +8,7 @@ import type { Problem } from '../../src/core/problem.ts'
 import { usesStates } from '../../src/core/states.ts'
 import { Box, ChangeMarksContext, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { BOX, FRAME, fitOptions, isStepLine, lineId } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
@@ -179,7 +180,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
               >
                 <Camera count={boxes.length + frames.length} fitKey={`${paneId} ${now.cuts} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
                 <SwapCamera go={now.phase === 'glide' ? now.run : 0} ids={[...target.frame.map(() => `${FRAME}${index}`), ...target.nodes.map(n => n.id)]} />
-                <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
+                <ZoomControls fit={fitOptions(0, true)} />
                 {settled && <PaneMotions p={target} />}
               </ReactFlow>
             </ChangeMarksContext>

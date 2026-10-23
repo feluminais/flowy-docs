@@ -184,7 +184,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
           <IconPicker model={model} object={object} onPick={icon => void save({ icon })} />
         </div>
         <Section icon={Text} title="Description" />
-        <Field label="Description" value={object.description ?? ''} multiline onSave={description => save({ description })} />
+        <Field label="Description (Markdown)" value={object.description ?? ''} multiline onSave={description => save({ description })} />
         {(object.type === 'store' || object.data !== undefined) && (
           <>
             <Section icon={Table} title="Data" />
@@ -266,11 +266,13 @@ export function AddPanel({ model, view, run, onAdded, onClose }: Common & { view
   return (
     <Panel onClose={onClose}>
       <h2 className="iconhead"><span className="badge"><Plus size={14} /></span>Add to {nameOf(model, view)}</h2>
-      <form className="form" onSubmit={add}>
-        <TypePicker types={types} value={type} onPick={choose} />
-        <label>Name<input name="name" autoFocus /></label>
-        <button className="primary"><Plus size={16} />Add</button>
-      </form>
+      {types.length === 0 ? <p className="muted">Nothing can go inside {nameOf(model, view)}.</p> : (
+        <form className="form" onSubmit={add}>
+          <TypePicker types={types} value={type} onPick={choose} />
+          <label>Name<input name="name" autoFocus /></label>
+          <button className="primary"><Plus size={16} />Add</button>
+        </form>
+      )}
     </Panel>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, Ref } from 'react'
-import { Controls, ReactFlow } from '@xyflow/react'
+import { ReactFlow } from '@xyflow/react'
 import type { ColorMode, FitViewOptions, NodeChange } from '@xyflow/react'
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import { ROOT } from '../../src/core/model.ts'
@@ -9,6 +9,7 @@ import type { LineTraffic, Run } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
@@ -170,7 +171,7 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
                   }}
                 >
                   <Camera count={nodes.length + frame.length} fitKey={`${view} ${fitKey}`} player={false} panel={0} nav={0} refitOnResize={false} />
-                  <Controls showInteractive={false} fitViewOptions={fitOptions(0, false)} />
+                  <ZoomControls fit={fitOptions(0, false)} />
                   {/* Stable keys: a run compared with itself has two panes of the same id. In a swap the layer for the run coming on fades in over the one going off. */}
                   {!still && drawing.loadTraffic && <TrafficLayer key="on" lines={drawing.loadTraffic.lines} style={lines} fade={leaving ? 'in' : undefined} />}
                   {!still && leaving?.drawing.loadTraffic && <TrafficLayer key="off" lines={leaving.drawing.loadTraffic.lines} style={lines} fade="out" />}
