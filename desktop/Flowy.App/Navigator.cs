@@ -96,14 +96,12 @@ internal sealed class NavRail : Border
         SetCount(PanelTab.Performance, "Performance", runs, runs > 0);
     }
 
-    /// <summary>The left rail's Failures button: always there (the number on it is how many failure modes, when there are any), and greyed out while the reader is editing.</summary>
-    public void UpdateFailures(int modes, bool open, bool editing)
+    /// <summary>The left rail's Failures button: always there, editing or not (the number on it is how many failure modes, when there are any).</summary>
+    public void UpdateFailures(int modes, bool open)
     {
         if (!_entries.TryGetValue(PanelTab.Failures, out var entry)) return;
         entry.Activate(open);
-        entry.Button.IsEnabled = !editing;
-        ToolTip.SetTip(entry.Button, editing ? "Failures (not while editing)" : "Failures (M)");
-        ToolTip.SetShowOnDisabled(entry.Button, true);
+        ToolTip.SetTip(entry.Button, "Failures (M)");
         SetCount(PanelTab.Failures, "Failures", modes, modes > 0);
     }
 

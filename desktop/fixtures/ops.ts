@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteFlow, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putFlow, putGroup, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, updateFlow } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -239,6 +239,47 @@ export const DELETE_STEPS: Spec[] = [
   { op: 'deleteWith', targets: [{ object: 'shop' }], resolutions: [{ key: 'view:checkout', action: 'changeView' }, { key: 'scope:ordering', action: 'changeScope' }, { key: 'child:web', action: 'moveOut', to: 'store2' }] },
 ]
 
+/** What the failure forms write: an analysis, its modes, a mode's fields and an analysis's name, about and scope. Runs on the delete case, which has the analysis `ordering`. */
+export const FAILURE_STEPS: Spec[] = [
+  { op: 'putAnalysis', id: 'checkout', name: 'Checkout' },
+  { op: 'putAnalysis', id: 'Bad Id', name: 'B' },
+  { op: 'putAnalysis', id: 'Ordering', name: 'Same name, other case' },
+  { op: 'putAnalysis', id: 'checkout', name: 'Checkout again' },
+  { op: 'putMode', analysis: 'checkout', id: 'db-gone', mode: 'The database is gone', on: 'db' },
+  { op: 'putMode', analysis: 'checkout', id: 'line', mode: 'The line breaks', from: 'api', to: 'mail' },
+  { op: 'putMode', analysis: 'checkout', id: 'blank-on', mode: 'A blank part is left out', on: '  ', from: 'api', to: 'mail' },
+  { op: 'putMode', analysis: 'checkout', id: 'no-part', mode: 'Names no part' },
+  { op: 'putMode', analysis: 'checkout', id: 'bad', mode: 'x', on: 'gone' },
+  { op: 'putMode', analysis: 'nope', id: 'x', mode: 'x', on: 'db' },
+  { op: 'putMode', analysis: 'ordering', id: 'api-slow', mode: 'The API is down', on: 'api' },
+  { op: 'updateMode', analysis: 'ordering', id: 'api-slow', changes: { severity: '9', owner: 'Payments' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'db-down', changes: { effect: '', cause: '  ' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'web-glitch', changes: { after: { occurrence: '1' } } },
+  { op: 'updateMode', analysis: 'ordering', id: 'web-glitch', changes: { after: { severity: '6' } } },
+  { op: 'updateMode', analysis: 'ordering', id: 'web-glitch', changes: { after: { severity: '', occurrence: '' } } },
+  { op: 'updateMode', analysis: 'ordering', id: 'db-down', changes: { affects: ['web', 'api'] } },
+  { op: 'updateMode', analysis: 'ordering', id: 'db-down', changes: { affects: [] } },
+  { op: 'updateMode', analysis: 'ordering', id: 'cache-cold', changes: { severity: '4' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'cache-cold', changes: { cause: 'A reason.', occurrence: '3', owner: 'Platform' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'cache-cold', changes: { severity: '5', status: 'planned', run: 'spike', description: 'More.' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'cache-cold', changes: { status: '', run: '' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'mail-late', changes: { from: 'api', to: 'db' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'api-slow', changes: { severity: '11' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'api-slow', changes: { mode: '' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'api-slow', changes: { on: 'gone' } },
+  { op: 'updateMode', analysis: 'ordering', id: 'nope', changes: { effect: 'e' } },
+  { op: 'updateMode', analysis: 'nope', id: 'x', changes: { effect: 'e' } },
+  { op: 'updateAnalysis', id: 'ordering', changes: { name: 'Orders', about: 'Rated by the team.', scope: 'api' } },
+  { op: 'updateAnalysis', id: 'ordering', changes: { about: '', scope: '' } },
+  { op: 'updateAnalysis', id: 'ordering', changes: { name: '' } },
+  { op: 'updateAnalysis', id: 'nope', changes: { name: 'N' } },
+  { op: 'deleteMode', analysis: 'ordering', id: 'cache-cold' },
+  { op: 'deleteMode', analysis: 'ordering', id: 'cache-cold' },
+  { op: 'deleteMode', analysis: 'nope', id: 'x' },
+  { op: 'deleteAnalysis', id: 'checkout' },
+  { op: 'deleteAnalysis', id: 'checkout' },
+]
+
 function apply(model: Model, s: Spec): Model {
   switch (s.op) {
     case 'putObject': {
@@ -263,6 +304,12 @@ function apply(model: Model, s: Spec): Model {
     case 'setGroupKind': return setGroupKind(model, s.id, s.group, s.kind)
     case 'groupSteps': return groupSteps(model, s.id, s.group, s.kind, s.first, s.last)
     case 'deleteFlow': return deleteFlow(model, s.id)
+    case 'putAnalysis': return putAnalysis(model, { id: s.id, name: s.name, modes: {} })
+    case 'deleteAnalysis': return deleteAnalysis(model, s.id)
+    case 'putMode': return putMode(model, s.analysis, s.id, { mode: s.mode, ...(s.on === undefined ? {} : { on: s.on }), ...(s.from === undefined ? {} : { from: s.from }), ...(s.to === undefined ? {} : { to: s.to }) })
+    case 'deleteMode': return deleteMode(model, s.analysis, s.id)
+    case 'updateMode': return updateMode(model, s.analysis, s.id, s.changes)
+    case 'updateAnalysis': return updateAnalysis(model, s.id, s.changes)
     case 'placeBoxes': return placeBoxes(model, s.view, s.boxes)
     case 'setLines': return setLines(model, s.style)
     case 'setProject': return setProject(model, { name: s.name, about: s.about })
@@ -303,5 +350,5 @@ export async function dumpOps(): Promise<unknown> {
   const ids = names.flatMap(name => [[], ['orders-db', 'orders-db-2', 'API']].map(taken => ({ name, taken, id: newId(name, taken, 'component') })))
   const start: Model = modelOf(state)
   const types = [ROOT, ...Object.keys(start.objects), 'nowhere'].map(view => ({ view, types: typesIn(start, view) }))
-  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS) }
+  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS) }
 }
