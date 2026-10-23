@@ -44,6 +44,15 @@
     "risk",
     "table"
   ],
+  "filekinds": [
+    "FOLDER_KINDS",
+    "KINDS",
+    "WRITTEN_FOLDERS",
+    "idUnder",
+    "isRemovableFile",
+    "isRunPath",
+    "kindOfPath"
+  ],
   "formula": [
     "FORMULA_MAX",
     "FORMULA_NAMES",

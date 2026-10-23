@@ -71,15 +71,18 @@ public static class ModelFiles
         return new ParsedModel(map, list, meta);
     }
 
-    /// <summary>An empty file gives a flow with no steps; the checks report what's missing.</summary>
-    public static Flow ParseFlow(string id, string text)
+    /// <summary>An empty file gives a flow with no steps; the checks report what's missing. <paramref name="folder"/> is where the file is under <c>flows/</c>, for the messages.</summary>
+    public static Flow ParseFlow(string id, string text, string folder = "")
     {
-        var file = FolderLayout.FlowFile(id);
+        var file = FolderLayout.FlowFile(id, folder);
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
             throw new ParseError(file, "expected a mapping with \"name\", \"view\" and \"steps\"");
         CheckEntry(file, "flow", doc, FlowFields);
         doc.TryGetValue("steps", out var rawSteps);
         if (JsCompat.OrEmpty(rawSteps, new List<object?>()) is not List<object?> steps) throw new ParseError(file, "\"steps\" must be a list");
+        doc.TryGetValue("tags", out var rawTags);
+        if (JsCompat.OrEmpty(rawTags, null) is { } declaredTags && (declaredTags is not List<object?> tagList || tagList.Any(t => t is not string)))
+            throw new ParseError(file, "\"tags\" must be a list of words");
         for (var i = 0; i < steps.Count; i++) CheckEntry(file, $"step {i + 1}", steps[i], StepFields);
         doc.TryGetValue("groups", out var rawGroups);
         OrderedDictionary<string, object?>? groups = null;
@@ -101,7 +104,7 @@ public static class ModelFiles
         // The steps say their own; so does compare, whose shape problem (a bare "compare:" included) is for Checks, never a parse error or an empty key.
         var head = new OrderedDictionary<string, object?>(doc.Where(kv => kv.Key is not ("steps" or "compare")));
         doc.TryGetValue("compare", out var compare);
-        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates) { NoValue = EmptyKeys.Of(head), CompareRaw = compare };
+        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates) { NoValue = EmptyKeys.Of(head), CompareRaw = compare, TagsRaw = rawTags };
     }
 
     /// <summary>

@@ -201,15 +201,86 @@ public static partial class EditOps
     }
 
     /// <summary>
-    /// Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. <paramref name="groups"/> (group id → its options, all text) is written between the view and the steps; none or an empty set writes no <c>groups:</c>.
-    /// <paramref name="states"/> (shape id → state word) is where shapes stand before step 1, written right after the view; none or an empty set writes no <c>states:</c>, and neither does an empty one on a step.
+    /// <paramref name="folder"/> spelled as an existing folder spells it where one differs only in case, since on Windows and macOS those are the one folder. A path is taken a name at a time:
+    /// "Payments/refunds" becomes "payments/refunds" when "payments" is already a folder. A port of <c>folderSpelling</c> in src/core/ops.ts.
     /// </summary>
-    public static EditDoc PutFlow(EditDoc doc, string id, string name, string view, IEnumerable<OrderedDictionary<string, object?>> steps, OrderedDictionary<string, object?>? groups = null, OrderedDictionary<string, object?>? states = null)
+    private static string FolderSpelling(EditDoc doc, string folder)
+    {
+        var known = new List<string>();
+        foreach (var id in JsCompat.OrderKeys(doc.Folders.Keys))
+        {
+            var names = doc.Folders[id].Split('/');
+            for (var i = 1; i <= names.Length; i++)
+                if (string.Join('/', names.Take(i)) is var prefix && !known.Contains(prefix)) known.Add(prefix);
+        }
+        var spelled = new List<string>();
+        foreach (var name in folder.Split('/'))
+        {
+            var prefix = string.Join('/', [.. spelled, name]);
+            var same = known.FirstOrDefault(k => k.ToLowerInvariant() == prefix.ToLowerInvariant());
+            spelled.Add(same is null ? name : same[(same.LastIndexOf('/') + 1)..]);
+        }
+        return string.Join('/', spelled);
+    }
+
+    /// <summary>A folder as typed: slashes either way, no slash at either end, no space around a name; refused with the rule when it can't be a folder of flows.</summary>
+    private static string CleanFolder(EditDoc doc, string folder)
+    {
+        var clean = string.Join('/', folder.Replace('\\', '/').Split('/').Select(JsCompat.JsTrim).Where(n => n != ""));
+        if (!Names.IsValidFolder(clean)) throw new OpError($"\"{folder}\" is not a folder Flowy can use: {Names.FolderRule}");
+        return FolderSpelling(doc, clean);
+    }
+
+    /// <summary>Puts the flow <paramref name="id"/> in <paramref name="folder"/> ("" is the top of flows/), in the document <paramref name="d"/> (a copy). No entry is kept for the top.</summary>
+    private static void WithFolder(EditDoc d, string id, string folder)
+    {
+        d.Folders.Remove(id);
+        if (folder != "") d.Folders[id] = folder;
+    }
+
+    /// <summary>The tags as a file holds them: each trimmed, a blank one dropped, one spelled twice (whatever the case) kept once. Refused for a tag that is too long.</summary>
+    private static List<string> CleanTags(IEnumerable<string> tags)
+    {
+        var seen = new HashSet<string>();
+        var clean = new List<string>();
+        foreach (var raw in tags)
+        {
+            var tag = JsCompat.JsTrim(raw);
+            if (tag == "") continue;
+            if (!Names.IsValidTag(tag)) throw new OpError($"the tag \"{tag}\" must be 1 to {Names.MaxTagLength} characters of text");
+            if (seen.Add(Names.TagKey(tag))) clean.Add(tag);
+        }
+        return clean;
+    }
+
+    /// <summary>A copy of the flow with its tags set (a list of words), or taken out when there are none. A <c>tags</c> the flow already has stays where it is; a new one goes right after <c>view</c>.</summary>
+    private static OrderedDictionary<string, object?> WithTags(OrderedDictionary<string, object?> flow, IReadOnlyList<string> tags)
+    {
+        var result = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in flow)
+        {
+            if (key != "tags") result[key] = value;
+            else if (tags.Count > 0) result[key] = tags.Select(t => (object?)t).ToList();
+            if (key == "view" && !flow.ContainsKey("tags") && tags.Count > 0) result["tags"] = tags.Select(t => (object?)t).ToList();
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included, but keeps where its file is and its tags unless <paramref name="folder"/> or <paramref name="tags"/> is given.
+    /// <paramref name="groups"/> (group id → its options, all text) is written between the view and the steps; none or an empty set writes no <c>groups:</c>.
+    /// <paramref name="states"/> (shape id → state word) is where shapes stand before step 1, written right after the view; none or an empty set writes no <c>states:</c>, and neither does an empty one on a step.
+    /// <paramref name="tags"/> are written right after the view, none writing no <c>tags:</c>; <paramref name="folder"/> ("" is the top of flows/) says which folder the file goes in.
+    /// </summary>
+    public static EditDoc PutFlow(EditDoc doc, string id, string name, string view, IEnumerable<OrderedDictionary<string, object?>> steps, OrderedDictionary<string, object?>? groups = null, OrderedDictionary<string, object?>? states = null,
+        string? folder = null, IReadOnlyList<string>? tags = null)
     {
         if (!Names.IsValidId(id)) throw new OpError($"\"{id}\" is not a valid flow id: {Names.IdRule}");
         // Flow ids are file names, and Windows and macOS don't tell Visit.yaml from visit.yaml.
         string? clash = doc.Flows.Keys.Cast<string?>().FirstOrDefault(other => other != id && string.Equals(other, id, StringComparison.OrdinalIgnoreCase));
         if (clash is not null) throw new OpError($"{FolderLayout.FlowFile(clash)} already exists and differs only in case. Rename or delete that file by hand.");
+        var where = folder is null ? doc.Folders.GetValueOrDefault(id, "") : CleanFolder(doc, folder);
+        var labels = tags is null ? Names.TagsOf(doc.Flows.TryGetValue(id, out var old) ? Get(Entry(old), "tags") : null) : CleanTags(tags);
         var d = doc.Clone();
         var copies = new List<object?>();
         foreach (var s in steps)
@@ -221,12 +292,32 @@ public static partial class EditOps
             copies.Add(copy);
         }
         var flow = new OrderedDictionary<string, object?> { ["name"] = name, ["view"] = view };
+        if (labels.Count > 0) flow["tags"] = labels.Select(t => (object?)t).ToList();
         if (states is { Count: > 0 }) flow["states"] = Clone(states);
         if (groups is { Count: > 0 }) flow["groups"] = Clone(groups);
         flow["steps"] = copies;
         d.Flows[id] = flow;
+        WithFolder(d, id, where);
         return d;
     }
+
+    /// <summary>Move the flow <paramref name="id"/> into <paramref name="folder"/> ("" is the top of flows/). Only where its file is changes: the flow keeps its id, so nothing that names it needs to. A port of <c>moveFlow</c> in src/core/ops.ts.</summary>
+    public static EditDoc MoveFlow(EditDoc doc, string id, string folder)
+    {
+        ExistingFlow(doc, id);
+        var where = CleanFolder(doc, folder);
+        var d = doc.Clone();
+        WithFolder(d, id, where);
+        return d;
+    }
+
+    /// <summary>Set the tags of the flow <paramref name="id"/> to exactly these, or take them all out with none. Every other key of the flow keeps its place. A port of <c>setFlowTags</c> in src/core/ops.ts.</summary>
+    public static EditDoc SetFlowTags(EditDoc doc, string id, IEnumerable<string> tags) =>
+        OnFlow(doc, id, (d, flow) =>
+        {
+            d.Flows[id] = WithTags(flow, CleanTags(tags));
+            return d;
+        });
 
     private static OrderedDictionary<string, object?> Clone(OrderedDictionary<string, object?> step)
     {
@@ -604,7 +695,11 @@ public static partial class EditOps
             if (tag.Note is not null) throw new OpError($"flow \"{other}\" compares with \"{tag.With}\", and its link has a note: remove that link first (Compare with)");
             flow.Remove("compare");
         }
-        foreach (var id in ids) d.Flows.Remove(id);
+        foreach (var id in ids)
+        {
+            d.Flows.Remove(id);
+            d.Folders.Remove(id); // its file is gone, and so is where it was
+        }
     }
 
     // ---- layout and settings -------------------------------------------------------------------------------------
@@ -627,7 +722,7 @@ public static partial class EditOps
                 if (ObjectOf(d, id) is not null) kept[id] = p;
             if ((v == Names.Root || ObjectOf(d, v) is not null) && kept.Count > 0) layout[v] = kept;
         }
-        return new EditDoc { Meta = d.Meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Layout = layout };
+        return new EditDoc { Meta = d.Meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Folders = d.Folders, Failures = d.Failures, Layout = layout };
     }
 
     /// <summary>Set the project's line style: the top-level <c>lines:</c> in model.yaml. Straight is the default, so straight or null removes the key. A new key goes first; one that's there keeps its place.</summary>
@@ -646,7 +741,7 @@ public static partial class EditOps
         }
         var meta = new OrderedDictionary<string, object?> { ["lines"] = style };
         foreach (var (key, value) in d.Meta) meta[key] = value;
-        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Layout = d.Layout };
+        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Folders = d.Folders, Failures = d.Failures, Layout = d.Layout };
     }
 
     /// <summary>
@@ -671,7 +766,7 @@ public static partial class EditOps
                 foreach (var (k, v) in entries) meta[k] = v;
             }
         }
-        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Layout = d.Layout };
+        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Folders = d.Folders, Failures = d.Failures, Layout = d.Layout };
     }
 
     /// <summary>Forget where boxes were dragged in one view, so the computed layout shows again.</summary>
