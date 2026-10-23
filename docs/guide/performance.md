@@ -65,7 +65,13 @@ How fast they cross still follows `p50`, so two lines with the same calls and a 
 times the usual one. A line the formula gives no value for (it needs a `bytes` the line doesn't have, say) keeps the usual dots.
 
 The screen holds at most 24 dots on a line. Past that the line is scaled down to 24 and says so: **Scaled down** in the key, and under the numbers of the line when you click it.
-The key also says what one dot stands for ("1 dot = 50 calls/s") when `dot` is the rate times a number and nothing else, and draws **Bigger call** when `size` is set.
+The key also says what one dot stands for ("1 dot = 50 calls/s") when `dot` is the rate times a number and nothing else, and draws **Bigger call** when `size` is set (under Calls).
+
+**Calls and Data.** Under **Count** the tab counts the lines two ways. **Calls** is what a run always drew: the dots and the thickness follow the calls a second. **Data** follows
+the data a second instead, the calls times the size of a call (`bytes`), so a line of a few large calls reads as heavier than a line of many small ones. Under Data every dot is the usual
+size, since the size is already in how many dots there are, and the key's scale says it in data ("1 dot = 2 KB/s"). Data counts against the mean size of a call over the whole
+run, rounded to 1, 2 or 5 times a power of ten, so a call of that size draws the same under both. A run with no `bytes` anywhere has no Data: the button is greyed out and says why.
+A line with no `bytes` is not drawn under Data, as one with no `rate` is not drawn at all.
 
 `bytes` on a line that several connections land on is their mean, weighted by their `rate`. A connection can also say how its failing share fails, with
 `failure: lost` (a failing call pops where it dies) or `failure: rejected` (it runs to the end of the line, stops at a bar and comes back red). Without

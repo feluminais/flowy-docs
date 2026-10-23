@@ -6,6 +6,7 @@ import { modelOf } from '../src/core/state.ts'
 import { knee, kneeOf } from '../src/core/perf/analyse.ts'
 import { dialsOf } from '../src/core/perf/dials.ts'
 import { interpolate, levelAt } from '../src/core/perf/levels.ts'
+import { callSize } from '../src/core/perf/measure.ts'
 import { kneeTextOf, scaleText } from '../src/core/perf/text.ts'
 import { trafficAt } from '../src/core/perf/traffic.ts'
 import { loadState } from '../src/node/files.ts'
@@ -66,15 +67,16 @@ const plumModel = modelOf(plum)
 const plumRuns = plum.runs ?? {}
 const plumName = (id: string) => nameOf(plumModel, id)
 
-test('Plum has customer orders alone: blue dots, one for every 4 calls a second, bigger dots for bigger calls, reaching Fleet DB through Matcher', () => {
+test('Plum has customer orders alone: blue dots, one for every 4 calls a second, reaching Fleet DB through Matcher', () => {
   const orders = plumRuns['orders-only']
   assert.equal(orders.name, 'Customer orders')
   assert.equal(orders.unit, 'orders/min')
   assert.equal(orders.entry, 'customer-app')
   assert.equal(orders.source?.color, 'blue')
   assert.equal(orders.source?.dot?.text, 'rate / 4')
-  assert.equal(orders.source?.size?.text, 'bytes / 400')
+  assert.equal(orders.source?.size, undefined, 'Calls draws every dot the same size; the size of a call is what Data counts')
   assert.equal(scaleText(orders), '1 dot = 4 calls/s')
+  assert.equal(scaleText(orders, 'data', callSize(plumRuns, 'orders-only')), '1 dot = 2 KB/s')
   assert.match(orders.about ?? '', /made-up/i)
   assert.ok(orders.levels.every(l => l.connections.some(c => c.from === 'matcher' && c.to === 'fleet-db')), 'every level reaches Fleet DB through Matcher')
   assert.ok(orders.levels.length >= 5)
