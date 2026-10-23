@@ -1,6 +1,6 @@
 import { useImperativeHandle, useRef } from 'react'
 import type { Ref } from 'react'
-import { Controls, ReactFlow } from '@xyflow/react'
+import { ReactFlow } from '@xyflow/react'
 import type { ColorMode, FitViewOptions } from '@xyflow/react'
 import { followsLanding } from '../../src/core/animation.ts'
 import type { Model } from '../../src/core/model.ts'
@@ -10,6 +10,7 @@ import { usesStates } from '../../src/core/states.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { Box, ChangeMarksContext, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { fitOptions, isStepLine } from './graph.ts'
 import { GroupMarks } from './GroupMarks.tsx'
@@ -114,7 +115,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
                 }}
               >
                 <Camera count={nodes.length + frame.length} fitKey={`${view} ${flowId} ${fitKey}`} player panel={0} nav={0} refitOnResize={false} />
-                <Controls showInteractive={false} fitViewOptions={fitOptions(0, true)} />
+                <ZoomControls fit={fitOptions(0, true)} />
                 <PaneMotions p={p} />
               </ReactFlow>
             </ChangeMarksContext>

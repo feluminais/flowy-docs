@@ -43,6 +43,16 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
   // Closing by Esc or by picking hands the focus back to the Compare button; a press elsewhere has put it somewhere else on purpose.
   const giveBack = () => document.querySelector<HTMLElement>(`[${toggle}]`)?.focus()
   const found = q === '' ? others : others.filter(c => c.name.toLowerCase().includes(q) || c.id.includes(q))
+  // The arrow keys move over the rows that can be picked, linked ones first; Enter picks the one they are on. Typing puts them back on the first.
+  const rows = [...linked, ...found]
+  const pickable = (c: Choice) => !c.missing && can(c.id)
+  const [cursor, setCursor] = useState(0)
+  const onRow = cursor < rows.length && pickable(rows[cursor]) ? cursor : rows.findIndex(pickable)
+  const move = (by: 1 | -1) => {
+    for (let next = onRow + by; next >= 0 && next < rows.length; next += by) {
+      if (pickable(rows[next])) return setCursor(next)
+    }
+  }
   // Esc is this popover's while it is open, ahead of the keys of the page; a press outside it closes it (the Compare button toggles it itself).
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
@@ -71,7 +81,7 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
     const off = c.missing ? 'Missing' : !can(c.id) ? "Can't play yet" : undefined
     return (
       <li key={c.id}>
-        <button disabled={off !== undefined} title={c.missing ? undefined : off} onClick={() => {
+        <button className={rows[onRow]?.id === c.id ? 'at' : undefined} disabled={off !== undefined} title={c.missing ? undefined : off} onClick={() => {
           giveBack()
           onPick(c.id)
         }}>
@@ -91,12 +101,19 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
       {linked.length > 0 && <ul>{linked.map(c => row(c, true))}</ul>}
       <label className="cpick-find">
         <SearchIcon size={16} />
-        <input autoFocus value={query} placeholder={`Find a ${kind}`} aria-label={`Find a ${kind}`} onChange={e => setQuery(e.target.value)}
+        <input autoFocus value={query} placeholder={`Find a ${kind}`} aria-label={`Find a ${kind}`} onChange={e => {
+            setQuery(e.target.value)
+            setCursor(0)
+          }}
           onKeyDown={e => {
-            if (e.nativeEvent.isComposing || e.key !== 'Enter') return
-            const first = found.find(c => can(c.id))
-            if (first) onPick(first.id)
-            e.preventDefault()
+            if (e.nativeEvent.isComposing) return
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              move(e.key === 'ArrowDown' ? 1 : -1)
+              e.preventDefault()
+            } else if (e.key === 'Enter') {
+              if (rows[onRow]) onPick(rows[onRow].id)
+              e.preventDefault()
+            }
           }} />
       </label>
       <ul className="cpick-others">{found.map(c => row(c, false))}</ul>

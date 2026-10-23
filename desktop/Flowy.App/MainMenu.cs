@@ -155,8 +155,8 @@ internal sealed class MainMenu : IDisposable
         if (_reader.MermaidText() is not { } text || _window.Clipboard is not { } clipboard) return;
         await clipboard.SetTextAsync(text);
         _reader.ShowNotice(_reader.PlayingFlowId is null
-            ? "Copied this view as a Mermaid diagram. Paste it into a README or a pull request."
-            : "Copied this flow as a Mermaid sequence diagram. Paste it into a README or a pull request.", 4);
+            ? "Copied this view as Mermaid. Paste it into a README or a PR: GitHub draws it."
+            : "Copied this flow as Mermaid. Paste it into a README or a PR: GitHub draws it.", 4);
     }
 
     private async Task SavePictureAsync()

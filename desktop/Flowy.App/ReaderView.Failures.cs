@@ -21,8 +21,8 @@ internal sealed partial class ReaderView
     private RiskBand? _band; // the list is narrowed to this band
     private bool _left; // the list holds the shapes no mode names yet
 
-    /// <summary>The tab is there whenever there is an analysis, or a file of one to complain about.</summary>
-    private bool ShowFailures => _folder is { } f && (f.Model.Failures.Count > 0 || (f.FailureProblems?.Count ?? 0) > 0);
+    /// <summary>The tab is always there. With no analysis its panel says so; with only a broken file of one it says what is wrong.</summary>
+    private bool ShowFailures => _folder is not null;
 
     /// <summary>While editing the tab is greyed out: the analyses have no forms here yet, and the marks would sit on a model that is changing.</summary>
     private bool CanFailures => !Editing && ShowFailures;
