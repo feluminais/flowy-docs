@@ -6,6 +6,8 @@ import type { DataInput } from './data.ts'
 import { dependents, describeDependent, lineIndices, needsDecision } from './dependents.ts'
 import type { Action, Dependent, Target } from './dependents.ts'
 import { analysesText } from './failures.ts'
+import { sideProblems, tidySpots } from './layout.ts'
+import type { SideProblem } from './layout.ts'
 import { iconProblem } from './look.ts'
 import { checkRun } from './perf/check.ts'
 import type { Run } from './perf/types.ts'
@@ -776,6 +778,37 @@ export function forgetLayout(model: Model, view: string): Model {
   const layout = { ...model.layout }
   delete layout[view]
   return { ...model, layout }
+}
+
+/**
+ * Tidy one view: save where each box of it goes, with every neighbour on the side it sits on in the view above (see neighbourSides),
+ * wherever boxes were dragged before. Positions are whole numbers.
+ */
+export function tidyLayout(model: Model, view: string): Model {
+  if (view !== ROOT && !getObject(model, view)) throw new OpError(`unknown view "${view}"`)
+  const boxes = Object.fromEntries([...tidySpots(model, view)].map(([id, p]): [string, [number, number]] => [id, [Math.round(p.x), Math.round(p.y)]]))
+  const layout = { ...model.layout }
+  delete layout[view]
+  return placeBoxes({ ...model, layout }, view, boxes)
+}
+
+/**
+ * Tidy the views whose neighbours sit on another side than the view above puts them on (see sideProblems), the top level first so each
+ * view is checked against the layout its parent ended with. `only` limits it to one view. Returns the model and what it found.
+ */
+export function tidyViews(model: Model, only?: string): { model: Model; found: SideProblem[] } {
+  if (only !== undefined && only !== ROOT && !getObject(model, only)) throw new OpError(`unknown view "${only}"`)
+  const views = (only === undefined ? [ROOT, ...Object.keys(model.objects).filter(id => isView(model, id))] : [only])
+    .sort((a, b) => chain(model, a).length - chain(model, b).length)
+  let next = model
+  const found: SideProblem[] = []
+  for (const view of views) {
+    const problems = sideProblems(next, view)
+    if (problems.length === 0) continue
+    found.push(...problems)
+    next = tidyLayout(next, view)
+  }
+  return { model: next, found }
 }
 
 /**

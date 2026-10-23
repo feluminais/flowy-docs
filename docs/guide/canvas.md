@@ -110,8 +110,10 @@ checks, and write the same text, so a change made in one looks the same in git a
 - Esc or Backspace, straight after dragging a shape, take the drag back: whoever has just moved a shape and got it wrong reaches for them.
   Once anything else is done (a click, another edit, a move to another level) they close the panel and go up again, as in reading.
   **Z** zooms out whatever you have just done, and Ctrl+Z undoes the last change of any kind.
-- Tidy forgets where shapes in this view were dragged, so Flowy lays it out again, picking the
-  layout with the fewest crossing lines it finds. Ctrl+Z brings your positions back.
+- Tidy lays this view out again and saves it, whatever was dragged in it, picking the layout with the fewest crossing lines it finds. The faded shapes
+  from other levels go on the side they have in the view above: if Back office is right of Ordering at the top level, Ordering shows it on the right and
+  Back office shows Ordering on the left, so zooming from one to the other never leads the same way twice. A view you never tidy is laid out by the same
+  search without that rule. Ctrl+Z brings your positions back.
 - New flow records a walkthrough: name it, click the shape where a step starts and the shape it goes
   to (or the same shape again, for a step it does on its own), type what happens and press Enter.
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and

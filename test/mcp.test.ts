@@ -318,3 +318,40 @@ test('put_flow takes a step outcome, and refuses one the kind cannot have', asyn
   assert.equal(refused.error, true)
   assert.match(refused.text, /animation outcome timeout only applies to call/)
 })
+
+/** Two systems that talk both ways, so each is a neighbour in the other's view. */
+async function twoSystems(call: (name: string, args?: Record<string, unknown>) => Promise<{ error: boolean; text: string }>) {
+  for (const [id, name] of [['ordering', 'Ordering'], ['backoffice', 'Back office']]) await call('put_object', { id, type: 'system', name })
+  for (const [id, name, parent] of [['api', 'Order API', 'ordering'], ['web', 'Website', 'ordering'], ['admin', 'Admin', 'backoffice'], ['console', 'Console', 'backoffice']]) {
+    await call('put_object', { id, type: 'app', name, in: parent })
+  }
+  for (const [from, to] of [['web', 'api'], ['admin', 'api'], ['console', 'api'], ['api', 'admin']]) await call('connect', { from, to })
+}
+
+test('tidy_layout with check lists neighbours on the wrong side and saves nothing, then puts them right', async t => {
+  const { dir, call } = await setup(t)
+  await twoSystems(call)
+  const listed = await call('tidy_layout', { check: true })
+  assert.equal(listed.error, false, listed.text)
+  assert.match(listed.text, /^Found \d views?:\n- (Ordering|Back office): (Ordering|Back office) was \w+, the view above has it \w+/)
+  await assert.rejects(readFile(join(dir, 'layout.yaml'), 'utf8'), { code: 'ENOENT' })
+
+  const tidied = await call('tidy_layout')
+  assert.equal(tidied.error, false, tidied.text)
+  assert.match(tidied.text, /^Tidied \d views?:\n- .* was \w+, now \w+/)
+  assert.match(await readFile(join(dir, 'layout.yaml'), 'utf8'), /^ordering:\n {2}\w+: \[-?\d+, -?\d+\]/m)
+  assert.equal((await call('tidy_layout', { check: true })).text, 'Every neighbour is on the side it has in the view above.')
+  assert.equal((await call('tidy_layout')).text, 'Every neighbour is on the side it has in the view above.')
+})
+
+test('tidy_layout can take one view, and refuses a view that is not there', async t => {
+  const { dir, call } = await setup(t)
+  await twoSystems(call)
+  assert.match((await call('tidy_layout', { view: 'ordering' })).text, /^Tidied 1 view:\n- Ordering: /)
+  const yaml = await readFile(join(dir, 'layout.yaml'), 'utf8')
+  assert.match(yaml, /^ordering:/m)
+  assert.doesNotMatch(yaml, /^backoffice:/m)
+  const refused = await call('tidy_layout', { view: 'nowhere' })
+  assert.equal(refused.error, true)
+  assert.match(refused.text, /unknown view "nowhere"/)
+})

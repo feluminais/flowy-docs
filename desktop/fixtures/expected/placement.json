@@ -57,6 +57,7 @@
         "y": "below",
         "z": "above"
       },
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 500,
@@ -251,6 +252,7 @@
         "erin": "left",
         "frank": "right"
       },
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 500,
@@ -422,6 +424,7 @@
       "outsiders": [],
       "edges": [],
       "regions": {},
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 200,
@@ -491,6 +494,7 @@
       "regions": {
         "stray": "left"
       },
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 500,
@@ -564,6 +568,206 @@
         ]
       ],
       "tangleTidy": 0
+    },
+    {
+      "name": "fixed",
+      "inner": [
+        [
+          "a",
+          0,
+          0
+        ],
+        [
+          "b",
+          300,
+          0
+        ],
+        [
+          "c",
+          150,
+          160
+        ]
+      ],
+      "outsiders": [
+        "p",
+        "q",
+        "r",
+        "s"
+      ],
+      "edges": [
+        {
+          "from": "p",
+          "to": "a"
+        },
+        {
+          "from": "q",
+          "to": "b"
+        },
+        {
+          "from": "c",
+          "to": "r"
+        },
+        {
+          "from": "s",
+          "to": "c"
+        },
+        {
+          "from": "a",
+          "to": "b"
+        },
+        {
+          "from": "b",
+          "to": "c"
+        }
+      ],
+      "regions": {
+        "p": "left",
+        "q": "right",
+        "r": "below",
+        "s": "above"
+      },
+      "fixed": {
+        "p": "left",
+        "r": "below"
+      },
+      "members": {
+        "left": 0,
+        "right": 500,
+        "top": 0,
+        "bottom": 232,
+        "middle": {
+          "x": 250,
+          "y": 116
+        },
+        "mean": [
+          [
+            "p",
+            0,
+            0
+          ],
+          [
+            "q",
+            300,
+            0
+          ],
+          [
+            "r",
+            150,
+            160
+          ],
+          [
+            "s",
+            150,
+            160
+          ]
+        ],
+        "people": [
+          "q",
+          "s"
+        ],
+        "rest": [
+          "p",
+          "r"
+        ]
+      },
+      "arranged": {
+        "at": [
+          [
+            "a",
+            0,
+            0
+          ],
+          [
+            "b",
+            300,
+            0
+          ],
+          [
+            "c",
+            150,
+            160
+          ],
+          [
+            "p",
+            -280,
+            80
+          ],
+          [
+            "r",
+            150,
+            312
+          ],
+          [
+            "s",
+            35,
+            -152
+          ],
+          [
+            "q",
+            265,
+            -152
+          ]
+        ],
+        "rows": [
+          [
+            "a",
+            "b",
+            "c"
+          ],
+          [
+            "s",
+            "q"
+          ],
+          [
+            "r"
+          ]
+        ],
+        "columns": [
+          [
+            "p"
+          ],
+          []
+        ]
+      },
+      "tangleArranged": 2,
+      "tidy": [
+        [
+          "a",
+          0,
+          0
+        ],
+        [
+          "b",
+          300,
+          0
+        ],
+        [
+          "c",
+          150,
+          160
+        ],
+        [
+          "p",
+          -280,
+          80
+        ],
+        [
+          "r",
+          150,
+          312
+        ],
+        [
+          "s",
+          35,
+          -152
+        ],
+        [
+          "q",
+          265,
+          -152
+        ]
+      ],
+      "tangleTidy": 2
     },
     {
       "name": "docs/demo/flowy root",
@@ -680,6 +884,7 @@
         }
       ],
       "regions": {},
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 1100,
@@ -964,6 +1169,7 @@
         "delivery": "right",
         "backoffice": "below"
       },
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 800,
@@ -1280,6 +1486,7 @@
         "mapbox": "below",
         "notifications": "above"
       },
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 500,
@@ -1461,6 +1668,7 @@
         }
       ],
       "regions": {},
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 500,
@@ -1571,6 +1779,7 @@
         "customer": "left",
         "mail": "right"
       },
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 500,
@@ -1711,6 +1920,7 @@
         "db": "left",
         "mail": "right"
       },
+      "fixed": {},
       "members": {
         "left": 0,
         "right": 500,
@@ -1802,6 +2012,495 @@
         ]
       ],
       "tangleTidy": 1
+    }
+  ],
+  "meetings": [
+    {
+      "folder": "docs/demo/flowy",
+      "view": "root",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "root",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "customer",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "customer"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "restaurant",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "restaurant"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "mapbox",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "mapbox"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "stripe",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "stripe"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "notifications",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "notifications"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "delivery",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "delivery"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "backoffice",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "backoffice"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "ordering",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "courier",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "courier"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "ordering",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "ordering"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "mapbox",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "mapbox"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "notifications",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "notifications"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "delivery",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "notifications",
+      "box": "ordering",
+      "meets": {
+        "view": "root",
+        "here": "notifications",
+        "there": "ordering"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "notifications",
+      "box": "delivery",
+      "meets": {
+        "view": "root",
+        "here": "notifications",
+        "there": "delivery"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "notifications",
+      "box": "twilio",
+      "meets": {
+        "view": "root",
+        "here": "notifications",
+        "there": "twilio"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "notifications",
+      "box": "notifications",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "notifications",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "backoffice",
+      "box": "support",
+      "meets": {
+        "view": "root",
+        "here": "backoffice",
+        "there": "support"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "backoffice",
+      "box": "ordering",
+      "meets": {
+        "view": "root",
+        "here": "backoffice",
+        "there": "ordering"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "backoffice",
+      "box": "backoffice",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "backoffice",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "menu-cache",
+      "meets": {
+        "view": "ordering",
+        "here": "order-api",
+        "there": "menu-cache"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "orders-db",
+      "meets": {
+        "view": "ordering",
+        "here": "order-api",
+        "there": "orders-db"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "mapbox",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "mapbox"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "stripe",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "stripe"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "events",
+      "meets": {
+        "view": "ordering",
+        "here": "order-api",
+        "there": "events"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "notifications",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "notifications"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "delivery",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "delivery"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "backoffice",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "backoffice"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "order-api",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "box": "fleet-db",
+      "meets": {
+        "view": "delivery",
+        "here": "dispatch",
+        "there": "fleet-db"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "box": "mapbox",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "mapbox"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "box": "notifications",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "notifications"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "box": "dispatch",
+      "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "example",
+      "view": "root",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "example",
+      "view": "root",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "example",
+      "view": "shop",
+      "box": "customer",
+      "meets": {
+        "view": "root",
+        "here": "shop",
+        "there": "customer"
+      }
+    },
+    {
+      "folder": "example",
+      "view": "shop",
+      "box": "mail",
+      "meets": {
+        "view": "root",
+        "here": "shop",
+        "there": "mail"
+      }
+    },
+    {
+      "folder": "example",
+      "view": "shop",
+      "box": "shop",
+      "meets": null
+    },
+    {
+      "folder": "example",
+      "view": "shop",
+      "box": "root",
+      "meets": null
+    },
+    {
+      "folder": "example",
+      "view": "api",
+      "box": "db",
+      "meets": {
+        "view": "shop",
+        "here": "api",
+        "there": "db"
+      }
+    },
+    {
+      "folder": "example",
+      "view": "api",
+      "box": "mail",
+      "meets": {
+        "view": "root",
+        "here": "shop",
+        "there": "mail"
+      }
+    },
+    {
+      "folder": "example",
+      "view": "api",
+      "box": "api",
+      "meets": null
+    },
+    {
+      "folder": "example",
+      "view": "api",
+      "box": "root",
+      "meets": null
+    }
+  ],
+  "sides": [
+    {
+      "dx": 300,
+      "dy": 100,
+      "side": "right"
+    },
+    {
+      "dx": -300,
+      "dy": 100,
+      "side": "left"
+    },
+    {
+      "dx": 100,
+      "dy": 200,
+      "side": "below"
+    },
+    {
+      "dx": 100,
+      "dy": -200,
+      "side": "above"
+    },
+    {
+      "dx": 200,
+      "dy": 72,
+      "side": "below"
+    },
+    {
+      "dx": -200,
+      "dy": -72,
+      "side": "above"
+    },
+    {
+      "dx": 100,
+      "dy": 36,
+      "side": "below"
+    },
+    {
+      "dx": 0,
+      "dy": 1,
+      "side": "below"
+    },
+    {
+      "dx": 1,
+      "dy": 0,
+      "side": "right"
+    },
+    {
+      "dx": -1,
+      "dy": 0,
+      "side": "left"
+    },
+    {
+      "dx": 0,
+      "dy": -1,
+      "side": "above"
     }
   ],
   "ungrouped": {

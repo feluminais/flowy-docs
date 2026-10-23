@@ -539,8 +539,8 @@ Editing (press E):
 - [ ] Lines in edit mode: pick curved and `lines: curved` appears at the top of
       `example/model.yaml`. Ctrl+Z takes it away.
 - [ ] In Shop, drag Web app away: the frame follows it. Press Tidy: Web app goes back and
-      `example/layout.yaml` loses `shop`. Ctrl+Z puts it where you dragged it. Tidy again with
-      nothing dragged: a notice says there's nothing to tidy.
+      `example/layout.yaml` holds every box of `shop`. Ctrl+Z puts it where you dragged it.
+- [ ] Press Tidy in Shop and in API, then zoom from one to a faded shape and back: the shape you left sits on the opposite side of the one you went to.
 - [ ] Switch on Outside service on Customer: its tile goes grey with a cloud. Switch it off.
 - [ ] In API's panel click Cylinder under Shape, Teal under Color, drag Opacity to 60 and pick an icon from the grid
       under Icon: each shows on the canvas as you pick it, and `shape`, `color`, `opacity` and `icon` appear for `api`

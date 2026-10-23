@@ -1,9 +1,10 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { computeView } from '../../src/core/views.ts'
+import { arrange, membersOf, sideOf, tangle, untangle } from '../../src/core/layout.ts'
+import type { Region } from '../../src/core/layout.ts'
+import { ROOT } from '../../src/core/model.ts'
+import { computeView, isView, meeting } from '../../src/core/views.ts'
 import { loadDir } from '../../src/node/files.ts'
-import { arrange, membersOf, tangle, untangle } from '../../ui/src/graph.ts'
-import type { Region } from '../../ui/src/graph.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 const REGIONS: Region[] = ['left', 'right', 'below', 'above']
@@ -13,17 +14,17 @@ const spots = (m: Map<string, { x: number; y: number }>): Spot[] => [...m].map((
 
 /**
  * One view's members at given places and its outsiders around them, put through the same steps the canvas takes after dagre: measure the
- * members, arrange the outsiders (each in a region taken in turn from `REGIONS`), untangle. The C# port (Layout in desktop/Flowy.Core) must
+ * members, arrange the outsiders (each in a region taken in turn from `REGIONS`, unless `fixed` gives it one), untangle. The C# port (Layout in desktop/Flowy.Core) must
  * reproduce every number. dagre itself is not part of this: the C# side has its own layered layout under these steps.
  */
-function scenario(name: string, inner: Spot[], outsiders: string[], edges: { from: string; to: string }[]) {
+function scenario(name: string, inner: Spot[], outsiders: string[], edges: { from: string; to: string }[], fixed: Record<string, Region> = {}) {
   const at = new Map(inner.map(([id, x, y]) => [id, { x, y }]))
-  const regions = Object.fromEntries(outsiders.map((id, i) => [id, REGIONS[i % REGIONS.length]]))
-  const m = membersOf(at, outsiders, edges)
+  const regions = Object.fromEntries(outsiders.map((id, i) => [id, fixed[id] ?? REGIONS[i % REGIONS.length]]))
+  const m = membersOf(at, outsiders, edges, new Map(Object.entries(fixed)))
   const arranged = arrange(m, id => regions[id])
   const tidy = untangle(arranged.at, edges, arranged.rows, arranged.columns)
   return {
-    name, inner, outsiders, edges, regions,
+    name, inner, outsiders, edges, regions, fixed,
     members: { left: m.left, right: m.right, top: m.top, bottom: m.bottom, middle: m.middle, mean: [...m.mean].map(([id, p]) => [id, p.x, p.y]), people: m.people, rest: m.rest },
     arranged: { at: spots(arranged.at), rows: arranged.rows, columns: arranged.columns },
     tangleArranged: tangle(arranged.at, edges),
@@ -46,7 +47,11 @@ export async function dumpLayout(): Promise<unknown> {
       ['alice', 'bob', 'carol', 'dave', 'erin', 'frank'].map((from, i) => ({ from, to: i % 2 ? 'm1' : 'm2' }))),
     scenario('lonely', [['only', 0, 0]], [], []),
     scenario('disconnected-outsider', [['a', 0, 0], ['b', 300, 0]], ['stray'], [{ from: 'a', to: 'b' }]),
+    // Outsiders with a side given stay on it, and a person that has one is not above: p and r are fixed, q still only starts lines.
+    scenario('fixed', [['a', 0, 0], ['b', 300, 0], ['c', 150, 160]], ['p', 'q', 'r', 's'],
+      [{ from: 'p', to: 'a' }, { from: 'q', to: 'b' }, { from: 'c', to: 'r' }, { from: 's', to: 'c' }, { from: 'a', to: 'b' }, { from: 'b', to: 'c' }], { p: 'left', r: 'below' }),
   ]
+  const meetings: unknown[] = []
   for (const [folder, views] of [['docs/demo/flowy', ['root', 'ordering', 'delivery', 'back-office']], ['example', ['root', 'shop', 'api']]] as const) {
     const { model } = await loadDir(join(root, folder))
     for (const view of views) {
@@ -54,9 +59,16 @@ export async function dumpLayout(): Promise<unknown> {
       if (v.members.length === 0) continue
       scenarios.push(scenario(`${folder} ${view}`, grid(v.members), v.outsiders, v.edges.map(e => ({ from: e.from, to: e.to }))))
     }
+    // Where each outsider of each view meets it, and for the top level and a box inside the view, nothing.
+    for (const view of [ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id))) {
+      for (const id of [...computeView(model, view).outsiders, view, ROOT]) meetings.push({ folder, view, box: id, meets: meeting(model, view, id) ?? null })
+    }
   }
+  // The side of one box seen from another, for a spread of offsets, including the diagonals where wide and tall meet.
+  const sides = [[300, 100], [-300, 100], [100, 200], [100, -200], [200, 72], [-200, -72], [100, 36], [0, 1], [1, 0], [-1, 0], [0, -1]]
+    .map(([dx, dy]) => ({ dx, dy, side: sideOf({ x: 0, y: 0 }, { x: dx, y: dy }) }))
   // untangle with no groups given: any two boxes in a row may trade.
   const ungrouped = new Map([['a', { x: 0, y: 0 }], ['b', { x: 300, y: 0 }], ['c', { x: 600, y: 0 }]])
   const lines = [{ from: 'a', to: 'c' }, { from: 'b', to: 'c' }]
-  return { scenarios, ungrouped: { edges: lines, before: spots(ungrouped), tangleBefore: tangle(ungrouped, lines), after: spots(untangle(ungrouped, lines)) } }
+  return { scenarios, meetings, sides, ungrouped: { edges: lines, before: spots(ungrouped), tangleBefore: tangle(ungrouped, lines), after: spots(untangle(ungrouped, lines)) } }
 }

@@ -1,6 +1,6 @@
 # Check it and share it
 
-The check command, and exporting a read-only site. Part of the [Flowy Docs guide](../guide.md).
+The check and tidy commands, and exporting a read-only site. Part of the [Flowy Docs guide](../guide.md).
 
 ## Check it
 
@@ -19,6 +19,16 @@ It reads what the canvas reads: the model, the flows, the failure analyses and t
 doesn't exist, and a file Flowy skips (`.yml`). It also writes every file back in memory, which reports a file that loads but could not be saved again, such as a
 key with no value that an unquoted comma leaves behind. `--dir` picks the model folder. A model or flow file that can't be read at all is the one line it prints.
 `export` lists problems on the page and exits 0, and `failures` exits 1 only for the failure files, so `check` is the one to gate on.
+
+## Tidy it
+
+```bash
+node /path/to/flowy-docs/dist/cli.js tidy
+```
+
+`tidy` puts the faded shapes of each view on the side they have in the view above, saves the views it changed in `layout.yaml` and lists them. A view that
+already agrees is left as it is, dragged positions and all. `tidy --check` only lists them, on stderr, and exits 1 if there are any, so a build can gate on it.
+`--dir` picks the model folder. Tidy in the app does the same for the view you are in.
 
 ## Share it
 
