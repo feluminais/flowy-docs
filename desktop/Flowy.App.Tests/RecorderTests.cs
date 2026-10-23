@@ -219,6 +219,85 @@ public class RecorderTests
     }
 
     [AvaloniaFact]
+    public async Task A_flow_is_filed_in_a_folder_with_its_Folder_field_and_undo_puts_it_back()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "browse");
+        var recorder = reader.Panel.CurrentRecorder!;
+        Assert.Equal("", recorder.FlowFolderField!.Text);
+        recorder.FlowFolderField.Text = " billing \\ Refunds ";
+        await recorder.FlowFolderField.Commit();
+        await Until(() => File.Exists(Path.Combine(dir, "flows", "billing", "Refunds", "browse.yaml")));
+        Assert.False(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
+        await Until(() => reader.Folder!.Model.FolderOf("browse") == "billing/Refunds");
+        await Until(() => reader.Panel.CurrentRecorder?.FlowFolderField?.Text == "billing/Refunds");
+        await reader.UndoAsync();
+        Assert.True(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
+        Assert.False(File.Exists(Path.Combine(dir, "flows", "billing", "Refunds", "browse.yaml")));
+    }
+
+    [AvaloniaFact]
+    public async Task A_folder_that_cannot_be_used_is_refused_and_the_field_shows_the_saved_one_again()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "browse");
+        var field = reader.Panel.CurrentRecorder!.FlowFolderField!;
+        field.Text = "a:b";
+        await field.Commit();
+        Assert.Equal("", field.Text);
+        Assert.True(File.Exists(Path.Combine(dir, "flows", "browse.yaml")));
+    }
+
+    [AvaloniaFact]
+    public async Task Tags_are_buttons_and_a_field_adds_one_of_your_own()
+    {
+        var (temp, dir, _, reader) = Open();
+        using var _ = temp;
+        EditFlow(reader, "browse");
+        var picker = reader.Panel.CurrentRecorder!.TagPicker!;
+        Assert.Equal(Names.SuggestedTags, picker.Buttons.Select(b => b.Tag));
+        Assert.All(picker.Buttons, b => Assert.False(b.On));
+        Assert.True(await picker.ToggleAsync("happy path"));
+        await Until(() => FlowFile(dir, "browse").Contains("tags:"));
+        await Until(() => reader.Panel.CurrentRecorder!.TagPicker!.Buttons.Any(b => b.Tag == "happy path" && b.On));
+        picker = reader.Panel.CurrentRecorder!.TagPicker!;
+        picker.AddBox.Text = " Edge Case ";
+        Assert.True(await picker.AddTypedAsync());
+        await Until(() => reader.Folder!.Model.Flows["browse"].Tags.Count == 2);
+        Assert.Equal(["happy path", "Edge Case"], reader.Folder!.Model.Flows["browse"].Tags);
+        Assert.Matches("view: [a-z]+\ntags:", FlowFile(dir, "browse"));
+        picker = reader.Panel.CurrentRecorder!.TagPicker!;
+        picker.AddBox.Text = "custom";
+        Assert.True(await picker.AddTypedAsync());
+        await Until(() => reader.Panel.CurrentRecorder!.TagPicker!.Buttons.Any(b => b.Tag == "custom" && b.On));
+        Assert.True(await reader.Panel.CurrentRecorder!.TagPicker!.ToggleAsync("happy path")); // off
+        await Until(() => reader.Folder!.Model.Flows["browse"].Tags.Count == 2 && !reader.Folder.Model.Flows["browse"].Tags.Contains("happy path"));
+    }
+
+    [AvaloniaFact]
+    public void A_new_flow_asks_for_a_folder_and_says_one_that_cannot_be_used_before_recording()
+    {
+        var (temp, _, window, reader) = Open();
+        using var _ = temp;
+        Press(Labelled(reader, "New flow"));
+        Settle(window);
+        var recorder = reader.Panel.CurrentRecorder!;
+        recorder.NameBox!.Text = "Customer pays";
+        recorder.FolderBox!.Text = "a|b";
+        Settle(window); // what is typed has been read before Start is pressed
+        recorder.StartNamed("Customer pays");
+        Assert.Contains(recorder.GetVisualDescendants().OfType<TextBlock>(), t => t.IsVisible && (t.Text ?? "").StartsWith("Not a folder Flowy can use"));
+        Assert.Equal("", reader.RecordingNow!.Id); // still naming: the flow has not started
+        recorder.FolderBox.Text = " payments / new ";
+        recorder.StartNamed("Customer pays");
+        Settle(window);
+        Assert.Equal("customer-pays", reader.RecordingNow!.Id);
+        Assert.Equal("payments/new", reader.RecordingNow.Folder); // each name trimmed, the slashes kept
+    }
+
+    [AvaloniaFact]
     public void Leaving_edit_mode_closes_the_recorder_and_plays_flows_again()
     {
         var (temp, _, _, reader) = Open();
