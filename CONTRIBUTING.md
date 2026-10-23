@@ -281,6 +281,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
 - [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".
+- [ ] Press L on `docs/demo`: the Flows tab lists delivery, ordering and payments (with stripe inside it) as folders, each a chevron, a folder mark, its name and its count, with every flow's tags under its name and the tags in use as buttons above the list. Press error path: 9 of 20 flows stay, with the count above them. Press E and open a flow: its form has Folder and Tags under Flow. Type a new folder and press Enter: the file moves and the list follows. Press a tag: it lights and the flow's row gains it. New flow has a Folder field, and a name Flowy cannot use is said under it. Light and dark both read. (Dragging a flow onto a folder is browser only.)
 - [ ] Ctrl+K, type `re`: Restaurant, Refunds in Order API and Data warehouse in Back office. Enter opens Refunds' panel in its view.
 - [ ] Open `desktop/fixtures/cases/problems/flowy` (or its repo): "34 problems" in the bar, "!" on boxes, a click on a problem goes to it.
 - [ ] Save `example/model.yaml` with a new box name while the app is open: it appears without a reload. Add a line `<<<<<<<` and
