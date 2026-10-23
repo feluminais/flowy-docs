@@ -421,7 +421,7 @@ internal static class Expected
         "e | taken | view=root edit=True panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "e again | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "ctrl+e | left | same",
-        "e with the load-test panel open | taken | view=root edit=True panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
+        "e with the load-test panel open | taken | view=root edit=True panel=True tab=Performance details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
         "n reading | left | same",
         "delete reading | left | same",
         "ctrl+a reading | left | same",

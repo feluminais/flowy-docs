@@ -18,8 +18,13 @@ internal sealed partial class ReaderView
     /// <summary>The tab is always there. With no run its panel says so and offers a starter; with only a broken run file it says what is wrong.</summary>
     private bool ShowPerf => _folder is not null;
 
-    /// <summary>While editing the tab is greyed out: the numbers would sit on a model that is changing.</summary>
+    /// <summary>While editing the tab shows no numbers: they would sit on a model that is changing.</summary>
     private bool CanPerf => !Editing && ShowPerf;
+
+    /// <summary>While editing the tab lists the runs to link, and draws none.</summary>
+    private bool CanRuns => Editing && ShowPerf;
+
+    private bool RunsOpen => _tab == PanelTab.Performance && CanRuns;
 
     private LoadRun? LoadTest => _perf.Run;
 
@@ -50,8 +55,9 @@ internal sealed partial class ReaderView
         _perfPanel.DialActivated += _perf.Activate; // pressing a slider makes it the dial the keys act on
         _perfPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
         _perfPanel.CompareChosen += other => OpenRunCompare(PerfRunId, other);
-        _perfPanel.LinkChosen += other => LinkRun(PerfRunId, other);
-        _perfPanel.Unlinked += () => LinkRun(PerfRunId, null);
+        _nav.RunLinks.LinkChosen += (id, other) => LinkRun(id, other);
+        _nav.RunLinks.Unlinked += id => LinkRun(id, null);
+        _nav.RunLinks.Used += () => Focus();
         _perfPanel.CreateClicked += () => _ = CopyStarterRunAsync();
     }
 
@@ -82,7 +88,7 @@ internal sealed partial class ReaderView
 
     private void OpenPerf() => SetTab(PanelTab.Performance);
 
-    /// <summary>The Performance tab gives way (editing starts): a ramp stops with it.</summary>
+    /// <summary>The Performance tab gives way (a comparison opens): a ramp stops with it.</summary>
     private void LeavePerformance()
     {
         if (_tab == PanelTab.Performance) _tab = null;
@@ -127,8 +133,8 @@ internal sealed partial class ReaderView
             _ => null,
         };
         _perf.EnsurePlaces();
-        // Compare and Link with are greyed out with their reasons, never hidden: no second run, editing, or a folder that can't be written.
-        var actions = new RunActions(CompareChoices.RunOff(RunMap, Editing), SaveOff);
+        // Compare is greyed out with its reason, never hidden: no second run, or editing. Linking a run is done while editing.
+        var actions = new RunActions(CompareChoices.RunOff(RunMap, Editing));
         var runs = folder.Runs ?? new IdMap<LoadRun>();
         _perfPanel.Show(new PerfPanelModel(model, view, runs, folder.RunProblems ?? [], PerfView.ActiveRun(runs, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active,
             Actions: actions));
@@ -137,7 +143,11 @@ internal sealed partial class ReaderView
     // What a test can look at.
     internal bool PerfOpenNow => PerfOpen;
 
+    internal bool RunsOpenNow => RunsOpen;
+
     internal PerfPanel PerfPanelNow => _perfPanel;
+
+    internal RunLinksPanel RunLinksNow => _nav.RunLinks;
 
     internal (string Run, double Pos, bool Ramping) PerfState => (PerfView.ActiveRun(_folder?.Runs ?? new IdMap<LoadRun>(), _perf.RunId), _perf.Pos, _perf.Ramping);
 

@@ -62,7 +62,7 @@ internal sealed partial class ReaderView
         if (on && _compare is not null && UnlessDraft(() => SetEditing(true))) return; // editing ends the comparison: a note that isn't saved asks first
         _editMode = on;
         CloseCompare(false); // nor does a comparison: it shows the flows as they are
-        LeavePerformance(); // editing and the Performance panel don't mix: the numbers would sit on a model that is changing
+        _perf.StopRamp(); // editing and the numbers of the Performance panel don't mix: they would sit on a model that is changing, so the tab lists the runs to link instead
         DismissNotice();
         _playback.Head = null;
         if (!on && _side is Side.Add or Side.Flow or Side.Boxes) _side = null;

@@ -1687,31 +1687,52 @@ public class CompareTests
         var (temp, window, reader) = Open(BatchedTags(null));
         using var _ = temp;
         var (dinnerBefore, batchedBefore) = (RunText(temp, Dinner), RunText(temp, Batched));
+        reader.SetEditing(true); // linking is done while editing: the Performance tab lists the runs
         reader.OpenTab("performance");
-        reader.PickRunById(Batched);
         EditModeTests.Settle(window);
-        var panel = reader.PerfPanelNow;
-        Assert.True(panel.LinkButton!.IsEnabled);
-        Assert.False(panel.UnlinkButton!.IsEnabled);
-        Assert.Equal("Not linked", ToolTip.GetTip(panel.UnlinkButton));
-        ClickBar(panel.LinkButton);
+        var links = reader.RunLinksNow;
+        Assert.True(links.LinkButtonOf(Batched)!.IsEnabled);
+        Assert.False(links.UnlinkButtonOf(Batched)!.IsEnabled);
+        Assert.Equal("Not linked", ToolTip.GetTip(links.UnlinkButtonOf(Batched)!));
+        ClickBar(links.LinkButtonOf(Batched)!);
         EditModeTests.Settle(window);
-        Assert.Equal("link", panel.PickerOpen);
-        ClickBar(FindButton(panel.RunPicker!, "Dinner rush"));
+        Assert.Equal(Batched, links.PickerOpen);
+        ClickBar(FindButton(links.RunPicker!, "Dinner rush"));
         await EditModeTests.Until(() => RunText(temp, Batched).Contains("compare: dinner-rush"));
         Assert.Equal(batchedBefore + "compare: dinner-rush\n", RunText(temp, Batched)); // one line added, nothing else touched
         Assert.Equal(dinnerBefore, RunText(temp, Dinner));
         Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp", SearchOption.AllDirectories));
-        await EditModeTests.Until(() => reader.PerfPanelNow.LinkedMark is not null); // the folder is read again
+        await EditModeTests.Until(() => links.IsLinked(Batched)); // the folder is read again
         Assert.Equal(new CompareTag("dinner-rush"), reader.Folder!.Runs![Batched].Compare);
-        Assert.Null(reader.PerfPanelNow.RunPicker);
+        Assert.Null(links.RunPicker);
 
         // Unlink: no note, so it goes at once, and the file is as it was.
-        Assert.True(reader.PerfPanelNow.UnlinkButton!.IsEnabled);
-        ClickBar(reader.PerfPanelNow.UnlinkButton);
+        Assert.True(links.UnlinkButtonOf(Batched)!.IsEnabled);
+        ClickBar(links.UnlinkButtonOf(Batched)!);
         await EditModeTests.Until(() => !RunText(temp, Batched).Contains("compare"));
         Assert.Equal(batchedBefore, RunText(temp, Batched));
         Assert.Null(reader.UnlinkAskShown);
+    }
+
+    [AvaloniaFact]
+    public void The_Performance_tab_lists_the_runs_to_link_while_editing_and_the_header_has_no_Link_with()
+    {
+        var (temp, window, reader) = Open(BatchedTags());
+        using var _ = temp;
+        reader.OpenTab("performance");
+        reader.PickRunById(Batched);
+        EditModeTests.Settle(window);
+        Assert.NotNull(reader.PerfPanelNow.CompareButton); // looking at a run: Compare, and no Link with
+        Assert.All(reader.PerfPanelNow.GetVisualDescendants().OfType<Button>(), b => Assert.NotEqual("Link with", Avalonia.Automation.AutomationProperties.GetName(b)));
+        reader.SetEditing(true);
+        EditModeTests.Settle(window);
+        Assert.True(reader.PerfOpenNow == false);
+        var links = reader.RunLinksNow;
+        Assert.NotNull(links.LinkButtonOf(Dinner));
+        Assert.NotNull(links.LinkButtonOf(Batched));
+        Assert.True(links.IsLinked(Batched) == (reader.Folder!.Runs![Batched].Compare is not null));
+        Assert.True(reader.Rail.Shown.First(i => i.Name.StartsWith("Performance")).Enabled); // the tab is there while editing, and lists the runs
+        Assert.True(reader.RunsOpenNow);
     }
 
     [AvaloniaFact]
@@ -1720,10 +1741,10 @@ public class CompareTests
         var (temp, window, reader) = Open(BatchedTags("compare:\n  with: dinner-rush\n  note: Batching the calls\n"));
         using var _ = temp;
         var tagged = RunText(temp, Batched);
+        reader.SetEditing(true);
         reader.OpenTab("performance");
-        reader.PickRunById(Batched);
         EditModeTests.Settle(window);
-        ClickBar(reader.PerfPanelNow.UnlinkButton!);
+        ClickBar(reader.RunLinksNow.UnlinkButtonOf(Batched)!);
         EditModeTests.Settle(window);
         var ask = reader.UnlinkAskShown!;
         Assert.Equal("Remove the link and its note", Avalonia.Automation.AutomationProperties.GetName(ask));
@@ -1733,12 +1754,12 @@ public class CompareTests
         await Task.Delay(50);
         Assert.Equal(tagged, RunText(temp, Batched));
 
-        ClickBar(reader.PerfPanelNow.UnlinkButton!);
+        ClickBar(reader.RunLinksNow.UnlinkButtonOf(Batched)!);
         Press(window, Key.Escape, PhysicalKey.Escape); // Esc is Keep
         Assert.Null(reader.UnlinkAskShown);
         Assert.Equal(tagged, RunText(temp, Batched));
 
-        ClickBar(reader.PerfPanelNow.UnlinkButton!);
+        ClickBar(reader.RunLinksNow.UnlinkButtonOf(Batched)!);
         ClickBar(reader.UnlinkAskShown!.Discard); // Remove
         await EditModeTests.Until(() => !RunText(temp, Batched).Contains("compare"));
         Assert.DoesNotContain("note", RunText(temp, Batched).Replace("notes", ""));
@@ -1746,21 +1767,19 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void A_folder_that_cannot_be_written_greys_out_Link_with_and_Unlink_with_the_reason()
+    public void A_folder_that_cannot_be_written_cannot_be_edited_so_the_header_has_Compare_and_no_Link_with()
     {
         var (temp, window, reader) = Open(BatchedTags());
         using var _ = temp;
         reader.CanEdit = false; // a sample inside the install
+        reader.SetEditing(true);
+        Assert.False(reader.Editing); // so there is no list of runs to link from
         reader.OpenTab("performance");
         reader.PickRunById(Batched);
         EditModeTests.Settle(window);
         var panel = reader.PerfPanelNow;
-        Assert.False(panel.LinkButton!.IsEnabled);
-        Assert.False(panel.UnlinkButton!.IsEnabled);
-        Assert.Equal("This page can't save", ToolTip.GetTip(panel.LinkButton)); // the same words as the note editor
-        Assert.Equal("This page can't save", ToolTip.GetTip(panel.UnlinkButton));
         Assert.True(panel.CompareButton!.IsEnabled); // comparing writes nothing
-        Assert.False(panel.TogglePicker("link")); // the control is greyed out: nothing opens
+        Assert.Null(reader.RunLinksNow.LinkButtonOf(Batched));
         reader.OpenRunCompareById(Dinner, Batched);
         EditModeTests.Settle(window);
         var note = reader.CompareShown!.Note;
