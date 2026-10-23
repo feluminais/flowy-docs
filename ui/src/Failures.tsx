@@ -71,7 +71,7 @@ export function FailuresBody(p: FailuresProps) {
   if (!analysis) {
     return (
       <div className="perf fail">
-        {problems.length === 0 && <p className="muted">No failure analyses yet. An analysis lists how each shape and connection can fail, with how bad, how likely and how hard to spot.</p>}
+        {problems.length === 0 && <p className="muted">No failure analyses yet.</p>}
         {p.editing && <NewAnalysis model={model} run={p.run} onMade={p.onAnalysis} />}
         {!p.editing && p.onCreate && <div className="perf-buttons"><button className="primary" onClick={p.onCreate}><Plus size={16} />Create</button></div>}
         {problemList}

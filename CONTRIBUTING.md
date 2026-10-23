@@ -257,7 +257,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       sentences; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo --view ordering --tab failures --select stripe-timeout`: the left rail has a Failures button under
-      Flows with a 14 on it, and M opens its tab beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
+      Performance with a 14 on it, and M opens its tab beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
       narrows the list). Opening Performance closes it. It only reads: there are no forms, and while editing the button is greyed out
       with "Failures (not while editing)" in its tooltip. Order API wears a red 2 and is outlined red, so is Stripe, the line between them wears an amber 2 and
       is red, Kitchen tablet and Customer app are in a lighter outline and the rest fades. The panel reads Risk 96 Medium and "After: 96 to 32", and the
@@ -279,7 +279,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       is smooth: no stutter on the way in or out, and a second double-click during the move doesn't break it.
 - [ ] Help › Open the Demo shows Plum with no problems and a Performance button with a 7 on it; T opens the panel on 900 orders/min,
       "ETA at 90% of capacity", with Delivery outlined red. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
-      View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing to show yet".
+      View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing here yet".
 - [ ] Close a window after resizing it, open the app again: it opens at that size.
 - [ ] Delete the open `flowy/` folder: a banner says it is gone. Put it back and open it again: the model returns.
 - [ ] Edit on a copy of `docs/demo` (the sample inside the app can't be edited): E turns edit mode on; rename a box in its panel and click
@@ -396,6 +396,10 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       Failing calls sends red dots, Strain and Failing shape run from green to red, Queue and Rolled up grow a number, and Not measured stays plain at every load.
 
 Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
+
+- [ ] `dotnet run --project desktop/Flowy.App -- desktop/fixtures/cases/text` (a folder with no flow, run or analysis): the left rail still has Explorer, Flows,
+      Performance and Failures, in that order, with no count on the last two. L, T and M each open a panel that says what is missing: "No flows yet", "No load-test runs yet" with a
+      Create button that copies a starter run (and says so in a notice), and "No failure analyses yet". The browser does the same.
 
 - [ ] The left rail has a Performance button under Flows with a 2 on it, and T opens its panel (on the left, with Details free on the right) on the load where the Fulfilment worker first struggles (200
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red

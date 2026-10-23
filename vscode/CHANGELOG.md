@@ -6,6 +6,7 @@ First release.
 
 - **Flowy: Open Docs** opens a repo's `flowy/` folder as a diagram in a panel: zoom into shapes, read their details, play flows
   step by step.
+- Tabs for the Explorer, Flows, Performance (load-test runs) and Failures, and **Compare** for two flows or two runs.
 - Edit mode (**E**) adds, renames, moves, connects and deletes shapes and writes flows, with undo and redo. Edits go through
   the same checks as an AI's and the browser's.
 - A path in a shape's `code` opens in the editor, and **Show This File in the Docs** finds the shape a file belongs to.

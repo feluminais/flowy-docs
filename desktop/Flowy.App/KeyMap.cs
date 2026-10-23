@@ -160,12 +160,12 @@ internal static class KeyMap
             Editing("Straight after dragging a shape: take the drag back")),
 
         // Edit mode: E turns it on and off from anywhere; the rest work inside it.
-        Do("edit", "E", (p, s) => p.Tap(PhysicalKey.E) && !s.ReadOnly, (_, _, a) => a.ToggleEdit(), Reading("Edit mode on and off")),
-        Do("add", "N", (p, s) => s.Editing && p.Tap(PhysicalKey.N), (_, _, a) => a.Add(), Editing("Add a shape here")),
+        Do("edit", "E", (p, s) => p.Tap(PhysicalKey.E) && !s.ReadOnly, (_, _, a) => a.ToggleEdit(), Editing("Edit mode on and off")),
+        Do("add", "N", (p, s) => s.Editing && p.Tap(PhysicalKey.N), (_, _, a) => a.Add(), Editing("Add a shape")),
         Do("delete", "Delete", (p, s) => s.Editing && p.Key == Key.Delete && p.Plain, (_, _, a) => a.Delete(), Editing("Delete the selected shapes or line")),
         Do("select-all", "Ctrl+A", (p, s) => s.Editing && p.Command && !p.Shift && p.Physical == PhysicalKey.A, (_, _, a) => a.SelectAll(), Editing("Select every shape in this view")),
         Do("redo", "Ctrl+Y  Ctrl+Shift+Z", (p, s) => s.Editing && p.Command && (p.Physical == PhysicalKey.Y || (p.Physical == PhysicalKey.Z && p.Shift)), (_, _, a) => a.Redo(), Editing("Redo")),
-        Do("undo", "Ctrl+Z", (p, s) => s.Editing && p.Command && p.Physical == PhysicalKey.Z && !p.Shift, (_, _, a) => a.Undo(), Editing("Undo the last change")),
+        Do("undo", "Ctrl+Z", (p, s) => s.Editing && p.Command && p.Physical == PhysicalKey.Z && !p.Shift, (_, _, a) => a.Undo(), Editing("Undo")),
 
         // A load-test run takes the arrows before a flow does: a flow is not playing while one is open. Two runs compared take them too, for the pane last clicked.
         Do("perf-step", "→  ←", (p, s) => (s.PerfOpen || s.RunCompare) && p.Arrow, (p, _, a) => a.PerfStep(p.By), Performance("Next and previous tested level")),
@@ -187,7 +187,7 @@ internal static class KeyMap
         // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel.
         new("enter", "Enter", (p, s) => p.Key == Key.Enter && !s.Recording, (_, _, a) => a.Enter(), Reading("Open the selected shape")),
         Do("shortcuts", "?", (p, _) => p.Symbol == "?", (_, _, a) => a.ToggleShortcuts(), Reading("Show these shortcuts")),
-        Do("search", "Ctrl+K  /", (p, _) => (p.Physical == PhysicalKey.K && p.Mods == KeyModifiers.Control) || p.Symbol == "/" || (p.Physical == PhysicalKey.Slash && p.Plain), (_, _, a) => a.Search(),
+        Do("search", "Ctrl+K  /", (p, _) => (p.Physical == PhysicalKey.K && p.Mods is KeyModifiers.Control or KeyModifiers.Meta) || p.Symbol == "/" || (p.Physical == PhysicalKey.Slash && p.Plain), (_, _, a) => a.Search(),
             Reading("Find a shape")),
         Do("fit", "F", (p, _) => p.Tap(PhysicalKey.F), (_, _, a) => a.Fit(), Reading("Fit the view")),
         Do("flows", "L", (p, s) => p.Tap(PhysicalKey.L) && s.ShowFlows, (_, _, a) => a.ToggleTab(PanelTab.Flows), Reading("Show every flow, and play one")),
@@ -255,7 +255,7 @@ internal static class KeyMap
         HelpGroup.Flows => "Flows",
         HelpGroup.Performance => "Performance",
         HelpGroup.Failures => "Failures",
-        _ => "In edit mode",
+        _ => "Edit mode",
     };
 
     /// <summary>Whether the list shows a group: the Performance keys only where T opens a run, the Failures keys only where M opens the analysis.</summary>
@@ -269,13 +269,13 @@ internal static class KeyMap
     /// <summary>The order of each group's rows. A row that is not a key (a click, a drag) is written out here.</summary>
     private static readonly IReadOnlyDictionary<HelpGroup, (string Id, string Keys, string What)[]> Order = new Dictionary<HelpGroup, (string, string, string)[]>
     {
-        [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("perf"), R("failures"), R("edit"), R("shortcuts")],
+        [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("perf"), R("failures"), R("shortcuts")],
         [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
         [HelpGroup.Performance] = [R("perf-step"), R("perf-ends"), R("perf-ramp"), R("escape")],
         [HelpGroup.Failures] = [R("failure-step")],
         [HelpGroup.Editing] =
         [
-            R("add"), ("", "Ctrl+click  Shift+click", "Add a shape to the selection, or take it out"), ("", "Shift+drag", "Draw a box round shapes to select them"),
+            R("edit"), R("add"), ("", "Ctrl+click  Shift+click", "Add a shape to the selection, or take it out"), ("", "Shift+drag", "Draw a box round shapes to select them"),
             R("select-all"), R("delete"), R("undo"), R("undo-move"), R("redo"),
         ],
     };

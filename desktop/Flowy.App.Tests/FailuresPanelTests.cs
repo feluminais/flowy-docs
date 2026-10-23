@@ -67,15 +67,18 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
-    public void A_folder_without_an_analysis_has_no_Failures_button_and_M_does_nothing()
+    public void A_folder_without_an_analysis_still_has_the_Failures_button_and_M_opens_a_panel_that_says_so()
     {
         using var temp = new TempFolder();
         File.WriteAllText(Path.Combine(temp.Path, "model.yaml"), "objects:\n  web:\n    type: app\n    name: Web\n");
         var (window, reader) = Open(temp.Path);
-        Assert.False(reader.Rail.Shown.First(i => i.Name.StartsWith("Failures")).Visible);
+        var item = reader.Rail.Shown.First(i => i.Name.StartsWith("Failures"));
+        Assert.True(item.Visible);
+        Assert.Equal("Failures", item.Name); // no count while there is nothing to count
+        Assert.Null(item.Count);
         Press(window, Key.M, PhysicalKey.M);
-        Assert.False(reader.FailuresOpenNow);
-        Assert.False(reader.HasPanel);
+        Assert.True(reader.FailuresOpenNow);
+        Assert.Contains(reader.FailuresPanelNow.Texts, t => t == "No failure analyses yet.");
     }
 
     [AvaloniaFact]
@@ -365,7 +368,7 @@ public class FailuresPanelTests
         Press(window, Key.M, PhysicalKey.M);
         Assert.True(reader.FailuresOpenNow);
         var texts = reader.FailuresPanelNow.Texts;
-        Assert.DoesNotContain("No failure analyses.", texts);
+        Assert.DoesNotContain("No failure analyses yet.", texts);
         Assert.Contains(texts, t => t.StartsWith("failures/broken.yaml"));
     }
 
