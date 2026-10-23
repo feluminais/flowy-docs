@@ -31,7 +31,6 @@ internal sealed class CanvasView : Border
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the states at the stop on show, by shape
     private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new();
-    private readonly MatrixTransform _camera = new();
     private readonly Grid _world = new() { RenderTransformOrigin = RelativePoint.TopLeft }; // the stage and the layers, which the camera moves together
     private readonly Dictionary<string, BoxControl> _boxes = [];
     private Scene? _scene;
@@ -94,7 +93,6 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        _world.RenderTransform = _camera;
         _world.Children.AddRange([_back, _stage, _traffic, _motion, _marks]);
         Child = new Grid { Children = { _world, _marquee } };
     }
@@ -531,7 +529,7 @@ internal sealed class CanvasView : Border
     private void SetViewport(Viewport viewport)
     {
         _viewport = viewport;
-        _camera.Matrix = Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y);
+        _world.RenderTransform = new MatrixTransform(Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y));
         _back.Viewport = viewport;
         _traffic.Viewport = viewport;
     }
@@ -575,6 +573,7 @@ internal sealed class CanvasView : Border
         if (!_boxes.TryGetValue(id, out var box)) return;
         Avalonia.Controls.Canvas.SetLeft(box, x);
         Avalonia.Controls.Canvas.SetTop(box, y);
+        box.Displaced();
     }
 
     /// <summary>How much of a box shows, 0 to 1 (a swap fades boxes in and out). It is a mask, so a box that is already faint for being dimmed or outside stays so.</summary>
