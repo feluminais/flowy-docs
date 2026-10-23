@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { callSize } from '../src/core/perf/measure.ts'
+import { callPeak, callSize } from '../src/core/perf/measure.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
 import { scaleText, sourceKeyAt } from '../src/core/perf/text.ts'
 import { BARE_STRIPES, trafficAt, traffic } from '../src/core/perf/traffic.ts'
@@ -104,4 +104,26 @@ test('the scale in words names the data a blob stands for', () => {
   const lines = (measure: 'calls' | 'data') => trafficAt(shop(), r, 'sizes', { '': 100 }, 'shop', measure).lines
   assert.equal(sourceKeyAt(r, 'sizes', lines('data'), 'data').sources[0].scale, '1 dot = 10 KB/s')
   assert.equal(sourceKeyAt(r, 'sizes', lines('calls'), 'calls').sources[0].scale, undefined, 'there are no blobs to count')
+})
+
+test('the stripes are busy against the peak of the run itself, so they visibly speed up as the load climbs', () => {
+  const r = runs()
+  assert.equal(callPeak(r, 'sizes'), 200)
+  assert.equal(callPeak(r, 'ghost'), undefined)
+  const at = (load: number) => trafficAt(shop(), r, 'sizes', { '': load }, 'shop', 'calls').lines.filter(l => l.bare !== true)[0].stripes!
+  assert.equal(at(200), 1, 'the busiest the run gets is as busy as stripes get')
+  assert.ok(at(100) > 0.8 && at(100) < 1)
+  // A run that climbs a long way: the first level is a quiet line and the last a busy one.
+  const climb = parseRun('climb', `name: C
+unit: u
+levels:
+  - load: 1
+    connections:
+      - { from: web, to: api, rate: 2 }
+  - load: 2
+    connections:
+      - { from: web, to: api, rate: 200 }
+`).run
+  const t = (load: number) => trafficAt(shop(), { climb }, 'climb', { '': load }, 'shop', 'calls').lines.filter(l => l.bare !== true)[0].stripes!
+  assert.ok(t(1) < 0.25 && t(2) === 1)
 })

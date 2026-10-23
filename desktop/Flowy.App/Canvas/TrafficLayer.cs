@@ -196,8 +196,11 @@ internal sealed class TrafficLayer : Control
         return geometry;
     }
 
-    /// <summary>The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in screen pixels (and a second). Busier is closer together and quicker.</summary>
-    internal static (double Dash, double Gap, double Speed) StripePace(double busy) => (7, 24 - 15 * busy, 16 + 70 * busy);
+    /// <summary>
+    /// The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in the diagram's units (and a second), so they grow and shrink with the line and its
+    /// arrowhead as the diagram is zoomed. Busier is closer together and a good deal quicker: a quiet line crawls and the busiest runs.
+    /// </summary>
+    internal static (double Dash, double Gap, double Speed) StripePace(double busy) => (8, 26 - 18 * busy, 14 + 110 * busy);
 
     /// <summary>Everything but the inside of all these shapes and labels: a line's stripes are cut to it, so they are not seen over a shape it runs behind or into, or over a label on it.</summary>
     private static StreamGeometry OutsideAll(IEnumerable<ShapeCover> shapes, IReadOnlyList<CoreRect> labels)
@@ -296,15 +299,15 @@ internal sealed class TrafficLayer : Control
             {
                 // The calls: stripes moving along the line itself, closer and quicker the more calls there are, with every few of them red for the share of calls that fail.
                 var pace = StripePace(busy);
-                var px = 1 / _viewport.Zoom;
+                const double px = 1; // the diagram's own units: the stripes grow with the line and its arrowhead
                 var moved = _stripeAt.TryGetValue((d.Line.From, d.Line.To, d.Line.Source), out var at) ? at : 0;
-                var thick = (1 + d.Line.Width * 0.25) * px;
+                var thick = Math.Max(2.4, d.Line.Width + 0.9) * px; // a little thicker than the line it runs on, and growing with it, so the two read as one arrow at any zoom
                 var apart = (pace.Dash + pace.Gap) * px;
                 using var cut = context.PushGeometryClip(OutsideAll(opening.Concat(d.Behind), _labels));
-                using var dim = context.PushOpacity(d.Line.Bare ? 0.45 : 0.9);
+                using var dim = context.PushOpacity(d.Line.Bare ? 0.6 : 0.95);
                 var way = Along(path, (d.Line.Offset ?? 0) * 3 * px);
                 // Avalonia counts a dash in widths of the pen, so the dashes and the offset are divided by the thickness.
-                context.DrawGeometry(null, new Pen(tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way);
+                context.DrawGeometry(null, new Pen(d.Line.Bare ? Brush("FgBrush") : tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way); // a line with no numbers has plain light stripes
                 if (d.Line.Failed > 0)
                 {
                     var every = Math.Max(1, (int)Math.Round(1 / d.Line.Failed));
