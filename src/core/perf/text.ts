@@ -1,6 +1,8 @@
 import { linearInRate } from '../formula.ts'
 import { STATE_LABELS } from '../states.ts'
 import { dialsOf } from './dials.ts'
+import { callSize } from './measure.ts'
+import type { Measure } from './measure.ts'
 import { formulaOf } from './sources.ts'
 import type { Knee, LineTraffic, Run, RunEvent, Source } from './types.ts'
 import { own, round2 } from './util.ts'
@@ -26,21 +28,31 @@ export function kneeText(run: Run, k: Knee, nameOf: (id: string) => string): str
 /** The number in a scale, as short as it reads: 50, 0.5, 12.5, with the float noise of a division (3.0000000000000004) rounded off. */
 const plain = (n: number): string => String(Number(n.toPrecision(6)))
 
+/** A data rate as a person reads it: 400 B/s, 2 KB/s, 1.5 MB/s. */
+function dataRate(bytes: number): string {
+  if (bytes >= 1e6) return `${plain(bytes / 1e6)} MB/s`
+  if (bytes >= 1e3) return `${plain(bytes / 1e3)} KB/s`
+  return `${plain(bytes)} B/s`
+}
+
 /**
  * "1 dot = 50 calls/s" for a run whose `dot` formula is a constant times the rate and nothing else; undefined for any other, because a scale in
  * words that is not true for every line is worse than none. Also undefined for a scale nobody reads (under a thousandth of a call or over a billion).
+ * Under Data it is the same dot in data: "1 dot = 20 KB/s", the calls times the size of a call that Data counts against (`size`, see callSize).
  */
-export function scaleText(run: Run): string | undefined {
-  return sourceScale(run.source)
+export function scaleText(run: Run, measure: Measure = 'calls', size?: number): string | undefined {
+  return sourceScale(run.source, measure, size)
 }
 
 /** The scale in words of one source (see scaleText). */
-function sourceScale(source: Source | undefined): string | undefined {
+function sourceScale(source: Source | undefined, measure: Measure, size: number | undefined): string | undefined {
   const dot = source?.dot ? formulaOf(source.dot) : undefined
   const k = dot ? linearInRate(dot) : undefined
   if (k === undefined) return undefined
   const calls = 1 / k
-  return calls >= 0.001 && calls < 1e9 ? `1 dot = ${plain(calls)} calls/s` : undefined
+  if (!(calls >= 0.001 && calls < 1e9)) return undefined
+  if (measure === 'calls') return `1 dot = ${plain(calls)} calls/s`
+  return size === undefined ? undefined : `1 dot = ${dataRate(calls * size)}`
 }
 
 /**
@@ -48,9 +60,9 @@ function sourceScale(source: Source | undefined): string | undefined {
  * the formula is a plain ratio of the rate and a line follows it; whether any dot is bigger or smaller than usual; whether any line is scaled down to
  * fit. Undefined when the run sets no source or no line is on screen, so the key shows only what the picture shows.
  */
-export function sourceKey(run: Run, lines: LineTraffic[]): { name: string; color?: string; scale?: string; bigger: boolean; scaledDown: boolean } | undefined {
+export function sourceKey(run: Run, lines: LineTraffic[], measure: Measure = 'calls', size?: number): { name: string; color?: string; scale?: string; bigger: boolean; scaledDown: boolean } | undefined {
   if (!run.source || lines.length === 0) return undefined
-  const scale = lines.some(l => l.dots !== undefined) ? scaleText(run) : undefined
+  const scale = lines.some(l => l.dots !== undefined) ? scaleText(run, measure, size) : undefined
   return {
     name: run.name,
     ...(run.source.color === undefined ? {} : { color: run.source.color }),
@@ -81,18 +93,19 @@ export type KeyedSource = { id: string; name: string; color?: string; scale?: st
  * The pieces the Performance key draws for the sources, from the lines on screen now: a swatch and a name for each source that has a line, its scale and size where it has them, whether
  * any line is scaled down to fit, and whether a line is drawn in the neutral colour (a line the run doesn't split by source). For one source it is what sourceKey says.
  */
-export function sourceKeyAt(runs: Record<string, Run>, id: string, lines: LineTraffic[]): { sources: KeyedSource[]; scaledDown: boolean; other: boolean } {
+export function sourceKeyAt(runs: Record<string, Run>, id: string, lines: LineTraffic[], measure: Measure = 'calls'): { sources: KeyedSource[]; scaledDown: boolean; other: boolean } {
   const found = dialsOf(runs, id)
   if (!found) return { sources: [], scaledDown: false, other: false }
   if (found.mode === 'single') {
-    const k = sourceKey(runs[id], lines)
+    const k = sourceKey(runs[id], lines, measure, measure === 'data' ? callSize(runs, id) : undefined)
     if (!k) return { sources: [], scaledDown: false, other: false }
     return { sources: [{ id: '', name: k.name, ...(k.color === undefined ? {} : { color: k.color }), ...(k.scale === undefined ? {} : { scale: k.scale }), bigger: k.bigger }], scaledDown: k.scaledDown, other: false }
   }
+  const size = measure === 'data' ? callSize(runs, id) : undefined
   const sources = found.dials.flatMap((d): KeyedSource[] => {
     const mine = lines.filter(l => l.source === d.id)
     if (mine.length === 0) return []
-    const scale = mine.some(l => l.dots !== undefined) ? sourceScale(d.source) : undefined
+    const scale = mine.some(l => l.dots !== undefined) ? sourceScale(d.source, measure, size) : undefined
     return [{ id: d.id, name: d.name, color: d.color, ...(scale === undefined ? {} : { scale }), bigger: mine.some(l => l.radius !== undefined) }]
   })
   return { sources, scaledDown: lines.some(l => l.capped === true), other: lines.some(l => l.source === undefined) }

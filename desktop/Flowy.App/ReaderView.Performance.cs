@@ -42,6 +42,7 @@ internal sealed partial class ReaderView
         _perfPanel.Slid += _perf.Slide;
         _perfPanel.EventPicked += _perf.JumpTo;
         _perfPanel.RampClicked += _perf.ToggleRamp;
+        _perfPanel.MeasureChosen += _perf.ChooseMeasure;
         _perfPanel.DialSlid += _perf.StepDial;
         _perfPanel.DialRamped += _perf.ToggleDialRamp;
         _perfPanel.PlacePicked += _perf.PlaceAll;

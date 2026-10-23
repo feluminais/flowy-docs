@@ -250,7 +250,9 @@ Before merging a change to the app, look at what it could affect, in a real wind
       (200 req/s on the ramp). In Shop lab, shapes that carry numbers are outlined from green to red along their own outline, Order queue
       carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
       move between loads; P ramps up (from the top it starts again from the bottom) and a click on the slider stops it; a picked shape or
-      line reads out its numbers; under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%) and red dashes (First
+      line reads out its numbers; under Ramp a Count switch has Calls pressed, and Data makes a line of larger calls thicker with more dots, turns the Key's
+      "More calls" into "More data" and, for a run that says it, "1 dot = 4 calls/s" into "1 dot = 2 KB/s" (a run with no `bytes` greys Data out, with the reason in its tooltip);
+      under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%) and red dashes (First
       struggles), and the Key at the bottom draws each mark it names (Busy, Waiting, Not measured, a call, a failing call, More calls) with no
       sentences; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.

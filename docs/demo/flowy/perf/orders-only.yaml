@@ -5,7 +5,6 @@ entry: customer-app
 source:
   color: blue
   dot: rate / 4
-  size: bytes / 400
 levels:
   - load: 100
     overall: { rate: 1.7, p50: 40, p95: 110, errors: 0 }

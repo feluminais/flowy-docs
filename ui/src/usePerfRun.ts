@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { kneeOf } from '../../src/core/perf/analyse.ts'
 import { dialsOf } from '../../src/core/perf/dials.ts'
+import { callSize } from '../../src/core/perf/measure.ts'
+import type { Measure } from '../../src/core/perf/measure.ts'
 import type { Dial, Run } from '../../src/core/perf/types.ts'
 import type { Perf } from './hash.ts'
 import { activeRun, clampDial, clampPos, dialTop, loadAt, openingPositions, placeActive, rampActive, rampFrom, rampFromActive, rampPos, RAMP_STEP_MS, snap, top } from './perfview.ts'
@@ -33,6 +35,7 @@ export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; 
   const [positions, setPositions] = useState(() => startPositions(runId, named()?.level, named()?.levels))
   const [active, setActive] = useState(0)
   const [ramping, setRamping] = useState(false)
+  const [asked, setMeasure] = useState<Measure>('calls') // what the lines and dots count, as the reader chose it (see `measure` for what is drawn)
   const [scrubbing, setScrubbing] = useState(false) // the slider of a run is being dragged: the states of shapes snap instead of moving
   const scrubTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(scrubTimer.current), [])
@@ -45,6 +48,9 @@ export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; 
   const found = useMemo(() => (runKey ? dialsOf(runs, runKey) : undefined), [runs, runKey])
   const dials = found?.dials ?? NO_DIALS
   const multi = found !== undefined && found.mode !== 'single'
+  // Data needs the run to give the size of a call. A run that doesn't draws Calls whatever was chosen, and the switch says why.
+  const dataOff = useMemo(() => (runKey && callSize(runs, runKey) === undefined ? 'No size of a call in this run' : undefined), [runs, runKey])
+  const measure: Measure = asked === 'data' && dataOff === undefined ? 'data' : 'calls'
   const activeDial = Math.min(active, Math.max(0, dials.length - 1))
   const here = multi ? dials.map((d, i) => clampDial(d, positions[i] ?? 0)) : [loadTest ? clampPos(loadTest, positions[0] ?? 0) : 0]
   const hereKey = here.join(',')
@@ -128,5 +134,5 @@ export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; 
     } else jumpTo(to)
   }
 
-  return { runKey, loadTest, dials, multi, activeDial, here, hereKey, load, ramping, scrubbing, startPositions, pick, stopRamp, toggleRamp, stepLevel, placeAll, jumpTo, slide, setActive }
+  return { runKey, loadTest, measure, setMeasure, dataOff, dials, multi, activeDial, here, hereKey, load, ramping, scrubbing, startPositions, pick, stopRamp, toggleRamp, stepLevel, placeAll, jumpTo, slide, setActive }
 }
