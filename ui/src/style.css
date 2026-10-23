@@ -140,6 +140,7 @@ svg { flex: none; }
 /* The pickers are flat too: just the words and a chevron. */
 .bar > select {
   box-sizing: border-box; height: 30px; padding: 0 26px 0 10px; border: 0; border-radius: 6px; color: var(--fg); cursor: pointer; appearance: none;
+  field-sizing: content; /* as wide as the chosen option, so the chevron sits by its words; the bar is right-aligned, so the chevron stays put */
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6l6-6'/%3E%3C/svg%3E") right 8px center / 12px no-repeat;
 }
 .bar > select:hover { background-color: var(--hover); }
@@ -424,7 +425,7 @@ svg { flex: none; }
 .problems summary:hover { background: color-mix(in srgb, var(--warn) 14%, transparent); }
 .problems summary::-webkit-details-marker { display: none; }
 .problems ul {
-  position: absolute; top: calc(100% + 6px); right: 0; z-index: 10; width: min(380px, 90vw); max-height: 60vh; overflow: auto;
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 10; width: min(380px, 90vw); max-height: 60vh; overflow: auto;
   margin: 0; padding: 4px; list-style: none; border: 1px solid var(--line); border-radius: 8px; background: var(--box); box-shadow: 0 4px 16px #0003;
 }
 .problems li button { all: unset; display: block; padding: 6px 8px; border-radius: 4px; cursor: pointer; }

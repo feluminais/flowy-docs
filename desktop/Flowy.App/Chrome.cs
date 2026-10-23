@@ -32,6 +32,19 @@ internal static class Chrome
         if (text is null) button.Classes.Add("icononly");
     }
 
+    /// <summary>
+    /// A picker for the bar: the words and a chevron right beside them. The box is as wide as the chosen item, so the chevron's column is the chevron
+    /// itself instead of the template's fixed 32, and the words move on a pick while the chevron and the hit area stay at the right edge.
+    /// </summary>
+    public static void FlatPicker(ComboBox box)
+    {
+        box.Classes.Add("flat");
+        box.TemplateApplied += (_, e) =>
+        {
+            if (e.NameScope.Find<Control>("DropDownGlyph")?.Parent is Grid { ColumnDefinitions.Count: 2 } grid) grid.ColumnDefinitions[1].Width = GridLength.Auto;
+        };
+    }
+
     /// <summary>The tile of an object's type: its icon in its colour on a tint of it, or a cloud on grey for an outside service.</summary>
     public static Control TypeTile(string? type, bool external, double size) => TypeTile(type, external, size, null, out _);
 

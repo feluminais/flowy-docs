@@ -276,8 +276,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _problemsButton.Classes.Add("problems");
         _problemsButton.IsVisible = false;
 
-        _linePicker.Classes.Add("flat");
-        _modelPicker.Classes.Add("flat");
+        Chrome.FlatPicker(_linePicker);
+        Chrome.FlatPicker(_modelPicker);
         Avalonia.Automation.AutomationProperties.SetName(_modelPicker, "Model");
         ToolTip.SetTip(_modelPicker, "Switch to another model in this repo");
         _modelPicker.SelectionChanged += (_, _) =>
@@ -288,7 +288,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
             ShowCurrentModel(); // this window stays on its own model; the picked one opens in its own window
         };
         var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
-        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _linePicker, _searchButton, _helpButton, _problemsButton, _editButton } };
+        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _problemsButton, _linePicker, _searchButton, _helpButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
         dock.Children.Add(right);
@@ -633,7 +633,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
             };
             list.Children.Add(row);
         }
-        _problemsButton.Flyout = new Flyout { Content = new ScrollViewer { Content = list, MaxHeight = 420 }, Placement = PlacementMode.BottomEdgeAlignedRight };
+        _problemsButton.Flyout = new Flyout { Content = new ScrollViewer { Content = list, MaxHeight = 420 }, Placement = PlacementMode.BottomEdgeAlignedLeft };
     }
 
     /// <summary>An icon beside words, a little lower than the middle of its line, where the words' own middle is.</summary>

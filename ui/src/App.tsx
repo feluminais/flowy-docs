@@ -858,6 +858,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           </button>
         )}
         <span className="grow" />
+        {/* first of the right-hand group: its count changes its width, and what sits to its left only ever moves for words, never for an icon */}
+        <Problems problems={problems} onPick={jump} />
         <select aria-label="Line style" value={lines}
           title={editing ? 'How lines look for everyone (saved in model.yaml)' : 'How lines look on this screen'}
           onChange={e => {
@@ -870,7 +872,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         <button title="Find a shape (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}><SearchIcon size={16} />Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}><Copy size={16} />Mermaid</button>
         <button className="icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => setShortcuts(!shortcuts)}><Keyboard size={16} /></button>
-        <Problems problems={problems} onPick={jump} />
         {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={toggleEdit}><Pencil size={16} />Edit</button>}
       </header>
       <div className="stage">
