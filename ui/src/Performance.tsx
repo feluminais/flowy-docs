@@ -17,11 +17,12 @@ import { Section } from './Chrome.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
-  ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, eventFractions, eventRows, failureMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
-  lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, tickLabels, top, xAt,
+  ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, floorOf, eventFractions, eventRows, failureMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
+  lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, loadNote, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, tickLabels, top, xAt,
 } from './perfview.ts'
 import type { Area } from './perfview.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
+import { RangeSlider } from './RangeSlider.tsx'
 import { PlainSwatch, StateGlyph, StateKey, Swatch } from './states.tsx'
 
 /** What the run header offers for comparing: Compare and Link with. Both are greyed out with the reason as their tooltip, never hidden. */
@@ -250,8 +251,6 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   // A run of one source: its load, the levels either side of it, its slider and its events. A run with several has none of these of its own (an adder has no levels at all).
   const pos = positions[0] ?? 0
   const load = multi ? 0 : loadAt(run, pos)
-  const lower = multi ? undefined : run.levels[Math.min(top(run) - 1, Math.floor(pos))]
-  const upper = multi ? undefined : run.levels[Math.min(top(run), Math.floor(pos) + 1)]
   const timed = !multi && isTime(run)
   const range = multi ? { min: 0, max: 0 } : sliderRange(run)
   const events = multi ? [] : eventFractions(run)
@@ -308,8 +307,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
                   <span className="muted">{tested ? 'Tested' : `Between ${from} and ${to}, estimated`}</span>
                 </div>
                 <div className="slide">
-                  <input type="range" min={0} max={dialTop(d)} step="any" value={at} aria-label={d.name} aria-valuetext={fmtLoad(dialLoad, d.unit)}
-                    onFocus={() => onActive(i)} onPointerDown={() => onActive(i)} onChange={e => onSlide(i, slideDial(d, Number(e.target.value)))} />
+                  <RangeSlider min={floorOf(d)} max={dialTop(d)} value={at} label={d.name} text={fmtLoad(dialLoad, d.unit)} onTouch={() => onActive(i)} onMove={v => onSlide(i, slideDial(d, v))} />
                   <div className="ticks" aria-hidden="true">
                     {dialTicks(d).map(t => <span key={t.label} style={{ left: `${t.fraction * 100}%` }}>{t.label}</span>)}
                   </div>
@@ -322,7 +320,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
           <>
             <div className="loadnum">
               <strong>{fmtLoad(load, run.unit)}</strong>
-              <span className="muted">{isTested(pos) || !lower || !upper ? 'Tested' : `Between ${lower.load} and ${upper.load}, estimated`}</span>
+              <span className="muted">{loadNote(run, pos)}</span>
             </div>
             <div className={timed ? 'slide timed' : 'slide'}>
               {events.length > 0 && (
@@ -333,8 +331,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
                   ))}
                 </div>
               )}
-              <input type="range" min={range.min} max={range.max} step="any" value={sliderValue(run, pos)} aria-label={timed ? 'Time' : 'Load'} aria-valuetext={fmtLoad(load, run.unit)}
-                onChange={e => onSlide(0, slidePos(run, Number(e.target.value)))} />
+              <RangeSlider min={range.min} max={range.max} value={sliderValue(run, pos)} label={timed ? 'Time' : 'Load'} text={fmtLoad(load, run.unit)} onMove={v => onSlide(0, slidePos(run, v))} />
               <div className="ticks" aria-hidden="true">
                 {tickLabels(run).map(t => <span key={t.label} style={{ left: `${t.fraction * 100}%` }}>{t.label}</span>)}
               </div>
