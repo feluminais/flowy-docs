@@ -851,6 +851,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .sw.p95 { border-top-color: var(--warn); }
 .sw.busy { border-top: 4px solid var(--muted); }
 .sw.knee { width: 2px; height: 14px; background: repeating-linear-gradient(to bottom, var(--danger) 0 3px, transparent 3px 6px); }
+.sw.stripes { width: 20px; height: 3px; border-radius: 1px; background: repeating-linear-gradient(90deg, var(--src, var(--accent)) 0 5px, transparent 5px 9px); }
+.sw.stripes.bare { background: repeating-linear-gradient(90deg, var(--muted) 0 5px, transparent 5px 9px); }
 .sw.heat { width: 20px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
 .sw.none { width: 20px; height: 10px; border: 1px solid var(--line); border-radius: 3px; }
 .sw.queue { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--warn); color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }

@@ -63,6 +63,16 @@ internal static class KeyRow
         return dashes;
     }
 
+    /// <summary>Stripes moving along a line: the calls. <paramref name="bare"/> is the plain stripes of a line the run gives no numbers.</summary>
+    public static Control Stripes(string? color, bool dark, bool bare)
+    {
+        var stripes = new Avalonia.Controls.Shapes.Line { StartPoint = new Point(0, 0), EndPoint = new Point(20, 0), StrokeThickness = 3, StrokeDashArray = [1.7, 1.3], VerticalAlignment = VerticalAlignment.Center };
+        stripes.Classes.Add("stripes");
+        if (bare) stripes.Classes.Add("bare");
+        else if (PerfView.SourceHex(color, dark) is { } hex) stripes.Stroke = new SolidColorBrush(Color.Parse(hex));
+        return stripes;
+    }
+
     /// <summary>A dot in a source's colour (the real dot, for the theme that is showing); without a colour, the accent the styles give a dot.</summary>
     public static Control Dot(string? color, bool dark, double size = 8, double opacity = 1)
     {

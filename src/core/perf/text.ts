@@ -60,7 +60,8 @@ function sourceScale(source: Source | undefined, measure: Measure, size: number 
  * the formula is a plain ratio of the rate and a line follows it; whether any dot is bigger or smaller than usual; whether any line is scaled down to
  * fit. Undefined when the run sets no source or no line is on screen, so the key shows only what the picture shows.
  */
-export function sourceKey(run: Run, lines: LineTraffic[], measure: Measure = 'calls', size?: number): { name: string; color?: string; scale?: string; bigger: boolean; scaledDown: boolean } | undefined {
+export function sourceKey(all: Run, shown: LineTraffic[], measure: Measure = 'calls', size?: number): { name: string; color?: string; scale?: string; bigger: boolean; scaledDown: boolean } | undefined {
+  const [run, lines] = [all, shown.filter(l => l.bare !== true)] // a line with no numbers belongs to no source
   if (!run.source || lines.length === 0) return undefined
   const scale = lines.some(l => l.dots !== undefined) ? scaleText(run, measure, size) : undefined
   return {
@@ -97,11 +98,12 @@ export function sourceKeyAt(runs: Record<string, Run>, id: string, lines: LineTr
   const found = dialsOf(runs, id)
   if (!found) return { sources: [], scaledDown: false, other: false }
   if (found.mode === 'single') {
-    const k = sourceKey(runs[id], lines, measure, measure === 'data' ? callSize(runs, id) : undefined)
+    const k = sourceKey(runs[id], lines, measure, measure === 'calls' ? undefined : callSize(runs, id))
     if (!k) return { sources: [], scaledDown: false, other: false }
     return { sources: [{ id: '', name: k.name, ...(k.color === undefined ? {} : { color: k.color }), ...(k.scale === undefined ? {} : { scale: k.scale }), bigger: k.bigger }], scaledDown: k.scaledDown, other: false }
   }
-  const size = measure === 'data' ? callSize(runs, id) : undefined
+  const size = measure === 'calls' ? undefined : callSize(runs, id)
+  lines = lines.filter(l => l.bare !== true)
   const sources = found.dials.flatMap((d): KeyedSource[] => {
     const mine = lines.filter(l => l.source === d.id)
     if (mine.length === 0) return []
@@ -109,4 +111,4 @@ export function sourceKeyAt(runs: Record<string, Run>, id: string, lines: LineTr
     return [{ id: d.id, name: d.name, color: d.color, ...(scale === undefined ? {} : { scale }), bigger: mine.some(l => l.radius !== undefined) }]
   })
   return { sources, scaledDown: lines.some(l => l.capped === true), other: lines.some(l => l.source === undefined) }
-}
+}

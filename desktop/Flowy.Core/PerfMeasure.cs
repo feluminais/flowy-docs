@@ -1,10 +1,14 @@
 namespace Flowy.Core;
 
-/// <summary>What the Performance panel's lines and dots count: the calls a second, or the data a second (the calls times the size of a call). Twin of <c>LoadMeasure</c> in src/core/perf/measure.ts.</summary>
+/// <summary>
+/// What the Performance panel draws on its lines: stripes moving along them for the calls a second (Calls), blobs for the data a second, the calls times the size of a call (Data), or both on one line
+/// (Mixed). Twin of <c>Measure</c> in src/core/perf/measure.ts.
+/// </summary>
 public enum LoadMeasure
 {
     Calls,
     Data,
+    Mixed,
 }
 
 public static partial class Perf

@@ -135,6 +135,12 @@ public sealed record LineTraffic(string From, string To, double Width, double Pe
 
     /// <summary>How far from the middle of the line its dots run, in steps of a dot's width, when several sources share it.</summary>
     public double? Offset { get; init; }
+
+    /// <summary>How busy the stripes moving along the line are, 0 to 1, for the calls a second it carries; null when it has none to show.</summary>
+    public double? Stripes { get; init; }
+
+    /// <summary>Whether the run gives the line nothing to show: it has plain stripes at a middling pace.</summary>
+    public bool Bare { get; init; }
 }
 
 /// <summary>The pieces the Performance key draws for a run's source (see <see cref="Perf.SourceKeyOf"/>).</summary>

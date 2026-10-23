@@ -91,10 +91,12 @@ export type BoxTraffic = { strain?: number; queue: number }
  * `radius` (times the usual dot's radius), `capped` (the count was scaled down to fit the screen), `failure` (how the failing share fails)
  * and `dots` (how many are on the line at once, once the `dot` formula has decided and the cap has had its say). A line that several sources share has an entry
  * for each of them: `source` is the dial it is for, and `offset` how far from the middle of the line (in steps of a dot's width, either side) its dots run, so that
- * two sources on one path don't hide each other. A run with one source has neither.
+ * two sources on one path don't hide each other. A run with one source has neither. `stripes` is how busy the stripes moving along the line are, 0 to 1, for the calls a second it
+ * carries; the dots, their `perSecond`, `radius` and `capped` are the blobs for the data it carries, and a line with no blobs has a `perSecond` of 0. A line the run gives nothing
+ * to count is `bare`: plain stripes at a middling pace.
  */
 export type LineTraffic = {
   from: string; to: string; width: number; perSecond: number; travelMs: number; failed: number
-  color?: string; radius?: number; capped?: true; failure?: Failure; dots?: number; source?: string; offset?: number
+  color?: string; radius?: number; capped?: true; failure?: Failure; dots?: number; source?: string; offset?: number; stripes?: number; bare?: true
 }
 export type Traffic = { boxes: Record<string, BoxTraffic>; lines: LineTraffic[] }

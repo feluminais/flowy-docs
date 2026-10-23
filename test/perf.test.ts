@@ -7,7 +7,8 @@ import { interpolate } from '../src/core/perf/levels.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
 import { rollUpLoad } from '../src/core/perf/rollup.ts'
 import { eventText, kneeText, scaleText, sourceKey } from '../src/core/perf/text.ts'
-import { AT_ONCE, capCounts, RADIUS_MAX, RADIUS_MIN, traffic } from '../src/core/perf/traffic.ts'
+import { AT_ONCE, capCounts, RADIUS_MAX, RADIUS_MIN } from '../src/core/perf/traffic.ts'
+import { traffic } from './dots.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels of a run against the shop fixture (test/fixtures.ts): api and db are measured, and orders inside api. */
@@ -581,18 +582,18 @@ test('a formula that asks for a huge count is capped, and the numbers stay finit
 
 test('a dot formula with a missing input, a negative result or no value falls back to the default curve for that line', () => {
   const plain = traffic(shop(), scaled(''), 1, 'shop').lines
-  for (const dot of ['bytes / 100', '-rate', 'rate / 0', 'rate * 0 - 1']) {
+  for (const dot of ['p50 / 0', '-rate', 'rate / 0', 'rate * 0 - 1']) {
     const lines = traffic(shop(), scaled(`source: { dot: "${dot}" }`), 1, 'shop').lines
     assert.deepEqual(lines, plain, dot) // the same numbers as a run with no source at all
   }
 })
 
 test('one line can fall back while another follows the formula', () => {
-  const run = scaled('source: { dot: bytes / 100 }', 'rate: 100, p50: 10, bytes: 500', 'rate: 100, p50: 10')
-  const plain = traffic(shop(), scaled('', 'rate: 100, p50: 10, bytes: 500', 'rate: 100, p50: 10'), 1, 'shop').lines
+  const run = scaled('source: { dot: p50 / 2 }', 'rate: 100, p50: 10', 'rate: 100')
+  const plain = traffic(shop(), scaled('', 'rate: 100, p50: 10', 'rate: 100'), 1, 'shop').lines
   const lines = traffic(shop(), run, 1, 'shop').lines
   assert.equal(lines[0].dots, 5)
-  assert.deepEqual(lines[1], plain[1]) // no bytes on this one
+  assert.deepEqual(lines[1], plain[1]) // no p50 on this one
 })
 
 test('a line with no rate at some level has no traffic, not zero dots', () => {
@@ -623,7 +624,7 @@ test('a size formula is a dot area: the radius is its square root, between a sma
 })
 
 test('a size with no bytes, or no value, leaves the dot at its usual size', () => {
-  assert.equal(Object.hasOwn(lineOf(scaled('source: { size: bytes / 400 }'), 'web', 'api'), 'radius'), false)
+  assert.equal(Object.hasOwn(lineOf(scaled('source: { size: p50 / 400 }', 'rate: 5'), 'web', 'api'), 'radius'), false)
   assert.equal(Object.hasOwn(lineOf(scaled('source: { size: "-bytes" }', 'rate: 5, bytes: 9'), 'web', 'api'), 'radius'), false)
   assert.equal(Object.hasOwn(lineOf(scaled('source: { size: bytes / 0 }', 'rate: 5, bytes: 9'), 'web', 'api'), 'radius'), false)
 })

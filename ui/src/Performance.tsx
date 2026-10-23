@@ -16,7 +16,7 @@ import { Section } from './Chrome.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
-  ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, floorOf, eventFractions, eventRows, failureMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
+  ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, floorOf, eventFractions, eventRows, failureMarks, lineMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
   lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, loadNote, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, tickLabels, top, xAt,
 } from './perfview.ts'
 import type { Area } from './perfview.ts'
@@ -265,6 +265,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   const shown = selected?.keys.filter(key => selected.series(key).some(v => v !== undefined)) ?? []
   const keyed = sourceKeyAt(runs, runId, lines, measure)
   const marks = failureMarks(lines)
+  const drawn = lineMarks(lines)
   const scaledLine = selection?.kind === 'line' && lines.some(l => l.from === selection.from && l.to === selection.to && l.capped)
   // The source's colour for the dots drawn in the key, in both themes. A run with several sources draws each in its own, and the dots that stand for any call are neutral.
   const one = keyed.sources[0]
@@ -337,8 +338,9 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       {onMeasure && (
         <div className="measure" role="group" aria-label="Count">
           <span className="muted">Count</span>
-          <button type="button" aria-pressed={measure === 'calls'} onClick={() => onMeasure('calls')}>Calls</button>
-          <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff} onClick={() => onMeasure('data')}>Data</button>
+          <button type="button" aria-pressed={measure === 'calls'} title="Stripes along the lines for the calls a second" onClick={() => onMeasure('calls')}>Calls</button>
+          <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff ?? 'Blobs on the lines for the data a second'} onClick={() => onMeasure('data')}>Data</button>
+          <button type="button" aria-pressed={measure === 'mixed'} disabled={dataOff !== undefined} title={dataOff ?? 'Both: stripes for the calls and blobs for the data'} onClick={() => onMeasure('mixed')}>Mixed</button>
         </div>
       )}
 
@@ -382,7 +384,9 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>
         <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>
         <KeyItem swatch={<span className="sw none" />}>Not measured</KeyItem>
-        <KeyItem swatch={<span className="sw call" />}>A call (slower dots, slower calls)</KeyItem>
+        {drawn.stripes && <KeyItem swatch={<span className="sw stripes" />}>Calls (denser, faster)</KeyItem>}
+        {drawn.blobs && <KeyItem swatch={<span className="sw call" />}>Data (slower dots, slower calls)</KeyItem>}
+        {drawn.bare && <KeyItem swatch={<span className="sw stripes bare" />}>No numbers</KeyItem>}
         {marks.fade && <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>}
         {marks.lost && <KeyItem swatch={<span className="sw lost" />}>Lost call</KeyItem>}
         {marks.rejected && <KeyItem swatch={<span className="sw rejected" />}>Rejected call</KeyItem>}
