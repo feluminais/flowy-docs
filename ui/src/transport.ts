@@ -23,12 +23,21 @@ export type Transport = {
 
 /** The local server at `base`: '' for the page's own origin, or an address, for tests. `model` is the one of its models to work on; the first when left out. */
 export function httpTransport(base = '', model?: string): Transport {
+  let last: { etag: string; state: State } | undefined
   return {
     history: httpHistory(base, model),
     async state() {
       const res = await fetch(apiUrl(base, '/api/state', model))
       if (!res.ok) throw new Error(`the server answered ${res.status}`)
-      return (await res.json()) as State
+      // The server tags the state it sends. The same tag is the same state, so it is handed on as it was: nothing downstream has anything new to work out.
+      const etag = res.headers.get('etag')
+      if (etag !== null && last?.etag === etag) {
+        void res.body?.cancel()
+        return last.state
+      }
+      const state = (await res.json()) as State
+      if (etag !== null) last = { etag, state }
+      return state
     },
     async write(method, file, body) {
       const res = await fetch(apiUrl(base, `/api/file/${file}`, model), {
