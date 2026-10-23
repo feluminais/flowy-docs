@@ -343,27 +343,27 @@ public static partial class Perf
     private static List<LineTraffic> SharedLines(Pair l, IReadOnlyList<Dial> dials, LoadMeasure measure, double? size)
     {
         var split = dials.Where(d => l.By is { } by && by.Contains(d.Id)).Select(d => (Dial: d, By: l.By![d.Id])).ToList();
-        var whole0 = AmountOf(l, measure, size);
-        if (split.Count == 0) return whole0 is { } rate ? [LineTrafficOf(l, rate, null, null, null, measure) with { Color = OtherColor }] : [];
-        // What each source carries, as a rate. Under Data a source's size of a call is its own, and the whole line's only when the source is the only one named.
+        var whole0 = ShownOf(l, measure, size);
+        if (split.Count == 0) return whole0 is { } shownWhole ? [LineTrafficOf(l, shownWhole, null) with { Color = OtherColor }] : [];
+        // What each source carries. A source's own numbers are its own: its size of a call is its own, and the whole line's only when it is the only source named.
         var alone = split.Count == 1;
-        var carried = split.Select(s => AmountOf(new Metrics { Rate = s.By.Rate ?? (alone ? l.Rate : null), Bytes = s.By.Bytes ?? (alone ? l.Bytes : null) }, measure, size)).Where(a => a is not null).Select(a => a!.Value).ToList();
-        var total = whole0 ?? (carried.Count > 0 ? carried.Aggregate((a, b) => a + b) : null);
-        if (total is not { } whole) return [];
+        Shown? CarriedBy(Metrics by) => ShownOf(new Metrics { Rate = by.Rate ?? (alone ? l.Rate : null), Bytes = by.Bytes ?? (alone ? l.Bytes : null) }, measure, size);
+        static double Main(Shown k) => k.Calls ?? k.Blobs ?? 0;
+        var carried = split.Select(s => CarriedBy(s.By)).Where(k => k is not null).Select(k => Main(k!)).ToList();
+        double? total0 = whole0 is { } w0 ? Main(w0) : carried.Count > 0 ? carried.Aggregate((a, b) => a + b) : null;
+        if (total0 is not { } whole) return [];
         // A source's own numbers are its own. What it doesn't give is the line's where that is fair: the whole line when it is the only source named, the expected call always (it sets only how
         // fast dots cross), and the failing share when no source gives one (then the line's is the best guess for each). Never another source's size or failing share.
         var anyErrors = split.Any(s => s.By.Errors is not null);
-        var rows = new List<(Dial Dial, Pair Pair, double Rate, double? Count)>();
+        var rows = new List<(Dial Dial, Pair Pair, Shown Shown, double? Count)>();
         foreach (var (dial, by) in split)
         {
-            var pairBytes = by.Bytes ?? (alone ? l.Bytes : null);
-            var rate = measure == LoadMeasure.Calls ? by.Rate ?? (alone ? whole : (double?)null) : AmountOf(new Metrics { Rate = by.Rate ?? (alone ? l.Rate : null), Bytes = pairBytes }, measure, size);
-            if (rate is not { } r) continue;
+            if (CarriedBy(by) is not { } shown) continue;
             var pair = new Pair(l.From, l.To)
             {
-                Rate = r, Bytes = pairBytes, P50 = by.P50 ?? l.P50, Errors = by.Errors ?? (alone || !anyErrors ? l.Errors : null), Failure = l.Failure,
+                Rate = shown.Rate, Bytes = by.Bytes ?? (alone ? l.Bytes : null), P50 = by.P50 ?? l.P50, Errors = by.Errors ?? (alone || !anyErrors ? l.Errors : null), Failure = l.Failure,
             };
-            rows.Add((dial, pair, r, DotsFor(pair, r, dial.Source)));
+            rows.Add((dial, pair, shown, shown.Blobs is null ? null : DotsFor(pair, shown.Rate, dial.Source)));
         }
         var (counts, capped) = CapCounts([.. rows.Where(r => r.Count is not null).Select(r => r.Count!.Value)]);
         var next = 0;
@@ -372,7 +372,7 @@ public static partial class Perf
         {
             var row = rows[i];
             (double Dots, bool Capped)? counted = row.Count is null ? null : (counts[next++], capped);
-            output.Add(LineTrafficOf(row.Pair, row.Rate, row.Dial.Source, whole, counted, measure) with
+            output.Add(LineTrafficOf(row.Pair, row.Shown, row.Dial.Source, whole, counted) with
             {
                 Color = row.Dial.Color, Source = row.Dial.Id, Offset = rows.Count > 1 ? i - (rows.Count - 1) / 2.0 : null,
             });
@@ -388,10 +388,11 @@ public static partial class Perf
     public static LoadFrame FrameOf(Model model, IdMap<LoadRun> runs, string id, IdMap<double> setting, string view, LoadMeasure measure = LoadMeasure.Calls)
     {
         if (DialsOf(runs, id) is not { } found) return new LoadFrame(new IdMap<Metrics>(), [], new Traffic(new IdMap<BoxTraffic>(), []));
-        var size = measure == LoadMeasure.Data ? CallSize(runs, id) : null;
+        var size = measure == LoadMeasure.Calls ? null : CallSize(runs, id);
         if (found.Mode == ModeSingle) return FrameAt(model, runs[id], SettingFor(setting, ""), view, measure, size);
         var (objects, lines) = RollUp(model, LevelAt(runs, id, setting), view);
-        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), [.. lines.SelectMany(l => SharedLines(l, found.Items, measure, size))]));
+        List<LineTraffic> drawn = [.. lines.SelectMany(l => SharedLines(l, found.Items, measure, size))];
+        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), [.. drawn, .. BareLines(model, view, drawn)]));
     }
 
     /// <summary>Everything the Performance panel draws for one view at a setting of a run's dials (see <see cref="FrameOf"/>).</summary>
@@ -405,10 +406,11 @@ public static partial class Perf
     {
         var none = new SourcesKey([], false, false);
         if (DialsOf(runs, id) is not { } found) return none;
-        var size = measure == LoadMeasure.Data ? CallSize(runs, id) : null;
+        var size = measure == LoadMeasure.Calls ? null : CallSize(runs, id);
         if (found.Mode == ModeSingle)
             return SourceKeyOf(runs[id], lines, measure, size) is { } k ? new SourcesKey([new KeyedSource("", k.Name, k.Color, k.Scale, k.Bigger)], k.ScaledDown, false) : none;
         var sources = new List<KeyedSource>();
+        lines = [.. lines.Where(l => !l.Bare)];
         foreach (var d in found.Items)
         {
             var mine = lines.Where(l => l.Source == d.Id).ToList();

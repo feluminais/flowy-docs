@@ -1,8 +1,11 @@
 import type { Metrics, Pair, Run } from './types.ts'
 import { meanBytes, newMean, takeBytes } from './util.ts'
 
-/** What the Performance tab's lines and dots count: the calls a second, or the data a second (the calls times the size of a call). */
-export type Measure = 'calls' | 'data'
+/**
+ * What the Performance tab draws on its lines: stripes moving along them for the calls a second (Calls), blobs for the data a second, the calls times the size of a call (Data), or both on
+ * one line (Mixed). A line the run gives nothing for under the measure is drawn with plain stripes (see bareLines).
+ */
+export type Measure = 'calls' | 'data' | 'mixed'
 
 /** The nearest of 1, 2 and 5 times a power of ten (on a log scale), so a scale in words reads "2 KB/s" and not "1.6 KB/s". */
 function roundNice(x: number): number {
@@ -35,8 +38,8 @@ export function callSize(runs: Record<string, Run>, id: string): number | undefi
 }
 
 /**
- * What a line carries under a measure, as a rate: its calls a second under Calls, and under Data its data a second in units of `size` (so a call of that size is one). Undefined where
- * the line gives nothing to count: no rate, or under Data no size of a call.
+ * What a line carries as a rate: its calls a second under Calls, and under Data and Mixed its data a second in units of `size` (so a call of that size is one), which is what its blobs
+ * count. Undefined where the line gives nothing to count: no rate, or no size of a call.
  */
 export function amountOf(m: Metrics, measure: Measure, size: number | undefined): number | undefined {
   if (m.rate === undefined) return undefined
