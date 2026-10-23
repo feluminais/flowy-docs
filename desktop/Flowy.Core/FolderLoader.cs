@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 namespace Flowy.Core;
 
 /// <summary>
@@ -23,6 +25,21 @@ public static class FolderLoader
         }
     }
 
+    private static readonly ConcurrentDictionary<(string Dir, string Rel), (string Text, object Parsed)> Parsed = new();
+
+    /// <summary>
+    /// What <paramref name="parse"/> makes of a file, kept until the file's text changes: reading a folder again after one save then parses only the file that was saved, not all of them. What
+    /// is parsed is not changed afterwards (an edit builds new records), so the next load can be handed the same.
+    /// </summary>
+    private static T ParsedOnce<T>(string dir, string rel, string text, Func<T> parse) where T : notnull
+    {
+        var key = (Path.GetFullPath(dir), rel);
+        if (Parsed.TryGetValue(key, out var hit) && hit.Text == text) return (T)hit.Parsed;
+        var value = parse();
+        Parsed[key] = (text, value);
+        return value;
+    }
+
     /// <summary>The folder that holds <paramref name="dir"/>: <c>code</c> paths are relative to it.</summary>
     public static string RepoRoot(string dir)
     {
@@ -45,8 +62,8 @@ public static class FolderLoader
     {
         var modelText = ReadText(dir, FolderLayout.ModelFile);
         var layoutText = ReadText(dir, FolderLayout.LayoutFile);
-        var parsed = modelText is null ? null : ModelFiles.ParseModel(modelText);
-        var layout = layoutText is null ? [] : ModelFiles.ParseLayout(layoutText);
+        var parsed = modelText is null ? null : ParsedOnce(dir, FolderLayout.ModelFile, modelText, () => ModelFiles.ParseModel(modelText));
+        var layout = layoutText is null ? [] : ParsedOnce(dir, FolderLayout.LayoutFile, layoutText, () => ModelFiles.ParseLayout(layoutText));
 
         var flows = new IdMap<Flow>();
         var ignored = new List<string>();
@@ -59,7 +76,7 @@ public static class FolderLoader
             {
                 var id = FolderLayout.IdOfName(name);
                 var text = ReadText(dir, FolderLayout.FlowFile(id));
-                if (text is not null) flows.Add(id, ModelFiles.ParseFlow(id, text));
+                if (text is not null) flows.Add(id, ParsedOnce(dir, FolderLayout.FlowFile(id), text, () => ModelFiles.ParseFlow(id, text)));
             }
             ignored.AddRange(names.Where(FolderLayout.IsIgnored).Select(n => $"{FolderLayout.FlowsDir}/{n}"));
         }
@@ -113,7 +130,7 @@ public static class FolderLoader
             }
             try
             {
-                if (ReadText(dir, file) is { } text) analyses.Add(id, ModelFiles.ParseAnalysis(id, text));
+                if (ReadText(dir, file) is { } text) analyses.Add(id, ParsedOnce(dir, file, text, () => ModelFiles.ParseAnalysis(id, text)));
             }
             catch (ParseError e)
             {
@@ -166,7 +183,7 @@ public static class FolderLoader
             try
             {
                 if (ReadText(dir, file) is not { } text) continue;
-                var (run, found) = Perf.ParseRun(id, text);
+                var (run, found) = ParsedOnce(dir, file, text, () => Perf.ParseRun(id, text));
                 runs.Add(id, run);
                 problems.AddRange(found);
                 problems.AddRange(Perf.CheckRun(id, run, model));

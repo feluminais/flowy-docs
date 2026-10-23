@@ -70,19 +70,22 @@ public static class SceneBuilder
     /// </summary>
     public static OrderedDictionary<string, Pt> SpotsOf(Model model, string view, View computed, IReadOnlyList<string> boxes)
     {
-        var members = computed.Members.ToList();
-        var isMember = members.ToHashSet();
-        var placed = PlaceCached(members, boxes.Where(id => !isMember.Contains(id)).ToList(), computed.Edges);
         var saved = model.Layout.TryGetValue(view, out var s2) ? s2 : new Dictionary<string, LayoutPoint>();
         var at = new OrderedDictionary<string, Pt>();
         foreach (var id in boxes)
             if (saved.TryGetValue(id, out var p)) at[id] = new Pt(p.X, p.Y);
+        if (at.Count == boxes.Count) return at; // every box has its place: the layout is the slow part and would be thrown away
+        var members = computed.Members.ToList();
+        var isMember = members.ToHashSet();
+        var placed = PlaceCached(members, boxes.Where(id => !isMember.Contains(id)).ToList(), computed.Edges);
+        var taken = at.Values.ToList();
         foreach (var id in boxes)
         {
             if (at.ContainsKey(id)) continue;
             var p = placed[id];
-            while (at.Values.Any(q => Overlaps(p, q))) p = p with { Y = p.Y + BoxGeometry.BoxHeight + Gap };
+            while (taken.Any(q => Overlaps(p, q))) p = p with { Y = p.Y + BoxGeometry.BoxHeight + Gap };
             at[id] = p;
+            taken.Add(p);
         }
         return at;
     }
