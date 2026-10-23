@@ -3591,5 +3591,583 @@
         }
       }
     ]
+  },
+  "failuresEdit": {
+    "initial": {
+      "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+      "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+      "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+      "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+      "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 2\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+      "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+    },
+    "results": [
+      {
+        "spec": {
+          "op": "putAnalysis",
+          "id": "checkout",
+          "name": "Checkout"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 2\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout\nmodes: {}\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "putAnalysis",
+          "id": "Bad Id",
+          "name": "B"
+        },
+        "error": "\"Bad Id\" is not a valid analysis id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      },
+      {
+        "spec": {
+          "op": "putAnalysis",
+          "id": "Ordering",
+          "name": "Same name, other case"
+        },
+        "error": "\"Ordering\" is not a valid analysis id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      },
+      {
+        "spec": {
+          "op": "putAnalysis",
+          "id": "checkout",
+          "name": "Checkout again"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 2\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes: {}\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "putMode",
+          "analysis": "checkout",
+          "id": "db-gone",
+          "mode": "The database is gone",
+          "on": "db"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 2\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "putMode",
+          "analysis": "checkout",
+          "id": "line",
+          "mode": "The line breaks",
+          "from": "api",
+          "to": "mail"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 2\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "putMode",
+          "analysis": "checkout",
+          "id": "blank-on",
+          "mode": "A blank part is left out",
+          "on": "  ",
+          "from": "api",
+          "to": "mail"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API answers slowly\n    on: api\n    flow: pay\n    step: 2\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "putMode",
+          "analysis": "checkout",
+          "id": "no-part",
+          "mode": "Names no part"
+        },
+        "error": "Refused, nothing saved. This would add:\n- failures/checkout.yaml: no-part: needs \"on\" (a shape) or \"from\" and \"to\" (a line)"
+      },
+      {
+        "spec": {
+          "op": "putMode",
+          "analysis": "checkout",
+          "id": "bad",
+          "mode": "x",
+          "on": "gone"
+        },
+        "error": "Refused, nothing saved. This would add:\n- failures/checkout.yaml: bad: unknown object \"gone\""
+      },
+      {
+        "spec": {
+          "op": "putMode",
+          "analysis": "nope",
+          "id": "x",
+          "mode": "x",
+          "on": "db"
+        },
+        "error": "unknown analysis \"nope\""
+      },
+      {
+        "spec": {
+          "op": "putMode",
+          "analysis": "ordering",
+          "id": "api-slow",
+          "mode": "The API is down",
+          "on": "api"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "api-slow",
+          "changes": {
+            "severity": "9",
+            "owner": "Payments"
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "db-down",
+          "changes": {
+            "effect": "",
+            "cause": "  "
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "web-glitch",
+          "changes": {
+            "after": {
+              "occurrence": "1"
+            }
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    after:\n      occurrence: 1\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "web-glitch",
+          "changes": {
+            "after": {
+              "severity": "6"
+            }
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    after:\n      severity: 6\n      occurrence: 1\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "web-glitch",
+          "changes": {
+            "after": {
+              "severity": "",
+              "occurrence": ""
+            }
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - db\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "db-down",
+          "changes": {
+            "affects": [
+              "web",
+              "api"
+            ]
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    affects:\n      - web\n      - api\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "db-down",
+          "changes": {
+            "affects": []
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "cache-cold",
+          "changes": {
+            "severity": "4"
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    severity: 4\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "cache-cold",
+          "changes": {
+            "cause": "A reason.",
+            "occurrence": "3",
+            "owner": "Platform"
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    cause: A reason.\n    severity: 4\n    occurrence: 3\n    owner: Platform\n    affects:\n      - web\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "cache-cold",
+          "changes": {
+            "severity": "5",
+            "status": "planned",
+            "run": "spike",
+            "description": "More."
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    cause: A reason.\n    severity: 5\n    occurrence: 3\n    owner: Platform\n    status: planned\n    affects:\n      - web\n    run: spike\n    description: More.\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "cache-cold",
+          "changes": {
+            "status": "",
+            "run": ""
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: mail\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    cause: A reason.\n    severity: 5\n    occurrence: 3\n    owner: Platform\n    affects:\n      - web\n    description: More.\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "mail-late",
+          "changes": {
+            "from": "api",
+            "to": "db"
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Ordering\nscope: shop\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: db\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    cause: A reason.\n    severity: 5\n    occurrence: 3\n    owner: Platform\n    affects:\n      - web\n    description: More.\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "api-slow",
+          "changes": {
+            "severity": "11"
+          }
+        },
+        "error": "Refused, nothing saved. This would add:\n- failures/ordering.yaml: api-slow: severity must be a whole number from 1 to 10"
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "api-slow",
+          "changes": {
+            "mode": ""
+          }
+        },
+        "error": "Refused, nothing saved. This would add:\n- failures/ordering.yaml: api-slow: \"mode\" is missing"
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "api-slow",
+          "changes": {
+            "on": "gone"
+          }
+        },
+        "error": "Refused, nothing saved. This would add:\n- failures/ordering.yaml: api-slow: unknown object \"gone\""
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "ordering",
+          "id": "nope",
+          "changes": {
+            "effect": "e"
+          }
+        },
+        "error": "unknown failure mode \"nope\" in \"ordering\""
+      },
+      {
+        "spec": {
+          "op": "updateMode",
+          "analysis": "nope",
+          "id": "x",
+          "changes": {
+            "effect": "e"
+          }
+        },
+        "error": "unknown analysis \"nope\""
+      },
+      {
+        "spec": {
+          "op": "updateAnalysis",
+          "id": "ordering",
+          "changes": {
+            "name": "Orders",
+            "about": "Rated by the team.",
+            "scope": "api"
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Orders\nabout: Rated by the team.\nscope: api\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: db\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    cause: A reason.\n    severity: 5\n    occurrence: 3\n    owner: Platform\n    affects:\n      - web\n    description: More.\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateAnalysis",
+          "id": "ordering",
+          "changes": {
+            "about": "",
+            "scope": ""
+          }
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Orders\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: db\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n  cache-cold:\n    mode: The cache is cold\n    on: cache\n    cause: A reason.\n    severity: 5\n    occurrence: 3\n    owner: Platform\n    affects:\n      - web\n    description: More.\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "updateAnalysis",
+          "id": "ordering",
+          "changes": {
+            "name": ""
+          }
+        },
+        "error": "Refused, nothing saved. This would add:\n- failures/ordering.yaml: name is missing"
+      },
+      {
+        "spec": {
+          "op": "updateAnalysis",
+          "id": "nope",
+          "changes": {
+            "name": "N"
+          }
+        },
+        "error": "unknown analysis \"nope\""
+      },
+      {
+        "spec": {
+          "op": "deleteMode",
+          "analysis": "ordering",
+          "id": "cache-cold"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Orders\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: db\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n",
+          "failures/checkout.yaml": "name: Checkout again\nmodes:\n  db-gone:\n    mode: The database is gone\n    on: db\n  line:\n    mode: The line breaks\n    from: api\n    to: mail\n  blank-on:\n    mode: A blank part is left out\n    from: api\n    to: mail\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteMode",
+          "analysis": "ordering",
+          "id": "cache-cold"
+        },
+        "error": "unknown failure mode \"cache-cold\" in \"ordering\""
+      },
+      {
+        "spec": {
+          "op": "deleteMode",
+          "analysis": "nope",
+          "id": "x"
+        },
+        "error": "unknown analysis \"nope\""
+      },
+      {
+        "spec": {
+          "op": "deleteAnalysis",
+          "id": "checkout"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n  cache:\n    type: store\n    in: shop\n    name: Cache\n  auth:\n    type: component\n    in: api\n    name: Auth\n  mail:\n    type: system\n    name: Mail service\n    external: true\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: REST\n  - from: api\n    to: db\n  - from: auth\n    to: db\n    label: checks users\n  - from: api\n    to: mail\n    label: sends receipts\n  - from: api\n    to: mail\n    label: second\n  - from: api\n    to: cache\n",
+          "flows/checkout.yaml": "name: Customer checks out\nview: shop\nstates:\n  cache: running\n  mail: stopped\ngroups:\n  retry:\n    kind: repeat\n    times: 3\nsteps:\n  - from: customer\n    to: web\n    text: Clicks Buy\n  - from: web\n    to: api\n    text: Posts the order\n  - from: api\n    to: db\n    text: Saves the order\n    group: retry\n    states:\n      cache: degraded\n      db: running\n  - from: api\n    to: mail\n    text: Sends the receipt\n    group: retry\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Asks for payment\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/solo.yaml": "name: Mail goes out\nview: root\nsteps:\n  - from: mail\n    text: Sends a newsletter\n",
+          "failures/ordering.yaml": "name: Orders\nmodes:\n  db-down:\n    mode: The database is unreachable\n    on: db\n    severity: 9\n    occurrence: 2\n    detection: 3\n    flow: checkout\n    step: 3\n  mail-late:\n    mode: The receipt arrives late\n    from: api\n    to: db\n    flow: checkout\n    step: 4\n  api-slow:\n    mode: The API is down\n    on: api\n    severity: 9\n    owner: Payments\n  web-glitch:\n    mode: The page flickers\n    on: web\n    flow: checkout\n    step: 2\n",
+          "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40]\nshop:\n  web: [0, 0]\n  api: [200, 0]\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteAnalysis",
+          "id": "checkout"
+        },
+        "error": "unknown analysis \"checkout\""
+      }
+    ]
   }
 }
