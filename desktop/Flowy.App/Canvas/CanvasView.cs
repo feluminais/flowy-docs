@@ -30,7 +30,9 @@ internal sealed class CanvasView : Border
     private IReadOnlySet<string> _flagged = new HashSet<string>(); // the boxes its focused row names
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the states at the stop on show, by shape
     private IDisposable? _step;
-    private readonly Avalonia.Controls.Canvas _stage = new() { RenderTransformOrigin = RelativePoint.TopLeft };
+    private readonly Avalonia.Controls.Canvas _stage = new();
+    private readonly MatrixTransform _camera = new();
+    private readonly Grid _world = new() { RenderTransformOrigin = RelativePoint.TopLeft }; // the stage and the layers, which the camera moves together
     private readonly Dictionary<string, BoxControl> _boxes = [];
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
@@ -92,7 +94,9 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        Child = new Grid { Children = { _back, _stage, _traffic, _motion, _marks, _marquee } };
+        _world.RenderTransform = _camera;
+        _world.Children.AddRange([_back, _stage, _traffic, _motion, _marks]);
+        Child = new Grid { Children = { _world, _marquee } };
     }
 
     public Scene? Scene => _scene;
@@ -527,10 +531,8 @@ internal sealed class CanvasView : Border
     private void SetViewport(Viewport viewport)
     {
         _viewport = viewport;
-        _stage.RenderTransform = new MatrixTransform(Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y));
+        _camera.Matrix = Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y);
         _back.Viewport = viewport;
-        _motion.Viewport = viewport;
-        _marks.Viewport = viewport;
         _traffic.Viewport = viewport;
     }
 

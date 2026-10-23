@@ -51,13 +51,15 @@ internal sealed class TrafficLayer : Control
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
+    /// <summary>The camera. The layer is drawn in the diagram's units and moves with the boxes, so only a change of zoom (a particle is a few pixels on screen, whatever the zoom) draws it again.</summary>
     public Viewport Viewport
     {
         get => _viewport;
         set
         {
+            var zoomed = value.Zoom != _viewport.Zoom;
             _viewport = value;
-            InvalidateVisual();
+            if (zoomed) InvalidateVisual();
         }
     }
 
@@ -276,8 +278,6 @@ internal sealed class TrafficLayer : Control
     {
         base.Render(context);
         if (_lines.Count == 0) return;
-        var matrix = Matrix.CreateScale(_viewport.Zoom, _viewport.Zoom) * Matrix.CreateTranslation(_viewport.X, _viewport.Y);
-        using var _ = context.PushTransform(matrix);
         var ok = Brush("AccentBrush");
         var bad = Brush("DangerBrush");
         foreach (var d in _lines)

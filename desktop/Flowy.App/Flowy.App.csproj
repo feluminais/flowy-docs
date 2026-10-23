@@ -17,6 +17,7 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Flowy.App.Tests" />
+    <InternalsVisibleTo Include="Flowy.Bench" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.1.4" />

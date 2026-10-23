@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Times the desktop core on big generated folders. Run it with: dotnet run -c Release (project desktop/Flowy.Bench). It is not part of Flowy.slnx. -->
+  <!-- Times the desktop core on big generated folders. Run it with: dotnet run -c Release (project desktop/Flowy.Bench), and add the word canvas to time the canvas, drawn by Skia with no window. It is not part of Flowy.slnx. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,5 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Flowy.Core/Flowy.Core.csproj" />
+    <ProjectReference Include="../Flowy.App/Flowy.App.csproj" />
+    <PackageReference Include="Avalonia.Headless" Version="12.1.4" />
   </ItemGroup>
 </Project>

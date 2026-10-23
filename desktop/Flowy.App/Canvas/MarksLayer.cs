@@ -16,22 +16,11 @@ internal sealed record MarkSpec(string Text, string Kind, double X, double Y);
 internal sealed class MarksLayer : Control
 {
     private IReadOnlyList<MarkSpec> _marks = [];
-    private Viewport _viewport = new(0, 0, 1);
 
     public MarksLayer()
     {
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
-    }
-
-    public Viewport Viewport
-    {
-        get => _viewport;
-        set
-        {
-            _viewport = value;
-            InvalidateVisual();
-        }
     }
 
     public void Set(IReadOnlyList<MarkSpec> marks)
@@ -48,7 +37,6 @@ internal sealed class MarksLayer : Control
         if (_marks.Count == 0) return;
         var accent = Brush("AccentBrush");
         var bg = Brush("BgBrush");
-        using var _ = context.PushTransform(Matrix.CreateScale(_viewport.Zoom, _viewport.Zoom) * Matrix.CreateTranslation(_viewport.X, _viewport.Y));
         foreach (var mark in _marks)
         {
             var text = new FormattedText(mark.Text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 11, bg);
