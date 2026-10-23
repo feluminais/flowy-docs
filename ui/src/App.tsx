@@ -258,12 +258,17 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
   // The YAML tab is always there. Its files and steps need a server that keeps the history (not an exported page, not the VS Code webview); without one its panel says why.
   const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
-  useEffect(() => { void yamlStore?.refresh() }, [yamlStore, changes]) // after every load, whether it worked or not: a change may have left a file broken
   // A server that answers 404 keeps no history (an older flowy), and then there is nothing for the tab to show.
   const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
   const yamlWhy = noHistory({ live, inVscode: vscode !== undefined, hasApi: historyApi !== undefined, unavailable: yamlGone })
   const nav = openTab(tab, {})
+  // The tab shows what the server keeps, so it is read once to know whether there is a history, and again after every load, whether it worked or not (a change may have left a file broken), while the tab is open.
+  const yamlRead = useRef<typeof yamlStore>(undefined)
+  useEffect(() => {
+    if (yamlStore && (nav === 'yaml' || yamlRead.current !== yamlStore)) void yamlStore.refresh()
+    yamlRead.current = yamlStore
+  }, [yamlStore, changes, nav === 'yaml'])
   const runsOpen = editing && nav === 'performance' // while editing the tab lists the runs to link, and draws none
   const perfOpen = nav === 'performance' && !editing && loadTest !== undefined // a run is drawn on the canvas
   useEffect(() => {
