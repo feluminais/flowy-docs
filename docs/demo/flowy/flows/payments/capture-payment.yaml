@@ -1,0 +1,25 @@
+name: The payment is captured
+view: ordering
+tags: [happy path]
+groups:
+  charge:
+    kind: repeat
+    times: 3
+    until: the bank answers
+    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.
+  outcome:
+    kind: branch
+steps:
+  - { from: order-api, to: stripe, text: Captures the amount it held, group: charge, animation: { kind: call, outcome: timeout } }
+  - { from: order-api, text: Times out after 5 s and retries, group: charge }
+  - { from: stripe, to: order-api, text: Confirms the charge, group: outcome, lane: The charge goes through, animation: { kind: send, carries: charged } }
+  - { from: order-api, to: orders-db, text: Marks the order paid, group: outcome, animation: call }
+  - from: stripe
+    to: order-api
+    text: Declines the card
+    group: outcome
+    lane: The card is declined
+    animation: { kind: send, outcome: fail }
+    description: |
+      A decline is not retried. The hold is released and the app asks for another card.
+  - { from: order-api, to: customer-app, text: Asks the customer to try another card, group: outcome, animation: { kind: send, carries: try another card } }

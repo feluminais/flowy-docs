@@ -12,7 +12,7 @@ import { iconProblem } from './look.ts'
 import { checkRun } from './perf/check.ts'
 import type { Run } from './perf/types.ts'
 import type { Shape } from './look.ts'
-import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
+import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, MAX_TAG_LENGTH, ROOT, tagKey, tagsOf } from './model.ts'
 import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
 import { tidySnippets } from './snippets.ts'
 import type { SnippetInput } from './snippets.ts'
@@ -47,7 +47,7 @@ export type ConnectionInput = { from: string; to: string; label?: string }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
 export type GroupInput = { kind?: string; text?: string; times?: string | number; until?: string; [extra: string]: unknown }
 /** `states` is where shapes stand before step 1 (shape id to state word); a step's `states` are the shapes it changes. Left out or empty writes no `states:`. */
-export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput>; states?: Record<string, string> }
+export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput>; states?: Record<string, string>; folder?: string; tags?: string[] }
 /** A failure mode as put_failure gives it: ratings and `step` are numbers, which are written as text. */
 export type ModeInput = {
   mode: string; on?: string; from?: string; to?: string; effect?: string; cause?: string
@@ -366,10 +366,68 @@ function animationAsText(animation: unknown): unknown {
   return Object.fromEntries(Object.entries(animation).map(([key, value]) => [key, (key === 'share' || key === 'at') && typeof value === 'number' ? String(value) : value]))
 }
 
-/** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included. */
-export function putFlow(model: Model, { id, name, view, steps, groups, states }: FlowInput): Model {
+/**
+ * `folder` spelled as an existing folder spells it where one differs only in case, since on Windows and macOS those are the one folder. A path is taken a name at a time:
+ * "Payments/refunds" becomes "payments/refunds" when "payments" is already a folder.
+ */
+function folderSpelling(model: Model, folder: string): string {
+  const known = [...new Set(Object.values(model.folders ?? {}).flatMap(f => f.split('/').map((_, i, all) => all.slice(0, i + 1).join('/'))))]
+  const out: string[] = []
+  for (const name of folder.split('/')) {
+    const prefix = [...out, name].join('/')
+    const same = known.find(k => k.toLowerCase() === prefix.toLowerCase())
+    out.push(same === undefined ? name : same.slice(same.lastIndexOf('/') + 1))
+  }
+  return out.join('/')
+}
+
+/** A folder as typed: slashes either way, no slash at either end, no space around a name; refused with the rule when it can't be a folder of flows. */
+function cleanFolder(model: Model, folder: string): string {
+  const clean = folder.replaceAll('\\', '/').split('/').map(n => n.trim()).filter(n => n !== '').join('/')
+  if (!isValidFolder(clean)) throw new OpError(`"${folder}" is not a folder Flowy can use: ${FOLDER_RULE}`)
+  return folderSpelling(model, clean)
+}
+
+/** The model with the flow `id` in `folder` ("" is the top of flows/). No entry is kept for the top, and `folders` is left out when no flow is in a folder. */
+function withFolder(model: Model, id: string, folder: string): Model {
+  const rest = Object.fromEntries(Object.entries(model.folders ?? {}).filter(([other]) => other !== id))
+  const folders = folder === '' ? rest : { ...rest, [id]: folder }
+  const { folders: _gone, ...others } = model
+  return Object.keys(folders).length === 0 ? others : { ...others, folders }
+}
+
+/** The tags as a file holds them: each trimmed, a blank one dropped, one spelled twice (whatever the case) kept once. Refused for a tag that is too long. */
+function cleanTags(tags: readonly string[]): string[] {
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const raw of tags) {
+    const tag = raw.trim()
+    if (tag === '') continue
+    if (!isValidTag(tag)) throw new OpError(`the tag "${tag}" must be 1 to ${MAX_TAG_LENGTH} characters of text`)
+    if (seen.has(tagKey(tag))) continue
+    seen.add(tagKey(tag))
+    out.push(tag)
+  }
+  return out
+}
+
+/** A copy of the flow with its tags set (a list of words), or taken out when there are none. A `tags` the flow already has stays where it is; a new one goes right after `view`. */
+function withTags(flow: Flow, tags: readonly string[]): Flow {
+  const out: Record<string, unknown> = {}
+  for (const [key, v] of Object.entries(flow)) {
+    if (key !== 'tags') own(out, key, v)
+    else if (tags.length > 0) own(out, key, [...tags])
+    if (key === 'view' && !('tags' in flow) && tags.length > 0) own(out, 'tags', [...tags])
+  }
+  return out as Flow
+}
+
+/** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included, but keeps where its file is and its tags unless `folder` or `tags` is given. */
+export function putFlow(model: Model, { id, name, view, steps, groups, states, folder, tags }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
   refuseCaseClash(model.flows, id, 'flows')
+  const where = folder === undefined ? folderOf(model, id) : cleanFolder(model, folder)
+  const labels = tags === undefined ? tagsOf(model.flows[id] ?? { tags: undefined }) : cleanTags(tags)
   // A blank detail is no detail, as on the canvas, so the file stays as short as it can be. An empty `states` is none, too.
   const copy = (s: Step): Step => {
     const out: Record<string, unknown> = { ...s }
@@ -386,7 +444,19 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states }:
   const start = states && Object.keys(states).length > 0 ? { states } : {}
   // Replacing a flow keeps the tag it had: a flow's `compare` is set on its own (setCompare), not with its steps.
   const kept = model.flows[id]?.compare
-  return setFlow(model, id, { name, view, ...start, ...written, steps: steps.map(copy), ...(kept === undefined ? {} : { compare: kept }) })
+  const named = labels.length > 0 ? { tags: labels } : {}
+  return withFolder(setFlow(model, id, { name, view, ...named, ...start, ...written, steps: steps.map(copy), ...(kept === undefined ? {} : { compare: kept }) }), id, where)
+}
+
+/** Move the flow `id` into `folder` ("" is the top of flows/). Only where its file is changes: the flow keeps its id, so nothing that names it needs to. */
+export function moveFlow(model: Model, id: string, folder: string): Model {
+  existingFlow(model, id)
+  return withFolder(model, id, cleanFolder(model, folder))
+}
+
+/** Set the tags of the flow `id` to exactly these, or take them all out with none. Every other key of the flow keeps its place. */
+export function setFlowTags(model: Model, id: string, tags: readonly string[]): Model {
+  return withFlow(model, id, flow => withTags(flow, cleanTags(tags)))
 }
 
 /** Change an existing flow's name, steps or groups, keeping everything else it has (and its groups when not given any). */
@@ -596,7 +666,7 @@ function deleteFlows(model: Model, ids: string[]): Model {
     own(flows, other, withCompare(flow, undefined))
   }
   for (const id of ids) delete flows[id]
-  return { ...model, flows }
+  return ids.reduce((m, id) => withFolder(m, id, ''), { ...model, flows })
 }
 
 /** A mode as it is written to a file: fields in a stable order, numbers as text, a blank string or an empty list left out. */

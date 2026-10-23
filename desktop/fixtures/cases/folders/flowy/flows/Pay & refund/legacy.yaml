@@ -1,0 +1,6 @@
+name: A flow with a space in its folder
+view: shop
+tags: [edge case]
+steps:
+  - { from: web, to: api, text: Sends it }
+  - { from: api, to: web, text: Answers }

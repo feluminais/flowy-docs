@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { expandTo, flowGroups, outline, outlineKey } from '../src/core/outline.ts'
+import { expandTo, flowList, outline, outlineKey } from '../src/core/outline.ts'
 import type { OutlineRow } from '../src/core/outline.ts'
 import { ROOT } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
@@ -136,24 +136,6 @@ test('expandTo opens what holds a shape, and itself when asked', () => {
   assert.deepEqual([...before], ['shop'])
 })
 
-test('flowGroups: the flows here, and every other flow under the view it plays in, with its path', () => {
-  const m = shop()
-  m.flows.tour = { name: 'A tour', view: ROOT, steps: [{ from: 'customer', to: 'shop', text: 'x' }] }
-  m.flows.inner = { name: '', view: 'api', steps: [{ from: 'auth', to: 'orders', text: 'x' }] }
-  const inShop = flowGroups(m, 'shop')
-  assert.deepEqual(inShop.here.map(f => f.id), ['checkout'])
-  assert.deepEqual(inShop.elsewhere.map(g => [g.view, g.name, g.path, g.flows.map(f => f.name)]), [
-    [ROOT, 'Overview', [], ['A tour']],
-    ['api', 'API', ['Shop', 'API'], ['inner']], // a flow with no name is shown by its id
-  ])
-  assert.equal(inShop.total, 3)
-  const top = flowGroups(m, ROOT)
-  assert.deepEqual(top.here.map(f => f.id), ['tour'])
-  assert.deepEqual(top.elsewhere.map(g => g.view), ['shop', 'api'])
-  assert.deepEqual(flowGroups(m, 'customer').here, [])
-  assert.deepEqual(flowGroups({ ...shop(), flows: {} }, ROOT), { here: [], elsewhere: [], total: 0 })
-})
-
 /** A model with flows tagged to each other, all on the shop view, named so that plain name order is a, b, c, d, e. */
 function paired(): Model {
   const m = shop()
@@ -168,61 +150,93 @@ function paired(): Model {
   return m
 }
 
-test('flowGroups: a flow in a pair is linked, one that is tagged by nothing and tags nothing is not', () => {
-  const { here } = flowGroups(paired(), 'shop')
-  assert.deepEqual(here.map(f => [f.id, f.linked]), [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
+test('flowList: folders come first, the folders by name, and the flows of a folder by file name', () => {
+  const m = shop()
+  const steps = [{ from: 'customer', to: 'web', text: 'x' }]
+  m.flows = {
+    'b-pay': { name: 'Zeta', view: 'shop', steps },
+    'a-pay': { name: 'Alpha', view: 'shop', steps },
+    'step-10': { name: 'Ten', view: 'shop', steps },
+    'step-2': { name: 'Two', view: 'shop', steps },
+    top: { name: 'At the top', view: 'shop', steps },
+    deep: { name: 'Deep', view: 'shop', steps },
+  }
+  m.folders = { 'b-pay': 'payments', 'a-pay': 'payments', 'step-10': 'steps', 'step-2': 'steps', deep: 'payments/refunds/stripe' }
+  const { rows, total, shown } = flowList(m, {})
+  assert.deepEqual(rows.map(r => `${'  '.repeat(r.depth)}${r.kind === 'folder' ? `${r.name}/ ${r.flows}` : r.flow.id}`), [
+    'payments/ 3',
+    '  refunds/ 1',
+    '    stripe/ 1',
+    '      deep',
+    '  a-pay',
+    '  b-pay',
+    'steps/ 2',
+    '  step-2', // a run of digits counts as a number
+    '  step-10',
+    'top',
+  ])
+  assert.deepEqual([total, shown], [6, 6])
+  assert.deepEqual(rows.filter(r => r.kind === 'folder').map(r => r.kind === 'folder' && r.path), ['payments', 'payments/refunds', 'payments/refunds/stripe', 'steps'])
 })
 
-test('flowGroups: a newer flow is listed right after its older partner, and a chain lists oldest first', () => {
-  const m = paired()
-  m.flows.a.name = 'Z oldest'
-  m.flows.d.name = 'A first'
-  // By name alone: A first, B middle, C newest, E alone, Z oldest. The chain moves together, oldest first, to where its first member sorts.
-  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['d', 'a', 'b', 'c', 'e'])
+test('flowList: a closed folder shows no rows below it but still counts what is in it', () => {
+  const m = shop()
+  m.flows = { a: { name: 'A', view: 'shop', steps: [{ from: 'customer', to: 'web', text: 'x' }] }, b: { name: 'B', view: 'shop', steps: [{ from: 'customer', to: 'web', text: 'x' }] } }
+  m.folders = { a: 'one/two', b: 'one' }
+  const closed = flowList(m, { closed: new Set(['one']) })
+  assert.deepEqual(closed.rows.map(r => r.key), ['folder:one'])
+  assert.deepEqual(closed.rows.map(r => r.kind === 'folder' && [r.open, r.flows]), [[false, 2]])
+  const inner = flowList(m, { closed: new Set(['one/two']) })
+  assert.deepEqual(inner.rows.map(r => r.key), ['folder:one', 'folder:one/two', 'flow:b'])
+  assert.deepEqual(inner.rows.map(r => r.kind === 'folder' && r.open), [true, false, false])
 })
 
-test('flowGroups: a flow tagged by many lists them after it in key order, and a mutual pair lists once each', () => {
-  const m = paired()
-  m.flows.c.compare = 'a' // b and c both tag a
-  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['a', 'c', 'b', 'd', 'e'], 'c comes before b in the keys')
-  m.flows.c.compare = 'b'
-  m.flows.a.compare = 'b' // a and b tag each other
-  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['a', 'b', 'c', 'd', 'e'])
+test('flowList: a query keeps the flows whose name, file name, folder or tag has it, opens every folder, and drops the folders with nothing', () => {
+  const m = shop()
+  const steps = [{ from: 'customer', to: 'web', text: 'x' }]
+  m.flows = {
+    pay: { name: 'Customer pays', view: 'shop', steps, tags: ['happy path'] },
+    refund: { name: 'Money back', view: 'shop', steps, tags: ['Error path'] },
+    other: { name: 'Something else', view: 'shop', steps },
+  }
+  m.folders = { pay: 'billing', refund: 'billing', other: 'misc' }
+  const keys = (query: string) => flowList(m, { query, closed: new Set(['billing']) }).rows.map(r => r.key)
+  assert.deepEqual(keys('CUSTOMER'), ['folder:billing', 'flow:pay']) // the closed folder opens while a filter is on
+  assert.deepEqual(keys('refund'), ['folder:billing', 'flow:refund']) // the file name
+  assert.deepEqual(keys('error'), ['folder:billing', 'flow:refund']) // a tag, whatever its case
+  assert.deepEqual(keys('misc'), ['folder:misc', 'flow:other']) // the folder
+  assert.deepEqual(keys('nothing like it'), [])
+  assert.deepEqual(keys('  '), ['folder:billing', 'folder:misc', 'flow:other']) // a blank query is no query, so the closed folder stays closed
+  assert.deepEqual([flowList(m, { query: 'customer' }).total, flowList(m, { query: 'customer' }).shown], [3, 1])
 })
 
-test('flowGroups: a loop of tags lists every flow once, from its first member, the same way every time', () => {
-  const m = paired()
-  m.flows.a.compare = 'b'
-  m.flows.b.compare = 'c'
-  m.flows.c.compare = 'a' // a -> b -> c -> a: nothing is oldest
-  const ids = flowGroups(m, 'shop').here.map(f => f.id)
-  assert.deepEqual(ids, ['a', 'c', 'b', 'd', 'e'])
-  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ids)
+test('flowList: the tag filter keeps a flow that has any of the tags, whatever their case, and the tags on offer ignore it', () => {
+  const m = shop()
+  const steps = [{ from: 'customer', to: 'web', text: 'x' }]
+  m.flows = {
+    a: { name: 'A', view: 'shop', steps, tags: ['happy path', 'recovery'] },
+    b: { name: 'B', view: 'shop', steps, tags: ['Error path'] },
+    c: { name: 'C', view: 'shop', steps, tags: ['error path', 'happy path'] },
+    d: { name: 'D', view: 'shop', steps },
+  }
+  assert.deepEqual(flowList(m, {}).tags, [{ tag: 'Error path', count: 2 }, { tag: 'happy path', count: 2 }, { tag: 'recovery', count: 1 }]) // most used first, then by name; the first spelling wins
+  const picked = flowList(m, { tags: ['ERROR PATH'] })
+  assert.deepEqual(picked.rows.map(r => r.key), ['flow:b', 'flow:c'])
+  assert.deepEqual(flowList(m, { tags: ['recovery', 'error path'] }).rows.map(r => r.key), ['flow:a', 'flow:b', 'flow:c'])
+  assert.deepEqual(picked.tags, flowList(m, {}).tags)
+  assert.deepEqual([picked.total, picked.shown], [4, 2])
 })
 
-test('flowGroups: flows with no links keep their order exactly', () => {
-  const m = paired()
-  delete m.flows.b.compare
-  delete m.flows.c.compare
-  assert.deepEqual(flowGroups(m, 'shop').here.map(f => f.id), ['a', 'b', 'c', 'd', 'e'])
-  assert.ok(flowGroups(m, 'shop').here.every(f => !f.linked))
+test('flowList: a flow with no steps is listed only while editing, and one whose view cannot open is left out', () => {
+  const m = shop()
+  m.flows = { empty: { name: 'Empty', view: 'shop', steps: [] }, lost: { name: 'Lost', view: 'nowhere', steps: [{ from: 'customer', to: 'web', text: 'x' }] } }
+  assert.deepEqual(flowList(m, {}).rows, [])
+  assert.deepEqual(flowList(m, { editing: true }).rows.map(r => r.key), ['flow:empty'])
 })
 
-test('flowGroups: partners on different views stay in their own groups, each marked linked', () => {
-  const m = paired()
-  m.flows.c.view = 'api'
-  const groups = flowGroups(m, 'shop')
-  assert.deepEqual(groups.here.map(f => f.id), ['a', 'b', 'd', 'e'])
-  assert.deepEqual(groups.elsewhere.map(g => [g.view, g.flows.map(f => [f.id, f.linked])]), [['api', [['c', true]]]])
-  assert.equal(groups.here.find(f => f.id === 'b')!.linked, true)
-})
-
-test('flowGroups: a tag to itself or to a flow that is not there links nothing', () => {
-  const m = paired()
-  m.flows.d.compare = 'd'
-  m.flows.e.compare = 'gone'
-  const here = flowGroups(m, 'shop').here
-  assert.deepEqual(here.map(f => [f.id, f.linked]), [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
+test('flowList: a flow in a pair is linked, one that is tagged by nothing and tags nothing is not', () => {
+  const flows = flowList(paired(), {}).rows.flatMap(r => (r.kind === 'flow' ? [[r.flow.id, r.flow.linked]] : []))
+  assert.deepEqual(flows, [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
 })
 
 test('outline: a flow row says whether it is linked, a shape row does not', () => {

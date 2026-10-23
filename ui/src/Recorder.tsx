@@ -1,25 +1,26 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { getObject } from '../../src/core/model.ts'
+import { folderOf, folderPaths, getObject, tagsOf } from '../../src/core/model.ts'
 import type { Group, Model, Step } from '../../src/core/model.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { compareOf } from '../../src/core/compare.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, moveFlow, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
+import { flowList } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { flowTile, partnerChoices, removeNeedsConfirm, taggedBy, tagWith } from './compare.ts'
 import { newId, pickStepState, stateOf, stepStateShapes, withKey } from './edit.ts'
 import { Field, Panel } from './forms.tsx'
 import type { Common, SaveEdit } from './forms.tsx'
 import { Section, TypeTile } from './Chrome.tsx'
-import { KindPicker, PartnerPicker, SketchPicker, StatePicker } from './Pickers.tsx'
+import { KindPicker, PartnerPicker, SketchPicker, StatePicker, TagPicker } from './Pickers.tsx'
 import type { PartnerTile, Sketch } from './Pickers.tsx'
 import { ArrowDown, ArrowUp, ArrowsSplit, Check, Columns, GitFork, Play, Plus, Repeat, Route, Text, Trash } from './icons.tsx'
 
 /** The flow being recorded. While `id` is "", it still needs a name. `from` and `to` are the step being picked. */
-export type Recording = { id: string; name: string; from?: string; to?: string }
+export type Recording = { id: string; name: string; folder?: string; from?: string; to?: string }
 
 /** The step with this detail, or with none when it's blank. */
 function withDescription(step: Step, description: string): Step {
@@ -205,6 +206,11 @@ function CompareSection({ model, flowId, run, off, onOpen }: { model: Model; flo
   )
 }
 
+/** The folders flows are in, for a field to suggest from. */
+function FolderList({ model }: { model: Model }) {
+  return <datalist id="flow-folders">{folderPaths(model).map(f => <option key={f} value={f} />)}</datalist>
+}
+
 /** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
 export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void; onOpenFlow: (id: string) => void }) {
   if (!rec.id) return (
@@ -212,10 +218,14 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
       <h2 className="iconhead"><span className="badge"><Route size={14} /></span>New flow</h2>
       <form className="form" onSubmit={e => {
         e.preventDefault()
-        const name = String(new FormData(e.currentTarget).get('name')).trim()
-        if (name) onChange({ id: newId(name, Object.keys(model.flows), 'flow'), name })
+        const data = new FormData(e.currentTarget)
+        const name = String(data.get('name')).trim()
+        const folder = String(data.get('folder')).trim()
+        if (name) onChange({ id: newId(name, Object.keys(model.flows), 'flow'), name, ...(folder === '' ? {} : { folder }) })
       }}>
         <label>Name<input name="name" autoFocus placeholder="e.g. Customer checks out" /></label>
+        <label>Folder<input name="folder" list="flow-folders" placeholder="e.g. payments/refunds" /></label>
+        <FolderList model={model} />
         <button className="primary"><Play size={16} />Start recording</button>
       </form>
       <CompareSection model={model} flowId="" run={run} off="Name the flow first" onOpen={onOpenFlow} />
@@ -245,13 +255,21 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
     // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
     const saved = await run(m => (Object.hasOwn(m.flows, rec.id)
       ? updateFlow(m, rec.id, { steps: [...onScreen(m), step] })
-      : putFlow(m, { id: rec.id, name: rec.name, view, steps: [step] })))
-    if (saved) onChange({ id: rec.id, name: rec.name })
+      : putFlow(m, { id: rec.id, name: rec.name, view, steps: [step], ...(rec.folder === undefined ? {} : { folder: rec.folder }) })))
+    if (saved) onChange({ id: rec.id, name: rec.name, ...(rec.folder === undefined ? {} : { folder: rec.folder }) })
   }
   return (
     <Panel onClose={onClose}>
       {flow
-        ? <form className="form" onSubmit={e => e.preventDefault()}><Section icon={Route} title="Flow" /><Field label="Flow" value={flow.name} onSave={name => run(m => updateFlow(m, rec.id, { name }))} /></form>
+        ? (
+          <form className="form" onSubmit={e => e.preventDefault()}>
+            <Section icon={Route} title="Flow" />
+            <Field label="Flow" value={flow.name} onSave={name => run(m => updateFlow(m, rec.id, { name }))} />
+            <Field label="Folder" value={folderOf(model, rec.id)} list="flow-folders" placeholder="e.g. payments/refunds" onSave={folder => run(m => moveFlow(m, rec.id, folder))} />
+            <FolderList model={model} />
+            <TagPicker tags={tagsOf(flow)} used={flowList(model, { editing: true }).tags.map(t => t.tag)} onSet={tags => run(m => setFlowTags(m, rec.id, tags))} />
+          </form>
+        )
         : <h2 className="iconhead"><span className="badge"><Route size={14} /></span>{rec.name}</h2>}
       <ol className="steps form">
         {steps.map((s, i) => (
@@ -289,7 +307,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
         <form className="form" onSubmit={addStep}>
           <label>
             {ends(rec.from, rec.to)}
-            <input name="text" autoFocus placeholder="What happens? Press Enter" onKeyDown={e => e.key === 'Escape' && onChange({ id: rec.id, name: rec.name })} />
+            <input name="text" autoFocus placeholder="What happens? Press Enter" onKeyDown={e => e.key === 'Escape' && onChange({ id: rec.id, name: rec.name, ...(rec.folder === undefined ? {} : { folder: rec.folder }) })} />
           </label>
         </form>
       ) : (

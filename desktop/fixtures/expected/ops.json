@@ -4169,5 +4169,753 @@
         "error": "unknown analysis \"checkout\""
       }
     ]
+  },
+  "folderEdit": {
+    "initial": {
+      "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+      "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+      "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+      "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+      "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+      "flows/billing/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+      "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+      "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+      "layout.yaml": "{}\n"
+    },
+    "results": [
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": "billing/refunds"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "pay": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": " Billing \\ Refunds / "
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "pay": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": "BILLING/Brand New"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/Brand New/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "pay": "billing/Brand New"
+        }
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": ""
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": "x:y"
+        },
+        "error": "\"x:y\" is not a folder Flowy can use: use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders"
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": "../x"
+        },
+        "error": "\"../x\" is not a folder Flowy can use: use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders"
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": "a/b/c/d/e/f/g"
+        },
+        "error": "\"a/b/c/d/e/f/g\" is not a folder Flowy can use: use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders"
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "pay",
+          "folder": "nul"
+        },
+        "error": "\"nul\" is not a folder Flowy can use: use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders"
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "nope",
+          "folder": "x"
+        },
+        "error": "unknown flow \"nope\""
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "top",
+          "folder": "pay & REFUND"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "top": "Pay & refund"
+        }
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "top",
+          "folder": "pay & REFUND"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "top": "Pay & refund"
+        }
+      },
+      {
+        "spec": {
+          "op": "moveFlow",
+          "id": "top",
+          "folder": ""
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "top",
+          "tags": [
+            "error path",
+            "Error Path",
+            " recovery ",
+            ""
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "top",
+          "tags": [
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          ]
+        },
+        "error": "the tag \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\" must be 1 to 32 characters of text"
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "top",
+          "tags": [
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "edge case"
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "top",
+          "tags": [
+            "edge case"
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "top",
+          "tags": []
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "top",
+          "tags": []
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\n  - recovery\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "pay",
+          "tags": [
+            "happy path"
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "setFlowTags",
+          "id": "nope",
+          "tags": []
+        },
+        "error": "unknown flow \"nope\""
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "fresh",
+          "name": "Fresh",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ],
+          "folder": "new/deep",
+          "tags": [
+            "happy path",
+            "Happy Path"
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/new/deep/fresh.yaml": "name: Fresh\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "fresh": "new/deep"
+        }
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "fresh",
+          "name": "Fresh again",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/new/deep/fresh.yaml": "name: Fresh again\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "fresh": "new/deep"
+        }
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "fresh",
+          "name": "Fresh once more",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ],
+          "folder": "NEW",
+          "tags": [
+            "background"
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/new/fresh.yaml": "name: Fresh once more\nview: shop\ntags:\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds",
+          "fresh": "new"
+        }
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "fresh",
+          "name": "Fresh at the top",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ],
+          "folder": "",
+          "tags": []
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/fresh.yaml": "name: Fresh at the top\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "bad-folder",
+          "name": "Bad folder",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ],
+          "folder": "a|b"
+        },
+        "error": "\"a|b\" is not a folder Flowy can use: use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders"
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "bad-tag",
+          "name": "Bad tag",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ],
+          "tags": [
+            "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy"
+          ]
+        },
+        "error": "the tag \"yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\" must be 1 to 32 characters of text"
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "where-it-is",
+          "name": "Kept where it is",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong\nview: shop\ntags:\n  - Error path\n  - error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/fresh.yaml": "name: Fresh at the top\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/where-it-is.yaml": "name: Kept where it is\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "refund",
+          "name": "Refund goes wrong again",
+          "view": "shop",
+          "steps": [
+            {
+              "from": "web",
+              "to": "api",
+              "text": "Sends it"
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/pay.yaml": "name: Customer pays\nview: shop\ntags:\n  - happy path\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong again\nview: shop\ntags:\n  - Error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/fresh.yaml": "name: Fresh at the top\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/where-it-is.yaml": "name: Kept where it is\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteFlow",
+          "id": "pay"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/billing/refunds/refund.yaml": "name: Refund goes wrong again\nview: shop\ntags:\n  - Error path\n  - background\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/fresh.yaml": "name: Fresh at the top\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/where-it-is.yaml": "name: Kept where it is\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags",
+          "refund": "billing/refunds"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteFlow",
+          "id": "refund"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/fresh.yaml": "name: Fresh at the top\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/where-it-is.yaml": "name: Kept where it is\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteFlow",
+          "id": "fresh"
+        },
+        "files": {
+          "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web app\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: customer\n    to: web\n    label: browses\n  - from: web\n    to: api\n    label: calls\n",
+          "flows/billing/dup.yaml": "name: Duplicate in billing\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/Pay & refund/legacy.yaml": "name: A flow with a space in its folder\nview: shop\ntags:\n  - edge case\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/tags/odd-tags.yaml": "name: Odd tags\nview: shop\ntags:\n  - \" leading\"\n  - xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n  - ok\n  - \nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "flows/tags/overview.yaml": "name: Plays on the top\nview: root\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/top.yaml": "name: Top level\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n  - from: api\n    to: web\n    text: Answers\n",
+          "flows/where-it-is.yaml": "name: Kept where it is\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Sends it\n",
+          "layout.yaml": "{}\n"
+        },
+        "folders": {
+          "dup": "billing",
+          "legacy": "Pay & refund",
+          "odd-tags": "tags",
+          "overview": "tags"
+        }
+      },
+      {
+        "spec": {
+          "op": "deleteFlow",
+          "id": "nope"
+        },
+        "error": "unknown flow \"nope\""
+      }
+    ]
   }
 }

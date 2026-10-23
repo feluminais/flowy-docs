@@ -7,8 +7,8 @@ Two flows or two load-test runs next to each other, with what changed marked. Pa
 Compare is for a pair where one replaced the other: a bug and the flow after the fix, an old flow and what took its place, a slow run and a faster one. It opens
 two flows (or two runs) in one view, so the difference is something you look at instead of remember.
 
-Plum has two pairs to try. The flow [Support refunds an order](../demo/flowy/flows/refund.yaml) is compared with
-[The refund is not recorded](../demo/flowy/flows/refund-not-recorded.yaml), and the run [Orders and pings, tested together](../demo/flowy/perf/together-measured.yaml) with
+Plum has two pairs to try. The flow [Support refunds an order](../demo/flowy/flows/payments/refund.yaml) is compared with
+[The refund is not recorded](../demo/flowy/flows/payments/refund-not-recorded.yaml), and the run [Orders and pings, tested together](../demo/flowy/perf/together-measured.yaml) with
 [Orders and pings, added](../demo/flowy/perf/together.yaml). Press **C** while Support refunds an order plays, or while the Performance tab shows Orders and pings, tested together.
 
 **Opening it.** Every flow row in the Flows tab and the Explorer has a Compare button. On a flow with a link it opens beside the first flow it is linked to; on a flow with none it

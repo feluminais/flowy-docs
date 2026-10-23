@@ -1,0 +1,5 @@
+name: Odd tags
+view: shop
+tags: [" leading", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", ok, ""]
+steps:
+  - { from: web, to: api, text: Sends it }

@@ -1,0 +1,6 @@
+name: Refund goes wrong
+view: shop
+tags: [Error path, error path, background]
+steps:
+  - { from: web, to: api, text: Sends it }
+  - { from: api, to: web, text: Answers }

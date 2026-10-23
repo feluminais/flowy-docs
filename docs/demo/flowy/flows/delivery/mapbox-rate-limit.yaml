@@ -1,0 +1,12 @@
+name: Mapbox turns the travel times away
+view: dispatch
+tags: [error path]
+steps:
+  - { from: matcher, to: eta, text: Asks who is quickest, animation: { kind: call, carries: who is quickest } }
+  - from: eta
+    to: mapbox
+    text: Asks Mapbox for travel times and is turned away
+    animation: { kind: call, outcome: rejected, reason: Rate limit }
+    description: |
+      Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once, so the call fails fast.
+  - { from: eta, text: Falls back to straight-line distance and ranks more roughly }

@@ -1008,7 +1008,11 @@
         "readers": {
           "kind": "parallel"
         }
-      }
+      },
+      "folder": "payments",
+      "tags": [
+        "background"
+      ]
     },
     {
       "id": "capture-payment",
@@ -1111,7 +1115,11 @@
         "outcome": {
           "kind": "branch"
         }
-      }
+      },
+      "folder": "payments",
+      "tags": [
+        "happy path"
+      ]
     },
     {
       "id": "courier-pings-lost",
@@ -1159,6 +1167,10 @@
           ],
           "ends": "Fleet DB"
         }
+      ],
+      "folder": "delivery",
+      "tags": [
+        "error path"
       ]
     },
     {
@@ -1279,6 +1291,10 @@
           ],
           "ends": "Courier app → Order API in Ordering"
         }
+      ],
+      "folder": "delivery",
+      "tags": [
+        "happy path"
       ]
     },
     {
@@ -1313,6 +1329,10 @@
           ],
           "ends": "Dispatch → Fleet DB"
         }
+      ],
+      "folder": "delivery",
+      "tags": [
+        "edge case"
       ]
     },
     {
@@ -1384,7 +1404,11 @@
           "until": "the order is delivered",
           "text": "A position every 5 s."
         }
-      }
+      },
+      "folder": "delivery",
+      "tags": [
+        "happy path"
+      ]
     },
     {
       "id": "hotel-wifi-takes-order",
@@ -1418,6 +1442,11 @@
           ],
           "ends": "Customer app"
         }
+      ],
+      "folder": "ordering",
+      "tags": [
+        "error path",
+        "edge case"
       ]
     },
     {
@@ -1464,6 +1493,10 @@
           ],
           "ends": "ETA"
         }
+      ],
+      "folder": "delivery",
+      "tags": [
+        "error path"
       ]
     },
     {
@@ -1566,7 +1599,11 @@
         "lookup": {
           "kind": "branch"
         }
-      }
+      },
+      "folder": "ordering",
+      "tags": [
+        "happy path"
+      ]
     },
     {
       "id": "no-courier-answers",
@@ -1651,7 +1688,11 @@
         "result": {
           "kind": "branch"
         }
-      }
+      },
+      "folder": "delivery",
+      "tags": [
+        "error path"
+      ]
     },
     {
       "id": "nobody-accepts",
@@ -1725,6 +1766,10 @@
           ],
           "ends": "Order API → Customer app"
         }
+      ],
+      "folder": "ordering",
+      "tags": [
+        "error path"
       ]
     },
     {
@@ -1760,6 +1805,10 @@
           ],
           "ends": "Order API → Orders DB"
         }
+      ],
+      "folder": "ordering",
+      "tags": [
+        "edge case"
       ]
     },
     {
@@ -1833,6 +1882,11 @@
           ],
           "ends": "Order API → Orders DB"
         }
+      ],
+      "folder": "ordering",
+      "tags": [
+        "error path",
+        "recovery"
       ]
     },
     {
@@ -1943,6 +1997,10 @@
           ],
           "ends": "Order API → Kitchen tablet"
         }
+      ],
+      "folder": "ordering",
+      "tags": [
+        "happy path"
       ]
     },
     {
@@ -2002,6 +2060,10 @@
           ],
           "ends": "Refunds in Order API → Notifier in Notifications"
         }
+      ],
+      "folder": "payments",
+      "tags": [
+        "error path"
       ]
     },
     {
@@ -2081,6 +2143,10 @@
           ],
           "ends": "Notifications → Twilio"
         }
+      ],
+      "folder": "payments",
+      "tags": [
+        "happy path"
       ],
       "compare": {
         "with": "refund-not-recorded",
@@ -2180,6 +2246,10 @@
           ],
           "ends": "Notifier in Notifications → Customer app"
         }
+      ],
+      "folder": "ordering",
+      "tags": [
+        "happy path"
       ]
     },
     {
@@ -2227,6 +2297,10 @@
           ],
           "ends": "Notifications"
         }
+      ],
+      "folder": "delivery",
+      "tags": [
+        "error path"
       ]
     },
     {
@@ -2326,6 +2400,11 @@
           ],
           "ends": "Checkout in Order API → Stripe"
         }
+      ],
+      "folder": "payments/stripe",
+      "tags": [
+        "error path",
+        "recovery"
       ]
     },
     {
@@ -2373,6 +2452,10 @@
           ],
           "ends": "Order API"
         }
+      ],
+      "folder": "payments/stripe",
+      "tags": [
+        "background"
       ]
     }
   ],
