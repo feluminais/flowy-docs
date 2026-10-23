@@ -1,5 +1,6 @@
 name: Sharing a copy
 view: flowy
+tags: [happy path]
 steps:
   - { from: reader, to: cli, text: node dist/cli.js export }
   - { from: cli, to: exporter, text: Builds the folder to put on a host }

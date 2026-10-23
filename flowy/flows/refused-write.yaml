@@ -1,5 +1,6 @@
 name: A refused write is fixed and written again
 view: flowy
+tags: [error path]
 groups:
   again:
     kind: repeat

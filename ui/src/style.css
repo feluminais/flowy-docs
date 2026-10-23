@@ -752,6 +752,12 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .panel .tagchip[aria-pressed='true'] { border-color: var(--accent); background: var(--tint); color: var(--accent-ink); }
 .panel .tagchip:hover { border-color: var(--accent); }
 .tagadd { margin-top: 6px; }
+/* Dragging a flow onto a folder in edit mode: the folder (or the flow beside which it lands) is ringed, the flow dragged is faded, and the top of flows/ is a row of its own. */
+.flow-top { display: flex; align-items: center; gap: 8px; min-height: 32px; margin-bottom: 4px; padding: 0 10px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 13px; }
+.flow-item.drop, .group-head.folder.drop, .flow-top.drop { background: var(--tint); box-shadow: inset 0 0 0 1px var(--accent); border-radius: 8px; }
+.flow-top.drop { border-color: transparent; color: var(--accent-ink); }
+.flow-item.dragged { opacity: 0.45; }
+.flow-item[draggable='true'] .flow-row { cursor: grab; }
 /* The link mark of a flow in a pair, and the foot that names it. */
 .linked-mark { flex: none; display: inline-flex; align-items: center; color: var(--accent); }
 .panel .flow-row .linked-mark svg, .tree-row .linked-mark svg { color: inherit; top: 0; }

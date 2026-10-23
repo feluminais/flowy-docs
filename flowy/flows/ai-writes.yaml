@@ -1,5 +1,6 @@
 name: An AI maps the repo
 view: flowy
+tags: [happy path]
 steps:
   - { from: ai, to: mcp, text: "put_object, connect, put_flow", animation: call }
   - { from: mcp, to: core, text: Applies the change to a fresh read of the model, animation: call }

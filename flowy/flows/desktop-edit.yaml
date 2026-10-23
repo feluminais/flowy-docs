@@ -1,5 +1,6 @@
 name: Editing a shape in the app
 view: desktop
+tags: [happy path]
 steps:
   - { from: reader, to: desktop-canvas, text: "Presses E, opens a shape and changes its name" }
   - { from: desktop-canvas, to: desktop-core, text: "Asks for the edit when the field is left" }

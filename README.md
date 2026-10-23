@@ -46,7 +46,7 @@ The animations are the browser version on Plum, a made-up delivery service whose
 </p>
 
 Play a request one step at a time, and watch it travel along its lines: a send, a call that waits for its answer, an event, a callback.
-A step can fail, and a group of steps can repeat, branch or run in parallel. [More](docs/guide/flows.md)
+A step can fail, and a group of steps can repeat, branch or run in parallel. Flows can be filed in folders and tagged, such as happy path or error path, so a long list stays easy to search. [More](docs/guide/flows.md)
 
 ## Performance
 

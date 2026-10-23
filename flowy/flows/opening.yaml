@@ -1,5 +1,6 @@
 name: Opening the canvas
 view: flowy
+tags: [happy path]
 steps:
   - { from: reader, to: cli, text: Runs node dist/cli.js in the repo }
   - from: cli
