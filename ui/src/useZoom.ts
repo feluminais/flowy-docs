@@ -42,10 +42,12 @@ export function useZoom({ canvas, model, go }: { canvas: RefObject<HTMLElement |
       motionTimer.current = setTimeout(() => setMotion(undefined), ARRIVE)
     }, LEAVE)
   }
-  /** Zoom out to `id`, about the middle of the canvas: the box's place in the outer view isn't known until it's drawn. */
-  const zoomOut = (id: string) => {
+  /** Zoom to `id` about the middle of the canvas: where its box sits in this view isn't known, or isn't on screen. */
+  const zoomAbout = (id: string, dir: Move) => {
     const r = canvas.current?.getBoundingClientRect()
-    zoomTo(id, 'out', (r?.width ?? 0) / 2, (r?.height ?? 0) / 2)
+    zoomTo(id, dir, (r?.width ?? 0) / 2, (r?.height ?? 0) / 2)
   }
-  return { motion, cancelMotion, zoomTo, zoomOut }
+  /** Zoom out to `id`: the box's place in the outer view isn't known until it's drawn. */
+  const zoomOut = (id: string) => zoomAbout(id, 'out')
+  return { motion, cancelMotion, zoomTo, zoomAbout, zoomOut }
 }

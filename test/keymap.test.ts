@@ -96,7 +96,7 @@ test('Escape peels one layer per press, in escapeStep order', () => {
   r = reach(esc, { ...nothing, compare: true, panel: true })
   assert.deepEqual(r.calls, ['closePanel'], 'the panel over a comparison goes first')
   r = reach(esc, { ...nothing, inside: true })
-  assert.deepEqual(r.calls, ['up'])
+  assert.deepEqual(r.calls, ['back'])
   assert.deepEqual(reach(esc, { navigatorUsed: true }).calls, [], 'a navigator that is not open is not closed')
 })
 
@@ -315,7 +315,7 @@ test('the shortcut list says what it said before the table was built from the ke
   const rows = Object.fromEntries(HELP_GROUPS.map(g => [g.id, helpRows(g.id)]))
   assert.deepEqual(rows.reading, [
     ['Enter', 'Open the selected shape'],
-    ['Esc', "Close what's open, then go up a level. The navigator closes only if your last click was in it"],
+    ['Esc', "Close what's open, then go back to the last level. The navigator closes only if your last click was in it"],
     ['Backspace  Z', 'Zoom out: go up a level'],
     ['Ctrl+K  /', 'Find a shape'],
     ['F', 'Fit the view'],

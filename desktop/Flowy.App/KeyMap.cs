@@ -84,6 +84,9 @@ internal interface IKeyActions
     void SwapCompare();
 
     void ClosePanel();
+    /// <summary>Esc: back to the level the reader came from, or up a level when they did not come from one.</summary>
+    void Back();
+
     void Up();
     void ToggleEdit();
     void Add();
@@ -155,7 +158,7 @@ internal static class KeyMap
     [
         // Esc peels one layer a press (see Escape). Straight after a drag in edit mode, Backspace takes the drag back as Esc does.
         new("escape", "Esc", (p, _) => p.Key == Key.Escape, (_, s, a) => Escape(s, a),
-            Reading("Close what's open, then go up a level. The navigator closes only if your last click was in it"), Flows("Stop the flow"), Performance("Close the panel")),
+            Reading("Close what's open, then go back to the last level. The navigator closes only if your last click was in it"), Flows("Stop the flow"), Performance("Close the panel")),
         Do("undo-move", "Esc  Backspace", (p, s) => p.Key == Key.Back && p.Plain && s.DragCanBeTakenBack, (_, _, a) => a.TakeBackDrag(),
             Editing("Straight after dragging a shape: take the drag back")),
 
@@ -211,7 +214,7 @@ internal static class KeyMap
 
     /// <summary>
     /// What Esc closes, innermost first: the search, a drag or a line being drawn, the drag just made, a half-picked step, the boxes picked, and then the
-    /// layers <see cref="Navigation.Escape"/> knows (the shortcut list, the navigator, a flow, the panel, a comparison, a level). False when there was nothing to close.
+    /// layers <see cref="Navigation.Escape"/> knows (the shortcut list, the navigator, a flow, the panel, a comparison, back to the last level). False when there was nothing to close.
     /// </summary>
     private static bool Escape(KeyState s, IKeyActions a)
     {
@@ -241,7 +244,7 @@ internal static class KeyMap
             case EscapeStep.Flow: a.StopFlow(); return true;
             case EscapeStep.Panel: a.ClosePanel(); return true;
             case EscapeStep.Compare: a.CloseCompare(); return true;
-            case EscapeStep.Up: a.Up(); return true;
+            case EscapeStep.Back: a.Back(); return true;
             default: return false;
         }
     }

@@ -65,9 +65,21 @@ internal sealed partial class ReaderView
     /// <summary>What the keys of the Performance panel act on while two runs are compared: the pane with the focus, or the run on show in Swap. Null otherwise.</summary>
     private IRunKeys? RunKeys => ComparingRuns && _compareView is { } view ? view.RunTarget : null;
 
+    /// <summary>Up a level on purpose (Z, Backspace, the breadcrumb): Esc has nothing to go back to from there.</summary>
     private void Up()
     {
-        if (_folder is { } folder) ZoomOut(Views.ParentOf(folder.Model, CurrentView()));
+        if (_folder is { } folder) JumpTo(Views.ParentOf(folder.Model, CurrentView()));
+    }
+
+    /// <summary>Esc: back to the level the reader came from, or up a level when they did not come from one.</summary>
+    private void Back()
+    {
+        if (_folder is not { } folder) return;
+        var here = CurrentView();
+        var came = Levels.CameBack(_levels, here, id => id == Names.Root || CanOpen(id));
+        var to = came ?? Views.ParentOf(folder.Model, here);
+        _arriving = (to, came is not null);
+        ZoomOut(to);
     }
 
     /// <summary>The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel. False when there is none.</summary>
@@ -114,6 +126,8 @@ internal sealed partial class ReaderView
         public void SwapCompare() => r.SwapCompare();
 
         public void ToggleCompare() => r.ToggleCompare();
+
+        public void Back() => r.Back();
 
         public void Up() => r.Up();
 

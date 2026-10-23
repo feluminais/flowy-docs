@@ -21,7 +21,7 @@ test('Enter stays with a focused button, link or disclosure summary, and goes to
   assert.equal(takesEnter(null), false)
 })
 
-test('Escape closes one layer per press, then goes up a level', () => {
+test('Escape closes one layer per press, then goes back a level', () => {
   const none = { shortcuts: false, navigator: false, flow: false, halfStep: false, panel: false, compare: false, inside: false }
   assert.equal(escapeStep({ ...none, shortcuts: true, navigator: true, flow: true, panel: true, inside: true }), 'shortcuts')
   assert.equal(escapeStep({ ...none, navigator: true, flow: true, panel: true, inside: true }), 'navigator', 'the last click was in the navigator')
@@ -30,7 +30,7 @@ test('Escape closes one layer per press, then goes up a level', () => {
   assert.equal(escapeStep({ ...none, panel: true, inside: true }), 'panel')
   assert.equal(escapeStep({ ...none, compare: true, panel: true, inside: true }), 'panel', 'a panel over a comparison closes first')
   assert.equal(escapeStep({ ...none, compare: true, inside: true }), 'compare', 'before going up a level')
-  assert.equal(escapeStep({ ...none, inside: true }), 'up')
+  assert.equal(escapeStep({ ...none, inside: true }), 'back')
   assert.equal(escapeStep(none), undefined, 'at the top with nothing open')
 })
 

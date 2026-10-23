@@ -48,6 +48,8 @@ export type KeyActions = {
   swap(): void
   clearStep(): void
   closePanel(): void
+  /** Esc: back to the level the reader came from, or up a level when they did not come from one. */
+  back(): void
   up(): void
   stepRun(by: 1 | -1): void
   runEnd(end: 'first' | 'last'): void
@@ -131,12 +133,12 @@ export const KEYMAP: readonly Entry[] = [
       else if (layer === 'step' && s.recording) act.clearStep()
       else if (layer === 'panel') act.closePanel()
       else if (layer === 'compare') act.closeCompare()
-      else if (layer === 'up') act.up()
+      else if (layer === 'back') act.back()
       else return false
       return undefined
     },
     help: {
-      reading: { text: "Close what's open, then go up a level. The navigator closes only if your last click was in it" },
+      reading: { text: "Close what's open, then go back to the last level. The navigator closes only if your last click was in it" },
       flows: { text: 'Stop the flow' },
       performance: { text: 'Close the panel' },
     },

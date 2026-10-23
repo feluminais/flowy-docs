@@ -8,7 +8,7 @@
 | O | The Explorer: everything as a tree |
 | L | The Flows tab: every flow, and play one |
 | Enter | Open the selected shape |
-| Esc | Close what's open (a panel, then the comparison), then go up a level. The navigator closes only if your last click was in it |
+| Esc | Close what's open (a panel, then the comparison), then go back to the last level. The navigator closes only if your last click was in it |
 | Backspace, Z | Zoom out: go up a level |
 | F | Fit the view |
 | ← → | Previous and next step of the flow playing, or previous and next tested level. In a comparison, of the pane you last clicked |

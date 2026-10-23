@@ -27,7 +27,7 @@
 </p>
 
 Flowy Docs draws a system as shapes you zoom into: people, systems, apps, stores and components, the connections between
-them, and step-by-step flows. Double-click a shape to open what is inside it. Esc or the breadcrumb takes you back up, and a
+them, and step-by-step flows. Double-click a shape to open what is inside it. Esc takes you back to where you were, the breadcrumb takes you up, and a
 faded shape beside you slides across instead. The model is plain YAML in a `flowy/` folder, so it goes through git and review
 like the code it describes. You read it in the desktop app, a browser or VS Code, and you or an AI agent write it.
 

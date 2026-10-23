@@ -79,6 +79,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private string? _codeBase;
     private string? _repoRoot;
     private string _view = Names.Root;
+    private readonly List<string> _levels = []; // the levels the reader has left, for Esc to go back through
+    private (string Id, bool Back)? _arriving; // the level a way back (Back) or a jump up is heading for
     private Side? _side; // what is picked: it shows in Details
     private PanelTab? _tab; // the navigator's tab (Flows or Explorer), chosen on its rail or its strip; null: the navigator is closed
     private bool _navUsed; // the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in the diagram
@@ -609,7 +611,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
             Avalonia.Automation.AutomationProperties.SetName(crumb, Views.NameOf(model, id));
             crumb.Classes.Add("crumb");
             var target = id;
-            crumb.Click += (_, _) => ZoomOut(target);
+            crumb.Click += (_, _) => JumpTo(target);
             _crumbs.Children.Add(crumb);
         }
 
@@ -758,6 +760,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (_folder is null) return;
         if (_compare is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
         Interacted();
+        RememberLevel(view);
         _motion?.Dispose();
         _moving = false;
         _canvas.RenderTransform = null;
@@ -769,6 +772,24 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (_compare is { Kind: "flow" }) CloseCompare(false); // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level, and both follow it
         if (_side is not (null or Side.Box)) _side = null; // lines belong to one view
         Refresh();
+    }
+
+    /// <summary>
+    /// Where the reader was is where Esc takes them back to. A way back has already taken its level off the list, and a jump up (Z, the breadcrumb) forgets the list.
+    /// </summary>
+    private void RememberLevel(string to)
+    {
+        var arrived = _arriving is { } a && a.Id == to ? a.Back : (bool?)null;
+        _arriving = null;
+        if (arrived is null) Levels.Remember(_levels, CurrentView(), to);
+        else if (arrived is false) _levels.Clear();
+    }
+
+    /// <summary>Zooms out to a level on purpose: Esc has nothing to go back to from there.</summary>
+    private void JumpTo(string id)
+    {
+        _arriving = (id, false);
+        ZoomOut(id);
     }
 
     /// <summary>Opens a box the way a double-click does.</summary>
