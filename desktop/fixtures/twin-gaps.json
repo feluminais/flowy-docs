@@ -153,6 +153,7 @@
   ],
   "views": [
     "chain",
+    "childCount",
     "hasChildren",
     "memberIds",
     "parentOf",
