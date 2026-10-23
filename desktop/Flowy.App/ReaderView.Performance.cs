@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
@@ -14,8 +15,8 @@ internal sealed partial class ReaderView
 {
     private readonly PerfSession _perf;
 
-    /// <summary>The tab is there whenever there is a run, or a run file to complain about.</summary>
-    private bool ShowPerf => _folder is { } f && ((f.Runs?.Count ?? 0) > 0 || (f.RunProblems?.Count ?? 0) > 0);
+    /// <summary>The tab is always there. With no run its panel says so and offers a starter; with only a broken run file it says what is wrong.</summary>
+    private bool ShowPerf => _folder is not null;
 
     /// <summary>While editing the tab is greyed out: the numbers would sit on a model that is changing.</summary>
     private bool CanPerf => !Editing && ShowPerf;
@@ -50,6 +51,29 @@ internal sealed partial class ReaderView
         _perfPanel.CompareChosen += other => OpenRunCompare(PerfRunId, other);
         _perfPanel.LinkChosen += other => LinkRun(PerfRunId, other);
         _perfPanel.Unlinked += () => LinkRun(PerfRunId, null);
+        _perfPanel.CreateClicked += () => _ = CopyStarterRunAsync();
+    }
+
+    /// <summary>Copies a starter run for the view on show, to fill in and save in flowy/perf/, and says so.</summary>
+    private async Task CopyStarterRunAsync()
+    {
+        if (_folder is not { } folder) return;
+        var text = PerfView.StarterRun(folder.Model, CurrentView());
+        CopiedText = text;
+        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        {
+            try
+            {
+                await clipboard.SetTextAsync(text);
+                ShowNotice("Copied a starter run for this view. Fill in your numbers and save it as flowy/perf/<name>.yaml.", 6);
+                return;
+            }
+            catch (Exception)
+            {
+                // fall through to the notice below
+            }
+        }
+        ShowNotice("Couldn't copy: the clipboard wasn't available.", 6);
     }
 
     /// <summary>The run the Performance panel shows (the first when none was picked).</summary>
@@ -104,7 +128,8 @@ internal sealed partial class ReaderView
         _perf.EnsurePlaces();
         // Compare and Link with are greyed out with their reasons, never hidden: no second run, editing, or a folder that can't be written.
         var actions = new RunActions(CompareChoices.RunOff(RunMap, Editing), SaveOff);
-        _perfPanel.Show(new PerfPanelModel(model, view, folder.Runs!, folder.RunProblems ?? [], PerfView.ActiveRun(folder.Runs!, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active,
+        var runs = folder.Runs ?? new IdMap<LoadRun>();
+        _perfPanel.Show(new PerfPanelModel(model, view, runs, folder.RunProblems ?? [], PerfView.ActiveRun(runs, _perf.RunId), _perf.Pos, _perf.Ramping, Still, selection, Several is null ? null : _perf.Places, _perf.Active,
             Actions: actions));
     }
 

@@ -155,7 +155,7 @@ internal sealed class ObjectEditor : StackPanel
                 return run(_ => throw new OpError(e.Message));
             }
         }, "- name: orders\n  columns: [id, total]\n  rows:\n    - [o_1042, 2490]", keepOnRefusal: true, mono: true);
-        _hex = new FieldBox("Custom color (#rrggbb)", "", false, v => Put(new ObjectInput(id, Color: v.Trim())));
+        _hex = new FieldBox("Any color (#rrggbb)", "", false, v => Put(new ObjectInput(id, Color: v.Trim())));
         _type = new Chooser("Type", new WrapPanel(), v => Put(new ObjectInput(id, Type: v)));
         _shape = new Chooser("Shape", new UniformGrid { Columns = 4 }, v => Put(new ObjectInput(id, Shape: v)), v => v == Default ? $"Default ({_defaultShape})" : Pick.Cap(v));
         _color = new Chooser("Color", new UniformGrid { Columns = 6 }, v => Put(new ObjectInput(id, Color: v)), v => v == Default ? "Default (the type's)" : Look.IsColorName(v) ? Pick.Cap(v) : v);

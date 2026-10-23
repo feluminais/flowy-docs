@@ -89,6 +89,7 @@ internal sealed partial class ReaderView
     {
         var style = Editing ? model.LineStyle : _ownLines ?? model.LineStyle;
         _linePicker.SelectedIndex = style switch { "curved" => 1, "angled" => 2, _ => 0 };
+        ToolTip.SetTip(_linePicker, Editing ? "How lines look for everyone (saved in model.yaml)" : "How lines look on this screen");
     }
 
     // ---- doing it ----------------------------------------------------------------------------------------------

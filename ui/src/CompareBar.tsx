@@ -16,7 +16,7 @@ export type ChangesSwitch = { on: boolean; onToggle: () => void; off?: string; d
 export function CompareBar({ kind, mode, onMode, onFlip, onClose, swap, changes }: { kind: Compare['kind']; mode: Compare['mode']; onMode: (mode: Compare['mode']) => void; onFlip: () => void; onClose: () => void; swap: SwapChoice; changes: ChangesSwitch }) {
   return (
     <div className="bar compare-bar" role="group" aria-label="Compare">
-      <button aria-pressed={mode === 'side'} onClick={() => onMode('side')}>Side by side</button>
+      <button aria-pressed={mode === 'side'} title={`Two ${kind}s next to each other`} onClick={() => onMode('side')}>Side by side</button>
       <button aria-pressed={mode === 'swap'} title={`One canvas that flips between the ${kind}s`} onClick={() => onMode('swap')}>Swap</button>
       {mode === 'swap' && (
         <>

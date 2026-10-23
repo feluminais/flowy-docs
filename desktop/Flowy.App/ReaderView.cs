@@ -51,7 +51,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly Border _motionHost;
     private readonly Border _compareHost = new() { ClipToBounds = true, IsVisible = false }; // the comparison, in the place of the canvas while it is open
     private readonly StackPanel _empty;
-    private readonly TextBlock _emptyTitle = new() { Text = "Nothing to show yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
+    private readonly TextBlock _emptyTitle = new() { Text = "Nothing here yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
     private readonly TextBlock _emptyBody = new() { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Classes = { "muted" } };
     private readonly SidePanel _panel = new();
     private PerfPanel _perfPanel => _nav.Perf;
@@ -267,7 +267,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         };
         _searchButton.Classes.Add("tool");
         Chrome.Fill(_searchButton, Icons.Search, "Search");
-        ToolTip.SetTip(_searchButton, "Search shapes and flows (Ctrl+K)");
+        ToolTip.SetTip(_searchButton, "Find a shape (Ctrl+K or /)");
         _searchButton.Click += (_, _) => ToggleSearch();
         _helpButton.Classes.Add("tool");
         Chrome.Fill(_helpButton, Icons.Keyboard, null, "Keyboard shortcuts");
@@ -456,10 +456,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private void UpdateEmpty()
     {
         _empty.IsVisible = _folder is not null && !_banner.IsVisible && !Comparing && (_view == Names.Root || Editing) && _canvas.Scene is { Boxes.Count: 0 };
-        _emptyTitle.Text = Editing ? "Nothing here yet" : "Nothing to show yet";
+        _emptyTitle.Text = "Nothing here yet";
         _emptyBody.Text = Editing
             ? "Press Add to put the first shape here."
-            : "Add shapes to model.yaml, or ask an AI to map the repo. They appear here as soon as the file is saved. Press E to draw them yourself.";
+            : "Ask an AI to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.";
     }
 
     /// <summary>The view on screen, or the flow playing, as Mermaid text in a code fence: what the browser's Mermaid button copies.</summary>

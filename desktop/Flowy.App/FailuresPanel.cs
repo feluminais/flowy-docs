@@ -83,7 +83,7 @@ internal sealed class FailuresPanel : StackPanel
         var problems = s.FailureProblems.Concat(s.Problems.Where(p => s.AnalysisId is not null && p.File == $"failures/{s.AnalysisId}.yaml")).ToList();
         if (s.AnalysisId is null || !model.Failures.TryGetValue(s.AnalysisId, out var analysis))
         {
-            if (problems.Count == 0) Children.Add(Muted("No failure analyses."));
+            if (problems.Count == 0) Children.Add(Muted("No failure analyses yet."));
             Children.Add(ProblemList(problems));
             return;
         }
@@ -301,7 +301,7 @@ internal sealed class FailuresPanel : StackPanel
         var model = s.Model;
         var box = new StackPanel { Spacing = 8 };
         box.Children.Add(Chrome.Section(Icons.Alert, Failures.PartName(model, mode)));
-        box.Children.Add(new TextBlock { Text = mode.Mode, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
+        box.Children.Add(new SelectableTextBlock { Text = mode.Mode, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
         var facts = new StackPanel { Spacing = 4 };
         AddFact(facts, "Effect", mode.Effect);
         AddFact(facts, "Cause", mode.Cause);
@@ -367,7 +367,7 @@ internal sealed class FailuresPanel : StackPanel
         if (!Failures.Has(text)) return;
         var row = new Grid { ColumnDefinitions = [new ColumnDefinition(new GridLength(96)), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10 };
         var name = new TextBlock { Text = label, Classes = { "muted" } };
-        var value = new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap };
+        var value = new SelectableTextBlock { Text = text, TextWrapping = TextWrapping.Wrap };
         row.Children.Add(name);
         row.Children.Add(value);
         Grid.SetColumn(value, 1);
@@ -403,7 +403,7 @@ internal sealed class FailuresPanel : StackPanel
     {
         if (problems.Count == 0) return new Panel();
         var list = new StackPanel { Spacing = 3 };
-        foreach (var p in problems) list.Children.Add(new TextBlock { Text = $"{p.File} {p.Message}", Classes = { "warntext" }, TextWrapping = TextWrapping.Wrap });
+        foreach (var p in problems) list.Children.Add(new SelectableTextBlock { Text = $"{p.File} {p.Message}", Classes = { "warntext" }, TextWrapping = TextWrapping.Wrap });
         return new StackPanel { Spacing = 8, Children = { Chrome.Section(Icons.Alert, "Problems", problems.Count), list } };
     }
 }

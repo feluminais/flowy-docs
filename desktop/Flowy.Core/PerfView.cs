@@ -430,6 +430,42 @@ public static class PerfView
     private static string Between(double lower, double upper) =>
         $"Between {lower.ToString("R", CultureInfo.InvariantCulture)} and {upper.ToString("R", CultureInfo.InvariantCulture)}, estimated";
 
+    /// <summary>
+    /// A run to start from: two levels with made-up numbers for the first shapes of the view and the connections between them, as a file to save in perf/ and fill in.
+    /// Flowy reads runs and writes only their <c>compare</c> field, so this is the nearest it comes to making one. The same text as <c>starterRun</c> in perfview.ts.
+    /// </summary>
+    public static string StarterRun(Model model, string view)
+    {
+        var ids = Views.MemberIds(model, view).Take(4).ToList();
+        var lines = model.Connections.Where(c => c.From is not null && c.To is not null && ids.Contains(c.From) && ids.Contains(c.To)).Take(3).ToList();
+        static string N(double n) => n.ToString("R", CultureInfo.InvariantCulture);
+        List<string> Level(double load, double scale)
+        {
+            var rows = new List<string>
+            {
+                $"  - load: {N(load)}",
+                $"    overall: {{ rate: {N(load)}, p50: {N(60 * scale)}, p95: {N(140 * scale)}, errors: 0 }}",
+            };
+            if (ids.Count > 0)
+            {
+                rows.Add("    objects:");
+                rows.AddRange(ids.Select(id => $"      {id}: {{ util: {N(0.3 * scale)}, queue: 0, errors: 0 }}"));
+            }
+            if (lines.Count > 0)
+            {
+                rows.Add("    connections:");
+                rows.AddRange(lines.Select(c => $"      - {{ from: {c.From}, to: {c.To}, rate: {N(load / 2)}, p50: {N(90 * scale)}, p95: {N(180 * scale)}, errors: 0 }}"));
+            }
+            return rows;
+        }
+        List<string> all =
+        [
+            "# Replace these numbers with what your load test measured, and save the file in flowy/perf/ (see the guide, Performance).",
+            "name: My load test", "about: What was tested, and on what", "unit: req/s", "levels:", .. Level(100, 1), .. Level(200, 2),
+        ];
+        return string.Join('\n', all) + "\n";
+    }
+
     /// <summary>What the panel says once, near the top, about how the sources were measured: nothing for a single run.</summary>
     public static string? ModeLabel(string mode) => mode switch { Perf.ModeAdded => "Added from separate runs", Perf.ModeTested => "Tested together", _ => null };
 
