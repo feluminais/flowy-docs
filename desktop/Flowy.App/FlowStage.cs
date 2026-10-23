@@ -20,7 +20,7 @@ internal static class FlowStage
     /// <summary>The card for the stop at <paramref name="index"/>, and the marks its groups put on the lines.</summary>
     public static (PlayerView Card, List<CanvasView.Mark> Marks) CardAt(
         Model model, Flow flow, string id, IReadOnlyList<Stop> stops, int index, Playing? shown, bool auto, (string Name, int Step)? trail, IReadOnlyList<StateMark> states,
-        IReadOnlyDictionary<int, Change>? changes = null)
+        IReadOnlyDictionary<int, Change>? changes = null, IReadOnlyList<string>? channels = null)
     {
         var stop = stops[index];
         var caption = Captions.Of(flow, stop);
@@ -30,19 +30,41 @@ internal static class FlowStage
             var ends = step.From is null ? "" : Views.StepEnds(model, step.From, step.To, shown?.Ends[i]);
             var animation = Animations.Read(step);
             var outcome = animation is null ? null : Animations.OutcomeLine(animation, shape => Views.NameOf(model, shape));
-            return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome);
+            // What a step leaves open or closes is not a failure, so it is told in the card's own colour, not the outcome's.
+            var channel = outcome is null && animation is not null ? Animations.ChannelLine(animation) : null;
+            return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome ?? channel, channel is not null);
         }).ToList();
         var moves = stop.Steps.Any(i => Animations.Read(flow.Steps[i]) is not null && shown?.Ends[i] is not null);
         var progress = Captions.ProgressOf(flow, stops);
         // A cell takes the mark of the steps of its stop (by file step number), when a comparison is marking this flow.
         var cells = changes is null ? null : progress.Cells.Select(c => CompareUi.ChangeOfStop(stops[c.Stop].Steps, changes)).ToList();
-        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, progress, auto, moves, trail, steps, states, cells);
+        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, progress, auto, moves, trail, steps, states, cells, channels);
         var marks = stop.Steps
             .Select((i, n) => (Placed: shown?.Ends[i], Text: n < caption.Marks.Count ? caption.Marks[n] : ""))
             .Where(x => x.Placed is not null && x.Text != "" && stop.Kind is not null)
             .Select(x => new CanvasView.Mark(x.Placed!.Value.From, x.Placed.Value.To, x.Text, stop.Kind!))
             .ToList();
         return (card, marks);
+    }
+
+    /// <summary>
+    /// What the flow has left open by the stop at <paramref name="index"/>, with where each channel lands in <paramref name="view"/>: a stream and a listener need two boxes (the view may fold
+    /// both ends into one, and then there is nothing to draw between), a job only the one it runs on. The step whose motion decides when a mark comes or goes is the one that opens it,
+    /// or the one in this stop that closes it.
+    /// </summary>
+    public static List<CanvasView.OpenChannel> OpenAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index)
+    {
+        var open = new List<CanvasView.OpenChannel>();
+        foreach (var channel in Channels.At(flow, stops, index))
+        {
+            if (Views.PlaceStep(model, view, channel.From, channel.To) is not { } placed) continue;
+            if (channel.Kind != "job" && placed.From == placed.To) continue;
+            var by = channel.Opening ? channel.Step : stops[index].Steps.Cast<int?>().FirstOrDefault(i => channel.Name is not null && Animations.Read(flow.Steps[i!.Value])?.Closes == channel.Name);
+            var motion = by is { } step ? Animations.Read(flow.Steps[step]) : null;
+            var motionAt = by is { } s2 ? Views.PlaceStep(model, view, flow.Steps[s2].From, flow.Steps[s2].To) : null;
+            open.Add(new CanvasView.OpenChannel(channel, placed.From, placed.To, motion, motionAt?.From, motionAt?.To));
+        }
+        return open;
     }
 
     /// <summary>The steps of the stop at <paramref name="index"/> that move, ready for <see cref="CanvasView.PlaySteps"/>; empty when none does.</summary>

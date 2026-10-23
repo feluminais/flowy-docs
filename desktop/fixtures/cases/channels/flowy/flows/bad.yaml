@@ -1,0 +1,19 @@
+name: Every way to get a channel wrong
+view: shop
+steps:
+  - { from: web, to: api, text: Closes what is not open, animation: { kind: send, closes: Ghost } }
+  - { from: web, to: api, text: Opens one, animation: { kind: send, opens: stream, name: Real } }
+  - { from: web, to: api, text: Closes a wrong name, animation: { kind: send, closes: Ghost } }
+  - { from: web, to: api, text: Opens and closes, animation: { kind: send, opens: stream, closes: Real } }
+  - { from: web, to: api, text: A pipe, animation: { kind: send, opens: pipe } }
+  - { from: web, to: api, text: Points up, animation: { kind: send, opens: stream, towards: up } }
+  - { from: web, to: api, text: Name alone, animation: { kind: send, name: Lonely } }
+  - { from: web, to: api, text: Towards alone, animation: { kind: send, towards: from } }
+  - { from: web, to: api, text: Opens on a failure, animation: { kind: send, opens: job, outcome: fail } }
+  - { from: web, to: api, text: Closes on a loss, animation: { kind: send, closes: Real, outcome: lost } }
+  - { from: web, to: api, text: A long name, animation: { kind: send, opens: stream, name: abcdefghijklmnopqrstuvwxy } }
+  - { from: web, to: api, text: A name at the limit, animation: { kind: send, opens: stream, name: abcdefghijklmnopqrstuvwx } }
+  - { from: web, to: api, text: A blank name, animation: { kind: send, opens: stream, name: " " } }
+  - { from: web, to: api, text: A blank close, animation: { kind: send, closes: " " } }
+  - { from: web, text: Alone and opening, animation: { kind: send, opens: job } }
+  - { from: web, to: api, text: Closes it for real, animation: { kind: send, closes: Real } }

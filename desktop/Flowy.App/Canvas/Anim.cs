@@ -23,7 +23,7 @@ internal static class Anim
     /// </summary>
     internal static Func<double>? TestClock { get; set; }
 
-    private static double Now() => TestClock?.Invoke() ?? Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
+    internal static double Now() => TestClock?.Invoke() ?? Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
 
     /// <summary>Starts it. Disposing the result stops it where it is, without calling <c>done</c>.</summary>
     public static IDisposable Run(Control host, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done = null)

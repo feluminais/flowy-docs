@@ -1,7 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { ANIMATION_KINDS, animationOf, EFFECTS, OUTCOMES } from '../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, CHANNEL_KINDS, EFFECTS, OUTCOMES } from '../src/core/animation.ts'
+import { channelsAt } from '../src/core/channels.ts'
 import { compareOf } from '../src/core/compare.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import { knee, runStates } from '../src/core/perf/analyse.ts'
@@ -74,6 +75,28 @@ test('every step animation kind is played by a step, and the callback is shown a
   assert.ok(outside.afterStep > 0, 'no callback that a step before it set off')
   assert.ok(outside.cold > 0, 'no callback that something outside set off, with no step before it')
   assert.ok(carries > 0, 'no step carries a word on its blob')
+})
+
+test('every kind of open channel is opened by a step, stays drawn on the steps after it, and is closed by a later step', () => {
+  const opened = new Set<string>()
+  const closed = new Set<string>()
+  const staying = new Set<string>()
+  for (const [, flow] of flowList) {
+    const stops = stopsOf(flow)
+    stops.forEach((stop, k) => {
+      for (const i of stop.steps) {
+        const a = animationOf(flow.steps[i])
+        if (a?.opens !== undefined) opened.add(a.opens)
+        if (a?.closes !== undefined) closed.add(a.closes)
+      }
+      for (const c of channelsAt(flow, stops, k)) if (!c.opening && !c.closing) staying.add(c.kind)
+    })
+  }
+  for (const kind of CHANNEL_KINDS) {
+    assert.ok(opened.has(kind), `no showcase step opens a ${kind}`)
+    assert.ok(staying.has(kind), `no showcase step shows a ${kind} that stays open`)
+  }
+  assert.ok(closed.size >= CHANNEL_KINDS.length, 'a showcase step should close each channel it opens')
 })
 
 test('every effect of a blob is played by a step, on a slanted line, with its own word on the blob', () => {

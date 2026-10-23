@@ -176,7 +176,7 @@
     },
     {
       "file": "flows/checkout.yaml",
-      "message": "step 3: unknown animation option \"packet dropped\" (use kind, trigger, carries, outcome, share, reason, by, at)",
+      "message": "step 3: unknown animation option \"packet dropped\" (use kind, trigger, carries, outcome, share, reason, by, at, opens, name, towards, closes)",
       "step": 2
     },
     {
