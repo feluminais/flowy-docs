@@ -4,6 +4,7 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { dumpBeats } from './beats.ts'
+import { dumpChannels } from './channels.ts'
 import { dumpCompareChoices, dumpCompareUi, dumpFlowDiffs, dumpRunCompareText, dumpSwapPlans } from './compare.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpFolderRules } from './folders.ts'
@@ -56,6 +57,7 @@ await write('failures-view', await dumpFailuresView())
 await write('stops', await dumpStops())
 await write('captions', await dumpCaptions())
 await write('state-folds', await dumpStates())
+await write('channel-folds', await dumpChannels())
 await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
 await write('detect', dumpDetect())

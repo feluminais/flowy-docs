@@ -90,7 +90,7 @@ public static partial class Mermaid
             var (a, b) = Views.PlaceStep(model, flow.View, s.From, s.To) ?? (s.From ?? "", string.IsNullOrEmpty(s.To) ? s.From ?? "" : s.To);
             // A step that ends in an outcome (lost, rejected, a share of the calls) says so in a note over its ends, in the words of the step card.
             var animation = Animations.Read(s);
-            var ended = animation is null ? null : Animations.OutcomeLine(animation, id => NameOfRaw(model, id));
+            var ended = animation is null ? null : Animations.OutcomeLine(animation, id => NameOfRaw(model, id)) ?? Animations.ChannelLine(animation);
             return (A: a, B: b, Text: Text(s.Text ?? ""), Ended: ended is null ? null : Text(ended));
         }).ToList();
         // A shape that is only named in a states is a participant too, after the ones the steps use. The checks report one the model does not have.

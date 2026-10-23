@@ -22,6 +22,7 @@ internal sealed partial class ReaderView
     {
         if (!_playback.Begin(flow?.Id, index, out var key)) return;
         _canvas.StopStep();
+        _canvas.RestartChannels();
         if (flow is { } playing && shown is not null)
         {
             var runs = FlowStage.RunsOf(model, view, playing.Flow, StopsOf(playing.Flow), index, shown);

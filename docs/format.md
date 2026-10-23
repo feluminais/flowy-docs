@@ -110,6 +110,10 @@ An **animation** is a kind, `send`, `call`, `callback` or `event`, or a mapping 
 | `by` | For `intercepted`: a shape id that is not an end of the step, or `{ name: ... }` of up to 24 characters |
 | `at` | For `lost`: how far along the line, 0.1 to 0.9 |
 | `effect` | `squish`, `bounce`, `pulse` or `wiggle`: what the moving label does on its way, just for fun, without bending its shape. Leave it out for none |
+| `opens` | `stream`, `listener` or `job`: what the step leaves open once its request has arrived. It stays drawn on the later steps until a step closes it ([the guide](guide/flows.md#streams-listeners-and-jobs)). Not with an `outcome` |
+| `name` | With `opens`: a name of up to 24 characters, so a later step can close it |
+| `towards` | With `opens`: `from` or `to`, the end of the line it points at. A stream flows to `to` and a job runs on `to`; a listener sits at `from` |
+| `closes` | The `name` of a channel an earlier step opened. It goes after this step. Not with `opens` or an `outcome` |
 
 ### A group
 

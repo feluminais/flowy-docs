@@ -420,6 +420,8 @@
   <!-- How a step's request ended (outcomeLine): text in the danger colour with a dot beside it. -->
   <Style Selector="TextBlock.outcome"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Border.outcomedot"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="TextBlock.channelline"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.channeldot"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <!-- The sketches of how a step travels and how its request ends, drawn on a 44 by 24 grid in the colour of the text. -->
   <Style Selector="Path.sketch">
     <Setter Property="Stroke" Value="{DynamicResource FgBrush}" />

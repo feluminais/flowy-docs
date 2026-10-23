@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { Flow, Model, Step } from '../../src/core/model.ts'
 import { animationOf } from '../../src/core/animation.ts'
+import { channelsAt, kindsOf } from '../../src/core/channels.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { marksOf, statesAt } from '../../src/core/states.ts'
 import type { StateMark } from '../../src/core/states.ts'
@@ -8,6 +9,7 @@ import { otherLaneSteps, stopsOf } from '../../src/core/structure.ts'
 import { placeStep } from '../../src/core/views.ts'
 import type { Playing } from './graph.ts'
 import type { Recording } from './Recorder.tsx'
+import type { OpenChannel } from './Channels.tsx'
 import { takenBy } from './StepMotion.tsx'
 import type { Play } from './usePlayer.ts'
 
@@ -54,6 +56,17 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
     return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p) }] : []
   }) : []
   const moving = animated.length > 0
+  // What the flow has left open by this stop, with where it lands in this view. A stream and a listener need two boxes of the view; a job needs only the one it runs on.
+  const channels = useMemo(() => (flow && stop ? channelsAt(flow, stops, stopIndex) : []), [flow, stop, stops, stopIndex])
+  const open = flow && stop ? channels.flatMap<OpenChannel>(channel => {
+    const placed = placeStep(model, view, { from: channel.from, to: channel.to })
+    if (!placed || (channel.kind !== 'job' && placed[0] === placed[1])) return []
+    // The step whose motion decides when it appears or goes: the one that opens it, or the one in this stop that closes it.
+    const by = channel.opening ? channel.step : stop.steps.find(i => animationOf(flow.steps[i])?.closes === channel.name)
+    const motion = by === undefined ? undefined : animationOf(flow.steps[by])
+    return [{ channel, placed, ...(motion === undefined ? {} : { motion }) }]
+  }) : []
+  const channelKinds = kindsOf(open.map(o => o.channel))
   const stepKey = flow && playing ? `${playing.flow}:${stopIndex}:${replays}` : ''
   const caption = flow && stop ? captionOf(flow, stop) : undefined
   const progress = useMemo(() => (flow ? progressOf(flow, stops) : undefined), [flow, stops])
@@ -61,5 +74,5 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
     const p = shown?.ends[i]
     return p && stop.kind && caption.marks[n] !== '' ? [{ ends: p, text: caption.marks[n], kind: stop.kind }] : []
   }) : []
-  return { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks }
+  return { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds }
 }
