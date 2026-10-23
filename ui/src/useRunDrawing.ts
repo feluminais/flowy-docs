@@ -22,12 +22,12 @@ export type PerfRunState = ReturnType<typeof usePerfRun>
  * The state marks are kept as text so that the graph (which takes dagre tens of ms) is rebuilt only when a state changes, not on every step of a Play.
  */
 export function useRunDrawing({ model, runs, perf, view, shown }: { model: Model; runs: Record<string, Run>; perf: PerfRunState; view: string; shown: boolean }) {
-  const { runKey, loadTest, dials, multi, here, hereKey, load } = perf
+  const { runKey, loadTest, dials, multi, here, hereKey, load, measure } = perf
   const timeEvents = shown && loadTest !== undefined && eventsOf(loadTest).length > 0
   const marksText = timeEvents && loadTest ? JSON.stringify(marksOf(model, runStates(loadTest, load))) : ''
   const runMarks = useMemo(() => (marksText === '' || marksText === '{}' ? NO_MARKS : (JSON.parse(marksText) as Record<string, StateMark>)), [marksText])
   const setting = useMemo<Setting>(() => (multi ? settingOf(dials, here) : { '': load }), [multi, dials, hereKey, load])
-  const loadTraffic = useMemo(() => (shown && loadTest ? trafficAt(model, runs, runKey, setting, view) : undefined), [shown, model, runs, runKey, loadTest, setting, view])
+  const loadTraffic = useMemo(() => (shown && loadTest ? trafficAt(model, runs, runKey, setting, view, measure) : undefined), [shown, model, runs, runKey, loadTest, setting, view, measure])
   const widths = useMemo(() => new Map(loadTraffic?.lines.map(l => [lineId(l.from, l.to), l.width])), [loadTraffic])
   return { timeEvents, runMarks, loadTraffic, widths }
 }
