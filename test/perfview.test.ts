@@ -29,7 +29,9 @@ test('a position along the levels is a load: a tested level exactly, and a strai
   assert.equal(loadAt(run, 1), 200)
   assert.equal(loadAt(run, 1.5), 300)
   assert.equal(loadAt(run, 2), 400)
-  assert.equal(loadAt(run, -1), 100)
+  assert.equal(loadAt(run, -1), 0, 'no load, below the first level')
+  assert.equal(loadAt(run, -0.5), 50)
+  assert.equal(loadAt(run, -9), 0)
   assert.equal(loadAt(run, 9), 400)
   assert.equal(loadAt(run, NaN), 100)
   assert.equal(clampPos(run, 7), 2)
@@ -38,6 +40,7 @@ test('a position along the levels is a load: a tested level exactly, and a strai
 test('only a whole position is a tested level, and the slider snaps to one', () => {
   assert.equal(isTested(1), true)
   assert.equal(isTested(1.5), false)
+  assert.equal(isTested(-1), false, 'no load is not a tested level')
   assert.equal(snap(run, 1.4), 1)
   assert.equal(snap(run, 1.6), 2)
   assert.equal(snap(run, 5), 2)
@@ -50,8 +53,8 @@ test('a ramp takes RAMP_MS to go from the first level to the last, whatever the 
   near(rampPos(run, 0, 0), 0)
 })
 
-test('a ramp from the top starts again from the bottom, and from anywhere else carries on from there', () => {
-  assert.equal(rampFrom(run, 2), 0)
+test('a ramp from the top starts again from no load, and from anywhere else carries on from there', () => {
+  assert.equal(rampFrom(run, 2), -1)
   assert.equal(rampFrom(run, 1.5), 1.5)
   assert.equal(rampFrom(run, 0), 0)
 })
@@ -234,14 +237,19 @@ test('the events list marks the ones that have happened and the latest of them',
 })
 
 test('the slider of a load run is as it was: even steps, and no events to mark', () => {
-  assert.equal(sliderFraction(run, 0), 0)
-  assert.equal(sliderFraction(run, 1), 0.5)
-  assert.equal(sliderFraction(run, 1.5), 0.75)
+  assert.equal(sliderFraction(run, -1), 0)
+  near(sliderFraction(run, 0), 1 / 3)
+  near(sliderFraction(run, 1), 2 / 3)
+  near(sliderFraction(run, 1.5), 5 / 6)
   assert.equal(sliderFraction(run, 7), 1)
   assert.deepEqual(eventFractions(run), [])
-  assert.deepEqual(sliderRange(run), { min: 0, max: 2 })
+  assert.deepEqual(sliderRange(run), { min: -1, max: 2 }, 'it goes down to no load')
   assert.equal(sliderValue(run, 1.5), 1.5)
-  assert.equal(slidePos(run, 1.4), 1) // dragging a load run still snaps to a tested level
+  assert.equal(slidePos(run, 1.4), 1.4, 'a dragged load run goes where it is put')
+  assert.equal(slidePos(run, 1.013), 1, 'and is pulled onto a tested level it is close to')
+  assert.equal(slidePos(run, 1.2345), 1.24, 'on stops a fiftieth of a gap apart')
+  assert.equal(slidePos(run, -3), -1)
+  assert.equal(slidePos(run, -0.4), -0.4)
 })
 
 test('a time run is dragged freely in time, and the value of the slider is a time', () => {
@@ -290,7 +298,7 @@ test('levels close in time do not pile their labels up: the last is always named
   assert.deepEqual(tickLabels(crowded).map(t => t.label), ['0', '100', '150'])
   const close = parseRun('close', 'name: C\naxis: time\nlevels:\n  - at: 0\n  - at: 100\n  - at: 101\n').run
   assert.deepEqual(tickLabels(close).map(t => t.label), ['0', '101']) // the last level takes the place of the one it would cover
-  assert.deepEqual(tickLabels(run).map(t => [t.fraction, t.label]), [[0, '100'], [0.5, '200'], [1, '400']])
+  assert.deepEqual(tickLabels(run).map(t => [t.fraction, t.label]), [[0, '0'], [1 / 3, '100'], [2 / 3, '200'], [1, '400']])
   assert.deepEqual(tickLabels(outage).map(t => [t.fraction, t.label]), [[0, '0'], [0.375, '45'], [1, '120']])
 })
 

@@ -175,6 +175,11 @@ public class PerformanceTests
         Press(window, Key.Home, PhysicalKey.Home);
         Assert.Equal(0.0, reader.PerfState.Pos);
         Press(window, Key.Left, PhysicalKey.ArrowLeft);
+        Assert.Equal(-1.0, reader.PerfState.Pos); // under the first level there is no load at all
+        Assert.Equal("0 req/s", reader.PerfPanelNow.LoadText);
+        Press(window, Key.Left, PhysicalKey.ArrowLeft);
+        Assert.Equal(-1.0, reader.PerfState.Pos);
+        Press(window, Key.Right, PhysicalKey.ArrowRight);
         Assert.Equal(0.0, reader.PerfState.Pos);
         Press(window, Key.Right, PhysicalKey.ArrowRight);
         Assert.Equal(1.0, reader.PerfState.Pos);
@@ -190,10 +195,14 @@ public class PerformanceTests
         reader.PickRunById("ramp");
         Press(window, Key.T, PhysicalKey.T);
         Assert.Equal(3, reader.PerfPanelNow.SliderMaximum);
-        reader.PerfPanelNow.Slider.Value = 1.4; // dragged to between two
+        reader.PerfPanelNow.Slider.Value = 1.0; // dragged onto a level
         Assert.Equal(1.0, reader.PerfState.Pos);
+        reader.FlushSlide();
         Assert.Equal(1.0, reader.PerfPanelNow.SliderValue);
         Assert.Equal("25 req/s", reader.PerfPanelNow.LoadText);
+        Assert.Equal("Tested", reader.PerfPanelNow.LoadNote);
+        reader.PerfPanelNow.Slider.Value = 1.013; // close to a level it is pulled onto it
+        Assert.Equal(1.0, reader.PerfState.Pos);
         var picker = reader.PerfPanelNow.Picker!;
         picker.SelectedIndex = reader.PerfPanelNow.RunChoices.Select(c => c.Name).ToList().IndexOf("Latency only");
         Assert.Equal("latency", reader.PerfState.Run);
@@ -255,20 +264,20 @@ public class PerformanceTests
     }
 
     [AvaloniaFact]
-    public void Ramp_sweeps_up_from_where_it_is_and_from_the_top_starts_again_from_the_bottom()
+    public void Ramp_sweeps_up_from_where_it_is_and_from_the_top_starts_again_from_no_load()
     {
         using var motion = Motion.On();
         var (window, reader) = Open();
         reader.PickRunById("ramp");
         Press(window, Key.T, PhysicalKey.T);
         Press(window, Key.End, PhysicalKey.End);
-        Press(window, Key.P, PhysicalKey.P); // at the top: from the bottom
+        Press(window, Key.P, PhysicalKey.P); // at the top: from no load
         Assert.True(reader.PerfState.Ramping);
-        Assert.Equal(0.0, reader.PerfState.Pos);
+        Assert.Equal(-1.0, reader.PerfState.Pos);
         Assert.Equal("Pause", ButtonText(reader.PerfPanelNow.RampButton));
         Thread.Sleep(250);
         reader.TickRamp();
-        Assert.InRange(reader.PerfState.Pos, 0.01, 0.2); // a level takes 10 s on a ramp of four levels
+        Assert.InRange(reader.PerfState.Pos, -0.99, -0.8); // a level takes 10 s on a ramp of four levels
         Press(window, Key.P, PhysicalKey.P); // pause where it has got to
         var paused = reader.PerfState.Pos;
         Assert.False(reader.PerfState.Ramping);
@@ -454,7 +463,7 @@ public class PerformanceTests
     }
 
     [AvaloniaFact]
-    public void A_step_to_the_level_already_shown_draws_nothing_again_but_puts_the_thumb_back_on_it()
+    public void A_step_to_the_level_already_shown_draws_nothing_again_and_a_dragged_slider_goes_where_it_is_put()
     {
         var (window, reader) = Open();
         reader.PickRunById("ramp");
@@ -464,9 +473,12 @@ public class PerformanceTests
         Assert.NotNull(drawn);
         Press(window, Key.Home, PhysicalKey.Home); // already there
         Assert.Same(drawn, reader.Canvas.Load);
-        reader.PerfPanelNow.Slider.Value = 0.3; // a drag that has not got to the next level
-        Assert.Same(drawn, reader.Canvas.Load);
-        Assert.Equal(0.0, reader.PerfPanelNow.SliderValue);
+        reader.PerfPanelNow.Slider.Value = 0.3; // a drag to between two levels goes there, and is drawn at the next frame
+        Assert.Equal(0.3, reader.PerfState.Pos);
+        reader.FlushSlide();
+        Assert.NotSame(drawn, reader.Canvas.Load);
+        Assert.Equal(0.3, reader.PerfPanelNow.SliderValue, 9);
+        Assert.Contains("estimated", reader.PerfPanelNow.LoadNote);
         Press(window, Key.Right, PhysicalKey.ArrowRight);
         Assert.NotSame(drawn, reader.Canvas.Load);
         Assert.Equal(1.0, reader.PerfPanelNow.SliderValue);

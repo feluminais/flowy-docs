@@ -48,5 +48,5 @@ export const round2 = (n: number) => Math.round(n * 100) / 100
 export const own = <T>(record: Record<string, T> | undefined, key: string): T | undefined => (record !== undefined && Object.hasOwn(record, key) ? record[key] : undefined)
 /** The load a setting gives a dial; a dial it doesn't name is not a number. */
 export const settingFor = (setting: Setting, id: string): number => (Object.hasOwn(setting, id) ? setting[id] : Number.NaN)
-/** A load kept inside a dial's tested range, as interpolate keeps it: nothing is extrapolated, and one that isn't a number is the lowest. */
-export const keep = (d: Dial, x: number): number => (Number.isFinite(x) ? Math.min(d.values[d.values.length - 1], Math.max(d.values[0], x)) : d.values[0])
+/** A load kept inside a dial's range, as interpolate keeps it: nothing is extrapolated past the tested loads (a dial that can be idle goes down to 0), and one that isn't a number is the lowest tested. */
+export const keep = (d: Dial, x: number): number => (Number.isFinite(x) ? Math.min(d.values[d.values.length - 1], Math.max(d.idle ? 0 : d.values[0], x)) : d.values[0])
