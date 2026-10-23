@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { folderOf, folderPaths, getObject, tagsOf } from '../../src/core/model.ts'
+import { folderOf, FOLDER_RULE, folderPaths, getObject, isValidFolder, tagsOf } from '../../src/core/model.ts'
 import type { Group, Model, Step } from '../../src/core/model.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
@@ -218,13 +218,21 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
       <h2 className="iconhead"><span className="badge"><Route size={14} /></span>New flow</h2>
       <form className="form" onSubmit={e => {
         e.preventDefault()
-        const data = new FormData(e.currentTarget)
+        const form = e.currentTarget
+        const data = new FormData(form)
         const name = String(data.get('name')).trim()
-        const folder = String(data.get('folder')).trim()
+        const folder = String(data.get('folder')).replaceAll('\\', '/').split('/').map(n => n.trim()).filter(n => n !== '').join('/')
+        if (!isValidFolder(folder)) {
+          // The folder is first used when the first step is saved, so a name that can't be one is said now, on the field, while it can still be fixed.
+          const field = form.elements.namedItem('folder') as HTMLInputElement
+          field.setCustomValidity(`Not a folder Flowy can use: ${FOLDER_RULE}`)
+          field.reportValidity()
+          return
+        }
         if (name) onChange({ id: newId(name, Object.keys(model.flows), 'flow'), name, ...(folder === '' ? {} : { folder }) })
       }}>
         <label>Name<input name="name" autoFocus placeholder="e.g. Customer checks out" /></label>
-        <label>Folder<input name="folder" list="flow-folders" placeholder="e.g. payments/refunds" /></label>
+        <label>Folder<input name="folder" list="flow-folders" placeholder="e.g. payments/refunds" onInput={e => e.currentTarget.setCustomValidity('')} /></label>
         <FolderList model={model} />
         <button className="primary"><Play size={16} />Start recording</button>
       </form>
