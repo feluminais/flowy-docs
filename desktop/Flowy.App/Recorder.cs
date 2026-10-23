@@ -12,7 +12,7 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>The flow being recorded. While <see cref="Id"/> is "", it still needs a name. <see cref="From"/> and <see cref="To"/> are the step being picked.</summary>
-internal sealed record Recording(string Id, string Name, string? From = null, string? To = null);
+internal sealed record Recording(string Id, string Name, string? From = null, string? To = null, string? Folder = null);
 
 /// <summary>
 /// The panel for a flow in edit mode: a name for a new one, then its steps (each with its text, a detail a reader can open, the group it is in,
@@ -162,7 +162,20 @@ internal sealed class Recorder : StackPanel
 
     internal FieldBox? FlowNameField => _flowName;
 
+    internal FieldBox? FlowFolderField => _flowFolder;
+
+    internal TagPicker? TagPicker => _tagPicker;
+
+    private FieldBox? _flowFolder;
+
+    private TagPicker? _tagPicker;
+
+    /// <summary>The tags any flow has, for the picker to offer beside the suggested ones.</summary>
+    private static IReadOnlyList<string> UsedTags(Model model) => Outlines.FlowList(model, new FlowListOptions(Editing: true)).Tags.Select(t => t.Tag).ToList();
+
     internal TextBox? NameBox { get; private set; }
+
+    internal TextBox? FolderBox { get; private set; }
 
     private static string Ends(Model model, string? from, string? to) =>
         string.IsNullOrEmpty(to) || to == from ? $"{Views.NameOf(model, from ?? "")}, on its own" : $"{Views.NameOf(model, from ?? "")} → {Views.NameOf(model, to)}";
@@ -193,17 +206,25 @@ internal sealed class Recorder : StackPanel
         {
             _head.Children.Clear();
             _flowName = null;
+            _flowFolder = null;
+            _tagPicker = null;
             NameBox = null;
             if (flow is not null)
             {
                 _flowName = new FieldBox("Flow", flow.Name ?? "", false, v => _run(d => EditOps.UpdateFlow(d, rec.Id, name: v)));
+                _flowFolder = new FieldBox("Folder", model.FolderOf(rec.Id), false, v => _run(d => EditOps.MoveFlow(d, rec.Id, v)), placeholder: "e.g. payments/refunds");
+                _tagPicker = new TagPicker(flow.Tags, UsedTags(model), tags => _run(d => EditOps.SetFlowTags(d, rec.Id, tags)));
                 _head.Children.Add(Chrome.Section(Icons.Route, "Flow"));
                 _head.Children.Add(_flowName);
+                _head.Children.Add(_flowFolder);
+                _head.Children.Add(_tagPicker);
             }
             else _head.Children.Add(_owner.IconHeading(Icons.Route, rec.Name));
             _headFor = $"flow:{rec.Id}:{flow is not null}";
         }
         _flowName?.Sync(flow?.Name ?? "");
+        _flowFolder?.Sync(model.FolderOf(rec.Id));
+        _tagPicker?.Sync(flow?.Tags ?? [], UsedTags(model));
 
         // The steps: the rows stay as they are while only the text changed, so a field being typed in keeps its focus.
         // What a row can pick comes from the flow's groups and the other flows (and a group or flow a step names that is not there), so those rebuild the
@@ -263,7 +284,7 @@ internal sealed class Recorder : StackPanel
                 if (e.Key == Key.Escape)
                 {
                     e.Handled = true;
-                    _change(new Recording(rec.Id, rec.Name));
+                    _change(new Recording(rec.Id, rec.Name, Folder: rec.Folder));
                 }
                 else if (e.Key == Key.Enter)
                 {
@@ -369,10 +390,24 @@ internal sealed class Recorder : StackPanel
         var name = new TextBox { PlaceholderText = "e.g. Customer checks out" };
         NameBox = name;
         Avalonia.Automation.AutomationProperties.SetName(name, "Name");
+        var folder = new TextBox { PlaceholderText = "e.g. payments/refunds" };
+        FolderBox = folder;
+        Avalonia.Automation.AutomationProperties.SetName(folder, "Folder");
+        var folderNote = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, IsVisible = false };
+        folderNote.Classes.Add("dangertext");
+        folder.TextChanged += (_, _) => folderNote.IsVisible = false;
         void Start()
         {
             var text = (name.Text ?? "").Trim();
-            if (text != "") _change(new Recording(_makeId(text), text));
+            var path = string.Join('/', (folder.Text ?? "").Replace('\\', '/').Split('/').Select(n => JsCompat.JsTrim(n)).Where(n => n != ""));
+            if (!Names.IsValidFolder(path))
+            {
+                // The folder is first used when the first step is saved, so a name that can't be one is said now, under the field, while it can still be fixed.
+                folderNote.Text = $"Not a folder Flowy can use: {Names.FolderRule}";
+                folderNote.IsVisible = true;
+                return;
+            }
+            if (text != "") _change(new Recording(_makeId(text), text, Folder: path == "" ? null : path));
         }
         _startNamed = text =>
         {
@@ -391,6 +426,7 @@ internal sealed class Recorder : StackPanel
             Start();
         };
         _head.Children.Add(new StackPanel { Spacing = 4, Children = { caption, name } });
+        _head.Children.Add(new StackPanel { Spacing = 4, Children = { Caption("Folder"), folder, folderNote } });
         _head.Children.Add(start);
         Dispatcher.UIThread.Post(() => name.Focus());
     }
@@ -414,14 +450,14 @@ internal sealed class Recorder : StackPanel
         // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
         var saved = await _run(d =>
         {
-            if (!d.Flows.ContainsKey(rec.Id)) return EditOps.PutFlow(d, rec.Id, rec.Name, view, [EditOps.NewStep(from, to, text)]);
+            if (!d.Flows.ContainsKey(rec.Id)) return EditOps.PutFlow(d, rec.Id, rec.Name, view, [EditOps.NewStep(from, to, text)], folder: rec.Folder);
             var copy = d.Clone();
             var steps = StepsOf(copy, rec.Id);
             FlowForm.RequireShown(steps, _shownSigs);
             steps.Add(EditOps.NewStep(from, to, text));
             return EditOps.UpdateFlow(d, rec.Id, steps: steps);
         });
-        if (saved) _change(new Recording(rec.Id, rec.Name));
+        if (saved) _change(new Recording(rec.Id, rec.Name, Folder: rec.Folder));
     }
 
     private static string KindName(string? kind) => KindNames.FirstOrDefault(k => k.Kind == kind).Name ?? "no kind";

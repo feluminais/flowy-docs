@@ -59,6 +59,59 @@ public class FlowListHeadingsTests
     }
 
     [AvaloniaFact]
+    public void The_tags_in_use_are_buttons_with_a_count_and_the_most_used_come_first()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        window.UpdateLayout();
+        var flows = reader.Navigator.Flows;
+        Assert.Equal(["error path:9", "happy path:7", "edge case:3", "background:2", "recovery:2"], flows.TagButtons.Select(t => $"{t.Tag}:{t.Count}"));
+        var buttons = flows.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("tagchip")).ToList();
+        Assert.Equal(5, buttons.Count);
+        Assert.Equal(20, flows.Listed.Count);
+    }
+
+    [AvaloniaFact]
+    public void Pressing_a_tag_keeps_the_flows_that_have_it_and_pressing_it_again_lets_them_back()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        var flows = reader.Navigator.Flows;
+        flows.ToggleTag("Error Path"); // whatever the case
+        Dispatcher.UIThread.RunJobs();
+        window.UpdateLayout();
+        Assert.Equal(9, flows.Listed.Count);
+        Assert.All(flows.Listed, f => Assert.Contains("error path", f.Tags));
+        Assert.Contains("9 of 20 flows", Texts(window, reader));
+        var chip = flows.GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == "error path");
+        Assert.Contains("on", chip.Classes);
+        flows.ToggleTag("recovery"); // any of the tags: every recovery flow is an error path as well
+        Assert.Equal(9, flows.Listed.Count);
+        flows.ToggleTag("error path");
+        Assert.Equal(2, flows.Listed.Count);
+        flows.ToggleTag("recovery");
+        Assert.Equal(20, flows.Listed.Count);
+        Assert.Empty(flows.PickedTags);
+    }
+
+    [AvaloniaFact]
+    public void A_flow_row_has_its_tags_under_its_name_and_the_search_finds_a_tag_or_a_folder()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        Assert.Contains("happy path", Texts(window, reader));
+        reader.Navigator.Flows.Filter = "background";
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(["announce-order", "stripe-webhook"], reader.Navigator.Flows.Listed.Select(f => f.Id).Order());
+        reader.Navigator.Flows.Filter = "stripe";
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(["payments", "payments/stripe"], reader.Navigator.Flows.Folders.Select(f => f.Path));
+        reader.Navigator.Flows.ToggleTag("happy path");
+        Assert.Empty(reader.Navigator.Flows.Listed);
+        Assert.Contains("No flow matches “stripe”.", Texts(window, reader));
+    }
+
+    [AvaloniaFact]
     public void The_Linked_key_is_on_the_foot_while_a_listed_flow_is_in_a_pair()
     {
         var (window, reader) = Open();

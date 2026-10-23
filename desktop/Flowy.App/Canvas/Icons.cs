@@ -27,6 +27,7 @@ internal static class Icons
     public const string ArrowLeft = "M5 12l14 0M5 12l4 4M5 12l4 -4";
     public const string File = "M14 3v4a1 1 0 0 0 1 1h4M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z";
     public const string Folder = "M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2";
+    public const string Tag = "M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z";
     public const string Code = "M7 8l-4 4l4 4M17 8l4 4l-4 4M14 4l-4 16";
     public const string Text = "M4 6l16 0M4 12l10 0M4 18l14 0";
     public const string Table = "M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14zM3 10h18M10 3v18";

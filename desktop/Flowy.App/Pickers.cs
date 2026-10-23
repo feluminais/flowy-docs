@@ -520,6 +520,104 @@ internal sealed record PartnerTile(string Id, string Name, string View, bool Mis
 /// (read-only; each opens its own form). A pick or a removal is one edit, made by the owner. Remove on a link that holds a note asks first, inside the partner's tile. When <c>off</c> is set
 /// everything is greyed out and the reason is its tooltip. Desktop twin of PartnerPicker in ui/src/Pickers.tsx.
 /// </summary>
+/// <summary>
+/// The tags of a flow as buttons to switch on and off: the ones suggested, then the ones other flows have, then any the flow has besides, always in that order so a button does not
+/// move when it is pressed. A field adds a tag of your own. Each press is one edit, given the whole list of tags the flow has afterwards (src/core: TagPicker in the browser).
+/// </summary>
+internal sealed class TagPicker : StackPanel
+{
+    private readonly Func<IReadOnlyList<string>, Task<bool>> _set;
+    private readonly WrapPanel _chips = new() { Orientation = Orientation.Horizontal };
+    private readonly TextBlock _value = new() { FontSize = 12, FontWeight = Avalonia.Media.FontWeight.SemiBold, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis };
+    private readonly TextBox _add = new() { PlaceholderText = "Add a tag", MaxLength = Names.MaxTagLength };
+    private IReadOnlyList<string> _tags;
+    private IReadOnlyList<string> _used;
+    private string _signature = "";
+
+    public TagPicker(IReadOnlyList<string> tags, IReadOnlyList<string> used, Func<IReadOnlyList<string>, Task<bool>> set)
+    {
+        Spacing = 6;
+        _set = set;
+        _tags = tags;
+        _used = used;
+        var caption = new TextBlock { Text = "Tags", FontSize = 12 };
+        caption.Classes.Add("muted");
+        var head = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 8 };
+        Grid.SetColumn(_value, 1);
+        _value.HorizontalAlignment = HorizontalAlignment.Right;
+        head.Children.Add(caption);
+        head.Children.Add(_value);
+        Avalonia.Automation.AutomationProperties.SetName(_add, "Add a tag");
+        _add.KeyDown += async (_, e) =>
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            await AddTypedAsync();
+        };
+        Children.Add(head);
+        Children.Add(_chips);
+        Children.Add(_add);
+        Build();
+    }
+
+    /// <summary>The tag buttons on show, with whether each is on.</summary>
+    internal IReadOnlyList<(string Tag, bool On)> Buttons { get; private set; } = [];
+
+    /// <summary>The field for a tag of your own.</summary>
+    internal TextBox AddBox => _add;
+
+    /// <summary>Shows the flow's tags and the tags in use as they are now.</summary>
+    public void Sync(IReadOnlyList<string> tags, IReadOnlyList<string> used)
+    {
+        _tags = tags;
+        _used = used;
+        Build();
+    }
+
+    /// <summary>Presses the button of a tag, as a click does.</summary>
+    internal Task<bool> ToggleAsync(string tag)
+    {
+        var key = Names.TagKey(tag);
+        return _set(_tags.Any(t => Names.TagKey(t) == key) ? _tags.Where(t => Names.TagKey(t) != key).ToList() : [.. _tags, tag]);
+    }
+
+    /// <summary>Adds what is typed in the field as a tag of the flow, as Enter does.</summary>
+    internal async Task<bool> AddTypedAsync()
+    {
+        var tag = (_add.Text ?? "").Trim();
+        if (tag == "" || !Names.IsValidTag(tag)) return false;
+        _add.Text = "";
+        if (_tags.Any(t => Names.TagKey(t) == Names.TagKey(tag))) return true;
+        return await _set([.. _tags, tag]);
+    }
+
+    private void Build()
+    {
+        var on = _tags.Select(Names.TagKey).ToHashSet();
+        var seen = new HashSet<string>();
+        var options = Names.SuggestedTags.Concat(_used).Concat(_tags).Where(t => seen.Add(Names.TagKey(t))).ToList();
+        _value.Text = string.Join(", ", _tags);
+        var signature = string.Join('\u0001', options) + '\u0002' + string.Join('\u0001', on.Order(StringComparer.Ordinal));
+        if (signature == _signature) return;
+        _signature = signature;
+        _chips.Children.Clear();
+        foreach (var tag in options)
+        {
+            var mark = Icons.Make(Icons.Tag, "tagmark", 11);
+            mark.VerticalAlignment = VerticalAlignment.Center;
+            var text = new TextBlock { Text = tag, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+            var button = new Button { Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { mark, text } } };
+            button.Classes.Add("tagchip");
+            button.Classes.Set("on", on.Contains(Names.TagKey(tag)));
+            Avalonia.Automation.AutomationProperties.SetName(button, tag);
+            var picked = tag;
+            button.Click += async (_, _) => await ToggleAsync(picked);
+            _chips.Children.Add(button);
+        }
+        Buttons = options.Select(t => (t, on.Contains(Names.TagKey(t)))).ToList();
+    }
+}
+
 internal sealed class PartnerPicker : StackPanel
 {
     private readonly PartnerTile? _partner;
