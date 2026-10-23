@@ -3096,7 +3096,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/announce-order.yaml",
+      "rel": "flows/payments/announce-order.yaml",
       "data": {
         "name": "A paid order is announced",
         "view": "ordering",
@@ -3144,7 +3144,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/capture-payment.yaml",
+      "rel": "flows/payments/capture-payment.yaml",
       "data": {
         "name": "The payment is captured",
         "view": "ordering",
@@ -3224,7 +3224,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/courier-pings-lost.yaml",
+      "rel": "flows/delivery/courier-pings-lost.yaml",
       "data": {
         "name": "Courier pings are lost",
         "view": "delivery",
@@ -3264,7 +3264,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/deliver-order.yaml",
+      "rel": "flows/delivery/deliver-order.yaml",
       "data": {
         "name": "A courier delivers it",
         "view": "delivery",
@@ -3351,7 +3351,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/events-arrive-late.yaml",
+      "rel": "flows/delivery/events-arrive-late.yaml",
       "data": {
         "name": "Dispatch hears about an order late",
         "view": "delivery",
@@ -3382,7 +3382,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/follow-the-courier.yaml",
+      "rel": "flows/delivery/follow-the-courier.yaml",
       "data": {
         "name": "The customer follows the courier",
         "view": "delivery",
@@ -3440,7 +3440,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/hotel-wifi-takes-order.yaml",
+      "rel": "flows/ordering/hotel-wifi-takes-order.yaml",
       "data": {
         "name": "Hotel wifi takes the order",
         "view": "ordering",
@@ -3472,7 +3472,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/mapbox-rate-limit.yaml",
+      "rel": "flows/delivery/mapbox-rate-limit.yaml",
       "data": {
         "name": "Mapbox turns the travel times away",
         "view": "dispatch",
@@ -3510,7 +3510,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/menu-is-read.yaml",
+      "rel": "flows/ordering/menu-is-read.yaml",
       "data": {
         "name": "A menu is read",
         "view": "order-api",
@@ -3589,7 +3589,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/no-courier-answers.yaml",
+      "rel": "flows/delivery/no-courier-answers.yaml",
       "data": {
         "name": "An offer goes unanswered",
         "view": "delivery",
@@ -3656,7 +3656,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/nobody-accepts.yaml",
+      "rel": "flows/ordering/nobody-accepts.yaml",
       "data": {
         "name": "Nobody accepts the order",
         "view": "ordering",
@@ -3712,7 +3712,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/order-sent-twice.yaml",
+      "rel": "flows/ordering/order-sent-twice.yaml",
       "data": {
         "name": "A double tap sends the order twice",
         "view": "ordering",
@@ -3744,7 +3744,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/orders-db-fails-over.yaml",
+      "rel": "flows/ordering/orders-db-fails-over.yaml",
       "data": {
         "name": "Orders DB fails over",
         "view": "ordering",
@@ -3805,7 +3805,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/place-order.yaml",
+      "rel": "flows/ordering/place-order.yaml",
       "data": {
         "name": "Customer places an order",
         "view": "ordering",
@@ -3887,7 +3887,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/refund-not-recorded.yaml",
+      "rel": "flows/payments/refund-not-recorded.yaml",
       "data": {
         "name": "The refund is not recorded",
         "view": "ordering",
@@ -3933,7 +3933,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/refund.yaml",
+      "rel": "flows/payments/refund.yaml",
       "data": {
         "name": "Support refunds an order",
         "view": "root",
@@ -3998,7 +3998,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/restaurant-accepts.yaml",
+      "rel": "flows/ordering/restaurant-accepts.yaml",
       "data": {
         "name": "The restaurant accepts",
         "view": "ordering",
@@ -4069,7 +4069,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/sms-dropped.yaml",
+      "rel": "flows/delivery/sms-dropped.yaml",
       "data": {
         "name": "The carrier drops the SMS",
         "view": "root",
@@ -4108,7 +4108,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/stripe-outage.yaml",
+      "rel": "flows/payments/stripe/stripe-outage.yaml",
       "data": {
         "name": "Stripe goes down and comes back",
         "view": "ordering",
@@ -4185,7 +4185,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/stripe-webhook.yaml",
+      "rel": "flows/payments/stripe/stripe-webhook.yaml",
       "data": {
         "name": "Stripe reports a charge",
         "view": "ordering",
@@ -9613,7 +9613,7 @@
     },
     {
       "folder": "desktop/fixtures/cases/folders/flowy",
-      "rel": "flows/dup.yaml",
+      "rel": "flows/billing/dup.yaml",
       "data": {
         "name": "Duplicate in billing",
         "view": "shop",
@@ -9634,7 +9634,7 @@
     },
     {
       "folder": "desktop/fixtures/cases/folders/flowy",
-      "rel": "flows/legacy.yaml",
+      "rel": "flows/Pay & refund/legacy.yaml",
       "data": {
         "name": "A flow with a space in its folder",
         "view": "shop",
@@ -9658,7 +9658,7 @@
     },
     {
       "folder": "desktop/fixtures/cases/folders/flowy",
-      "rel": "flows/odd-tags.yaml",
+      "rel": "flows/tags/odd-tags.yaml",
       "data": {
         "name": "Odd tags",
         "view": "shop",
@@ -9680,7 +9680,7 @@
     },
     {
       "folder": "desktop/fixtures/cases/folders/flowy",
-      "rel": "flows/overview.yaml",
+      "rel": "flows/tags/overview.yaml",
       "data": {
         "name": "Plays on the top",
         "view": "root",
@@ -9701,7 +9701,7 @@
     },
     {
       "folder": "desktop/fixtures/cases/folders/flowy",
-      "rel": "flows/pay.yaml",
+      "rel": "flows/billing/pay.yaml",
       "data": {
         "name": "Customer pays",
         "view": "shop",
@@ -9726,7 +9726,7 @@
     },
     {
       "folder": "desktop/fixtures/cases/folders/flowy",
-      "rel": "flows/refund.yaml",
+      "rel": "flows/billing/refunds/refund.yaml",
       "data": {
         "name": "Refund goes wrong",
         "view": "shop",
@@ -10472,7 +10472,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/announce-order.yaml",
+      "rel": "flows/payments/announce-order.yaml",
       "data": {
         "name": "A paid order is announced",
         "view": "ordering",
@@ -10520,7 +10520,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/capture-payment.yaml",
+      "rel": "flows/payments/capture-payment.yaml",
       "data": {
         "name": "The payment is captured",
         "view": "ordering",
@@ -10600,7 +10600,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/courier-pings-lost.yaml",
+      "rel": "flows/delivery/courier-pings-lost.yaml",
       "data": {
         "name": "Courier pings are lost",
         "view": "delivery",
@@ -10640,7 +10640,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/deliver-order.yaml",
+      "rel": "flows/delivery/deliver-order.yaml",
       "data": {
         "name": "A courier delivers it",
         "view": "delivery",
@@ -10727,7 +10727,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/events-arrive-late.yaml",
+      "rel": "flows/delivery/events-arrive-late.yaml",
       "data": {
         "name": "Dispatch hears about an order late",
         "view": "delivery",
@@ -10758,7 +10758,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/follow-the-courier.yaml",
+      "rel": "flows/delivery/follow-the-courier.yaml",
       "data": {
         "name": "The customer follows the courier",
         "view": "delivery",
@@ -10816,7 +10816,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/hotel-wifi-takes-order.yaml",
+      "rel": "flows/ordering/hotel-wifi-takes-order.yaml",
       "data": {
         "name": "Hotel wifi takes the order",
         "view": "ordering",
@@ -10848,7 +10848,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/mapbox-rate-limit.yaml",
+      "rel": "flows/delivery/mapbox-rate-limit.yaml",
       "data": {
         "name": "Mapbox turns the travel times away",
         "view": "dispatch",
@@ -10886,7 +10886,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/menu-is-read.yaml",
+      "rel": "flows/ordering/menu-is-read.yaml",
       "data": {
         "name": "A menu is read",
         "view": "order-api",
@@ -10965,7 +10965,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/no-courier-answers.yaml",
+      "rel": "flows/delivery/no-courier-answers.yaml",
       "data": {
         "name": "An offer goes unanswered",
         "view": "delivery",
@@ -11032,7 +11032,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/nobody-accepts.yaml",
+      "rel": "flows/ordering/nobody-accepts.yaml",
       "data": {
         "name": "Nobody accepts the order",
         "view": "ordering",
@@ -11088,7 +11088,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/order-sent-twice.yaml",
+      "rel": "flows/ordering/order-sent-twice.yaml",
       "data": {
         "name": "A double tap sends the order twice",
         "view": "ordering",
@@ -11120,7 +11120,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/orders-db-fails-over.yaml",
+      "rel": "flows/ordering/orders-db-fails-over.yaml",
       "data": {
         "name": "Orders DB fails over",
         "view": "ordering",
@@ -11181,7 +11181,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/place-order.yaml",
+      "rel": "flows/ordering/place-order.yaml",
       "data": {
         "name": "Customer places an order",
         "view": "ordering",
@@ -11263,7 +11263,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/refund-not-recorded.yaml",
+      "rel": "flows/payments/refund-not-recorded.yaml",
       "data": {
         "name": "The refund is not recorded",
         "view": "ordering",
@@ -11309,7 +11309,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/refund.yaml",
+      "rel": "flows/payments/refund.yaml",
       "data": {
         "name": "Support refunds an order",
         "view": "root",
@@ -11374,7 +11374,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/restaurant-accepts.yaml",
+      "rel": "flows/ordering/restaurant-accepts.yaml",
       "data": {
         "name": "The restaurant accepts",
         "view": "ordering",
@@ -11445,7 +11445,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/sms-dropped.yaml",
+      "rel": "flows/delivery/sms-dropped.yaml",
       "data": {
         "name": "The carrier drops the SMS",
         "view": "root",
@@ -11484,7 +11484,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/stripe-outage.yaml",
+      "rel": "flows/payments/stripe/stripe-outage.yaml",
       "data": {
         "name": "Stripe goes down and comes back",
         "view": "ordering",
@@ -11561,7 +11561,7 @@
     },
     {
       "folder": "docs/demo/flowy",
-      "rel": "flows/stripe-webhook.yaml",
+      "rel": "flows/payments/stripe/stripe-webhook.yaml",
       "data": {
         "name": "Stripe reports a charge",
         "view": "ordering",
