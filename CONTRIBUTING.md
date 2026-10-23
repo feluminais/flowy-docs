@@ -508,8 +508,8 @@ Compare (`--dir docs/demo/flowy`; `npm run build:ui` first):
 - [ ] Note: **Note** opens an editor on the saved note; change it and **Save**: `flows/refund.yaml` has the new text under `compare: note:`. On two flows with no tag, type a note and press **Save as pair**: the strip names the flow that
       gets the tag, **Swap sides** changes it, **Save** writes it. Close the comparison with an unsaved note: it asks first. In an exported page the Note button is greyed out and its tooltip says "This page can't save".
 - [ ] E on a copy of `docs/demo`: Compare is greyed out ("Not while editing"). Open a flow for editing: its form has **Compare with** with its partner shown, **Remove** asks first because there is a note, and a flow that tags it is listed under **Compared by**.
-- [ ] Press **T**, pick Orders and pings, tested together: **Compare** and **Link with** are under the name, and **Compare** (or **C**) opens it beside Orders and pings, added (`#delivery/compare-runs/together/together-measured`), each pane with its own panel.
-      **Show changes** is greyed out. **Unlink** then **Link with** writes and removes only `compare:` in `perf/together-measured.yaml`. In the showcase, Compare after is compared with Compare before, and **Show changes** marks all three kinds.
+- [ ] Press **T**, pick Orders and pings, tested together: **Compare** is under the name (with no **Link with**), and **Compare** (or **C**) opens it beside Orders and pings, added (`#delivery/compare-runs/together/together-measured`), each pane with its own panel.
+      **Show changes** is greyed out. Press **Edit**: the Performance tab lists the runs, and **Unlink** then **Link with** on Orders and pings writes and removes only `compare:` in `perf/together-measured.yaml`. In the showcase, Compare after is compared with Compare before, and **Show changes** marks all three kinds.
 
 Editing (press E):
 

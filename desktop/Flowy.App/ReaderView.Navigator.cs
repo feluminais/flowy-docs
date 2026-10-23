@@ -24,7 +24,7 @@ internal sealed partial class ReaderView
     private bool ShowFlows => _folder is not null;
 
     /// <summary>The navigator's tab showing (Explorer, Flows, Failures or Performance): the one chosen on its rail or its strip, else none.</summary>
-    private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows) || (_tab == PanelTab.Failures && !CanFailures) || (_tab == PanelTab.Performance && !CanPerf) ? null : _tab;
+    private PanelTab? ShownTab => (_tab == PanelTab.Flows && !ShowFlows) || (_tab == PanelTab.Failures && !CanFailures) || (_tab == PanelTab.Performance && !CanPerf && !CanRuns) ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
     private bool DetailsOpen => _right == RightPanel.Details || _side is not (null or Side.Boxes);
@@ -34,8 +34,8 @@ internal sealed partial class ReaderView
         if (tab == PanelTab.Failures && !CanFailures) return;
         if (tab == PanelTab.Performance)
         {
-            if (!CanPerf) return;
-            _perf.Open();
+            if (!CanPerf && !CanRuns) return;
+            if (CanPerf) _perf.Open();
         }
         if (tab != PanelTab.Performance) _perf.StopRamp(); // a ramp ends with its tab
         _tab = tab; // one tab at a time, so the load's traffic and the failure marks never draw over each other
@@ -190,14 +190,15 @@ internal sealed partial class ReaderView
         var tab = ShownTab;
         _rail.Update(tab, totals.Flows, totals.Shapes);
         _rail.UpdateFailures(FailuresView.ModeCount(model), FailuresOpen, Editing);
-        _rail.UpdatePerformance(_folder?.Runs?.Count ?? 0, PerfOpen, Editing);
+        _rail.UpdatePerformance(_folder?.Runs?.Count ?? 0, PerfOpen || RunsOpen, Editing);
         _detailsRail.Update(DetailsOpen ? PanelTab.Details : null, 0, 0);
-        if (tab is { } open) _nav.Show(open);
+        if (tab is { } open) _nav.Show(open, Editing);
         else _nav.Hide();
         ApplyWidths();
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
         else if (tab == PanelTab.Explorer) _nav.Explorer.Update(model, _folder!.Problems, Editing, _expanded, view, SelectedBox, flow?.Id);
         else if (tab == PanelTab.Failures) ShowFailuresPanel(model, view);
+        else if (RunsOpen) _nav.RunLinks.Show(model, _folder!.Runs ?? new IdMap<LoadRun>(), SaveOff);
     }
 
     private void Remember() => NavigatorChanged?.Invoke(new NavigatorState(

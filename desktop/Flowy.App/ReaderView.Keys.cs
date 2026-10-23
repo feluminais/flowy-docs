@@ -20,6 +20,7 @@ internal sealed partial class ReaderView
         var inside = InNavigator(e.Source);
         PressedOutsidePicker(e.Source);
         _perfPanel.PressedOutside(e.Source);
+        _nav.RunLinks.PressedOutside(e.Source);
         _navUsed = inside;
         if (!inside && InNavigator(TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement())) Focus();
     }

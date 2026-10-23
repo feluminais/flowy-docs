@@ -47,6 +47,7 @@ import type { NavTab } from './navstate.ts'
 import { keepNav, loadNav } from './navstore.ts'
 import { compareRowAttr, DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
+import { RunLinks } from './RunLinks.tsx'
 import { clampPos, dialTop, starterRun, stepFrom, top } from './perfview.ts'
 import { AddPanel, LinePanel, ObjectPanel, OverviewPanel } from './Panel.tsx'
 import type { Delete } from './Panel.tsx'
@@ -159,7 +160,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const [compareStart, setCompareStart] = useState<{ flow: string; step: number }>()
   const [picking, setPicking] = useState(false) // the popover of the player's Compare button
   const [rowPicking, setRowPicking] = useState<{ flow: string; at: PickAt }>() // the popover of a flow row's Compare button, in the Flows tab or the Explorer
-  const [pickingRun, setPickingRun] = useState<'compare' | 'link'>() // the popover under the Compare or the Link with button of the Performance tab's run header
+  const [pickingRun, setPickingRun] = useState<'compare'>() // the popover under the Compare button of the Performance tab's run header
+  const [linkingRun, setLinkingRun] = useState<string>() // the run whose Link with picker is open in the Performance tab while editing
   const [dropping, setDropping] = useState<{ id: string; other: string | undefined }>() // a run's link about to go with the note it holds, until the reader says yes
   const compareRef = useRef<CompareHandle>(null)
   // The note on the pair: what is typed in its editor is kept here, not in the strip, so it survives the strip going away (the Performance tab opening over the panes) and so leaving can ask
@@ -245,7 +247,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const recording = editing && side?.kind === 'flow' ? side : undefined
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
   // The Performance and Failures tabs are always there: with nothing to show, their panels say how to make a run or an analysis.
-  const canPerf = !editing // while editing the tab is greyed out: the numbers would sit on a model that is changing
+  const canPerf = !editing // while editing the tab lists the runs to link and shows no numbers: they would sit on a model that is changing
   const analysisKey = activeAnalysis(model.failures, analysisId)
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
   const mode = modeIn(model, analysisKey, modeId)
@@ -257,8 +259,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
   const yamlWhy = noHistory({ live, inVscode: vscode !== undefined, hasApi: historyApi !== undefined, unavailable: yamlGone })
-  const nav = openTab(tab, { performance: canPerf })
-  const perfOpen = nav === 'performance' && loadTest !== undefined // a run is drawn on the canvas
+  const nav = openTab(tab, {})
+  const runsOpen = editing && nav === 'performance' // while editing the tab lists the runs to link, and draws none
+  const perfOpen = nav === 'performance' && !editing && loadTest !== undefined // a run is drawn on the canvas
   useEffect(() => {
     if (!perfOpen) perfRun.stopRamp()
   }, [perfOpen])
@@ -495,7 +498,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }, [nav, editing])
   useEffect(() => {
     if (!perfOpen) setPickingRun(undefined) // and these hang on the run header
-  }, [perfOpen])
+    if (!runsOpen) setLinkingRun(undefined)
+  }, [perfOpen, runsOpen])
   useEffect(() => {
     if (!compare) setCompareStart(undefined)
   }, [compare])
@@ -766,7 +770,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       }
       const state: KeyState = {
         editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', runCompare: comparing?.kind === 'run', halfStep: recording?.from !== undefined,
-        panel: detailsOpen || manyPicked || perfOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
+        panel: detailsOpen || manyPicked || perfOpen || runsOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
         canPerf,
       }
       const act: KeyActions = {
@@ -780,7 +784,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         closeCompare,
         swap: () => compareRef.current?.swap(),
         clearStep: () => { if (recording) setSide({ ...recording, from: undefined, to: undefined }) },
-        closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen ? closePerf() : closeFailures()),
+        closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen || runsOpen ? closePerf() : closeFailures()),
         // A second press while a zoom out is still leaving goes up from where that one is heading.
         up: () => zoom.zoomOut(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view)),
         // With two runs side by side the keys of the Performance tab act on the pane that has the focus.
@@ -874,7 +878,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       </header>
       <div className="stage">
         <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes}
-          perf={{ runs: Object.keys(runs).length, off: editing ? 'not while editing' : undefined }} failures={{ count: modeCount(model) }} onPick={toggleTab} />
+          perf={{ runs: Object.keys(runs).length }} failures={{ count: modeCount(model) }} onPick={toggleTab} />
         <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           {comparing ? (
@@ -1035,7 +1039,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {detailsOpen && recording && (
             <Recorder model={model} view={view} rec={recording} onChange={rec => setSide({ kind: 'flow', ...rec })} onOpenFlow={openFlow} run={run} onClose={closeDetails} />
           )}
-          {nav === 'performance' && (
+          {runsOpen && (
+            <NavPanel tabs={<NavTitle title="Performance" />} onClose={() => setTab(undefined)}>
+              <RunLinks model={model} runs={runs} linkOff={noteOff(live, readOnly)} picking={linkingRun} onPicking={setLinkingRun} onLink={linkRun} />
+            </NavPanel>
+          )}
+          {nav === 'performance' && !editing && (
             <NavPanel tabs={<NavTitle title="Performance" />} onClose={() => setTab(undefined)}>
               <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} positions={here} active={activeDial} lines={drawnLines} ramping={ramping} still={still} states={marksHere} measure={perfRun.measure} dataOff={perfRun.dataOff} onMeasure={perfRun.setMeasure}
                 selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
@@ -1045,13 +1054,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 }}
                 onActive={perfRun.setActive} onSlide={(dial, to) => perfRun.slide(to, dial)} onJump={perfRun.jumpTo} onPlace={perfRun.placeAll} onRamp={perfRun.toggleRamp} onCreate={live ? createRun : undefined}
                 compare={{
-                  off: runCompareOff(runs, editing), linkOff: noteOff(live, readOnly), open: pickingRun, onToggle: which => setPickingRun(open => (open === which ? undefined : which)), onUnlink: () => linkRun(runKey, undefined),
+                  off: runCompareOff(runs, editing), open: pickingRun === 'compare', onToggle: () => setPickingRun(open => (open === 'compare' ? undefined : 'compare')),
                   picker: pickingRun && (
-                    <ComparePicker model={model} runs={runs} kind="run" id={runKey} label={pickingRun === 'compare' ? 'Compare with' : 'Link with'} toggle={pickingRun === 'compare' ? 'data-compare-toggle' : 'data-link-toggle'}
+                    <ComparePicker model={model} runs={runs} kind="run" id={runKey} label="Compare with" toggle="data-compare-toggle"
                       onPick={other => {
                         setPickingRun(undefined)
-                        if (pickingRun === 'compare') openRunCompare(runKey, other)
-                        else linkRun(runKey, other)
+                        openRunCompare(runKey, other)
                       }}
                       onClose={() => setPickingRun(undefined)} />
                   ),
