@@ -59,6 +59,12 @@ public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps,
 
     /// <summary>The flow this one compares with, when <see cref="CompareRaw"/> reads as a tag.</summary>
     public CompareTag? Compare => Compares.Of(CompareRaw);
+
+    /// <summary>The flow's <c>tags:</c> as the file held it: a list of text if it is well formed (the checks report a word that is not a valid tag), else the blank it was; null when there is none.</summary>
+    public object? TagsRaw { get; init; }
+
+    /// <summary>The tags that are well formed, each once whatever its case, in the order written (see <see cref="Names.TagsOf"/>).</summary>
+    public IReadOnlyList<string> Tags => Names.TagsOf(TagsRaw);
 }
 
 /// <summary>The three ratings a failure mode keeps under <c>after</c>, as the text of a whole number from 1 to 10 (every file value is text).</summary>
@@ -89,6 +95,27 @@ public sealed class Model
 
     public IdMap<Flow> Flows { get; init; } = new();
 
+    /// <summary>
+    /// The folder each flow's file sits in under <c>flows/</c>, as a path of names ("payments/refunds"), by flow id. A flow at the top of <c>flows/</c> has no entry. It is where the file is, not
+    /// something the file says, so it is never written into a flow. Twin of <c>Model.folders</c> in src/core/model.ts.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Folders { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>The folder a flow's file is in ("" at the top of <c>flows/</c>).</summary>
+    public string FolderOf(string id) => Folders.TryGetValue(id, out var folder) ? folder : "";
+
+    /// <summary>Every folder that has a flow in it or in a folder inside it, as paths, in path order. A folder with nothing in it is not here: it is no part of the model.</summary>
+    public List<string> FolderPaths()
+    {
+        var paths = new HashSet<string>();
+        foreach (var folder in Folders.Values)
+        {
+            var names = folder.Split('/');
+            for (var i = 1; i <= names.Length; i++) paths.Add(string.Join('/', names.Take(i)));
+        }
+        return [.. paths.Order(StringComparer.Ordinal)];
+    }
+
     /// <summary>The failure analyses of <c>failures/</c>, by file name. A file that couldn't be read is not here (see <see cref="Folder.FailureProblems"/>).</summary>
     public IdMap<FailureAnalysis> Failures { get; init; } = new();
 
@@ -113,14 +140,16 @@ public sealed class Model
 
     /// <summary>
     /// A model put together from what the files of a folder gave: model.yaml (null: there is none), the flows, the layout, and the failure analyses (none by default).
-    /// The folder loader and the editor both build their model here, so they agree on what a missing part is.
+    /// The folder loader and the editor both build their model here, so they agree on what a missing part is. <paramref name="folders"/> is the folder of each flow that is in one (none: all at the top).
     /// </summary>
-    public static Model FromParts(ModelFiles.ParsedModel? parsed, IdMap<Flow> flows, IReadOnlyDictionary<string, IReadOnlyDictionary<string, LayoutPoint>> layout, IdMap<FailureAnalysis>? failures = null) => new()
+    public static Model FromParts(ModelFiles.ParsedModel? parsed, IdMap<Flow> flows, IReadOnlyDictionary<string, IReadOnlyDictionary<string, LayoutPoint>> layout, IdMap<FailureAnalysis>? failures = null,
+        IReadOnlyDictionary<string, string>? folders = null) => new()
     {
         Objects = parsed?.Objects ?? new IdMap<FlowyObject>(),
         Connections = parsed?.Connections ?? [],
         Meta = parsed?.Meta ?? new Dictionary<string, object?>(),
         Flows = flows,
+        Folders = folders ?? new Dictionary<string, string>(),
         Failures = failures ?? new IdMap<FailureAnalysis>(),
         Layout = layout,
     };

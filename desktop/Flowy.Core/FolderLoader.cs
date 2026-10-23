@@ -65,31 +65,28 @@ public static class FolderLoader
         var parsed = modelText is null ? null : ParsedOnce(dir, FolderLayout.ModelFile, modelText, () => ModelFiles.ParseModel(modelText));
         var layout = layoutText is null ? [] : ParsedOnce(dir, FolderLayout.LayoutFile, layoutText, () => ModelFiles.ParseLayout(layoutText));
 
+        // Flows may sit in folders under flows/; the id is the file's name alone, and where the file is goes in `folders`.
         var flows = new IdMap<Flow>();
-        var ignored = new List<string>();
-        var flowsDir = Path.Combine(dir, FolderLayout.FlowsDir);
-        if (Directory.Exists(flowsDir))
+        var folders = new Dictionary<string, string>();
+        var listing = FileStore.ListFlows(dir);
+        foreach (var file in listing.Files)
         {
-            var names = Directory.EnumerateFiles(flowsDir).Select(Path.GetFileName).OfType<string>().ToList();
-            names.Sort(StringComparer.Ordinal);
-            foreach (var name in names.Where(FolderLayout.IsRead))
-            {
-                var id = FolderLayout.IdOfName(name);
-                var text = ReadText(dir, FolderLayout.FlowFile(id));
-                if (text is not null) flows.Add(id, ParsedOnce(dir, FolderLayout.FlowFile(id), text, () => ModelFiles.ParseFlow(id, text)));
-            }
-            ignored.AddRange(names.Where(FolderLayout.IsIgnored).Select(n => $"{FolderLayout.FlowsDir}/{n}"));
+            var id = file.Id;
+            var text = ReadText(dir, file.Rel);
+            if (text is null) continue;
+            flows.Add(id, ParsedOnce(dir, file.Rel, text, () => ModelFiles.ParseFlow(id, text, file.Folder)));
+            if (file.Folder != "") folders[id] = file.Folder;
         }
 
         var (analyses, unread) = LoadFailures(dir);
-        var model = Model.FromParts(parsed, flows, layout, analyses);
+        var model = Model.FromParts(parsed, flows, layout, analyses, folders);
         // A flow file that isn't read is no part of the model, so the checks can't see it.
-        var skipped = ignored.Select(file => new Problem(file, null,
+        var skipped = listing.Ignored.Select(file => new Problem(file, null,
             $"Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to {FolderLayout.RenamedFromIgnored(file)}."));
         var (runs, runProblems) = LoadRuns(dir, model);
         // A mode's run link needs the runs, which are not in the model, so it is checked here. The rest of an analysis is checked in Checks.Run.
         var failureProblems = unread.Concat(model.Failures.SelectMany(kv => Failures.RunLinkProblems(kv.Key, kv.Value, runs))).ToList();
-        return new Folder(model, [.. Checks.Run(model, MissingPaths(dir, model)), .. skipped], runs, runProblems, failureProblems);
+        return new Folder(model, [.. Checks.Run(model, MissingPaths(dir, model)), .. skipped, .. listing.Unusable], runs, runProblems, failureProblems);
     }
 
     /// <summary>
