@@ -3,6 +3,8 @@ import type { Model } from '../model.ts'
 import { strain } from './analyse.ts'
 import { dialsOf } from './dials.ts'
 import { interpolate, levelAt } from './levels.ts'
+import { amountOf, callSize } from './measure.ts'
+import type { Measure } from './measure.ts'
 import { rollUpLoad } from './rollup.ts'
 import { formulaOf } from './sources.ts'
 import type { BoxTraffic, LineTraffic, Metrics, Pair, Run, Setting, Source, Traffic } from './types.ts'
@@ -11,14 +13,15 @@ import { add, defined, own, put, round2, settingFor } from './util.ts'
 
 /** What the canvas draws for a run: lines, dots and their tuning. */
 
+/** The radius of a dot, as a multiple of the usual one, is the square root of the `size` formula's area, kept between these: small enough to see, big enough not to cover a line. */
+export const RADIUS_MIN = 0.5
+export const RADIUS_MAX = 2.5
+
 /**
  * Most dots a source puts on a line at once. A screen line is a hundred to three hundred pixels long and a dot is a few pixels across, so
  * past about this many they run together and stop being countable. Past it a line is scaled down and says so (see capCounts).
  */
 export const AT_ONCE = 24
-/** The radius of a dot, as a multiple of the usual one, is the square root of the `size` formula's area, kept between these: small enough to see, big enough not to cover a line. */
-export const RADIUS_MIN = 0.5
-export const RADIUS_MAX = 2.5
 
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n))
 
@@ -48,7 +51,7 @@ function dotsFor(l: Pair, rate: number, source: Source | undefined): number | un
  * `wide` is the rate that sets its thickness (a source's share of a shared line is as thick as the whole line), and `counted` is the count and the cap when
  * several sources share the line and were scaled together (see sharedLines).
  */
-function lineTraffic(l: Pair, rate: number, source: Source | undefined, wide = rate, counted?: { dots: number | undefined; capped: boolean }): LineTraffic {
+function lineTraffic(l: Pair, rate: number, source: Source | undefined, wide = rate, counted?: { dots: number | undefined; capped: boolean }, measure: Measure = 'calls'): LineTraffic {
   const errors = round2(l.errors ?? 0)
   const base: LineTraffic = {
     from: l.from,
@@ -69,7 +72,8 @@ function lineTraffic(l: Pair, rate: number, source: Source | undefined, wide = r
     base.dots = round2(counts[0])
     if (capped) base.capped = true
   }
-  const size = source?.size ? formulaOf(source.size) : undefined
+  // Under Data the size of a call is already in the count and the thickness, so a dot's size says nothing more: dots are the usual size.
+  const size = measure === 'calls' && source?.size ? formulaOf(source.size) : undefined
   const area = size ? evalFormula(size, { rate, bytes: l.bytes, p50: l.p50 }) : undefined
   if (area !== undefined && area >= 0) base.radius = round2(clamp(Math.sqrt(area), RADIUS_MIN, RADIUS_MAX))
   return base
@@ -81,9 +85,9 @@ function lineTraffic(l: Pair, rate: number, source: Source | undefined, wide = r
  * measured or holds something that was; `lines` has the traffic on each line that has a rate. Shapes and lines
  * with nothing measured are left out: they stay neutral, never drawn as zero. `load` is clamped to the tested range.
  */
-export function traffic(model: Model, run: Run, load: number, view: string): Traffic {
+export function traffic(model: Model, run: Run, load: number, view: string, measure: Measure = 'calls', size?: number): Traffic {
   const { objects, lines } = rollUpLoad(model, interpolate(run, load), view)
-  return { boxes: boxesOf(objects), lines: lines.flatMap(l => (l.rate === undefined ? [] : [lineTraffic(l, l.rate, run.source)])) }
+  return { boxes: boxesOf(objects), lines: lines.flatMap(l => { const amount = amountOf(l, measure, size); return amount === undefined ? [] : [lineTraffic(l, amount, run.source, amount, undefined, measure)] }) }
 }
 
 /**
@@ -108,25 +112,28 @@ export const OTHER_COLOR = 'gray'
  * on a line are scaled by one common factor when the busiest passes AT_ONCE, so a line of ten times the calls still reads as ten times the dots; they run a little apart, so two on one
  * path don't hide each other. The line is as thick as everything it carries. A line the run doesn't split by source draws as it would for a run with no source, in a neutral colour.
  */
-function sharedLines(l: Pair, dials: Dial[]): LineTraffic[] {
+function sharedLines(l: Pair, dials: Dial[], measure: Measure, size: number | undefined): LineTraffic[] {
   const split = dials.flatMap(d => {
     const by = own(l.by, d.id)
     return by === undefined ? [] : [{ dial: d, by }]
   })
-  const carried = split.flatMap(s => (s.by.rate === undefined ? [] : [s.by.rate]))
-  const total = l.rate ?? (carried.length > 0 ? carried.reduce(add) : undefined)
-  if (split.length === 0) return l.rate === undefined ? [] : [{ ...lineTraffic(l, l.rate, undefined), color: OTHER_COLOR }]
+  const whole = amountOf(l, measure, size)
+  if (split.length === 0) return whole === undefined ? [] : [{ ...lineTraffic(l, whole, undefined, whole, undefined, measure), color: OTHER_COLOR }]
+  // What each source carries, as a rate. Under Data a source's size of a call is its own, and the whole line's only when the source is the only one named.
+  const alone = split.length === 1
+  const carried = split.flatMap(s => { const a = amountOf({ ...(s.by.rate === undefined && alone ? { rate: l.rate } : { rate: s.by.rate }), bytes: s.by.bytes ?? (alone ? l.bytes : undefined) }, measure, size); return a === undefined ? [] : [a] })
+  const total = whole ?? (carried.length > 0 ? carried.reduce(add) : undefined)
   if (total === undefined) return []
   // A source's own numbers are its own. What it doesn't give is the line's where that is fair: the whole line when it is the only source named, the expected call always (it sets
   // only how fast dots cross), and the failing share when no source gives one (then the line's is the best guess for each). Never another source's size or failing share.
-  const alone = split.length === 1
   const anyErrors = split.some(s => s.by.errors !== undefined)
   const rows = split.flatMap(({ dial, by }) => {
-    const rate = by.rate ?? (alone ? total : undefined)
+    const pairBytes = by.bytes ?? (alone ? l.bytes : undefined)
+    const rate = measure === 'calls' ? (by.rate ?? (alone ? total : undefined)) : amountOf({ rate: by.rate ?? (alone ? l.rate : undefined), bytes: pairBytes }, measure, size)
     if (rate === undefined) return []
     const pair: Pair = {
       from: l.from, to: l.to,
-      ...defined({ rate, bytes: by.bytes ?? (alone ? l.bytes : undefined), p50: by.p50 ?? l.p50, errors: by.errors ?? (alone || !anyErrors ? l.errors : undefined) }),
+      ...defined({ rate, bytes: pairBytes, p50: by.p50 ?? l.p50, errors: by.errors ?? (alone || !anyErrors ? l.errors : undefined) }),
       ...(l.failure === undefined ? {} : { failure: l.failure }),
     }
     return [{ dial, pair, rate, count: dotsFor(pair, rate, dial.source) }]
@@ -136,7 +143,7 @@ function sharedLines(l: Pair, dials: Dial[]): LineTraffic[] {
   return rows.map((r, i) => {
     const counted = r.count === undefined ? undefined : { dots: capped.counts[next++], capped: capped.capped }
     return {
-      ...lineTraffic(r.pair, r.rate, r.dial.source, total, counted),
+      ...lineTraffic(r.pair, r.rate, r.dial.source, total, counted, measure),
       color: r.dial.color, source: r.dial.id,
       ...(rows.length > 1 ? { offset: i - (rows.length - 1) / 2 } : {}),
     }
@@ -147,10 +154,12 @@ function sharedLines(l: Pair, dials: Dial[]): LineTraffic[] {
  * Everything the Performance tab draws for one view at a setting of a run's dials, as traffic is for one source: the same for a run with one source (it is traffic), and for runs
  * with several the boxes of the combined level (strain stops at 1 however far over capacity they are added) and a line for each source on each line.
  */
-export function trafficAt(model: Model, runs: Record<string, Run>, id: string, setting: Setting, view: string): Traffic {
+export function trafficAt(model: Model, runs: Record<string, Run>, id: string, setting: Setting, view: string, measure: Measure = 'calls'): Traffic {
   const found = dialsOf(runs, id)
   if (!found) return { boxes: {}, lines: [] }
-  if (found.mode === 'single') return traffic(model, runs[id], settingFor(setting, ''), view)
+  const size = measure === 'data' ? callSize(runs, id) : undefined
+  if (found.mode === 'single') return traffic(model, runs[id], settingFor(setting, ''), view, measure, size)
   const { objects, lines } = rollUpLoad(model, levelAt(runs, id, setting), view)
-  return { boxes: boxesOf(objects), lines: lines.flatMap(l => sharedLines(l, found.dials)) }
-}
+  return { boxes: boxesOf(objects), lines: lines.flatMap(l => sharedLines(l, found.dials, measure, size)) }
+}
+
