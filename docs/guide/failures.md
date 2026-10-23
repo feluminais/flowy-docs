@@ -11,7 +11,7 @@ several.
 
 ```yaml
 name: Plum fail scenario
-about: Made-up ratings for the demo, not a review of anything real.
+about: Made-up ratings for the demo.
 scale:
   severity: { low: Nobody notices, high: A customer loses money or the kitchen stops }
   occurrence: { low: Never seen, high: Most days }
@@ -20,14 +20,14 @@ modes:
   stripe-timeout:
     from: checkout
     to: stripe
-    mode: Stripe doesn't answer within five seconds
+    mode: Stripe doesn't answer within 5 s
     effect: The order waits on a hold that may or may not exist.
     cause: Stripe is slow, or the network between Plum and Stripe drops.
     severity: 8
     occurrence: 4
     detection: 3
     controls: Three tries with backoff. The idempotency key stops a double hold.
-    action: Page when more than 1% of holds time out for five minutes.
+    action: Page when over 1% of holds time out for 5 min.
     owner: Payments
     status: planned
     after: { severity: 8, occurrence: 4, detection: 1 }

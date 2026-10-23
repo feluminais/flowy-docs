@@ -25,7 +25,7 @@ objects:
       - name: orders
         kind: table
         limits: Kept 7 years, then archived
-        note: One row per order. A refund adds a row to refunds; the order stays.
+        note: One row per order. A refund adds a row to refunds and leaves the order alone.
         columns:
           - {name: id, key: primary}
           - {name: customer_id, to: customers}
@@ -67,7 +67,7 @@ objects:
     tech: Redis
     data:
       - name: Keys
-        limits: Oldest unused go first at 256 MB
+        limits: LRU eviction at 256 MB
         columns: [Key, Value, Expires]
         rows:
           - ["menu:{restaurantId}", "{ items, prices, hours }", 5 min]

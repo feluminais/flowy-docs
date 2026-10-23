@@ -7,22 +7,21 @@ steps:
     text: POST /orders with the basket
     animation: { kind: call, carries: POST /orders }
     description: |
-      The app sends an idempotency key with the request, so a double tap or a retry on a bad
-      connection places a single order.
+      The app sends an idempotency key, so a double tap or a retry places one order.
   - from: order-api
     to: stripe
     text: Holds the amount on the card
     animation: { kind: call, carries: hold }
     description: |
-      **Checkout** asks Stripe to authorise the total. Nothing is charged yet: the money moves
-      once the restaurant accepts, and the hold is released if it refuses.
+      **Checkout** asks Stripe to authorise the total. The charge happens on acceptance; a refusal
+      releases the hold.
   - { from: order-api, to: orders-db, text: Saves the order as placed, animation: { kind: call, carries: order } }
-  - { from: order-api, to: events, text: Announces the order, animation: { kind: event, carries: placed } }
+  - { from: order-api, to: events, text: Publishes the order, animation: { kind: event, carries: placed } }
   - { from: events, to: dispatch, text: Dispatch starts looking for a courier, animation: { kind: callback, trigger: outside }, flow: deliver-order }
   - from: order-api
     to: kitchen-tablet
     text: The restaurant's tablet rings
     animation: { kind: event, carries: new order, effect: wiggle }
     description: |
-      The kitchen has two minutes to accept. After that the order is cancelled, the hold is
-      released and the customer is told.
+      The kitchen has two minutes to accept. Then the order is cancelled, the hold released and
+      the customer notified.

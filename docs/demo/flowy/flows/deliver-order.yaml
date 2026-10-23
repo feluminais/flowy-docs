@@ -1,13 +1,13 @@
 name: A courier delivers it
 view: delivery
 steps:
-  - { from: events, to: dispatch, text: Hears that an order was placed, animation: { kind: callback, trigger: outside, carries: placed } }
+  - { from: events, to: dispatch, text: Receives the placed event, animation: { kind: callback, trigger: outside, carries: placed } }
   - { from: dispatch, to: fleet-db, text: Finds idle couriers near the restaurant, animation: { kind: call, carries: who is idle } }
   - from: dispatch
-    text: Ranks them by how soon each could arrive
+    text: Ranks them by estimated arrival
     description: |
-      The **Matcher** asks **ETA** for a travel time per courier, using distance, traffic and the
-      vehicle. The quickest one is offered the job first.
+      The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The
+      quickest gets the first offer.
   - { from: dispatch, to: notifier, text: Sends the offer as a push, animation: { kind: send, carries: offer, effect: bounce } }
   - { from: courier, to: courier-app, text: Accepts within 30 seconds, animation: { kind: send, carries: accept } }
   - from: courier-app
@@ -16,7 +16,7 @@ steps:
     animation: { kind: send, carries: position, effect: pulse }
     flow: follow-the-courier
     description: |
-      Only while a job is open. A position older than a minute is dropped, so a courier who loses
-      signal stops moving on the customer's map until a fresh position comes in.
-  - { from: tracking, to: customer-app, text: The customer watches the courier come, animation: { kind: send, carries: position } }
+      Only while a job is open. Positions older than 1 min are dropped, so a courier who loses
+      signal freezes on the map until a fresh position arrives.
+  - { from: tracking, to: customer-app, text: The customer's map follows the courier, animation: { kind: send, carries: position } }
   - { from: courier-app, to: order-api, text: Marks the order delivered, animation: { kind: call, carries: delivered } }

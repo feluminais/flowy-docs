@@ -26,7 +26,7 @@ test('the first step is a call that times out, and the second is the API giving 
   assert.deepEqual(animationOf(call), { kind: 'call', trigger: 'inside', outcome: 'timeout' })
   assert.equal(gives.from, 'order-api')
   assert.equal(gives.to, undefined)
-  assert.equal(gives.text, 'Gives up after five seconds and tries again')
+  assert.equal(gives.text, 'Times out after 5 s and retries')
   assert.equal(animationOf(gives), undefined)
 })
 
