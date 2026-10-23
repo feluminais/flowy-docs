@@ -371,6 +371,12 @@ internal sealed class BoxControl : Grid
         RefreshTip();
     }
 
+    /// <summary>Builds the tooltip now, as pointing at the shape does (for tests: a shape builds none until then).</summary>
+    internal void PrepareTip() => RefreshTip();
+
+    /// <summary>The shapes this one is made of, for tests: a shape is made of what it needs.</summary>
+    internal int PartCount => Children.Count;
+
     /// <summary>Whether the text, at the font it is drawn in, is wider than the room it has, so that it shows an ellipsis.</summary>
     private bool Trimmed(TextBlock block)
     {

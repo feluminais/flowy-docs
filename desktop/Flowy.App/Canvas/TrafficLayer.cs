@@ -41,6 +41,15 @@ internal sealed class TrafficLayer : Control
     private Viewport _viewport = new(0, 0, 1);
     private bool _running;
     private DateTime _last;
+    private DateTime _drawn;
+    private Window? _window;
+
+    /// <summary>A window that is minimised shows nothing, so nothing of it is worked out; one that is behind another window (not the active one) is drawn a few times a second, enough to see the flow without spending a core on it.</summary>
+    private static readonly TimeSpan IdleFrame = TimeSpan.FromMilliseconds(66);
+
+    private bool Minimised => _window is { WindowState: WindowState.Minimized };
+
+    private bool Behind => _window is { IsActive: false };
 
     /// <summary>0 to 1: what decides whether a particle fails. A test sets it to be sure of what is drawn.</summary>
     internal Func<double> Rand { get; set; } = Random.Shared.NextDouble;
@@ -115,9 +124,21 @@ internal sealed class TrafficLayer : Control
     private void Start()
     {
         if (_running || TopLevel.GetTopLevel(this) is not { } top) return;
+        if (top is Window window && !ReferenceEquals(window, _window))
+        {
+            if (_window is not null) _window.PropertyChanged -= OnWindowChanged;
+            _window = window;
+            window.PropertyChanged += OnWindowChanged;
+        }
+        if (Minimised) return; // started again when the window comes back (OnWindowChanged)
         _running = true;
-        _last = DateTime.UtcNow;
+        _last = _drawn = DateTime.UtcNow;
         top.RequestAnimationFrame(Tick);
+    }
+
+    private void OnWindowChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == Window.WindowStateProperty && _lines.Count > 0) Start();
     }
 
     private void Stop() => _running = false;
@@ -125,7 +146,19 @@ internal sealed class TrafficLayer : Control
     private void Tick(TimeSpan _)
     {
         if (!_running) return;
+        if (Minimised)
+        {
+            _running = false;
+            return;
+        }
         var now = DateTime.UtcNow;
+        if (Behind && now - _drawn < IdleFrame)
+        {
+            if (TopLevel.GetTopLevel(this) is { } waiting) waiting.RequestAnimationFrame(Tick);
+            else _running = false;
+            return;
+        }
+        _drawn = now;
         var ms = Math.Min(100, (now - _last).TotalMilliseconds); // a window that was asleep doesn't pour out everything it missed
         _last = now;
         foreach (var d in _lines)
@@ -151,6 +184,8 @@ internal sealed class TrafficLayer : Control
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         Stop();
+        if (_window is not null) _window.PropertyChanged -= OnWindowChanged;
+        _window = null;
         base.OnDetachedFromVisualTree(e);
     }
 
