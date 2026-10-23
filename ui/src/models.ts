@@ -1,7 +1,7 @@
+import type { ModelList } from '../../src/core/modellist.ts'
 import { apiUrl } from './apiurl.ts'
 
-/** A model the local server shows: `id` is what `?model=` names, `where` is its folder in the repo. */
-export type ModelInfo = { id: string; name: string; where: string }
+export type { ModelInfo, ModelList } from '../../src/core/modellist.ts'
 
 /** The model this page was opened for, from `?model=`; undefined on the first one. */
 export const modelOfPage = (search = location.search): string | undefined => new URLSearchParams(search).get('model') ?? undefined
@@ -9,15 +9,26 @@ export const modelOfPage = (search = location.search): string | undefined => new
 /** The address of the same page on another model. The view and flow in the hash belong to one model, so they are left behind. */
 export const addressOf = (id: string, current: { pathname: string } = location): string => `${current.pathname}${apiUrl('', '', id)}`
 
-/** The models the server shows. One or none (a server of its own folder, an exported page, VS Code) means there is nothing to switch. */
-export async function fetchModels(base = ''): Promise<ModelInfo[]> {
-  try {
-    const res = await fetch(`${base}/api/models`)
-    return res.ok ? ((await res.json()) as ModelInfo[]) : []
-  } catch {
-    return []
-  }
+/** What the local server lists and how its search went, or nothing when there is no such server (an exported page, VS Code). */
+export async function fetchModels(base = ''): Promise<ModelList | undefined> {
+  return await ask('GET', base)
 }
 
-/** What a switcher shows for a model: its name, and its folder too when another model has the same name. */
-export const labelOf = (models: ModelInfo[], m: ModelInfo): string => (models.some(o => o !== m && o.name === m.name) ? `${m.name} (${m.where})` : m.name)
+/** Starts the deeper search of the folder flowy was started in; the answer says it is running. */
+export async function scanDeeper(base = ''): Promise<ModelList | undefined> {
+  return await ask('POST', base)
+}
+
+/** Stops the search that is running, keeping what it found. */
+export async function stopScan(base = ''): Promise<ModelList | undefined> {
+  return await ask('DELETE', base)
+}
+
+async function ask(method: 'GET' | 'POST' | 'DELETE', base: string): Promise<ModelList | undefined> {
+  try {
+    const res = await fetch(method === 'GET' ? `${base}/api/models` : `${base}/api/models/scan`, { method, ...(method === 'GET' ? {} : { headers: { 'X-Flowy': '1' } }) })
+    return res.ok ? ((await res.json()) as ModelList) : undefined
+  } catch {
+    return undefined
+  }
+}
