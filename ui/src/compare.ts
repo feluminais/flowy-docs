@@ -3,7 +3,8 @@ import type { CompareTag } from '../../src/core/compare.ts'
 import type { Change, FlowDiff, SideMarks } from '../../src/core/flowdiff.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
-import { isView, nameOf } from '../../src/core/views.ts'
+import { isView, nameOf, parentOf } from '../../src/core/views.ts'
+import { ROOT } from '../../src/core/model.ts'
 
 /** What the comparison view shows: two flows or two runs, `a` first, side by side or swapped (one pane, flipping between them). The tag holder is `b`. */
 export type Compare = { kind: 'flow' | 'run'; a: string; b: string; mode: 'side' | 'swap' }
@@ -227,3 +228,12 @@ export function keyItems(diff: FlowDiff, sides: ('older' | 'newer')[] = ['older'
   for (const side of sides.map(which => diff[which])) for (const marks of [side.steps, side.shapes, side.lines]) for (const kind of Object.values(marks)) present.add(kind)
   return { items: CHANGE_ORDER.filter(kind => present.has(kind)), related: true }
 }
+
+/** The level a pane draws: the one the reader zoomed it to, or its flow's own when it was not zoomed (or the level it was zoomed to has gone from the model). */
+export const paneLevel = (model: Model, flowView: string, zoomed: string | undefined): string => (zoomed !== undefined && isView(model, zoomed) ? zoomed : flowView)
+
+/** Whether a pane has a level to go up from: it is zoomed away from its flow's view and not yet at the top. At its flow's own view Esc closes the comparison instead. */
+export const paneInside = (level: string, flowView: string): boolean => level !== flowView && level !== ROOT
+
+/** The level one up from a pane's: the level above, which is the top at most. */
+export const paneUp = (model: Model, level: string): string => (level === ROOT ? ROOT : parentOf(model, level))

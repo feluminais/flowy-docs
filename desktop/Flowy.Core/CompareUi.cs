@@ -2,12 +2,21 @@ namespace Flowy.Core;
 
 /// <summary>
 /// What the comparison view decides before it draws: which kinds the key lists, what a stop of the progress bar is marked as, where a note on a pair is saved and whether it can be.
-/// A port of the pure functions in ui/src/compare.ts (keyItems, changeOfStop, noteOf, saveTarget, pairKey, unsaved, noteOff, pairOff, removeNeedsConfirm, and the flow form's flowTile,
+/// A port of the pure functions in ui/src/compare.ts (keyItems, changeOfStop, noteOf, saveTarget, pairKey, unsaved, noteOff, pairOff, removeNeedsConfirm, paneLevel, paneInside and paneUp, and the flow form's flowTile,
 /// partnerChoices, taggedBy and tagWith), so the app and the browser
 /// say the same thing about the same pair. desktop/fixtures/compare.ts keeps the two equal. Nothing here draws.
 /// </summary>
 public static class CompareUi
 {
+    /// <summary>The level a pane draws: the one the reader zoomed it to, or its flow's own when it was not zoomed (or the level it was zoomed to has gone from the model).</summary>
+    public static string PaneLevel(Model model, string flowView, string? zoomed) => zoomed is not null && Views.IsView(model, zoomed) ? zoomed : flowView;
+
+    /// <summary>Whether a pane has a level to go up from: it is zoomed away from its flow's view and not yet at the top. At its flow's own view Esc closes the comparison instead.</summary>
+    public static bool PaneInside(string level, string flowView) => level != flowView && level != Names.Root;
+
+    /// <summary>The level one up from a pane's: the level above, which is the top at most.</summary>
+    public static string PaneUp(Model model, string level) => level == Names.Root ? Names.Root : Views.ParentOf(model, level);
+
     /// <summary>What the key and the marks call each kind of change.</summary>
     public static string Name(Change change) => change switch { Change.New => "New", Change.Removed => "Removed", _ => "Changed" };
 

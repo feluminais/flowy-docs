@@ -9,7 +9,7 @@ const press = (key: string, more: Partial<KeyEvent> = {}): KeyEvent => ({
 })
 
 const nothing: KeyState = {
-  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, swap: false, runCompare: false, halfStep: false, panel: false, inside: false, recording: false,
+  editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, swap: false, runCompare: false, halfStep: false, panel: false, inside: false, paneInside: false, recording: false,
   perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, canPerf: false,
 }
 
@@ -63,6 +63,8 @@ test('a tab key only works where the tab is', () => {
 test('a key on another layout means the Latin letter on the same key', () => {
   assert.equal(idOf(press('у', { code: 'KeyE' })), 'edit') // Ukrainian
   assert.equal(idOf(press('я', { code: 'KeyZ' }), { inside: true }), 'up')
+  assert.equal(idOf(press('z'), { compare: true, paneInside: true }), 'up', 'a pane of a comparison zoomed into a shape')
+  assert.equal(idOf(press('z'), { compare: true }), undefined)
 })
 
 test('find: Ctrl+K, Cmd+K, / and the slash key; ? opens the list instead', () => {
@@ -93,6 +95,8 @@ test('Escape peels one layer per press, in escapeStep order', () => {
   assert.deepEqual(r.calls, ['closePanel'])
   r = reach(esc, { ...nothing, compare: true, inside: true })
   assert.deepEqual(r.calls, ['closeCompare'], 'a comparison closes before the level is left')
+  r = reach(esc, { ...nothing, compare: true, paneInside: true })
+  assert.deepEqual(r.calls, ['back'], 'a pane zoomed into a shape goes up before the comparison closes')
   r = reach(esc, { ...nothing, compare: true, panel: true })
   assert.deepEqual(r.calls, ['closePanel'], 'the panel over a comparison goes first')
   r = reach(esc, { ...nothing, inside: true })

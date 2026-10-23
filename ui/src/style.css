@@ -1150,6 +1150,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .pane.focused { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .pane-title { flex: none; margin: 0; padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pane.focused .pane-title { color: var(--accent); }
+.pane-crumbs { flex: none; padding: 3px 8px; border-bottom: 1px solid var(--line); overflow-x: auto; white-space: nowrap; }
 .pane-canvas { position: relative; flex: 1; min-height: 0; }
 .pane-canvas > .react-flow { position: absolute; inset: 0; }
 .pane.states .box .shape, .pane.states .box .tile, .pane.states .box .box-text { transition: opacity 0.6s ease, filter 0.6s ease; }
