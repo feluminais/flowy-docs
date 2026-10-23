@@ -10,7 +10,7 @@ namespace Flowy.App;
 /// The Failures tab of the navigator, on the left with Explorer and Flows: the analysis on show and the mode picked in it, what the list is narrowed to, and the
 /// failures drawn on the canvas (a badge on each shape and line that carries a mode, and for the mode picked its part outlined and the rest faded). Details
 /// stays free on the right, so a shape picked on the canvas reads out there while it also narrows the list. A port of what App.tsx does for the Failures tab,
-/// with the same rules: it is there only where the folder has an analysis (or a file of one to complain about) and not while editing; a flow that was
+/// with the same rules: it is always there, and stays open while editing, where it carries the forms; a flow that was
 /// playing waits behind it; the Performance tab and it never show at once, because load and risk would draw over each other.
 /// </summary>
 internal sealed partial class ReaderView
@@ -24,8 +24,8 @@ internal sealed partial class ReaderView
     /// <summary>The tab is always there. With no analysis its panel says so; with only a broken file of one it says what is wrong.</summary>
     private bool ShowFailures => _folder is not null;
 
-    /// <summary>While editing the tab is greyed out: the analyses have no forms here yet, and the marks would sit on a model that is changing.</summary>
-    private bool CanFailures => !Editing && ShowFailures;
+    /// <summary>The tab stays open while editing: the analyses have forms, and the marks follow the model as it changes.</summary>
+    private bool CanFailures => ShowFailures;
 
     /// <summary>The navigator's tab is Failures (chosen on its rail or its strip, or by M) and the folder has an analysis to show.</summary>
     private bool FailuresOpen => _tab == PanelTab.Failures && CanFailures;
@@ -88,6 +88,7 @@ internal sealed partial class ReaderView
         _failuresPanel.FlowShown += ShowFlow;
         _failuresPanel.SeenInRun += SeenInRun;
         _failuresPanel.Copied += format => _ = CopyAnalysisAsync(format);
+        _failuresPanel.CreateClicked += () => SetEditing(true);
         _failuresPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work (and its tab stays the one Esc closes)
     }
 
@@ -181,7 +182,8 @@ internal sealed partial class ReaderView
     private void ShowFailuresPanel(Model model, string view)
     {
         var folder = _folder!;
-        _failuresPanel.Show(new FailuresShown(model, view, AnalysisKey, PickedMode is null ? null : _modeId, _band, _left, PickedPart, folder.Runs ?? new IdMap<LoadRun>(), folder.Problems, folder.FailureProblems ?? []));
+        EditRun? edit = Editing ? RunAsync : null;
+        _failuresPanel.Show(new FailuresShown(model, view, AnalysisKey, PickedMode is null ? null : _modeId, _band, _left, PickedPart, folder.Runs ?? new IdMap<LoadRun>(), folder.Problems, folder.FailureProblems ?? [], edit, !Editing && !ReadOnly));
     }
 
     /// <summary>The Left and Right keys step through the list as it is drawn: the rows of this view, then the others.</summary>

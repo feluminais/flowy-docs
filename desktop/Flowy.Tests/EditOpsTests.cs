@@ -64,6 +64,12 @@ public class EditOpsTests
             case "setGroupKind": return EditOps.SetGroupKind(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!);
             case "groupSteps": return EditOps.GroupSteps(doc, Str(s, "id")!, Str(s, "group")!, Str(s, "kind")!, s["first"]!.GetValue<int>(), s["last"]!.GetValue<int>());
             case "deleteFlow": return EditOps.DeleteFlow(doc, Str(s, "id")!);
+            case "putAnalysis": return EditOps.PutAnalysis(doc, Str(s, "id")!, Str(s, "name")!);
+            case "deleteAnalysis": return EditOps.DeleteAnalysis(doc, Str(s, "id")!);
+            case "putMode": return EditOps.PutMode(doc, Str(s, "analysis")!, Str(s, "id")!, Str(s, "mode")!, Str(s, "on"), Str(s, "from"), Str(s, "to"));
+            case "deleteMode": return EditOps.DeleteMode(doc, Str(s, "analysis")!, Str(s, "id")!);
+            case "updateMode": return EditOps.UpdateMode(doc, Str(s, "analysis")!, Str(s, "id")!, ModeChanges.Of((OrderedDictionary<string, object?>)YamlWriterTests.Tree(s["changes"])!));
+            case "updateAnalysis": return EditOps.UpdateAnalysis(doc, Str(s, "id")!, Str(s["changes"]!, "name"), Str(s["changes"]!, "about"), Str(s["changes"]!, "scope"));
             case "placeBoxes":
                 return EditOps.PlaceBoxes(doc, Str(s, "view")!, s["boxes"]!.AsObject().Select(b => (b.Key, b.Value![0]!.GetValue<double>(), b.Value![1]!.GetValue<double>())));
             case "setLines": return EditOps.SetLines(doc, Str(s, "style"));
@@ -146,6 +152,12 @@ public class EditOpsTests
         Assert.True(Differences(initial, files) == "", Differences(initial, files));
         Assert.Contains("failures/ordering.yaml", files.Keys);
         RunScript(Start("delete"), remove["results"]!.AsArray(), 20);
+    }
+
+    [Fact]
+    public void The_failure_forms_write_what_the_typescript_ops_write_and_a_refusal_says_the_same_words()
+    {
+        RunScript(Start("delete"), Expected()["failuresEdit"]!["results"]!.AsArray(), 30);
     }
 
     [Fact]

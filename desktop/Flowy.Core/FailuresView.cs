@@ -65,6 +65,17 @@ public static class FailuresView
     public static int? StepOf(string? step) =>
         step is not null && double.TryParse(JsCompat.JsTrim(step), NumberStyles.Float, CultureInfo.InvariantCulture, out var n) && double.IsFinite(n) && Math.Abs(n) < int.MaxValue ? (int)Math.Truncate(n) : null;
 
+    /// <summary>The changes that put a shape's mode on a line that starts at that shape (the first it has), or none when no line does: a line mode needs one that exists.</summary>
+    public static ModeChanges? ToLine(Model model, FailureMode m)
+    {
+        var on = !string.IsNullOrEmpty(m.On) && model.GetObject(m.On) is not null ? m.On : null;
+        var to = on is null ? null : model.Connections.FirstOrDefault(c => c.From == on && c.To is not null && model.GetObject(c.To) is not null)?.To;
+        return on is null || to is null ? null : new ModeChanges().Text("on", "").Text("from", on).Text("to", to);
+    }
+
+    /// <summary>The changes that put a line's mode on the shape it starts at.</summary>
+    public static ModeChanges ToShape(FailureMode m) => new ModeChanges().Text("on", m.From ?? "").Text("from", "").Text("to", "");
+
     /// <summary>What a reader calls the shape or line picked on the canvas: as <see cref="Failures.PartName"/> names a mode's part.</summary>
     public static string PartText(Model model, FailurePart part) => part switch
     {

@@ -74,15 +74,9 @@
     "orEmpty"
   ],
   "ops": [
-    "deleteAnalysis",
     "deleteIcon",
-    "deleteMode",
     "disconnect",
-    "putAnalysis",
-    "putIcon",
-    "putMode",
-    "updateAnalysis",
-    "updateMode"
+    "putIcon"
   ],
   "perf/analyse": [
     "KNEE_LATENCY",
