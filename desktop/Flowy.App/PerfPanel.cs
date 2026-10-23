@@ -307,6 +307,7 @@ internal sealed class PerfPanel : StackPanel
     private string? _dataOff; // why Data is blocked for the run on show, or null
     private Button? _callsButton;
     private Button? _dataButton;
+    private Button? _mixedButton;
     private bool _pane; // a panel inside a pane of a comparison: no run picker or title, the pane has them
     private RunActions? _actions; // what the header offers for comparing, if anything
     private StackPanel? _actionsHost; // the buttons and, under them, the picker one of them opened
@@ -409,6 +410,8 @@ internal sealed class PerfPanel : StackPanel
     internal Button RampButton => _ramp;
 
     internal Button? DataButton => _dataButton;
+
+    internal Button? MixedButton => _mixedButton;
 
     internal Slider Slider => _slider;
 
@@ -885,14 +888,20 @@ internal sealed class PerfPanel : StackPanel
         }
     }
 
-    /// <summary>The Count switch: Calls and Data, one pressed. Data is greyed out with the reason as its tooltip when the run gives no size of a call, never hidden.</summary>
+    private const string CallsTip = "Stripes along the lines for the calls a second";
+    private const string DataTip = "Blobs on the lines for the data a second";
+    private const string MixedTip = "Both: stripes for the calls and blobs for the data";
+
+    /// <summary>The Count switch: Calls, Data and Mixed, one pressed. Data and Mixed are greyed out with the reason as their tooltip when the run gives no size of a call, never hidden.</summary>
     private StackPanel MeasureRow()
     {
         _callsButton = new Button();
         _dataButton = new Button { IsEnabled = _dataOff is null };
-        CompareBar.Make(_callsButton, null, "Calls", "Calls", "Lines and dots count calls a second", () => MeasureChosen?.Invoke(LoadMeasure.Calls));
-        CompareBar.Make(_dataButton, null, "Data", "Data", _dataOff ?? "Lines and dots count data a second (calls times their size)", () => MeasureChosen?.Invoke(LoadMeasure.Data));
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { Muted("Count"), _callsButton, _dataButton } };
+        _mixedButton = new Button { IsEnabled = _dataOff is null };
+        CompareBar.Make(_callsButton, null, "Calls", "Calls", CallsTip, () => MeasureChosen?.Invoke(LoadMeasure.Calls));
+        CompareBar.Make(_dataButton, null, "Data", "Data", _dataOff ?? DataTip, () => MeasureChosen?.Invoke(LoadMeasure.Data));
+        CompareBar.Make(_mixedButton, null, "Mixed", "Mixed", _dataOff ?? MixedTip, () => MeasureChosen?.Invoke(LoadMeasure.Mixed));
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { Muted("Count"), _callsButton, _dataButton, _mixedButton } };
         row.Children[0].VerticalAlignment = VerticalAlignment.Center;
         ShowMeasure();
         return row;
@@ -902,12 +911,20 @@ internal sealed class PerfPanel : StackPanel
     {
         _callsButton?.Classes.Set("pressed", _measure == LoadMeasure.Calls);
         _dataButton?.Classes.Set("pressed", _measure == LoadMeasure.Data);
-        if (_dataButton is null) return;
-        _dataButton.IsEnabled = _dataOff is null;
-        ToolTip.SetTip(_dataButton, _dataOff ?? "Lines and dots count data a second (calls times their size)");
+        _mixedButton?.Classes.Set("pressed", _measure == LoadMeasure.Mixed);
+        if (_dataButton is not null)
+        {
+            _dataButton.IsEnabled = _dataOff is null;
+            ToolTip.SetTip(_dataButton, _dataOff ?? DataTip);
+        }
+        if (_mixedButton is not null)
+        {
+            _mixedButton.IsEnabled = _dataOff is null;
+            ToolTip.SetTip(_mixedButton, _dataOff ?? MixedTip);
+        }
     }
 
-    /// <summary>What the lines and dots count now, and why Data is blocked if it is: the key and the switch follow. The caller moves the panel to its place next, which draws the key again.</summary>
+    /// <summary>What the lines show now, and why Data and Mixed are blocked if they are: the key and the switch follow. The caller moves the panel to its place next, which draws the key again.</summary>
     public void SetMeasure(LoadMeasure measure, string? dataOff)
     {
         if (measure == _measure && dataOff == _dataOff) return;
@@ -925,9 +942,10 @@ internal sealed class PerfPanel : StackPanel
     {
         IReadOnlyList<LineTraffic> drawn = _still ? [] : frame.Traffic.Lines; // reduced motion draws no traffic, so the key says nothing of it
         var marks = PerfView.FailureMarksOf(drawn);
-        var source = Perf.SourceKeyOf(run, drawn, _measure, _measure == LoadMeasure.Data ? Perf.CallSize(_runs!, _runId) : null);
+        var source = Perf.SourceKeyOf(run, drawn, _measure, _measure == LoadMeasure.Calls ? null : Perf.CallSize(_runs!, _runId));
+        var shown = PerfView.LineMarksOf(drawn);
         var states = StateKey.Distinct(_states.Values);
-        var shape = $"{_measure}|{marks}|{source}|{string.Join(",", states)}";
+        var shape = $"{_measure}|{marks}|{shown}|{source}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
         var dark = AppTheme.IsDark(this);
@@ -936,7 +954,9 @@ internal sealed class PerfPanel : StackPanel
             (new HeatSwatch(), "Busy"),
             (KeyRow.Count("3"), "Waiting"),
             (KeyRow.Mark("none"), "Not measured"),
-            (KeyRow.Dot(source?.Color, dark), "A call (slower dots, slower calls)"),
+            shown.Stripes ? (KeyRow.Stripes(source?.Color, dark, false), "Calls (denser, faster)") : null,
+            shown.Blobs ? (KeyRow.Dot(source?.Color, dark), "Data (slower dots, slower calls)") : null,
+            shown.Bare ? (KeyRow.Stripes(null, dark, true), "No numbers") : null,
             marks.Fade ? (KeyRow.Mark("call", "bad"), "A call that fails") : null,
             marks.Lost ? (KeyRow.Mark("lost"), "Lost call") : null,
             marks.Rejected ? (KeyRow.Rejected(), "Rejected call") : null,
@@ -974,7 +994,7 @@ internal sealed class PerfPanel : StackPanel
     public void SetPos(double pos, bool ramping)
     {
         if (_run is not { } run || _model is not { } model || _dials is { Mode: not Perf.ModeSingle }) return;
-        SetPos(pos, ramping, Perf.FrameAt(model, run, PerfView.LoadAt(run, pos), _view, _measure, _measure == LoadMeasure.Data ? Perf.CallSize(_runs!, _runId) : null));
+        SetPos(pos, ramping, Perf.FrameAt(model, run, PerfView.LoadAt(run, pos), _view, _measure, _measure == LoadMeasure.Calls ? null : Perf.CallSize(_runs!, _runId)));
     }
 
     /// <summary>
@@ -1198,8 +1218,9 @@ internal sealed class PerfPanel : StackPanel
         IReadOnlyList<LineTraffic> drawn = _still ? [] : frame.Traffic.Lines; // reduced motion draws no traffic, so the key says nothing of it
         var marks = PerfView.FailureMarksOf(drawn);
         var keyed = Perf.SourceKeyAt(_runs!, _runId, drawn, _measure);
+        var shown = PerfView.LineMarksOf(drawn);
         var states = StateKey.Distinct(_states.Values);
-        var shape = $"{_measure}|{marks}|{string.Join(";", keyed.Sources.Select(s => $"{s.Id}/{s.Color}/{s.Scale}/{s.Bigger}"))}|{keyed.ScaledDown}|{keyed.Other}|{string.Join(",", states)}";
+        var shape = $"{_measure}|{marks}|{shown}|{string.Join(";", keyed.Sources.Select(s => $"{s.Id}/{s.Color}/{s.Scale}/{s.Bigger}"))}|{keyed.ScaledDown}|{keyed.Other}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
         var dark = AppTheme.IsDark(this);
@@ -1208,8 +1229,10 @@ internal sealed class PerfPanel : StackPanel
             (new HeatSwatch(), "Busy"),
             (KeyRow.Count("3"), "Waiting"),
             (KeyRow.Mark("none"), "Not measured"),
-            (KeyRow.Dot(Perf.OtherColor, dark), "A call (slower dots, slower calls)"),
         };
+        if (shown.Stripes) items.Add((KeyRow.Stripes(Perf.OtherColor, dark, false), "Calls (denser, faster)"));
+        if (shown.Blobs) items.Add((KeyRow.Dot(Perf.OtherColor, dark), "Data (slower dots, slower calls)"));
+        if (shown.Bare) items.Add((KeyRow.Stripes(null, dark, true), "No numbers"));
         if (marks.Fade) items.Add((KeyRow.Mark("call", "bad"), "A call that fails"));
         if (marks.Lost) items.Add((KeyRow.Mark("lost"), "Lost call"));
         if (marks.Rejected) items.Add((KeyRow.Rejected(), "Rejected call"));

@@ -312,6 +312,12 @@ export function sourceCss(color: string | undefined): string | undefined {
   return pair === undefined ? undefined : pair[0] === pair[1] ? pair[0] : `light-dark(${pair[0]}, ${pair[1]})`
 }
 
+/** Which marks the lines on screen use now, for the key to draw: stripes (calls), blobs (data), and plain stripes for a line with no numbers. */
+export function lineMarks(lines: readonly LineTraffic[]): { stripes: boolean; blobs: boolean; bare: boolean } {
+  const real = lines.filter(l => l.bare !== true)
+  return { stripes: real.some(l => l.stripes !== undefined), blobs: real.some(l => l.dots !== undefined || l.perSecond > 0), bare: lines.length > real.length }
+}
+
 /**
  * Which kinds of failing call are on the lines now, for the key to draw: the usual fade (for a line that fails without saying how, and also while
  * no line fails, so the key of a run that sets nothing is as it was), a lost call, a rejected one.

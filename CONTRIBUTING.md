@@ -117,7 +117,7 @@ It has eight views:
 - Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout, Lost, Rejected, Intercepted twice, Duplicated, Delayed, Share of requests), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
 - Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
-- Colour and scale: the run Colour and scale gives each shape one thing a run's `source` does (dots in proportion to the calls, the same dots at another pace, bigger calls, a line scaled down, lost calls, rejected calls).
+- Colour and scale: the run Colour and scale gives each shape one thing a run's `source` does (blobs counted by a formula, the same blobs at another pace, bigger calls, a line scaled down, lost calls, rejected calls).
 - Several sources: the runs Several sources added and Several sources tested together put two sources of requests on one line, add a shared shape past full, and leave one line with no source named.
 - Shape states: the flows Every state and State inside a shape.
 - Compare: the flows Compare before and Compare after are a pair (`compare:` on the newer one, with a note), built so Show changes marks every kind of change (New, Removed and Changed) on steps, shapes and lines.
@@ -260,8 +260,9 @@ Before merging a change to the app, look at what it could affect, in a real wind
       carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
       move between tested loads (← from the first goes down to 0 req/s, where nothing runs on the lines); P ramps up (from the top it starts again from no load) and a click on the slider stops it; drag the slider: the
       load follows the thumb in small steps, "Between 50 and 100, estimated" shows between tested loads, and the thumb pulls onto a tested load, which reads "Tested"; a picked shape or
-      line reads out its numbers; under Ramp a Count switch has Calls pressed, and Data makes a line of larger calls thicker with more dots, turns the Key's
-      "More calls" into "More data" and, for a run that says it, "1 dot = 4 calls/s" into "1 dot = 2 KB/s" (a run with no `bytes` greys Data out, with the reason in its tooltip);
+      line reads out its numbers; under Ramp a Count switch has Calls, Data and Mixed. This run gives no sizes of a call, so it opens on Calls (stripes moving along the lines, closer
+      and quicker with more calls) and Data and Mixed are greyed out with the reason in their tooltip. A run with sizes opens on Mixed: stripes for the calls and blobs for the data. Data draws blobs
+      only and turns the Key's "More calls" into "More data" and the scale into KB/s (a line with no numbers under the view is plain stripes, "No numbers" in the Key);
       under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%) and red dashes (First
       struggles), and the Key at the bottom draws each mark it names (Busy, Waiting, Not measured, a call, a failing call, More calls) with no
       sentences; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
@@ -398,13 +399,13 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       triangle on its corner (Degraded), drains its outline with an hourglass (Stopping), goes grey and dashed with a power symbol (Stopped), shows a short arc circling it (Restarting) and
       is plain again. The key under the progress bar names only the states on screen. Open State inside a shape: at step 2 the Holder has a dashed ring with a power symbol that reads "Stopped inside" in the key,
       and at step 3 it shows its own amber state instead. With the system's animation effects off the dimming, outlines and symbols stay and nothing moves.
-- [ ] In Colour and scale, press T and then Home: every line carries blue dots, Few calls 1, Ten times the calls 10, Same calls, slower 1 (moving slower than
-      Few calls), and Bigger calls has dots smaller than the usual. The Key says "1 dot = 50 calls/s" and "Bigger call". Press End: Few calls shows 16 dots and
+- [ ] In Colour and scale, press T and then Home: every line carries blue stripes and blue dots (Mixed), Few calls 1, Ten times the calls 10, Same calls, slower 1 (moving slower than
+      Few calls), and Bigger calls has dots smaller than the usual. The Key says what a dot stands for ("1 dot = 25 KB/s") and "Bigger call"; Calls draws the stripes only and Data the dots only. Press End: Few calls shows 16 dots and
       Ten times the calls 24, and the Key adds "Scaled down" (click that line: its numbers say it too). Bigger calls has dots twice as wide, Lost calls pops a ring where each failing dot dies
       ("Lost call" in the Key), and Rejected calls runs its failing dots to the end of the line, stops them at a red bar and sends them back red ("Rejected call").
       Change `color: blue` in `perf/scale.yaml` to `"#e8590c"`: the dots and the Key's dots turn orange, in both themes. With reduced motion there are no dots and the Key says nothing of the source.
-- [ ] In Performance, press T and then Home: the lines are thin and no outline is red. Press Ramp: Traffic's line thickens, Latency's dots slow down,
-      Failing calls sends red dots, Strain and Failing shape run from green to red, Queue and Rolled up grow a number, and Not measured stays plain at every load.
+- [ ] In Performance, press T and then Home: the lines are thin and no outline is red. Press Ramp: Traffic's line thickens and its stripes bunch up and speed up,
+      Failing calls turns every few stripes red, Strain and Failing shape run from green to red, Queue and Rolled up grow a number, and Not measured stays plain at every load.
 
 Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
 

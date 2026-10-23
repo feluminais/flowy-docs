@@ -12,7 +12,7 @@ levels:
       - { from: a-in, to: gateway, rate: 500, p50: 20, bytes: 800, by: { a: { rate: 500, bytes: 800 } } }
       - { from: b-in, to: gateway, rate: 50, p50: 20, bytes: 100, by: { b: { rate: 50, bytes: 100 } } }
       - { from: gateway, to: shared, rate: 550, p50: 39, errors: 0, by: { a: { rate: 500, bytes: 800 }, b: { rate: 50, bytes: 100 } } }
-      - { from: gateway, to: audit, rate: 28, p50: 13 }
+      - { from: gateway, to: audit, rate: 28, bytes: 400, p50: 13 }
   - load: { a: 500, b: 500 }
     overall: { rate: 1000, p50: 74, p95: 222, errors: 0 }
     objects:
@@ -21,7 +21,7 @@ levels:
       - { from: a-in, to: gateway, rate: 500, p50: 37, bytes: 800, by: { a: { rate: 500, bytes: 800 } } }
       - { from: b-in, to: gateway, rate: 500, p50: 37, bytes: 100, by: { b: { rate: 500, bytes: 100 } } }
       - { from: gateway, to: shared, rate: 1000, p50: 74, errors: 0, by: { a: { rate: 500, bytes: 800 }, b: { rate: 500, bytes: 100 } } }
-      - { from: gateway, to: audit, rate: 50, p50: 25 }
+      - { from: gateway, to: audit, rate: 50, bytes: 400, p50: 25 }
   - load: { a: 4000, b: 50 }
     overall: { rate: 4050, p50: 76, p95: 228, errors: 0 }
     objects:
@@ -30,7 +30,7 @@ levels:
       - { from: a-in, to: gateway, rate: 4000, p50: 38, bytes: 800, by: { a: { rate: 4000, bytes: 800 } } }
       - { from: b-in, to: gateway, rate: 50, p50: 38, bytes: 100, by: { b: { rate: 50, bytes: 100 } } }
       - { from: gateway, to: shared, rate: 4050, p50: 76, errors: 0, by: { a: { rate: 4000, bytes: 800 }, b: { rate: 50, bytes: 100 } } }
-      - { from: gateway, to: audit, rate: 203, p50: 25 }
+      - { from: gateway, to: audit, rate: 203, bytes: 400, p50: 25 }
   - load: { a: 4000, b: 500 }
     overall: { rate: 4500, p50: 88, p95: 264, errors: 0.02 }
     objects:
@@ -39,4 +39,4 @@ levels:
       - { from: a-in, to: gateway, rate: 4000, p50: 44, bytes: 800, by: { a: { rate: 4000, bytes: 800 } } }
       - { from: b-in, to: gateway, rate: 500, p50: 44, bytes: 100, by: { b: { rate: 500, bytes: 100 } } }
       - { from: gateway, to: shared, rate: 4500, p50: 88, errors: 0.02, by: { a: { rate: 4000, bytes: 800 }, b: { rate: 500, bytes: 100 } } }
-      - { from: gateway, to: audit, rate: 225, p50: 29 }
+      - { from: gateway, to: audit, rate: 225, bytes: 400, p50: 29 }

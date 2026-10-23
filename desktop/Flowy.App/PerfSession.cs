@@ -49,16 +49,23 @@ internal sealed class PerfSession
     public bool Ramping { get; private set; }
 
     /// <summary>What the lines and dots count, as the reader chose it (see <see cref="MeasureNow"/> for what is drawn).</summary>
-    public LoadMeasure Chosen { get; private set; }
+    public LoadMeasure? Chosen { get; private set; }
 
     /// <summary>Why Data is blocked for the run on show (it gives no size of a call), or null.</summary>
     public string? DataOff => Runs is { } runs ? Perf.DataOff(runs, PerfView.ActiveRun(runs, RunId)) : null;
 
     /// <summary>What is drawn: Data when it was chosen and the run gives the size of a call, else Calls.</summary>
-    public LoadMeasure MeasureNow => Chosen == LoadMeasure.Data && DataOff is null ? LoadMeasure.Data : LoadMeasure.Calls;
+    public LoadMeasure MeasureNow
+    {
+        get
+        {
+            var wanted = Chosen ?? (DataOff is null ? LoadMeasure.Mixed : LoadMeasure.Calls);
+            return wanted != LoadMeasure.Calls && DataOff is not null ? LoadMeasure.Calls : wanted;
+        }
+    }
 
     /// <summary>The size of a call the Data measure counts against, or null under Calls.</summary>
-    public double? DataSize => MeasureNow == LoadMeasure.Data && Runs is { } runs ? Perf.CallSize(runs, PerfView.ActiveRun(runs, RunId)) : null;
+    public double? DataSize => MeasureNow != LoadMeasure.Calls && Runs is { } runs ? Perf.CallSize(runs, PerfView.ActiveRun(runs, RunId)) : null;
 
     /// <summary>The switch was pressed: the lines and dots count the other way.</summary>
     public void ChooseMeasure(LoadMeasure measure)

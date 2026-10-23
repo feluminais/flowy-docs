@@ -46,34 +46,37 @@ with a small curve of each across all of them. A shape that holds others takes t
 you see which system is struggling and zoom in to find where. The tab opens on the load where things first struggle, if anything
 does, and **Go there** gets back to it.
 
-**Colour and scale.** A run can say what its dots look like and how many there are, so the picture reads as a ratio. Add a `source` at the top
+**Calls, Data and Mixed.** A line shows two different things, and the tab draws them with two different marks. **Stripes** moving along the line are the calls: the more calls a second,
+the closer together and the faster the stripes, and the thicker the line. **Blobs** on the line are data: the more bytes a second (the calls times the size of a call, `bytes`), the more blobs. So a line of a
+few large calls has few stripes and many blobs, and a line of many small ones the other way round. Under **Count** the tab has three views: **Calls** draws stripes only, **Data** draws blobs only, and
+**Mixed** draws both on every line. Mixed is where a run opens when it gives both a `rate` and `bytes`, which is why a run is best measured with both: say the calls a second and the size of a call
+on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out with the reason in their tooltip. A run with neither (a connection with no numbers, or a run that
+measures only shapes) is drawn with plain stripes at a middling pace, so its lines still show that something runs on them; the key calls them **No numbers**, and a line that has numbers keeps its own.
+Data counts against the mean size of a call over the whole run, rounded to 1, 2 or 5 times a power of ten, so a call of that size draws the same blobs as it would calls. A line with no `bytes` is
+drawn with plain stripes under Data, as one with no `rate` is under Calls.
+
+**Colour and scale.** A run can say what its blobs look like and how many there are, so the picture reads as a ratio. Add a `source` at the top
 of the file:
 
 ```yaml
 source:
   color: blue          # a colour name or a hex, like a shape's colour
-  dot: rate / 50       # how many dots are on a line at once
-  size: bytes / 400    # how big each dot is
+  dot: rate / 50       # how many blobs are on a line at once
+  size: bytes / 400    # how big each blob is
 ```
 
 Every key is optional. `color` takes the names a shape's colour does (a named colour is a lighter one in the dark theme) or a hex such as `"#1d9e75"`, which is the
-same in both themes. `dot` and `size` are small formulas: numbers, the names `rate` (calls a second), `bytes` (the size of a call) and `p50` (the
+same in both themes, and it colours the stripes and the blobs. `dot` and `size` are small formulas: numbers, the names `rate` (calls a second), `bytes` (the size of a call) and `p50` (the
 expected call, in milliseconds), the signs `+ - * /`, brackets and a minus in front, at most 80 characters. There are no functions, and nothing is run: Flowy reads
-the text itself. A formula it can't read is a problem, and the source then keeps the usual dots, with its colour still applied.
+the text itself. A formula it can't read is a problem, and the source then keeps the usual blobs, with its colour still applied.
 
-`dot` is the number of dots on a line at once. `rate / 50` is 2 dots at 100 calls a second and 20 at 1,000, so ten times the calls is ten times the dots.
-How fast they cross still follows `p50`, so two lines with the same calls and a different `p50` have the same number of dots, moving at different speeds.
-`size` is the area of a dot: a call with twice the bytes draws a dot with twice the area, 1 is the usual dot, and the radius stays between half and two and a half
-times the usual one. A line the formula gives no value for (it needs a `bytes` the line doesn't have, say) keeps the usual dots.
+`dot` is the number of blobs (dots) on a line at once, and without it they follow the data a second. `rate / 50` is 2 blobs at 100 calls a second and 20 at 1,000, so ten times the calls is ten times the blobs, whatever they weigh; `rate * bytes / 50000` follows the data.
+How fast they cross still follows `p50`, so two lines with the same data and a different `p50` have the same number of blobs, moving at different speeds.
+`size` is the area of a blob: a call with twice the bytes draws a blob with twice the area, 1 is the usual blob, and the radius stays between half and two and a half
+times the usual one. A line the formula gives no value for (it needs a `bytes` the line doesn't have, say) keeps the usual blobs. Only Data and Mixed have blobs, so only they use these formulas.
 
-The screen holds at most 24 dots on a line. Past that the line is scaled down to 24 and says so: **Scaled down** in the key, and under the numbers of the line when you click it.
-The key also says what one dot stands for ("1 dot = 50 calls/s") when `dot` is the rate times a number and nothing else, and draws **Bigger call** when `size` is set (under Calls).
-
-**Calls and Data.** Under **Count** the tab counts the lines two ways. **Calls** is what a run always drew: the dots and the thickness follow the calls a second. **Data** follows
-the data a second instead, the calls times the size of a call (`bytes`), so a line of a few large calls reads as heavier than a line of many small ones. Under Data every dot is the usual
-size, since the size is already in how many dots there are, and the key's scale says it in data ("1 dot = 2 KB/s"). Data counts against the mean size of a call over the whole
-run, rounded to 1, 2 or 5 times a power of ten, so a call of that size draws the same under both. A run with no `bytes` anywhere has no Data: the button is greyed out and says why.
-A line with no `bytes` is not drawn under Data, as one with no `rate` is not drawn at all.
+The screen holds at most 24 blobs on a line. Past that the line is scaled down to 24 and says so: **Scaled down** in the key, and under the numbers of the line when you click it.
+The key also says what one dot stands for ("1 dot = 50 KB/s", in data) when `dot` is the rate times a number and nothing else, and draws **Bigger call** when `size` is set.
 
 `bytes` on a line that several connections land on is their mean, weighted by their `rate`. A connection can also say how its failing share fails, with
 `failure: lost` (a failing call pops where it dies) or `failure: rejected` (it runs to the end of the line, stops at a bar and comes back red). Without

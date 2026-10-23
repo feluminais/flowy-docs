@@ -245,9 +245,9 @@ public class PerfPanelTests
     {
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 1);
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls", KeyOf(panel));
+        Assert.Equal("Busy|Waiting|Not measured|Calls (denser, faster)|A call that fails|More calls", KeyOf(panel));
         Show(panel, folder, "ramp", 3);
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls", KeyOf(panel));
+        Assert.Equal("Busy|Waiting|Not measured|Calls (denser, faster)|A call that fails|More calls", KeyOf(panel));
     }
 
     [AvaloniaFact]
@@ -256,7 +256,10 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
+        Assert.Equal("Busy|Waiting|Not measured|Calls (denser, faster)|No numbers|Lost call|Rejected call|More calls", KeyOf(panel)); // calls are stripes: no dots, so no scale or bigger call
+        panel.SetMeasure(LoadMeasure.Mixed, null);
+        panel.SetPos(0, false);
+        Assert.Equal("Busy|Waiting|Not measured|Calls (denser, faster)|Data (slower dots, slower calls)|No numbers|Lost call|Rejected call|More calls|1 dot = 50 KB/s|Bigger call", KeyOf(panel));
     }
 
     [AvaloniaFact]
@@ -271,15 +274,20 @@ public class PerfPanelTests
         var key = KeyOf(panel);
         Assert.Contains("More data", key);
         Assert.DoesNotContain("More calls", key);
-        Assert.DoesNotContain("Bigger call", key);
+        Assert.DoesNotContain("Calls (denser, faster)", key); // data is blobs only
         Assert.Matches(@"1 dot = [\d.]+ (K|M)?B/s", key);
+        panel.SetMeasure(LoadMeasure.Mixed, null);
+        panel.SetPos(1, false);
+        Assert.Contains("Calls (denser, faster)", KeyOf(panel)); // mixed has both
+        Assert.Contains("Data (slower dots, slower calls)", KeyOf(panel));
         panel.SetMeasure(LoadMeasure.Calls, null);
         panel.SetPos(1, false);
-        Assert.Contains("1 dot = 50 calls/s", KeyOf(panel));
+        Assert.DoesNotContain("1 dot", KeyOf(panel)); // calls are stripes: no dots to count
 
         var (plain, plainFolder) = Open();
         Show(plain, plainFolder, "ramp", 1);
         Assert.False(plain.DataButton!.IsEnabled);
+        Assert.False(plain.MixedButton!.IsEnabled);
         Assert.Equal(Perf.NoData, ToolTip.GetTip(plain.DataButton) as string);
     }
 
@@ -290,9 +298,10 @@ public class PerfPanelTests
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
         var slider = panel.Slider;
+        panel.SetMeasure(LoadMeasure.Mixed, null);
         panel.SetPos(1, false);
         Assert.Equal(1, panel.SliderValue);
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
+        Assert.Equal("Busy|Waiting|Not measured|Calls (denser, faster)|Data (slower dots, slower calls)|No numbers|A call that fails|More calls|1 dot = 50 KB/s|Bigger call|Scaled down", KeyOf(panel));
         Assert.Same(slider, panel.Slider);
     }
 
@@ -302,6 +311,7 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         var selection = new PerfSelection(null, "customer", "web");
+        panel.SetMeasure(LoadMeasure.Data, null); // the dots are the blobs of data
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, selection));
         Assert.False(panel.ScaledDownShown);
         Assert.Contains(panel.Readings, r => r.Label == "Size of a call" && r.Value == "800 B");
@@ -317,7 +327,7 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 1, false, true, new PerfSelection(null, "customer", "web")));
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|A call that fails|More calls", KeyOf(panel));
+        Assert.Equal("Busy|Waiting|Not measured|A call that fails|More calls", KeyOf(panel));
         Assert.False(panel.ScaledDownShown);
     }
 
@@ -327,6 +337,6 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled("source: { color: teal }");
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower dots, slower calls)|Lost call|Rejected call|More calls", KeyOf(panel));
+        Assert.Equal("Busy|Waiting|Not measured|Calls (denser, faster)|No numbers|Lost call|Rejected call|More calls", KeyOf(panel));
     }
 }
