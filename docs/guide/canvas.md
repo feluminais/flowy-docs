@@ -39,9 +39,10 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   how many shapes and flows are inside each, a dot where something is wrong, and a filter. It sorts as
   VS Code's Explorer does: shapes that hold others first, then the rest, each by name in any case, and
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
-  or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow, each
-  level's by name: first those in the level you're in, then all the others under the level they play in,
-  and a click goes there and plays it. In the browser version a YAML tab (Y) beside them shows the files
+  or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow as the
+  folders they are filed in under `flows/`, a folder before the flows beside it and the flows by file name, so `01-place-order` comes before `02-pay`.
+  A click goes to the level a flow plays in and plays it. The tags in use sit above the list: press one to keep the flows that have it, or press
+  several to keep those with any of them. The search matches names, file names, folders and tags. In the browser version a YAML tab (Y) beside them shows the files
   as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes, flows,
   failure modes and runs there are in all. A Performance icon (T) and a Failures icon (M) sit with them, whether or not the folder has a
   load-test run or a failure analysis: with none, their panels offer to **Create** one. See [Performance](performance.md#performance) and
@@ -119,7 +120,7 @@ checks, and write the same text, so a change made in one looks the same in git a
   to (or the same shape again, for a step it does on its own), type what happens and press Enter.
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
   delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
-  the flow for editing instead of playing it. A flow's form has **Compare with**, which links it to an older flow ([Compare](compare.md#making-a-pair)).
+  the flow for editing instead of playing it. A flow's form has a **Folder** (type a new one, or pick one that is there; an empty field puts the flow at the top of `flows/`), its **Tags**, and **Compare with**, which links it to an older flow ([Compare](compare.md#making-a-pair)). A move changes only where the file is. A tag is a button to press on or off, and a field adds a tag of your own.
 - Each step's **Animation** is a form of drawn choices: the way it travels (None, Send, Call, Callback, Event) and the way its request ends (Arrives, Fail,
   Timeout, Lost, Rejected, Intercepted, Duplicated, Delayed), then a share of the requests, a reason, and for an interception the shape that takes it or a name. A choice
   the step cannot have is dimmed with the reason in its tooltip: an outcome needs a way to travel, Timeout needs a call, and a callback or a step on one shape has
@@ -165,7 +166,7 @@ until you pick an older one.
 | --- | --- | --- |
 | You | An edit in Flowy | Moved Checkout, Renamed Cart to Basket, Connected Checkout to Stripe, Tidied Ordering |
 | AI | A write through the MCP server | AI: put_object menu-cache |
-| Outside | Files changed some other way | Changed outside Flowy: flows/capture-payment.yaml |
+| Outside | Files changed some other way | Changed outside Flowy: flows/payments/capture-payment.yaml |
 | Restored | A restore (below) | Restored the version from 14:02 |
 
 The first step, **First seen**, is the folder as Flowy found it, and a change made while Flowy was closed shows up as a step the next

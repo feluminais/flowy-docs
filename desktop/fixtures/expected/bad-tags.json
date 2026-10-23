@@ -1,0 +1,6 @@
+{
+  "parseError": {
+    "file": "flows/oops.yaml",
+    "message": "\"tags\" must be a list of words"
+  }
+}

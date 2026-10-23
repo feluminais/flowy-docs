@@ -1135,7 +1135,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <FlowsTab model={model} view={view} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} />
+              <FlowsTab model={model} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} />
               {rowPicker}
             </NavPanel>
           )}

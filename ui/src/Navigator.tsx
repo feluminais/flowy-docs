@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode, Ref } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
-import { ROOT } from '../../src/core/model.ts'
+import { ROOT, tagKey } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
-import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
-import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
+import { flowList, outline, outlineKey } from '../../src/core/outline.ts'
+import type { FlowRef, FlowTag, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
 import type { PickAt } from './ComparePicker.tsx'
-import { Activity, Bolt, ChevronRight, Close, Columns, FileCode, Home, Info, Link, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
+import { Activity, Bolt, ChevronRight, Close, Columns, FileCode, Folder, Home, Info, Link, Pencil, Play, Route, Search as SearchIcon, Tag, Explorer as ExplorerIcon } from './icons.tsx'
 import { keyOf } from './keymap.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
@@ -176,32 +176,63 @@ function RowCompareButton({ flow, name, compare }: { flow: string; name: string;
   )
 }
 
+/** How far each level of folders is moved in. */
+const INDENT = 16
+/** A row's own mark has this much room before it: the arrow of a folder, which a flow leaves empty so its mark lines up with its folder's. */
+const TWIST = 22
+
+/** A tag as a small word with the mark of a tag, beside a count when there is one. On a flow's row it only names; in the filter bar it is a button. */
+function TagWord({ tag }: { tag: string }) {
+  return <span className="tagword"><Tag size={11} />{tag}</span>
+}
+
 /**
- * Every flow in the documentation: first those that play in the level you are in, then all the others under the level they play in.
- * Picking one goes to its level and plays it (or, while editing, opens it for editing). A flow in a pair has a link mark, and its partners are listed together.
+ * The tags in use as buttons, each with how many flows have it. Pressing one keeps only the flows that have it, or any of those pressed; pressing it again lets them back.
+ * It says nothing of tags that are not in use.
  */
-export function FlowsTab({ model, view, editing, canEdit, current, compare, onOpen }: { model: Model; view: string; editing: boolean; canEdit: boolean; current?: string; compare: RowCompare; onOpen: (flow: FlowRef) => void }) {
+function TagBar({ tags, picked, onToggle }: { tags: FlowTag[]; picked: readonly string[]; onToggle: (tag: string) => void }) {
+  return (
+    <div className="tagbar" role="group" aria-label="Tags">
+      {tags.map(t => (
+        <button key={tagKey(t.tag)} type="button" className="tagchip" aria-pressed={picked.includes(tagKey(t.tag))} onClick={() => onToggle(tagKey(t.tag))}>
+          <Tag size={11} />{t.tag}<span className="muted">{t.count}</span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Every flow in the documentation as the folders it is filed in (the folders under flows/ in the repo), a folder first and then its flows by file name.
+ * Picking a flow goes to the level it plays in and plays it (or, while editing, opens it for editing). The tags in use filter the list, and so does the search.
+ * A flow in a pair has a link mark.
+ */
+export function FlowsTab({ model, editing, canEdit, current, compare, onOpen }: { model: Model; editing: boolean; canEdit: boolean; current?: string; compare: RowCompare; onOpen: (flow: FlowRef) => void }) {
   const [query, setQuery] = useState('')
   const [closed, setClosed] = useState<ReadonlySet<string>>(new Set())
-  const groups = useMemo(() => flowGroups(model, view, { editing }), [model, view, editing])
-  const needle = query.trim().toLowerCase()
-  const keep = (f: FlowRef) => needle === '' || f.name.toLowerCase().includes(needle) || f.id.includes(needle)
-  const here = groups.here.filter(keep)
-  const elsewhere = groups.elsewhere.map(g => ({ ...g, flows: g.flows.filter(keep) })).filter(g => g.flows.length > 0)
-  const row = (f: FlowRef) => (
+  const [picked, setPicked] = useState<readonly string[]>([])
+  const list = useMemo(() => flowList(model, { editing, query, tags: picked, closed }), [model, editing, query, picked, closed])
+  // A tag that no flow has any more is no filter: its button is gone, so it could not be let go of.
+  const alive = useMemo(() => picked.filter(p => list.tags.some(t => tagKey(t.tag) === p)), [picked, list.tags])
+  useEffect(() => {
+    if (alive.length !== picked.length) setPicked(alive)
+  }, [alive, picked])
+  const filtering = query.trim() !== '' || picked.length > 0
+  const flows = list.rows.flatMap(r => (r.kind === 'flow' ? [r.flow] : []))
+  const toggleFolder = (path: string) => setClosed(c => { const next = new Set(c); if (next.has(path)) next.delete(path); else next.add(path); return next })
+  const toggleTag = (key: string) => setPicked(p => (p.includes(key) ? p.filter(k => k !== key) : [...p, key]))
+  const row = (f: FlowRef, depth: number) => (
     <div key={f.id} className="flow-item">
-      <button className="flow-row" aria-current={f.id === current} onClick={() => onOpen(f)}>
+      <button className="flow-row" aria-current={f.id === current} style={{ paddingLeft: 6 + INDENT * depth + TWIST }} title={nameOf(model, f.view)} onClick={() => onOpen(f)}>
         {editing ? <Pencil size={15} /> : <Play size={15} />}
         <span className="name">{f.name}</span>
         {f.linked && <LinkedMark />}
         <span className="muted">{f.steps === 0 ? 'no steps yet' : plural(f.steps, 'step')}</span>
+        {f.tags.length > 0 && <span className="flow-tags">{f.tags.map(t => <TagWord key={tagKey(t)} tag={t} />)}</span>}
       </button>
       <RowCompareButton flow={f.id} name={f.name} compare={compare} />
     </div>
   )
-  const otherCount = groups.total - groups.here.length
-  // The key shows a mark only while one is on the list: a flow in a group that is folded away is not.
-  const listed = [...here, ...elsewhere.filter(g => needle !== '' || !closed.has(g.view)).flatMap(g => g.flows)]
   return (
     <>
       <SearchField value={query} label="Find a flow" onChange={setQuery}
@@ -211,31 +242,25 @@ export function FlowsTab({ model, view, editing, canEdit, current, compare, onOp
             e.stopPropagation()
           }
         }} />
+      {list.tags.length > 0 && <TagBar tags={list.tags} picked={alive} onToggle={toggleTag} />}
       <div className="navscroll">
-        {groups.total > 0 && <h3 className="navhead"><span>This view</span><span className="muted">{groups.here.length}</span></h3>}
-        {here.length > 0 && here.map(row)}
-        {groups.here.length === 0 && groups.total > 0 && <p className="muted navnote">No flows on this view.</p>}
-        {groups.here.length > 0 && here.length === 0 && <p className="muted navnote">No matches.</p>}
-        {groups.elsewhere.length > 0 && <h3 className="navhead"><span>Other views</span><span className="muted">{otherCount}</span></h3>}
-        {elsewhere.map(g => {
-          const open = needle !== '' || !closed.has(g.view)
-          return (
-            <div key={g.view} className="flow-group">
-              <button className="group-head" aria-expanded={open} onClick={() => setClosed(c => { const next = new Set(c); if (next.has(g.view)) next.delete(g.view); else next.add(g.view); return next })}>
-                <ChevronRight size={14} />
-                <span className="name">{g.path.length > 0 ? g.path.join(' › ') : g.name}</span>
-                <span className="muted">{g.flows.length}</span>
-              </button>
-              {open && g.flows.map(row)}
-            </div>
-          )
-        })}
-        {needle !== '' && here.length === 0 && elsewhere.length === 0 && <p className="muted navnote">No flow matches “{query.trim()}”.</p>}
-        {groups.total === 0 && (editing
+        {filtering && list.total > 0 && <p className="muted navnote">{list.shown} of {plural(list.total, 'flow')}</p>}
+        {list.rows.map(r => r.kind === 'flow'
+          ? row(r.flow, r.depth)
+          : (
+            <button key={r.key} className="group-head folder" aria-expanded={r.open} style={{ paddingLeft: 6 + INDENT * r.depth }} onClick={() => toggleFolder(r.path)}>
+              <ChevronRight size={14} />
+              <Folder size={15} />
+              <span className="name">{r.name}</span>
+              <span className="muted">{r.flows}</span>
+            </button>
+          ))}
+        {filtering && list.total > 0 && list.shown === 0 && <p className="muted navnote">{query.trim() !== '' ? `No flow matches “${query.trim()}”.` : 'No flow has these tags.'}</p>}
+        {list.total === 0 && (editing
           ? <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>
           : <p className="muted navnote">No flows yet.{canEdit && <span className="hint"><kbd>E</kbd> Edit to add one</span>}</p>)}
       </div>
-      {listed.some(f => f.linked) && <LinkedKey />}
+      {flows.some(f => f.linked) && <LinkedKey />}
     </>
   )
 }
