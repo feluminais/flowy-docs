@@ -13,7 +13,11 @@ export function Camera({ fitKey, count, player, reveal, panel, nav, refitOnResiz
   const { fitView, getInternalNode, getViewport, setViewport } = useReactFlow()
   const store = useStoreApi()
   // Not useNodesInitialized: it stays false when the nodes are controlled and nobody stores their measurements.
-  const measured = useStore(s => s.nodeLookup.size === count && [...s.nodeLookup.values()].every(n => n.measured.width !== undefined))
+  const measured = useStore(s => {
+    if (s.nodeLookup.size !== count) return false
+    for (const n of s.nodeLookup.values()) if (n.measured.width === undefined) return false // no list made: this is asked on every pan and zoom
+    return true
+  })
   const zoomable = useStore(s => s.panZoom !== null) // the canvas can't move before this
   const size = useStore(s => `${s.width}x${s.height}`)
   const ready = measured && zoomable

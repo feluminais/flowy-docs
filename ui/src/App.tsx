@@ -39,7 +39,7 @@ import type { KeyActions, KeyState } from './keymap.ts'
 import { activeAnalysis, firstErrorAt, modeCount, modeIn, neighbour, rowsFor } from './failuresview.ts'
 import type { Filter } from './failuresview.ts'
 import { FailuresBody } from './Failures.tsx'
-import { LabelSpotsContext, Line, LineMarksContext, labelSpots, LineStyleContext, LineWidthsContext } from './Line.tsx'
+import { createHoverStore, LabelSpots, Line, LineHover, LineMarksContext, labelSpots, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { keepOwnLines, LINE_NAMES, ownLines } from './lines.ts'
 import { clampWidth, openTab } from './navstate.ts'
@@ -225,7 +225,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // it hasn't seen, which every render here is, and its lines have nowhere to land until the browser
   // has measured it again: they'd blink away for a frame on every drag, click and hover.
   const sizes = useRef(new Map<string, { width: number; height: number }>())
-  const [hovered, setHovered] = useState<string>() // the line the pointer is on
+  const [hover] = useState(createHoverStore) // the line the pointer is on: not state of this page (see HoverStore)
   const [searching, setSearching] = useState(false)
   const [shortcuts, setShortcuts] = useState(false) // the list ? opens
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined) // for F; set once each canvas is ready
@@ -296,6 +296,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const drawnLines = useMemo(() => (still ? NO_LINES : loadTraffic?.lines ?? NO_LINES), [still, loadTraffic]) // what the panel's key is told, so the tab makes no traffic of its own
   const chosen = side?.kind === 'objects' ? side.ids : side?.kind === 'object' ? [side.id] : [] // the shapes picked for editing, one or several
   const picked = recording ? [recording.from, recording.to] : chosen
+  const pickedSet = new Set(picked)
   // What the Failures tab draws: the badges (rolled up to what this view draws), and for a picked mode its part, what it affects, and the rest faded.
   const part: Part | undefined = side?.kind === 'object' ? { box: side.id } : side?.kind === 'line' ? { line: [side.from, side.to] } : undefined
   const failMarks = useMemo(() => (failuresOpen && analysis ? rollUp(model, analysis, view) : undefined), [failuresOpen, model, analysis, view])
@@ -309,20 +310,21 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   )
   const litClass = (id: string) => (lit === undefined ? undefined : lit.fails.includes(id) ? 'fails' : lit.affects.includes(id) ? 'affected' : 'dim')
   // While the Used by panel is open, the shapes about to go are outlined in red and the ones its focused row names in the accent colour.
-  const going = side?.kind === 'usedby' ? side.targets.flatMap(t => ('object' in t ? [t.object] : [])) : []
-  const usedClass = (id: string) => (going.includes(id) ? 'going' : flagged.includes(id) ? 'flagged' : undefined)
+  const going = new Set(side?.kind === 'usedby' ? side.targets.flatMap(t => ('object' in t ? [t.object] : [])) : [])
+  const usedClass = (id: string) => (going.has(id) ? 'going' : flagged.includes(id) ? 'flagged' : undefined)
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.
   const keptNodes = useRef<Kept<BoxNode>>(nothingKept)
   keptNodes.current = keepSame(keptNodes.current, graph.nodes.map(n => ({
     ...n,
     data: loadTraffic || failMarks || scrubbing ? { ...n.data, ...(loadTraffic ? { perf: loadTraffic.boxes[n.id] } : {}), ...(failMarks && Object.hasOwn(failMarks.boxes, n.id) ? { fail: failMarks.boxes[n.id] } : {}), ...(scrubbing ? { snap: true } : {}) } : n.data,
     className: [n.className, litClass(n.id), usedClass(n.id)].filter(Boolean).join(' ') || undefined,
-    position: moved.get(n.id) ?? n.position, selected: picked.includes(n.id), measured: sizes.current.get(n.id),
+    position: moved.get(n.id) ?? n.position, selected: pickedSet.has(n.id), measured: sizes.current.get(n.id),
   })))
   // The same objects as last time wherever a shape says the same: a hover or a drag changes one or two, and React Flow re-draws only those.
   const nodes = keptNodes.current.list as BoxNode[]
   // Inside a box, a frame named after it wraps its own boxes and follows them while they're dragged.
-  const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
+  const members = useMemo(() => new Set(graph.members), [graph])
+  const inner = view === ROOT ? [] : nodes.filter(n => members.has(n.id))
   // A click on its outline is a click on that shape: its Details open, as the rail's button opens them. While a flow is recorded or a load shows,
   // the panel has its own work, so the outline takes no click.
   const openLevelNow = recording || perfOpen ? undefined : () => {
@@ -344,10 +346,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const keptEdges = useRef<Kept<Edge>>(nothingKept)
   const edgesNow = useMemo(() => {
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
-    const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
+    const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine }).map(e => (lifted.has(e.id) ? { ...e, data: { ...e.data, lift: true } } : e))
     // A picked failure mode outlines its line and fades every other.
     return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, e.id === lit.failsLine ? 'fails' : 'dim'].filter(Boolean).join(' ') }))
-  }, [graph, selectedBox, selectedLine, hovered, pipes, lit])
+  }, [graph, selectedBox, selectedLine, pipes, lit])
   keptEdges.current = keepSame(keptEdges.current, edgesNow)
   const edges = keptEdges.current.list as Edge[] // a hover changes one or two lines, and only those draw again
   // Labels that would overlap (the lines of a selected shape) are spread along their lines. They follow the boxes, so a drag moves them.
@@ -363,7 +365,16 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   useEffect(() => {
     if (selectedBox !== undefined) reveal(selectedBox, false)
   }, [selectedBox])
-  useEffect(() => keepNav({ tab, expanded: [...expanded], navWidth, detailsWidth }), [tab, expanded, navWidth, detailsWidth])
+  // Written a moment after the last change, not on every pixel of a dragged edge (it is the whole tree's open rows each time), and at once when the page is left.
+  useEffect(() => {
+    const write = () => keepNav({ tab, expanded: [...expanded], navWidth, detailsWidth })
+    const timer = setTimeout(write, 200)
+    window.addEventListener('pagehide', write)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('pagehide', write)
+    }
+  }, [tab, expanded, navWidth, detailsWidth])
 
   const close = () => setSide(undefined)
   const closeDetails = () => {
@@ -920,8 +931,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
     if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
     else show({ kind: 'line', from: e.source, to: e.target })
   })
-  const onEdgeMouseEnter = useLatest((_: ReactMouseEvent, e: Edge) => setHovered(e.id))
-  const onEdgeMouseLeave = useLatest(() => setHovered(undefined))
+  const onEdgeMouseEnter = useLatest((_: ReactMouseEvent, e: Edge) => hover.set(e.id))
+  const onEdgeMouseLeave = useLatest(() => hover.set(undefined))
   const onPaneClick = useLatest(() => {
     didSomethingElse()
     cancelOpen()
@@ -989,9 +1000,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <LineStyleContext value={lines}>
               <LineWidthsContext value={widths}>
               <LineMarksContext value={lineMarks}>
-              <LabelSpotsContext value={spots}>
+              <LineHover value={hover}>
+              <LabelSpots spots={spots}>
               <ReactFlow
                 key={view} // a fresh canvas per view
+                className="main-flow"
                 nodes={keptFlowNodes.current.list as (BoxNode | FrameNode)[]}
                 edges={edges}
                 nodeTypes={nodeTypes}
@@ -1019,14 +1032,15 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               >
                 <Camera count={nodes.length + frame.length} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
                 {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-                <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} />
+                <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} nav={nav ? navWidth : undefined} />
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
                 {flow && stop && animated.map(m => (
                   <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
                 ))}
                 {flow && <GroupMarks marks={marks} />}
               </ReactFlow>
-              </LabelSpotsContext>
+              </LabelSpots>
+              </LineHover>
               </LineMarksContext>
               </LineWidthsContext>
             </LineStyleContext>
@@ -1072,7 +1086,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {detailsOpen && (side?.kind === 'object' || (side === undefined && view !== ROOT && !comparing)) && (
             <ObjectPanel model={model} id={side?.kind === 'object' ? side.id : view} editing={editing} problems={problems} codeBase={codeBase} run={run} onClose={closeDetails} onDelete={askDelete} state={side?.kind === 'object' && Object.hasOwn(stateMarks, side.id) ? stateMarks[side.id] : undefined}
-              onPick={id => setSide({ kind: 'object', id })} onHover={setHovered} />
+              onPick={id => setSide({ kind: 'object', id })} onHover={hover.set} />
           )}
           {detailsOpen && side === undefined && view === ROOT && !comparing && <OverviewPanel model={model} totals={totals} editing={editing} run={run} onClose={closeDetails} />}
           {detailsOpen && side?.kind === 'line' && (

@@ -13,7 +13,7 @@ import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
-import { LabelSpotsContext, Line, LineStyleContext, LineWidthsContext, labelSpots } from './Line.tsx'
+import { LabelSpots, Line, LineStyleContext, LineWidthsContext, labelSpots } from './Line.tsx'
 import { PerfBody } from './Performance.tsx'
 import type { PerfProps } from './Performance.tsx'
 import { stepFrom, dialTop, top } from './perfview.ts'
@@ -141,7 +141,7 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
         <div className="pane-canvas">
           <LineStyleContext value={lines}>
             <LineWidthsContext value={drawing.widths}>
-              <LabelSpotsContext value={spots}>
+              <LabelSpots spots={spots}>
                 <ReactFlow
                   id={`run-${paneId}`}
                   nodes={[...frame, ...nodes]}
@@ -176,7 +176,7 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
                   {!still && drawing.loadTraffic && <TrafficLayer key="on" lines={drawing.loadTraffic.lines} style={lines} fade={leaving ? 'in' : undefined} />}
                   {!still && leaving?.drawing.loadTraffic && <TrafficLayer key="off" lines={leaving.drawing.loadTraffic.lines} style={lines} fade="out" />}
                 </ReactFlow>
-              </LabelSpotsContext>
+              </LabelSpots>
             </LineWidthsContext>
           </LineStyleContext>
         </div>

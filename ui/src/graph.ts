@@ -133,6 +133,7 @@ export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; 
     return {
       ...e,
       label: shown ? e.label : undefined,
+      data: { ...e.data, label: e.label }, // what a line shows when it is pointed at (see Line)
       selected: e.id === focus.line,
       className: classes(e.className, focus.box !== undefined && !touches && 'faint', e.id === focus.hover && 'hover'),
     }

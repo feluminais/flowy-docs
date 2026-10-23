@@ -1,4 +1,4 @@
-import { Children, createContext, isValidElement, useContext, useEffect, useRef, useState } from 'react'
+import { Children, createContext, isValidElement, memo, useContext, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
@@ -84,7 +84,7 @@ function useStateMark(state: StateMark | undefined, snap: boolean | undefined): 
  * icon (grey with a cloud when it's external), its name, its tech (or type), and how many shapes it opens onto. Hovering
  * shows the teaser. In edit mode a line starts at the dot at the bottom, and while it's being drawn the whole shape is a place to drop it.
  */
-export function Box({ id, data: { object, inside, icon, perf, fail, state, snap }, isConnectable }: NodeProps<BoxNode>) {
+export const Box = memo(function Box({ id, data: { object, inside, icon, perf, fail, state, snap }, isConnectable }: NodeProps<BoxNode>) {
   const [hover, setHover] = useState(false)
   const [clipped, setClipped] = useState(false)
   const text = useRef<HTMLDivElement>(null)
@@ -128,7 +128,7 @@ export function Box({ id, data: { object, inside, icon, perf, fail, state, snap 
       )}
     </div>
   )
-}
+})
 
 /**
  * The shape you're inside, drawn as a frame around what's in it. The blank space inside takes no clicks (see frameNode in graph.ts); the
