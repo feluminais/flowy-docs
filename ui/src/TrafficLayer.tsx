@@ -33,6 +33,28 @@ const outside = (ctx: CanvasRenderingContext2D, s: Shape): void => {
 }
 
 /**
+ * Cuts the drawing to what is outside all of `shapes` and `labels`, so a line's stripes are not seen over a shape it runs behind or into, or over a label on it. Undo it with `ctx.restore()`.
+ * (A particle fades as it goes behind something; stripes simply stop at its edge.)
+ */
+const outsideAll = (ctx: CanvasRenderingContext2D, shapes: Shape[], labels: Rect[]): void => {
+  ctx.save()
+  ctx.beginPath()
+  ctx.rect(-1e6, -1e6, 2e6, 2e6)
+  for (const s of shapes) {
+    if (s.edge.length === 0) ctx.rect(s.rect.x, s.rect.y, s.rect.width, s.rect.height)
+    else {
+      s.edge.forEach(([x, y], i) => (i === 0 ? ctx.moveTo(s.rect.x + x, s.rect.y + y) : ctx.lineTo(s.rect.x + x, s.rect.y + y)))
+      ctx.closePath()
+    }
+  }
+  for (const l of labels) ctx.rect(l.x, l.y, l.width, l.height)
+  ctx.clip('evenodd')
+}
+
+/** The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in screen pixels (and a second). Busier is closer together and quicker. */
+const stripePace = (busy: number): { dash: number; gap: number; speed: number } => ({ dash: 7, gap: 24 - 15 * busy, speed: 16 + 70 * busy })
+
+/**
  * How far behind something the particle at (x, y) is, 0 to 1: the most of any shape its line runs behind, or label, which sits on its line with
  * the canvas's own background. 0 when it is clear of them all, so most particles cost a bounds check or two.
  */
@@ -112,6 +134,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
   const now = useRef({ lines, paths })
   now.current = { lines, paths }
   const streams = useRef(new Map<string, Stream>())
+  const stripeAt = useRef(new Map<string, number>()) // how far each line's stripes have moved, in pixels
 
   useEffect(() => {
     const el = canvas.current!
@@ -169,6 +192,43 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         // One stream for each source on a line (a run with one source has none to name).
         const key = line.source === undefined ? `${line.from} ${line.to}` : `${line.from} ${line.to} ${line.source}`
         alive.add(key)
+        if (line.stripes !== undefined && line.stripes > 0) {
+          // The calls: stripes moving along the line itself, closer and quicker the more calls there are, with every few of them red for the share of calls that fail.
+          const pace = stripePace(line.stripes)
+          const moved = (stripeAt.current.get(key) ?? 0) + (pace.speed * ms) / 1000
+          stripeAt.current.set(key, moved)
+          const px = 1 / zoom
+          const apart = (pace.dash + pace.gap) * px
+          const asideLine = (line.offset ?? 0) * 3 * px
+          outsideAll(ctx, [...opening, ...shapes], labels) // saves the state: restored below
+          ctx.beginPath()
+          path.xs.forEach((x, k) => {
+            let [nx, ny] = [0, 0]
+            if (asideLine !== 0) {
+              const [bx, by] = [path.xs[Math.min(k + 1, path.xs.length - 1)] - path.xs[Math.max(k - 1, 0)], path.ys[Math.min(k + 1, path.ys.length - 1)] - path.ys[Math.max(k - 1, 0)]]
+              const length = Math.hypot(bx, by) || 1
+              ;[nx, ny] = [(-by / length) * asideLine, (bx / length) * asideLine]
+            }
+            if (k === 0) ctx.moveTo(x + nx, path.ys[k] + ny)
+            else ctx.lineTo(x + nx, path.ys[k] + ny)
+          })
+          ctx.lineCap = 'round'
+          ctx.lineWidth = (1 + line.width * 0.25) * px
+          ctx.globalAlpha = line.bare ? 0.45 : 0.9
+          ctx.strokeStyle = tint(line.color)
+          ctx.setLineDash([pace.dash * px, pace.gap * px])
+          ctx.lineDashOffset = -moved * px
+          ctx.stroke()
+          if (line.failed > 0) {
+            // Every nth stripe is red, n being how many calls there are to one that fails.
+            const every = Math.max(1, Math.round(1 / line.failed))
+            ctx.strokeStyle = colours.bad
+            ctx.setLineDash([pace.dash * px, apart * every - pace.dash * px])
+            ctx.stroke()
+          }
+          ctx.setLineDash([])
+          ctx.restore()
+        }
         let stream = streams.current.get(key)
         if (!stream) streams.current.set(key, (stream = newStream()))
         advance(stream, line, ms, Math.random)
@@ -286,6 +346,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         ctx.globalAlpha = 1
       })
       for (const key of streams.current.keys()) if (!alive.has(key)) streams.current.delete(key) // a line the view no longer has
+      for (const key of stripeAt.current.keys()) if (!alive.has(key)) stripeAt.current.delete(key)
       frame = requestAnimationFrame(draw)
     }
     frame = requestAnimationFrame(draw)

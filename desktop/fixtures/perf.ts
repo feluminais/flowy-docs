@@ -13,7 +13,7 @@ import { rollUpLoad } from '../../src/core/perf/rollup.ts'
 import { eventText, kneeText, kneeTextOf, scaleText, sourceKey, sourceKeyAt } from '../../src/core/perf/text.ts'
 import { idleOf } from '../../src/core/perf/idle.ts'
 import { amountOf, callSize } from '../../src/core/perf/measure.ts'
-import { traffic, trafficAt } from '../../src/core/perf/traffic.ts'
+import { BARE_STRIPES, traffic, trafficAt } from '../../src/core/perf/traffic.ts'
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import {
@@ -531,6 +531,10 @@ async function dumpSources(model: Model): Promise<unknown> {
               const t = trafficAt(model, runs, id, setting, view, 'data')
               return { view, ...t, key: sourceKeyAt(runs, id, t.lines, 'data') }
             }),
+            mixed: views(id).map(view => {
+              const t = trafficAt(model, runs, id, setting, view, 'mixed')
+              return { view, ...t, key: sourceKeyAt(runs, id, t.lines, 'mixed') }
+            }),
             rolled: views(id).map(view => ({ view, ...rollUpLoad(model, level, view) })),
           }
         }),
@@ -570,6 +574,7 @@ export async function dumpPerf(): Promise<unknown> {
         level: interpolate(run, load),
         traffic: views.map(view => ({ view, ...traffic(model, run, load, view) })),
         data: views.map(view => ({ view, ...trafficAt(model, runs, id, { '': load }, view, 'data') })),
+        mixed: views.map(view => ({ view, ...trafficAt(model, runs, id, { '': load }, view, 'mixed') })),
       })),
       idle: idleOf(run) ?? null,
       rolled: run.levels.flatMap(level => views.map(view => ({ load: level.load, view, ...rollUpLoad(model, level, view) }))),
@@ -588,6 +593,7 @@ export async function dumpPerf(): Promise<unknown> {
       ...read,
       scale: scaleText(read.run) ?? null,
       size: callSize({ [id]: read.run }, id) ?? null,
+      bare: BARE_STRIPES,
       amounts: [amountOf({ rate: 10, bytes: 400 }, 'calls', 1000) ?? null, amountOf({ rate: 10, bytes: 400 }, 'data', 1000) ?? null, amountOf({ rate: 10 }, 'data', 1000) ?? null, amountOf({ bytes: 400 }, 'calls', 1000) ?? null],
       loads: loads.map(load => ({
         load,
@@ -600,6 +606,11 @@ export async function dumpPerf(): Promise<unknown> {
           const size = callSize({ [id]: read.run }, id)
           const t = traffic(model, read.run, load, view, 'data', size)
           return { view, ...t, key: sourceKey(read.run, t.lines, 'data', size) ?? null }
+        }),
+        mixed: views.map(view => {
+          const size = callSize({ [id]: read.run }, id)
+          const t = traffic(model, read.run, load, view, 'mixed', size)
+          return { view, ...t, key: sourceKey(read.run, t.lines, 'mixed', size) ?? null }
         }),
         rolled: views.map(view => ({ view, ...rollUpLoad(model, interpolate(read.run, load), view) })),
       })),

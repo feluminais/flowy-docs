@@ -232,7 +232,7 @@ public class PerformanceTests
     }
 
     [AvaloniaFact]
-    public void The_lines_carry_particles_while_the_panel_is_open_and_none_when_it_closes()
+    public void The_lines_carry_stripes_while_the_panel_is_open_and_none_when_it_closes()
     {
         using var motion = Motion.On();
         var (window, reader) = Open();
@@ -241,8 +241,9 @@ public class PerformanceTests
         Press(window, Key.T, PhysicalKey.T);
         Dispatcher.UIThread.RunJobs();
         var (particles, running) = reader.Canvas.TrafficNow;
-        Assert.True(running);
-        Assert.True(particles > 10, $"{particles} particles");
+        Assert.True(running); // the calls are stripes moving along the lines, and this run gives no sizes, so there are no blobs
+        Assert.Equal(0, particles);
+        Assert.Contains(reader.Canvas.Load!.Lines, l => l.Stripes > 0);
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.Equal((0, false), reader.Canvas.TrafficNow);
     }

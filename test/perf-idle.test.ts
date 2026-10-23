@@ -4,7 +4,7 @@ import { loadOfPosition, dialsOf } from '../src/core/perf/dials.ts'
 import { idleOf } from '../src/core/perf/idle.ts'
 import { interpolate, levelAt } from '../src/core/perf/levels.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
-import { trafficAt } from '../src/core/perf/traffic.ts'
+import { trafficAt } from './dots.ts'
 import { shop } from './fixtures.ts'
 
 const RUN = `name: Orders

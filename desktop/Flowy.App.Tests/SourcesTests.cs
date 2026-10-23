@@ -205,7 +205,7 @@ public class SourcesTests
         Assert.Equal(shared[0].Width, shared[1].Width);
         Assert.Equal(1.0, reader.Canvas.Load!.Boxes["db"].Strain); // 0.6 and 0.8 added: past full, drawn at full
         var key = string.Join("|", reader.PerfPanelNow.KeyLabels);
-        Assert.Contains("Customer orders|1 dot = 5 calls/s|Bigger call|Courier pings|1 dot = 5 calls/s", key);
+        Assert.Matches(@"Customer orders\|1 dot = [\d.]+ [KM]?B/s\|Bigger call\|Courier pings\|1 dot = [\d.]+ [KM]?B/s", key); // the sources have sizes, so the picture is mixed: stripes for the calls, blobs for the data
     }
 
     [AvaloniaFact]
