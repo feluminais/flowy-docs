@@ -23,16 +23,16 @@ export type EscapeStep = 'shortcuts' | 'navigator' | 'flow' | 'step' | 'panel' |
 
 /**
  * Escape peels one layer per press: the shortcut list, the navigator (Explorer, Flows, Performance, Failures or YAML) when it is the last thing used, a flow playing,
- * a step half recorded, Details or a Performance or Failures panel the last click was not in, a comparison, and then the level you are in, back to the one you came from (the level above, when there is none). At the top, with
+ * a step half recorded, Details or a Performance or Failures panel the last click was not in, a pane of a comparison zoomed into a shape, a comparison, and then the level you are in, back to the one you came from (the level above, when there is none). At the top, with
  * nothing open, nothing. `navigator` is true only when the navigator is open and the last click or key was in it: Escape in the diagram
  * leaves it alone. A comparison takes the place of the flow playing, so the two are never open together.
  */
-export function escapeStep(open: { shortcuts: boolean; navigator: boolean; flow: boolean; halfStep: boolean; panel: boolean; compare: boolean; inside: boolean }): EscapeStep | undefined {
+export function escapeStep(open: { shortcuts: boolean; navigator: boolean; flow: boolean; halfStep: boolean; panel: boolean; compare: boolean; inside: boolean; paneInside?: boolean }): EscapeStep | undefined {
   if (open.shortcuts) return 'shortcuts'
   if (open.navigator) return 'navigator'
   if (open.flow) return 'flow'
   if (open.halfStep) return 'step'
   if (open.panel) return 'panel'
-  if (open.compare) return 'compare'
+  if (open.compare) return open.paneInside ? 'back' : 'compare' // a pane zoomed into a shape goes back up before the comparison closes
   return open.inside ? 'back' : undefined
 }

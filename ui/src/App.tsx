@@ -25,7 +25,7 @@ import { Camera } from './Camera.tsx'
 import { ZoomControls } from './ZoomControls.tsx'
 import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
-import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
+import { DOUBLE_CLICK, fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { addressChange, readHash, runAddress, toHash } from './hash.ts'
 import { compareOff, draftKey, firstLinked, firstLinkedRun, flipped, fromAddress, keepsDrafts, noteOf, noteOff, openable, pairKey, pairOf, playable, runCompareOff, runPairOf, unsaved, withDraft } from './compare.ts'
@@ -92,7 +92,6 @@ import { Yaml } from './Yaml.tsx'
 const nodeTypes = { box: Box, frame: Frame }
 const NO_LINES: LineTraffic[] = [] // and no traffic, so the Performance panel's key is not rebuilt for it
 const edgeTypes = { line: Line }
-const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
 /** What the side panel shows. One thing at a time. */
 type Side =
   | { kind: 'object'; id: string }
@@ -821,7 +820,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       }
       const state: KeyState = {
         editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', runCompare: comparing?.kind === 'run', halfStep: recording?.from !== undefined,
-        panel: detailsOpen || manyPicked || perfOpen || runsOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
+        panel: detailsOpen || manyPicked || perfOpen || runsOpen || failuresOpen, inside: view !== ROOT && !comparing, paneInside: comparing?.kind === 'flow' && compareRef.current?.focused()?.inside() === true, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
         canPerf,
       }
       const act: KeyActions = {
@@ -837,8 +836,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         clearStep: () => { if (recording) setSide({ ...recording, from: undefined, to: undefined }) },
         closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen || runsOpen ? closePerf() : closeFailures()),
         // A second press while a zoom out is still leaving goes up from where that one is heading.
-        back,
-        up: () => jumpTo(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view)),
+        back: () => (comparing ? compareRef.current?.focused()?.up() : back()), // a pane of a comparison goes up from where it is zoomed to
+        up: () => (comparing ? compareRef.current?.focused()?.up() : jumpTo(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))),
         // With two runs side by side the keys of the Performance tab act on the pane that has the focus.
         stepRun: by => (comparing ? compareRef.current?.focusedRun()?.step(by) : perfRun.stepLevel(stepFrom(here[activeDial], by))),
         runEnd: end => {
