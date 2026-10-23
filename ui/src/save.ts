@@ -15,13 +15,21 @@ export const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 
 const text = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
-/** A State as the canvas's model, its problems, and where code links go. Throws with a message for the user when a file can't be read. */
-export function fromState(state: State): { model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; runs: Record<string, Run>; runProblems: Problem[]; failureProblems: Problem[] } {
+type Loaded = { model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; runs: Record<string, Run>; runProblems: Problem[]; failureProblems: Problem[] }
+const loaded = new WeakMap<State, Loaded>()
+
+/**
+ * A State as the canvas's model, its problems, and where code links go. Throws with a message for the user when a file can't be read.
+ * The same State gives the same answer, so a page that reads an unchanged folder again keeps the model it has, and everything worked out from it.
+ */
+export function fromState(state: State): Loaded {
   if ('parseError' in state) {
     const { file, line, message } = state.parseError
     throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
   }
-  return { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [], failureProblems: state.failureProblems ?? [] }
+  let made = loaded.get(state)
+  if (!made) loaded.set(state, (made = { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [], failureProblems: state.failureProblems ?? [] }))
+  return made
 }
 
 /**
