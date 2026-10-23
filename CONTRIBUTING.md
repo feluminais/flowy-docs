@@ -174,6 +174,14 @@ reads (`flowy/perf/*.yaml`). `npm run lab:run` makes a run in about two and a ha
 under half a minute (it starts real servers, so `npm test` leaves it out), and `node src/cli.ts --dir perf-lab/flowy` opens
 the lab. Its [README](perf-lab/README.md) says what each part is and what to keep in mind reading the numbers.
 
+## Benchmarks
+
+`bench/` times the code that big models stress: the parent-to-child questions, a view's layout, the Performance tab's maths and the server's
+read of a folder. `npm run bench` runs them all; each prints times by size and how fast they grow (1 is linear, 2 is quadratic). To
+compare with another checkout, point `FLOWY_ROOT` at it: `FLOWY_ROOT=../other-checkout node bench/views.ts`. The desktop twin is
+`dotnet run -c Release --project desktop/Flowy.Bench`. Run them before and after a change that touches a hot path, and keep the
+numbers in the commit message.
+
 ## The desktop app
 
 `desktop/` is a native reader and editor for `flowy/` folders, built with .NET 10 and Avalonia; the browser canvas stays as it is. It
