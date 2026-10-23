@@ -65,14 +65,14 @@ public static partial class Perf
     }
 
     /// <summary>
-    /// The run at any load inside the tested range, as a <see cref="Level"/>. A load outside it is clamped to the nearest end, so nothing is
-    /// ever extrapolated. Each metric is interpolated on the levels that carry it; one with no value at that load is left out (not measured),
+    /// The run at any load from no load to the top tested one, as a <see cref="Level"/>. Below the first tested level it runs toward the idle level (see <see cref="IdleOf"/>); a load outside that
+    /// range is clamped to the nearest end, so nothing is ever extrapolated. Each metric is interpolated on the levels that carry it; one with no value at that load is left out (not measured),
     /// never zero. A load that isn't a number is the lowest level.
     /// </summary>
     public static Level Interpolate(LoadRun run, double load)
     {
-        var levels = run.Levels;
-        var at = double.IsFinite(load) ? Math.Min(levels[^1].Load, Math.Max(levels[0].Load, load)) : levels[0].Load;
+        var levels = IdleOf(run) is { } idle ? [idle, .. run.Levels] : (IReadOnlyList<Level>)run.Levels;
+        var at = double.IsFinite(load) ? Math.Min(levels[^1].Load, Math.Max(levels[0].Load, load)) : run.Levels[0].Load;
 
         var objects = new IdMap<Metrics>();
         var ids = new List<string>();

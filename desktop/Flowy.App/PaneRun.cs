@@ -47,7 +47,7 @@ internal sealed class PaneRun
         Panel.Slid += Session.Slide;
         Panel.EventPicked += Session.JumpTo;
         Panel.RampClicked += Session.ToggleRamp;
-        Panel.DialSlid += Session.StepDial;
+        Panel.DialSlid += Session.SlideDial;
         Panel.DialRamped += Session.ToggleDialRamp;
         Panel.PlacePicked += Session.PlaceAll;
         Panel.DialActivated += Session.Activate;

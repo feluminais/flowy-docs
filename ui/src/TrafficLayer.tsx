@@ -76,6 +76,8 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
   // Where every shape is and how big it is, as text: it changes exactly when a line's path would, and only then does the layer draw itself again.
   const where = useStore(s => [...s.nodeLookup.values()].map(n => `${n.id} ${n.internals.positionAbsolute.x} ${n.internals.positionAbsolute.y} ${n.measured.width} ${n.measured.height}`).join(','))
   const canvas = useRef<HTMLCanvasElement>(null)
+  // Which lines there are and how each ends, as text: a polyline depends on nothing else about a line, so a change of load (new numbers on the same lines) does not make them again.
+  const ways = lines.map(l => `${l.from} ${l.to} ${l.failure ?? ''}`).join(',')
   // One polyline per line, made again when a shape moves or the style of lines changes, with the shapes it runs behind: every shape but its own two ends.
   const paths = useMemo(
     () => {
@@ -104,7 +106,8 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         return made.get(key)
       })
     },
-    [lines, where, style, store],
+    // `ways` stands for the parts of `lines` that are read
+    [ways, where, style, store],
   )
   const now = useRef({ lines, paths })
   now.current = { lines, paths }

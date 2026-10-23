@@ -146,6 +146,7 @@ public class PerfTests
         var o = new JsonObject { ["id"] = d.Id, ["name"] = d.Name, ["unit"] = d.Unit, ["values"] = new JsonArray(d.Values.Select(v => (JsonNode?)v).ToArray()) };
         if (d.Source is { } source) o["source"] = Json(source);
         o["color"] = d.Color;
+        if (d.Idle) o["idle"] = true;
         return o;
     }
 
@@ -258,6 +259,8 @@ public class PerfTests
         {
             var id = c!["id"]!.GetValue<string>();
             var run = Loaded.Runs![id];
+            if (c["idle"] is null) Assert.Null(Perf.IdleOf(run));
+            else Same(c["idle"], Json(Perf.IdleOf(run)!), $"{id}: the level with no load");
             foreach (var at in c["loads"]!.AsArray())
             {
                 var load = at!["load"]!.GetValue<double>();
@@ -518,9 +521,9 @@ public class PerfTests
     {
         var run = Loaded.Runs!["ramp"];
         Assert.Equal(10, Perf.Interpolate(run, double.NaN).Load);
-        Assert.Equal(10, Perf.Interpolate(run, -50).Load);
+        Assert.Equal(0, Perf.Interpolate(run, -50).Load); // below the first level it goes down to no load, and no further
         Assert.Equal(100, Perf.Interpolate(run, 1e9).Load);
-        Assert.Equal(10, Perf.Interpolate(run, double.NegativeInfinity).Load);
+        Assert.Equal(10, Perf.Interpolate(run, double.NegativeInfinity).Load); // not a number: the lowest tested
     }
 
     [Fact]

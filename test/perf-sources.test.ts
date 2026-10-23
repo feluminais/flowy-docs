@@ -358,7 +358,7 @@ test('a single run has one dial with no id, and no new key in its stored parse',
   const { runs } = runsOf({ orders: ORDERS })
   const found = dialsOf(runs, 'orders')!
   assert.equal(found.mode, 'single')
-  assert.deepEqual(found.dials, [{ id: '', name: 'Customer orders', unit: 'orders/min', values: [100, 200, 300], source: runs.orders.source, color: 'blue' }])
+  assert.deepEqual(found.dials, [{ id: '', name: 'Customer orders', unit: 'orders/min', values: [100, 200, 300], source: runs.orders.source, color: 'blue', idle: true }])
   assert.deepEqual(Object.keys(runs.orders).sort(), ['entry', 'levels', 'name', 'source', 'unit'])
   assert.ok(runs.orders.levels.every(l => !('loads' in l) && l.connections.every(c => !('by' in c))))
   assert.deepEqual(JSON.parse(JSON.stringify(runs.orders)), runs.orders, 'a run is data: it survives JSON')
@@ -449,7 +449,7 @@ test('levelAt of a single run is interpolate, and keeps a time run, a load that 
 
 test('a setting past a dial\'s range is that end, a setting that is not a number is the lowest, and a missing dial too', () => {
   const runs = together()
-  assert.deepEqual(levelAt(runs, 'together', { orders: 9999, pings: -5 }).loads, { orders: 300, pings: 50 })
+  assert.deepEqual(levelAt(runs, 'together', { orders: 9999, pings: -5 }).loads, { orders: 300, pings: 0 })
   assert.deepEqual(levelAt(runs, 'together', { orders: Number.NaN, pings: Number.POSITIVE_INFINITY }).loads, { orders: 100, pings: 50 })
   assert.deepEqual(levelAt(runs, 'together', {}).loads, { orders: 100, pings: 50 })
   assert.deepEqual(levelAt(runs, 'together', { orders: 100, pings: 50, extra: 7 }).loads, { orders: 100, pings: 50 })
@@ -515,7 +515,7 @@ test('the lockstep steps put each dial along its own range: 3 and 5 levels meet 
   const { dials } = dialsOf(runs, 'both')!
   assert.deepEqual([0, 1, 2, 3, 4].map(step => lockstepPositions(dials, step)), [[0, 0], [0.5, 1], [1, 2], [1.5, 3], [2, 4]])
   assert.deepEqual(settingAt(dials, [1.5, 3]), { three: 25, five: 40 })
-  assert.deepEqual(settingAt(dials, [9, -1]), { three: 30, five: 10 })
+  assert.deepEqual(settingAt(dials, [9, -1]), { three: 30, five: 0 }, 'a position of -1 is no load')
   assert.deepEqual(lockstepPositions(dials.slice(0, 1), 2), [2], 'one dial alone runs the whole way')
 })
 
