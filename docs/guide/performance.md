@@ -37,9 +37,11 @@ Flowy checks a run the way it checks `code:` paths: a shape or connection it nam
 isn't one, is a problem. A run it can't read at all is a problem too, listed in the Performance tab, and it never stops the model
 from loading. Flowy reads runs, and writes only their `compare` field. Tools write the rest of a run file.
 
-**Reading it.** Open the Performance tab on the left edge, or press **T**. Pick a run if there are several. The slider has a stop
-for each tested load; ← and → move between them, and **Ramp** (**P**) sweeps up to the highest, at a pace that would cover the whole run in half a minute. Between two
-tested loads the numbers are blended from the two, and the tab says so. Click a shape or a line to read its numbers at this load,
+**Reading it.** Open the Performance tab on the left edge, or press **T**. Pick a run if there are several. The slider runs from no load up to the highest tested load, and a
+tick marks each tested one; drag it anywhere, and it pulls onto a tested load when it comes close to one. ← and → move between tested loads, and **Ramp** (**P**) sweeps up from no load to the
+highest, at a pace that would cover the whole run in half a minute. Between two tested loads the numbers are blended from the two, and the tab says so ("Between 200 and 400,
+estimated"). Below the first tested load they run down to no load, where nothing is used, queued or called and a call weighs and takes what it does at the first load; that is an
+estimate too ("Between 0 and 100, estimated"). A drag draws once a frame at most, so a fast one costs no more than a slow one. Click a shape or a line to read its numbers at this load,
 with a small curve of each across all of them. A shape that holds others takes the worst of what is inside it, so at the overview
 you see which system is struggling and zoom in to find where. The tab opens on the load where things first struggle, if anything
 does, and **Go there** gets back to it.
@@ -181,7 +183,7 @@ Plum's [together](../demo/flowy/perf/together.yaml) adds customer orders and cou
 **Comparing runs.** **Compare** (**C**) under the run's name opens it beside another run, side by side or swapped, and **Link with** records the pair in the run's file as a `compare` tag; **Unlink** takes it away.
 Plum's [together-measured](../demo/flowy/perf/together-measured.yaml) is linked to [together](../demo/flowy/perf/together.yaml), and the note says what the difference is. See [Compare](compare.md).
 
-**What to remember.** This is a replay. Flowy never predicts a load nobody tested, so the slider stops at the highest one. How
+**What to remember.** This is a replay. Flowy never predicts a load nobody tested past the highest one, so the slider stops there. (A run tested together has no load-free end: its sliders start at the lowest tested load.) How
 strained a shape looks is its `util`, or its failure rate counted twenty times (5% failing is as bad as full), whichever is
 worse. A line can pass behind a shape that isn't one of its ends, or under a label, and its dots keep going there as faint, smaller
 ghosts. Nothing moves when the system asks for less motion; the colours, thickness, badges and numbers stay. An exported page

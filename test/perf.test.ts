@@ -168,9 +168,13 @@ test('interpolate runs a straight line between two tested levels, metric by metr
 test('interpolate never goes outside the tested range', () => {
   assert.equal(interpolate(ramp(), 1000).load, 400)
   near(interpolate(ramp(), 1000).objects.db.util, 0.97)
-  assert.equal(interpolate(ramp(), 0).load, 100)
+  assert.equal(interpolate(ramp(), 0).load, 0, 'no load is the idle level, down to which a run can go')
+  assert.equal(interpolate(ramp(), -5).load, 0)
   assert.equal(interpolate(ramp(), NaN).load, 100) // a slider that gave no number shows the lowest level
-  near(interpolate(ramp(), 0).objects.db.util, 0.5)
+  near(interpolate(ramp(), 0).objects.db.util, 0)
+  near(interpolate(ramp(), 50).objects.db.util, 0.25)
+  near(interpolate(ramp(), 50).connections[0].rate, 49)
+  near(interpolate(ramp(), 50).connections[0].p50, 20)
 })
 
 test('a metric measured at some levels only is used between the levels that carry it', () => {

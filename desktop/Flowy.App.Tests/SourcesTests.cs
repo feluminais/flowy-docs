@@ -152,10 +152,11 @@ public class SourcesTests
         reader.PerfPanelNow.DialLines[1].Slider.Value = 1;
         Assert.Equal([2.0, 1.0], reader.PerfPlaces.Places);
         Assert.Equal(1, reader.PerfPlaces.Active);
+        reader.FlushSlide();
         Assert.Equal("100 pings/s", reader.PerfPanelNow.DialLines[1].Load);
         Assert.Equal([("Courier pings", "Customer orders held at 300 orders/min")], reader.PerfPanelNow.AlongTexts.Take(1));
-        reader.PerfPanelNow.DialLines[0].Slider.Value = 0.4; // a drag that does not reach another load: it snaps back to the one it is at
-        Assert.Equal([0.0, 1.0], reader.PerfPlaces.Places);
+        reader.PerfPanelNow.DialLines[0].Slider.Value = 0.4; // a drag to between two loads goes there
+        Assert.Equal([0.4, 1.0], reader.PerfPlaces.Places);
         Assert.Equal(0, reader.PerfPlaces.Active);
     }
 
@@ -178,7 +179,7 @@ public class SourcesTests
         reader.TickRamp();
         var (places, _) = reader.PerfPlaces;
         Assert.Equal(0.0, places[0]); // the other dial is held
-        Assert.InRange(places[1], 0.005, 0.15); // it was at its top, so the ramp started again from the bottom
+        Assert.InRange(places[1], -0.995, -0.85); // it was at its top, so the ramp started again from no load
         Click(dials[0].Ramp); // the ramp moves to the first dial
         Assert.True(reader.PerfState.Ramping);
         Assert.Equal(0, reader.PerfPlaces.Active);
@@ -234,6 +235,7 @@ public class SourcesTests
         Assert.Equal([1.0, 1.0], panel.DialLines.Select(d => d.Slider.Maximum));
         reader.PerfPanelNow.DialLines[0].Slider.Value = 0; // orders at 100, pings still at 100
         Assert.Equal([0.0, 1.0], reader.PerfPlaces.Places);
+        reader.FlushSlide();
         Assert.Equal(0.5, reader.Canvas.Load!.Boxes["db"].Strain!.Value, 2);
     }
 

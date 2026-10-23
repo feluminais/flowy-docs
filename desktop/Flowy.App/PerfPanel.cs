@@ -113,7 +113,7 @@ internal sealed class LatencyStrip : Control
         }
         Curve(context, p95, scale, Brush("WarnBrush"));
         Curve(context, p50, scale, Brush("AccentBrush"));
-        var cursor = _run is { } placed ? PerfView.CursorX(placed, Plot, _pos) : PerfView.XAt(Plot, _pos, p50.Count);
+        var cursor = _run is { } placed ? PerfView.CursorX(placed, Plot, _pos) : PerfView.XAt(Plot, Math.Max(0, _pos), p50.Count);
         using var fade = context.PushOpacity(0.6);
         context.DrawLine(new Pen(Brush("FgBrush"), 1.5), new Point(cursor, Plot.Y), new Point(cursor, Plot.Y + Plot.Height));
     }
@@ -180,7 +180,7 @@ internal sealed class Sparkline : Control
         base.Render(context);
         var d = PerfView.PathOf(_series, _scale, Plot, _run);
         if (d != "") context.DrawGeometry(null, new Pen(Brush("AccentBrush"), 1.75, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), Geometry.Parse(d));
-        var x = _run is { } run ? PerfView.CursorX(run, Plot, _pos) : PerfView.XAt(Plot, _pos, _series.Count);
+        var x = _run is { } run ? PerfView.CursorX(run, Plot, _pos) : PerfView.XAt(Plot, Math.Max(0, _pos), _series.Count);
         using var fade = context.PushOpacity(0.6);
         context.DrawLine(new Pen(Brush("FgBrush"), 1.5), new Point(x, 0), new Point(x, 28));
     }
@@ -1078,7 +1078,7 @@ internal sealed class PerfPanel : StackPanel
     {
         var number = new TextBlock { FontSize = 22, FontWeight = FontWeight.SemiBold };
         var note = new TextBlock { TextWrapping = TextWrapping.Wrap, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Bottom };
-        var slider = new Slider { Minimum = 0, Maximum = PerfView.DialTop(dial), Value = 0, TickFrequency = 1, TickPlacement = TickPlacement.BottomRight, Focusable = false };
+        var slider = new Slider { Minimum = PerfView.FloorOf(dial), Maximum = PerfView.DialTop(dial), Value = 0, TickFrequency = 1, TickPlacement = TickPlacement.BottomRight, Focusable = false };
         ThemeSlider(slider);
         AutomationProperties.SetName(slider, dial.Name);
         slider.ValueChanged += (_, e) =>

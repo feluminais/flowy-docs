@@ -134,6 +134,8 @@ public class PerfViewTests
                 Assert.Equal(at["tested"]!.GetValue<bool>(), PerfView.IsTested(pos));
                 Assert.Equal(D(at["snap"]), PerfView.Snap(run, pos));
                 Assert.Equal(D(at["from"]), PerfView.RampFrom(run, pos));
+                Assert.Equal(at["note"]!.GetValue<string>(), PerfView.LoadNote(run, pos));
+                Assert.Equal(D(at["slide"]), PerfView.SlidePos(run, pos));
                 var ramp = at["ramp"]!.AsArray();
                 var ms = new[] { 0, 16, 1000, PerfView.RampMs / 2, PerfView.RampMs };
                 for (var i = 0; i < ms.Length; i++) Assert.Equal(D(ramp[i]), PerfView.RampPos(run, pos, ms[i]), 9);

@@ -5,7 +5,7 @@ namespace Flowy.Core;
 /// run tested together has one for each of its sources. <c>Values</c> are the loads that were tested, going up; <c>Color</c> is the colour its dots are drawn in, from its source or
 /// else from the palette. A port of <c>Dial</c> in src/core/perf/types.ts.
 /// </summary>
-public sealed record Dial(string Id, string Name, string Unit, IReadOnlyList<double> Values, Source? Source, string Color);
+public sealed record Dial(string Id, string Name, string Unit, IReadOnlyList<double> Values, Source? Source, string Color, bool Idle = false);
 
 /// <summary>Which kind of run it is, and what it is turned up on (see <see cref="Perf.DialsOf"/>). <c>Mode</c> is "single", "added" or "tested".</summary>
 public sealed record Dials(string Mode, IReadOnlyList<Dial> Items);
@@ -56,7 +56,7 @@ public static partial class Perf
             var parts = adds.Where(part => WhyNotAdded(runs, part) is null).ToList();
             if (parts.Count < 2) return null;
             var colors = ColorsOf([.. parts.Select(part => runs[part].Source)]);
-            return new Dials(ModeAdded, [.. parts.Select((part, i) => new Dial(part, runs[part].Name, runs[part].Unit, Loads(runs[part]), runs[part].Source, colors[i]))]);
+            return new Dials(ModeAdded, [.. parts.Select((part, i) => new Dial(part, runs[part].Name, runs[part].Unit, Loads(runs[part]), runs[part].Source, colors[i], IdleOf(runs[part]) is not null))]);
         }
         if (run.Sources is { } sources)
         {
@@ -69,21 +69,22 @@ public static partial class Perf
                 return new Dial(sid, info.Name, info.Unit, values, info.Source, colors[i]);
             })]);
         }
-        return new Dials(ModeSingle, [new Dial("", run.Name, run.Unit, Loads(run), run.Source, run.Source?.Color ?? SourcePalette[0])]);
+        return new Dials(ModeSingle, [new Dial("", run.Name, run.Unit, Loads(run), run.Source, run.Source?.Color ?? SourcePalette[0], IdleOf(run) is not null)]);
     }
 
     /// <summary>The load a setting gives a dial; a dial it doesn't name is not a number.</summary>
     private static double SettingFor(IdMap<double> setting, string id) => setting.TryGetValue(id, out var v) ? v : double.NaN;
 
-    /// <summary>A load kept inside a dial's tested range, as <see cref="Interpolate"/> keeps it: nothing is extrapolated, and one that isn't a number is the lowest.</summary>
-    private static double Keep(Dial d, double x) => double.IsFinite(x) ? Math.Min(d.Values[^1], Math.Max(d.Values[0], x)) : d.Values[0];
+    /// <summary>A load kept inside a dial's range, as <see cref="Interpolate"/> keeps it: nothing is extrapolated past the tested loads (a dial that can be idle goes down to 0), and one that isn't a number is the lowest tested.</summary>
+    private static double Keep(Dial d, double x) => double.IsFinite(x) ? Math.Min(d.Values[^1], Math.Max(d.Idle ? 0 : d.Values[0], x)) : d.Values[0];
 
     /// <summary>
-    /// The load at a position along a dial's tested loads: a tested load exactly at a whole number, a straight line between two in between. A position past either end is that end; one that
-    /// isn't a number is the lowest.
+    /// The load at a position along a dial's tested loads: a tested load exactly at a whole number, a straight line between two in between. A position past the top is the top; one that
+    /// isn't a number is the lowest. Below the first load a position runs from -1, where there is no load at all, to 0, the first load (only a dial that can be idle has any); a position under -1 is -1.
     /// </summary>
     public static double LoadOfPosition(IReadOnlyList<double> values, double pos)
     {
+        if (pos < 0) return values[0] * (1 + Math.Max(-1, pos));
         var top = values.Count - 1;
         var p = Math.Min(top, Math.Max(0, double.IsFinite(pos) ? pos : 0));
         var i = Math.Min(top - 1, (int)Math.Floor(p));

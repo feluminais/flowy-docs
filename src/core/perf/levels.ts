@@ -1,4 +1,5 @@
 import { dialsOf } from './dials.ts'
+import { idleOf } from './idle.ts'
 import type { Dial, Failure, Level, Metrics, Pair, Run, Setting } from './types.ts'
 import { add, BY_KEYS, defined, EDGE_KEYS, either, keep, meanBytes, newMean, OBJECT_KEYS, own, put, settingFor, takeBytes } from './util.ts'
 
@@ -48,15 +49,16 @@ function failureAt(levels: Level[], pick: (level: Level) => Pair | undefined, lo
 }
 
 /**
- * The run at any load inside the tested range, as a Level. A load outside it is clamped to the nearest end, so
- * nothing is ever extrapolated. Each metric is interpolated on the levels that carry it; one that has no value at
+ * The run at any load from no load to the top tested one, as a Level. Below the first tested level it runs toward the idle level (see idleOf); a load outside that range is
+ * clamped to the nearest end, so nothing is ever extrapolated. Each metric is interpolated on the levels that carry it; one that has no value at
  * that load is left out (not measured), never zero. A load that isn't a number is the lowest level.
  * Known limit: every pair is looked up in every level for each metric; fine for a run of a few dozen
  * connections, index the pairs once if the tab calls this on every frame.
  */
 export function interpolate(run: Run, load: number): Level {
-  const { levels } = run
-  const at = Number.isFinite(load) ? Math.min(levels[levels.length - 1].load, Math.max(levels[0].load, load)) : levels[0].load
+  const idle = idleOf(run)
+  const levels = idle ? [idle, ...run.levels] : run.levels
+  const at = Number.isFinite(load) ? Math.min(levels[levels.length - 1].load, Math.max(levels[0].load, load)) : run.levels[0].load
 
   const objects: Record<string, Metrics> = {}
   for (const id of new Set(levels.flatMap(l => Object.keys(l.objects)))) {

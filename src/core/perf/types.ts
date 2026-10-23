@@ -70,9 +70,9 @@ export const eventsOf = (run: Run): readonly RunEvent[] => run.events ?? NO_EVEN
 /**
  * A dial: one thing the load can be turned up on. A run with one source has one (its `id` is ''); a run that adds others has one for each run it adds (the id of that run); a run
  * tested together has one for each of its sources. `values` are the loads that were tested, going up; `color` is the colour its dots are drawn in, from its source or else from
- * the palette.
+ * the palette. `idle` is on a dial that can go below its first tested load, down to no load at all (see idleOf): its positions then start at -1, where the load is 0.
  */
-export type Dial = { id: string; name: string; unit: string; values: number[]; source?: Source; color: string }
+export type Dial = { id: string; name: string; unit: string; values: number[]; source?: Source; color: string; idle?: true }
 /** Which kind of run it is: one source, several added from separate runs, or several tested together. */
 export type Mode = 'single' | 'added' | 'tested'
 

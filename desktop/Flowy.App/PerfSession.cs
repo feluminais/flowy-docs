@@ -33,6 +33,7 @@ internal sealed class PerfSession
     private double _rampStart;
     private double _rampLast;
     private double _rampShown;
+    private bool _slideQueued; // a place the slider was dragged to is waiting for the next frame to be drawn
 
     public PerfSession(PerfHooks hooks)
     {
@@ -149,6 +150,25 @@ internal sealed class PerfSession
         return true;
     }
 
+    /// <summary>
+    /// Draws the place a dragged slider has been moved to at the next frame, once however many moves came before it: a drag can make many moves a frame, and each draws the run and its
+    /// lines again, so a drag costs the same however fast it goes. Where it stands (<see cref="Pos"/>) is set at once.
+    /// </summary>
+    private void DrawNextFrame()
+    {
+        if (_slideQueued) return;
+        _slideQueued = true;
+        _hooks.NextFrame(FlushSlide);
+    }
+
+    /// <summary>Draws the place a dragged slider was moved to now, when it is waiting for the next frame (which then has nothing to draw). A test calls it in place of waiting for the frame.</summary>
+    public void FlushSlide()
+    {
+        if (!_slideQueued) return;
+        _slideQueued = false;
+        _hooks.Draw(false);
+    }
+
     /// <summary>A dial's slider was pressed: it becomes the dial the keys act on.</summary>
     public void Activate(int dial)
     {
@@ -217,20 +237,34 @@ internal sealed class PerfSession
     }
 
     /// <summary>
-    /// The slider moved. A load run's goes level to level. A run over time goes where it is put, so an event can be stood on, and the states of shapes follow at
-    /// once instead of easing (a drag is many moves). It stops a ramp.
+    /// The slider moved: it goes where it is put (a load run on the stops of <see cref="PerfView.Settle"/>, a run over time to any time, so an event can be stood on). A load run is drawn at the
+    /// next frame, once however many moves a drag made; a run over time at once, and the states of shapes follow at once instead of easing (a drag is many moves). It stops a ramp.
     /// </summary>
     public void Slide(double pos)
     {
         if (Run is not { } run) return;
-        if (!run.IsTime)
+        if (Several is not null)
         {
-            StepLevel(pos);
+            SlideDial(Active, pos);
             return;
         }
         Ramping = false;
         Pos = _posNow = PerfView.ClampPos(run, pos);
-        _hooks.Draw(true);
+        if (run.IsTime) _hooks.Draw(true);
+        else DrawNextFrame();
+    }
+
+    /// <summary>A dial's slider moved: the dial goes where it is put and becomes the dial the keys act on, and it is drawn at the next frame, once however many moves a drag made. It stops a ramp.</summary>
+    public void SlideDial(int dial, double to)
+    {
+        if (Several is not { } found || dial < 0 || dial >= found.Items.Count) return;
+        EnsurePlaces();
+        var places = PerfView.PlaceActive(found.Items, _places, dial, to);
+        Ramping = false;
+        Active = dial;
+        _places = [.. places];
+        _placesNow = [.. places];
+        DrawNextFrame();
     }
 
     /// <summary>Goes to a place along the run, not only a level: a click on an event. The states ease to it, as they do for a step.</summary>

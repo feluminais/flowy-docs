@@ -249,7 +249,8 @@ Before merging a change to the app, look at what it could affect, in a real wind
       button under Failures with a 2 on it, and T opens its tab on the load where the Fulfilment worker first struggles
       (200 req/s on the ramp). In Shop lab, shapes that carry numbers are outlined from green to red along their own outline, Order queue
       carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
-      move between loads; P ramps up (from the top it starts again from the bottom) and a click on the slider stops it; a picked shape or
+      move between tested loads (← from the first goes down to 0 req/s, where nothing runs on the lines); P ramps up (from the top it starts again from no load) and a click on the slider stops it; drag the slider: the
+      load follows the thumb in small steps, "Between 50 and 100, estimated" shows between tested loads, and the thumb pulls onto a tested load, which reads "Tested"; a picked shape or
       line reads out its numbers; under Ramp a Count switch has Calls pressed, and Data makes a line of larger calls thicker with more dots, turns the Key's
       "More calls" into "More data" and, for a run that says it, "1 dot = 4 calls/s" into "1 dot = 2 KB/s" (a run with no `bytes` greys Data out, with the reason in its tooltip);
       under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%) and red dashes (First

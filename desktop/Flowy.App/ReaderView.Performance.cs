@@ -43,7 +43,7 @@ internal sealed partial class ReaderView
         _perfPanel.EventPicked += _perf.JumpTo;
         _perfPanel.RampClicked += _perf.ToggleRamp;
         _perfPanel.MeasureChosen += _perf.ChooseMeasure;
-        _perfPanel.DialSlid += _perf.StepDial;
+        _perfPanel.DialSlid += _perf.SlideDial;
         _perfPanel.DialRamped += _perf.ToggleDialRamp;
         _perfPanel.PlacePicked += _perf.PlaceAll;
         _perfPanel.DialActivated += _perf.Activate; // pressing a slider makes it the dial the keys act on
@@ -120,6 +120,8 @@ internal sealed partial class ReaderView
     internal (IReadOnlyList<double> Places, int Active) PerfPlaces => (_perf.Places, _perf.Active);
 
     internal void TickRamp() => _perf.Frame();
+
+    internal void FlushSlide() => _perf.FlushSlide();
 
     internal void PickRunById(string id)
     {

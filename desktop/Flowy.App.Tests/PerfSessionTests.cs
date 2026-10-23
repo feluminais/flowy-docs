@@ -78,21 +78,56 @@ public class PerfSessionTests
         session.StepLevel(99);
         Assert.Equal(3, session.Pos);
         session.StepLevel(-5);
-        Assert.Equal(0, session.Pos);
+        Assert.Equal(-1, session.Pos); // under the first level there is no load at all, and no further
+        session.StepLevel(-5.5);
+        Assert.Equal(-1, session.Pos);
     }
 
     [Fact]
-    public void A_ramp_from_the_top_starts_again_from_the_bottom_and_moves_with_the_clock()
+    public void A_ramp_from_the_top_starts_again_from_no_load_and_moves_with_the_clock()
     {
         var screen = new Screen();
         var session = Opened(screen);
         session.StepLevel(3);
         session.ToggleRamp();
         Assert.True(session.Ramping);
-        Assert.Equal(0, session.Pos);
+        Assert.Equal(-1, session.Pos);
         Assert.Single(screen.Frames);
         screen.Run(3_000);
-        Assert.InRange(session.Pos, 0.2, 0.4); // three levels in 30 s: a tenth of a level a second
+        Assert.InRange(session.Pos, -0.8, -0.6); // three levels in 30 s: a tenth of a level a second
+    }
+
+    [Fact]
+    public void A_dragged_slider_goes_where_it_is_put_and_is_drawn_once_a_frame_with_the_latest_place()
+    {
+        var screen = new Screen();
+        var session = Opened(screen);
+        var drawn = screen.Draws;
+        session.Slide(1.2);
+        session.Slide(1.4);
+        session.Slide(1.62);
+        Assert.Equal(1.62, session.Pos);
+        Assert.Equal(drawn, screen.Draws);
+        screen.Run(20);
+        Assert.Equal(drawn + 1, screen.Draws);
+        Assert.Equal(1.62, session.Pos);
+        session.Slide(-0.5);
+        session.FlushSlide();
+        Assert.Equal(drawn + 2, screen.Draws);
+        screen.Run(20);
+        Assert.Equal(drawn + 2, screen.Draws); // the frame that was asked for has nothing left to draw
+    }
+
+    [Fact]
+    public void Touching_the_slider_stops_a_ramp_at_once()
+    {
+        var screen = new Screen();
+        var session = Opened(screen);
+        session.ToggleRamp();
+        Assert.True(session.Ramping);
+        session.Slide(2);
+        Assert.False(session.Ramping);
+        Assert.Equal(2, session.Pos);
     }
 
     [Fact]
