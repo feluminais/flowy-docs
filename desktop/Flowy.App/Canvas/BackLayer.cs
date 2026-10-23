@@ -14,7 +14,10 @@ namespace Flowy.App.Canvas;
 /// </summary>
 internal sealed class BackLayer : Control
 {
-    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry);
+    /// <summary>A line as drawn. `Made` is what its path was made from: the two boxes and their outlines, so a line whose boxes stayed where they were keeps its path, its geometry and its label.</summary>
+    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds);
+
+    private string _style = "";
 
     private List<Drawn> _lines = [];
     private List<CoreRect> _labels = [];
@@ -43,14 +46,23 @@ internal sealed class BackLayer : Control
         _scene = scene;
         var rects = scene.Boxes.ToDictionary(b => b.Id, b => b.Rect);
         var outlines = scene.Boxes.ToDictionary(b => b.Id, b => Look.DefOf(b.Object).Edge); // where a line meets each shape
+        // Dragging a box moves it and the lines at it; every other line is as it was, and is not worked out again (a path parsed, a label measured).
+        var before = style == _style ? _lines.ToDictionary(l => l.Edge.Id) : [];
+        _style = style;
         _lines = scene.Edges
             .Where(e => rects.ContainsKey(e.From) && rects.ContainsKey(e.To))
             .Select(e =>
             {
-                var path = LinePaths.Build(style, rects[e.From], rects[e.To], outlines[e.From], outlines[e.To]);
-                return new Drawn(e, path, Geometry.Parse(path.Data));
+                var made = (rects[e.From], rects[e.To], outlines[e.From], outlines[e.To], style);
+                if (before.TryGetValue(e.Id, out var was) && was.Made.From == made.Item1 && was.Made.To == made.Item2 && ReferenceEquals(was.Made.OutlineFrom, made.Item3) && ReferenceEquals(was.Made.OutlineTo, made.Item4)
+                    && was.Edge.Label == e.Label && (e.Label is null || (e.Flags & EdgeFlags.Active) == (was.Edge.Flags & EdgeFlags.Active)))
+                    return was with { Edge = e };
+                var path = LinePaths.Build(style, made.Item1, made.Item2, made.Item3, made.Item4);
+                var label = e.Label is { Length: > 0 } ? LabelBox(path, Format(e, e.Label, Brushes.Black)) : (CoreRect?)null;
+                var geometry = Geometry.Parse(path.Data);
+                return new Drawn(e, path, geometry, made, label, geometry.Bounds);
             }).ToList();
-        _labels = _lines.Where(l => l.Edge.Label is { Length: > 0 }).Select(l => LabelBox(l.Path, Format(l.Edge, l.Edge.Label!, Brushes.Black))).ToList();
+        _labels = _lines.Where(l => l.Label is not null).Select(l => l.Label!.Value).ToList();
         InvalidateVisual();
     }
 
@@ -70,6 +82,9 @@ internal sealed class BackLayer : Control
 
     /// <summary>Where the labels showing now are, with their padding: what traffic runs under, as it runs under a shape.</summary>
     internal IReadOnlyList<CoreRect> LabelRects => _labels;
+
+    /// <summary>The geometry of a line, for tests: a line whose boxes did not move keeps the one it had.</summary>
+    internal Geometry? GeometryOf(string edgeId) => _lines.FirstOrDefault(l => l.Edge.Id == edgeId)?.Geometry;
 
     /// <summary>Draws the lines at these thicknesses (a load's traffic makes busy lines thicker), or as usual for null.</summary>
     public void SetWidths(IReadOnlyDictionary<string, double>? widths)
@@ -116,10 +131,30 @@ internal sealed class BackLayer : Control
     public string? EdgeAt(Point screen)
     {
         var world = _viewport.ToWorld(new CorePt(screen.X, screen.Y));
-        var pen = new Pen(Brushes.Black, 14 / _viewport.Zoom);
+        var at = new Point(world.X, world.Y);
+        var reach = 7 / _viewport.Zoom; // half the pen below: only a line whose box holds the point within that can be under it
+        Pen? pen = null;
         for (var i = _lines.Count - 1; i >= 0; i--)
-            if (!SceneBuilder.IsStepLine(_lines[i].Edge.Id) && _lines[i].Geometry.StrokeContains(pen, new Point(world.X, world.Y))) return _lines[i].Edge.Id;
+        {
+            var line = _lines[i];
+            if (!line.Bounds.Inflate(reach).Contains(at) || SceneBuilder.IsStepLine(line.Edge.Id)) continue;
+            pen ??= new Pen(Brushes.Black, 14 / _viewport.Zoom);
+            if (line.Geometry.StrokeContains(pen, at)) return line.Edge.Id;
+        }
         return null;
+    }
+
+    private (string Name, double Width, double Height)? _titleSize;
+
+    /// <summary>How big the frame's title is: measured once for a name, not on every pointer move.</summary>
+    private (double Width, double Height) TitleSize(string name)
+    {
+        if (_titleSize is not { } known || known.Name != name)
+        {
+            var title = FrameTitle(name, Brushes.Black);
+            _titleSize = known = (name, title.Width, title.Height);
+        }
+        return (known.Width, known.Height);
     }
 
     private static FormattedText FrameTitle(string name, IBrush brush) =>
@@ -135,8 +170,8 @@ internal sealed class BackLayer : Control
         var outer = new Avalonia.Rect(frame.X - reach, frame.Y - reach, frame.Width + 2 * reach, frame.Height + 2 * reach);
         var inner = new Avalonia.Rect(frame.X + reach, frame.Y + reach, Math.Max(0, frame.Width - 2 * reach), Math.Max(0, frame.Height - 2 * reach));
         if (outer.Contains(at) && !inner.Contains(at)) return true;
-        var title = FrameTitle(_scene.FrameName, Brushes.Black);
-        return new Avalonia.Rect(frame.X + 14, frame.Y - title.Height / 2, title.Width + 12, title.Height).Contains(at);
+        var (width, height) = TitleSize(_scene.FrameName);
+        return new Avalonia.Rect(frame.X + 14, frame.Y - height / 2, width + 12, height).Contains(at);
     }
 
     private IBrush Brush(string key) => AppTheme.Brush(this, key);
