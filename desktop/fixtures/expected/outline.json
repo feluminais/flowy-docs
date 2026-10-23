@@ -2493,7 +2493,7 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3474,7 +3474,7 @@
               "external": false,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5166,7 +5166,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "delivery",
                   "linked": false,
                   "folder": "delivery",
@@ -5558,7 +5558,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "delivery",
                   "linked": false,
                   "folder": "delivery",
@@ -5950,7 +5950,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "delivery",
                   "linked": false,
                   "folder": "delivery",
@@ -6490,7 +6490,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "delivery",
                   "linked": false,
                   "folder": "delivery",
@@ -6884,7 +6884,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "delivery",
                   "linked": false,
                   "folder": "delivery",
@@ -7076,7 +7076,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "delivery",
                   "linked": false,
                   "folder": "delivery",
@@ -7788,7 +7788,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "delivery",
                   "linked": false,
                   "folder": "delivery",
@@ -8765,8 +8765,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 89,
-              "flows": 27,
+              "shapes": 94,
+              "flows": 28,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -8774,8 +8774,8 @@
             }
           ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         },
@@ -8794,8 +8794,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 89,
-              "flows": 27,
+              "shapes": 94,
+              "flows": 28,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -8844,6 +8844,22 @@
               "external": false,
               "shapes": 11,
               "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:channels",
+              "kind": "shape",
+              "id": "channels",
+              "parent": "root",
+              "depth": 1,
+              "name": "Open channels",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 1,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -8931,8 +8947,8 @@
             }
           ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         },
@@ -8952,8 +8968,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 89,
-              "flows": 27,
+              "shapes": 94,
+              "flows": 28,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -9002,6 +9018,22 @@
               "external": false,
               "shapes": 11,
               "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:channels",
+              "kind": "shape",
+              "id": "channels",
+              "parent": "root",
+              "depth": 1,
+              "name": "Open channels",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 1,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -9939,8 +9971,8 @@
             }
           ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         },
@@ -10036,7 +10068,12 @@
             "compare-api",
             "compare-old",
             "compare-db",
-            "compare-cache"
+            "compare-cache",
+            "channels",
+            "chan-client",
+            "chan-feed",
+            "chan-hook",
+            "chan-worker"
           ],
           "filter": "",
           "editing": false,
@@ -10048,8 +10085,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 89,
-              "flows": 27,
+              "shapes": 94,
+              "flows": 28,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -10584,6 +10621,103 @@
               "shapes": 0,
               "flows": 0,
               "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:channels",
+              "kind": "shape",
+              "id": "channels",
+              "parent": "root",
+              "depth": 1,
+              "name": "Open channels",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:chan-client",
+              "kind": "shape",
+              "id": "chan-client",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · client",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-feed",
+              "kind": "shape",
+              "id": "chan-feed",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · feed",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-hook",
+              "kind": "shape",
+              "id": "chan-hook",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · webhook",
+              "type": "app",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-worker",
+              "kind": "shape",
+              "id": "chan-worker",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · worker",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:open-channels",
+              "kind": "flow",
+              "id": "open-channels",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Every open channel",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -11940,8 +12074,8 @@
             }
           ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         },
@@ -12037,7 +12171,12 @@
             "compare-api",
             "compare-old",
             "compare-db",
-            "compare-cache"
+            "compare-cache",
+            "channels",
+            "chan-client",
+            "chan-feed",
+            "chan-hook",
+            "chan-worker"
           ],
           "filter": "",
           "editing": true,
@@ -12049,8 +12188,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 89,
-              "flows": 27,
+              "shapes": 94,
+              "flows": 28,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -12585,6 +12724,103 @@
               "shapes": 0,
               "flows": 0,
               "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:channels",
+              "kind": "shape",
+              "id": "channels",
+              "parent": "root",
+              "depth": 1,
+              "name": "Open channels",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:chan-client",
+              "kind": "shape",
+              "id": "chan-client",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · client",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-feed",
+              "kind": "shape",
+              "id": "chan-feed",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · feed",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-hook",
+              "kind": "shape",
+              "id": "chan-hook",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · webhook",
+              "type": "app",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-worker",
+              "kind": "shape",
+              "id": "chan-worker",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · worker",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:open-channels",
+              "kind": "flow",
+              "id": "open-channels",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Every open channel",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -13941,8 +14177,8 @@
             }
           ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         },
@@ -13959,8 +14195,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 89,
-              "flows": 27,
+              "shapes": 94,
+              "flows": 28,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -14413,6 +14649,103 @@
               "shapes": 0,
               "flows": 0,
               "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:channels",
+              "kind": "shape",
+              "id": "channels",
+              "parent": "root",
+              "depth": 1,
+              "name": "Open channels",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:chan-client",
+              "kind": "shape",
+              "id": "chan-client",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · client",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-feed",
+              "kind": "shape",
+              "id": "chan-feed",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · feed",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-hook",
+              "kind": "shape",
+              "id": "chan-hook",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · webhook",
+              "type": "app",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:chan-worker",
+              "kind": "shape",
+              "id": "chan-worker",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · worker",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:open-channels",
+              "kind": "flow",
+              "id": "open-channels",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Every open channel",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 7,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -15313,8 +15646,8 @@
             }
           ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         },
@@ -15325,10 +15658,57 @@
           ],
           "filter": "WEB",
           "editing": false,
-          "rows": [],
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 94,
+              "flows": 28,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:channels",
+              "kind": "shape",
+              "id": "channels",
+              "parent": "root",
+              "depth": 1,
+              "name": "Open channels",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 1,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:chan-hook",
+              "kind": "shape",
+              "id": "chan-hook",
+              "parent": "channels",
+              "depth": 2,
+              "name": "Channels · webhook",
+              "type": "app",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         },
@@ -15347,8 +15727,8 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "shapes": 89,
-              "flows": 27,
+              "shapes": 94,
+              "flows": 28,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -15397,6 +15777,22 @@
               "external": false,
               "shapes": 11,
               "flows": 5,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:channels",
+              "kind": "shape",
+              "id": "channels",
+              "parent": "root",
+              "depth": 1,
+              "name": "Open channels",
+              "type": "system",
+              "external": false,
+              "shapes": 4,
+              "flows": 1,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -15484,8 +15880,8 @@
             }
           ],
           "totals": {
-            "shapes": 89,
-            "flows": 27,
+            "shapes": 94,
+            "flows": 28,
             "problems": 0
           }
         }
@@ -15750,6 +16146,20 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:open-channels",
+                "flow": {
+                  "id": "open-channels",
+                  "name": "Every open channel",
+                  "steps": 7,
+                  "view": "channels",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:parallel",
                 "flow": {
                   "id": "parallel",
@@ -15876,8 +16286,8 @@
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 28,
+            "shown": 28
           }
         },
         {
@@ -16140,6 +16550,20 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:open-channels",
+                "flow": {
+                  "id": "open-channels",
+                  "name": "Every open channel",
+                  "steps": 7,
+                  "view": "channels",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:parallel",
                 "flow": {
                   "id": "parallel",
@@ -16266,8 +16690,8 @@
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 28,
+            "shown": 28
           }
         },
         {
@@ -16432,6 +16856,20 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:open-channels",
+                "flow": {
+                  "id": "open-channels",
+                  "name": "Every open channel",
+                  "steps": 7,
+                  "view": "channels",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:parallel",
                 "flow": {
                   "id": "parallel",
@@ -16516,8 +16954,8 @@
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 17
+            "total": 28,
+            "shown": 18
           }
         },
         {
@@ -16527,7 +16965,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 28,
             "shown": 0
           }
         },
@@ -16791,6 +17229,20 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:open-channels",
+                "flow": {
+                  "id": "open-channels",
+                  "name": "Every open channel",
+                  "steps": 7,
+                  "view": "channels",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:parallel",
                 "flow": {
                   "id": "parallel",
@@ -16917,8 +17369,8 @@
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 28,
+            "shown": 28
           }
         },
         {
@@ -16928,7 +17380,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 28,
             "shown": 0
           }
         },
@@ -16941,7 +17393,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 28,
             "shown": 0
           }
         },
@@ -16956,7 +17408,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 28,
             "shown": 0
           }
         },
@@ -16969,7 +17421,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 28,
             "shown": 0
           }
         },
@@ -17232,6 +17684,20 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:open-channels",
+                "flow": {
+                  "id": "open-channels",
+                  "name": "Every open channel",
+                  "steps": 7,
+                  "view": "channels",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:parallel",
                 "flow": {
                   "id": "parallel",
@@ -17358,8 +17824,8 @@
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 28,
+            "shown": 28
           }
         },
         {
@@ -17621,6 +18087,20 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:open-channels",
+                "flow": {
+                  "id": "open-channels",
+                  "name": "Every open channel",
+                  "steps": 7,
+                  "view": "channels",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:parallel",
                 "flow": {
                   "id": "parallel",
@@ -17747,8 +18227,8 @@
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 28,
+            "shown": 28
           }
         },
         {
@@ -17913,6 +18393,20 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:open-channels",
+                "flow": {
+                  "id": "open-channels",
+                  "name": "Every open channel",
+                  "steps": 7,
+                  "view": "channels",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:parallel",
                 "flow": {
                   "id": "parallel",
@@ -17997,8 +18491,8 @@
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 17
+            "total": 28,
+            "shown": 18
           }
         }
       ],
@@ -19517,6 +20011,89 @@
           "opened": [
             "compare",
             "compare-cache",
+            "root"
+          ]
+        },
+        {
+          "id": "channels",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "channels",
+          "self": true,
+          "opened": [
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-client",
+          "self": false,
+          "opened": [
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-client",
+          "self": true,
+          "opened": [
+            "chan-client",
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-feed",
+          "self": false,
+          "opened": [
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-feed",
+          "self": true,
+          "opened": [
+            "chan-feed",
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-hook",
+          "self": false,
+          "opened": [
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-hook",
+          "self": true,
+          "opened": [
+            "chan-hook",
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-worker",
+          "self": false,
+          "opened": [
+            "channels",
+            "root"
+          ]
+        },
+        {
+          "id": "chan-worker",
+          "self": true,
+          "opened": [
+            "chan-worker",
+            "channels",
             "root"
           ]
         },
@@ -48144,6 +48721,2464 @@
     },
     "bad-tags": {
       "parseError": true
+    },
+    "channels": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A lane starts from what was open before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:reopen",
+              "kind": "flow",
+              "id": "reopen",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A name that is opened while it is open",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:lifecycle",
+              "kind": "flow",
+              "id": "lifecycle",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A stream opens, stays, closes and opens again",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way to get a channel wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 16,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel",
+              "kind": "flow",
+              "id": "parallel",
+              "parent": "shop",
+              "depth": 2,
+              "name": "One stop that opens and closes together",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:unnamed",
+              "kind": "flow",
+              "id": "unnamed",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Unnamed channels stay open to the end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "2",
+            "10",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "orders",
+            "auth",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "api",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A lane starts from what was open before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:reopen",
+              "kind": "flow",
+              "id": "reopen",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A name that is opened while it is open",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:lifecycle",
+              "kind": "flow",
+              "id": "lifecycle",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A stream opens, stays, closes and opens again",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way to get a channel wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 16,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel",
+              "kind": "flow",
+              "id": "parallel",
+              "parent": "shop",
+              "depth": 2,
+              "name": "One stop that opens and closes together",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:unnamed",
+              "kind": "flow",
+              "id": "unnamed",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Unnamed channels stay open to the end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "2",
+            "10",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "orders",
+            "auth",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:orders",
+              "kind": "shape",
+              "id": "orders",
+              "parent": "api",
+              "depth": 3,
+              "name": "Orders",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A lane starts from what was open before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:reopen",
+              "kind": "flow",
+              "id": "reopen",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A name that is opened while it is open",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:lifecycle",
+              "kind": "flow",
+              "id": "lifecycle",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A stream opens, stays, closes and opens again",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way to get a channel wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 16,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel",
+              "kind": "flow",
+              "id": "parallel",
+              "parent": "shop",
+              "depth": 2,
+              "name": "One stop that opens and closes together",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:unnamed",
+              "kind": "flow",
+              "id": "unnamed",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Unnamed channels stay open to the end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:auth",
+              "kind": "shape",
+              "id": "auth",
+              "parent": "api",
+              "depth": 3,
+              "name": "Auth",
+              "type": "component",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:branching",
+              "kind": "flow",
+              "id": "branching",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A lane starts from what was open before the branch",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:reopen",
+              "kind": "flow",
+              "id": "reopen",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A name that is opened while it is open",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:repeat",
+              "kind": "flow",
+              "id": "repeat",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A repeat plays its steps in turn",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:lifecycle",
+              "kind": "flow",
+              "id": "lifecycle",
+              "parent": "shop",
+              "depth": 2,
+              "name": "A stream opens, stays, closes and opens again",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:bad",
+              "kind": "flow",
+              "id": "bad",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Every way to get a channel wrong",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 16,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:parallel",
+              "kind": "flow",
+              "id": "parallel",
+              "parent": "shop",
+              "depth": 2,
+              "name": "One stop that opens and closes together",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:unnamed",
+              "kind": "flow",
+              "id": "unnamed",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Unnamed channels stay open to the end",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 5,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "shapes": 10,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "shapes": 5,
+              "flows": 7,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:10",
+              "kind": "shape",
+              "id": "10",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ten",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:2",
+              "kind": "shape",
+              "id": "2",
+              "parent": "root",
+              "depth": 1,
+              "name": "Two",
+              "type": "system",
+              "external": false,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 10,
+            "flows": 7,
+            "problems": 16
+          }
+        }
+      ],
+      "lists": [
+        {
+          "name": "plain",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:bad",
+                "flow": {
+                  "id": "bad",
+                  "name": "Every way to get a channel wrong",
+                  "steps": 16,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:branching",
+                "flow": {
+                  "id": "branching",
+                  "name": "A lane starts from what was open before the branch",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:lifecycle",
+                "flow": {
+                  "id": "lifecycle",
+                  "name": "A stream opens, stays, closes and opens again",
+                  "steps": 10,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:parallel",
+                "flow": {
+                  "id": "parallel",
+                  "name": "One stop that opens and closes together",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:reopen",
+                "flow": {
+                  "id": "reopen",
+                  "name": "A name that is opened while it is open",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:repeat",
+                "flow": {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:unnamed",
+                "flow": {
+                  "id": "unnamed",
+                  "name": "Unnamed channels stay open to the end",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 7,
+            "shown": 7
+          }
+        },
+        {
+          "name": "editing",
+          "editing": true,
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:bad",
+                "flow": {
+                  "id": "bad",
+                  "name": "Every way to get a channel wrong",
+                  "steps": 16,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:branching",
+                "flow": {
+                  "id": "branching",
+                  "name": "A lane starts from what was open before the branch",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:lifecycle",
+                "flow": {
+                  "id": "lifecycle",
+                  "name": "A stream opens, stays, closes and opens again",
+                  "steps": 10,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:parallel",
+                "flow": {
+                  "id": "parallel",
+                  "name": "One stop that opens and closes together",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:reopen",
+                "flow": {
+                  "id": "reopen",
+                  "name": "A name that is opened while it is open",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:repeat",
+                "flow": {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:unnamed",
+                "flow": {
+                  "id": "unnamed",
+                  "name": "Unnamed channels stay open to the end",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 7,
+            "shown": 7
+          }
+        },
+        {
+          "name": "query-a",
+          "query": "a",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:bad",
+                "flow": {
+                  "id": "bad",
+                  "name": "Every way to get a channel wrong",
+                  "steps": 16,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:branching",
+                "flow": {
+                  "id": "branching",
+                  "name": "A lane starts from what was open before the branch",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:lifecycle",
+                "flow": {
+                  "id": "lifecycle",
+                  "name": "A stream opens, stays, closes and opens again",
+                  "steps": 10,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:parallel",
+                "flow": {
+                  "id": "parallel",
+                  "name": "One stop that opens and closes together",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:reopen",
+                "flow": {
+                  "id": "reopen",
+                  "name": "A name that is opened while it is open",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:repeat",
+                "flow": {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:unnamed",
+                "flow": {
+                  "id": "unnamed",
+                  "name": "Unnamed channels stay open to the end",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 7,
+            "shown": 7
+          }
+        },
+        {
+          "name": "query-pay",
+          "query": "PAY",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 7,
+            "shown": 0
+          }
+        },
+        {
+          "name": "query-blank",
+          "query": "   ",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:bad",
+                "flow": {
+                  "id": "bad",
+                  "name": "Every way to get a channel wrong",
+                  "steps": 16,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:branching",
+                "flow": {
+                  "id": "branching",
+                  "name": "A lane starts from what was open before the branch",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:lifecycle",
+                "flow": {
+                  "id": "lifecycle",
+                  "name": "A stream opens, stays, closes and opens again",
+                  "steps": 10,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:parallel",
+                "flow": {
+                  "id": "parallel",
+                  "name": "One stop that opens and closes together",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:reopen",
+                "flow": {
+                  "id": "reopen",
+                  "name": "A name that is opened while it is open",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:repeat",
+                "flow": {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:unnamed",
+                "flow": {
+                  "id": "unnamed",
+                  "name": "Unnamed channels stay open to the end",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 7,
+            "shown": 7
+          }
+        },
+        {
+          "name": "query-nothing",
+          "query": "zzzz no flow has this",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 7,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag",
+          "tags": [
+            "HAPPY PATH"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 7,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tags-and-query",
+          "tags": [
+            "happy path",
+            "error path"
+          ],
+          "query": "er",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 7,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag-nobody-has",
+          "tags": [
+            "no such tag"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 7,
+            "shown": 0
+          }
+        },
+        {
+          "name": "first-folder-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:bad",
+                "flow": {
+                  "id": "bad",
+                  "name": "Every way to get a channel wrong",
+                  "steps": 16,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:branching",
+                "flow": {
+                  "id": "branching",
+                  "name": "A lane starts from what was open before the branch",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:lifecycle",
+                "flow": {
+                  "id": "lifecycle",
+                  "name": "A stream opens, stays, closes and opens again",
+                  "steps": 10,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:parallel",
+                "flow": {
+                  "id": "parallel",
+                  "name": "One stop that opens and closes together",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:reopen",
+                "flow": {
+                  "id": "reopen",
+                  "name": "A name that is opened while it is open",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:repeat",
+                "flow": {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:unnamed",
+                "flow": {
+                  "id": "unnamed",
+                  "name": "Unnamed channels stay open to the end",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 7,
+            "shown": 7
+          }
+        },
+        {
+          "name": "all-folders-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:bad",
+                "flow": {
+                  "id": "bad",
+                  "name": "Every way to get a channel wrong",
+                  "steps": 16,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:branching",
+                "flow": {
+                  "id": "branching",
+                  "name": "A lane starts from what was open before the branch",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:lifecycle",
+                "flow": {
+                  "id": "lifecycle",
+                  "name": "A stream opens, stays, closes and opens again",
+                  "steps": 10,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:parallel",
+                "flow": {
+                  "id": "parallel",
+                  "name": "One stop that opens and closes together",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:reopen",
+                "flow": {
+                  "id": "reopen",
+                  "name": "A name that is opened while it is open",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:repeat",
+                "flow": {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:unnamed",
+                "flow": {
+                  "id": "unnamed",
+                  "name": "Unnamed channels stay open to the end",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 7,
+            "shown": 7
+          }
+        },
+        {
+          "name": "closed-and-filtered",
+          "closed": [],
+          "query": "a",
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:bad",
+                "flow": {
+                  "id": "bad",
+                  "name": "Every way to get a channel wrong",
+                  "steps": 16,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:branching",
+                "flow": {
+                  "id": "branching",
+                  "name": "A lane starts from what was open before the branch",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:lifecycle",
+                "flow": {
+                  "id": "lifecycle",
+                  "name": "A stream opens, stays, closes and opens again",
+                  "steps": 10,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:parallel",
+                "flow": {
+                  "id": "parallel",
+                  "name": "One stop that opens and closes together",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:reopen",
+                "flow": {
+                  "id": "reopen",
+                  "name": "A name that is opened while it is open",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:repeat",
+                "flow": {
+                  "id": "repeat",
+                  "name": "A repeat plays its steps in turn",
+                  "steps": 3,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:unnamed",
+                "flow": {
+                  "id": "unnamed",
+                  "name": "Unnamed channels stay open to the end",
+                  "steps": 5,
+                  "view": "shop",
+                  "linked": false,
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 7,
+            "shown": 7
+          }
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "2",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "2",
+          "self": true,
+          "opened": [
+            "2",
+            "root"
+          ]
+        },
+        {
+          "id": "10",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "10",
+          "self": true,
+          "opened": [
+            "10",
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": false,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "orders",
+          "self": true,
+          "opened": [
+            "api",
+            "orders",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": false,
+          "opened": [
+            "api",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "auth",
+          "self": true,
+          "opened": [
+            "api",
+            "auth",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": true,
+          "opened": [
+            "db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": true,
+          "opened": [
+            "root",
+            "stripe"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
     },
     "flowdiff": {
       "outlines": [

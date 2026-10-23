@@ -133,6 +133,9 @@ internal sealed class Chooser : StackPanel
 
     internal string? Chosen => _chosen;
 
+    /// <summary>The name shown beside the label for what is chosen, for the tests.</summary>
+    internal string ChosenName => _value.Text ?? "";
+
     public Button Add(string id, string name, Control content, params string[] classes)
     {
         var cell = Pick.Cell(name, content, classes);

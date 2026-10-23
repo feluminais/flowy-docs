@@ -5804,6 +5804,10 @@
       "playing": {
         "ends": [
           [
+            "ordering",
+            "tracking"
+          ],
+          [
             "courier-app",
             "tracking"
           ],
@@ -5818,6 +5822,10 @@
           [
             "courier-app",
             "ordering"
+          ],
+          [
+            "ordering",
+            "tracking"
           ]
         ],
         "step": 0
@@ -5827,7 +5835,7 @@
         {
           "id": "courier-app",
           "classes": [
-            "lit"
+            "dim"
           ],
           "inside": 0
         },
@@ -5863,7 +5871,7 @@
         {
           "id": "ordering",
           "classes": [
-            "dim",
+            "lit",
             "outsider"
           ],
           "inside": 7
@@ -5950,9 +5958,9 @@
           "id": "courier-app tracking",
           "source": "courier-app",
           "target": "tracking",
-          "label": "position every 5 s",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -5995,6 +6003,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "step",
+          "source": "ordering",
+          "target": "tracking",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -6010,6 +6028,10 @@
       "playing": {
         "ends": [
           [
+            "ordering",
+            "tracking"
+          ],
+          [
             "courier-app",
             "tracking"
           ],
@@ -6024,9 +6046,13 @@
           [
             "courier-app",
             "ordering"
+          ],
+          [
+            "ordering",
+            "tracking"
           ]
         ],
-        "step": 2
+        "step": 3
       },
       "focus": {},
       "boxes": [
@@ -6216,6 +6242,10 @@
       "playing": {
         "ends": [
           [
+            "ordering",
+            "tracking"
+          ],
+          [
             "courier-app",
             "tracking"
           ],
@@ -6230,16 +6260,20 @@
           [
             "courier-app",
             "ordering"
+          ],
+          [
+            "ordering",
+            "tracking"
           ]
         ],
-        "step": 3
+        "step": 5
       },
       "focus": {},
       "boxes": [
         {
           "id": "courier-app",
           "classes": [
-            "lit"
+            "dim"
           ],
           "inside": 0
         },
@@ -6253,7 +6287,7 @@
         {
           "id": "tracking",
           "classes": [
-            "dim"
+            "lit"
           ],
           "inside": 0
         },
@@ -6372,9 +6406,9 @@
           "id": "courier-app ordering",
           "source": "courier-app",
           "target": "ordering",
-          "label": "picked up, delivered",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -6407,6 +6441,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "step",
+          "source": "ordering",
+          "target": "tracking",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -6422,6 +6466,10 @@
       "playing": {
         "ends": [
           [
+            "ordering",
+            "tracking"
+          ],
+          [
             "courier-app",
             "tracking"
           ],
@@ -6436,6 +6484,10 @@
           [
             "courier-app",
             "ordering"
+          ],
+          [
+            "ordering",
+            "tracking"
           ]
         ]
       },

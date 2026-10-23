@@ -1,0 +1,11 @@
+name: A lane starts from what was open before the branch
+view: shop
+groups:
+  outcome: { kind: branch }
+steps:
+  - { from: web, to: api, text: Asks, animation: { kind: call, opens: stream, name: A } }
+  - { from: api, to: db, text: Keeps it, group: outcome, lane: Keep }
+  - { from: api, to: stripe, text: Starts a job, group: outcome, animation: { kind: send, opens: job, name: B } }
+  - { from: api, to: web, text: Closes the stream, group: outcome, lane: Drop, animation: { kind: send, closes: A } }
+  - { from: web, to: api, text: Closes B, group: outcome, animation: { kind: send, closes: B } }
+  - { from: web, to: api, text: After }

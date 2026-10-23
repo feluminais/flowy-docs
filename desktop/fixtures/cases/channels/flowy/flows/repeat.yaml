@@ -1,0 +1,8 @@
+name: A repeat plays its steps in turn
+view: shop
+groups:
+  again: { kind: repeat, times: "3" }
+steps:
+  - { from: web, to: api, text: Tries, group: again, animation: { kind: call, opens: job, name: Retry } }
+  - { from: api, to: db, text: Is slow, group: again }
+  - { from: web, to: api, text: Gives up, animation: { kind: send, closes: Retry } }

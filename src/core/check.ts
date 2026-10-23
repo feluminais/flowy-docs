@@ -10,6 +10,7 @@ import { isRepoPath, isWebAddress } from './paths.ts'
 import { stepPrefix, withoutStep } from './problem.ts'
 import type { Problem } from './problem.ts'
 import { snippetProblems } from './snippets.ts'
+import { channelProblems } from './channels.ts'
 import { stateProblems } from './states.ts'
 import { structureProblems, stopsOf } from './structure.ts'
 import { hasText, isMap } from './text.ts'
@@ -184,6 +185,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     })
     for (const sq of structureProblems(f, id => Object.hasOwn(model.flows, id))) at(sq.message, sq.step)
     for (const sq of stateProblems(f, stopsOf(f), id => getObject(model, id) !== undefined)) at(sq.message, sq.step)
+    for (const sq of channelProblems(f, stopsOf(f))) at(sq.message, sq.step)
   }
 
   for (const [aid, a] of Object.entries(model.failures)) {

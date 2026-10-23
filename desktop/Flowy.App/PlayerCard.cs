@@ -12,15 +12,15 @@ namespace Flowy.App;
 internal sealed record LinkedFlow(string Id, string Name, bool Playable);
 
 /// <summary>One step of the stop on show, as the card tells it. <c>Lane</c> is "" unless the stop is in a parallel group; <c>Outcome</c> is how its request ended, in the words of <see cref="Animations.OutcomeLine"/>.</summary>
-internal sealed record PlayerStep(string Ends, string Text, string? Description, string Lane, LinkedFlow? Link, string? Outcome = null);
+internal sealed record PlayerStep(string Ends, string Text, string? Description, string Lane, LinkedFlow? Link, string? Outcome = null, bool IsChannel = false);
 
 /// <summary>
-/// Everything the card shows: where the flow is (a stop of <c>Count</c>), the group the stop is in, the progress bar, the steps, the trail back, and the states on the canvas now (for the key).
+/// Everything the card shows: where the flow is (a stop of <c>Count</c>), the group the stop is in, the progress bar, the steps, the trail back, and the states on the canvas now (for the key), and <c>ChannelKinds</c> the kinds of channel open now (for the key below it).
 /// <c>Changes</c> is the kind of change each cell of the progress bar carries (one for each of its cells, null for none), while a comparison has Show changes on.
 /// </summary>
 internal sealed record PlayerView(
     string FlowName, int Stop, int Count, string? Kind, Caption Caption, Progress Progress, bool Auto, bool Moving, (string Name, int Step)? Trail, IReadOnlyList<PlayerStep> Steps,
-    IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null);
+    IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null, IReadOnlyList<string>? ChannelKinds = null);
 
 /// <summary>The card at the bottom while a flow plays: which stop, the group it is in, who talks to whom, what happens, and Back, Next and Stop.</summary>
 internal sealed class PlayerCard : Border
@@ -230,9 +230,9 @@ internal sealed class PlayerCard : Border
         {
             // How the request ended: a fact the picture can't give, so it is text, with a mark beside it.
             var dot = new Border { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Center };
-            dot.Classes.Add("outcomedot");
+            dot.Classes.Add(step.IsChannel ? "channeldot" : "outcomedot");
             var words = new SelectableTextBlock { Text = outcome, TextWrapping = TextWrapping.Wrap };
-            words.Classes.Add("outcome");
+            words.Classes.Add(step.IsChannel ? "channelline" : "outcome");
             block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { dot, words } });
         }
         if (!string.IsNullOrEmpty(step.Description))
@@ -319,6 +319,7 @@ internal sealed class PlayerCard : Border
         column.Children.Add(Bar(v.Progress, v.Stop, v.Changes));
         // The key: one mark for each state that is on the canvas now, drawn as it looks there.
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
+        if (v.ChannelKinds is { Count: > 0 } kinds) column.Children.Add(ChannelKey.Of(kinds));
         foreach (var step in v.Steps) column.Children.Add(Block(step, v.Steps.Count > 1));
         var buttons = new DockPanel { Margin = new Thickness(0, 6, 0, 0), LastChildFill = false };
         var stop = Tool(Icons.Close, "Stop", () => Stop?.Invoke(), !_inPane);

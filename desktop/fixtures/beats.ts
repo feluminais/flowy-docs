@@ -1,4 +1,4 @@
-import { ANIMATION_KINDS, animationOf, animationProblem, animationWith, beatsFor, burstOf, EFFECTS, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, channelLine, CHANNEL_SKETCHES, END_SKETCHES, animationProblem, animationWith, beatsFor, burstOf, EFFECTS, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
 import { active, bump, distance, DWELL, ease, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, effectPose, progress, tubeOpacity } from '../../ui/src/motion.ts'
@@ -43,6 +43,19 @@ const RAW: unknown[] = [
   { kind: 'send', effect: 'squish' }, { kind: 'call', effect: 'bounce', carries: 'order' }, { kind: 'event', effect: 'pulse' }, { kind: 'callback', effect: 'wiggle', trigger: 'outside' },
   { kind: 'call', effect: 'bounce', outcome: 'timeout' }, { kind: 'send', effect: 'pulse', outcome: 'lost', share: 30 },
   { kind: 'send', effect: 'spin' }, { kind: 'send', effect: '' }, { kind: 'send', effect: ['bounce'] }, { kind: 'send', effect: 'Bounce' }, { kind: 'send', effect: 'bounce', speed: 'fast' },
+  // What a step leaves open or closes: each kind, a name, an end, a close, an effect beside them, and every wrong way to write them.
+  { kind: 'call', opens: 'stream' }, { kind: 'call', opens: 'listener', name: 'Hook' }, { kind: 'send', opens: 'job', name: ' Charge ', towards: 'from' }, { kind: 'event', opens: 'stream', towards: 'to', carries: 'rows' },
+  { kind: 'callback', trigger: 'outside', opens: 'listener' }, { kind: 'call', opens: 'stream', name: 'x'.repeat(24) }, { kind: 'call', opens: 'job', effect: 'bounce' },
+  { kind: 'send', closes: 'Orders' }, { kind: 'call', closes: ' Orders ' }, { kind: 'event', closes: 'x'.repeat(24), carries: 'bye' }, { kind: 'callback', closes: 'Hook' },
+  { kind: 'call', opens: 'pipe' }, { kind: 'call', opens: '' }, { kind: 'call', opens: ['stream'] }, { kind: 'call', opens: 'Stream' }, { kind: 'call', opens: 'stream', towards: 'up' }, { kind: 'call', opens: 'stream', towards: '' },
+  { kind: 'call', opens: 'stream', towards: ['from'] }, { kind: 'call', name: 'Orders' }, { kind: 'call', towards: 'to' }, { kind: 'call', name: 'Orders', towards: 'from' },
+  { kind: 'call', opens: 'stream', closes: 'x' }, { kind: 'call', opens: 'stream', name: 'x'.repeat(25) }, { kind: 'call', closes: 'x'.repeat(25) },
+  { kind: 'call', opens: 'stream', name: '' }, { kind: 'call', opens: 'stream', name: ' ' }, { kind: 'call', opens: 'stream', name: ['Orders'] }, { kind: 'call', opens: 'stream', name: 'two\nlines' },
+  { kind: 'call', closes: '' }, { kind: 'call', closes: ' ' }, { kind: 'call', closes: ['Orders'] }, { kind: 'call', closes: 'one' + String.fromCharCode(0x2028) + 'line' },
+  { kind: 'call', opens: 'stream', name: String.fromCharCode(0xfeff) }, { kind: 'call', closes: 'x'.repeat(24) + String.fromCharCode(0xfeff) },
+  { kind: 'call', opens: 'stream', outcome: 'fail' }, { kind: 'call', opens: 'job', outcome: 'timeout' }, { kind: 'send', opens: 'listener', outcome: 'lost', share: 30 },
+  { kind: 'call', closes: 'x', outcome: 'rejected' }, { kind: 'send', closes: 'x', outcome: 'intercepted', by: 'proxy' }, { kind: 'call', opens: 'stream', closes: 'x', outcome: 'delayed' },
+  { kind: 'call', opens: 'stream', outcome: 'maybe' }, { kind: 'call', opens: 'stream', speed: 'fast' },
 ]
 /** A tag that gives a share plays a burst of 10, 20 or 100 requests, so those are dumped at two lengths only, under "bursting", and not at every length like the rest. */
 const hasShare = (animation: unknown): boolean => typeof animation === 'object' && animation !== null && 'share' in animation
@@ -58,6 +71,11 @@ const PICKS: [AnimationKey, string][][] = [
   [['kind', 'call'], ['outcome', 'intercepted'], ['by', 'cache'], ['byName', 'Café wifi proxy'], ['by', 'cache'], ['byName', ''], ['by', ''], ['outcome', 'lost'], ['outcome', 'intercepted'], ['kind', 'send']],
   [['kind', 'call'], ['outcome', 'timeout'], ['share', '10'], ['kind', 'send'], ['kind', 'call'], ['carries', 'order'], ['carries', ''], ['outcome', 'delayed'], ['outcome', 'duplicated']],
   [['outcome', 'lost'], ['kind', 'event'], ['outcome', 'fail'], ['kind', 'send'], ['outcome', 'fail'], ['share', '100']],
+  // Channels: open, name, point, close, and what each pick drops.
+  [['kind', 'call'], ['opens', 'stream'], ['name', ' Orders '], ['towards', 'from'], ['towards', ''], ['opens', 'job'], ['closes', 'Orders'], ['opens', 'listener'], ['opens', ''], ['kind', '']],
+  [['kind', 'send'], ['outcome', 'lost'], ['share', '20'], ['opens', 'stream'], ['name', 'Rows'], ['outcome', 'fail'], ['closes', 'Rows'], ['name', 'Again'], ['outcome', 'rejected']],
+  [['kind', 'call'], ['closes', 'Orders'], ['closes', ''], ['name', 'Alone'], ['towards', 'to'], ['opens', 'pipe'], ['opens', ''], ['kind', 'event']],
+  [['kind', 'call'], ['outcome', 'intercepted'], ['byName', 'Tap'], ['opens', 'job'], ['outcome', 'duplicated'], ['closes', 'Job'], ['outcome', 'delayed'], ['reason', 'Slow']],
 ]
 /** Which shapes exist, for the checks that need the model. */
 const SHAPES = ['web', 'api', 'proxy']
@@ -90,9 +108,14 @@ export function dumpBeats(): unknown {
       const a = read(animation)
       return a?.outcome === undefined ? [] : [{ animation, line: outcomeLine(a) ?? null, named: outcomeLine(a, id => SHAPE_NAMES[id] ?? id) ?? null }]
     }),
+    // How a step that opens or closes a channel reads on its card.
+    channelLines: RAW.flatMap(animation => {
+      const a = read(animation)
+      return a === undefined ? [] : [{ animation, line: channelLine(a) ?? null }]
+    }),
     bursts: SHARES.map(share => ({ share, ...burstOf(share) })),
     blocks: [undefined, '', ...ANIMATION_KINDS].flatMap(kind => ['', ...OUTCOMES].map(outcome => ({ kind: kind ?? null, outcome, block: outcomeBlock(kind, outcome) ?? null }))),
-    sketches: { kinds: Object.entries(KIND_SKETCHES), outcomes: Object.entries(OUTCOME_SKETCHES) },
+    sketches: { kinds: Object.entries(KIND_SKETCHES), outcomes: Object.entries(OUTCOME_SKETCHES), channels: Object.entries(CHANNEL_SKETCHES), ends: Object.entries(END_SKETCHES) },
     picks: PICKS.map(chain => {
       let current: unknown
       return chain.map(([key, value]) => ({ key, value, result: (current = animationWith(current, key, value)) ?? null }))
@@ -100,8 +123,9 @@ export function dumpBeats(): unknown {
     // A step that already has an animation of its own, mapping or bare kind.
     picksFrom: [
       { kind: 'callback', trigger: 'outside', carries: 'x' }, { kind: 'send', outcome: 'lost', carries: 'order', note: 'kept' }, 'call', { kind: 'call', outcome: 'intercepted', by: { name: 'Proxy' }, reason: 'x' },
+      { kind: 'call', opens: 'stream', name: 'Orders', towards: 'from', carries: 'rows' }, { kind: 'send', closes: 'Orders', note: 'kept' },
     ].flatMap(from => (
-      [['kind', 'send'], ['kind', 'callback'], ['outcome', 'delayed'], ['outcome', ''], ['reason', 'Why'], ['by', 'cache'], ['byName', 'Tap'], ['share', '40']] as [AnimationKey, string][]
+      [['kind', 'send'], ['kind', 'callback'], ['outcome', 'delayed'], ['outcome', ''], ['reason', 'Why'], ['by', 'cache'], ['byName', 'Tap'], ['share', '40'], ['opens', 'stream'], ['opens', ''], ['name', 'Orders'], ['towards', 'from'], ['closes', 'Orders']] as [AnimationKey, string][]
     ).map(([key, value]) => ({ from, key, value, result: animationWith(from, key, value) ?? null }))),
     marks: RAW.flatMap(animation => {
       const a = read(animation)
