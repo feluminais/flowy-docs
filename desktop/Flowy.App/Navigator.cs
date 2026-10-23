@@ -85,14 +85,13 @@ internal sealed class NavRail : Border
         SetCount(PanelTab.Explorer, "Explorer", shapes);
     }
 
-    /// <summary>The left rail's Performance button: always there (the number on it is how many runs, when there are any), and greyed out while the reader is editing.</summary>
+    /// <summary>The left rail's Performance button: always there, and always on (the number on it is how many runs, when there are any). While editing it opens the runs to link, not the numbers.</summary>
     public void UpdatePerformance(int runs, bool open, bool editing)
     {
         if (!_entries.TryGetValue(PanelTab.Performance, out var entry)) return;
         entry.Activate(open);
-        entry.Button.IsEnabled = !editing;
-        ToolTip.SetTip(entry.Button, editing ? "Performance (not while editing)" : "Performance (T)");
-        ToolTip.SetShowOnDisabled(entry.Button, true);
+        entry.Button.IsEnabled = true;
+        ToolTip.SetTip(entry.Button, editing ? "Performance" : "Performance (T)");
         SetCount(PanelTab.Performance, "Performance", runs, runs > 0);
     }
 
@@ -186,6 +185,11 @@ internal sealed class NavigatorPanel : Border
 
     private readonly ScrollViewer _perfScroll;
 
+    /// <summary>What the Performance tab holds while editing: the runs, with Link with and Unlink. It lives as long as the reader.</summary>
+    public RunLinksPanel RunLinks { get; } = new();
+
+    private readonly ScrollViewer _runLinksScroll;
+
     public event Action? Closed;
 
     public NavigatorPanel()
@@ -194,6 +198,7 @@ internal sealed class NavigatorPanel : Border
         Classes.Add("navpanel");
         _failuresScroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = new Border { Padding = new Thickness(16, 6, 16, 16), Child = Failures } };
         _perfScroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = new Border { Padding = new Thickness(16, 6, 16, 16), Child = Perf } };
+        _runLinksScroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = new Border { Padding = new Thickness(16, 6, 16, 16), Child = RunLinks } };
         Width = Camera.Nav;
         HorizontalAlignment = HorizontalAlignment.Left;
         IsVisible = false;
@@ -209,10 +214,10 @@ internal sealed class NavigatorPanel : Border
         Child = new Grid { Children = { column, close } };
     }
 
-    public void Show(PanelTab tab)
+    public void Show(PanelTab tab, bool editing = false)
     {
         Tabs.Update(tab);
-        _body.Content = tab == PanelTab.Flows ? Flows : tab == PanelTab.Failures ? _failuresScroll : tab == PanelTab.Performance ? _perfScroll : Explorer;
+        _body.Content = tab == PanelTab.Flows ? Flows : tab == PanelTab.Failures ? _failuresScroll : tab == PanelTab.Performance ? (editing ? _runLinksScroll : _perfScroll) : Explorer;
         IsVisible = true;
     }
 

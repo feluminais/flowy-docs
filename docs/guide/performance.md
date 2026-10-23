@@ -180,7 +180,7 @@ number, opens at the place the tab opens at. In the desktop app `--at 800,400` p
 Plum's [together](../demo/flowy/perf/together.yaml) adds customer orders and courier pings, and [together-measured](../demo/flowy/perf/together-measured.yaml) tests them at once. The showcase has
 [added](../showcase/flowy/perf/added.yaml) and [together-grid](../showcase/flowy/perf/together-grid.yaml).
 
-**Comparing runs.** **Compare** (**C**) under the run's name opens it beside another run, side by side or swapped, and **Link with** records the pair in the run's file as a `compare` tag; **Unlink** takes it away.
+**Comparing runs.** **Compare** (**C**) under the run's name opens it beside another run, side by side or swapped, and, while editing (the Performance tab then lists the runs), **Link with** records the pair in the run's file as a `compare` tag and **Unlink** takes it away.
 Plum's [together-measured](../demo/flowy/perf/together-measured.yaml) is linked to [together](../demo/flowy/perf/together.yaml), and the note says what the difference is. See [Compare](compare.md).
 
 **What to remember.** This is a replay. Flowy never predicts a load nobody tested past the highest one, so the slider stops there. (A run tested together has no load-free end: its sliders start at the lowest tested load.) How
