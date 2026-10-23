@@ -43,10 +43,8 @@ internal sealed class NavRail : Border
         {
             Add(column, PanelTab.Explorer, Icons.Explorer, "Explorer", "O");
             Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
-            Add(column, PanelTab.Failures, Icons.Bolt, "Failures", "M");
-            _entries[PanelTab.Failures].Show(false); // there only where the folder has a failure analysis
             Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
-            _entries[PanelTab.Performance].Show(false); // there only where the folder has load-test runs
+            Add(column, PanelTab.Failures, Icons.Bolt, "Failures", "M");
         }
         else
         {
@@ -78,46 +76,43 @@ internal sealed class NavRail : Border
         _entries[tab] = new Entry(cell, button, count, badge);
     }
 
-    /// <summary>Shows which tab is open and the counts. The Flows icon is there only when there is a flow to find (or while editing).</summary>
-    public void Update(PanelTab? shown, int flows, int shapes, bool showFlows)
+    /// <summary>Shows which tab is open and the counts. Every icon is always there: a tab with nothing in it says so, and offers to make something where it can.</summary>
+    public void Update(PanelTab? shown, int flows, int shapes)
     {
         foreach (var (tab, entry) in _entries) entry.Activate(shown == tab);
         if (!_entries.ContainsKey(PanelTab.Flows)) return;
-        _entries[PanelTab.Flows].Show(showFlows);
         SetCount(PanelTab.Flows, "Flows", flows);
         SetCount(PanelTab.Explorer, "Explorer", shapes);
     }
 
-    /// <summary>The left rail's Performance button: there only when the folder has runs (the number on it is how many), and greyed out while the reader is editing.</summary>
-    public void UpdatePerformance(bool show, int runs, bool open, bool editing)
+    /// <summary>The left rail's Performance button: always there (the number on it is how many runs, when there are any), and greyed out while the reader is editing.</summary>
+    public void UpdatePerformance(int runs, bool open, bool editing)
     {
         if (!_entries.TryGetValue(PanelTab.Performance, out var entry)) return;
-        entry.Show(show);
         entry.Activate(open);
         entry.Button.IsEnabled = !editing;
         ToolTip.SetTip(entry.Button, editing ? "Performance (not while editing)" : "Performance (T)");
         ToolTip.SetShowOnDisabled(entry.Button, true);
-        SetCount(PanelTab.Performance, "Performance", runs);
+        SetCount(PanelTab.Performance, "Performance", runs, runs > 0);
     }
 
-    /// <summary>The left rail's Failures button: there only when the folder has an analysis (the number on it is how many failure modes), and greyed out while the reader is editing.</summary>
-    public void UpdateFailures(bool show, int modes, bool open, bool editing)
+    /// <summary>The left rail's Failures button: always there (the number on it is how many failure modes, when there are any), and greyed out while the reader is editing.</summary>
+    public void UpdateFailures(int modes, bool open, bool editing)
     {
         if (!_entries.TryGetValue(PanelTab.Failures, out var entry)) return;
-        entry.Show(show);
         entry.Activate(open);
         entry.Button.IsEnabled = !editing;
         ToolTip.SetTip(entry.Button, editing ? "Failures (not while editing)" : "Failures (M)");
         ToolTip.SetShowOnDisabled(entry.Button, true);
-        SetCount(PanelTab.Failures, "Failures", modes);
+        SetCount(PanelTab.Failures, "Failures", modes, modes > 0);
     }
 
-    private void SetCount(PanelTab tab, string name, int n)
+    private void SetCount(PanelTab tab, string name, int n, bool show = true)
     {
         var entry = _entries[tab];
         entry.Count.Text = n > 999 ? "999+" : n.ToString(CultureInfo.InvariantCulture);
-        entry.Badge.IsVisible = true;
-        AutomationProperties.SetName(entry.Button, $"{name}, {n}");
+        entry.Badge.IsVisible = show;
+        AutomationProperties.SetName(entry.Button, show ? $"{name}, {n}" : name);
     }
 
     /// <summary>What a test can look at: the label of each icon, whether it can be clicked, and the count on it.</summary>
@@ -127,7 +122,7 @@ internal sealed class NavRail : Border
     internal void Press(PanelTab tab) => Picked?.Invoke(tab);
 }
 
-/// <summary>The strip of tabs on top of the navigator: Explorer, Flows, Failures and Performance.</summary>
+/// <summary>The strip of tabs on top of the navigator: Explorer and Flows share one, and Performance and Failures each have a strip of their own that holds just their name.</summary>
 internal sealed class NavTabs : StackPanel
 {
     private readonly Dictionary<PanelTab, Button> _buttons = [];
@@ -139,7 +134,7 @@ internal sealed class NavTabs : StackPanel
         Orientation = Orientation.Horizontal;
         Spacing = 2;
         Classes.Add("navtabs");
-        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Failures, "Failures"), (PanelTab.Performance, "Performance") })
+        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Performance, "Performance"), (PanelTab.Failures, "Failures") })
         {
             var button = new Button { Content = label };
             button.Classes.Add("navtab");
@@ -150,12 +145,13 @@ internal sealed class NavTabs : StackPanel
         }
     }
 
-    public void Update(PanelTab active, bool showFlows, bool showFailures, bool showPerf)
+    public void Update(PanelTab active)
     {
-        foreach (var (tab, button) in _buttons) button.Classes.Set("on", tab == active);
-        _buttons[PanelTab.Flows].IsVisible = showFlows;
-        _buttons[PanelTab.Failures].IsVisible = showFailures;
-        _buttons[PanelTab.Performance].IsVisible = showPerf;
+        foreach (var (tab, button) in _buttons)
+        {
+            button.Classes.Set("on", tab == active);
+            button.IsVisible = tab == active || (tab is PanelTab.Explorer or PanelTab.Flows && active is PanelTab.Explorer or PanelTab.Flows);
+        }
     }
 }
 
@@ -215,9 +211,9 @@ internal sealed class NavigatorPanel : Border
         Child = new Grid { Children = { column, close } };
     }
 
-    public void Show(PanelTab tab, bool showFlows, bool showFailures, bool showPerf)
+    public void Show(PanelTab tab)
     {
-        Tabs.Update(tab, showFlows, showFailures, showPerf);
+        Tabs.Update(tab);
         _body.Content = tab == PanelTab.Flows ? Flows : tab == PanelTab.Failures ? _failuresScroll : tab == PanelTab.Performance ? _perfScroll : Explorer;
         IsVisible = true;
     }

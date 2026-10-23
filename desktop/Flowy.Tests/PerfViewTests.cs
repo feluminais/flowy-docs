@@ -442,5 +442,24 @@ public class PerfViewTests
             Assert.Equal(D(s!["to"]), PerfView.StepFrom(D(s["pos"]), (int)D(s["direction"])));
     }
 
+    [Fact]
+    public void TheStarterRunNamesTheShapesAndConnectionsOfTheViewAndIsARunFlowyReadsWithoutAProblem()
+    {
+        var model = TestModels.Shop();
+        var (run, problems) = Perf.ParseRun("starter", PerfView.StarterRun(model, Names.Root));
+        Assert.Empty(problems);
+        Assert.Equal(2, run.Levels.Count);
+        Assert.NotEmpty(run.Levels[0].Objects);
+        Assert.All(run.Levels[0].Objects.Keys, id => Assert.True(model.Objects.Contains(id)));
+    }
+
+    [Fact]
+    public void TheStarterRunForAViewWithNothingInItStillHasTwoLevels()
+    {
+        var (run, problems) = Perf.ParseRun("starter", PerfView.StarterRun(new Model(), Names.Root));
+        Assert.Empty(problems);
+        Assert.Equal(2, run.Levels.Count);
+    }
+
     private static List<double> Floats(JsonNode? n) => [.. n!.AsArray().Select(D)];
 }

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -61,6 +62,13 @@ internal sealed class FlowsView : Grid
         var field = Field(_find, Icons.Search);
         field.Margin = new Thickness(0, 0, Inset, 0);
         _find.TextChanged += (_, _) => Rebuild();
+        _find.KeyDown += (_, e) =>
+        {
+            // Esc empties the filter first, as in Explorer; a second press goes on to close the layers behind it.
+            if (e.Key != Key.Escape || string.IsNullOrEmpty(_find.Text)) return;
+            _find.Text = "";
+            e.Handled = true;
+        };
         var scroll = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
         SetRow(scroll, 1);
         SetRow(_foot, 2);
