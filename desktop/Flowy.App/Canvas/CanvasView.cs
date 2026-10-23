@@ -326,6 +326,9 @@ internal sealed class CanvasView : Border
     /// <summary>Where the labels showing now are, for tests.</summary>
     internal IReadOnlyList<Flowy.Core.Rect> LabelRects => _back.LabelRects;
 
+    /// <summary>The geometry of a line, for tests.</summary>
+    internal Geometry? LineGeometry(string from, string to) => _back.GeometryOf(SceneBuilder.LineId(from, to));
+
     /// <summary>The traffic layer, for tests: how many particles run and whether it runs at all.</summary>
     internal (int Particles, bool Running) TrafficNow => (_traffic.ParticleCount, _traffic.Running);
 

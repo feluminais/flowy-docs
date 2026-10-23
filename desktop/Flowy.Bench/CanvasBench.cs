@@ -116,10 +116,14 @@ internal static class CanvasBench
         var raster = new List<double>();
         for (var i = 0; i < 20; i++)
         {
-            ui.Add(Time(() => { canvas.MoveTo(new Viewport(view.X + ++step * 7, view.Y + step * 3, view.Zoom)); Dispatcher.UIThread.RunJobs(); }));
+            var next = new Viewport(view.X + ++step * 7, view.Y + step * 3, view.Zoom);
+            var move = Time(() => canvas.MoveTo(next));
+            var jobs = Time(() => Dispatcher.UIThread.RunJobs());
+            ui.Add(move);
+            if (Environment.GetEnvironmentVariable("SPLIT") is not null && i == 10) Console.WriteLine($"  (a move {move:0.00} ms, the jobs after it {jobs:0.00} ms)");
             raster.Add(Frame());
         }
-        Row("pan one step: the move", Median(ui));
+        Row("pan one step: the handler", Median(ui));
         Row("pan one step: the frame drawn", Median(raster));
 
         // Pointing at a line, then away: what the reader redraws.
@@ -129,11 +133,12 @@ internal static class CanvasBench
         {
             var (f, t) = lines[i];
             var id = SceneBuilder.LineId($"app-{f}", $"app-{t}");
-            hover.Add(Time(() => { reader.SetHover(id); Dispatcher.UIThread.RunJobs(); }));
+            hover.Add(Time(() => reader.SetHover(id)));
+            Dispatcher.UIThread.RunJobs();
             hoverFrame.Add(Frame());
             reader.SetHover(null);
         }
-        Row("point at a line: the redraw of the scene", Median(hover));
+        Row("point at a line: the handler", Median(hover));
         Row("point at a line: the frame drawn", Median(hoverFrame));
 
         // Edit mode: pick a box up and move it about.
@@ -148,23 +153,34 @@ internal static class CanvasBench
         for (var i = 1; i <= 20; i++)
         {
             var to = new Point(grab.X + i * 5, grab.Y + i * 2);
-            drag.Add(Time(() => { window.MouseMove(to, RawInputModifiers.LeftMouseButton); Dispatcher.UIThread.RunJobs(); }));
+            drag.Add(Time(() => window.MouseMove(to, RawInputModifiers.LeftMouseButton)));
+            Dispatcher.UIThread.RunJobs();
             dragFrame.Add(Frame());
         }
         window.MouseUp(new Point(grab.X + 100, grab.Y + 40), MouseButton.Left);
-        Row("move a box in edit mode: the move", Median(drag));
+        Row("move a box in edit mode: the handler", Median(drag));
         Row("move a box in edit mode: the frame drawn", Median(dragFrame));
         reader.SetEditing(false);
         Settle();
+
+        var over = new List<double>();
+        for (var i = 0; i < 20; i++)
+        {
+            var at = new Point(300 + i * 11, 300 + i * 7);
+            over.Add(Time(() => window.MouseMove(at)));
+            Dispatcher.UIThread.RunJobs();
+        }
+        Row("move the pointer over the canvas, no button", Median(over), "(hit testing and the pointer's own handlers)");
 
         var wheel = new List<double>();
         for (var i = 0; i < 20; i++)
         {
             var notch = i;
-            wheel.Add(Time(() => { window.MouseWheel(new Point(700, 450), new Vector(0, notch % 2 == 0 ? 1 : -1)); Dispatcher.UIThread.RunJobs(); }));
+            wheel.Add(Time(() => window.MouseWheel(new Point(700, 450), new Vector(0, notch % 2 == 0 ? 1 : -1))));
+            Dispatcher.UIThread.RunJobs();
             Frame();
         }
-        Row("wheel zoom one notch: the move", Median(wheel));
+        Row("wheel zoom one notch: the handler", Median(wheel));
     }
 
     private static double Median(Func<double> measure, int runs = 7) => Median(Enumerable.Range(0, runs).Select(_ => measure()).ToList());

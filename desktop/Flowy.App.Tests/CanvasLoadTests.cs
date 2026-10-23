@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
 using Flowy.App.Canvas;
@@ -120,6 +121,25 @@ public class CanvasLoadTests
         Assert.True(particles > 10, $"{particles} particles"); // a new line starts with its particles spread along it
         canvas.ShowLoad(null);
         Assert.Equal((0, false), canvas.TrafficNow);
+    }
+
+    [AvaloniaFact]
+    public void Particles_wait_while_the_window_is_minimised_and_run_again_when_it_is_back()
+    {
+        using var motion = Motion.On();
+        var (canvas, folder) = Open();
+        var window = (Window)TopLevel.GetTopLevel(canvas)!;
+        canvas.ShowLoad(Load(folder, "ramp", 100));
+        Assert.True(canvas.TrafficNow.Running);
+        window.WindowState = WindowState.Minimized;
+        AvaloniaHeadlessPlatform.ForceRenderTimerTick(); // the next frame finds it minimised and stops asking for more
+        Dispatcher.UIThread.RunJobs();
+        Assert.False(canvas.TrafficNow.Running);
+        Assert.True(canvas.TrafficNow.Particles > 10); // what runs on the lines is kept
+        canvas.ShowLoad(Load(folder, "ramp", 200)); // a load that changes meanwhile does not start it either
+        Assert.False(canvas.TrafficNow.Running);
+        window.WindowState = WindowState.Normal;
+        Assert.True(canvas.TrafficNow.Running);
     }
 
     [AvaloniaFact]
