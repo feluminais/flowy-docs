@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { KeyboardEvent, ReactNode, Ref } from 'react'
+import type { DragEvent, KeyboardEvent, ReactNode, Ref } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
-import { ROOT, tagKey } from '../../src/core/model.ts'
+import { folderOf, ROOT, tagKey } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { flowList, outline, outlineKey } from '../../src/core/outline.ts'
 import type { FlowRef, FlowTag, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
@@ -176,6 +176,9 @@ function RowCompareButton({ flow, name, compare }: { flow: string; name: string;
   )
 }
 
+/** What a dragged flow's id is carried as. */
+const FLOW_DRAG = 'application/x-flowy-flow'
+
 /** How far each level of folders is moved in. */
 const INDENT = 16
 /** A row's own mark has this much room before it: the arrow of a folder, which a flow leaves empty so its mark lines up with its folder's. */
@@ -207,7 +210,13 @@ function TagBar({ tags, picked, onToggle }: { tags: FlowTag[]; picked: readonly 
  * Picking a flow goes to the level it plays in and plays it (or, while editing, opens it for editing). The tags in use filter the list, and so does the search.
  * A flow in a pair has a link mark.
  */
-export function FlowsTab({ model, editing, canEdit, current, compare, onOpen }: { model: Model; editing: boolean; canEdit: boolean; current?: string; compare: RowCompare; onOpen: (flow: FlowRef) => void }) {
+export function FlowsTab({ model, editing, canEdit, current, compare, onOpen, onMove }: {
+  model: Model; editing: boolean; canEdit: boolean; current?: string; compare: RowCompare; onOpen: (flow: FlowRef) => void
+  /** Files a flow in a folder ("" is the top of flows/): what dropping a flow on a folder does. Left out when nothing can be edited, and then rows are not dragged. */
+  onMove?: (flowId: string, folder: string) => void
+}) {
+  const [dragging, setDragging] = useState<string>()
+  const [over, setOver] = useState<string>()
   const [query, setQuery] = useState('')
   const [closed, setClosed] = useState<ReadonlySet<string>>(new Set())
   const [picked, setPicked] = useState<readonly string[]>([])
@@ -221,8 +230,23 @@ export function FlowsTab({ model, editing, canEdit, current, compare, onOpen }: 
   const flows = list.rows.flatMap(r => (r.kind === 'flow' ? [r.flow] : []))
   const toggleFolder = (path: string) => setClosed(c => { const next = new Set(c); if (next.has(path)) next.delete(path); else next.add(path); return next })
   const toggleTag = (key: string) => setPicked(p => (p.includes(key) ? p.filter(k => k !== key) : [...p, key]))
+  // A flow dropped on a folder goes into it, and one dropped on another flow goes into that flow's folder; the top of flows/ is a row of its own while one is dragged.
+  const drop = (folder: string) => dragging === undefined ? {} : {
+    onDragOver: (e: DragEvent) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (over !== folder) setOver(folder) },
+    onDragLeave: () => setOver(o => (o === folder ? undefined : o)),
+    onDrop: (e: DragEvent) => {
+      e.preventDefault()
+      const id = e.dataTransfer.getData(FLOW_DRAG) || dragging
+      setDragging(undefined)
+      setOver(undefined)
+      if (folderOf(model, id) !== folder) onMove?.(id, folder)
+    },
+  }
+  const marked = (folder: string) => classes(over === folder && dragging !== undefined && 'drop')
   const row = (f: FlowRef, depth: number) => (
-    <div key={f.id} className="flow-item">
+    <div key={f.id} className={classes('flow-item', marked(f.folder), dragging === f.id && 'dragged')} draggable={onMove !== undefined || undefined} {...drop(f.folder)}
+      onDragStart={e => { e.dataTransfer.setData(FLOW_DRAG, f.id); e.dataTransfer.effectAllowed = 'move'; setDragging(f.id) }}
+      onDragEnd={() => { setDragging(undefined); setOver(undefined) }}>
       <button className="flow-row" aria-current={f.id === current} style={{ paddingLeft: 6 + INDENT * depth + TWIST }} title={nameOf(model, f.view)} onClick={() => onOpen(f)}>
         {editing ? <Pencil size={15} /> : <Play size={15} />}
         <span className="name">{f.name}</span>
@@ -244,11 +268,17 @@ export function FlowsTab({ model, editing, canEdit, current, compare, onOpen }: 
         }} />
       {list.tags.length > 0 && <TagBar tags={list.tags} picked={alive} onToggle={toggleTag} />}
       <div className="navscroll">
-        {filtering && list.total > 0 && <p className="muted navnote">{list.shown} of {plural(list.total, 'flow')}</p>}
+        {dragging !== undefined && (
+          <div className={classes('flow-top', marked(''))} {...drop('')}>
+            <Folder size={15} />
+            <span className="name">Top level</span>
+          </div>
+        )}
+        {filtering && list.shown > 0 && <p className="muted navnote">{list.shown} of {plural(list.total, 'flow')}</p>}
         {list.rows.map(r => r.kind === 'flow'
           ? row(r.flow, r.depth)
           : (
-            <button key={r.key} className="group-head folder" aria-expanded={r.open} style={{ paddingLeft: 6 + INDENT * r.depth }} onClick={() => toggleFolder(r.path)}>
+            <button key={r.key} className={classes('group-head', 'folder', marked(r.path))} aria-expanded={r.open} style={{ paddingLeft: 6 + INDENT * r.depth }} onClick={() => toggleFolder(r.path)} {...drop(r.path)}>
               <ChevronRight size={14} />
               <Folder size={15} />
               <span className="name">{r.name}</span>

@@ -1,5 +1,6 @@
 name: Dragging a shape
 view: flowy
+tags: [happy path]
 steps:
   - { from: reader, to: canvas, text: Drags a shape in edit mode }
   - from: canvas
