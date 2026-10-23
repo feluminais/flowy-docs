@@ -24,7 +24,8 @@ The bar over the panes picks the view.
 **Side by side** puts the two in two panes. Each pane has its own zoom, pan and player, so one flow can be at step 2 while the other is at step 5, and each can
 be at its own level (two flows on different views both draw). One Details panel serves both: it shows whatever you clicked last, in either pane. The pane you
 clicked last has an outline, and the keys act on it: ← and → step, **Home** and **End** jump, **P** plays, **R** replays, **F** fits that pane. Panes keep their
-zoom when the window changes size, so press **F** to fit again.
+zoom when the window changes size, so press **F** to fit again. Double-click a shape that opens ("6 inside") and that pane zooms into it, with the flow still playing on the new level; the other pane stays
+where it is. A breadcrumb under the pane's title shows the way down, and **Esc**, **Backspace** and **Z** go back up (**Esc** closes the comparison once the pane is back on its flow's own view).
 
 **Swap** draws one canvas and flips it between the two. **X** (or a click on the other name in the bar) swaps. A shape both flows draw glides to its new place, one only the
 new flow draws fades in, and one only the old flow drew fades out. Each flow keeps its own step, so swapping back finds it where you left it. For two runs, which draw the same level, only

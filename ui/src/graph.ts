@@ -276,3 +276,6 @@ export function panIntoView(box: Rect, view: Viewport, size: { width: number; he
   const dy = shift(top, top + box.height * view.zoom, size.height)
   return dx === 0 && dy === 0 ? undefined : { ...view, x: view.x + dx, y: view.y + dy }
 }
+
+/** Milliseconds a click on a box that opens waits, in case it is the first half of a double-click. */
+export const DOUBLE_CLICK = 250

@@ -19,7 +19,7 @@ namespace Flowy.App;
 /// </summary>
 internal sealed partial class ReaderView : Grid, IDisposable
 {
-    private const int DoubleClickMilliseconds = 250;
+    internal const int DoubleClickMilliseconds = 250;
 
     // Opening a box: the old level flies off, the new one settles in. The browser version takes 220 and 320 ms, but there the browser's
     // compositor runs it; here every frame is the UI thread's work, and a shorter move hides any hitch in it.
