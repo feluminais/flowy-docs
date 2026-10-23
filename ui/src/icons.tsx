@@ -34,6 +34,7 @@ export const ZoomIn = icon(<><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0
 // The controls and the panel's headings. The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs).
 export const Home = one('M5 12l-2 0l9 -9l9 9l-2 0M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6')
 export const ChevronRight = one('M9 6l6 6l-6 6')
+export const ChevronDown = one('M6 9l6 6l6 -6')
 export const ArrowRight = one('M5 12l14 0M15 16l4 -4M15 8l4 4')
 export const ArrowLeft = one('M5 12l14 0M5 12l4 4M5 12l4 -4')
 export const ArrowUp = one('M12 5l0 14M18 11l-6 -6M6 11l6 -6')
