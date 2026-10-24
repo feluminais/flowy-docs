@@ -46,7 +46,7 @@ test('every flow and step a mode names is there, counting steps from 1', () => {
   }
 })
 
-test('the numbers the README, the guide and CONTRIBUTING quote come out of the analysis', () => {
+test('the numbers the README, the guide and docs/maintaining.md quote come out of the analysis', () => {
   const counts = { high: 0, medium: 0, low: 0, unrated: 0 }
   for (const [, m] of modes) counts[bandOf(m)]++
   assert.deepEqual(counts, { high: 2, medium: 5, low: 6, unrated: 1 })

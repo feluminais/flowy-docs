@@ -2,7 +2,7 @@
 
     uv run --with pillow docs/images/social.py
 
-Needs desktop-data.png beside it (CONTRIBUTING.md says how to retake it) and Segoe UI, which ships with Windows.
+Needs desktop-data.png beside it (docs/maintaining.md says how to retake it) and Segoe UI, which ships with Windows.
 """
 from pathlib import Path
 
