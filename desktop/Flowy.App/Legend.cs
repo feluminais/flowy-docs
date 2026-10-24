@@ -118,13 +118,3 @@ internal static class KeyRow
     }
 }
 
-/// <summary>Keys and what they do, a cap or two and a word each: the hint under the slider.</summary>
-internal static class KeyHint
-{
-    public static Control Of(params (string Keys, string What)[] hints)
-    {
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
-        foreach (var (keys, what) in hints) row.Children.Add(KeyCaps.Of(keys, new TextBlock { Text = what, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center }));
-        return row;
-    }
-}

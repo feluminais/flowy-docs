@@ -315,7 +315,7 @@ test('a key nothing wants is left to the browser', () => {
 
 // The list ? opens, pinned word for word.
 test('the shortcut list says what it said before the table was built from the key map', () => {
-  assert.deepEqual(HELP_GROUPS.map(g => g.title), ['Getting around', 'Flows', 'Performance', 'Failures', 'Edit mode'])
+  assert.deepEqual(HELP_GROUPS.map(g => g.title), ['Getting around', 'Flows', 'Performance', 'Failures', 'Edit mode', 'Used by'])
   const rows = Object.fromEntries(HELP_GROUPS.map(g => [g.id, helpRows(g.id)]))
   assert.deepEqual(rows.reading, [
     ['Enter', 'Open the selected shape'],
@@ -328,6 +328,7 @@ test('the shortcut list says what it said before the table was built from the ke
     ['Y', 'The files as YAML, and what changed'],
     ['T', 'Show a load-test run on the diagram, where there is one'],
     ['M', 'Show how things fail, worst first'],
+    ['↑  ↓  Enter', 'In the model picker: move, then open'],
     ['?', 'Show these shortcuts'],
   ])
   assert.deepEqual(rows.flows, [
@@ -356,6 +357,13 @@ test('the shortcut list says what it said before the table was built from the ke
     ['Ctrl+Z', 'Undo'],
     ['Esc  Backspace', 'Straight after dragging a shape: take the drag back'],
     ['Ctrl+Y  Ctrl+Shift+Z', 'Redo'],
+  ])
+  assert.deepEqual(rows.usedby, [
+    ['↑  ↓', 'Move between rows'],
+    ['X', 'Remove the row'],
+    ['R', 'Reroute the row, or every row'],
+    ['Enter', 'Remove all, or delete once nothing is left'],
+    ['Esc', 'Cancel'],
   ])
 })
 
