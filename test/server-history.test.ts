@@ -117,6 +117,30 @@ test('the page is told of a change only after the step for it is recorded', asyn
   await reader.cancel().catch(() => undefined) // before the server closes the stream under it
 })
 
+test('closing the server waits for a step the folder watcher is still recording, so nothing is written after it', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'flowy-server-history-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const dir = join(root, 'flowy')
+  await mkdir(dir)
+  await writeFile(join(dir, 'model.yaml'), 'objects: {}\nconnections: []\n')
+  const real = openHistory(dir, { app: 'browser', stateDir: join(root, 'state'), log: () => undefined })
+  let started = false
+  let recorded = false
+  const ensureCurrent = async (why: 'open' | 'watch' | 'write') => {
+    if (why !== 'watch') return real.ensureCurrent(why)
+    started = true
+    await pause(300)
+    const ensured = await real.ensureCurrent(why)
+    recorded = true
+    return ensured
+  }
+  const server = await startServer({ dir, ui: join(root, 'ui'), port: 0, history: { ...real, ensureCurrent } })
+  await writeFile(join(dir, 'model.yaml'), 'objects: { x: { type: actor, name: X } }\nconnections: []\n')
+  await until(async () => started, s => s)
+  await server.close()
+  assert.equal(recorded, true)
+})
+
 test('Review Focus: an unwritable history never fails an edit, and says so', async t => {
   const { write, label, state } = await setup(t, { blockStateDir: true })
   assert.equal((await write('model.yaml', { version: null, data: shop })).status, 200)
