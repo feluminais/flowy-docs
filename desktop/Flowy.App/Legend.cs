@@ -63,14 +63,22 @@ internal static class KeyRow
         return dashes;
     }
 
-    /// <summary>Stripes moving along a line: the calls. <paramref name="bare"/> is the plain stripes of a line the run gives no numbers.</summary>
-    public static Control Stripes(string? color, bool dark, bool bare)
+    /// <summary>The plain stripes moving along a line the run gives no numbers.</summary>
+    public static Control Stripes()
     {
         var stripes = new Avalonia.Controls.Shapes.Line { StartPoint = new Point(0, 0), EndPoint = new Point(20, 0), StrokeThickness = 3, StrokeDashArray = [1.7, 1.3], VerticalAlignment = VerticalAlignment.Center };
         stripes.Classes.Add("stripes");
-        if (bare) stripes.Classes.Add("bare");
-        else if (PerfView.SourceHex(color, dark) is { } hex) stripes.Stroke = new SolidColorBrush(Color.Parse(hex));
         return stripes;
+    }
+
+    /// <summary>A call: a small stripe in a source's colour (for the theme that is showing); without a colour, the accent the styles give it. <paramref name="size"/> is its width over 1.5.</summary>
+    public static Control Call(string? color, bool dark, double size = 8, double opacity = 1)
+    {
+        var call = new Border { Width = size * 1.5, Height = size * 0.55, CornerRadius = new CornerRadius(size * 0.275), Opacity = opacity, VerticalAlignment = VerticalAlignment.Center };
+        call.Classes.Add("sw");
+        if (PerfView.SourceHex(color, dark) is { } hex) call.Background = new SolidColorBrush(Color.Parse(hex));
+        else call.Classes.Add("accent");
+        return call;
     }
 
     /// <summary>A dot in a source's colour (the real dot, for the theme that is showing); without a colour, the accent the styles give a dot.</summary>
@@ -83,13 +91,13 @@ internal static class KeyRow
         return dot;
     }
 
-    /// <summary>A small dot beside a big one: the dots of calls of different sizes.</summary>
+    /// <summary>A small stripe beside a big one: the marks of calls of different sizes.</summary>
     public static Control Bigger(string? color, bool dark) =>
-        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Dot(color, dark, 5), Dot(color, dark, 11) } };
+        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Call(color, dark, 5), Call(color, dark, 11) } };
 
-    /// <summary>Dots that thin out: a line that is scaled down to fit the screen.</summary>
+    /// <summary>Marks that thin out: a line that is scaled down to fit the screen.</summary>
     public static Control Scaled(string? color, bool dark) =>
-        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Dot(color, dark, 6), Dot(color, dark, 6, 0.55), Dot(color, dark, 6, 0.25) } };
+        new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, VerticalAlignment = VerticalAlignment.Center, Children = { Call(color, dark, 6), Call(color, dark, 6, 0.55), Call(color, dark, 6, 0.25) } };
 
     /// <summary>A call that is turned away: a dot, and the bar it stops at.</summary>
     public static Control Rejected()

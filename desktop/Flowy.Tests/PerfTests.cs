@@ -309,7 +309,10 @@ public class PerfTests
             Same(item["problems"], Json(problems), $"{id}: its problems");
             Assert.Equal(item["scale"]?.GetValue<string>(), Perf.ScaleText(run));
             Assert.Equal(Perf.BareStripes, item["bare"]!.GetValue<double>());
-            Assert.Equal(item["peak"]?.GetValue<double>(), Perf.CallPeak(new IdMap<LoadRun> { { id, run } }, id));
+            var paces = item["paces"]!.AsArray();
+            var asked = new[] { -1, 0, 1, 2, 50, 1000, double.NaN };
+            for (var i = 0; i < asked.Length; i++)
+                Assert.Equal(paces[i]?.GetValue<double>(), Perf.LoadPace(new IdMap<LoadRun> { { id, run } }, id, new IdMap<double> { { "", asked[i] } }));
             Assert.Equal(item["size"]?.GetValue<double>(), Perf.CallSize(new IdMap<LoadRun> { { id, run } }, id));
             var amounts = item["amounts"]!.AsArray();
             Assert.Equal(amounts[0]?.GetValue<double>(), Perf.AmountOf(new Metrics { Rate = 10, Bytes = 400 }, LoadMeasure.Calls, 1000));
