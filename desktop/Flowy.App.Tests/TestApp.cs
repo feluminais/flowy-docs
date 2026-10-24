@@ -11,7 +11,11 @@ namespace Flowy.App.Tests;
 public static class TestApp
 {
     [ModuleInitializer]
-    public static void NoMotion() => Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1"); // a move between views is then instant, so a test needn't wait for it
+    public static void NoMotion()
+    {
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1"); // a move between views is then instant, so a test needn't wait for it
+        Flowy.App.Canvas.Anim.WaitsOnFrames = true; // and a pause between steps is made of frames, which a test can pump
+    }
 
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = true });
 }

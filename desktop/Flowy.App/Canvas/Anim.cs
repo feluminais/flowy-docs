@@ -25,13 +25,16 @@ internal static class Anim
 
     internal static double Now() => TestClock?.Invoke() ?? Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
 
+    /// <summary>The tests' pumps run frames and jobs but no timers, and they wait on what the player waits on: they ask for a pause to be made of frames, as every other run is.</summary>
+    internal static bool WaitsOnFrames { get; set; }
+
     /// <summary>
     /// Calls <paramref name="done"/> after <paramref name="milliseconds"/> and does nothing meanwhile: a pause, which is no animation and so draws no frames. A test that moves the clock by hand
     /// (<see cref="TestClock"/>) gets it on the animation frames, as every other run. Disposing the result cancels it.
     /// </summary>
     public static IDisposable Wait(Control host, double milliseconds, Action done)
     {
-        if (TestClock is not null || TopLevel.GetTopLevel(host) is null) return Run(host, milliseconds, t => t, _ => { }, done);
+        if (WaitsOnFrames || TestClock is not null || TopLevel.GetTopLevel(host) is null) return Run(host, milliseconds, t => t, _ => host.InvalidateVisual(), done); // a headless window delivers frames only while something is dirty
         DispatcherTimer? timer = null;
         timer = new DispatcherTimer(TimeSpan.FromMilliseconds(Math.Max(1, milliseconds)), DispatcherPriority.Normal, (_, _) =>
         {
