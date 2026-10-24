@@ -7,7 +7,7 @@ import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
-import { ArrowLeft, ArrowRight, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
+import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
 import { StateKey } from './states.tsx'
 import { usePref } from './store.ts'
 
@@ -159,8 +159,8 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
         )
       })}
       <div className="player-buttons">
-        <button disabled={stop === 0} onClick={() => onStep(stop - 1)}><ArrowLeft size={16} />Back</button>
-        <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><ArrowRight size={16} />Next</button>
+        <button disabled={stop === 0} onClick={() => onStep(stop - 1)}><StepBack size={16} />Back</button>
+        <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
         <button onClick={onAuto} title="Step through the flow on its own (P)">{auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
         {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={onReplay}><Reload size={16} /></button>}
         {moving && <button aria-label="Repeat" aria-pressed={repeat} title={repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>}

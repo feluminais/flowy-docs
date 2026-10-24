@@ -42,8 +42,8 @@ internal sealed class NavRail : Border
         if (navigator)
         {
             Add(column, PanelTab.Explorer, Icons.Explorer, "Explorer", "O");
-            Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
-            Add(column, PanelTab.Failures, Icons.Bolt, "Failures", "M");
+            Add(column, PanelTab.Flows, Icons.Workflow, "Flows", "L");
+            Add(column, PanelTab.Failures, Icons.Alert, "Failures", "M");
             _entries[PanelTab.Failures].Show(false); // there only where the folder has a failure analysis
             Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
             _entries[PanelTab.Performance].Show(false); // there only where the folder has load-test runs
