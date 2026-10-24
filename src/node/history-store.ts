@@ -191,7 +191,12 @@ export function openStore(root: string): Store {
     },
 
     async clear() {
-      await rm(root, { recursive: true, force: true })
+      try {
+        await rm(root, { recursive: true, force: true })
+      } catch (e) {
+        // A file where a folder on the way should be: there is nothing to clear. Windows says ENOENT, which force already lets through.
+        if ((e as NodeJS.ErrnoException).code !== 'ENOTDIR') throw e
+      }
     },
   }
 }
