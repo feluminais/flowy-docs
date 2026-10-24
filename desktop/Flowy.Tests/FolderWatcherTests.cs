@@ -105,4 +105,30 @@ public class FolderWatcherTests
         Thread.Sleep(500);
         Assert.Equal(0, count);
     }
+
+    [Fact]
+    public void A_watcher_that_ran_out_of_room_reads_the_folder_again_and_keeps_watching()
+    {
+        using var temp = new TempDir();
+        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
+        using var changed = new ManualResetEventSlim();
+        Exception? failed = null;
+        watcher.Changed += changed.Set;
+        watcher.Failed += e => failed = e;
+        watcher.Fault(new InternalBufferOverflowException());
+        Assert.True(changed.Wait(Patience, TestContext.Current.CancellationToken)); // some changes were lost, so everything is read again
+        Assert.Null(failed); // and the watch is not given up
+    }
+
+    [Fact]
+    public void Any_other_fault_of_the_watcher_is_a_failure()
+    {
+        using var temp = new TempDir();
+        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
+        Exception? failed = null;
+        watcher.Failed += e => failed = e;
+        var why = new IOException("gone");
+        watcher.Fault(why);
+        Assert.Same(why, failed);
+    }
 }
