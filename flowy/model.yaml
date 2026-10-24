@@ -38,7 +38,7 @@ objects:
     name: Your repo
     description: |
       The repo being documented. The model is a `flowy/` folder at its root, and `code` paths point
-      at files beside it. History is Git's; Flowy has no store of its own.
+      at files beside it. Its history is Git's. The YAML tab's steps are kept outside it, in YAML history.
   forge:
     type: system
     name: GitHub or GitLab
@@ -311,6 +311,14 @@ objects:
       Reads the whole folder into one model and writes one file at a time.
 
       A write carries the version the caller read (a hash of the file). If the file has changed since, the write is dropped with 409 instead of overwriting the other change, and nothing is written at all while any file in the folder fails to parse.
+  history:
+    type: store
+    in: flowy
+    name: YAML history
+    code: [src/node/history.ts, src/node/history-store.ts, src/node/history-api.ts]
+    description: |
+      The steps the YAML tab lists and restores, under the user's application data and never in the repo
+      (`FLOWY_STATE_DIR` moves it). Each step is a file of its own, beside a copy of each file's text named by its hash.
   gitlink:
     type: component
     in: server
@@ -622,6 +630,7 @@ connections:
   - { from: graph, to: views, label: "shapes, outsiders and lines" }
   - { from: api, to: filestore, label: reads and writes }
   - { from: api, to: gitlink, label: where code links point }
+  - { from: api, to: history, label: records each edit }
   - { from: filestore, to: folder, label: one file at a time }
   - { from: filestore, to: model, label: parses and serializes }
   - { from: filestore, to: check, label: every load is checked }

@@ -5,8 +5,8 @@ desktop app and a browser can be open on one model at once.
 
 ## The desktop app
 
-Download the installer for your system from [Releases](https://github.com/feluminais/flowy-docs/releases), start it, and open a repo with
-**File › Open Folder** (Ctrl+O). It finds the repo's `flowy/` folder, draws it, and redraws it whenever a file changes. When the repo has several, a Model picker in the top bar opens another one in its own window. No repo handy?
+There is no release yet. Until the first installer is on [Releases](https://github.com/feluminais/flowy-docs/releases), run the app
+from a clone with the .NET 10 SDK: `dotnet run --project desktop/Flowy.App`. Open a repo with **File › Open Folder** (Ctrl+O). It finds the repo's `flowy/` folder, draws it, and redraws it whenever a file changes. When the repo has several, a Model picker in the top bar opens another one in its own window. No repo handy?
 **Help › Open the Demo** shows Plum. [The guide](guide/desktop.md#the-desktop-app) lists what the app does.
 
 Windows is where it has been built and tried. The macOS and Linux packages are built by the same workflow but haven't been run.
@@ -70,7 +70,7 @@ code --install-extension vscode/flowy-docs-<version>.vsix
 Then open a repo that has a `flowy/` folder and run **Flowy: Open Docs** from the command palette (Ctrl+Shift+P). It needs VS Code
 1.95 or later and a folder on disk that you trust. To update, pull, build the file again and install it again (add `--force` to the
 command above if the version didn't change). More in [vscode/README.md](../vscode/README.md), and how it is packaged in
-[CONTRIBUTING.md](../CONTRIBUTING.md#packaging-it).
+[Maintaining](maintaining.md#packaging-it).
 
 ## Let an AI write the model
 
