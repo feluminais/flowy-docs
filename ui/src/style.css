@@ -137,15 +137,18 @@ svg { flex: none; }
 .panel button.danger, .picked-bar button.danger { color: var(--danger); }
 .panel button.danger svg, .picked-bar button.danger svg { color: inherit; }
 .panel button.danger:hover:not(:disabled), .picked-bar button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 12%, transparent); }
-/* The pickers are flat too: just the words and a chevron. */
-.bar > select {
-  box-sizing: border-box; height: 30px; padding: 0 26px 0 10px; border: 0; border-radius: 6px; color: var(--fg); cursor: pointer; appearance: none;
-  field-sizing: content; /* as wide as the chosen option, so the chevron sits by its words; the bar is right-aligned, so the chevron stays put */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2378716c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6l6-6'/%3E%3C/svg%3E") right 8px center / 12px no-repeat;
+/* The dropdown (Dropdown.tsx): the words and a chevron. On the bar it is a flat button, in a form a field, in the Performance and Failures panels a boxed one. */
+.dd { max-width: 100%; text-align: left; }
+.dd .dd-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd svg { flex: none; }
+.bar > .dd { justify-content: space-between; }
+.dd-list {
+  position: fixed; z-index: 50; max-height: 260px; overflow: auto; margin: 0; padding: 4px; list-style: none; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--box); color: var(--fg); font-size: 14px; box-shadow: 0 6px 20px #0003;
 }
-.bar > select:hover { background-color: var(--hover); }
-.bar > select:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
-.bar > select option { background: var(--box); color: var(--fg); }
+.dd-list li { padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.dd-list li.at { background: var(--hover); }
+.dd-list li[aria-selected='true'] { color: var(--accent-ink); font-weight: 600; }
 
 .canvas { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 .canvas .react-flow {
@@ -453,16 +456,16 @@ svg { flex: none; }
 .form .card { display: flex; flex-direction: column; gap: 12px; padding: 0; border: 0; }
 .form label { display: block; margin: 0; color: var(--muted); font-size: 12px; }
 /* A field is a soft fill, no outline, until it has the focus. */
-.form input, .form select, .form textarea {
+.form input, .form textarea {
   display: block; width: 100%; box-sizing: border-box; margin-top: 4px; padding: 6px 8px;
   border: 1px solid transparent; border-radius: 8px; background: var(--hover); color: var(--fg); font-size: 14px;
 }
-.form input:focus, .form select:focus, .form textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--tint); }
+.form button.dd { width: 100%; min-height: 0; margin-top: 4px; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: var(--hover); font-size: 14px; line-height: 1.3; justify-content: space-between; }
+.form input:focus, .form textarea:focus, .form button.dd:focus-visible, .form button.dd[aria-expanded='true'] { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--tint); }
 .form textarea { resize: vertical; }
 .form label.check { display: flex; align-items: center; gap: 8px; color: var(--fg); font-size: 14px; }
 .form label.check input { display: inline; width: auto; margin: 0; }
 .select-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-.select-row select { flex: 1; margin-top: 0; }
 
 /* Pickers: what can be chosen is drawn, the chosen one is ringed, and its name sits beside the label. */
 .pick-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 12px; }
@@ -790,7 +793,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .perf > * { flex: none; margin-top: 0; margin-bottom: 0; }
 .navbody > .perf { margin: -12px; padding: 14px 16px 26px; } /* the Performance and Failures panels fill the navigator's body */
 .perf h2 { margin: 0; font-size: 18px; }
-.perf select { width: 100%; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); color: var(--fg); }
+.perf button.dd { width: 100%; min-height: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); justify-content: space-between; }
+.perf button.dd:hover:not(:disabled) { background: color-mix(in srgb, var(--box), var(--fg) 6%); }
 /* The twist sits where a section's icon does and the words where its title does, so the fold lines up with the headings below. */
 .perf .about { color: var(--muted); }
 .perf .about summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }

@@ -129,7 +129,9 @@ export function OpacityPicker({ object, onSave }: { object: FlowyObject; onSave:
     <div className="pick-field" style={colorOf(object)}>
       <Head label="Opacity" value={set || live !== undefined ? `${shown}%` : `Default (${saved}%)`} />
       <span className="select-row">
-        <input ref={slider} type="range" className="fade" min={0} max={100} step={1} value={shown} onChange={e => setLive(Number(e.target.value))} aria-label="Opacity (0 to 100)" />
+        <input ref={slider} type="range" className="fade" min={0} max={100} step={1} value={shown} onChange={e => setLive(Number(e.target.value))} aria-label="Opacity (0 to 100)"
+          // Let go of the slider with the mouse, and the focus goes with it: the arrow keys would otherwise change the opacity of a shape from there. The change is saved first.
+          onPointerUp={e => { const el = e.currentTarget; setTimeout(() => el.blur()) }} />
         {set && <button type="button" className="reset" onClick={() => void onSave('')}>Default</button>}
       </span>
     </div>
