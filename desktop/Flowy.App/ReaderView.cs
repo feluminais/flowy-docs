@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -21,11 +22,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
 {
     internal const int DoubleClickMilliseconds = 250;
 
-    // Opening a box: the old level flies off, the new one settles in. The browser version takes 220 and 320 ms, but there the browser's
-    // compositor runs it; here every frame is the UI thread's work, and a shorter move hides any hitch in it.
-    private const double LeaveMilliseconds = 140;
-    private const double ArriveMilliseconds = 230;
-
     /// <summary>What is picked, and shows in Details. <c>Boxes</c> is several boxes picked in edit mode, to move or delete together; <c>Flow</c> is a flow being recorded or edited.</summary>
     internal abstract record Side
     {
@@ -44,9 +40,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         public sealed record UsedBy(IReadOnlyList<Target> Targets, Side? Back) : Side;
     }
 
-    /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in).</summary>
-    private enum RightPanel { Closed, Details }
-
+    private readonly IReader _host;
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
     private readonly Border _compareHost = new() { ClipToBounds = true, IsVisible = false }; // the comparison, in the place of the canvas while it is open
@@ -60,22 +54,16 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly Grid _overlay = new();
     private readonly Border _banner = new();
     private readonly TextBlock _bannerText = new() { TextWrapping = TextWrapping.Wrap };
-    private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private readonly NavigatorPanel _nav = new();
     private readonly NavRail _rail = new(true); // the navigator's, on the left
     private readonly NavRail _detailsRail = new(false); // Details', on the right
     private readonly Sash _navSash = new(true, "Resize the navigator");
     private readonly Sash _detailsSash = new(false, "Resize the details panel");
     private Control? _zoomButtons;
-    private readonly ComboBox _linePicker = new();
-    private readonly ComboBox _modelPicker = new() { IsVisible = false }; // the repo's other models; only there when it has several
     private IReadOnlyList<ModelEntry> _models = [];
     private Task _modelsLoaded = Task.CompletedTask;
     private Task _codeBaseLoaded = Task.CompletedTask;
     private string? _dir;
-    private readonly Button _searchButton = new();
-    private readonly Button _helpButton = new();
-    private readonly Button _problemsButton = new();
 
     private Folder? _folder;
     private string? _codeBase;
@@ -84,26 +72,20 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly List<string> _levels = []; // the levels the reader has left, for Esc to go back through
     private (string Id, bool Back)? _arriving; // the level a way back (Back) or a jump up is heading for
     private Side? _side; // what is picked: it shows in Details
-    private PanelTab? _tab; // the navigator's tab (Flows or Explorer), chosen on its rail or its strip; null: the navigator is closed
-    private bool _navUsed; // the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in the diagram
-    private RightPanel _right; // Details is also open while something is picked
-    private double _navWidth = Camera.Nav; // dragged by the sashes on the panels' edges
-    private double _detailsWidth = Camera.Panel;
-    private readonly HashSet<string> _expanded = [Names.Root]; // the shapes whose children show in the Explorer; the project's own row starts open
+    private readonly TopBar _bar = new();
+    private readonly Panels _panels;
+    private readonly LevelMotion _levelMotion;
     private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
 
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Flow, IReadOnlyList<Stop>> _stops = new(); // a flow's stops, made once for as long as that flow is the one in the model
     private string? _hover;
     private string? _ownLines; // this reader's own pick of line style
     private string _fitKey = "";
-    private bool _syncing;
     private SearchBox? _search;
     private ShortcutsCard? _shortcuts;
     private Notice? _notice;
     private DispatcherTimer? _opening; // a click on a box that opens, waiting out the double-click window
     private string? _openingBox; // that box: a Ctrl+click in the meantime still counts it as picked
-    private IDisposable? _motion;
-    private bool _moving;
 
     public event Action<string?>? LinesPicked;
 
@@ -118,6 +100,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
     public ReaderView()
     {
+        _host = new Host(this);
+        _edit = new EditMode(_host);
+        _gestures = new EditGestures(_host, _edit, _canvas, _pickedBar);
+        _levelMotion = new LevelMotion(this, _canvas, _host);
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
 
         _banner.Classes.Add("banner");
@@ -126,10 +112,20 @@ internal sealed partial class ReaderView : Grid, IDisposable
         SetRow(_banner, 0);
         Children.Add(_banner);
 
-        var bar = new Border { Child = BuildBar() };
-        bar.Classes.Add("bar");
-        SetRow(bar, 1);
-        Children.Add(bar);
+        _bar.ModelPicked += dir => ModelPicked?.Invoke(dir);
+        _bar.LinesChosen += ChooseLines;
+        _bar.SearchClicked += ToggleSearch;
+        _bar.HelpClicked += ToggleShortcuts;
+        _bar.EditClicked += () => SetEditing(!Editing);
+        _bar.AddClicked += _gestures.OpenAdd;
+        _bar.NewFlowClicked += _gestures.NewFlow;
+        _bar.UndoClicked += () => _ = UndoAsync();
+        _bar.RedoClicked += () => _ = RedoAsync();
+        _bar.TidyClicked += () => _ = TidyAsync();
+        _bar.CrumbClicked += JumpTo;
+        _bar.ProblemClicked += Jump;
+        SetRow(_bar, 1);
+        Children.Add(_bar);
 
         _motionHost = new Border { ClipToBounds = true, Child = _canvas };
         _empty = new StackPanel
@@ -147,12 +143,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
         Children.Add(beside);
 
         _canvas.BoxClicked += BoxClicked;
-        _canvas.BoxToggled += ToggleBox;
-        _canvas.BoxesPicked += PickBoxes;
-        _pickedBar.DeleteRequested += () => _ = DeleteSelectedAsync();
-        _pickedBar.ClearRequested += ClearPicked;
-        _canvas.BoxesMoved += moved => _ = MoveBoxesAsync(moved);
-        _canvas.ConnectRequested += (from, to) => _ = ConnectAsync(from, to);
         _canvas.BoxDoubleClicked += id =>
         {
             if (CanOpen(id)) ZoomInto(id);
@@ -179,30 +169,19 @@ internal sealed partial class ReaderView : Grid, IDisposable
             if (Recording is not null) PaneClicked();
             else ShowLevel();
         };
-        _panel.Closed += CloseDetails;
         _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
         _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Wait(this, ms, then)));
         WirePerformance();
-        WireFailures();
-        _nav.Tabs.Picked += SetTab;
-        _nav.Closed += CloseNav;
-        _rail.Picked += ToggleTab;
-        _detailsRail.Picked += ToggleTab;
-        _navSash.Current = () => _navWidth;
-        _navSash.Resized += w => ResizeNav(w);
-        _navSash.Reset += () => ResizeNav(Camera.Nav);
-        _navSash.Settled += Remember;
-        _detailsSash.Current = () => _detailsWidth;
-        _detailsSash.Resized += w => ResizeDetails(w);
-        _detailsSash.Reset += () => ResizeDetails(Camera.Panel);
-        _detailsSash.Settled += Remember;
+        _panels = new Panels(_nav, _rail, _detailsRail, _navSash, _detailsSash, _panel, _canvas, _perf, _host);
+        _panels.Changed += state => NavigatorChanged?.Invoke(state);
+        _panels.Resized += ApplyWidths;
+        _compareMode = new CompareMode(_compareHost, _overlay, _player, _nav, _perf, _host);
+        _compareMode.ChangesPicked += on => ChangesPicked?.Invoke(on);
+        _failures = new FailuresTab(_nav.Failures, _canvas, _host);
         _nav.Flows.Opened += flow => OpenFlow(flow.Id);
-        _nav.Flows.CompareRequested += CompareFromRow;
-        _nav.Explorer.CompareRequested += CompareFromRow;
         _nav.Explorer.Picked += PickRow;
         _nav.Explorer.Opened += OpenRow;
-        _nav.Explorer.Toggled += ToggleOpen;
         _player.Back += () => StepTo(StopIndex() - 1);
         _player.Next += () => StepTo(StopIndex() + 1);
         _player.Stop += Stop;
@@ -210,7 +189,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Replay += _playback.Replay;
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;
-        _player.CompareClicked += ToggleCompare;
 
         Focusable = true;
         // Every press, handled or not (the canvas handles its own): it says which half the reader is working in.
@@ -226,12 +204,12 @@ internal sealed partial class ReaderView : Grid, IDisposable
     // What a test can look at.
     internal string? SelectedBoxId => SelectedBox;
     internal bool HasPanel => ShownTab is not null || RightOpen;
-    internal bool IsMoving => _moving;
+    internal bool IsMoving => _levelMotion.Moving;
     internal bool ShowsEmptyNote => _empty.IsVisible;
     internal string? BannerText => _banner.IsVisible ? _bannerText.Text : null;
 
     /// <summary>The button that lists the problems, for tests.</summary>
-    internal Button ProblemsButtonNow => _problemsButton;
+    internal Button ProblemsButtonNow => _bar.ProblemsButton;
     internal string? PlayingFlowId => PlayingFlow()?.Id;
     internal int PlayingStep => StopIndex();
     internal PlayerCard Card => _player;
@@ -250,58 +228,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public CanvasView Canvas => _canvas;
 
     public string LineStyle => Editing ? _folder?.Model.LineStyle ?? "straight" : _ownLines ?? _folder?.Model.LineStyle ?? "straight";
-
-    private Control BuildBar()
-    {
-        BuildEditBar();
-        _linePicker.Items.Add("Lines: straight");
-        _linePicker.Items.Add("Lines: curved");
-        _linePicker.Items.Add("Lines: right-angled");
-        _linePicker.SelectedIndex = 0;
-        _linePicker.SelectionChanged += (_, _) =>
-        {
-            if (_syncing) return;
-            var style = _linePicker.SelectedIndex switch { 1 => "curved", 2 => "angled", _ => "straight" };
-            if (Editing)
-            {
-                // In edit mode the picker sets the project's style, which everyone sees (lines: in model.yaml).
-                _ = RunAsync(d => EditOps.SetLines(d, style));
-                return;
-            }
-            _ownLines = style == (_folder?.Model.LineStyle ?? "straight") ? null : style; // the project's own style isn't kept as a pick: the screen follows the project again
-            LinesPicked?.Invoke(_ownLines);
-            Refresh();
-        };
-        _searchButton.Classes.Add("tool");
-        Chrome.Fill(_searchButton, Icons.Search, "Search");
-        ToolTip.SetTip(_searchButton, "Find a shape (Ctrl+K or /)");
-        _searchButton.Click += (_, _) => ToggleSearch();
-        _helpButton.Classes.Add("tool");
-        Chrome.Fill(_helpButton, Icons.Keyboard, null, "Keyboard shortcuts");
-        ToolTip.SetTip(_helpButton, "Keyboard shortcuts (?)");
-        _helpButton.Click += (_, _) => ToggleShortcuts();
-        _problemsButton.Classes.Add("problems");
-        _problemsButton.IsVisible = false;
-
-        Chrome.FlatPicker(_linePicker);
-        Chrome.FlatPicker(_modelPicker);
-        Avalonia.Automation.AutomationProperties.SetName(_modelPicker, "Model");
-        ToolTip.SetTip(_modelPicker, "Switch to another model in this repo");
-        _modelPicker.SelectionChanged += (_, _) =>
-        {
-            if (_syncing || _modelPicker.SelectedIndex < 0 || _modelPicker.SelectedIndex >= _models.Count) return;
-            var picked = _models[_modelPicker.SelectedIndex];
-            if (_dir is not null && ModelFolders.Key(picked.Dir) != ModelFolders.Key(_dir)) ModelPicked?.Invoke(picked.Dir);
-            ShowCurrentModel(); // this window stays on its own model; the picked one opens in its own window
-        };
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
-        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _problemsButton, _linePicker, _searchButton, _helpButton, _editButton } };
-        var dock = new DockPanel { LastChildFill = false };
-        DockPanel.SetDock(right, Dock.Right);
-        dock.Children.Add(right);
-        dock.Children.Add(left);
-        return dock;
-    }
 
     private Control ZoomButtons()
     {
@@ -338,8 +264,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>Lets go of the folder's watcher. The window calls this when it closes; without it the watcher outlives the window.</summary>
     public void Dispose()
     {
-        _disk?.Dispose();
-        _disk = null;
+        _edit.Dispose();
     }
 
     public void Load(Folder folder, string dir)
@@ -351,27 +276,15 @@ internal sealed partial class ReaderView : Grid, IDisposable
         ShowCurrentModel();
         _modelsLoaded = LoadModels(dir);
         WarmCode(folder);
-        _session = new EditSession(dir);
-        _disk?.Dispose();
-        _disk = new FolderSession(dir);
-        _disk.Loaded += Reload;
-        _disk.Failed += SetBanner;
-        _editMode = false;
-        _navUsed = false;
+        _edit.Open(dir, Reload, SetBanner);
         _view = Names.Root;
         _side = null;
-        _right = RightPanel.Closed;
+        _panels.Reset();
         _perf.StopRamp();
-        if (_tab is PanelTab.Failures or PanelTab.Performance) _tab = null; // another folder's analyses and runs start from the top
-        _analysisId = "";
-        _modeId = null;
-        _band = null;
-        _left = false;
+        _failures.Reset();
         _playback.Head = null;
         _hover = null;
-        CloseCompare(false); // another folder has other flows
-        // A note about two of them is no use there. The same folder read again keeps its notes (they are by pair), and a window asks before it goes to another folder (MainWindow.Open).
-        if (!sameFolder) _drafts.Clear();
+        _compareMode.Reset(sameFolder); // another folder has other flows
         _codeBase = null;
         _repoRoot = FolderLoader.RepoRoot(dir);
         SetBanner(null);
@@ -389,6 +302,27 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (await run(action) is { } problem) ShowNotice(problem);
     }
 
+    /// <summary>The text last copied (the Failures panel's table, the Performance panel's starter run), for a test that has no clipboard.</summary>
+    internal string? CopiedText { get; private set; }
+
+    private async Task<bool> CopyAsync(string text)
+    {
+        CopiedText = text;
+        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        {
+            try
+            {
+                await clipboard.SetTextAsync(text);
+                return true;
+            }
+            catch (Exception)
+            {
+                // the clipboard wasn't available
+            }
+        }
+        return false;
+    }
+
     /// <summary>Looks for the repo's other models away from the UI thread, since a big repo takes a moment to walk. The picker shows only when there are several.</summary>
     private async Task LoadModels(string dir)
     {
@@ -398,17 +332,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
         ShowCurrentModel();
     }
 
-    /// <summary>The picker's items and the one selected: this window's model. A name another model shares shows its folder too.</summary>
-    private void ShowCurrentModel()
-    {
-        _syncing = true;
-        _modelPicker.ItemsSource = _models.Select(m => _models.Count(o => o.Name == m.Name) > 1 ? $"{m.Name} ({m.Where})" : m.Name).ToList();
-        _modelPicker.SelectedIndex = _dir is null ? -1 : _models.ToList().FindIndex(m => ModelFolders.Key(m.Dir) == ModelFolders.Key(_dir));
-        _modelPicker.IsVisible = _models.Count > 1 && _modelPicker.SelectedIndex >= 0;
-        _syncing = false;
-    }
+    private void ShowCurrentModel() => _bar.ShowModels(_models, _dir);
 
-    internal ComboBox ModelPicker => _modelPicker;
+    internal ComboBox ModelPicker => _bar.ModelPicker;
 
     internal IReadOnlyList<ModelEntry> Models => _models;
 
@@ -437,7 +363,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _folder = folder;
         WarmCode(folder);
         if (_side is Side.Box box && folder.Model.GetObject(box.Id) is null) _side = null;
-        if (_side is Side.Boxes boxes) _side = SideOf(boxes.Ids.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
+        if (_side is Side.Boxes boxes) _side = EditGestures.SideOf(boxes.Ids.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
         if (!PerfOpen || LoadTest is null) _perf.StopRamp(); // a ramp whose run is gone has nothing to run on, and its loop has already ended
         SetBanner(null);
         Refresh();
@@ -542,7 +468,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         return _folder.Model.Flows.Where(kv => kv.Value.View == view && (kv.Value.Steps.Count > 0 || Editing)).Select(kv => (kv.Key, kv.Value)).ToList();
     }
 
-    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen || _compare is not null ? null : _playback.Head is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
+    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen || _compareMode.State is not null ? null : _playback.Head is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
 
     /// <summary>What the player steps through: the stops of a flow. A flow with no groups has one for each step.</summary>
     private IReadOnlyList<Stop> StopsOf(Flow flow) => _stops.GetValue(flow, f => Structure.Stops(f));
@@ -555,11 +481,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         if (_folder is not { } folder) return;
         var model = folder.Model;
-        CloseCompareIfBroken(folder);
+        _compareMode.CloseIfBroken(folder);
         var view = CurrentView();
         var flow = PlayingFlow();
         var index = StopIndex();
-        FollowCanvas(model, view);
+        _panels.FollowCanvas(model, view);
 
         var shown = Comparing ? null : DrawScene(folder, view, flow, index); // the comparison has canvases of its own
         UpdateEmpty();
@@ -572,12 +498,12 @@ internal sealed partial class ReaderView : Grid, IDisposable
             _canvas.Fit(0, flow is not null);
         }
 
-        RefreshBar(model, view, flow);
+        RefreshBar(model, view);
         RefreshEdit();
         RefreshPanel(model, view);
         if (PerfOpen) ShowPerfPanel(model, view); // before ApplyLoad, which moves the panel to the load
         ApplyLoad();
-        ApplyFailures();
+        _failures.Apply();
         RefreshPlayer(model, view, flow, index, shown);
         UpdateMotion(model, view, flow, index, shown);
         RefreshCompare(folder);
@@ -590,7 +516,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         var model = folder.Model;
         Playing? shown = null;
         if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index);
-        else if (Recording is { } rec) shown = RecordingShown(model, view, rec);
+        else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec);
         var line = _side is Side.Line l ? SceneBuilder.LineId(l.From, l.To) : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
@@ -602,64 +528,24 @@ internal sealed partial class ReaderView : Grid, IDisposable
         return shown;
     }
 
-    private void RefreshBar(Model model, string view, (string Id, Flow Flow)? flow)
+    private void RefreshBar(Model model, string view)
     {
-        _crumbs.Children.Clear();
-        foreach (var id in Views.Chain(model, view).AsEnumerable().Reverse())
-        {
-            var first = _crumbs.Children.Count == 0;
-            if (!first)
-            {
-                var chevron = Icons.Make(Icons.ChevronRight, "crumbsep", 14);
-                chevron.Margin = new Thickness(2, 2, 2, 0);
-                chevron.VerticalAlignment = VerticalAlignment.Center;
-                _crumbs.Children.Add(chevron);
-            }
-            // The overview, where it all starts, is a house; the boxes zoomed into after it are only their names.
-            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
-            if (first) label.Children.Add(Pushed(Icons.Make(Icons.Home, "crumbicon", 16)));
-            label.Children.Add(new TextBlock { Text = Views.NameOf(model, id), VerticalAlignment = VerticalAlignment.Center });
-            var crumb = new Button { Content = label, IsEnabled = id != view };
-            Avalonia.Automation.AutomationProperties.SetName(crumb, Views.NameOf(model, id));
-            crumb.Classes.Add("crumb");
-            var target = id;
-            crumb.Click += (_, _) => JumpTo(target);
-            _crumbs.Children.Add(crumb);
-        }
-
-        _syncing = true;
-        SyncLinePicker(model);
-        _syncing = false;
-
-        var problems = _folder!.Problems;
-        _problemsButton.IsVisible = problems.Count > 0;
-        Chrome.Fill(_problemsButton, Icons.Alert, $"{problems.Count} problem{(problems.Count == 1 ? "" : "s")}");
-        // The list is made when it is opened, not on every step: a model can have thousands of problems, and the flyout is shut nearly always.
-        var flyout = new Flyout { Placement = PlacementMode.BottomEdgeAlignedLeft };
-        flyout.Opening += (_, _) =>
-        {
-            var list = new StackPanel { Spacing = 0, MaxWidth = 380 };
-            Paging.Fill(list, problems, p =>
-            {
-                var row = new Button { Content = new TextBlock { Text = $"{p.File}  {p.Message}", TextWrapping = TextWrapping.Wrap } };
-                row.Classes.Add("result");
-                row.Click += (_, _) =>
-                {
-                    flyout.Hide();
-                    Jump(p);
-                };
-                return row;
-            });
-            flyout.Content = new ScrollViewer { Content = list, MaxHeight = 420 };
-        };
-        _problemsButton.Flyout = flyout;
+        _bar.ShowCrumbs(model, view);
+        _bar.ShowLines(Editing ? model.LineStyle : _ownLines ?? model.LineStyle, Editing ? "How lines look for everyone (saved in model.yaml)" : "How lines look on this screen");
+        _bar.ShowProblems(_folder!.Problems);
     }
 
-    /// <summary>An icon beside words, a little lower than the middle of its line, where the words' own middle is.</summary>
-    private static Control Pushed(Control icon)
+    /// <summary>A line style picked in the bar. Editing, it sets the project's style, which everyone sees (lines: in model.yaml); reading, it changes only this screen.</summary>
+    private void ChooseLines(string style)
     {
-        icon.Margin = new Thickness(0, 2, 0, 0);
-        return icon;
+        if (Editing)
+        {
+            _ = RunAsync(d => EditOps.SetLines(d, style));
+            return;
+        }
+        _ownLines = style == (_folder?.Model.LineStyle ?? "straight") ? null : style; // the project's own style isn't kept as a pick: the screen follows the project again
+        LinesPicked?.Invoke(_ownLines);
+        Refresh();
     }
 
     private UsedByPanel? _usedByPanel;
@@ -683,7 +569,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
                     fresh.Marked += (going, flagged) => _canvas.ShowUsed(going, flagged);
                     fresh.Done += text =>
                     {
-                        CloseSide();
+                        CloseDetails();
                         ShowNotice(text, 0, () => _ = UndoAsync());
                     };
                     fresh.Cancelled += () =>
@@ -706,7 +592,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
             case Side.Line { From: var from, To: var to } when Editing:
-                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide, AskDelete);
+                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseDetails, AskDelete);
                 break;
             case Side.Line { From: var from, To: var to, View: var lineView }:
                 _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems);
@@ -716,7 +602,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
                 break;
             case Side.Flow { Rec: var rec } when Editing:
                 _panel.ShowRecorder(model, view, rec, RunAsync,
-                    r => SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseSide, OpenFlow);
+                    r => _gestures.SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseDetails, OpenFlow);
                 break;
             default:
                 ShowViewDetails(model, view);
@@ -730,7 +616,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>Details with nothing picked, while its rail button is pressed: the level you are inside, or the project's Overview at the top.</summary>
     private void ShowViewDetails(Model model, string view)
     {
-        if (_right != RightPanel.Details) _panel.Clear();
+        if (_panels.Right != RightPanel.Details) _panel.Clear();
         else if (view == Names.Root && Editing) _panel.ShowProjectEditor(model, Totals(), RunAsync);
         else if (view == Names.Root) _panel.ShowOverview(model, Totals());
         else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, AskDelete);
@@ -741,7 +627,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         if (flow is not { } f)
         {
-            if (!_pickerOnRow) DropPicker(); // its flyout hangs on the card of the flow playing; one from a row of the navigator does not
+            if (!_compareMode.PickerFor.OnRow) _compareMode.DropPicker(); // its flyout hangs on the card of the flow playing; one from a row of the navigator does not
             _player.Clear();
             _canvas.SetMarks([]);
             return;
@@ -775,18 +661,15 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public void GoTo(string view)
     {
         if (_folder is null) return;
-        if (_compare is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
+        if (_compareMode.State is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
         Interacted();
         RememberLevel(view);
-        _motion?.Dispose();
-        _moving = false;
-        _canvas.RenderTransform = null;
-        _canvas.Opacity = 1;
+        _levelMotion.Stop();
         _view = view;
         _playback.Head = null;
         _playback.StopAuto();
         _hover = null;
-        if (_compare is { Kind: "flow" }) CloseCompare(false); // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level, and both follow it
+        if (_compareMode.State is { Kind: "flow" }) CloseCompare(false); // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level, and both follow it
         if (_side is not (null or Side.Box)) _side = null; // lines belong to one view
         Refresh();
     }
@@ -822,62 +705,16 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _side = null;
         var rect = _canvas.RectOf(id);
         var origin = rect is { } r ? _canvas.Viewport.ToScreen(r.Center) : new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2);
-        ZoomTo(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), origin);
+        _levelMotion.Zoom(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), origin, _compareMode.State is not null);
     }
 
     /// <summary>Zooms out to a view, about the middle of the canvas: the box's place in the outer view isn't known until it's drawn.</summary>
-    private void ZoomOut(string id) => ZoomTo(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2));
-
-    /// <summary>The old view flies off, then the new one settles in. A second move on the way, or reduced motion, goes straight there.</summary>
-    private void ZoomTo(string view, Move direction, Pt origin)
-    {
-        if (_moving || MotionSettings.Reduced || _compare is not null) // the comparison is not the canvas that would fly off
-        {
-            GoTo(view);
-            return;
-        }
-        _moving = true;
-        // Laying out a big view takes a moment: do it now, behind the old view flying off, so the new one doesn't wait for it.
-        if (_folder is { } folder) _ = Task.Run(() => SceneBuilder.Prewarm(folder.Model, view));
-        var size = _canvas.Bounds.Size;
-        var (ux, uy) = (origin.X - size.Width / 2, origin.Y - size.Height / 2);
-        var length = Math.Sqrt(ux * ux + uy * uy);
-        var slide = length == 0 ? new Vector(0, 0) : new Vector(ux / length * 0.25 * size.Width, uy / length * 0.25 * size.Height);
-        _canvas.RenderTransformOrigin = new RelativePoint(origin.X, origin.Y, RelativeUnit.Absolute);
-        _motion = Anim.Run(this, LeaveMilliseconds, Anim.EaseIn, t => Apply(direction, true, t, slide), () =>
-        {
-            var wasMoving = _moving;
-            GoTo(view);
-            if (!wasMoving) return;
-            _moving = true;
-            _canvas.RenderTransformOrigin = new RelativePoint(origin.X, origin.Y, RelativeUnit.Absolute);
-            _motion = Anim.Run(this, ArriveMilliseconds, Anim.EaseOut, t => Apply(direction, false, t, slide), () =>
-            {
-                _moving = false;
-                _canvas.RenderTransform = null;
-                _canvas.Opacity = 1;
-            });
-        });
-    }
-
-    private void Apply(Move direction, bool leaving, double t, Vector slide)
-    {
-        static double Lerp(double a, double b, double t) => a + (b - a) * t;
-        _canvas.Opacity = leaving ? 1 - t : t;
-        if (direction == Move.Across)
-        {
-            var k = leaving ? -t : 1 - t;
-            _canvas.RenderTransform = new TranslateTransform(slide.X * k, slide.Y * k);
-            return;
-        }
-        var scale = direction == Move.In ? (leaving ? Lerp(1, 4, t) : Lerp(0.25, 1, t)) : (leaving ? Lerp(1, 0.25, t) : Lerp(2.5, 1, t));
-        _canvas.RenderTransform = new ScaleTransform(scale, scale);
-    }
+    private void ZoomOut(string id) => _levelMotion.Zoom(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2), _compareMode.State is not null);
 
     public void FitNow()
     {
-        if (Comparing) _compareView?.FitFocused(); // F fits the pane that has the focus, or the canvas of Swap
-        else _canvas.Fit(RightOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
+        if (Comparing) _compareMode.View?.FitFocused(); // F fits the pane that has the focus, or the canvas of Swap
+        else _canvas.Fit(_panels.DetailsInset, PlayingFlow() is not null, _panels.NavInset, 220);
     }
 
     // ---- selecting ---------------------------------------------------------------------------------------------
@@ -914,13 +751,13 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private void ShowLevel()
     {
         Interacted();
-        if (_right == RightPanel.Details && _side is null)
+        if (_panels.Right == RightPanel.Details && _side is null)
         {
             CloseDetails(); // its Details are already showing: a second click closes them
             return;
         }
         _side = null;
-        _right = RightPanel.Details;
+        _panels.Right = RightPanel.Details;
         Refresh();
         Focus();
     }
@@ -930,7 +767,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         Interacted();
         if (Recording is { } rec)
         {
-            PickBox(rec, id);
+            _gestures.PickBox(rec, id);
             return;
         }
         if (_side is Side.Box { Id: var open } && open == id)
@@ -960,15 +797,15 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (_folder?.Model.GetObject(id) is null) return;
         DidSomethingElse();
         _side = new Side.Box(id);
-        if (_compareView is not null) _compareView.Last = null; // shown from a list, not a pane: no pane outlines it
+        if (_compareMode.View is { } compareView) compareView.Last = null; // shown from a list, not a pane: no pane outlines it
         Refresh();
-        _canvas.Reveal(id, _detailsWidth, ShownTab is not null ? _navWidth : 0);
+        _canvas.Reveal(id, _panels.DetailsWidth, _panels.NavInset);
     }
 
     /// <summary>Picks a shape, and while the Failures panel is open a failure mode of the analysis on show if the id is one (for a picture: --select).</summary>
     public void Select(string id)
     {
-        if (FailuresOpen && Analysis is { } analysis && analysis.Modes.Contains(id)) SelectMode(id);
+        if (FailuresOpen && _failures.Analysis is { } analysis && analysis.Modes.Contains(id)) _failures.SelectMode(id);
         else OpenObject(id);
     }
 
@@ -1097,11 +934,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
                 ShowNotice("Failures are not shown while editing.");
                 return;
             }
-            _analysisId = failure.Analysis;
-            _modeId = failure.Mode;
-            _band = null;
-            _left = false;
-            OpenFailures();
+            _failures.Choose(failure.Analysis, failure.Mode);
+            _failures.Open();
         }
         else if (spot.Flow is { } flow)
         {
