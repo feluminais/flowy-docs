@@ -4,18 +4,11 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-// Edit mode as the reader shows it: the switch in the bar (and E), the tools beside it, and what the line picker does. The mode and its files are EditMode, and what the reader does with the canvas while editing is EditGestures.
+// Edit mode as the reader routes it: the switch in the bar (and E), Tidy, and what a redraw shows for it. The mode and its files are EditMode, and what the reader does with the canvas while editing is EditGestures.
 internal sealed partial class ReaderView
 {
     private readonly EditMode _edit;
     private readonly EditGestures _gestures;
-    private readonly Button _editButton = new();
-    private readonly Button _addButton = new();
-    private readonly Button _newFlowButton = new();
-    private readonly Button _undoButton = new();
-    private readonly Button _redoButton = new();
-    private readonly Button _tidyButton = new();
-    private readonly StackPanel _editTools = new() { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 2, IsVisible = false, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
 
     private void DidSomethingElse() => _edit.DidSomethingElse();
 
@@ -33,25 +26,6 @@ internal sealed partial class ReaderView
 
     /// <summary>The flow being recorded or edited, while edit mode is on.</summary>
     private Recording? Recording => _gestures.Recording;
-
-    private void BuildEditBar()
-    {
-        // Undo and redo are only their arrows; the rest say what they do.
-        void Make(Button button, string icon, string? text, string name, string tip, Action click)
-        {
-            button.Classes.Add("tool");
-            Chrome.Fill(button, icon, text, name);
-            ToolTip.SetTip(button, tip);
-            button.Click += (_, _) => click();
-        }
-        Make(_editButton, Icons.Pencil, "Edit", "Edit", "Edit mode (E)", () => SetEditing(!Editing));
-        Make(_addButton, Icons.Plus, "Add", "Add", "Add a shape here (N)", _gestures.OpenAdd);
-        Make(_newFlowButton, Icons.Route, "New flow", "New flow", "Record a flow", _gestures.NewFlow);
-        Make(_undoButton, Icons.Undo, null, "Undo", "Undo the last change (Ctrl+Z)", () => _ = UndoAsync());
-        Make(_redoButton, Icons.Redo, null, "Redo", "Redo what you undid (Ctrl+Y or Ctrl+Shift+Z)", () => _ = RedoAsync());
-        Make(_tidyButton, Icons.Grid, "Tidy", "Tidy", "Lay this view out again", () => _ = TidyAsync());
-        foreach (var b in new[] { _newFlowButton, _addButton, _undoButton, _redoButton, _tidyButton }) _editTools.Children.Add(b);
-    }
 
     /// <summary>Turns edit mode on or off. Off when the model can't be changed now.</summary>
     public void SetEditing(bool on)
@@ -71,23 +45,10 @@ internal sealed partial class ReaderView
     /// <summary>What the bar shows for edit mode, after every redraw.</summary>
     private void RefreshEdit()
     {
-        _editTools.IsVisible = Editing;
+        _bar.ShowEdit(Editing, Editing || !ReadOnly, _edit.CanUndo, _edit.CanRedo);
         _pickedBar.Show(Editing && _side is Side.Boxes picked ? picked.Ids.Count : 0);
         _canvas.Editable = Editing && _side is not Side.Flow;
-        _editButton.IsEnabled = Editing || !ReadOnly;
-        if (Editing) _editButton.Classes.Add("pressed");
-        else _editButton.Classes.Remove("pressed");
-        _undoButton.IsEnabled = _edit.CanUndo;
-        _redoButton.IsEnabled = _edit.CanRedo;
         UpdateEmpty();
-    }
-
-    /// <summary>The line picker. Reading, it changes only this screen; editing, it changes the project's own style. Its list never changes: a pick redraws from inside its own SelectionChanged, and clearing its items there throws.</summary>
-    private void SyncLinePicker(Model model)
-    {
-        var style = Editing ? model.LineStyle : _ownLines ?? model.LineStyle;
-        _linePicker.SelectedIndex = style switch { "curved" => 1, "angled" => 2, _ => 0 };
-        ToolTip.SetTip(_linePicker, Editing ? "How lines look for everyone (saved in model.yaml)" : "How lines look on this screen");
     }
 
     private async Task TidyAsync()
@@ -145,7 +106,7 @@ internal sealed partial class ReaderView
 
     internal SidePanel Panel => _panel;
 
-    internal bool EditToolsVisible => _editTools.IsVisible;
+    internal bool EditToolsVisible => _bar.EditToolsVisible;
 
     internal bool CanUndo => _edit.CanUndo;
 
@@ -161,7 +122,7 @@ internal sealed partial class ReaderView
 
     internal string? NoticeText => _notice?.Text;
 
-    internal ComboBox LinePicker => _linePicker;
+    internal ComboBox LinePicker => _bar.LinePicker;
 
     internal Recording? RecordingNow => Recording;
 

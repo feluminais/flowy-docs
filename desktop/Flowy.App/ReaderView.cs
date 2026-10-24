@@ -54,22 +54,16 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly Grid _overlay = new();
     private readonly Border _banner = new();
     private readonly TextBlock _bannerText = new() { TextWrapping = TextWrapping.Wrap };
-    private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private readonly NavigatorPanel _nav = new();
     private readonly NavRail _rail = new(true); // the navigator's, on the left
     private readonly NavRail _detailsRail = new(false); // Details', on the right
     private readonly Sash _navSash = new(true, "Resize the navigator");
     private readonly Sash _detailsSash = new(false, "Resize the details panel");
     private Control? _zoomButtons;
-    private readonly ComboBox _linePicker = new();
-    private readonly ComboBox _modelPicker = new() { IsVisible = false }; // the repo's other models; only there when it has several
     private IReadOnlyList<ModelEntry> _models = [];
     private Task _modelsLoaded = Task.CompletedTask;
     private Task _codeBaseLoaded = Task.CompletedTask;
     private string? _dir;
-    private readonly Button _searchButton = new();
-    private readonly Button _helpButton = new();
-    private readonly Button _problemsButton = new();
 
     private Folder? _folder;
     private string? _codeBase;
@@ -78,6 +72,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly List<string> _levels = []; // the levels the reader has left, for Esc to go back through
     private (string Id, bool Back)? _arriving; // the level a way back (Back) or a jump up is heading for
     private Side? _side; // what is picked: it shows in Details
+    private readonly TopBar _bar = new();
     private readonly Panels _panels;
     private readonly LevelMotion _levelMotion;
     private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
@@ -86,7 +81,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private string? _hover;
     private string? _ownLines; // this reader's own pick of line style
     private string _fitKey = "";
-    private bool _syncing;
     private SearchBox? _search;
     private ShortcutsCard? _shortcuts;
     private Notice? _notice;
@@ -118,10 +112,20 @@ internal sealed partial class ReaderView : Grid, IDisposable
         SetRow(_banner, 0);
         Children.Add(_banner);
 
-        var bar = new Border { Child = BuildBar() };
-        bar.Classes.Add("bar");
-        SetRow(bar, 1);
-        Children.Add(bar);
+        _bar.ModelPicked += dir => ModelPicked?.Invoke(dir);
+        _bar.LinesChosen += ChooseLines;
+        _bar.SearchClicked += ToggleSearch;
+        _bar.HelpClicked += ToggleShortcuts;
+        _bar.EditClicked += () => SetEditing(!Editing);
+        _bar.AddClicked += _gestures.OpenAdd;
+        _bar.NewFlowClicked += _gestures.NewFlow;
+        _bar.UndoClicked += () => _ = UndoAsync();
+        _bar.RedoClicked += () => _ = RedoAsync();
+        _bar.TidyClicked += () => _ = TidyAsync();
+        _bar.CrumbClicked += JumpTo;
+        _bar.ProblemClicked += Jump;
+        SetRow(_bar, 1);
+        Children.Add(_bar);
 
         _motionHost = new Border { ClipToBounds = true, Child = _canvas };
         _empty = new StackPanel
@@ -205,7 +209,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     internal string? BannerText => _banner.IsVisible ? _bannerText.Text : null;
 
     /// <summary>The button that lists the problems, for tests.</summary>
-    internal Button ProblemsButtonNow => _problemsButton;
+    internal Button ProblemsButtonNow => _bar.ProblemsButton;
     internal string? PlayingFlowId => PlayingFlow()?.Id;
     internal int PlayingStep => StopIndex();
     internal PlayerCard Card => _player;
@@ -224,58 +228,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public CanvasView Canvas => _canvas;
 
     public string LineStyle => Editing ? _folder?.Model.LineStyle ?? "straight" : _ownLines ?? _folder?.Model.LineStyle ?? "straight";
-
-    private Control BuildBar()
-    {
-        BuildEditBar();
-        _linePicker.Items.Add("Lines: straight");
-        _linePicker.Items.Add("Lines: curved");
-        _linePicker.Items.Add("Lines: right-angled");
-        _linePicker.SelectedIndex = 0;
-        _linePicker.SelectionChanged += (_, _) =>
-        {
-            if (_syncing) return;
-            var style = _linePicker.SelectedIndex switch { 1 => "curved", 2 => "angled", _ => "straight" };
-            if (Editing)
-            {
-                // In edit mode the picker sets the project's style, which everyone sees (lines: in model.yaml).
-                _ = RunAsync(d => EditOps.SetLines(d, style));
-                return;
-            }
-            _ownLines = style == (_folder?.Model.LineStyle ?? "straight") ? null : style; // the project's own style isn't kept as a pick: the screen follows the project again
-            LinesPicked?.Invoke(_ownLines);
-            Refresh();
-        };
-        _searchButton.Classes.Add("tool");
-        Chrome.Fill(_searchButton, Icons.Search, "Search");
-        ToolTip.SetTip(_searchButton, "Find a shape (Ctrl+K or /)");
-        _searchButton.Click += (_, _) => ToggleSearch();
-        _helpButton.Classes.Add("tool");
-        Chrome.Fill(_helpButton, Icons.Keyboard, null, "Keyboard shortcuts");
-        ToolTip.SetTip(_helpButton, "Keyboard shortcuts (?)");
-        _helpButton.Click += (_, _) => ToggleShortcuts();
-        _problemsButton.Classes.Add("problems");
-        _problemsButton.IsVisible = false;
-
-        Chrome.FlatPicker(_linePicker);
-        Chrome.FlatPicker(_modelPicker);
-        Avalonia.Automation.AutomationProperties.SetName(_modelPicker, "Model");
-        ToolTip.SetTip(_modelPicker, "Switch to another model in this repo");
-        _modelPicker.SelectionChanged += (_, _) =>
-        {
-            if (_syncing || _modelPicker.SelectedIndex < 0 || _modelPicker.SelectedIndex >= _models.Count) return;
-            var picked = _models[_modelPicker.SelectedIndex];
-            if (_dir is not null && ModelFolders.Key(picked.Dir) != ModelFolders.Key(_dir)) ModelPicked?.Invoke(picked.Dir);
-            ShowCurrentModel(); // this window stays on its own model; the picked one opens in its own window
-        };
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
-        var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _problemsButton, _linePicker, _searchButton, _helpButton, _editButton } };
-        var dock = new DockPanel { LastChildFill = false };
-        DockPanel.SetDock(right, Dock.Right);
-        dock.Children.Add(right);
-        dock.Children.Add(left);
-        return dock;
-    }
 
     private Control ZoomButtons()
     {
@@ -380,17 +332,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
         ShowCurrentModel();
     }
 
-    /// <summary>The picker's items and the one selected: this window's model. A name another model shares shows its folder too.</summary>
-    private void ShowCurrentModel()
-    {
-        _syncing = true;
-        _modelPicker.ItemsSource = _models.Select(m => _models.Count(o => o.Name == m.Name) > 1 ? $"{m.Name} ({m.Where})" : m.Name).ToList();
-        _modelPicker.SelectedIndex = _dir is null ? -1 : _models.ToList().FindIndex(m => ModelFolders.Key(m.Dir) == ModelFolders.Key(_dir));
-        _modelPicker.IsVisible = _models.Count > 1 && _modelPicker.SelectedIndex >= 0;
-        _syncing = false;
-    }
+    private void ShowCurrentModel() => _bar.ShowModels(_models, _dir);
 
-    internal ComboBox ModelPicker => _modelPicker;
+    internal ComboBox ModelPicker => _bar.ModelPicker;
 
     internal IReadOnlyList<ModelEntry> Models => _models;
 
@@ -554,7 +498,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
             _canvas.Fit(0, flow is not null);
         }
 
-        RefreshBar(model, view, flow);
+        RefreshBar(model, view);
         RefreshEdit();
         RefreshPanel(model, view);
         if (PerfOpen) ShowPerfPanel(model, view); // before ApplyLoad, which moves the panel to the load
@@ -584,64 +528,24 @@ internal sealed partial class ReaderView : Grid, IDisposable
         return shown;
     }
 
-    private void RefreshBar(Model model, string view, (string Id, Flow Flow)? flow)
+    private void RefreshBar(Model model, string view)
     {
-        _crumbs.Children.Clear();
-        foreach (var id in Views.Chain(model, view).AsEnumerable().Reverse())
-        {
-            var first = _crumbs.Children.Count == 0;
-            if (!first)
-            {
-                var chevron = Icons.Make(Icons.ChevronRight, "crumbsep", 14);
-                chevron.Margin = new Thickness(2, 2, 2, 0);
-                chevron.VerticalAlignment = VerticalAlignment.Center;
-                _crumbs.Children.Add(chevron);
-            }
-            // The overview, where it all starts, is a house; the boxes zoomed into after it are only their names.
-            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
-            if (first) label.Children.Add(Pushed(Icons.Make(Icons.Home, "crumbicon", 16)));
-            label.Children.Add(new TextBlock { Text = Views.NameOf(model, id), VerticalAlignment = VerticalAlignment.Center });
-            var crumb = new Button { Content = label, IsEnabled = id != view };
-            Avalonia.Automation.AutomationProperties.SetName(crumb, Views.NameOf(model, id));
-            crumb.Classes.Add("crumb");
-            var target = id;
-            crumb.Click += (_, _) => JumpTo(target);
-            _crumbs.Children.Add(crumb);
-        }
-
-        _syncing = true;
-        SyncLinePicker(model);
-        _syncing = false;
-
-        var problems = _folder!.Problems;
-        _problemsButton.IsVisible = problems.Count > 0;
-        Chrome.Fill(_problemsButton, Icons.Alert, $"{problems.Count} problem{(problems.Count == 1 ? "" : "s")}");
-        // The list is made when it is opened, not on every step: a model can have thousands of problems, and the flyout is shut nearly always.
-        var flyout = new Flyout { Placement = PlacementMode.BottomEdgeAlignedLeft };
-        flyout.Opening += (_, _) =>
-        {
-            var list = new StackPanel { Spacing = 0, MaxWidth = 380 };
-            Paging.Fill(list, problems, p =>
-            {
-                var row = new Button { Content = new TextBlock { Text = $"{p.File}  {p.Message}", TextWrapping = TextWrapping.Wrap } };
-                row.Classes.Add("result");
-                row.Click += (_, _) =>
-                {
-                    flyout.Hide();
-                    Jump(p);
-                };
-                return row;
-            });
-            flyout.Content = new ScrollViewer { Content = list, MaxHeight = 420 };
-        };
-        _problemsButton.Flyout = flyout;
+        _bar.ShowCrumbs(model, view);
+        _bar.ShowLines(Editing ? model.LineStyle : _ownLines ?? model.LineStyle, Editing ? "How lines look for everyone (saved in model.yaml)" : "How lines look on this screen");
+        _bar.ShowProblems(_folder!.Problems);
     }
 
-    /// <summary>An icon beside words, a little lower than the middle of its line, where the words' own middle is.</summary>
-    private static Control Pushed(Control icon)
+    /// <summary>A line style picked in the bar. Editing, it sets the project's style, which everyone sees (lines: in model.yaml); reading, it changes only this screen.</summary>
+    private void ChooseLines(string style)
     {
-        icon.Margin = new Thickness(0, 2, 0, 0);
-        return icon;
+        if (Editing)
+        {
+            _ = RunAsync(d => EditOps.SetLines(d, style));
+            return;
+        }
+        _ownLines = style == (_folder?.Model.LineStyle ?? "straight") ? null : style; // the project's own style isn't kept as a pick: the screen follows the project again
+        LinesPicked?.Invoke(_ownLines);
+        Refresh();
     }
 
     private UsedByPanel? _usedByPanel;
