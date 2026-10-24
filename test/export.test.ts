@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import { ParseError } from '../src/core/model.ts'
 import { exportSite, inlineState } from '../src/node/export.ts'
 import { loadState } from '../src/node/files.ts'
+import { readSnapshot, yamlOf } from '../src/node/history.ts'
 
 /** A flowy/ folder with one system, and a stand-in for the built canvas: a page and one asset. */
 async function setup(t: TestContext) {
@@ -30,13 +31,24 @@ function stateIn(html: string): unknown {
   return JSON.parse(found[1])
 }
 
+const yamlNow = async (dir: string) => yamlOf(await readSnapshot(dir))
 const exists = (path: string) => access(path).then(() => true, () => false)
 
 test('an export is the built canvas with the state in its page', async t => {
   const { dir, ui, out } = await setup(t)
   assert.deepEqual(await exportSite({ dir, ui, out }), { boxes: 1, flows: 0, problems: 0 })
   assert.equal(await readFile(join(out, 'assets', 'app.js'), 'utf8'), 'console.log("canvas")\n')
-  assert.deepEqual(stateIn(await readFile(join(out, 'index.html'), 'utf8')), await loadState(dir))
+  assert.deepEqual(stateIn(await readFile(join(out, 'index.html'), 'utf8')), { ...(await loadState(dir)), yaml: await yamlNow(dir) })
+})
+
+test('an export carries the files as text, for the YAML tab', async t => {
+  const { dir, ui, out } = await setup(t)
+  await mkdir(join(dir, 'flows'))
+  await writeFile(join(dir, 'flows', 'buy.yaml'), 'steps: []\n')
+  await exportSite({ dir, ui, out })
+  const { yaml } = stateIn(await readFile(join(out, 'index.html'), 'utf8')) as { yaml: { files: Record<string, unknown>; versions: Record<string, string> } }
+  assert.deepEqual(yaml.files, { 'model.yaml': { text: 'objects:\n  shop: { type: system, name: Shop }\n' }, 'flows/buy.yaml': { text: 'steps: []\n' } })
+  assert.deepEqual(Object.keys(yaml.versions), ['model.yaml', 'flows/buy.yaml'])
 })
 
 test('text in the model cannot end the state element early', async t => {
@@ -143,7 +155,7 @@ test('an export carries the failure analyses and what is wrong with the files th
   const state = stateIn(await readFile(join(out, 'index.html'), 'utf8')) as { failures: { ordering: { name: string } }; failureProblems: { file: string }[] }
   assert.equal(state.failures.ordering.name, 'Ordering')
   assert.deepEqual(state.failureProblems.map(p => p.file), ['failures/bad.yaml'])
-  assert.deepEqual(state, await loadState(dir) as unknown)
+  assert.deepEqual(state, { ...(await loadState(dir)), yaml: await yamlNow(dir) })
 })
 
 test('a file, or a folder overlapping the built canvas, cannot take an export', async t => {

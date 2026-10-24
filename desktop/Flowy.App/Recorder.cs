@@ -503,13 +503,13 @@ internal sealed class Recorder : StackPanel
         public Choice(string name, IReadOnlyList<T> items, T selected, Func<T, string> label, Func<T, Task<bool>> save)
         {
             _current = selected;
-            Box = new ComboBox
+            Box = Chrome.WithoutFocus(new ComboBox
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 ItemsSource = items,
                 SelectedItem = selected,
                 ItemTemplate = new FuncDataTemplate<T>((item, _) => new TextBlock { Text = label(item), VerticalAlignment = VerticalAlignment.Center }),
-            };
+            });
             Avalonia.Automation.AutomationProperties.SetName(Box, name);
             Box.SelectionChanged += async (_, _) =>
             {
@@ -842,7 +842,7 @@ internal sealed class Recorder : StackPanel
         Avalonia.Automation.AutomationProperties.SetName(text, "Put steps in a new group");
         var kinds = Pick.Kinds("Kind", KindNames, "repeat", _ => Task.FromResult(true));
         var numbers = Enumerable.Range(1, stepCount).ToList();
-        ComboBox Range() => new() { HorizontalAlignment = HorizontalAlignment.Stretch, ItemsSource = numbers, SelectedItem = stepCount };
+        ComboBox Range() => Chrome.WithoutFocus(new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch, ItemsSource = numbers, SelectedItem = stepCount });
         var first = Range();
         var last = Range();
         Avalonia.Automation.AutomationProperties.SetName(first, "From step");

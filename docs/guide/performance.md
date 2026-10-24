@@ -46,37 +46,43 @@ with a small curve of each across all of them. A shape that holds others takes t
 you see which system is struggling and zoom in to find where. The tab opens on the load where things first struggle, if anything
 does, and **Go there** gets back to it.
 
-**Calls, Data and Mixed.** A line shows two different things, and the tab draws them with two different marks. **Stripes** moving along the line are the calls: the more calls a second,
-the closer together and the faster the stripes, and the thicker the line. They are busy against the busiest the run gets on any line, so the busiest line at the top of the run has the closest, quickest stripes and the same line at the bottom crawls. The stripes are as thick as the line and grow with it when you zoom, so the line and its arrowhead stay one arrow. **Blobs** on the line are data: the more bytes a second (the calls times the size of a call, `bytes`), the more blobs. So a line of a
-few large calls has few stripes and many blobs, and a line of many small ones the other way round. Under **Count** the tab has three views: **Calls** draws stripes only, **Data** draws blobs only, and
-**Mixed** draws both on every line. Mixed is where a run opens when it gives both a `rate` and `bytes`, which is why a run is best measured with both: say the calls a second and the size of a call
-on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out with the reason in their tooltip. A run with neither (a connection with no numbers, or a run that
-measures only shapes) is drawn with plain stripes at a middling pace, so its lines still show that something runs on them; the key calls them **No numbers**, and a line that has numbers keeps its own. Plain stripes keep one pace at every load, because there is nothing to speed them up: at the overview of Plum most lines are plain, since the runs measure what is inside Delivery, and only the lines they measure (Delivery to Mapbox) speed up as the load climbs.
-Data counts against the mean size of a call over the whole run, rounded to 1, 2 or 5 times a power of ten, so a call of that size draws the same blobs as it would calls. A line with no `bytes` is
-drawn with plain stripes under Data, as one with no `rate` is under Calls.
+**Calls, Data and Mixed.** A call is drawn as a small stripe that runs along its line and sticks out to either side of it. Under **Count** the tab has three views. **Calls** draws one
+stripe for each call a second: the more calls, the more stripes and the thicker the line. **Data** draws one for each bit of data a second, the calls times the size of a call (`bytes`), so a line of a few
+large calls has more of them than a line of a few small ones, and the size is already in the count, so every stripe is the usual size. **Mixed** counts the calls, as Calls does, and draws each stripe as big as
+its call is: twice the bytes is twice the area, against the size of a typical call. Mixed is where a run opens when it gives both a `rate` and `bytes`, which is why a run is best measured with both: say the
+calls a second and the size of a call on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out with the reason in their tooltip. Only the size of a call makes a
+stripe bigger: more calls give more stripes and a thicker line, never bigger stripes.
 
-**Colour and scale.** A run can say what its blobs look like and how many there are, so the picture reads as a ratio. Add a `source` at the top
+A line the run gives nothing to show, because it has no `rate` (or under Data no `bytes`), is not left plain. It gets a line highlight: blue stripes moving along the line itself, as they do on an animated edge,
+and the key calls them **No numbers**. They follow how loaded the run is, the load over the highest tested load (for a run with several sources the mean of its sliders), so they are slow when nothing is asked
+of it and quick at the top, even though the line itself has no numbers. A run over time has no load to follow, so its plain stripes keep one pace. At the overview of Plum most lines are plain, since the runs
+measure what is inside Delivery, and the lines they do measure show calls.
+Data counts against the mean size of a call over the whole run, rounded to 1, 2 or 5 times a power of ten, so a call of that size draws as many stripes under Data as under Calls.
+
+**Colour and scale.** A run can say what its stripes look like and how many there are, so the picture reads as a ratio. Add a `source` at the top
 of the file:
 
 ```yaml
 source:
   color: blue          # a colour name or a hex, like a shape's colour
-  dot: rate / 50       # how many blobs are on a line at once
-  size: bytes / 400    # how big each blob is
+  dot: rate / 50       # how many stripes are on a line at once
+  size: bytes / 400    # how big each stripe is
 ```
 
 Every key is optional. `color` takes the names a shape's colour does (a named colour is a lighter one in the dark theme) or a hex such as `"#1d9e75"`, which is the
-same in both themes, and it colours the stripes and the blobs. `dot` and `size` are small formulas: numbers, the names `rate` (calls a second), `bytes` (the size of a call) and `p50` (the
+same in both themes. `dot` and `size` are small formulas: numbers, the names `rate` (calls a second), `bytes` (the size of a call) and `p50` (the
 expected call, in milliseconds), the signs `+ - * /`, brackets and a minus in front, at most 80 characters. There are no functions, and nothing is run: Flowy reads
-the text itself. A formula it can't read is a problem, and the source then keeps the usual blobs, with its colour still applied.
+the text itself. A formula it can't read is a problem, and the source then keeps the usual stripes, with its colour still applied.
 
-`dot` is the number of blobs (dots) on a line at once, and without it they follow the data a second. `rate / 50` is 2 blobs at 100 calls a second and 20 at 1,000, so ten times the calls is ten times the blobs, whatever they weigh; `rate * bytes / 50000` follows the data.
-How fast they cross still follows `p50`, so two lines with the same data and a different `p50` have the same number of blobs, moving at different speeds.
-`size` is the area of a blob: a call with twice the bytes draws a blob with twice the area, 1 is the usual blob, and the radius stays between half and two and a half
-times the usual one. A line the formula gives no value for (it needs a `bytes` the line doesn't have, say) keeps the usual blobs. Only Data and Mixed have blobs, so only they use these formulas.
+`dot` is the number of stripes on a line at once. `rate / 50` is 2 stripes at 100 calls a second and 20 at 1,000, so ten times the calls is ten times the stripes. Without `dot` they follow the curve
+of what the line carries (the calls under Calls and Mixed, the data under Data).
+How fast they cross still follows `p50`, so two lines with the same calls and a different `p50` have the same number of stripes, moving at different speeds.
+`size` is the area of a stripe: a call with twice the bytes draws a stripe with twice the area, 1 is the usual stripe, and the radius stays between half and two and a half
+times the usual one. A line the formula gives no value for (it needs a `bytes` the line doesn't have, say) keeps the usual stripes. Under Mixed with no `size`, the size of the call says it. Under Data
+every stripe is the usual size.
 
-The screen holds at most 24 blobs on a line. Past that the line is scaled down to 24 and says so: **Scaled down** in the key, and under the numbers of the line when you click it.
-The key also says what one dot stands for ("1 dot = 50 KB/s", in data) when `dot` is the rate times a number and nothing else, and draws **Bigger call** when `size` is set.
+The screen holds at most 24 stripes on a line. Past that the line is scaled down to 24 and says so: **Scaled down** in the key, and under the numbers of the line when you click it.
+The key also says what one stripe stands for ("1 dot = 50 calls/s", or in KB/s under Data) when `dot` is the rate times a number and nothing else, and draws **Bigger call** when a stripe is bigger or smaller than usual.
 
 `bytes` on a line that several connections land on is their mean, weighted by their `rate`. A connection can also say how its failing share fails, with
 `failure: lost` (a failing call pops where it dies) or `failure: rejected` (it runs to the end of the line, stops at a bar and comes back red). Without

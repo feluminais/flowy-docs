@@ -47,6 +47,15 @@ public class ModelPickerTests
     }
 
     [AvaloniaFact]
+    public async Task The_pickers_on_the_bar_take_no_focus_so_the_keys_stay_the_readers()
+    {
+        using var temp = new TempFolder();
+        var reader = await Open(Model(temp, "flowy"));
+        Assert.False(reader.ModelPicker.Focusable);
+        Assert.False(reader.LinePicker.Focusable);
+    }
+
+    [AvaloniaFact]
     public async Task A_repo_with_one_model_has_no_picker()
     {
         using var temp = new TempFolder();

@@ -28,65 +28,54 @@ public static partial class Perf
     private static int TravelOf(double? p50) => p50 is null ? 1000 : (int)JsRound(Clamp(500 + 1000 * Math.Log10(1 + p50.Value / 10), 500, 4000));
 
     /// <summary>
-    /// What a line shows: the calls a second it carries (its stripes) and its data a second in units of a typical call (its blobs, see <see cref="AmountOf"/>). Either may be missing.
+    /// What a line shows: <c>Amount</c> is what its dots count, a rate (the calls a second under Calls and Mixed, and under Data the data a second in units of a typical call, see <see cref="AmountOf"/>), and
     /// <c>Rate</c> is the calls a second the line says, whichever is shown: it is what a source's <c>dot</c> and <c>size</c> formulas read as <c>rate</c>.
     /// </summary>
-    private sealed record Shown(double? Calls, double? Blobs, double? Rate);
+    private sealed record Shown(double Amount, double? Rate);
 
-    /// <summary>The calls a second the stripes are as busy as they get at, when the run does not say (see <see cref="CallPeak"/>).</summary>
-    private const double StripeTop = 1000;
-
-    /// <summary>How busy the stripes are, 0 to 1, for <paramref name="calls"/> a second against <paramref name="peak"/>, the most the run has: logarithmic, so a busy line is not a hundred times the stripes of a quiet one.</summary>
-    private static double StripeLevel(double calls, double? peak) => Round2(Clamp(Math.Log10(1 + Math.Max(0, calls)) / Math.Log10(1 + Math.Max(1, peak ?? StripeTop)), 0, 1));
-
-    /// <summary>How busy the stripes of a line the run gives nothing to count are: a middling pace.</summary>
+    /// <summary>How busy the plain stripes of a line the run gives nothing to count are when nothing says how loaded the run is: a middling pace.</summary>
     public const double BareStripes = 0.2;
 
+    /// <summary>How busy plain stripes are, 0 to 1, as the run is loaded, 0 to 1 of its top: slow when nothing is asked of it and quick at the top.</summary>
+    private static double StripesAt(double? pace) => pace is null ? BareStripes : Round2(0.1 + 0.9 * Clamp(pace.Value, 0, 1));
+
     /// <summary>What a line shows under a measure, or null when the run gives it nothing to show (then it is a bare line).</summary>
-    private static Shown? ShownOf(Metrics m, LoadMeasure measure, double? size)
-    {
-        double? calls = measure == LoadMeasure.Data ? null : m.Rate;
-        double? blobs = measure == LoadMeasure.Calls ? null : AmountOf(m, LoadMeasure.Data, size);
-        return calls is null && blobs is null ? null : new Shown(calls, blobs, m.Rate);
-    }
+    private static Shown? ShownOf(Metrics m, LoadMeasure measure, double? size) => AmountOf(m, measure, size) is { } amount ? new Shown(amount, m.Rate) : null;
 
     /// <summary>
     /// A line that carried what <paramref name="shown"/> says: logarithmic and capped, because a screen can't draw 1000 particles a second, unless the run's source says how many dots to show.
-    /// <paramref name="wide"/> sets its thickness, the calls a second where it has them and else its blobs.
+    /// <paramref name="wide"/> sets its thickness. <paramref name="callSize"/> is the size of a typical call (see <see cref="CallSize"/>) that, under Mixed, the size of a call is measured against.
     /// </summary>
-    private static LineTraffic LineTrafficOf(Pair l, Shown shown, Source? source, double? wide = null, (double Dots, bool Capped)? counted = null, double? peak = null)
+    private static LineTraffic LineTrafficOf(Pair l, Shown shown, Source? source, double? wide = null, (double Dots, bool Capped)? counted = null, LoadMeasure measure = LoadMeasure.Calls, double? callSize = null)
     {
         var errors = Round2(l.Errors ?? 0);
         var travelMs = TravelOf(l.P50);
-        double perSecond = 0;
+        var perSecond = shown.Amount > 0 ? Round2(Clamp(1.5 + 4 * Math.Log10(1 + shown.Amount), 1.5, 14)) : 0;
         double? dots = null;
         var capped = false;
         double? radius = null;
-        if (shown.Blobs is { } blobs)
+        // How many dots: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
+        // When several sources share the line the count arrives already scaled, with the cap's verdict.
+        var count = counted is { } given ? given.Dots : DotsFor(l, shown.Rate, source);
+        if (count is { } c)
         {
-            perSecond = blobs > 0 ? Round2(Clamp(1.5 + 4 * Math.Log10(1 + blobs), 1.5, 14)) : 0;
-            // How many blobs: the formula's count when it has a value (a missing number or a negative result leaves today's curve for this line).
-            // When several sources share the line the count arrives already scaled, with the cap's verdict.
-            var count = counted is { } given ? given.Dots : DotsFor(l, shown.Rate, source);
-            if (count is { } c)
-            {
-                var (counts, wasCapped) = counted is { } scaled ? ([c], scaled.Capped) : CapCounts([c]);
-                // The count is blobs on the line at once; the speed stays with p50, so they start as often as they take to cross.
-                perSecond = Round2(counts[0] / (travelMs / 1000.0));
-                dots = Round2(counts[0]);
-                capped = wasCapped;
-            }
-            // How big a blob is: the source's size formula says, and without one they are the usual size.
-            if (source?.Size is { } size && shown.Rate is { } sizeRate && Formulas.Eval(size.Formula, new FormulaVars(sizeRate, l.Bytes, l.P50)) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
+            var (counts, wasCapped) = counted is { } scaled ? ([c], scaled.Capped) : CapCounts([c]);
+            // The count is dots on the line at once; the speed stays with p50, so dots start as often as they take to cross.
+            perSecond = Round2(counts[0] / (travelMs / 1000.0));
+            dots = Round2(counts[0]);
+            capped = wasCapped;
         }
-        return new LineTraffic(l.From, l.To, Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + (wide ?? shown.Calls ?? shown.Blobs ?? 0)), 1.5, 6)), perSecond, travelMs, errors >= 0.01 ? Math.Max(errors, 0.05) : errors)
+        // How big a dot is. Under Data the size of a call is already in the count and the thickness, so dots are the usual size. Otherwise the source's size formula says, and under Mixed without one
+        // the size of the call does: against a typical call, twice the bytes is twice the area.
+        if (measure != LoadMeasure.Data && source?.Size is { } size && shown.Rate is { } sizeRate && Formulas.Eval(size.Formula, new FormulaVars(sizeRate, l.Bytes, l.P50)) is { } area && area >= 0) radius = Round2(Clamp(Math.Sqrt(area), RadiusMin, RadiusMax));
+        else if (measure == LoadMeasure.Mixed && callSize is { } reference && l.Bytes is { } bytes && bytes >= 0) radius = Round2(Clamp(Math.Sqrt(bytes / reference), RadiusMin, RadiusMax));
+        return new LineTraffic(l.From, l.To, Round2(Clamp(1.5 + 1.5 * Math.Log10(1 + (wide ?? shown.Amount)), 1.5, 6)), perSecond, travelMs, errors >= 0.01 ? Math.Max(errors, 0.05) : errors)
         {
             Color = source?.Color,
             Radius = radius,
             Capped = capped,
             Failure = l.Failure,
             Dots = dots,
-            Stripes = shown.Calls is { } calls ? StripeLevel(calls, peak) : null,
         };
     }
 
@@ -116,13 +105,14 @@ public static partial class Perf
     }
 
     /// <summary>
-    /// The lines of a view that the run gives nothing to show under the measure (no rate, or no size of a call where it asks for one): each is drawn with plain stripes at a middling pace, so a line with
-    /// no numbers still shows that something runs on it. <paramref name="drawn"/> are the lines that have numbers; a view of a run with no numbers at all is all bare lines.
+    /// The lines of a view that the run gives nothing to show under the measure (no rate, or no size of a call under Data): each is drawn with plain stripes along the line, quicker as the run is loaded
+    /// (<paramref name="pace"/>, 0 to 1 of the top of the run, see <see cref="LoadPace"/>), so a line with no numbers still shows that something runs on it and that more is asked of it. <paramref name="drawn"/>
+    /// are the lines that have numbers; a view of a run with no numbers at all is all bare lines.
     /// </summary>
-    private static List<LineTraffic> BareLines(Model model, string view, IReadOnlyList<LineTraffic> drawn)
+    private static List<LineTraffic> BareLines(Model model, string view, IReadOnlyList<LineTraffic> drawn, double? pace = null)
     {
         var seen = drawn.Select(l => (l.From, l.To)).ToHashSet();
-        return [.. EndsOfView(model, view).Where(e => !seen.Contains(e)).Select(e => new LineTraffic(e.From, e.To, 1.5, 0, 1000, 0) { Stripes = BareStripes, Bare = true })];
+        return [.. EndsOfView(model, view).Where(e => !seen.Contains(e)).Select(e => new LineTraffic(e.From, e.To, 1.5, 0, 1000, 0) { Stripes = StripesAt(pace), Bare = true })];
     }
 
     /// <summary>
@@ -143,14 +133,14 @@ public static partial class Perf
     /// null when nothing was measured) and queue of each shape that was measured or holds something that was, and the traffic on each line that has
     /// a rate. Shapes and lines with nothing measured are left out: they stay neutral, never drawn as zero.
     /// </summary>
-    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null, double? peak = null) => FrameAt(model, run, load, view, measure, size, peak).Traffic;
+    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null, double? pace = null) => FrameAt(model, run, load, view, measure, size, pace).Traffic;
 
     /// <summary>The run at a load as a view draws it, interpolated and rolled up once: <see cref="TrafficFor"/> and the panel's readouts are both made from it.</summary>
-    public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null, double? peak = null)
+    public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null, double? pace = null)
     {
         var (objects, lines) = RollUp(model, Interpolate(run, load), view);
-        List<LineTraffic> drawn = [.. lines.Select(l => (Line: l, Shown: ShownOf(l, measure, size))).Where(x => x.Shown is not null).Select(x => LineTrafficOf(x.Line, x.Shown!, run.Source, null, null, peak))];
-        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), [.. drawn, .. BareLines(model, view, drawn)]));
+        List<LineTraffic> drawn = [.. lines.Select(l => (Line: l, Shown: ShownOf(l, measure, size))).Where(x => x.Shown is not null).Select(x => LineTrafficOf(x.Line, x.Shown!, run.Source, null, null, measure, size))];
+        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), [.. drawn, .. BareLines(model, view, drawn, pace)]));
     }
 
     /// <summary>
