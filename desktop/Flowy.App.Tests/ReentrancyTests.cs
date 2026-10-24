@@ -24,8 +24,10 @@ public class ReentrancyTests
         var window = new Window { Width = 1100, Height = 700, Content = reader };
         window.Show();
         reader.Load(FolderLoader.Load(Plum), Plum);
-        // The model picker appears once the repo's models are found, and moves the crumbs. Let it settle before anything is clicked.
-        for (var i = 0; i < 200 && reader.Models.Count == 0; i++)
+        // The model picker appears once the repo's models are found, and moves the crumbs; the code link, once git answers, draws the lists again.
+        // Either landing between a press and its release takes the click away, so both are in before anything is clicked.
+        var settled = reader.Settled;
+        for (var i = 0; i < 1000 && !settled.IsCompleted; i++)
         {
             Thread.Sleep(10);
             Dispatcher.UIThread.RunJobs();
