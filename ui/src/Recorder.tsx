@@ -13,6 +13,7 @@ import { flowList } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { flowTile, partnerChoices, removeNeedsConfirm, taggedBy, tagWith } from './compare.ts'
 import { newId, pickStepState, stateOf, stepStateShapes, withKey } from './edit.ts'
+import { Dropdown } from './Dropdown.tsx'
 import { Field, Panel } from './forms.tsx'
 import type { Common, SaveEdit } from './forms.tsx'
 import { Section, TypeTile } from './Chrome.tsx'
@@ -108,20 +109,20 @@ function StepStructure({ step, self, groups, others, onGroup, onLane, onFlow }: 
       <div className="form">
         <label>
           Group
-          <select value={gid} onChange={e => void onGroup(e.target.value)}>
-            <option value="">None</option>
-            {ids.map(g => <option key={g} value={g}>{g} · {own(KIND_NAMES, groups[g]?.kind) ?? 'no kind'}</option>)}
-            {gid !== '' && !ids.includes(gid) && <option value={gid}>{gid} · not declared</option>}
-          </select>
+          <Dropdown value={gid} onChange={v => void onGroup(v)} options={[
+            ['', 'None'],
+            ...ids.map((g): [string, string] => [g, `${g} · ${own(KIND_NAMES, groups[g]?.kind) ?? 'no kind'}`]),
+            ...(gid !== '' && !ids.includes(gid) ? [[gid, `${gid} · not declared`] as [string, string]] : []),
+          ]} />
         </label>
         {hasLanes(groups[gid]?.kind) && <Field label="Lane (a new lane starts here)" value={String(step.lane ?? '')} placeholder="e.g. The card is declined" onSave={onLane} />}
         <label>
           Opens flow
-          <select value={target} onChange={e => void onFlow(e.target.value)}>
-            <option value="">None</option>
-            {others.map(([id, name]) => <option key={id} value={id}>{name || id}</option>)}
-            {target !== '' && !others.some(([id]) => id === target) && <option value={target}>{target === self ? 'This flow' : `${target} · no such flow`}</option>}
-          </select>
+          <Dropdown value={target} onChange={v => void onFlow(v)} options={[
+            ['', 'None'],
+            ...others.map(([id, name]): [string, string] => [id, name || id]),
+            ...(target !== '' && !others.some(([id]) => id === target) ? [[target, target === self ? 'This flow' : `${target} · no such flow`] as [string, string]] : []),
+          ]} />
         </label>
       </div>
     </details>
@@ -162,7 +163,7 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
     }
   }
   const range = (name: string) => (
-    <select name={name} defaultValue={steps.length - 1}>{steps.map((_, i) => <option key={i} value={i}>{i + 1}</option>)}</select>
+    <Dropdown name={name} defaultValue={String(steps.length - 1)} options={steps.map((_, i) => [String(i), String(i + 1)])} />
   )
   return (
     <>
