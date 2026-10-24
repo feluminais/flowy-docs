@@ -5,17 +5,18 @@ import { createServer } from 'node:http'
 import type { IncomingMessage, Server, ServerResponse } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
-import { json } from 'node:stream/consumers'
 import { promisify } from 'node:util'
 import { gzip } from 'node:zlib'
 import type { ModelList } from '../core/modellist.ts'
 import type { State } from '../core/state.ts'
+import { jsonBody } from './body.ts'
 import { loadState } from './files.ts'
 import type { History } from './history.ts'
 import { createHistoryApi } from './history-api.ts'
 import type { HistoryApi } from './history-api.ts'
 import { DEEP } from './models.ts'
 import type { Catalog, ModelEntry } from './models.ts'
+import { PAGE_POLICY } from './policy.ts'
 import { applyWrite } from './writes.ts'
 
 export type Running = { port: number; close: () => Promise<void> }
@@ -31,16 +32,9 @@ const TYPES: Record<string, string> = {
   '.md': 'text/plain; charset=utf-8',
 }
 
-/**
- * Sent with every answer. The canvas loads only its own files, draws images from them or inline, and talks only to this server. A model's Markdown can
- * name any image address, so an outside one must not load (the desktop app and the VS Code panel already refuse it). No other site may frame the page.
- * Style attributes stay allowed because the canvas positions its shapes with them.
- */
+/** Sent with every answer: the page's policy (see PAGE_POLICY), and no other site may frame the page. */
 const SECURITY_HEADERS = {
-  'Content-Security-Policy': [
-    "default-src 'none'", "script-src 'self'", "style-src 'self' 'unsafe-inline'", "img-src 'self' data:", "font-src 'self'", "connect-src 'self'",
-    "base-uri 'none'", "form-action 'none'", "frame-ancestors 'none'",
-  ].join('; '),
+  'Content-Security-Policy': `${PAGE_POLICY}; frame-ancestors 'none'`,
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'no-referrer',
@@ -98,7 +92,7 @@ export function writtenPath(encoded: string): string {
 
 /** PUT /api/file/<path> { version, data } writes a file; DELETE /api/file/flows/<id>.yaml { version } removes a flow. See applyWrite. */
 async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel: string, history?: HistoryApi) {
-  const body = await json(req).catch(() => undefined)
+  const body = await jsonBody(req)
   const answer = await applyWrite(dir, req.method ?? '', rel, body, history && (() => history.beforeWrite()))
   send(res, answer.status, answer.body)
 }

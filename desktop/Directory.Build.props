@@ -10,6 +10,8 @@
     <AnalysisLevel>10.0</AnalysisLevel>
     <!-- Packages are checked against the advisory list on every restore, with the packages they bring in. A new advisory is reported, not
          allowed to break a build that was fine yesterday: CI fails on it separately (see the "Known vulnerabilities" step of ci.yml). -->
+    <!-- Every package, the ones the listed ones bring in too, is pinned in each project's packages.lock.json; CI restores in locked mode. -->
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
     <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>

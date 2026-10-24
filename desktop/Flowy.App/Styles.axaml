@@ -31,12 +31,13 @@
           <SolidColorBrush x:Key="FgBrush" Color="#1c1917" />
           <SolidColorBrush x:Key="MutedBrush" Color="#78716c" />
           <SolidColorBrush x:Key="LineBrush" Color="#d6d3d1" />
-          <SolidColorBrush x:Key="EdgeBrush" Color="#a8a29e" />
+          <SolidColorBrush x:Key="EdgeBrush" Color="#78716c" />
           <SolidColorBrush x:Key="BoxBrush" Color="#ffffff" />
           <SolidColorBrush x:Key="AccentBrush" Color="#2563eb" />
           <SolidColorBrush x:Key="WarnBgBrush" Color="#fef3c7" />
           <SolidColorBrush x:Key="WarnFgBrush" Color="#78350f" />
           <SolidColorBrush x:Key="WarnBrush" Color="#d97706" />
+          <SolidColorBrush x:Key="OnWarnBrush" Color="#1c1917" />
           <SolidColorBrush x:Key="KnowFgBrush" Color="#5b21b6" />
           <SolidColorBrush x:Key="KnowBrush" Color="#7c3aed" />
           <SolidColorBrush x:Key="KnowTintBrush" Color="#7c3aed" Opacity="0.10" />
@@ -97,6 +98,7 @@
           <SolidColorBrush x:Key="WarnBgBrush" Color="#451a03" />
           <SolidColorBrush x:Key="WarnFgBrush" Color="#fde68a" />
           <SolidColorBrush x:Key="WarnBrush" Color="#f59e0b" />
+          <SolidColorBrush x:Key="OnWarnBrush" Color="#1c1917" />
           <SolidColorBrush x:Key="KnowFgBrush" Color="#ddd6fe" />
           <SolidColorBrush x:Key="KnowBrush" Color="#a78bfa" />
           <SolidColorBrush x:Key="KnowTintBrush" Color="#a78bfa" Opacity="0.12" />
@@ -651,6 +653,7 @@
   <Style Selector=":is(Grid).box.problem Border.badge">
     <Setter Property="IsVisible" Value="True" />
   </Style>
+  <Style Selector=":is(Grid).box Border.badge TextBlock"><Setter Property="Foreground" Value="{DynamicResource OnWarnBrush}" /></Style>
   <!-- A load (the Performance panel): an outline from green to red over the shape's own, with a glow, and how many are waiting in the corner. -->
   <Style Selector=":is(Grid).box Path.strain">
     <Setter Property="IsVisible" Value="False" />
@@ -675,7 +678,7 @@
     <Setter Property="VerticalAlignment" Value="Top" />
   </Style>
   <Style Selector=":is(Grid).box Border.queue TextBlock">
-    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Foreground" Value="{DynamicResource OnWarnBrush}" />
     <Setter Property="FontSize" Value="11" />
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="HorizontalAlignment" Value="Center" />
@@ -790,7 +793,7 @@
     <Setter Property="Background" Value="{DynamicResource WarnBrush}" />
   </Style>
   <Style Selector="Border.sw.queue TextBlock">
-    <Setter Property="Foreground" Value="White" />
+    <Setter Property="Foreground" Value="{DynamicResource OnWarnBrush}" />
     <Setter Property="FontSize" Value="10" />
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="HorizontalAlignment" Value="Center" />

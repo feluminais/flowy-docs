@@ -1,9 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { homedir } from 'node:os'
 import { posix, win32 } from 'node:path'
-import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, open, readdir, readFile, rename, rm, stat } from 'node:fs/promises'
 import type { Step, StepApp, StepSource } from '../core/history.ts'
 import { isMap } from '../core/text.ts'
+import { hashBytes } from './files.ts'
 
 /**
  * Where the app keeps what it remembers for one person: FLOWY_STATE_DIR if set, else the application-data folder the desktop app already
@@ -72,19 +73,36 @@ function parseStep(id: string, text: string): Step | undefined {
   return { id, time, label, source: source as StepSource, app: app as StepApp, files: named }
 }
 
-const exists = (path: string): Promise<boolean> => stat(path).then(() => true, () => false)
 
 export function openStore(root: string): Store {
   const stepsDir = `${root}/steps`
   const blobsDir = `${root}/blobs`
 
+  /** Writes through a temporary file, flushed to the disk before the rename, so a power cut leaves the old file or the whole new one. */
   async function writeWhole(path: string, data: string | Uint8Array): Promise<void> {
     const temp = `${path}.${randomUUID()}.tmp`
     try {
-      await writeFile(temp, data)
+      const file = await open(temp, 'w')
+      try {
+        await file.writeFile(data)
+        await file.sync()
+      } finally {
+        await file.close()
+      }
       await rename(temp, path)
     } catch (e) {
       await rm(temp, { force: true }).catch(() => undefined)
+      throw e
+    }
+  }
+
+  /** The blob's bytes when they are what its name says; a cut-off or damaged blob reads as missing. */
+  async function readBlob(hash: string): Promise<Uint8Array | undefined> {
+    try {
+      const bytes = new Uint8Array(await readFile(`${blobsDir}/${hash}`))
+      return hashBytes(bytes) === hash ? bytes : undefined
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === 'ENOENT') return undefined
       throw e
     }
   }
@@ -110,10 +128,10 @@ export function openStore(root: string): Store {
       await mkdir(blobsDir, { recursive: true })
       await mkdir(stepsDir, { recursive: true })
       for (const [hash, bytes] of blobs) {
-        if (await exists(`${blobsDir}/${hash}`)) continue
+        if (await readBlob(hash)) continue // a damaged one is written again
         // Two programs can write the same blob at once; they write the same bytes, so whoever lost the rename has nothing to redo.
         await writeWhole(`${blobsDir}/${hash}`, bytes).catch(async e => {
-          if (!(await exists(`${blobsDir}/${hash}`))) throw e
+          if (!(await readBlob(hash))) throw e
         })
       }
       const { id, ...body } = step
@@ -148,13 +166,7 @@ export function openStore(root: string): Store {
     },
 
     async blob(hash) {
-      if (!isHash(hash)) return undefined
-      try {
-        return new Uint8Array(await readFile(`${blobsDir}/${hash}`))
-      } catch (e) {
-        if ((e as NodeJS.ErrnoException).code === 'ENOENT') return undefined
-        throw e
-      }
+      return isHash(hash) ? readBlob(hash) : undefined
     },
 
     async prune(plan, graceMs) {

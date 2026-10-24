@@ -4705,7 +4705,7 @@
       "error": {
         "file": "perf/grid-bad-id.yaml",
         "line": null,
-        "message": "source \"Pings\" is not a valid id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+        "message": "source \"Pings\" is not a valid id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
       }
     },
     {
@@ -9309,7 +9309,7 @@
     "problems": [
       {
         "file": "perf/Bad Id.yaml",
-        "message": "\"Bad Id\" is not a valid run id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+        "message": "\"Bad Id\" is not a valid run id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
       },
       {
         "file": "perf/backwards.yaml",

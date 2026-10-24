@@ -29,7 +29,7 @@ test('putObject ignores keys it does not know', () => {
 test('putObject needs a valid id, and type and name to create', () => {
   assert.throws(() => putObject(shop(), { id: 'cache', name: 'Cache' }), /type and name are required/)
   assert.throws(() => putObject(shop(), { id: 'Cache!', type: 'store', name: 'Cache' }), /not a valid id/)
-  assert.throws(() => putObject(shop(), { id: 'root', type: 'actor', name: 'R' }), /"root" is reserved/)
+  assert.throws(() => putObject(shop(), { id: 'root', type: 'actor', name: 'R' }), /"root" and Windows device names/)
 })
 
 test('putObject updates only what is given, and "" removes a field', () => {

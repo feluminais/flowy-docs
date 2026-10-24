@@ -5,19 +5,23 @@ import { STATE_ELEMENT } from '../core/state.ts'
 import type { State } from '../core/state.ts'
 import { loadState, realPlace } from './files.ts'
 import { readSnapshot, yamlOf } from './history.ts'
+import { PAGE_POLICY } from './policy.ts'
 
 /** How an exported page's state starts. It also tells an earlier export from someone else's page. */
 const OPEN = `<script type="application/json" id="${STATE_ELEMENT}">`
 
 /**
  * The page with the state in it, as JSON in a script element just before </head>. Every `<` is written
- * as \u003c, so no text in the model can end the element early.
+ * as \u003c, so no text in the model can end the element early. A static host sends no policy of its own,
+ * so the page carries the local server's (PAGE_POLICY), first thing in its head.
  */
 export function inlineState(html: string, state: State): string {
   const at = html.indexOf('</head>')
   if (at === -1) throw new Error('The built index.html has no </head>.')
+  const head = html.indexOf('>', html.indexOf('<head')) + 1
   const json = JSON.stringify(state).replace(/</g, '\\u003c')
-  return `${html.slice(0, at)}${OPEN}${json}</script>\n${html.slice(at)}`
+  const policy = `\n<meta http-equiv="Content-Security-Policy" content="${PAGE_POLICY}">`
+  return `${html.slice(0, head)}${policy}${html.slice(head, at)}${OPEN}${json}</script>\n${html.slice(at)}`
 }
 
 /** Whether `child` is `parent` or inside it. Real paths are compared, so a link or a short name can't hide it, even for a folder that doesn't exist yet. */

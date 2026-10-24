@@ -51,7 +51,7 @@ public class CompareTests
     }
 
     /// <summary>
-    /// The text without a top-level <c>compare:</c> key, short or long form. Plum now tags two pairs of its own (refund and together-measured); these tests need a folder with no pair, and
+    /// The text without a top-level <c>compare:</c> key, short or long form. Plum tags two pairs of its own (refund and together-measured); these tests need a folder with no pair, and
     /// add the tags they are about themselves.
     /// </summary>
     private static string Untagged(string text) => System.Text.RegularExpressions.Regex.Replace(text, @"^compare:[^\r\n]*\r?\n(?:[ \t]+[^\r\n]*\r?\n|\r?\n(?=[ \t]))*", "", System.Text.RegularExpressions.RegexOptions.Multiline);

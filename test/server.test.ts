@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { State } from '../src/core/state.ts'
 import { hashText } from '../src/node/files.ts'
+import { MAX_BODY } from '../src/node/body.ts'
 import { startServer } from '../src/node/server.ts'
 
 /** A server on a free port, over a flowy/ folder that doesn't exist yet. */
@@ -171,4 +172,13 @@ test('/api/events says "changed" after a file changes, but not for temp files', 
   await writeFile(join(dir, 'model.yaml'), 'objects: {}\n')
   await next
   assert.equal(received, 'data: changed\n\n')
+})
+
+test('a body past the limit is refused and nothing is written', async t => {
+  const { send, getState } = await setup(t)
+  const res = await send('PUT', 'model.yaml', { version: null, data: { objects: { big: { type: 'actor', name: 'x'.repeat(MAX_BODY) } } } })
+  assert.equal(res.status, 400)
+  const state = await getState()
+  assert.ok('model' in state)
+  assert.deepEqual(Object.keys(state.model.objects), [])
 })

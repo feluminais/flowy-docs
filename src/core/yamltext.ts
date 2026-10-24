@@ -1,4 +1,4 @@
-import { Document, isMap as isYamlMap, isScalar, isSeq, parse, visit, YAMLParseError } from 'yaml'
+import { Document, isAlias, isMap as isYamlMap, isNode, isScalar, isSeq, LineCounter, parseDocument, visit, YAMLParseError } from 'yaml'
 import type { Scalar, YAMLMap, YAMLSeq } from 'yaml'
 import { ParseError } from './model.ts'
 
@@ -12,9 +12,21 @@ export function readYaml(file: string, text: string): unknown {
   const conflict = /(?<![^\n])(?:(?:<{7}|>{7})(?= |\r?\n|\r?$)|={7}(?=\r?\n|\r?$))/.exec(text)
   if (conflict) throw new ParseError(file, 'unresolved merge conflict', text.slice(0, conflict.index).split('\n').length)
   try {
-    return parse(text, { schema: 'failsafe' })
+    const lines = new LineCounter()
+    const doc = parseDocument(text, { schema: 'failsafe', lineCounter: lines })
+    if (doc.errors.length > 0) throw doc.errors[0]
+    // The desktop app's reader refuses them (a few nested aliases can expand into billions of values), so this one does too.
+    let shared: number | undefined
+    visit(doc, (_, node) => {
+      if (!isAlias(node) && !(isNode(node) && node.anchor)) return undefined
+      shared = (node as { range?: [number, number, number] }).range?.[0] ?? 0
+      return visit.BREAK
+    })
+    if (shared !== undefined) throw new ParseError(file, 'anchors and aliases are not supported', lines.linePos(shared).line)
+    return doc.toJS()
   } catch (e) {
-    // Any failure (bad syntax, duplicate keys, alias bombs) means the file can't be trusted.
+    if (e instanceof ParseError) throw e
+    // Any other failure (bad syntax, duplicate keys) means the file can't be trusted.
     const line = e instanceof YAMLParseError ? e.linePos?.[0].line : undefined
     const message = (e instanceof Error ? e.message : String(e)).split('\n')[0].replace(/ at line \d+, column \d+:?$/, '')
     throw new ParseError(file, message, line)

@@ -46,8 +46,7 @@ public static class YamlText
         }
     }
 
-    // Known gap: anchors and aliases are refused. The TypeScript reader takes small ones; here a few nested aliases
-    // could expand into billions of values, so the app says so instead.
+    // Anchors and aliases are refused, here and in the TypeScript reader: a few nested aliases could expand into billions of values.
     private static ParseError Aliases(string file, Mark at) => new(file, "anchors and aliases are not supported", (int)at.Line);
 
     /// <summary>
