@@ -1,5 +1,5 @@
 import type { IncomingMessage } from 'node:http'
-import { json } from 'node:stream/consumers'
+import { jsonBody } from './body.ts'
 import { isMap } from '../core/text.ts'
 import type { History } from './history.ts'
 import type { Answer } from './writes.ts'
@@ -17,17 +17,17 @@ export type HistoryApi = {
 }
 
 const STEP = '/api/history/steps/'
-const MAX_LABEL = 200
+const MAX_STEP_LABEL = 200
 
 const bad = (error: string): Answer => ({ status: 400, body: { error } })
 
 /** Reads a JSON object body, or undefined when it is not one. */
 async function objectBody(req: IncomingMessage): Promise<Record<string, unknown> | undefined> {
-  const body: unknown = await json(req).catch(() => undefined)
+  const body: unknown = await jsonBody(req)
   return isMap(body) ? body : undefined
 }
 
-const isLabel = (value: unknown): value is string => typeof value === 'string' && value.length >= 1 && value.length <= MAX_LABEL
+const isLabel = (value: unknown): value is string => typeof value === 'string' && value.length >= 1 && value.length <= MAX_STEP_LABEL
 
 /**
  * `gateMs`: how long a page's edit may stay unfinished. The page writes one file per request, so the server cannot tell where one edit ends;
@@ -72,7 +72,7 @@ export function createHistoryApi(history: History, options: { gateMs?: number } 
     }
     const body = await objectBody(req)
     if (pathname === '/api/history/steps') {
-      if (!body || !isLabel(body.label)) return bad(`the body needs "label": a sentence of 1 to ${MAX_LABEL} characters`)
+      if (!body || !isLabel(body.label)) return bad(`the body needs "label": a sentence of 1 to ${MAX_STEP_LABEL} characters`)
       return { status: 200, body: { recorded: await recordAndClose(body.label) } }
     }
 
