@@ -74,7 +74,7 @@
         "type": "actor",
         "name": "X"
       },
-      "error": "\"Bad Id\" is not a valid id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "error": "\"Bad Id\" is not a valid id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "spec": {
@@ -733,7 +733,7 @@
           }
         ]
       },
-      "error": "\"Pay\" is not a valid flow id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "error": "\"Pay\" is not a valid flow id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "spec": {
@@ -748,7 +748,7 @@
           }
         ]
       },
-      "error": "\"bad id\" is not a valid flow id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "error": "\"bad id\" is not a valid flow id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "spec": {
@@ -1186,7 +1186,7 @@
           "kind": "branch"
         }
       },
-      "error": "\"Bad Id\" is not a valid group id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "error": "\"Bad Id\" is not a valid group id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "spec": {
@@ -1574,7 +1574,7 @@
         "first": 3,
         "last": 3
       },
-      "error": "\"Bad Id\" is not a valid group id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "error": "\"Bad Id\" is not a valid group id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "spec": {
@@ -3683,7 +3683,7 @@
           "id": "Bad Id",
           "name": "B"
         },
-        "error": "\"Bad Id\" is not a valid analysis id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+        "error": "\"Bad Id\" is not a valid analysis id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
       },
       {
         "spec": {
@@ -3691,7 +3691,7 @@
           "id": "Ordering",
           "name": "Same name, other case"
         },
-        "error": "\"Ordering\" is not a valid analysis id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+        "error": "\"Ordering\" is not a valid analysis id: use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
       },
       {
         "spec": {

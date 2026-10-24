@@ -1893,7 +1893,7 @@
       "problem": {
         "file": "model.yaml",
         "id": "Bad_ID",
-        "message": "Bad_ID: ids use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+        "message": "Bad_ID: ids use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
       },
       "spot": {
         "view": "root",
@@ -2148,7 +2148,7 @@
     {
       "problem": {
         "file": "flows/Bad_Flow.yaml",
-        "message": "\"Bad_Flow\" is not a valid flow id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+        "message": "\"Bad_Flow\" is not a valid flow id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
       },
       "spot": {
         "view": "root",
