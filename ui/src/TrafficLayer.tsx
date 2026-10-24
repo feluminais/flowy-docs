@@ -51,11 +51,27 @@ const outsideAll = (ctx: CanvasRenderingContext2D, shapes: Shape[], labels: Rect
   ctx.clip('evenodd')
 }
 
+/** Which way a line runs at `s` (0 to 1 of the way along it), as a unit step: a call is drawn lying along it. A line with no length has none, so it runs to the right. */
+const dirAt = (path: ReturnType<typeof flatten>, s: number): [number, number] => {
+  const [ax, ay] = pointAt(path, Math.max(0, s - 0.015))
+  const [bx, by] = pointAt(path, Math.min(1, s + 0.015))
+  const length = Math.hypot(bx - ax, by - ay)
+  return length === 0 ? [1, 0] : [(bx - ax) / length, (by - ay) / length]
+}
+
+/** A call as a small stripe: a short bar lying along its line, centred on (x, y), that sticks out to either side of the line. Add it to the path and stroke it with a line width of 1.15 radii and round ends. */
+const mark = (ctx: CanvasRenderingContext2D, x: number, y: number, dx: number, dy: number, r: number): void => {
+  ctx.moveTo(x - dx * r * 0.9, y - dy * r * 0.9)
+  ctx.lineTo(x + dx * r * 0.9, y + dy * r * 0.9)
+}
+
 /**
  * The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in the diagram's units (and a second), so they grow and shrink with the line and its
  * arrowhead as the diagram is zoomed. Busier is closer together and a good deal quicker: a quiet line crawls and the busiest runs.
  */
 const stripePace = (busy: number): { dash: number; gap: number; speed: number } => ({ dash: 8, gap: 26 - 18 * busy, speed: 14 + 110 * busy })
+/** How big a call's mark is on screen, in pixels, before a run's size makes it bigger or smaller: the same on every line, so only the size of a call changes it. */
+const MARK = 3.6
 
 /**
  * How far behind something the particle at (x, y) is, 0 to 1: the most of any shape its line runs behind, or label, which sits on its line with
@@ -137,14 +153,14 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
   const now = useRef({ lines, paths })
   now.current = { lines, paths }
   const streams = useRef(new Map<string, Stream>())
-  const stripeAt = useRef(new Map<string, number>()) // how far each line's stripes have moved, in pixels
+  const stripeAt = useRef(new Map<string, number>()) // how far each line's stripes have moved, as a share of one dash and its gap, so a change of spacing while the load is dragged moves them on smoothly
 
   useEffect(() => {
     const el = canvas.current!
     const ctx = el.getContext('2d')!
     let frame = 0
     let last = performance.now()
-    let colours = { ok: '#2563eb', bad: '#b91c1c', ink: '#888888' }
+    let colours = { ok: '#2563eb', bad: '#b91c1c' }
     let dark = false
     const tints = new Map<string, string>() // a source's colour for the theme the page is in now, by the name or hex it was written with
     let colourAt = 0
@@ -166,7 +182,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
       last = t
       if (t - colourAt > 500) {
         const css = getComputedStyle(el)
-        colours = { ok: css.getPropertyValue('--accent').trim() || colours.ok, bad: css.getPropertyValue('--danger').trim() || colours.bad, ink: css.getPropertyValue('--fg').trim() || colours.ink }
+        colours = { ok: css.getPropertyValue('--accent').trim() || colours.ok, bad: css.getPropertyValue('--danger').trim() || colours.bad }
         dark = Number(/\d+/.exec(css.color)?.[0] ?? 0) > 127
         tints.clear()
         colourAt = t
@@ -196,11 +212,11 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         const key = line.source === undefined ? `${line.from} ${line.to}` : `${line.from} ${line.to} ${line.source}`
         alive.add(key)
         if (line.stripes !== undefined && line.stripes > 0) {
-          // The calls: stripes moving along the line itself, closer and quicker the more calls there are, with every few of them red for the share of calls that fail.
+          // A line the run gives no numbers: plain stripes moving along the line itself, closer and quicker the more the run is loaded.
           const pace = stripePace(line.stripes)
-          const moved = (stripeAt.current.get(key) ?? 0) + (pace.speed * ms) / 1000
-          stripeAt.current.set(key, moved)
-          const apart = pace.dash + pace.gap
+          const period = pace.dash + pace.gap
+          const phase = ((stripeAt.current.get(key) ?? 0) + (pace.speed * ms) / 1000 / period) % 1
+          stripeAt.current.set(key, phase)
           const asideLine = (line.offset ?? 0) * 3
           outsideAll(ctx, [...opening, ...shapes], labels) // saves the state: restored below
           ctx.beginPath()
@@ -215,34 +231,29 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
             else ctx.lineTo(x + nx, path.ys[k] + ny)
           })
           ctx.lineCap = 'round'
-          ctx.lineWidth = Math.max(2.4, line.width + 0.9) // a little thicker than the line it runs on, and growing with it, so the two read as one arrow at any zoom
-          ctx.globalAlpha = line.bare ? 0.6 : 0.95
-          ctx.strokeStyle = line.bare ? colours.ink : tint(line.color) // a line with no numbers has plain light stripes
+          ctx.lineWidth = Math.max(2.4, line.width + 0.9) // a little thicker than the line it runs on, in the diagram's units, so the two read as one arrow at any zoom
+          ctx.globalAlpha = 0.9
+          ctx.strokeStyle = tint(line.color)
           ctx.setLineDash([pace.dash, pace.gap])
-          ctx.lineDashOffset = -moved
+          ctx.lineDashOffset = -phase * period
           ctx.stroke()
-          if (line.failed > 0) {
-            // Every nth stripe is red, n being how many calls there are to one that fails.
-            const every = Math.max(1, Math.round(1 / line.failed))
-            ctx.strokeStyle = colours.bad
-            ctx.setLineDash([pace.dash, apart * every - pace.dash])
-            ctx.stroke()
-          }
           ctx.setLineDash([])
           ctx.restore()
         }
         let stream = streams.current.get(key)
         if (!stream) streams.current.set(key, (stream = newStream()))
         advance(stream, line, ms, Math.random)
-        const radius = ((2.2 + line.width / 2) * (line.radius ?? 1)) / zoom // a few pixels on screen, whatever the zoom, and bigger or smaller where the run's size says
+        const radius = (MARK * (line.radius ?? 1)) / zoom // a few pixels on screen, whatever the zoom and however many calls, and bigger or smaller only where the size of a call says
         const ramp = radius * 2 // how far either side of an outline a particle takes to go from clear to well behind
         // Sources that share a line run a little apart, to either side of it, by steps of a usual dot and its room: so two on one path don't hide each other.
-        const aside = (line.offset ?? 0) * ((2.2 + line.width / 2) / zoom) * 2.4
+        const aside = (line.offset ?? 0) * (MARK / zoom) * 2.4
         const colour = tint(line.color)
-        ctx.fillStyle = colour
+        ctx.strokeStyle = colour
+        ctx.lineCap = 'round'
+        ctx.lineWidth = radius * 1.15
         ctx.beginPath()
-        const faint: [number, number, number, Shape | undefined][] = [] // the ones behind something or going into a shape that opens (the shape they are cut by), drawn after the rest one at a time
-        const other: { x: number; y: number; bad: boolean; alpha: number; pop?: number; behind: number; cut?: Shape }[] = [] // the ones failing, drawn one at a time
+        const faint: [number, number, number, Shape | undefined, number, number][] = [] // the ones behind something or going into a shape that opens (the shape they are cut by), drawn after the rest one at a time
+        const other: { x: number; y: number; dx: number; dy: number; bad: boolean; alpha: number; pop?: number; behind: number; cut?: Shape }[] = [] // the ones failing, drawn one at a time
         /** Where a particle is against the shapes it goes into or comes out of: wholly inside one (not drawn), or cut by the outline of one. */
         const against = (x: number, y: number): { gone: boolean; cut?: Shape } => {
           let cut: Shape | undefined
@@ -258,19 +269,19 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
           // The bare line: no style for its failures and none to share it with, so a particle is where it is, and one that fails fades. No object is made for a particle that doesn't fail.
           for (const m of stream.motes) {
             const [x, y] = pointAt(path, m.s)
+            const [dx, dy] = dirAt(path, m.s)
             const here = against(x, y)
             if (here.gone) continue
             const b = behindOf(shapes, labels, x, y, ramp)
             if (m.fails !== 0) {
-              other.push({ x, y, bad: true, alpha: visibility(m), behind: b, cut: here.cut })
+              other.push({ x, y, dx, dy, bad: true, alpha: visibility(m), behind: b, cut: here.cut })
               continue
             }
             if (b > 0 || here.cut) {
-              faint.push([x, y, b, here.cut])
+              faint.push([x, y, b, here.cut, dx, dy])
               continue
             }
-            ctx.moveTo(x + radius, y)
-            ctx.arc(x, y, radius, 0, Math.PI * 2)
+            mark(ctx, x, y, dx, dy, radius)
           }
         } else {
           for (const m of stream.motes) {
@@ -285,29 +296,31 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
               y += ((bx - ax) / length) * aside
             }
             if (look.bar !== undefined && look.bar > bar) bar = look.bar
+            const [dx, dy] = dirAt(path, look.at)
             const here = against(x, y)
             if (here.gone) continue
             const b = behindOf(shapes, labels, x, y, ramp)
             if (look.bad || look.alpha < 1 || look.pop !== undefined) {
-              other.push({ x, y, bad: look.bad, alpha: look.alpha, pop: look.pop, behind: b, cut: here.cut })
+              other.push({ x, y, dx, dy, bad: look.bad, alpha: look.alpha, pop: look.pop, behind: b, cut: here.cut })
               continue
             }
             if (b > 0 || here.cut) {
-              faint.push([x, y, b, here.cut])
+              faint.push([x, y, b, here.cut, dx, dy])
               continue
             }
-            ctx.moveTo(x + radius, y)
-            ctx.arc(x, y, radius, 0, Math.PI * 2)
+            mark(ctx, x, y, dx, dy, radius)
           }
         }
-        ctx.fill()
-        for (const [x, y, b, cut] of faint) {
+        ctx.stroke()
+        for (const [x, y, b, cut, dx, dy] of faint) {
           const g = ghost(b)
           if (cut) outside(ctx, cut)
           ctx.globalAlpha = g.alpha
+          ctx.strokeStyle = colour
+          ctx.lineWidth = radius * g.scale * 1.15
           ctx.beginPath()
-          ctx.arc(x, y, radius * g.scale, 0, Math.PI * 2)
-          ctx.fill()
+          mark(ctx, x, y, dx, dy, radius * g.scale)
+          ctx.stroke()
           if (cut) ctx.restore()
         }
         for (const o of other) {
@@ -322,11 +335,12 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
             ctx.arc(o.x, o.y, radius * g.scale * (0.9 + 1.8 * o.pop), 0, Math.PI * 2)
             ctx.stroke()
           } else {
-            ctx.fillStyle = o.bad ? colours.bad : colour
+            ctx.strokeStyle = o.bad ? colours.bad : colour
+            ctx.lineWidth = radius * g.scale * 1.15
             ctx.globalAlpha = o.alpha * g.alpha
             ctx.beginPath()
-            ctx.arc(o.x, o.y, radius * g.scale, 0, Math.PI * 2)
-            ctx.fill()
+            mark(ctx, o.x, o.y, o.dx, o.dy, radius * g.scale)
+            ctx.stroke()
           }
           if (o.cut) ctx.restore()
         }

@@ -51,7 +51,7 @@ function sourceScale(source: Source | undefined, measure: Measure, size: number 
   if (k === undefined) return undefined
   const calls = 1 / k
   if (!(calls >= 0.001 && calls < 1e9)) return undefined
-  if (measure === 'calls') return `1 dot = ${plain(calls)} calls/s`
+  if (measure !== 'data') return `1 dot = ${plain(calls)} calls/s`
   return size === undefined ? undefined : `1 dot = ${dataRate(calls * size)}`
 }
 
@@ -98,11 +98,11 @@ export function sourceKeyAt(runs: Record<string, Run>, id: string, lines: LineTr
   const found = dialsOf(runs, id)
   if (!found) return { sources: [], scaledDown: false, other: false }
   if (found.mode === 'single') {
-    const k = sourceKey(runs[id], lines, measure, measure === 'calls' ? undefined : callSize(runs, id))
+    const k = sourceKey(runs[id], lines, measure, measure === 'data' ? callSize(runs, id) : undefined)
     if (!k) return { sources: [], scaledDown: false, other: false }
     return { sources: [{ id: '', name: k.name, ...(k.color === undefined ? {} : { color: k.color }), ...(k.scale === undefined ? {} : { scale: k.scale }), bigger: k.bigger }], scaledDown: k.scaledDown, other: false }
   }
-  const size = measure === 'calls' ? undefined : callSize(runs, id)
+  const size = measure === 'data' ? callSize(runs, id) : undefined
   lines = lines.filter(l => l.bare !== true)
   const sources = found.dials.flatMap((d): KeyedSource[] => {
     const mine = lines.filter(l => l.source === d.id)

@@ -902,18 +902,17 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .sw.busy { border-top: 4px solid var(--muted); }
 .sw.knee { width: 2px; height: 14px; background: repeating-linear-gradient(to bottom, var(--danger) 0 3px, transparent 3px 6px); }
 .sw.stripes { width: 20px; height: 3px; border-radius: 1px; background: repeating-linear-gradient(90deg, var(--src, var(--accent)) 0 5px, transparent 5px 9px); }
-.sw.stripes.bare { background: repeating-linear-gradient(90deg, var(--muted) 0 5px, transparent 5px 9px); }
 .sw.heat { width: 20px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
 .sw.none { width: 20px; height: 10px; border: 1px solid var(--line); border-radius: 3px; }
 .sw.queue { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--warn); color: #fff; font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
-.sw.call { width: 8px; height: 8px; border-radius: 50%; background: var(--src, var(--accent)); }
+.sw.call { width: 11px; height: 4px; border-radius: 2px; background: var(--src, var(--accent)); }
 .sw.call.bad { background: var(--danger); }
 /* A run's source: dots in its colour (--src, set on the key), a small dot beside a big one, dots that thin out, a call that pops, a call turned away. */
 .sw.bigger, .sw.scaled { display: inline-flex; align-items: center; gap: 3px; }
-.sw.bigger i, .sw.scaled i { display: block; border-radius: 50%; background: var(--src, var(--accent)); }
-.sw.bigger i:first-child { width: 5px; height: 5px; }
-.sw.bigger i:last-child { width: 11px; height: 11px; }
-.sw.scaled i { width: 6px; height: 6px; }
+.sw.bigger i, .sw.scaled i { display: block; border-radius: 2px; background: var(--src, var(--accent)); }
+.sw.bigger i:first-child { width: 7px; height: 3px; }
+.sw.bigger i:last-child { width: 14px; height: 6px; }
+.sw.scaled i { width: 8px; height: 3px; }
 .sw.scaled i:nth-child(2) { opacity: 0.55; }
 .sw.scaled i:nth-child(3) { opacity: 0.25; }
 .sw.lost { width: 12px; height: 12px; border: 1.5px solid var(--danger); border-radius: 50%; }

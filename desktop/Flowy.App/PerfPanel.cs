@@ -888,9 +888,9 @@ internal sealed class PerfPanel : StackPanel
         }
     }
 
-    private const string CallsTip = "Stripes along the lines for the calls a second";
-    private const string DataTip = "Blobs on the lines for the data a second";
-    private const string MixedTip = "Both: stripes for the calls and blobs for the data";
+    private const string CallsTip = "One mark for each call a second";
+    private const string DataTip = "One mark for each bit of data a second (calls times their size)";
+    private const string MixedTip = "Marks for the calls, as big as their calls are";
 
     /// <summary>The Count switch: Calls, Data and Mixed, one pressed. Data and Mixed are greyed out with the reason as their tooltip when the run gives no size of a call, never hidden.</summary>
     private StackPanel MeasureRow()
@@ -942,7 +942,7 @@ internal sealed class PerfPanel : StackPanel
     {
         IReadOnlyList<LineTraffic> drawn = _still ? [] : frame.Traffic.Lines; // reduced motion draws no traffic, so the key says nothing of it
         var marks = PerfView.FailureMarksOf(drawn);
-        var source = Perf.SourceKeyOf(run, drawn, _measure, _measure == LoadMeasure.Calls ? null : Perf.CallSize(_runs!, _runId));
+        var source = Perf.SourceKeyOf(run, drawn, _measure, _measure == LoadMeasure.Data ? Perf.CallSize(_runs!, _runId) : null);
         var shown = PerfView.LineMarksOf(drawn);
         var states = StateKey.Distinct(_states.Values);
         var shape = $"{_measure}|{marks}|{shown}|{source}|{string.Join(",", states)}";
@@ -954,14 +954,13 @@ internal sealed class PerfPanel : StackPanel
             (new HeatSwatch(), "Busy"),
             (KeyRow.Count("3"), "Waiting"),
             (KeyRow.Mark("none"), "Not measured"),
-            shown.Stripes ? (KeyRow.Stripes(source?.Color, dark, false), "Calls (denser, faster)") : null,
-            shown.Blobs ? (KeyRow.Dot(source?.Color, dark), "Data (slower dots, slower calls)") : null,
-            shown.Bare ? (KeyRow.Stripes(null, dark, true), "No numbers") : null,
+            (KeyRow.Call(source?.Color, dark), "A call (slower marks, slower calls)"),
+            shown.Bare ? (KeyRow.Stripes(), "No numbers") : null,
             marks.Fade ? (KeyRow.Mark("call", "bad"), "A call that fails") : null,
             marks.Lost ? (KeyRow.Mark("lost"), "Lost call") : null,
             marks.Rejected ? (KeyRow.Rejected(), "Rejected call") : null,
             (KeyRow.Mark("busy"), _measure == LoadMeasure.Data ? "More data" : "More calls"),
-            source?.Scale is { } scale ? (KeyRow.Dot(source.Color, dark), scale) : null,
+            source?.Scale is { } scale ? (KeyRow.Call(source.Color, dark), scale) : null,
             source is { Bigger: true } ? (KeyRow.Bigger(source.Color, dark), "Bigger call") : null,
             source is { ScaledDown: true } ? (KeyRow.Scaled(source.Color, dark), "Scaled down") : null));
         if (StateKey.Of(_states.Values) is { } stateKey) _keyRows.Children.Add(stateKey); // the states on the canvas now: only those
@@ -1230,20 +1229,18 @@ internal sealed class PerfPanel : StackPanel
             (KeyRow.Count("3"), "Waiting"),
             (KeyRow.Mark("none"), "Not measured"),
         };
-        if (shown.Stripes) items.Add((KeyRow.Stripes(Perf.OtherColor, dark, false), "Calls (denser, faster)"));
-        if (shown.Blobs) items.Add((KeyRow.Dot(Perf.OtherColor, dark), "Data (slower dots, slower calls)"));
-        if (shown.Bare) items.Add((KeyRow.Stripes(null, dark, true), "No numbers"));
+        if (shown.Bare) items.Add((KeyRow.Stripes(), "No numbers"));
         if (marks.Fade) items.Add((KeyRow.Mark("call", "bad"), "A call that fails"));
         if (marks.Lost) items.Add((KeyRow.Mark("lost"), "Lost call"));
         if (marks.Rejected) items.Add((KeyRow.Rejected(), "Rejected call"));
         items.Add((KeyRow.Mark("busy"), _measure == LoadMeasure.Data ? "More data" : "More calls"));
         foreach (var source in keyed.Sources)
         {
-            items.Add((KeyRow.Dot(source.Color, dark), source.Name));
-            if (source.Scale is { } scale) items.Add((KeyRow.Dot(source.Color, dark), scale));
+            items.Add((KeyRow.Call(source.Color, dark), source.Name));
+            if (source.Scale is { } scale) items.Add((KeyRow.Call(source.Color, dark), scale));
             if (source.Bigger) items.Add((KeyRow.Bigger(source.Color, dark), "Bigger call"));
         }
-        if (keyed.Other) items.Add((KeyRow.Dot(Perf.OtherColor, dark), "Other calls"));
+        if (keyed.Other) items.Add((KeyRow.Call(Perf.OtherColor, dark), "Other calls"));
         if (keyed.ScaledDown) items.Add((KeyRow.Scaled(Perf.OtherColor, dark), "Scaled down"));
         _keyRows.Children.Clear();
         _keyRows.Children.Add(KeyRow.Of([.. items]));
