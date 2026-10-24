@@ -258,8 +258,8 @@ public class PerformanceTests
         Assert.Equal((0, false), reader.Canvas.TrafficNow);
         Assert.True(Strained(reader, "worker"));
         Assert.Null(reader.PerfPanelNow.RampButton.Parent); // not in the panel
-        Assert.Contains("←|→|Step", string.Join("|", AllText(reader.PerfPanelNow)));
-        Assert.DoesNotContain("|P|", string.Join("|", AllText(reader.PerfPanelNow))); // no hint for P
+        Assert.DoesNotContain("←|→", string.Join("|", AllText(reader.PerfPanelNow))); // the panel names no keys: the list ? opens does
+        Assert.DoesNotContain("|P|", string.Join("|", AllText(reader.PerfPanelNow)));
         Press(window, Key.P, PhysicalKey.P);
         Assert.False(reader.PerfState.Ramping);
     }
@@ -527,7 +527,7 @@ public class PerformanceTests
         Assert.Contains("TIME", AllText(panel)); // a section's title is set in capitals
         Assert.DoesNotContain("LOAD", AllText(panel));
         Assert.Contains("EVENTS", AllText(panel));
-        Assert.Equal("Play", AllText(panel).SkipWhile(t => t != "P").Skip(1).First()); // the hint
+        Assert.DoesNotContain("P", AllText(panel)); // no key hint: the list ? opens names P
         Assert.Equal([("40 s", "Payments killed", true, true), ("70 s", "Restart begins", false, false), ("85 s", "Answers again", false, false)], panel.EventLines);
         Assert.Equal(3, panel.EventMarkCount);
         Assert.Equal((0.0, 150.0), (panel.Slider.Minimum, panel.Slider.Maximum)); // the slider is in time
