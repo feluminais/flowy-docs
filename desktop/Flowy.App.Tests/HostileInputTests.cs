@@ -40,7 +40,8 @@ public class HostileInputTests
         var clock = Stopwatch.StartNew();
         var view = new MarkdownView(string.Concat(Enumerable.Repeat("[a](", 40_000)));
         Assert.NotEmpty(view.Children);
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(5), $"took {clock.Elapsed}");
+        // About 3 s on a desktop and twice that on a CI machine: the bound is for a parse that slows down sharply as the input grows.
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(15), $"took {clock.Elapsed}");
     }
 
     [AvaloniaFact]

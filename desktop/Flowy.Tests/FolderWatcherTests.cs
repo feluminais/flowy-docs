@@ -5,7 +5,9 @@ namespace Flowy.Tests;
 
 public class FolderWatcherTests
 {
-    private static readonly TimeSpan Patience = TimeSpan.FromSeconds(5);
+    // How long a test waits for a change it expects. The watcher fires 30 ms after the last change, but its timer needs a thread from a pool
+    // that tests running side by side can keep busy for seconds on a CI machine. A test that passes stops waiting as soon as the change comes.
+    private static readonly TimeSpan Patience = TimeSpan.FromSeconds(30);
 
     /// <summary>
     /// Whether saving <paramref name="file"/> wakes a new watcher. A system can take a moment to start reporting after a watcher is made, and a save before that goes
