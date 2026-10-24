@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Input.Platform;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
@@ -66,21 +65,8 @@ internal sealed partial class ReaderView
     {
         if (_folder is not { } folder) return;
         var text = PerfView.StarterRun(folder.Model, CurrentView());
-        CopiedText = text;
-        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
-        {
-            try
-            {
-                await clipboard.SetTextAsync(text);
-                ShowNotice("Copied a starter run for this view. Fill in your numbers and save it as flowy/perf/<name>.yaml.", 6);
-                return;
-            }
-            catch (Exception)
-            {
-                // fall through to the notice below
-            }
-        }
-        ShowNotice("Couldn't copy: the clipboard wasn't available.", 6);
+        if (await CopyAsync(text)) ShowNotice("Copied a starter run for this view. Fill in your numbers and save it as flowy/perf/<name>.yaml.", 6);
+        else ShowNotice("Couldn't copy: the clipboard wasn't available.", 6);
     }
 
     /// <summary>The run the Performance panel shows (the first when none was picked).</summary>
