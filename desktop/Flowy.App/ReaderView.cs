@@ -22,11 +22,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
 {
     internal const int DoubleClickMilliseconds = 250;
 
-    // Opening a box: the old level flies off, the new one settles in. The browser version takes 220 and 320 ms, but there the browser's
-    // compositor runs it; here every frame is the UI thread's work, and a shorter move hides any hitch in it.
-    private const double LeaveMilliseconds = 140;
-    private const double ArriveMilliseconds = 230;
-
     /// <summary>What is picked, and shows in Details. <c>Boxes</c> is several boxes picked in edit mode, to move or delete together; <c>Flow</c> is a flow being recorded or edited.</summary>
     internal abstract record Side
     {
@@ -84,6 +79,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private (string Id, bool Back)? _arriving; // the level a way back (Back) or a jump up is heading for
     private Side? _side; // what is picked: it shows in Details
     private readonly Panels _panels;
+    private readonly LevelMotion _levelMotion;
     private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
 
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Flow, IReadOnlyList<Stop>> _stops = new(); // a flow's stops, made once for as long as that flow is the one in the model
@@ -96,8 +92,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private Notice? _notice;
     private DispatcherTimer? _opening; // a click on a box that opens, waiting out the double-click window
     private string? _openingBox; // that box: a Ctrl+click in the meantime still counts it as picked
-    private IDisposable? _motion;
-    private bool _moving;
 
     public event Action<string?>? LinesPicked;
 
@@ -115,6 +109,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _host = new Host(this);
         _edit = new EditMode(_host);
         _gestures = new EditGestures(_host, _edit, _canvas, _pickedBar);
+        _levelMotion = new LevelMotion(this, _canvas, _host);
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
 
         _banner.Classes.Add("banner");
@@ -205,7 +200,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     // What a test can look at.
     internal string? SelectedBoxId => SelectedBox;
     internal bool HasPanel => ShownTab is not null || RightOpen;
-    internal bool IsMoving => _moving;
+    internal bool IsMoving => _levelMotion.Moving;
     internal bool ShowsEmptyNote => _empty.IsVisible;
     internal string? BannerText => _banner.IsVisible ? _bannerText.Text : null;
 
@@ -765,10 +760,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (_compareMode.State is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
         Interacted();
         RememberLevel(view);
-        _motion?.Dispose();
-        _moving = false;
-        _canvas.RenderTransform = null;
-        _canvas.Opacity = 1;
+        _levelMotion.Stop();
         _view = view;
         _playback.Head = null;
         _playback.StopAuto();
@@ -809,57 +801,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _side = null;
         var rect = _canvas.RectOf(id);
         var origin = rect is { } r ? _canvas.Viewport.ToScreen(r.Center) : new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2);
-        ZoomTo(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), origin);
+        _levelMotion.Zoom(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), origin, _compareMode.State is not null);
     }
 
     /// <summary>Zooms out to a view, about the middle of the canvas: the box's place in the outer view isn't known until it's drawn.</summary>
-    private void ZoomOut(string id) => ZoomTo(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2));
-
-    /// <summary>The old view flies off, then the new one settles in. A second move on the way, or reduced motion, goes straight there.</summary>
-    private void ZoomTo(string view, Move direction, Pt origin)
-    {
-        if (_moving || MotionSettings.Reduced || _compareMode.State is not null) // the comparison is not the canvas that would fly off
-        {
-            GoTo(view);
-            return;
-        }
-        _moving = true;
-        // Laying out a big view takes a moment: do it now, behind the old view flying off, so the new one doesn't wait for it.
-        if (_folder is { } folder) _ = Task.Run(() => SceneBuilder.Prewarm(folder.Model, view));
-        var size = _canvas.Bounds.Size;
-        var (ux, uy) = (origin.X - size.Width / 2, origin.Y - size.Height / 2);
-        var length = Math.Sqrt(ux * ux + uy * uy);
-        var slide = length == 0 ? new Vector(0, 0) : new Vector(ux / length * 0.25 * size.Width, uy / length * 0.25 * size.Height);
-        _canvas.RenderTransformOrigin = new RelativePoint(origin.X, origin.Y, RelativeUnit.Absolute);
-        _motion = Anim.Run(this, LeaveMilliseconds, Anim.EaseIn, t => Apply(direction, true, t, slide), () =>
-        {
-            var wasMoving = _moving;
-            GoTo(view);
-            if (!wasMoving) return;
-            _moving = true;
-            _canvas.RenderTransformOrigin = new RelativePoint(origin.X, origin.Y, RelativeUnit.Absolute);
-            _motion = Anim.Run(this, ArriveMilliseconds, Anim.EaseOut, t => Apply(direction, false, t, slide), () =>
-            {
-                _moving = false;
-                _canvas.RenderTransform = null;
-                _canvas.Opacity = 1;
-            });
-        });
-    }
-
-    private void Apply(Move direction, bool leaving, double t, Vector slide)
-    {
-        static double Lerp(double a, double b, double t) => a + (b - a) * t;
-        _canvas.Opacity = leaving ? 1 - t : t;
-        if (direction == Move.Across)
-        {
-            var k = leaving ? -t : 1 - t;
-            _canvas.RenderTransform = new TranslateTransform(slide.X * k, slide.Y * k);
-            return;
-        }
-        var scale = direction == Move.In ? (leaving ? Lerp(1, 4, t) : Lerp(0.25, 1, t)) : (leaving ? Lerp(1, 0.25, t) : Lerp(2.5, 1, t));
-        _canvas.RenderTransform = new ScaleTransform(scale, scale);
-    }
+    private void ZoomOut(string id) => _levelMotion.Zoom(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2), _compareMode.State is not null);
 
     public void FitNow()
     {
