@@ -76,3 +76,16 @@ export function httpHistory(base = '', model?: string): HistoryClient {
     },
   }
 }
+
+/** The history client of an exported page: the files it was exported with, no steps, and nothing that can be written. */
+export function staticHistory(now: YamlNow): HistoryClient {
+  const readOnly = 'This page is read only.'
+  return {
+    list: async () => ({ saving: true, steps: [] }),
+    step: async () => undefined,
+    yaml: async () => now,
+    record: async () => false,
+    restore: async () => ({ ok: false, status: 403, message: readOnly }),
+    clear: () => Promise.reject(new Error(readOnly)),
+  }
+}
