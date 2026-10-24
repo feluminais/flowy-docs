@@ -384,6 +384,25 @@ public static partial class EditOps
         });
     }
 
+    /// <summary>Swap two steps, keeping failure modes attached to the steps they name.</summary>
+    public static EditDoc SwapSteps(EditDoc doc, string id, int index, int other)
+    {
+        return OnStep(doc, id, index, (d, _, steps) =>
+        {
+            if (other < 0 || other >= steps.Count) throw NoStep(id, other);
+            (steps[index], steps[other]) = (steps[other], steps[index]);
+            var a = (index + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var b = (other + 1).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            foreach (var (_, _, mode) in ModesOf(d))
+            {
+                if (Text(mode, "flow") != id) continue;
+                if (Text(mode, "step") == a) mode["step"] = b;
+                else if (Text(mode, "step") == b) mode["step"] = a;
+            }
+            return d;
+        });
+    }
+
     /// <summary>The keys of a step in the order the guide shows them; a key set later goes after the nearest earlier one that is there.</summary>
     private static readonly string[] StepOrder = ["from", "to", "text", "description", "animation", "states", "group", "lane", "flow"];
 

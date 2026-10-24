@@ -5,6 +5,7 @@ using Xunit;
 
 namespace Flowy.App.Tests;
 
+[Trait("Weight", "Heavy")]
 public class ShellTests
 {
     private static string Plum => Path.Combine(Repo.Root, "docs", "demo", "flowy");

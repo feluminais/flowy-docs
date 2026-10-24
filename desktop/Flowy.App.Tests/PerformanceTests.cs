@@ -18,6 +18,7 @@ namespace Flowy.App.Tests;
 /// The Performance panel on the fixtures' small shop (desktop/fixtures/cases/perf): the rail button, T and Esc, the slider and the keys, Ramp, what is drawn
 /// on the canvas, what the panel reads out for a pick, and what it does without motion.
 /// </summary>
+[Trait("Weight", "Heavy")]
 public class PerformanceTests
 {
     private static string Shop => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "perf", "flowy");

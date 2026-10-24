@@ -1,7 +1,7 @@
 # Third-party notices
 
 Flowy Docs (the desktop app) is MIT licensed. It is built from the packages below, each under its own licence, and ships the box icons
-of [Tabler Icons](https://tabler.io/icons) (MIT, see `TABLER-ICONS-LICENSE.txt`), [highlight.js](https://highlightjs.org) (BSD-3-Clause, see
+of [Tabler Icons](https://tabler.io/icons) (MIT, see `TABLER-ICONS-LICENSE.txt`), the control icons of [Lucide](https://lucide.dev) (ISC, see `LUCIDE-LICENSE.txt`), [highlight.js](https://highlightjs.org) (BSD-3-Clause, see
 `HIGHLIGHTJS-LICENSE.txt`), which colours code, and the .NET runtime (MIT, © .NET Foundation and contributors).
 This file is written by `node desktop/tools/third-party.mjs` from the packages the app was restored with.
 

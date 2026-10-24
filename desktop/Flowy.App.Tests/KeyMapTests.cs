@@ -14,6 +14,7 @@ namespace Flowy.App.Tests;
 /// Every key the reader answers to, as a table of (state, key) and what the screen is afterwards, and whether the key was taken.
 /// It pins the order the keys are tried in: the Esc ladder, the arrows that belong to a load-test run before a flow, E before the panel keys.
 /// </summary>
+[Trait("Weight", "Heavy")]
 public class KeyMapTests
 {
     private static string Plum => Path.Combine(Repo.Root, "docs", "demo", "flowy");

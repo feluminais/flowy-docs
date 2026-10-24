@@ -42,9 +42,9 @@ internal sealed class NavRail : Border
         if (navigator)
         {
             Add(column, PanelTab.Explorer, Icons.Explorer, "Explorer", "O");
-            Add(column, PanelTab.Flows, Icons.Route, "Flows", "L");
+            Add(column, PanelTab.Flows, Icons.Workflow, "Flows", "L");
             Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
-            Add(column, PanelTab.Failures, Icons.Bolt, "Failures", "M");
+            Add(column, PanelTab.Failures, Icons.Alert, "Failures", "M");
         }
         else
         {

@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -213,6 +213,11 @@ export const STEPS: Spec[] = [
 
 /** Deleting what other parts depend on, from a folder with flows, groups, states and a failure analysis (desktop/fixtures/cases/delete). Each edit starts from what the one before left. */
 export const DELETE_STEPS: Spec[] = [
+  { op: 'swapSteps', id: 'pay', index: 0, other: 1 },
+  { op: 'swapSteps', id: 'pay', index: 1, other: 0 },
+  { op: 'swapSteps', id: 'pay', index: -1, other: 0 },
+  { op: 'swapSteps', id: 'pay', index: 0, other: 9 },
+  { op: 'swapSteps', id: 'nope', index: 0, other: 1 },
   { op: 'removeStep', id: 'pay', index: 0 }, // the mode on step 2 of pay moves to step 1
   { op: 'deleteObject', id: 'cache' }, // a mode sits on it
   { op: 'deleteObject', id: 'mail' },
@@ -335,6 +340,7 @@ function apply(model: Model, s: Spec): Model {
     case 'setFlowTags': return setFlowTags(model, s.id, s.tags)
     case 'setCompare': return setCompare(model, s.id, s.with === undefined ? undefined : s.note === undefined ? { with: s.with } : { with: s.with, note: s.note })
     case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }), ...(s.groups === undefined ? {} : { groups: s.groups }) })
+    case 'swapSteps': return swapSteps(model, s.id, s.index, s.other)
     case 'removeStep': return removeStep(model, s.id, s.index)
     case 'putGroup': return putGroup(model, s.id, s.group, s.options)
     case 'removeGroup': return removeGroup(model, s.id, s.group)

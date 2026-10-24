@@ -64,6 +64,7 @@ public class EditOpsTests
             case "setFlowTags": return EditOps.SetFlowTags(doc, Str(s, "id")!, Tags(s["tags"])!);
             case "updateFlow": return EditOps.UpdateFlow(doc, Str(s, "id")!, Str(s, "name"), s["steps"] is null ? null : Steps(s["steps"]), Groups(s["groups"]));
             case "setCompare": return EditOps.SetCompare(doc, Str(s, "id")!, Str(s, "with") is { } partner ? new CompareTag(partner, Str(s, "note")) : null);
+            case "swapSteps": return EditOps.SwapSteps(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), s["other"]!.GetValue<int>());
             case "removeStep": return EditOps.RemoveStep(doc, Str(s, "id")!, s["index"]!.GetValue<int>());
             case "putGroup": return EditOps.PutGroup(doc, Str(s, "id")!, Str(s, "group")!, (OrderedDictionary<string, object?>)YamlWriterTests.Tree(s["options"])!);
             case "removeGroup": return EditOps.RemoveGroup(doc, Str(s, "id")!, Str(s, "group")!);

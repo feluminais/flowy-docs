@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { StepInfo } from '../src/core/history.ts'
+import type { StepInfo, StepView } from '../src/core/history.ts'
 import { putObject } from '../src/core/ops.ts'
 import { openHistory } from '../src/node/history.ts'
 import { startServer } from '../src/node/server.ts'
@@ -221,4 +221,34 @@ test('a pick whose files cannot be read says why, keeps what is shown, and does 
   fail = false
   await store.pick('a')
   assert.deepEqual([store.get().error, store.get().picked], [undefined, 'a'])
+})
+
+test('a late history selection cannot replace a newer choice or Back to now', async () => {
+  for (const next of ['b', undefined]) {
+    let resolve!: (view: StepView | undefined) => void
+    const slow = new Promise<StepView | undefined>(done => { resolve = done })
+    const client = stub([listOf('head', 'a', 'b')])
+    const store = createHistoryStore({ ...client, step: id => id === 'a' ? slow : client.step(id) })
+    await store.refresh()
+    const first = store.pick('a')
+    await store.pick(next)
+    resolve({ step: info('a'), files: {} })
+    await first
+    assert.equal(store.get().picked, next)
+    assert.equal(store.get().shownId, next ?? 'head')
+  }
+})
+
+test('a failed old history selection cannot report an error after a newer choice', async () => {
+  let reject!: (error: Error) => void
+  const slow = new Promise<StepView | undefined>((_, fail) => { reject = fail })
+  const client = stub([listOf('head', 'a', 'b')])
+  const store = createHistoryStore({ ...client, step: id => id === 'a' ? slow : client.step(id) })
+  await store.refresh()
+  const first = store.pick('a')
+  await store.pick('b')
+  reject(new Error('old request failed'))
+  await first
+  assert.equal(store.get().picked, 'b')
+  assert.equal(store.get().error, undefined)
 })

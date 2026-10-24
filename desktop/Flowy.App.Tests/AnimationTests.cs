@@ -14,6 +14,7 @@ namespace Flowy.App.Tests;
 /// A tagged step moves, then stands still; arriving somewhere else cuts it off; R plays it again; P steps through the flow on its own and a key
 /// of yours takes over. These use desktop/fixtures/cases/animation, whose flow "tags" has good tags on its first five steps and a typo on the sixth.
 /// </summary>
+[Trait("Weight", "Heavy")]
 public class AnimationTests
 {
     private static string Tags => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "animation", "flowy");

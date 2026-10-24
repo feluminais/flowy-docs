@@ -47,7 +47,7 @@ internal sealed class MarksLayer : Control
             var top = mark.Y - 12 - height;
             context.DrawRectangle(accent, null, new Avalonia.Rect(left, top, width, height), height / 2, height / 2);
             using (context.PushTransform(Matrix.CreateScale(icon / 24, icon / 24) * Matrix.CreateTranslation(left + pad, top + (height - icon) / 2)))
-                context.DrawGeometry(null, new Pen(bg, 2, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), Geometry.Parse(Icons.ForKind(mark.Kind)));
+                context.DrawGeometry(null, new Pen(bg, 1.4, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), Geometry.Parse(Icons.ForKind(mark.Kind)));
             context.DrawText(text, new Point(left + pad + icon + gap, top + (height - text.Height) / 2));
         }
     }

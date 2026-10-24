@@ -327,7 +327,7 @@ internal sealed class PlayerCard : Border
         stop.Margin = new Thickness(16, 0, 0, 0);
         DockPanel.SetDock(stop, Dock.Right);
         buttons.Children.Add(stop);
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Tool(Icons.ArrowLeft, "Back", () => Back?.Invoke(), v.Stop > 0), Tool(Icons.ArrowRight, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true) } };
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Tool(Icons.StepBack, "Back", () => Back?.Invoke(), v.Stop > 0), Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true) } };
         left.Children.Add(v.Auto ? Tool(Icons.Pause, "Pause", () => Auto?.Invoke()) : Tool(Icons.Play, "Autoplay", () => Auto?.Invoke()));
         if (v.Moving) left.Children.Add(Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step"));
         buttons.Children.Add(left);

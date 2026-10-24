@@ -66,8 +66,8 @@ export type History = {
    * there); if any file is different now, nothing is written. Works however broken the files are.
    */
   restore(id: string, seen: Record<string, string | null>, label: string): Promise<RestoreResult>
-  /** Deletes the whole trail. Never throws. */
-  clear(): Promise<void>
+  /** Deletes the whole trail and says whether it succeeded. Never throws. */
+  clear(): Promise<boolean>
 }
 
 /** `before` is the step that holds the files as they were just before the restore, so a restore can be undone by restoring it. */
@@ -272,7 +272,11 @@ export function openHistory(dir: string, options: HistoryOptions): History {
       }
     },
 
-    clear: () => guarded(() => store.clear(), undefined),
+    clear: () => guarded(async () => {
+      await store.clear()
+      failure = undefined
+      return true
+    }, false),
   }
 }
 

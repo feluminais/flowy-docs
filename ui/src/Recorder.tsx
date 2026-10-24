@@ -6,7 +6,7 @@ import { ANIMATION_KINDS, animationFields, animationWith, CHANNEL_KINDS, CHANNEL
 import type { AnimationKey, ChannelKind } from '../../src/core/animation.ts'
 import { CHANNEL_LABELS, closableAt } from '../../src/core/channels.ts'
 import { compareOf } from '../../src/core/compare.ts'
-import { deleteFlow, groupSteps, moveFlow, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, moveFlow, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setStepAnimation, setStepGroup, swapSteps, updateFlow } from '../../src/core/ops.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, stopsOf, takesOption } from '../../src/core/structure.ts'
 import { flowList } from '../../src/core/outline.ts'
@@ -324,8 +324,8 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
             />
             <StepStates model={model} step={s} onPick={(shape, state) => edit(m => pickStepState(m, rec.id, i, shape, state))} />
             <div className="step-buttons">
-              <button aria-label="Move up" disabled={i === 0} onClick={() => void change(all => all.with(i - 1, all[i]).with(i, all[i - 1]))}><ArrowUp size={16} /></button>
-              <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void change(all => all.with(i + 1, all[i]).with(i, all[i + 1]))}><ArrowDown size={16} /></button>
+              <button aria-label="Move up" disabled={i === 0} onClick={() => void edit(m => swapSteps(m, rec.id, i, i - 1))}><ArrowUp size={16} /></button>
+              <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void edit(m => swapSteps(m, rec.id, i, i + 1))}><ArrowDown size={16} /></button>
               <button className="danger" aria-label="Delete step" onClick={() => void edit(m => removeStep(m, rec.id, i))}><Trash size={16} /></button>
             </div>
           </li>

@@ -29,6 +29,7 @@
     <ProjectReference Include="../Flowy.Core/Flowy.Core.csproj" />
     <AvaloniaResource Include="Assets/icon.png" />
     <Content Include="Assets/TABLER-ICONS-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../ui/public/LUCIDE-LICENSE.txt" Link="LUCIDE-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
     <!-- highlight.js with our languages, built by desktop/tools/make-hljs-bundle.ts: the script that colours code, which Jint runs. -->
     <EmbeddedResource Include="Assets/hljs.js" LogicalName="hljs.js" />
     <Content Include="Assets/HIGHLIGHTJS-LICENSE.txt" CopyToOutputDirectory="PreserveNewest" />
