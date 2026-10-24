@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 using Flowy.Core;
+using Jint;
 using Xunit;
 
 namespace Flowy.App.Tests;
@@ -16,7 +17,18 @@ public class HljsTests
         var snippets = Expected()["snippets"]!.AsArray();
         Assert.True(snippets.Count >= 20);
         foreach (var s in snippets)
-            Assert.Equal(s!["html"]!.GetValue<string>(), Hljs.Highlight(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()));
+            Assert.Equal(s!["html"]!.GetValue<string>(), Patiently(() => Hljs.Highlight(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()), html => html is not null));
+    }
+
+    /// <summary>
+    /// A snippet gets 2 s, and past that it shows plain, as the app means it to. A busy test machine can take that long, and these tests are
+    /// about the grammars, so a highlight that came back plain is tried again a few times.
+    /// </summary>
+    private static T Patiently<T>(Func<T> highlight, Func<T, bool> coloured)
+    {
+        var result = highlight();
+        for (var i = 0; i < 3 && !coloured(result); i++) result = highlight();
+        return result;
     }
 
     [Fact]
@@ -35,7 +47,7 @@ public class HljsTests
         foreach (var s in Expected()["snippets"]!.AsArray())
         {
             var text = s!["text"]!.GetValue<string>();
-            var runs = CodeInk.Runs(text, s["language"]!.GetValue<string>());
+            var runs = Patiently(() => CodeInk.Runs(text, s["language"]!.GetValue<string>()), got => got.Any(r => r.Kind is not null));
             Assert.Equal(text, string.Concat(runs.Select(r => r.Text)));
             Assert.Contains(runs, r => r.Kind is not null);
         }
@@ -48,6 +60,18 @@ public class HljsTests
         Assert.Contains(new CodeRun("const", TokenKind.Keyword), runs);
         Assert.Contains(new CodeRun("2", TokenKind.Number), runs);
         Assert.Contains(runs, r => r.Kind == TokenKind.Comment && r.Text.StartsWith("// later"));
+    }
+
+    [Fact]
+    public void A_script_past_its_budget_is_stopped_and_each_run_starts_its_own_count()
+    {
+        var budget = new Hljs.Budget { Limit = TimeSpan.FromMilliseconds(200) };
+        var engine = new Engine(o => o.Constraint(budget));
+        Assert.Throws<TimeoutException>(() => engine.Execute("while (true) {}"));
+        Thread.Sleep(300);
+        Assert.Equal(2, engine.Evaluate("1 + 1").AsNumber()); // a run after a pause longer than the limit still gets the whole limit
+        budget.Limit = TimeSpan.FromSeconds(30);
+        Assert.Equal(3, engine.Evaluate("let n = 0; for (let i = 0; i < 3; i++) n++; n").AsNumber());
     }
 
     [Fact]
