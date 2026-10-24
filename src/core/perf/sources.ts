@@ -43,4 +43,4 @@ export function whyNotAdded(runs: Record<string, Run>, id: string): string | und
   if (run.sources !== undefined) return 'which is tested with several sources'
   if (isTime(run)) return 'which is a run over time'
   return undefined
-}
+}

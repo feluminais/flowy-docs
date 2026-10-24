@@ -80,4 +80,4 @@ export const lockstepTop = (dials: readonly Dial[]): number => Math.max(...dials
 export const lockstepPositions = (dials: readonly Dial[], step: number): number[] => {
   const n = lockstepTop(dials)
   return dials.map(d => (n === 0 ? 0 : (step * (d.values.length - 1)) / n))
-}
+}
