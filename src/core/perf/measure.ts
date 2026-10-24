@@ -1,9 +1,11 @@
-import type { Metrics, Pair, Run } from './types.ts'
-import { meanBytes, newMean, takeBytes } from './util.ts'
+import { dialsOf } from './dials.ts'
+import { isTime } from './types.ts'
+import type { Metrics, Pair, Run, Setting } from './types.ts'
+import { meanBytes, newMean, settingFor, takeBytes } from './util.ts'
 
 /**
- * What the Performance tab draws on its lines: stripes moving along them for the calls a second (Calls), blobs for the data a second, the calls times the size of a call (Data), or both on
- * one line (Mixed). A line the run gives nothing for under the measure is drawn with plain stripes (see bareLines).
+ * What the Performance tab's dots show: the calls a second (Calls), the data a second, the calls times the size of a call (Data), or the calls a second with each dot as big as the size of its
+ * call (Mixed). A line the run gives nothing for under the measure is drawn with plain stripes along it (see bareLines).
  */
 export type Measure = 'calls' | 'data' | 'mixed'
 
@@ -38,27 +40,26 @@ export function callSize(runs: Record<string, Run>, id: string): number | undefi
 }
 
 /**
- * The most calls a second the run has on any line at any load, which the stripes are busy against: the busiest line at the top of the run has its stripes as close and quick as they get, so
- * the stripes of a run that goes from 100 to 1,200 orders a minute visibly speed up. A run of added runs adds their peaks (a line they share carries the sum). Undefined when the run gives no rate.
+ * How loaded the run is at a setting, 0 (nothing asked of it) to 1 (the top of what was tested): the load over the highest tested load, and for a run with several sources the mean of its
+ * dials. Plain stripes follow it, so they speed up as the load climbs even on a line the run gives no numbers. Undefined for a run over time, which has no load, and for a setting that is
+ * not a number.
  */
-export function callPeak(runs: Record<string, Run>, id: string): number | undefined {
-  let sum = 0
-  let any = false
-  for (const run of partsOf(runs, id)) {
-    let most = 0
-    for (const l of run.levels) for (const c of l.connections) for (const m of [c, ...Object.values(c.by ?? {})]) if (m.rate !== undefined && m.rate > most) most = m.rate
-    if (most > 0) any = true
-    sum += most
-  }
-  return any ? sum : undefined
+export function loadPace(runs: Record<string, Run>, id: string, setting: Setting): number | undefined {
+  const found = dialsOf(runs, id)
+  if (!found || (found.mode === 'single' && isTime(runs[id]))) return undefined
+  const shares = found.dials.flatMap(d => {
+    const top = d.values[d.values.length - 1]
+    const x = settingFor(setting, d.id)
+    return top > 0 && Number.isFinite(x) ? [Math.min(1, Math.max(0, x / top))] : []
+  })
+  return shares.length === 0 ? undefined : shares.reduce((a, b) => a + b, 0) / shares.length
 }
 
 /**
- * What a line carries as a rate: its calls a second under Calls, and under Data and Mixed its data a second in units of `size` (so a call of that size is one), which is what its blobs
- * count. Undefined where the line gives nothing to count: no rate, or no size of a call.
+ * What a line's dots count, as a rate: its calls a second under Calls and Mixed, and under Data its data a second in units of `size` (so a call of that size is one). Undefined where the line gives nothing to count: no rate, or no size of a call.
  */
 export function amountOf(m: Metrics, measure: Measure, size: number | undefined): number | undefined {
   if (m.rate === undefined) return undefined
-  if (measure === 'calls') return m.rate
+  if (measure !== 'data') return m.rate
   return m.bytes === undefined || size === undefined ? undefined : (m.rate * m.bytes) / size
 }
