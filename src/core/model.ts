@@ -109,8 +109,9 @@ export function linksOf(o: FlowyObject): Link[] {
 }
 
 /** What an id (an object's, or a flow's file name) may be, worded to follow "ids". isValidId is the test. */
-export const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)'
-export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT
+export const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" and Windows device names such as "con" are reserved)'
+// An id is also a file name (flows/<id>.yaml), and Windows 10 can't hold a file named aux.yaml.
+export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT && !RESERVED_NAMES.test(id)
 
 /** What a folder of flows may be called: each name between the slashes of its path. isValidFolder is the test. */
 export const FOLDER_RULE = 'use names with no \\ / : * ? " < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders'

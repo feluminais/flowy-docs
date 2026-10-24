@@ -19,7 +19,11 @@ A model is a folder, `flowy/` by default, next to the code it describes.
 A flow's file can sit in folders inside `flows/` (`flows/payments/refund.yaml`), and the folders are yours to arrange. The id is the file name alone, so no two flows share one whatever their folders, and a flow moved to another folder keeps its id. A folder name may hold letters, digits, spaces and most marks, but not `\ / : * ? " < > | # %`; it can't start with a dot (such a folder is left alone), end in a dot or a space, or be longer than 64 characters, and folders nest six deep at most. `flowy check` lists a folder it skips and a name that two files share.
 
 A file name that ends in `.yml` is ignored, and `flowy check` says so. An `<id>` is lowercase letters, digits and dashes, not starting with a dash, and
-`root` is taken. The same rule holds for an object's id in `model.yaml`.
+`root` is taken, and so are the Windows device names (`con`, `nul`, `aux`, `prn`, `com1` to `com9`, `lpt1` to `lpt9`). The same rule holds for an
+object's id in `model.yaml`.
+
+A save from the canvas, the desktop app or an AI writes the whole file again. Keys Flowy doesn't know are kept, but comments are
+not, and a row written on one line (`{ type: app, name: API }`) comes back as several. Put a note that has to stay in a `description`.
 
 **Every value is text.** Flowy reads YAML with the failsafe schema, so `opacity: 40` is the text "40", `external: true` is the text "true", and an id like
 `007` stays `007`. A key with nothing after it (`shape:`) is left out. In the one-line form `{ ... }` and `[ ... ]`, put double quotes around

@@ -31,7 +31,7 @@ test('the good flows of the groups case have no problems, and the bad one has ev
     'group "a": no step belongs to it',
   ])
   assert.deepEqual(of('bad'), [
-    'group "Bad Id": ids use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)',
+    'group "Bad Id": ids use lowercase letters, digits and dashes, not starting with a dash ("root" and Windows device names such as "con" are reserved)',
     'group "nokind": kind is missing (use repeat, branch, parallel)',
     'group "weird": unknown kind "loop" (use repeat, branch, parallel)',
     'group "extra": unknown option "in" (use kind, text, times, until)',

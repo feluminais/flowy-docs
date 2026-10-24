@@ -66,7 +66,7 @@ function shownOf(m: Metrics, measure: Measure, size: number | undefined): Shown 
 }
 
 /**
- * A line that carried what `shown` says. Starting values, tuned on the lab's run in phase 3; a screen can't draw 1000 particles a second, so these are logarithmic and capped.
+ * A line that carried what `shown` says. Starting values, tuned on the performance lab's run; a screen can't draw 1000 particles a second, so these are logarithmic and capped.
  * `wide` is what sets its thickness (a source's share of a shared line is as thick as the whole line), and `counted` is the count and the cap when several sources share the line and
  * were scaled together (see sharedLines). `size` is the size of a typical call (see callSize) that, under Mixed, the size of a call is measured against.
  */

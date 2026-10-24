@@ -19,7 +19,8 @@ Flowy runs on your machine and touches only its model folder and its own folder 
   folder that leads outside it, to read or to write.
 - Saving, from the canvas or from an AI, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder and
   nothing else; in the load-test runs in `perf/`, the only thing it writes is `compare`. `export` writes only to its output folder. The desktop app writes only when you edit, and only `model.yaml`, `layout.yaml` and `flows/*.yaml`, plus the `compare` field of a run file in `perf/` (from Link with, Unlink and a note on a run pair), each
-  through a temporary file and only if the file is still as it was read, so it can't overwrite a change made elsewhere.
+  through a temporary file and only if the file is still as it was read. The check and the write are two steps, so another program saving in
+  the same moment can still be overwritten.
 - The browser version's YAML history is in its own folder under your application data (`FLOWY_STATE_DIR` moves it), never in the
   repo. Opening a folder stores a copy of its YAML there, and each change adds another.
 - It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed arguments to read

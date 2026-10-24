@@ -787,7 +787,7 @@
   "problems": [
     {
       "file": "flows/bad.yaml",
-      "message": "group \"Bad Id\": ids use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "message": "group \"Bad Id\": ids use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "file": "flows/bad.yaml",

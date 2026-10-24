@@ -12,9 +12,10 @@ public static partial class Names
     public static readonly string[] LineStyles = ["straight", "curved", "angled"];
 
     /// <summary>What an id (an object's, or a flow's file name) may be, worded to follow "ids".</summary>
-    public const string IdRule = "use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)";
+    public const string IdRule = "use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)";
 
-    public static bool IsValidId(string id) => IdPattern().IsMatch(id) && id != Root;
+    // An id is also a file name (flows/<id>.yaml), and Windows 10 can't hold a file named aux.yaml.
+    public static bool IsValidId(string id) => IdPattern().IsMatch(id) && id != Root && !ReservedName().IsMatch(id);
 
     // \z, not $: .NET's $ also matches before a final newline, which the TypeScript test does not.
     [GeneratedRegex(@"^[a-z0-9][a-z0-9-]*\z", RegexOptions.CultureInvariant)]
