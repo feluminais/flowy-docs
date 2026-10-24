@@ -117,4 +117,30 @@ public class CanvasCostTests
         canvas.SetScene(canvas.Scene!, "curved", []); // another style is another path
         Assert.NotSame(before, canvas.LineGeometry("web", "db"));
     }
+
+    [AvaloniaFact]
+    public async Task A_pause_calls_back_once_after_its_time_and_not_at_all_when_cancelled()
+    {
+        var (canvas, _, _) = Open();
+        var done = 0;
+        var cancelled = 0;
+        using var pause = Anim.Wait(canvas, 30, () => done++);
+        using var dropped = Anim.Wait(canvas, 30, () => cancelled++);
+        dropped.Dispose();
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        while (done == 0 && clock.Elapsed < TimeSpan.FromSeconds(3)) await Task.Delay(10);
+        Assert.Equal(1, done);
+        await Task.Delay(100);
+        Assert.Equal(1, done); // once
+        Assert.Equal(0, cancelled);
+    }
+
+    [AvaloniaFact]
+    public void Motion_is_read_from_the_environment_each_time_so_a_test_can_switch_it()
+    {
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        Assert.False(MotionSettings.Reduced);
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        Assert.True(MotionSettings.Reduced);
+    }
 }
