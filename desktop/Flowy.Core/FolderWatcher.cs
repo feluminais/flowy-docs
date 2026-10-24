@@ -20,14 +20,24 @@ public sealed class FolderWatcher : IDisposable
     {
         _wait = wait ?? TimeSpan.FromMilliseconds(100);
         _timer = new Timer(_ => Changed?.Invoke());
-        _watcher = new FileSystemWatcher(dir) { IncludeSubdirectories = true, NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite | NotifyFilters.Size };
+        // 64 KB (the most the system allows on a network share is less, and then the system's own limit holds): a folder of hundreds of flows touched at once, as a branch switch does, overflows the 8 KB it starts with.
+        _watcher = new FileSystemWatcher(dir) { InternalBufferSize = 64 * 1024, IncludeSubdirectories = true, NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName | NotifyFilters.LastWrite | NotifyFilters.Size };
         FileSystemEventHandler changed = (_, e) => Touch(e.Name);
         _watcher.Changed += changed;
         _watcher.Created += changed;
         _watcher.Deleted += changed;
         _watcher.Renamed += (_, e) => Touch(e.Name);
-        _watcher.Error += (_, e) => Failed?.Invoke(e.GetException());
+        _watcher.Error += (_, e) => Fault(e.GetException());
         _watcher.EnableRaisingEvents = true;
+    }
+
+    /// <summary>
+    /// A watcher that ran out of room lost some changes, but still watches: the folder is read again, and nothing else is lost. Any other error means it can't watch any more.
+    /// </summary>
+    internal void Fault(Exception e)
+    {
+        if (e is InternalBufferOverflowException) _timer.Change(_wait, Timeout.InfiniteTimeSpan);
+        else Failed?.Invoke(e);
     }
 
     private void Touch(string? name)
