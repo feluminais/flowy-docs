@@ -323,11 +323,9 @@ test('the starter run for a view with nothing in it still has two levels', () =>
   assert.equal(run.levels.length, 2)
 })
 
-test('the key draws stripes for calls, blobs for data and plain stripes for a line with no numbers, and only those on screen', () => {
+test('the key says so only while a line with no numbers, drawn with plain stripes, is on screen', () => {
   const line = (extra: object) => ({ from: 'a', to: 'b', width: 2, perSecond: 0, travelMs: 1000, failed: 0, ...extra })
-  assert.deepEqual(lineMarks([]), { stripes: false, blobs: false, bare: false })
-  assert.deepEqual(lineMarks([line({ stripes: 0.5 })]), { stripes: true, blobs: false, bare: false })
-  assert.deepEqual(lineMarks([line({ perSecond: 4, dots: 3 })]), { stripes: false, blobs: true, bare: false })
-  assert.deepEqual(lineMarks([line({ stripes: 0.5, perSecond: 4 })]), { stripes: true, blobs: true, bare: false })
-  assert.deepEqual(lineMarks([line({ stripes: 0.2, bare: true })]), { stripes: false, blobs: false, bare: true }, 'a bare line is not the calls of anything')
+  assert.deepEqual(lineMarks([]), { bare: false })
+  assert.deepEqual(lineMarks([line({ perSecond: 4, dots: 3 })]), { bare: false })
+  assert.deepEqual(lineMarks([line({ perSecond: 4 }), line({ stripes: 0.2, bare: true })]), { bare: true })
 })
