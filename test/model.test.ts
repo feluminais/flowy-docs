@@ -234,3 +234,8 @@ test('a wrongly shaped groups section is refused when the file is read', () => {
   assert.throws(() => parseFlowFile('x', 'name: X\nview: root\nsteps:\n  - { from: a, text: t, lane: [a] }\n'), /step 1: "lane" must be plain text/)
   assert.throws(() => parseFlowFile('x', file('[a]')), (e: unknown) => e instanceof ParseError && e.file === 'flows/x.yaml')
 })
+
+test('anchors and aliases are refused with the desktop reader\'s words and the line they are on', () => {
+  for (const [text, line] of [['objects:\n  a: { type: actor, name: A }\nx: &x 1\ny: *x\n', 3], ['a: &x [1]\n', 1]] as const)
+    assert.throws(() => parseModelFile(text), (e: unknown) => e instanceof ParseError && e.line === line && /anchors and aliases are not supported/.test(e.message), text)
+})

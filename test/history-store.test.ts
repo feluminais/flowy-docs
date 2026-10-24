@@ -5,12 +5,14 @@ import { mkdir, mkdtemp, readdir, rm, utimes, writeFile } from 'node:fs/promises
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { Step } from '../src/core/history.ts'
+import { hashBytes } from '../src/node/files.ts'
 import { defaultStateDir, historyKey, openStore } from '../src/node/history-store.ts'
 
-const H1 = '1111111111111111'
-const H2 = '2222222222222222'
-const H3 = '3333333333333333'
 const bytes = (text: string) => new TextEncoder().encode(text)
+// Blobs are named by the hash of their bytes, and a blob that doesn't match its name reads as missing.
+const H1 = hashBytes(bytes('1'))
+const H2 = hashBytes(bytes('2'))
+const H3 = hashBytes(bytes('3'))
 const step = (id: string, files: Record<string, string>): Step =>
   ({ id, time: '2026-10-20T10:00:00.000Z', label: `label ${id}`, source: 'you', app: 'browser', files })
 
@@ -54,15 +56,15 @@ test('historyKey leaves other letters as they are', () => {
 test('a step round-trips with its blobs', async t => {
   const { store } = await setup(t)
   const first = step('20261020T100000000Z-aaaaaa', { 'model.yaml': H1 })
-  await store.putStep(first, new Map([[H1, bytes('objects: {}\n')]]))
+  await store.putStep(first, new Map([[H1, bytes('1')]]))
   assert.deepEqual(await store.steps(), [first])
-  assert.deepEqual(await store.blob(H1), bytes('objects: {}\n'))
+  assert.deepEqual(await store.blob(H1), bytes('1'))
 })
 
 test('steps come back oldest first, and a blob two steps share is stored once', async t => {
   const { root, store } = await setup(t)
-  await store.putStep(step('20261020T100002000Z-bbbbbb', { 'model.yaml': H1 }), new Map([[H1, bytes('x')]]))
-  await store.putStep(step('20261020T100001000Z-aaaaaa', { 'model.yaml': H1, 'layout.yaml': H2 }), new Map([[H1, bytes('x')], [H2, bytes('y')]]))
+  await store.putStep(step('20261020T100002000Z-bbbbbb', { 'model.yaml': H1 }), new Map([[H1, bytes('1')]]))
+  await store.putStep(step('20261020T100001000Z-aaaaaa', { 'model.yaml': H1, 'layout.yaml': H2 }), new Map([[H1, bytes('1')], [H2, bytes('2')]]))
   assert.deepEqual((await store.steps()).map(s => s.id), ['20261020T100001000Z-aaaaaa', '20261020T100002000Z-bbbbbb'])
   assert.deepEqual((await readdir(join(root, 'trail', 'blobs'))).sort(), [H1, H2])
 })
@@ -75,7 +77,7 @@ test('a store that was never written to has no steps', async t => {
 
 test('a truncated or misshapen step file is skipped', async t => {
   const { root, store } = await setup(t)
-  await store.putStep(step('20261020T100000000Z-aaaaaa', { 'model.yaml': H1 }), new Map([[H1, bytes('x')]]))
+  await store.putStep(step('20261020T100000000Z-aaaaaa', { 'model.yaml': H1 }), new Map([[H1, bytes('1')]]))
   const dir = join(root, 'trail', 'steps')
   await writeFile(join(dir, '20261020T100001000Z-bbbbbb.json'), '{"time"')
   await writeFile(join(dir, '20261020T100002000Z-cccccc.json'), '{"time":"x","label":"y"}')
@@ -145,7 +147,7 @@ test('prune does not throw when a blob cannot be deleted, and still deletes the 
 test('tail is the last readable steps, oldest first, reading only as many as it needs', async t => {
   const { root, store } = await setup(t)
   const ids = ['20261020T100000000Z-aaaaaa', '20261020T100001000Z-bbbbbb', '20261020T100002000Z-cccccc']
-  for (const [i, id] of ids.entries()) await store.putStep(step(id, { 'model.yaml': [H1, H2, H3][i] }), new Map([[[H1, H2, H3][i], bytes('x')]]))
+  for (const [i, id] of ids.entries()) await store.putStep(step(id, { 'model.yaml': [H1, H2, H3][i] }), new Map([[[H1, H2, H3][i], bytes(String(i + 1))]]))
   await writeFile(join(root, 'trail', 'steps', '20261020T100003000Z-dddddd.json'), '{"time"') // cut off: skipped
   assert.deepEqual((await store.tail(2)).map(s => s.id), [ids[1], ids[2]])
   assert.deepEqual((await store.tail(9)).map(s => s.id), ids)
@@ -158,4 +160,13 @@ test('clear removes everything', async t => {
   await store.clear()
   assert.deepEqual(await store.steps(), [])
   assert.equal(await store.blob(H1), undefined)
+})
+
+test('a blob that no longer matches its name reads as missing, and the next step that needs it writes it again', async t => {
+  const { root, store } = await setup(t)
+  await store.putStep(step('20261020T100000000Z-aaaaaa', { 'model.yaml': H1 }), new Map([[H1, bytes('1')]]))
+  await writeFile(join(root, 'trail', 'blobs', H1), '') // cut off by a power cut
+  assert.equal(await store.blob(H1), undefined)
+  await store.putStep(step('20261020T100001000Z-bbbbbb', { 'model.yaml': H1 }), new Map([[H1, bytes('1')]]))
+  assert.deepEqual(await store.blob(H1), bytes('1'))
 })
