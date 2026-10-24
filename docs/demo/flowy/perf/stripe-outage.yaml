@@ -1,5 +1,5 @@
 name: "Stripe outage"
-about: "Made-up numbers for the demo. Stripe is killed at 40 s, restarted at 70 s and answering again at 85 s, over 150 seconds at 100 orders a minute. Checkout waits five seconds for every hold, so it fills up and fails while Stripe is down, then Stripe works through the backlog."
+about: "Made-up numbers for the demo. Stripe is killed at 40 s, restarted at 70 s and answering again at 85 s, in a 150 s run at 100 orders a minute. Checkout waits 5 s for every hold, so it fills up and fails while Stripe is down, then Stripe works through the backlog."
 axis: time
 unit: s
 entry: customer-app

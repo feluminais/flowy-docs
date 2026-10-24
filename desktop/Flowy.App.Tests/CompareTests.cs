@@ -15,6 +15,12 @@ public class CompareTests
 {
     private static string Plum => Path.Combine(Repo.Root, "docs", "demo", "flowy");
 
+    /// <summary>Whether a path under flowy/ is the file of flow <paramref name="id"/>, in whichever folder of flows/ Plum files it.</summary>
+    private static bool IsFlow(string rel, string id) => rel.StartsWith("flows/", StringComparison.Ordinal) && rel.EndsWith($"/{id}.yaml", StringComparison.Ordinal);
+
+    /// <summary>The path of flow <paramref name="id"/>'s file in a copy of Plum.</summary>
+    private static string FlowPath(string dir, string id) => Directory.GetFiles(Path.Combine(dir, "flows"), $"{id}.yaml", SearchOption.AllDirectories).Single();
+
     /// <summary>A copy of Plum in <paramref name="temp"/> (its <c>flowy</c> folder, which is returned), with <paramref name="change"/> applied to its files.</summary>
     private static string CopyOfPlum(TempFolder temp, Func<string, string, string>? change = null)
     {
@@ -51,7 +57,7 @@ public class CompareTests
     private static string Untagged(string text) => System.Text.RegularExpressions.Regex.Replace(text, @"^compare:[^\r\n]*\r?\n(?:[ \t]+[^\r\n]*\r?\n|\r?\n(?=[ \t]))*", "", System.Text.RegularExpressions.RegexOptions.Multiline);
 
     /// <summary>The refund that is not recorded holds a compare tag naming the refund that is.</summary>
-    private static string Linked(string rel, string text) => rel == "flows/refund-not-recorded.yaml" ? "compare: refund\n" + text : text;
+    private static string Linked(string rel, string text) => IsFlow(rel, "refund-not-recorded") ? "compare: refund\n" + text : text;
 
     private static void Press(Window w, Key key, PhysicalKey physical) => EditModeTests.Press(w, key, physical);
 
@@ -128,6 +134,57 @@ public class CompareTests
         var again = EditModeTests.Where(window, right.Canvas, "stripe", 20, 10);
         Click(window, again);
         Assert.False(reader.HasPanel);
+    }
+
+    [AvaloniaFact]
+    public void Double_clicking_a_shape_that_opens_zooms_that_pane_into_it_and_leaves_the_other_pane_alone()
+    {
+        var (temp, window, reader) = Open(width: 1800);
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var (left, right) = (view.Panes[0], view.Panes[1]);
+        var (leftLevel, rightLevel) = (left.Level, right.Level);
+        Assert.False(right.CrumbsShown);
+        Assert.False(right.Inside);
+        var at = EditModeTests.Where(window, right.Canvas, "order-api", 20, 10);
+        Click(window, at);
+        Click(window, at);
+        EditModeTests.Settle(window);
+        Assert.Equal("order-api", right.Level);
+        Assert.True(right.Inside);
+        Assert.True(right.CrumbsShown);
+        Assert.Equal(leftLevel, left.Level);
+        Assert.False(left.Inside);
+        Assert.False(reader.HasPanel); // the first click of a double-click opens no panel
+        Assert.NotNull(reader.CompareShown);
+        Assert.Equal("order-api", right.Canvas.Scene!.View);
+        Assert.Equal("order-api", right.Canvas.Scene.Boxes.First(b => !b.Outsider).Object.In);
+    }
+
+    [AvaloniaFact]
+    public void Esc_takes_a_zoomed_pane_back_up_and_a_second_Esc_closes_the_comparison()
+    {
+        var (temp, window, reader) = Open(width: 1800);
+        using var _ = temp;
+        reader.OpenCompareById("refund", "refund-not-recorded");
+        EditModeTests.Settle(window);
+        var view = reader.CompareShown!;
+        var right = view.Panes[1];
+        var own = right.Level;
+        var at = EditModeTests.Where(window, right.Canvas, "order-api", 20, 10);
+        Click(window, at);
+        Click(window, at);
+        EditModeTests.Settle(window);
+        Assert.Equal("order-api", right.Level);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        EditModeTests.Settle(window);
+        Assert.Equal(own, right.Level);
+        Assert.False(right.CrumbsShown);
+        Assert.NotNull(reader.CompareShown);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.CompareShown);
     }
 
     [AvaloniaFact]
@@ -296,7 +353,7 @@ public class CompareTests
     [AvaloniaFact]
     public void A_flow_that_cannot_play_does_not_open_and_says_so()
     {
-        var (temp, window, reader) = Open((rel, text) => rel == "flows/refund-not-recorded.yaml" ? "name: Nothing yet\nview: root\nsteps: []\n" : text);
+        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "refund-not-recorded") ? "name: Nothing yet\nview: root\nsteps: []\n" : text);
         using var _ = temp;
         reader.OpenCompareById("refund", "refund-not-recorded");
         Assert.Null(reader.CompareNow);
@@ -945,7 +1002,7 @@ public class CompareTests
     [AvaloniaFact]
     public void When_the_folder_cannot_save_the_note_controls_are_greyed_with_the_reason_and_a_saved_note_still_shows()
     {
-        var (temp, window, reader) = Open((rel, text) => rel == "flows/refund-not-recorded.yaml" ? "compare:\n  with: refund\n  note: Fixed in v2\n" + text : text);
+        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "refund-not-recorded") ? "compare:\n  with: refund\n  note: Fixed in v2\n" + text : text);
         using var _ = temp;
         reader.CanEdit = false;
         reader.OpenCompareById("refund", "refund-not-recorded");
@@ -1029,7 +1086,7 @@ public class CompareTests
         EditModeTests.Settle(window);
         ClickBar(reader.CompareShown!.Note.NoteButton!);
         reader.CompareShown.Note.Field.Text = "Still to say";
-        var file = Path.Combine(Dir(temp), "flows", "refund-not-recorded.yaml");
+        var file = FlowPath(Dir(temp), "refund-not-recorded");
         var text = File.ReadAllText(file);
         File.WriteAllText(file, "name: Nothing yet\nview: root\nsteps: []\n");
         reader.Reload(FolderLoader.Load(Dir(temp)));
@@ -1218,8 +1275,8 @@ public class CompareTests
         // The refund that is not recorded links to Place order, and so does the refund to Deliver order: either takes the line only by giving up its link.
         var (temp, window, reader) = Open((rel, text) => rel switch
         {
-            "flows/refund-not-recorded.yaml" => "compare: place-order\n" + text,
-            "flows/refund.yaml" => "compare: deliver-order\n" + text,
+            _ when IsFlow(rel, "refund-not-recorded") => "compare: place-order\n" + text,
+            _ when IsFlow(rel, "refund") => "compare: deliver-order\n" + text,
             _ => text,
         });
         using var _ = temp;
@@ -1244,7 +1301,7 @@ public class CompareTests
     [AvaloniaFact]
     public void When_the_newer_flow_links_elsewhere_and_the_older_does_not_the_older_gets_the_line_and_the_confirm_says_so()
     {
-        var (temp, window, reader) = Open((rel, text) => rel == "flows/refund-not-recorded.yaml" ? "compare: place-order\n" + text : text);
+        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "refund-not-recorded") ? "compare: place-order\n" + text : text);
         using var _ = temp;
         var model = reader.Folder!.Model;
         reader.OpenCompareById("refund", "refund-not-recorded");
@@ -1915,11 +1972,11 @@ public class CompareTests
 
     private static IEnumerable<string> Words(Control root) => root.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsVisible).Select(t => t.Text ?? "");
 
-    private static string FlowFile(TempFolder temp, string id) => File.ReadAllText(Path.Combine(temp.Path, "flowy", "flows", $"{id}.yaml"));
+    private static string FlowFile(TempFolder temp, string id) => File.ReadAllText(FlowPath(Path.Combine(temp.Path, "flowy"), id));
 
     /// <summary>The tagged pair with a note on it, as the form's tests need: the refund that is not recorded is the newer, and says why.</summary>
     private static string LinkedWithNote(string rel, string text) =>
-        rel == "flows/refund-not-recorded.yaml" ? "compare: { with: refund, note: \"The ledger write was missed\" }\n" + text : text;
+        IsFlow(rel, "refund-not-recorded") ? "compare: { with: refund, note: \"The ledger write was missed\" }\n" + text : text;
 
     [AvaloniaFact]
     public void The_Flows_tab_marks_both_flows_of_a_pair_and_shows_the_Linked_key_only_while_one_is_listed()
@@ -1975,15 +2032,18 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void Partners_in_one_view_are_listed_together_in_the_Flows_tab()
+    public void Partners_are_both_marked_in_the_Flows_tab_whichever_folder_each_is_filed_in()
     {
-        // The refund that is not recorded plays in the same view as the payment that is captured; tagging that one lists it right after.
-        var (temp, window, reader) = Open((rel, text) => rel == "flows/stripe-outage.yaml" ? "compare: announce-order\n" + text : text);
+        // Plum files announce-order in payments and stripe-outage in payments/stripe; tagging one marks both, and neither moves to the other.
+        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "stripe-outage") ? "compare: announce-order\n" + text : text);
         using var _ = temp;
         reader.ClickRail(PanelTab.Flows);
         EditModeTests.Settle(window);
-        var ordering = reader.Navigator.Flows.Listed.Select(f => f.Id).SkipWhile(id => id != "announce-order").Take(2).ToList();
-        Assert.Equal(["announce-order", "stripe-outage"], ordering);
+        var listed = reader.Navigator.Flows.Listed;
+        var announce = listed.Single(f => f.Id == "announce-order");
+        var outage = listed.Single(f => f.Id == "stripe-outage");
+        Assert.True(announce.Linked && outage.Linked);
+        Assert.Equal(("payments", "payments/stripe"), (announce.Folder, outage.Folder));
     }
 
     [AvaloniaFact]
@@ -2250,7 +2310,7 @@ public class CompareTests
     [AvaloniaFact]
     public async Task A_tag_to_a_flow_that_is_not_there_shows_as_Missing_and_can_be_removed_or_replaced()
     {
-        var (temp, window, reader, picker) = OpenForm("refund", (rel, text) => rel == "flows/refund.yaml" ? "compare: nowhere\n" + text : text);
+        var (temp, window, reader, picker) = OpenForm("refund", (rel, text) => IsFlow(rel, "refund") ? "compare: nowhere\n" + text : text);
         using var _ = temp;
         Assert.Equal(new PartnerTile("nowhere", "nowhere", "", true), picker.Partner);
         Assert.Contains("Missing", Words(picker));

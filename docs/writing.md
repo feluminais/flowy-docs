@@ -53,7 +53,7 @@ Someone who stops at the teaser must not leave with a wrong idea. Anything that 
 - **Singular names that make sense outside their view.** "Standard APIs" and "Checking" don't.
 - **One name per thing, everywhere,** in names, labels, steps and text. If "Payment API", "the billing service" and "PSP" all mean one shape, pick one and rename. Don't add a second shape.
 - **Siblings get distinct names.** A generic name like "Database" may repeat under different parents, but then the teaser says which.
-- **Name an outside service after the vendor** and put its role in the teaser: Stripe, "Takes card payments and sends refunds."
+- **Name an outside service after the vendor** and put its role in the teaser: Stripe, "Card payments and refunds."
 - **Fill `tech` on every app, store and component** with the real stack, short, no sentence: `Node, Fastify`, `Postgres, PostGIS`.
 - **Mark planned or retiring things** in the name ("Recommendations (planned)") or the teaser ("Deprecated: ..."). Flowy has no status field.
 
@@ -72,14 +72,14 @@ The type already gives every shape a good look, so most shapes need none of this
 
 The first paragraph of a description is what a hover shows. Give every shape one. It's a sentence or two, about 25 words, saying what the shape does for others, in words its name doesn't already hold.
 
-- **Start apps and components with the verb,** and a store with what it keeps. Plum's Dispatch: "Turns each new order into a courier on the way."
+- **Start apps and components with the verb,** and a store with what it keeps. Plum's Dispatch: "Assigns a courier to each new order."
 - **Add something the name doesn't say.** Don't repeat the name or open with "This component is" or "The Order API is".
 - **Use the real verb.** "Handles", "manages" and "responsible for" hide it. Say charges, stores, publishes.
 - **Give the fact, not praise.** "Robust" and "seamless" can't be checked. "Retries a declined charge once" can.
 - **Several "and"s mean two shapes.** If you can't say it in one sentence, split the shape.
-- **Say what a shape with children covers.** Plum's Ordering: "Everything a customer touches: browsing menus, building a basket, paying."
-- **Actors are roles, described by what they do here.** Plum's Restaurant: "The kitchen staff who accept an order and mark it ready."
-- **For an outside service, say what it does for you** and, if it matters, what it doesn't do. Plum's Stripe: "Takes card payments and sends refunds. Plum never sees a card number."
+- **Say what a shape with children covers.** Plum's Ordering: "Everything customer-facing: menus, basket, payment."
+- **Actors are roles, described by what they do here.** Plum's Restaurant: "Kitchen staff. Accept orders and mark them ready."
+- **For an outside service, say what it does for you** and, if it matters, what it doesn't do. Plum's Stripe: "Card payments and refunds. Plum never handles card numbers."
 - **Put warnings first.** "Deprecated: charges cards for the old shop. Use Payment API v2."
 - **Write for any day.** "Currently", "now", "soon" and "will" go stale. "(planned)" is the one exception.
 
@@ -99,7 +99,7 @@ The Overview is what Details shows at the top level when nothing is picked: the 
 The rest of the description shows when someone clicks. Spend the words where the code is silent.
 
 - **Lead with the point.** Every paragraph, then the detail. Two to four short paragraphs, about 150 words at most.
-- **Say why.** Why it's cut this way, which choice it makes, what it must never do. Plum's Checkout: "Nothing is charged until the restaurant accepts. A rejected order releases the hold." Link a decision record if you keep them, and say in a clause what it means here.
+- **Say why.** Why it's cut this way, which choice it makes, what it must never do. Plum's Checkout: "The card is charged only when the restaurant accepts. A rejection releases the hold." Link a decision record if you keep them, and say in a clause what it means here.
 - **Write behaviour, not implementation.** Would the sentence change if the code did? "Delivers events to one worker at a time, in the order they arrived" survives a rewrite. "Uses a Redis list with BRPOP" doesn't.
 - **Keep out what goes stale:** versions, counts, endpoint lists, file lists. Link the file in `links:`, such as an OpenAPI spec, and let the code stay the source.
 - **Don't repeat what the panel already shows:** the type, the tech, the connections.
@@ -124,7 +124,7 @@ A store's Data section is a picture of what it holds, for a developer who wants 
 - **A note says why, in one line.** "Stored in cents because rounding broke the first tax run." explains a choice a reader would
   question. "The order's total" repeats the column's name, so leave it out. Longer reasoning goes in a design document, linked from the shape.
 - **A limits line says how long or how much,** in the words people use: "Kept 7 years, then archived", "Swept after 24 hours",
-  "Kept 7 days, 6 partitions", "Oldest unused go first at 256 MB". It states a fact the team set, so check it against the config.
+  "Kept 7 days, 6 partitions", "LRU eviction at 256 MB". It states a fact the team set, so check it against the config.
 - **Pick the form that matches the store.** A table for a relational database, `Key`, `Value` and `Expires` for a cache, `Key` and `Value`
   with a message on each row for a topic, a sample document for a document store.
 - **Keep it true.** The section can't notice that a column was renamed. Change it with the code, and put a `code:` path or a link to the schema file on the store.
@@ -157,11 +157,12 @@ A flow is a walkthrough of one thing happening. It has a name, the view it plays
 - **Say who waits.** If the sender doesn't wait (it queues the work, fires and forgets, or runs on a timer), say so.
 - **Add a step back only when something new is sent,** or time passes. "Returns approved or declined" earns a step. A bare acknowledgement doesn't. When a shape asks and gets its answer in the same step, say so.
 - **Stay with what the trigger causes.** Something that happens on its own gets a step that says so, or a flow of its own.
-- **Use More for why:** timing, failure behaviour, limits. About 80 words, point first, never a repeat of the step. Plum's kitchen step: "The kitchen has two minutes to accept. After that the order is cancelled, the hold is released and the customer is told."
+- **Use More for why:** timing, failure behaviour, limits. About 80 words, point first, never a repeat of the step. Plum's kitchen step: "The kitchen has two minutes to accept. Then the order is cancelled, the hold released and the customer notified."
 - **Play the flow on the view where its ends are separate shapes.** A step written "X in Y" is drawn as Y. For detail inside a shape, write a second flow on that shape.
 - **A step with no matching line means the model is missing one.** Fix the model, then the step.
 - **Ask how much to animate, then follow the answer.** An `animation:` makes a step play as something travelling between its two shapes. There are three levels: **None** (plain steps), **Key steps** (only a step whose way of travelling adds something, such as a call that waits or a callback) and **Every step** that hands something from one shape to another. With no answer, animate every step. Pick the kind by who waits: `call` when the sender waits for the answer, `send` or `event` when it doesn't, `callback` when something sets off a reply to whoever subscribed, with `trigger: outside` when what set it off came in at the step before. A step with no `to` can't travel. Give a step an `outcome` only where it really ends that way: `fail` on a `send` or `call` that is refused (a declined card), `timeout` on a `call` nobody answers, `lost` on a request that never arrives, `rejected` where something at the door turns it away (a rate limit, a firewall), `intercepted` with `by` where a third party takes it, `duplicated` where it is delivered twice and `delayed` where the story is a wait (a cold start, a queue). A step that is a little slow gets none. Add a `reason` of a few words ("Rate limit", "Packet dropped") when the picture raises the question of why, and a `share` when only some of the requests end that way ("a third of the pings are lost" is `share: 30`). The text still says everything: it has to read the same in Mermaid, in a screenshot and with motion off.
 - **Give a shape a state only where the story takes it somewhere.** A step's `states` can say that a service is starting, stopping, stopped, restarting or degraded, and it holds until a later step changes it. Use it for an outage and its recovery, a deploy, or a node that drops out. Set the shape back to `running` when it recovers, because nothing else clears it. Leave out a state that is only the default, and one you cannot point to in the code or the incident. The text must say the same thing with the drawing off.
+- **Leave something open only where the story keeps it open.** A step's `animation` can open a `stream`, a `listener` or a `job`, and the mark stays drawn on the steps after it: a subscribe that keeps pushing orders, a webhook registration, a report that runs for minutes. Name it and close it with a later step when the story ends it (`closes: Orders`). A request that is refused or lost opens nothing, and a step that only hands something over opens nothing.
 - **Mark structure only where it is true.** A *repeat* is the same steps run again, with a limit the code really has: say it in `times`, or what stops it in `until`, and put the backoff or the wait in the group's `text`. A *branch* is alternatives that each get a few steps. A lane starts at the step that says `lane`, named for its condition in plain words, and the player walks every lane in turn. A failure that is one step is a lane, and a failure that is a story is still a flow of its own. A *parallel* group is work that starts together: a fan-out to five subscribers is five one-step lanes, so each step keeps its one `to`. A group's steps sit next to each other, and a group can't hold another group yet. `flow:` on a step says the story continues in another flow, which earns its place when that story needs a page of its own. The step texts still say everything: a group only shapes how the steps are drawn, and a reader may meet them as a plain list.
 - **Quote the text of a one-line step if it has a comma, and give a long step a block.** In `{ ... }` and `[ ... ]` a comma ends the value. `{ from: a, to: b, text: Sets the time zone, if the request has one }` is read as the text "Sets the time zone" plus a key `if the request has one` with nothing after it (and `text: Calls it, retries: 3 times` quietly gains a `retries` key). The file still loads, the step is cut short, and the first sign is a save that fails with "Tag not resolved for null value". So in one-line form put double quotes around every value that holds a `,`, `:`, `#`, `{`, `}`, `[` or `]`, or that starts with `-`, `?`, `*`, `&`, `!`, `|`, `>`, `%`, `@` or a quote: `text: "Sets the time zone, if the request has one"`. A step whose text is more than a few words, or that carries a `description`, is easier to read as a block (the second step below), and a block has no comma problem. Leave no key empty (`text:`) unless you mean it left out: an empty step `text` is a problem.
 
@@ -218,7 +219,7 @@ A failure analysis ranks how the system breaks, for someone deciding what to fix
 
 - **Name the analysis for what it covers, in plain words.** "Plum fail scenario" and "Conductor fail scenario" say what is in them. A title
   such as "How Conductor can fail" does not.
-- **State a mode as a fact, one way of failing to a row.** "Stripe doesn't answer within five seconds" is a mode. "Payment problems" is a
+- **State a mode as a fact, one way of failing to a row.** "Stripe doesn't answer within 5 s" is a mode. "Payment problems" is a
   heading. A part that fails three ways gets three rows.
 - **The effect is what a person or another part sees.** "The order waits on a hold that may or may not exist." says what happens next.
   "Payment fails" repeats the mode.

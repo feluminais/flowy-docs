@@ -33,8 +33,11 @@ public static partial class Perf
     /// </summary>
     private sealed record Shown(double? Calls, double? Blobs, double? Rate);
 
-    /// <summary>How busy the stripes are, 0 to 1, for <paramref name="calls"/> a second: logarithmic, so a thousand a second is as busy as they get.</summary>
-    private static double StripeLevel(double calls) => Round2(Clamp(Math.Log10(1 + Math.Max(0, calls)) / 3, 0, 1));
+    /// <summary>The calls a second the stripes are as busy as they get at, when the run does not say (see <see cref="CallPeak"/>).</summary>
+    private const double StripeTop = 1000;
+
+    /// <summary>How busy the stripes are, 0 to 1, for <paramref name="calls"/> a second against <paramref name="peak"/>, the most the run has: logarithmic, so a busy line is not a hundred times the stripes of a quiet one.</summary>
+    private static double StripeLevel(double calls, double? peak) => Round2(Clamp(Math.Log10(1 + Math.Max(0, calls)) / Math.Log10(1 + Math.Max(1, peak ?? StripeTop)), 0, 1));
 
     /// <summary>How busy the stripes of a line the run gives nothing to count are: a middling pace.</summary>
     public const double BareStripes = 0.2;
@@ -51,7 +54,7 @@ public static partial class Perf
     /// A line that carried what <paramref name="shown"/> says: logarithmic and capped, because a screen can't draw 1000 particles a second, unless the run's source says how many dots to show.
     /// <paramref name="wide"/> sets its thickness, the calls a second where it has them and else its blobs.
     /// </summary>
-    private static LineTraffic LineTrafficOf(Pair l, Shown shown, Source? source, double? wide = null, (double Dots, bool Capped)? counted = null)
+    private static LineTraffic LineTrafficOf(Pair l, Shown shown, Source? source, double? wide = null, (double Dots, bool Capped)? counted = null, double? peak = null)
     {
         var errors = Round2(l.Errors ?? 0);
         var travelMs = TravelOf(l.P50);
@@ -83,7 +86,7 @@ public static partial class Perf
             Capped = capped,
             Failure = l.Failure,
             Dots = dots,
-            Stripes = shown.Calls is { } calls ? StripeLevel(calls) : null,
+            Stripes = shown.Calls is { } calls ? StripeLevel(calls, peak) : null,
         };
     }
 
@@ -140,13 +143,13 @@ public static partial class Perf
     /// null when nothing was measured) and queue of each shape that was measured or holds something that was, and the traffic on each line that has
     /// a rate. Shapes and lines with nothing measured are left out: they stay neutral, never drawn as zero.
     /// </summary>
-    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null) => FrameAt(model, run, load, view, measure, size).Traffic;
+    public static Traffic TrafficFor(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null, double? peak = null) => FrameAt(model, run, load, view, measure, size, peak).Traffic;
 
     /// <summary>The run at a load as a view draws it, interpolated and rolled up once: <see cref="TrafficFor"/> and the panel's readouts are both made from it.</summary>
-    public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null)
+    public static LoadFrame FrameAt(Model model, LoadRun run, double load, string view, LoadMeasure measure = LoadMeasure.Calls, double? size = null, double? peak = null)
     {
         var (objects, lines) = RollUp(model, Interpolate(run, load), view);
-        List<LineTraffic> drawn = [.. lines.Select(l => (Line: l, Shown: ShownOf(l, measure, size))).Where(x => x.Shown is not null).Select(x => LineTrafficOf(x.Line, x.Shown!, run.Source))];
+        List<LineTraffic> drawn = [.. lines.Select(l => (Line: l, Shown: ShownOf(l, measure, size))).Where(x => x.Shown is not null).Select(x => LineTrafficOf(x.Line, x.Shown!, run.Source, null, null, peak))];
         return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), [.. drawn, .. BareLines(model, view, drawn)]));
     }
 

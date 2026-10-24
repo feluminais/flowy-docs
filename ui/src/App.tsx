@@ -9,7 +9,7 @@ import { getObject, LINE_STYLES, lineStyle, ROOT } from '../../src/core/model.ts
 import type { LineStyle, Model } from '../../src/core/model.ts'
 import { dependents, needsDecision } from '../../src/core/dependents.ts'
 import type { Target } from '../../src/core/dependents.ts'
-import { connect, deleteWith, placeBoxes, setLines, tidyLayout } from '../../src/core/ops.ts'
+import { connect, deleteWith, moveFlow, placeBoxes, setLines, tidyLayout } from '../../src/core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
 import { followsLanding, leavesMarks } from '../../src/core/animation.ts'
 import { usesStates } from '../../src/core/states.ts'
@@ -25,7 +25,7 @@ import { Camera } from './Camera.tsx'
 import { ZoomControls } from './ZoomControls.tsx'
 import { Alert, ArrowLeft, ArrowRight, ChevronRight, Close, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { connectionsOf, locate, moveBetween } from './edit.ts'
-import { fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
+import { DOUBLE_CLICK, fitOptions, focusEdges, frameNode, isStepLine, lineId, NAV, PANEL, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { addressChange, readHash, runAddress, toHash } from './hash.ts'
 import { compareOff, draftKey, firstLinked, firstLinkedRun, flipped, fromAddress, keepsDrafts, noteOf, noteOff, openable, pairKey, pairOf, playable, runCompareOff, runPairOf, unsaved, withDraft } from './compare.ts'
@@ -60,6 +60,7 @@ import { Search } from './Search.tsx'
 import { Shortcuts } from './Shortcuts.tsx'
 import { keepSame, nothingKept, useLatest } from './stable.ts'
 import type { Kept } from './stable.ts'
+import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
@@ -92,7 +93,6 @@ import { Yaml } from './Yaml.tsx'
 const nodeTypes = { box: Box, frame: Frame }
 const NO_LINES: LineTraffic[] = [] // and no traffic, so the Performance panel's key is not rebuilt for it
 const edgeTypes = { line: Line }
-const DOUBLE_CLICK = 250 // ms a click on a box that opens waits, in case it is the first half of a double-click
 /** What the side panel shows. One thing at a time. */
 type Side =
   | { kind: 'object'; id: string }
@@ -281,7 +281,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const flowsCompared = comparing?.kind === 'flow' // two flows stay on their own views; two runs share the level the address names, and going to another one moves both panes
   // A flow that was playing waits behind the Performance and Failures tabs and a comparison, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen || comparing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
-  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks } = useFlowStage({ model, view, flow, playing, replays, recording })
+  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds } = useFlowStage({ model, view, flow, playing, replays, recording })
   // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. A pane of a comparison of runs draws its run the same way (see useRunDrawing).
   const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
   const stateMarks = flow ? flowMarks : runMarks
@@ -821,7 +821,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       }
       const state: KeyState = {
         editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', runCompare: comparing?.kind === 'run', halfStep: recording?.from !== undefined,
-        panel: detailsOpen || manyPicked || perfOpen || runsOpen || failuresOpen, inside: view !== ROOT && !comparing, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
+        panel: detailsOpen || manyPicked || perfOpen || runsOpen || failuresOpen, inside: view !== ROOT && !comparing, paneInside: comparing?.kind === 'flow' && compareRef.current?.focused()?.inside() === true, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
         canPerf,
       }
       const act: KeyActions = {
@@ -837,8 +837,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         clearStep: () => { if (recording) setSide({ ...recording, from: undefined, to: undefined }) },
         closePanel: () => (detailsOpen || manyPicked ? closeDetails() : perfOpen || runsOpen ? closePerf() : closeFailures()),
         // A second press while a zoom out is still leaving goes up from where that one is heading.
-        back,
-        up: () => jumpTo(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view)),
+        back: () => (comparing ? compareRef.current?.focused()?.up() : back()), // a pane of a comparison goes up from where it is zoomed to
+        up: () => (comparing ? compareRef.current?.focused()?.up() : jumpTo(parentOf(model, motion?.phase === 'leave' && motion.dir === 'out' ? motion.to : view))),
         // With two runs side by side the keys of the Performance tab act on the pane that has the focus.
         stepRun: by => (comparing ? compareRef.current?.focusedRun()?.step(by) : perfRun.stepLevel(stepFrom(here[activeDial], by))),
         runEnd: end => {
@@ -1034,6 +1034,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
                 <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} nav={nav ? navWidth : undefined} />
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
+                {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
                 {flow && stop && animated.map(m => (
                   <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
                 ))}
@@ -1136,7 +1137,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {nav === 'flows' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
-              <FlowsTab model={model} view={view} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} />
+              <FlowsTab model={model} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} onMove={editing && live && !readOnly ? (id, folder) => void run(m => moveFlow(m, id, folder)) : undefined} />
               {rowPicker}
             </NavPanel>
           )}
@@ -1171,7 +1172,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(detailsOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
           {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
-            <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
+            <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} auto={playing?.auto === true} moving={moving}
               trail={trail} onStep={stepTo} onAuto={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
               compare={{ off: compareOff(model, editing), open: picking, onToggle: () => setPicking(open => !open),
                 picker: playing ? <ComparePicker model={model} id={playing.flow} onPick={id => openCompare(playing.flow, id)} onClose={() => setPicking(false)} /> : null }} />

@@ -1,6 +1,6 @@
 # Flows
 
-How a request ends, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
+How a request ends, streams and listeners that stay open, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
 
 ## How a request ends
 
@@ -24,7 +24,7 @@ A `callback` takes no outcome. The step card says the outcome in a few words, an
 "Taken by Café wifi proxy", "Sent twice", "Delayed: Cold start", "30% lost". With reduced motion nothing moves, and the cross, the bar, the clock,
 the marker and the reason stay.
 
-Plum has a flow for each: [Courier pings are lost](../demo/flowy/flows/courier-pings-lost.yaml), [Mapbox turns the travel times away](../demo/flowy/flows/mapbox-rate-limit.yaml), [Hotel wifi takes the order](../demo/flowy/flows/hotel-wifi-takes-order.yaml), [A double tap sends the order twice](../demo/flowy/flows/order-sent-twice.yaml) and [Dispatch hears about an order late](../demo/flowy/flows/events-arrive-late.yaml). [Nobody accepts the order](../demo/flowy/flows/nobody-accepts.yaml) is a call that times out, and [The carrier drops the SMS](../demo/flowy/flows/sms-dropped.yaml) a message lost on the way to a customer. [Stripe reports a charge](../demo/flowy/flows/stripe-webhook.yaml) is a callback that something outside set off.
+Plum has a flow for each: [Courier pings are lost](../demo/flowy/flows/delivery/courier-pings-lost.yaml), [Mapbox turns the travel times away](../demo/flowy/flows/delivery/mapbox-rate-limit.yaml), [Hotel wifi takes the order](../demo/flowy/flows/ordering/hotel-wifi-takes-order.yaml), [A double tap sends the order twice](../demo/flowy/flows/ordering/order-sent-twice.yaml) and [Dispatch hears about an order late](../demo/flowy/flows/delivery/events-arrive-late.yaml). [Nobody accepts the order](../demo/flowy/flows/ordering/nobody-accepts.yaml) is a call that times out, and [The carrier drops the SMS](../demo/flowy/flows/delivery/sms-dropped.yaml) a message lost on the way to a customer. [Stripe reports a charge](../demo/flowy/flows/payments/stripe/stripe-webhook.yaml) is a callback that something outside set off.
 
 These keys go inside `animation`, next to `outcome`:
 
@@ -50,6 +50,33 @@ too long or has a line break, `by` on any other outcome, `intercepted` with no `
 or on any other outcome.
 
 The `put_flow` tool takes the same keys, and is told to give a step an outcome only where it really ends that way.
+
+## Streams, listeners and jobs
+
+Some steps leave something running. A subscribe opens a stream, a webhook registration makes a shape listen, a start request begins a job. A step's `animation` can say so with `opens`, and the mark stays drawn on every step after it until a step `closes` it.
+
+| `opens` | What you see | Where |
+| --- | --- | --- |
+| `stream` | Dots keep running along the line, in the direction the data goes | On the step's line, towards `to` |
+| `listener` | A bell on the shape that listens, with rings going out and a dotted line to the shape it listens to | At `from` |
+| `job` | An arc keeps turning on the shape the work runs on | At `to` |
+
+```yaml
+- { from: client, to: feed, text: Opens a stream of orders, animation: { kind: call, opens: stream, name: Orders, towards: from } }
+- { from: client, to: hook, text: Registers a webhook, animation: { kind: call, opens: listener, name: Payments } }
+- { from: hook, to: client, text: A payment arrives, animation: callback }
+- { from: client, to: feed, text: Closes the stream, animation: { kind: send, closes: Orders } }
+```
+
+- `towards` says which end of the line the mark points at, when the story runs the other way. A stream that the server pushes back to the caller is `towards: from`.
+- `name` is up to 24 characters and is drawn beside the mark. A channel with no name stays open to the end of the flow. A step that has a `closes` finds its channel by name.
+- A channel appears when its step's motion has landed and goes when the closing step's motion has landed. The step card says it in a few words ("Opens a stream: Orders", "Closes Orders"), and so does the Mermaid export.
+- The state at any stop is worked out from the steps before it, so stepping back needs no undo. In a branch each lane starts from what was open before the branch, and what the last lane opened carries on after it.
+- The player card has a key for the kinds that are open now. With reduced motion nothing moves: the dots, the bell and the arc are drawn still.
+
+Only a request that arrives can open or close one, so `opens` and `closes` refuse an `outcome`. The checker also refuses a `closes` for a name nothing has open at that step, an `opens` for a name that is already open, and a `name` or `towards` with no `opens`.
+
+The showcase has a flow for it, [Every open channel](../showcase/flowy/flows/open-channels.yaml). The `put_flow` tool takes the same keys.
 
 ## Repeats, branches and parallel steps
 
@@ -168,7 +195,7 @@ A shape is Running unless a flow says otherwise. A step can say that a shape is 
 | Degraded | Up but not well | A slow pulse in the warning colour, with a warning triangle |
 
 The file holds the lowercase word. A step's `states` maps shape ids to states. Plum's
-[stripe-outage](../demo/flowy/flows/stripe-outage.yaml) uses all six, and [Orders DB fails over](../demo/flowy/flows/orders-db-fails-over.yaml) is a shorter one:
+[stripe-outage](../demo/flowy/flows/payments/stripe/stripe-outage.yaml) uses all six, and [Orders DB fails over](../demo/flowy/flows/ordering/orders-db-fails-over.yaml) is a shorter one:
 
 ```yaml
 name: Stripe goes down and comes back
@@ -215,3 +242,40 @@ sequenceDiagram
 ```
 
 A flow with no `states` reads, plays and exports exactly as it did.
+
+## Folders and tags
+
+Flows sit in `flows/`, and you can file them in folders inside it. The Flows tab lists them as those folders, so the arrangement on disk is the one a reader sees, and it has nothing to do with the view a flow plays on:
+
+```text
+flowy/flows/
+  ordering/
+    place-order.yaml
+    order-sent-twice.yaml
+  payments/
+    stripe/
+      stripe-outage.yaml
+  refund.yaml
+```
+
+A flow's id is its file name alone, so a flow can move to another folder, in your editor or with the **Folder** field of its form, without breaking anything that names it with `flow:` or `compare:`. Two files with one name can't both be flows: the second is left out and `flowy check` says which. A folder lists its folders first, by name, and then its flows by file name with numbers read as numbers, so `2-pay` comes before `10-refund`. Number the files to set an order. [Plum](../demo/flowy/flows) files its flows by area.
+
+`tags` labels what kind of walkthrough a flow is:
+
+```yaml
+name: Stripe goes down and comes back
+view: ordering
+tags: [error path, recovery]
+```
+
+The form offers five to start from, and any other word is a tag too:
+
+| Tag | The flow shows |
+| --- | --- |
+| `happy path` | Everything works |
+| `error path` | Something fails, and what happens then |
+| `edge case` | An odd input or an odd moment, such as a double tap |
+| `recovery` | The system heals itself, or someone repairs it |
+| `background` | Work nobody waits for: an event, a job, a webhook |
+
+The tags in use are buttons above the list. Press one to keep the flows that have it, or press several to keep the flows that have any of them. Over MCP, `put_flow` takes `folder` and `tags`, `move_flow` moves a file and `tag_flow` sets the tags.

@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
@@ -239,6 +239,44 @@ export const DELETE_STEPS: Spec[] = [
   { op: 'deleteWith', targets: [{ object: 'shop' }], resolutions: [{ key: 'view:checkout', action: 'changeView' }, { key: 'scope:ordering', action: 'changeScope' }, { key: 'child:web', action: 'moveOut', to: 'store2' }] },
 ]
 
+const FLOW_STEPS = [{ from: 'web', to: 'api', text: 'Sends it' }]
+
+/** Where flows are filed and how they are tagged, from a folder with flows in folders (desktop/fixtures/cases/folders). Each edit starts from what the one before left. */
+export const FOLDER_STEPS: Spec[] = [
+  { op: 'moveFlow', id: 'pay', folder: 'billing/refunds' },
+  { op: 'moveFlow', id: 'pay', folder: ' Billing \\ Refunds / ' }, // each name is spelled as the folder that is there spells it
+  { op: 'moveFlow', id: 'pay', folder: 'BILLING/Brand New' },
+  { op: 'moveFlow', id: 'pay', folder: '' },
+  { op: 'moveFlow', id: 'pay', folder: 'x:y' },
+  { op: 'moveFlow', id: 'pay', folder: '../x' },
+  { op: 'moveFlow', id: 'pay', folder: 'a/b/c/d/e/f/g' },
+  { op: 'moveFlow', id: 'pay', folder: 'nul' },
+  { op: 'moveFlow', id: 'nope', folder: 'x' },
+  { op: 'moveFlow', id: 'top', folder: 'pay & REFUND' },
+  { op: 'moveFlow', id: 'top', folder: 'pay & REFUND' },
+  { op: 'moveFlow', id: 'top', folder: '' },
+  { op: 'setFlowTags', id: 'top', tags: ['error path', 'Error Path', ' recovery ', ''] },
+  { op: 'setFlowTags', id: 'top', tags: ['x'.repeat(33)] },
+  { op: 'setFlowTags', id: 'top', tags: ['x'.repeat(32), 'edge case'] },
+  { op: 'setFlowTags', id: 'top', tags: ['edge case'] },
+  { op: 'setFlowTags', id: 'top', tags: [] },
+  { op: 'setFlowTags', id: 'top', tags: [] },
+  { op: 'setFlowTags', id: 'pay', tags: ['happy path'] },
+  { op: 'setFlowTags', id: 'nope', tags: [] },
+  { op: 'putFlow', id: 'fresh', name: 'Fresh', view: 'shop', steps: FLOW_STEPS, folder: 'new/deep', tags: ['happy path', 'Happy Path'] },
+  { op: 'putFlow', id: 'fresh', name: 'Fresh again', view: 'shop', steps: FLOW_STEPS }, // a replace keeps where the file is and its tags
+  { op: 'putFlow', id: 'fresh', name: 'Fresh once more', view: 'shop', steps: FLOW_STEPS, folder: 'NEW', tags: ['background'] },
+  { op: 'putFlow', id: 'fresh', name: 'Fresh at the top', view: 'shop', steps: FLOW_STEPS, folder: '', tags: [] },
+  { op: 'putFlow', id: 'bad-folder', name: 'Bad folder', view: 'shop', steps: FLOW_STEPS, folder: 'a|b' },
+  { op: 'putFlow', id: 'bad-tag', name: 'Bad tag', view: 'shop', steps: FLOW_STEPS, tags: ['y'.repeat(33)] },
+  { op: 'putFlow', id: 'where-it-is', name: 'Kept where it is', view: 'shop', steps: FLOW_STEPS },
+  { op: 'putFlow', id: 'refund', name: 'Refund goes wrong again', view: 'shop', steps: FLOW_STEPS },
+  { op: 'deleteFlow', id: 'pay' },
+  { op: 'deleteFlow', id: 'refund' },
+  { op: 'deleteFlow', id: 'fresh' },
+  { op: 'deleteFlow', id: 'nope' },
+]
+
 /** What the failure forms write: an analysis, its modes, a mode's fields and an analysis's name, about and scope. Runs on the delete case, which has the analysis `ordering`. */
 export const FAILURE_STEPS: Spec[] = [
   { op: 'putAnalysis', id: 'checkout', name: 'Checkout' },
@@ -292,7 +330,9 @@ function apply(model: Model, s: Spec): Model {
     case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label })
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
-    case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }), ...(s.states === undefined ? {} : { states: s.states }) })
+    case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }), ...(s.states === undefined ? {} : { states: s.states }), ...(s.folder === undefined ? {} : { folder: s.folder }), ...(s.tags === undefined ? {} : { tags: s.tags }) })
+    case 'moveFlow': return moveFlow(model, s.id, s.folder)
+    case 'setFlowTags': return setFlowTags(model, s.id, s.tags)
     case 'setCompare': return setCompare(model, s.id, s.with === undefined ? undefined : s.note === undefined ? { with: s.with } : { with: s.with, note: s.note })
     case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }), ...(s.groups === undefined ? {} : { groups: s.groups }) })
     case 'removeStep': return removeStep(model, s.id, s.index)
@@ -331,7 +371,7 @@ async function run(dir: string, steps: Spec[]): Promise<{ initial: Record<string
       const next = apply(model, spec)
       refuseNewProblems(model, next)
       model = next
-      return { spec, files: filesOf(model) }
+      return { spec, files: filesOf(model), ...(model.folders === undefined ? {} : { folders: model.folders }) }
     } catch (e) {
       if (!(e instanceof OpError)) throw e
       return { spec, error: e.message }
@@ -350,5 +390,5 @@ export async function dumpOps(): Promise<unknown> {
   const ids = names.flatMap(name => [[], ['orders-db', 'orders-db-2', 'API']].map(taken => ({ name, taken, id: newId(name, taken, 'component') })))
   const start: Model = modelOf(state)
   const types = [ROOT, ...Object.keys(start.objects), 'nowhere'].map(view => ({ view, types: typesIn(start, view) }))
-  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS) }
+  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS), folderEdit: await run(join(root, 'desktop/fixtures/cases/folders/flowy'), FOLDER_STEPS) }
 }

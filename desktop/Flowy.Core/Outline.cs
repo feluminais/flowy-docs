@@ -14,13 +14,32 @@ public sealed record OutlineTotals(int Shapes, int Flows, int Problems);
 
 public sealed record Outline(IReadOnlyList<OutlineRow> Rows, OutlineTotals Totals);
 
-/// <summary>A flow on a list. <c>Linked</c>: it is in a pair (see <see cref="OutlineRow"/>).</summary>
-public sealed record FlowRef(string Id, string Name, int Steps, string? View, bool Linked = false);
+/// <summary>A flow on the Flows list: where its file is (<c>Folder</c>, "" at the top of flows/) and its tags. <c>View</c> is where it plays. <c>Linked</c>: it is in a pair (see <see cref="OutlineRow"/>).</summary>
+public sealed record FlowRef(string Id, string Name, int Steps, string? View, bool Linked, string Folder, IReadOnlyList<string> Tags);
 
-/// <summary>The flows that play in one view, with where that view is: its path of names from the top, without the project.</summary>
-public sealed record FlowGroup(string View, string Name, IReadOnlyList<string> Path, IReadOnlyList<FlowRef> Flows);
+/// <summary>One line of the Flows list: a folder of flows or a flow. <c>Key</c> is <c>folder:path</c> or <c>flow:id</c>.</summary>
+public abstract record FlowRow(string Key, int Depth);
 
-public sealed record FlowGroups(IReadOnlyList<FlowRef> Here, IReadOnlyList<FlowGroup> Elsewhere, int Total);
+/// <summary>A folder on the list. <c>Flows</c> counts the flows in it and in the folders inside it that the list shows; <c>Open</c> is whether the rows below it are listed.</summary>
+public sealed record FolderRow(string Key, string Path, string Name, int Depth, int Flows, bool Open) : FlowRow(Key, Depth);
+
+/// <summary>A flow on the list.</summary>
+public sealed record FlowItemRow(string Key, FlowRef Flow, int Depth) : FlowRow(Key, Depth);
+
+/// <summary>A tag in use, as the first flow that has it spells it, with how many flows have it.</summary>
+public sealed record FlowTag(string Tag, int Count);
+
+/// <summary>
+/// The Flows list: <c>Rows</c> top to bottom, <c>Tags</c> every tag any listed flow has, most used first (what a tag filter offers, whatever the filter), <c>Total</c> the flows that are listed
+/// and <c>Shown</c> how many of them the filter lets through.
+/// </summary>
+public sealed record FlowList(IReadOnlyList<FlowRow> Rows, IReadOnlyList<FlowTag> Tags, int Total, int Shown);
+
+/// <summary>
+/// What the Flows list is asked for. <c>Editing</c>: a flow with no steps is listed. <c>Query</c> keeps the flows whose name, file name, folder or a tag has these letters (any case). <c>Tags</c> keeps the flows
+/// that have at least one of them (see <see cref="Names.TagKey"/>). <c>Closed</c> holds the paths of the folders that are closed; with a query or a tag filter every folder that has a match is open.
+/// </summary>
+public sealed record FlowListOptions(bool Editing = false, string Query = "", IReadOnlyList<string>? Tags = null, IReadOnlySet<string>? Closed = null);
 
 /// <summary>Where the focus goes (a row's key), whether a shape opens or closes, and the row Enter means.</summary>
 public sealed record KeyResult(string? Focus = null, (string Id, bool Expand)? Toggle = null, OutlineRow? Open = null);
@@ -217,76 +236,76 @@ public static class Outlines
         return next;
     }
 
-    /// <summary>
-    /// <paramref name="ids"/> (the flows of one view, in name order) with partners together. A group is flows joined by tags to flows in the list. It sits where its first member sorts,
-    /// oldest first: a flow that tags none of the group, then the flows that tag it in key order, and so on, so a chain A &lt;- B &lt;- C reads A, B, C. A group with no oldest (a loop of tags)
-    /// starts at its first member. A flow with no partner is a group of one, so it does not move.
-    /// </summary>
-    private static List<string> WithPartners(Model model, IReadOnlyList<string> ids)
+    private sealed class FolderNode
     {
-        var listed = new HashSet<string>(ids);
-        string? Target(string id) => Compares.Of(model.Flows[id].CompareRaw)?.With is { } to && to != id && listed.Contains(to) ? to : null;
-        var newer = new Dictionary<string, List<string>>(); // the flows that tag a flow, in key order
-        foreach (var id in model.Flows.Keys)
-            if (listed.Contains(id) && Target(id) is { } to)
-            {
-                if (!newer.TryGetValue(to, out var tagging)) newer[to] = tagging = [];
-                tagging.Add(id);
-            }
-        var output = new List<string>();
-        var placed = new HashSet<string>();
-        void Place(string root)
-        {
-            // A stack, not recursion, so a long chain does not overflow; `placed` keeps a loop from repeating.
-            var stack = new Stack<string>([root]);
-            while (stack.Count > 0)
-            {
-                var id = stack.Pop();
-                if (!placed.Add(id)) continue;
-                output.Add(id);
-                if (newer.TryGetValue(id, out var below)) for (var i = below.Count - 1; i >= 0; i--) stack.Push(below[i]);
-            }
-        }
-        foreach (var id in ids)
-        {
-            if (placed.Contains(id)) continue;
-            var group = new HashSet<string> { id }; // everything joined to it by a tag, either way round
-            var queue = new Queue<string>([id]);
-            while (queue.Count > 0)
-            {
-                var member = queue.Dequeue();
-                var joined = new List<string>();
-                if (Target(member) is { } up) joined.Add(up);
-                if (newer.TryGetValue(member, out var down)) joined.AddRange(down);
-                foreach (var next in joined)
-                    if (group.Add(next)) queue.Enqueue(next);
-            }
-            var members = ids.Where(group.Contains).ToList();
-            foreach (var m in members.Where(m => Target(m) is null).Concat(members)) Place(m);
-        }
-        return output;
+        public readonly Dictionary<string, FolderNode> Folders = [];
+
+        public readonly List<FlowRef> Flows = [];
+
+        public int Inside => Flows.Count + Folders.Values.Sum(f => f.Inside);
     }
 
-    /// <summary>The flows that play in <paramref name="view"/>, and all the others grouped by the view they play in, in tree order. Partners are listed together (see <see cref="WithPartners"/>).</summary>
-    public static FlowGroups Groups(Model model, string view, bool editing = false)
+    /// <summary>
+    /// The Flows list: the flows as the folders they are filed in, a folder before the flows beside it, the folders by name and the flows by file name. Only the folders that hold a flow the filter lets through are
+    /// listed, and a folder in <see cref="FlowListOptions.Closed"/> shows no rows below it. A flow whose view can't open is left out, as in the tree. A port of <c>flowList</c> in src/core/outline.ts.
+    /// </summary>
+    public static FlowList FlowList(Model model, FlowListOptions? options = null)
     {
+        var (editing, query, tags, closed) = options ?? new FlowListOptions();
         var tree = TreeOf(model, editing);
         var linked = LinkedFlows(model);
-        FlowRef Ref(string id)
+        var playable = tree.FlowsIn.Values.SelectMany(ids => ids).ToHashSet();
+        var refs = model.Flows.Keys.Where(playable.Contains).Select(id =>
         {
             var flow = model.Flows[id];
-            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View, linked.Contains(id));
-        }
-        List<FlowRef> Listed(string v) => WithPartners(model, tree.FlowsIn.TryGetValue(v, out var own) ? own : []).Select(Ref).ToList();
-        var here = Listed(view);
-        var elsewhere = new List<FlowGroup>();
-        foreach (var v in new[] { Names.Root }.Concat(tree.Preorder))
+            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View, linked.Contains(id), model.FolderOf(id), flow.Tags);
+        }).ToList();
+        refs.Sort((a, b) => ByName(a.Id, b.Id) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a.Id, b.Id)));
+
+        var counts = new Dictionary<string, (string Tag, int Count)>();
+        foreach (var flow in refs)
+            foreach (var tag in flow.Tags)
+                counts[Names.TagKey(tag)] = counts.TryGetValue(Names.TagKey(tag), out var known) ? (known.Tag, known.Count + 1) : (tag, 1);
+        var offered = counts.Values.OrderBy(t => t, Comparer<(string Tag, int Count)>.Create((a, b) =>
+            b.Count != a.Count ? b.Count.CompareTo(a.Count) : ByName(a.Tag, b.Tag) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a.Tag, b.Tag)))).Select(t => new FlowTag(t.Tag, t.Count)).ToList();
+
+        var needle = Lower(JsCompat.JsTrim(query));
+        var wanted = (tags ?? []).Select(Names.TagKey).ToHashSet();
+        bool Keep(FlowRef f) =>
+            (needle == "" || new[] { f.Name, f.Id, f.Folder }.Concat(f.Tags).Any(text => Lower(text).Contains(needle, StringComparison.Ordinal))) && (wanted.Count == 0 || f.Tags.Any(t => wanted.Contains(Names.TagKey(t))));
+        var filtering = needle != "" || wanted.Count > 0;
+
+        var top = new FolderNode();
+        var shown = refs.Where(Keep).ToList();
+        foreach (var flow in shown)
         {
-            if (v == view || !tree.FlowsIn.ContainsKey(v)) continue;
-            var path = Views.Chain(model, v).AsEnumerable().Reverse().Skip(1).Select(id => Views.NameOf(model, id)).ToList();
-            elsewhere.Add(new FlowGroup(v, Views.NameOf(model, v), path, Listed(v)));
+            var at = top;
+            if (flow.Folder != "")
+                foreach (var name in flow.Folder.Split('/'))
+                {
+                    if (!at.Folders.TryGetValue(name, out var inner)) at.Folders[name] = inner = new FolderNode();
+                    at = inner;
+                }
+            at.Flows.Add(flow);
         }
-        return new FlowGroups(here, elsewhere, here.Count + elsewhere.Sum(g => g.Flows.Count));
+
+        var rows = new List<FlowRow>();
+        void Emit(FolderNode at, string path, int depth)
+        {
+            var names = at.Folders.Keys.ToList();
+            names.Sort((a, b) => ByName(a, b) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a, b)));
+            foreach (var name in names)
+            {
+                var inner = at.Folders[name];
+                var here = path == "" ? name : $"{path}/{name}";
+                var open = filtering || !(closed?.Contains(here) ?? false);
+                rows.Add(new FolderRow($"folder:{here}", here, name, depth, inner.Inside, open));
+                if (open) Emit(inner, here, depth + 1);
+            }
+            foreach (var flow in at.Flows) rows.Add(new FlowItemRow($"flow:{flow.Id}", flow, depth));
+        }
+        Emit(top, "", 0);
+        return new FlowList(rows, offered, refs.Count, shown.Count);
     }
 
     /// <summary>What a key does in the tree, as in any tree view: arrows move, → opens or steps in, ← closes or steps out, Enter picks. Keys are named as in the browser: ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Home, End, Enter.</summary>

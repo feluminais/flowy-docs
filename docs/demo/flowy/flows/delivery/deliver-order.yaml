@@ -1,0 +1,23 @@
+name: A courier delivers it
+view: delivery
+tags: [happy path]
+steps:
+  - { from: events, to: dispatch, text: Receives the placed event, animation: { kind: callback, trigger: outside, carries: placed } }
+  - { from: dispatch, to: fleet-db, text: Finds idle couriers near the restaurant, animation: { kind: call, carries: who is idle } }
+  - from: dispatch
+    text: Ranks them by estimated arrival
+    description: |
+      The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The
+      quickest gets the first offer.
+  - { from: dispatch, to: notifier, text: Sends the offer as a push, animation: { kind: send, carries: offer, effect: bounce } }
+  - { from: courier, to: courier-app, text: Accepts within 30 seconds, animation: { kind: send, carries: accept } }
+  - from: courier-app
+    to: tracking
+    text: Streams its position every 5 seconds
+    animation: { kind: send, carries: position, effect: pulse }
+    flow: follow-the-courier
+    description: |
+      Only while a job is open. Positions older than 1 min are dropped, so a courier who loses
+      signal freezes on the map until a fresh position arrives.
+  - { from: tracking, to: customer-app, text: The customer's map follows the courier, animation: { kind: send, carries: position } }
+  - { from: courier-app, to: order-api, text: Marks the order delivered, animation: { kind: call, carries: delivered } }

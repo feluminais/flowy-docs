@@ -1,0 +1,6 @@
+name: Top level
+view: shop
+tags: [happy path]
+steps:
+  - { from: web, to: api, text: Sends it }
+  - { from: api, to: web, text: Answers }

@@ -1,4 +1,4 @@
-import { useImperativeHandle, useRef } from 'react'
+import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import type { Ref } from 'react'
 import { ReactFlow } from '@xyflow/react'
 import type { ColorMode, FitViewOptions } from '@xyflow/react'
@@ -7,15 +7,20 @@ import type { Model } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import type { SideMarks } from '../../src/core/flowdiff.ts'
 import { usesStates } from '../../src/core/states.ts'
+import { ROOT } from '../../src/core/model.ts'
 import type { LineStyle } from '../../src/core/model.ts'
+import { chain, hasChildren, nameOf } from '../../src/core/views.ts'
 import { Box, ChangeMarksContext, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
 import { ZoomControls } from './ZoomControls.tsx'
+import { paneInside, paneLevel, paneUp } from './compare.ts'
 import type { Picked } from './compare.ts'
-import { fitOptions, isStepLine } from './graph.ts'
+import { DOUBLE_CLICK, fitOptions, isStepLine } from './graph.ts'
 import { GroupMarks } from './GroupMarks.tsx'
+import { ChevronRight, Home } from './icons.tsx'
 import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
+import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
 import { usePaneFlow } from './usePaneFlow.ts'
 import type { PaneFlow } from './usePaneFlow.ts'
@@ -30,6 +35,10 @@ export type PaneHandle = {
   play(): void
   replay(): void
   fit(): void
+  /** Whether Esc, Backspace and Z take the pane up a level: it is zoomed into a shape, and not at the top. */
+  inside(): boolean
+  /** Up a level from the one the pane is zoomed to. */
+  up(): void
 }
 
 type Props = {
@@ -68,18 +77,35 @@ type Props = {
 
 /**
  * One flow of a comparison, drawn on its own view with a canvas of its own: its own zoom and pan, and its own player (a card at the foot of the pane), so acting in one pane
- * never moves another. It is the single canvas of the reader (App) cut down to what a flow needs: nothing is dragged, recorded or edited, and a double-click goes nowhere.
+ * never moves another. It is the single canvas of the reader (App) cut down to what a flow needs: nothing is dragged, recorded or edited. A double-click on a shape that opens zooms
+ * this pane into it, as on the single canvas, and the other pane stays where it is; a breadcrumb under the title and Esc, Backspace and Z go back up.
  */
 export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, title, focused, onFocus, onPick, selectedBox, selectedLine, marks, fitKey, colorMode, problems, lines, still, ref }: Props) {
-  const p = usePaneFlow({ model, flowId, startAt, problems, selectedBox, selectedLine, lines, still })
+  const flowView = Object.hasOwn(model.flows, flowId) ? (model.flows[flowId].view ?? ROOT) : ROOT
+  const [zoomed, setZoomed] = useState<string>() // the level the reader zoomed this pane to; none, and it draws its flow's own view
+  const level = paneLevel(model, flowView, zoomed)
+  const p = usePaneFlow({ model, flowId, level, startAt, problems, selectedBox, selectedLine, lines, still })
   const { flow, view, nodes, frame, edges, spots } = p
+  const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a shape that opens, waiting out the double-click window
+  const cancelOpen = () => clearTimeout(opening.current)
+  useEffect(() => cancelOpen, [])
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
   const fit = () => fitNow.current?.({ ...fitOptions(0, true), duration: 300 })
-  useImperativeHandle(ref, () => ({ ...p.keys, fit }))
+  useImperativeHandle(ref, () => ({ ...p.keys, fit, inside: () => paneInside(level, flowView), up: () => setZoomed(paneUp(model, level)) }))
 
   return (
     <section className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={label ?? title} onFocus={onFocus} onPointerDownCapture={onFocus}>
       <h2 className="pane-title" title={title}>{title}</h2>
+      {level !== flowView && (
+        <nav className="crumbs pane-crumbs" aria-label={`Zoom level of ${title}`}>
+          {chain(model, level).reverse().map((id, i) => (
+            <Fragment key={id}>
+              {i > 0 && <ChevronRight size={14} />}
+              <button disabled={id === level} onClick={() => setZoomed(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
+            </Fragment>
+          ))}
+        </nav>
+      )}
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
           <LabelSpots spots={spots}>
@@ -99,7 +125,17 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
                 deleteKeyCode={null}
                 onNodesChange={p.onNodesChange}
                 onNodeClick={(_, node) => {
-                  if (node.type === 'box') onPick({ kind: 'object', id: node.id })
+                  if (node.type !== 'box') return
+                  cancelOpen()
+                  // A click on a shape that opens waits out the double-click window, so the first half of a double-click neither opens its panel nor closes it (that moves the pane under the second click).
+                  if (hasChildren(model, node.id)) opening.current = setTimeout(() => onPick({ kind: 'object', id: node.id }), DOUBLE_CLICK)
+                  else onPick({ kind: 'object', id: node.id })
+                }}
+                onNodeDoubleClick={(_, node) => {
+                  if (node.type !== 'box' || !hasChildren(model, node.id)) return
+                  cancelOpen()
+                  if (selectedBox !== undefined || selectedLine !== undefined) onEmpty() // the zoom replaces the panel this pane had open
+                  setZoomed(node.id)
                 }}
                 onEdgeClick={(_, e) => {
                   if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view })
@@ -129,9 +165,10 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
 
 /** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), and the marks of the stop's group. */
 export function PaneMotions({ p }: { p: PaneFlow }) {
-  const { flow, stop, animated, stepKey, shown, repeat, finished } = p
+  const { flow, stop, animated, stepKey, shown, repeat, finished, open } = p
   return (
     <>
+      {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
       {flow && stop && animated.map(m => (
         <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
       ))}
@@ -142,10 +179,10 @@ export function PaneMotions({ p }: { p: PaneFlow }) {
 
 /** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. With marks, its progress bar marks the steps that differ. */
 export function PanePlayer({ model, p, marks }: { model: Model; p: PaneFlow; marks?: SideMarks }) {
-  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
+  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
   if (!(flow && stop && caption && progress)) return null
   return (
-    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} auto={playing?.auto === true} moving={moving}
+    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} auto={playing?.auto === true} moving={moving}
       changes={marks?.steps} repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
   )
 }

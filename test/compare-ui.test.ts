@@ -1,12 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { emptyModel } from '../src/core/model.ts'
-import type { Flow } from '../src/core/model.ts'
+import type { Flow, FlowyObject, Model } from '../src/core/model.ts'
 import type { Run } from '../src/core/perf/types.ts'
 import { nameOf } from '../src/core/views.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, draftKey, firstLinked, firstLinkedRun, flipped, fromAddress, keepsDrafts, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, pairKey, pairOf, pairOff, partnerChoices, playable, removeNeedsConfirm, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved, withDraft } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, draftKey, firstLinked, firstLinkedRun, flipped, fromAddress, keepsDrafts, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, paneInside, paneLevel, paneUp, pairKey, pairOf, pairOff, partnerChoices, playable, removeNeedsConfirm, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved, withDraft } from '../ui/src/compare.ts'
 import type { Compare, Drafts } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -374,4 +374,29 @@ test("taking a pair's draft out leaves the others, and the page keeps a note whi
   drafts = withDraft(drafts, k1, undefined, '')
   assert.deepEqual([...drafts.keys()], [k2])
   assert.equal(keepsDrafts(drafts), false, 'a draft equal to what the pair holds loses nothing')
+})
+
+const withObjects = (objects: Record<string, [FlowyObject['type'], string]>): Model => ({ ...emptyModel(), objects: Object.fromEntries(Object.entries(objects).map(([id, [type, parent]]) => [id, { type, name: id, in: parent }])) })
+
+test('a pane draws the view of its flow until it is zoomed, and goes back to it when the level it was zoomed to is gone', () => {
+  const model = withObjects({ shop: ['system', 'root'], api: ['app', 'shop'], leaf: ['app', 'api'], lone: ['app', 'root'] })
+  assert.equal(paneLevel(model, 'shop', undefined), 'shop')
+  assert.equal(paneLevel(model, 'shop', 'api'), 'api', 'zoomed into a shape that opens')
+  assert.equal(paneLevel(model, 'shop', 'root'), 'root', 'zoomed out to the top')
+  assert.equal(paneLevel(model, 'shop', 'lone'), 'shop', 'a shape with nothing inside is no level')
+  assert.equal(paneLevel(model, 'shop', 'gone'), 'shop', 'a level an edit took away')
+})
+
+test('Esc takes a pane up only when it is zoomed away from its flow and not at the top', () => {
+  assert.equal(paneInside('shop', 'shop'), false, 'at the view of its flow Esc closes the comparison')
+  assert.equal(paneInside('api', 'shop'), true)
+  assert.equal(paneInside('root', 'shop'), false, 'at the top there is nowhere to go up')
+  assert.equal(paneInside('root', 'root'), false)
+})
+
+test('up from a level is the level above, and the top stays the top', () => {
+  const model = withObjects({ shop: ['system', 'root'], api: ['app', 'shop'] })
+  assert.equal(paneUp(model, 'api'), 'shop')
+  assert.equal(paneUp(model, 'shop'), 'root')
+  assert.equal(paneUp(model, 'root'), 'root')
 })

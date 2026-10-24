@@ -83,6 +83,19 @@ async function sendState(req: IncomingMessage, res: ServerResponse, state: State
   res.end(made.body)
 }
 
+/**
+ * The path a request names: each part of it percent-decoded, since a folder of flows can have a space or an & in its name and the page sends it encoded. A part that does not decode,
+ * or that decodes to a slash or a backslash (a %2f stays a literal character, as in serveUi), makes the whole path unwritable ("").
+ */
+export function writtenPath(encoded: string): string {
+  try {
+    const parts = encoded.split('/').map(decodeURIComponent)
+    return parts.some(p => p.includes('/') || p.includes('\\')) ? '' : parts.join('/')
+  } catch {
+    return ''
+  }
+}
+
 /** PUT /api/file/<path> { version, data } writes a file; DELETE /api/file/flows/<id>.yaml { version } removes a flow. See applyWrite. */
 async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel: string, history?: HistoryApi) {
   const body = await json(req).catch(() => undefined)
@@ -226,7 +239,7 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
         if ((req.method === 'PUT' || req.method === 'DELETE') && url.pathname.startsWith('/api/file/')) {
           // Browsers only let a page send a custom header to its own origin, so other sites can't write.
           if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
-          return await write(dir, req, res, url.pathname.slice('/api/file/'.length), steps)
+          return await write(dir, req, res, writtenPath(url.pathname.slice('/api/file/'.length)), steps)
         }
         const answer = await steps?.handle(req, url)
         if (answer) return send(res, answer.status, answer.body)

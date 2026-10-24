@@ -1,0 +1,326 @@
+{
+  "lineStyle": "straight",
+  "projectName": "",
+  "projectAbout": "",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "calls"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "dup",
+      "name": "Duplicate in billing",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends it",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "folder": "billing"
+    },
+    {
+      "id": "legacy",
+      "name": "A flow with a space in its folder",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends it",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "folder": "Pay & refund",
+      "tags": [
+        "edge case"
+      ]
+    },
+    {
+      "id": "odd-tags",
+      "name": "Odd tags",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends it",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "folder": "tags",
+      "tags": [
+        " leading",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "ok",
+        ""
+      ]
+    },
+    {
+      "id": "overview",
+      "name": "Plays on the top",
+      "view": "root",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends it",
+          "placed": null,
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": null,
+          "ends": "API → Web app"
+        }
+      ],
+      "folder": "tags"
+    },
+    {
+      "id": "pay",
+      "name": "Customer pays",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends it",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "folder": "billing",
+      "tags": [
+        "happy path",
+        "recovery"
+      ]
+    },
+    {
+      "id": "refund",
+      "name": "Refund goes wrong",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends it",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "folder": "billing/refunds",
+      "tags": [
+        "Error path",
+        "error path",
+        "background"
+      ]
+    },
+    {
+      "id": "top",
+      "name": "Top level",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Sends it",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Answers",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        }
+      ],
+      "tags": [
+        "happy path"
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/tags/odd-tags.yaml",
+      "message": "tag \" leading\" must be 1 to 32 characters of text, with no space at either end"
+    },
+    {
+      "file": "flows/tags/odd-tags.yaml",
+      "message": "tag \"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\" must be 1 to 32 characters of text, with no space at either end"
+    },
+    {
+      "file": "flows/tags/odd-tags.yaml",
+      "message": "tag \"\" must be 1 to 32 characters of text, with no space at either end"
+    },
+    {
+      "file": "flows/tags/overview.yaml",
+      "message": "step 1: web → api can't be shown in view \"root\"",
+      "step": 0
+    },
+    {
+      "file": "flows/tags/overview.yaml",
+      "message": "step 2: api → web can't be shown in view \"root\"",
+      "step": 1
+    },
+    {
+      "file": "flows/billing/refunds/refund.yaml",
+      "message": "tag \"error path\" is listed twice"
+    },
+    {
+      "file": "flows/billing/old.yml",
+      "message": "Flowy reads flow files that end in .yaml, so this one is ignored. Rename it to flows/billing/old.yaml."
+    },
+    {
+      "file": "flows/a#b",
+      "message": "Flowy skips this folder, since its name can't be used: use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders."
+    },
+    {
+      "file": "flows/other/dup.yaml",
+      "message": "Flowy reads one flow for each name, and flows/billing/dup.yaml already has \"dup\", so this one is ignored. Rename it."
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api"
+      ],
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "calls",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

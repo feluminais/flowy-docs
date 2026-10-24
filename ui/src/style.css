@@ -374,6 +374,7 @@ svg { flex: none; }
 .player-ends { font-weight: 600; }
 /* How the step's request ended, in the words every other place uses (outcomeLine): a fact the picture can't give, so it is text, with a mark beside it. */
 .player .player-outcome { display: flex; align-items: center; gap: 6px; color: var(--danger); font-weight: 600; }
+.player .player-outcome.channel { color: var(--accent); }
 .player-outcome::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .player-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .player-buttons button:last-child { margin-left: auto; }
@@ -693,6 +694,35 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 @keyframes dial-turn { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes orbit-turn { from { transform: rotate(-60deg); } to { transform: rotate(300deg); } }
 
+/* What a step leaves open: a stream's dots, a listener's bell and a job's arc stay drawn on the later steps (Channels.tsx). Colours are the accent's, so they follow the theme. */
+.channels { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: 2; }
+.channels path, .channel-swatch path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.channels .route { stroke: none; } /* only measured, so the mark knows where the line runs */
+.channels .stream-back, .channel-swatch .stream-back { stroke: var(--bg); stroke-width: 9; stroke-dasharray: 0.1 12; }
+.channels .stream-dots, .channel-swatch .stream-dots { stroke: var(--accent); stroke-width: 5.5; stroke-dasharray: 0.1 12; }
+.channels .tether { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 0.1 7; }
+.channels .disc, .channel-swatch .disc { fill: var(--bg); stroke: var(--accent); stroke-width: 2; }
+.channels .glyph, .channel-swatch .glyph { stroke: var(--accent); stroke-width: 2.2; }
+.channels .ripple { fill: none; stroke: var(--accent); stroke-width: 1.8; opacity: 0; }
+.channels .label { fill: var(--fg); font-size: 12px; font-weight: 600; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+.channel-swatch { display: block; width: 30px; height: 18px; overflow: visible; }
+@media (prefers-reduced-motion: no-preference) {
+  .channels .stream-back, .channels .stream-dots { animation: channel-flow 0.7s linear infinite; }
+  .channels.reverse .stream-back, .channels.reverse .stream-dots { animation-direction: reverse; }
+  .channels .ripple { transform-box: fill-box; transform-origin: center; animation: channel-ripple 2.4s ease-out infinite; }
+  .channels .ripple.later { animation-delay: 1.2s; }
+  .channels.job .ripple { display: none; }
+  .channels .spin { animation: channel-spin 1.4s linear infinite; transform-origin: 0 0; }
+  .channels.opening { animation: channel-in 0.5s ease-out var(--after, 0ms) both; }
+  .channels.closing { animation: channel-out 0.6s ease-in var(--after, 0ms) forwards; }
+}
+@media (prefers-reduced-motion: reduce) { .channels.closing { opacity: 0.4; } }
+@keyframes channel-flow { to { stroke-dashoffset: -12.1; } }
+@keyframes channel-ripple { from { transform: scale(1); opacity: 0.55; } to { transform: scale(2.3); opacity: 0; } }
+@keyframes channel-spin { to { transform: rotate(360deg); } }
+@keyframes channel-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes channel-out { from { opacity: 1; } to { opacity: 0; } }
+
 /* The navigator: a rail of icons on the left edge with a panel of Explorer, Flows, Failures and YAML beside it, and on the right a rail with Details (Navigator.tsx). */
 .stage { flex: 1; display: flex; min-height: 0; }
 .stage > .canvas { min-width: 0; }
@@ -734,14 +764,30 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .navhead { display: flex; justify-content: space-between; margin: 12px 4px 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
 .navhead:first-child { margin-top: 2px; }
 .panel .flow-row, .panel .group-head { width: 100%; justify-content: flex-start; min-height: 32px; text-align: left; }
-.panel .flow-row .name, .panel .group-head .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel .flow-row .name, .panel .group-head .name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel .flow-row { flex-wrap: wrap; row-gap: 0; align-content: center; }
 .panel .flow-row .muted { font-size: 12px; white-space: nowrap; }
 .panel .flow-row[aria-current='true'] { background: var(--tint); color: var(--accent); }
 .panel .flow-row[aria-current='true'] svg { color: inherit; }
 .panel .group-head { color: var(--muted); font-weight: 600; }
 .panel .group-head svg { transition: transform 0.12s; }
 .panel .group-head[aria-expanded='true'] svg { transform: rotate(90deg); }
-.flow-group .flow-row { padding-left: 24px; }
+/* The tags of a flow sit under its name, in its row. In the filter bar and in a flow's form they are buttons: a ring and a tint say which are on. */
+.flow-tags { box-sizing: border-box; flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: 2px 10px; padding: 0 0 4px 23px; }
+.tagword { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; line-height: 16px; color: var(--muted); }
+.tagbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 2px; }
+.panel .tagchip { display: inline-flex; align-items: center; gap: 4px; width: auto; min-height: 24px; padding: 0 9px 0 7px; border: 1px solid var(--line); border-radius: 999px; background: none; color: var(--fg); font-size: 12px; }
+.panel .tagchip .muted { font-size: 11px; }
+.panel .tagchip svg, .tagword svg { flex: none; color: inherit; }
+.panel .tagchip[aria-pressed='true'] { border-color: var(--accent); background: var(--tint); color: var(--accent-ink); }
+.panel .tagchip:hover { border-color: var(--accent); }
+.tagadd { margin-top: 6px; }
+/* Dragging a flow onto a folder in edit mode: the folder (or the flow beside which it lands) is ringed, the flow dragged is faded, and the top of flows/ is a row of its own. */
+.flow-top { display: flex; align-items: center; gap: 8px; min-height: 32px; margin-bottom: 4px; padding: 0 10px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); font-size: 13px; }
+.flow-item.drop, .group-head.folder.drop, .flow-top.drop { background: var(--tint); box-shadow: inset 0 0 0 1px var(--accent); border-radius: 8px; }
+.flow-top.drop { border-color: transparent; color: var(--accent-ink); }
+.flow-item.dragged { opacity: 0.45; }
+.flow-item[draggable='true'] .flow-row { cursor: grab; }
 /* The link mark of a flow in a pair, and the foot that names it. */
 .linked-mark { flex: none; display: inline-flex; align-items: center; color: var(--accent); }
 .panel .flow-row .linked-mark svg, .tree-row .linked-mark svg { color: inherit; top: 0; }
@@ -1150,6 +1196,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .pane.focused { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 .pane-title { flex: none; margin: 0; padding: 7px 12px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pane.focused .pane-title { color: var(--accent); }
+.pane-crumbs { flex: none; padding: 3px 8px; border-bottom: 1px solid var(--line); overflow-x: auto; white-space: nowrap; }
 .pane-canvas { position: relative; flex: 1; min-height: 0; }
 .pane-canvas > .react-flow { position: absolute; inset: 0; }
 .pane.states .box .shape, .pane.states .box .tile, .pane.states .box .box-text { transition: opacity 0.6s ease, filter 0.6s ease; }

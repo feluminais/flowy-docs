@@ -315,6 +315,8 @@ public class NavigationTests
         Assert.Equal(EscapeStep.Flow, Navigation.Escape(false, false, true, true, true, true));
         Assert.Equal(EscapeStep.Panel, Navigation.Escape(false, false, false, true, true, true));
         Assert.Equal(EscapeStep.Compare, Navigation.Escape(false, false, false, false, true, true)); // a panel over a comparison closes first; the comparison before going up a level
+        Assert.Equal(EscapeStep.Back, Navigation.Escape(false, false, false, false, true, false, paneInside: true)); // a pane zoomed into a shape goes up before the comparison closes
+        Assert.Equal(EscapeStep.Panel, Navigation.Escape(false, false, false, true, true, false, paneInside: true));
         Assert.Equal(EscapeStep.Back, Navigation.Escape(false, false, false, false, false, true));
         Assert.Null(Navigation.Escape(false, false, false, false, false, false));
     }

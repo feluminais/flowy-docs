@@ -8,10 +8,10 @@ const ROW = 20 // px: every line is this tall, which is what lets the text be wi
 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 
-/** What a file is called on its tab: the flows without their folder, unless that would read like the model or the layout. */
+/** What a file is called on its tab: the flows by their path inside flows/, unless that would read like the model or the layout. */
 const tabName = (path: string) => {
-  const name = path.slice(path.lastIndexOf('/') + 1)
-  return path.startsWith('flows/') && name !== 'model.yaml' && name !== 'layout.yaml' ? name : path
+  const inside = path.slice('flows/'.length)
+  return path.startsWith('flows/') && inside !== 'model.yaml' && inside !== 'layout.yaml' ? inside : path
 }
 
 export type YamlProps = {

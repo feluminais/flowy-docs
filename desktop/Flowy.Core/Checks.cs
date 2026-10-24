@@ -152,8 +152,18 @@ public static class Checks
 
         foreach (var (fid, f) in model.Flows)
         {
-            void P(string message, int? step = null) => Add(FolderLayout.FlowFile(fid), null, message, step: step);
+            void P(string message, int? step = null) => Add(FolderLayout.FlowFile(fid, model.FolderOf(fid)), null, message, step: step);
             if (!Names.IsValidId(fid)) P($"\"{fid}\" is not a valid flow id: the file name must {Names.IdRule}");
+            if (!Names.IsValidFolder(model.FolderOf(fid))) P($"the folder \"{model.FolderOf(fid)}\" can't be used: {Names.FolderRule}");
+            if (f.TagsRaw is List<object?> tags)
+            {
+                var seenTags = new HashSet<string>();
+                foreach (var tag in tags)
+                {
+                    if (!Names.IsValidTag(tag)) P($"tag {JsCompat.Json((string)tag!)} must be 1 to {Names.MaxTagLength} characters of text, with no space at either end");
+                    else if (!seenTags.Add(Names.TagKey((string)tag!))) P($"tag \"{tag}\" is listed twice");
+                }
+            }
             if (!NonEmpty(f.Name)) P("name is missing");
             var viewOk = Views.IsView(model, f.View);
             if (Missing(f.View)) P("view is missing");
@@ -188,7 +198,7 @@ public static class Checks
                 else if (viewOk && model.GetObject(s.From) is not null && model.GetObject(s.To) is not null && Views.PlaceStep(model, f.View, s.From, s.To) is null)
                     Sp($"{s.From} → {s.To} can't be shown in view \"{f.View}\"");
             }
-            foreach (var finding in Structure.Problems(f, id => model.Flows.Contains(id)).Concat(States.Problems(f, Structure.Stops(f), id => model.GetObject(id) is not null)))
+            foreach (var finding in Structure.Problems(f, id => model.Flows.Contains(id)).Concat(States.Problems(f, Structure.Stops(f), id => model.GetObject(id) is not null)).Concat(Channels.Problems(f, Structure.Stops(f))))
             {
                 if (finding.Step is { } n) P($"{Problem.StepPrefix(n)}{finding.Message}", n);
                 else P(finding.Message);

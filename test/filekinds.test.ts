@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { FILE_KINDS, FOLDER_KINDS, KINDS, WRITTEN_FOLDERS, idOfPath, isAllowedPath, isRemovableFile, kindOfPath, pathOf } from '../src/core/filekinds.ts'
+import { FILE_KINDS, FOLDER_KINDS, KINDS, WRITTEN_FOLDERS, folderUnder, idOfPath, idUnder, isAllowedPath, isRemovableFile, kindOfPath, pathOf } from '../src/core/filekinds.ts'
 import type { FolderKind } from '../src/core/filekinds.ts'
 import { emptyModel } from '../src/core/model.ts'
 import { fileData, modelFiles, parseFile, serializeFile } from '../src/core/modelfiles.ts'
@@ -14,6 +14,19 @@ test('every folder kind turns an id into a path and back', () => {
       assert.equal(kindOfPath(path), kind)
     }
   }
+})
+
+test('where files nest, the id is the file name and the folder is what is between', () => {
+  const flow = FILE_KINDS.flow
+  assert.equal(pathOf(flow, 'refund', 'payments/stripe'), 'flows/payments/stripe/refund.yaml')
+  assert.equal(idOfPath(flow, 'flows/payments/stripe/refund.yaml'), 'refund')
+  assert.equal(idUnder(flow, 'flows/payments/stripe/refund.yaml'), 'refund')
+  assert.equal(folderUnder(flow, 'flows/payments/stripe/refund.yaml'), 'payments/stripe')
+  assert.equal(folderUnder(flow, 'flows/refund.yaml'), '')
+  assert.equal(idOfPath(flow, 'flows/payments/.yaml'), undefined)
+  // A kind whose files do not nest keeps the whole rest of the path as its id, which is never a valid one.
+  assert.equal(idOfPath(FILE_KINDS.failure, 'failures/a/b.yaml'), 'a/b')
+  assert.equal(folderUnder(FILE_KINDS.failure, 'failures/a/b.yaml'), '')
 })
 
 test('a path that is not <folder>/<id>.yaml has no id', () => {
@@ -39,7 +52,9 @@ test('isAllowedPath and isRemovableFile agree with the registry', () => {
       assert.equal(isRemovableFile(rel), kind.removable, rel)
     }
     if (kind.folder !== undefined) {
-      for (const id of ['A', 'a/b', '', 'root']) assert.equal(isAllowedPath(pathOf(kind, id)), false, pathOf(kind, id))
+      for (const id of ['A', '', 'root']) assert.equal(isAllowedPath(pathOf(kind, id)), false, pathOf(kind, id))
+      // Only a folder kind whose files nest takes a file in a folder, and the id is the file's name.
+      assert.equal(isAllowedPath(pathOf(kind, 'a', 'x/y')), kind.writable && kind.nested, pathOf(kind, 'a', 'x/y'))
     }
   }
   for (const rel of [undefined, null, 3, {}]) assert.equal(isAllowedPath(rel), false)

@@ -4,8 +4,10 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { dumpBeats } from './beats.ts'
+import { dumpChannels } from './channels.ts'
 import { dumpCompareChoices, dumpCompareUi, dumpFlowDiffs, dumpRunCompareText, dumpSwapPlans } from './compare.ts'
 import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
+import { dumpFolderRules } from './folders.ts'
 import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
 import { dumpEditLabels } from './editlabel.ts'
@@ -33,6 +35,7 @@ const write = async (name: string, data: unknown) => {
 }
 
 for (const [name, dir] of Object.entries(fixtureDirs())) await write(name, await dumpFolder(dir))
+await write('folder-rules', dumpFolderRules())
 await write('geometry', dumpGeometry())
 await write('appearance', await dumpLook())
 await write('placement', await dumpLayout())
@@ -54,6 +57,7 @@ await write('failures-view', await dumpFailuresView())
 await write('stops', await dumpStops())
 await write('captions', await dumpCaptions())
 await write('state-folds', await dumpStates())
+await write('channel-folds', await dumpChannels())
 await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
 await write('detect', dumpDetect())

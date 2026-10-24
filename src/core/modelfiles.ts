@@ -1,8 +1,8 @@
 import { Document, isMap as isYamlMap, visit } from 'yaml'
 import { compactEntries } from './data.ts'
-import { FILE_KINDS, FOLDER_KINDS, idUnder, kindOfPath, pathOf } from './filekinds.ts'
+import { FILE_KINDS, FOLDER_KINDS, folderUnder, idUnder, kindOfPath, pathOf } from './filekinds.ts'
 import type { WrittenKind } from './filekinds.ts'
-import { ParseError, orEmpty } from './model.ts'
+import { folderOf, ParseError, orEmpty } from './model.ts'
 import type { Analysis, Connection, Flow, Layout, Mode, Model } from './model.ts'
 import { isMap, own, plainNumber } from './text.ts'
 import { dump, quoteBlankFirstLines, readYaml } from './yamltext.ts'
@@ -44,14 +44,16 @@ export function parseModelFile(text: string): Pick<Model, 'objects' | 'connectio
   return { objects: objects as Model['objects'], connections: connections as Connection[], meta }
 }
 
-/** Checks the file's shape only. An empty file gives `{ steps: [] }`; check() reports what's missing. */
-export function parseFlowFile(id: string, text: string): Flow {
-  const file = pathOf(FILE_KINDS.flow, id)
+/** Checks the file's shape only. An empty file gives `{ steps: [] }`; check() reports what's missing. `folder` is where the file is, for the messages. */
+export function parseFlowFile(id: string, text: string, folder = ''): Flow {
+  const file = pathOf(FILE_KINDS.flow, id, folder)
   const doc = orEmpty(readYaml(file, text), {})
   if (!isMap(doc)) throw new ParseError(file, 'expected a mapping with "name", "view" and "steps"')
   checkEntry(file, 'flow', doc, TEXT_FIELDS.flow)
   const steps = orEmpty(doc.steps, [])
   if (!Array.isArray(steps)) throw new ParseError(file, '"steps" must be a list')
+  const tags = orEmpty(doc.tags, undefined)
+  if (tags !== undefined && (!Array.isArray(tags) || tags.some(t => typeof t !== 'string'))) throw new ParseError(file, '"tags" must be a list of words')
   steps.forEach((s, i) => checkEntry(file, `step ${i + 1}`, s, TEXT_FIELDS.step))
   const groups = orEmpty(doc.groups, undefined)
   if (groups !== undefined) {
@@ -129,25 +131,29 @@ export function parseLayoutFile(text: string): Layout {
  * `get` is the file's content as plain data, the way serializeFile and PUT /api/file take it. `all` is a folder kind's files by id.
  */
 type Ops = {
-  parse: (id: string, text: string) => unknown
+  parse: (id: string, text: string, folder: string) => unknown
   serialize: (data: unknown) => string
   get: (m: Model, id: string) => unknown
   all?: (m: Model) => Record<string, unknown>
+  /** Where a file sits under its kind's folder: for a kind whose files nest. */
+  where?: (m: Model, id: string) => string
 }
 
 const OPS: Record<WrittenKind, Ops> = {
   // For model.yaml that's the file's own top-level keys, not the { objects, connections, meta } that parseModelFile returns.
   model: { parse: (_, text) => parseModelFile(text), serialize: dumpModel, get: m => ({ ...m.meta, objects: m.objects, connections: m.connections }) },
   layout: { parse: (_, text) => parseLayoutFile(text), serialize: data => serializeLayout(data as Layout), get: m => m.layout },
-  flow: { parse: parseFlowFile, serialize: dump, get: (m, id) => m.flows[id], all: m => m.flows },
+  flow: { parse: parseFlowFile, serialize: dump, get: (m, id) => m.flows[id], all: m => m.flows, where: folderOf },
   failure: { parse: parseAnalysisFile, serialize: dump, get: (m, id) => m.failures[id], all: m => m.failures },
 }
 
-/** The ops for a path and the id it names. Anything that is not a file Flowy writes is read as a flow. */
-function target(rel: string): { ops: Ops; id: string } {
+/** The ops for a path, the id it names and the folder it is in. Anything that is not a file Flowy writes is read as a flow. */
+function target(rel: string): { ops: Ops; id: string; folder: string } {
   const kind = kindOfPath(rel)
-  if (kind === undefined || !kind.writable) return { ops: OPS.flow, id: idUnder(FILE_KINDS.flow, rel) }
-  return { ops: OPS[kind.kind as WrittenKind], id: kind.folder === undefined ? '' : idUnder(kind, rel) }
+  if (kind === undefined || !kind.writable) return { ops: OPS.flow, id: idUnder(FILE_KINDS.flow, rel), folder: folderUnder(FILE_KINDS.flow, rel) }
+  return kind.folder === undefined
+    ? { ops: OPS[kind.kind as WrittenKind], id: '', folder: '' }
+    : { ops: OPS[kind.kind as WrittenKind], id: idUnder(kind, rel), folder: folderUnder(kind, rel) }
 }
 
 /**
@@ -185,10 +191,10 @@ export function serializeLayout(layout: Layout): string {
   return doc.toString({ lineWidth: 0, flowCollectionPadding: false })
 }
 
-/** Parse one file of the folder, picked by its path (model.yaml, layout.yaml, flows/<id>.yaml or failures/<id>.yaml). Throws ParseError. */
+/** Parse one file of the folder, picked by its path (model.yaml, layout.yaml, flows/<id>.yaml, a flow in a folder of flows, or failures/<id>.yaml). Throws ParseError. */
 export function parseFile(rel: string, text: string): ReturnType<typeof parseModelFile> | Layout | Flow | Analysis {
-  const { ops, id } = target(rel)
-  return ops.parse(id, text) as ReturnType<typeof parseModelFile> | Layout | Flow | Analysis
+  const { ops, id, folder } = target(rel)
+  return ops.parse(id, text, folder) as ReturnType<typeof parseModelFile> | Layout | Flow | Analysis
 }
 
 /**
@@ -204,7 +210,7 @@ export function modelFiles(m: Model): Record<string, string> {
   const files: Record<string, string> = { [FILE_KINDS.model.file]: serializeModelFile(m) }
   for (const kind of FOLDER_KINDS) {
     const ops = kind.writable ? OPS[kind.kind as WrittenKind] : undefined
-    if (ops?.all) for (const [id, data] of Object.entries(ops.all(m))) files[pathOf(kind, id)] = ops.serialize(data)
+    if (ops?.all) for (const [id, data] of Object.entries(ops.all(m))) files[pathOf(kind, id, ops.where?.(m, id))] = ops.serialize(data)
   }
   return files
 }

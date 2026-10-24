@@ -29,7 +29,7 @@ internal sealed partial class ReaderView
     private KeyState KeyStateNow(bool inNavigator) => new(
         Editing, ReadOnly, _undoMove, _search is not null, _shortcuts is not null, _side is Side.Boxes, Recording is not null,
         PlayingFlow() is not null, Comparing, Comparing && _compare is { Mode: "swap" }, ComparingRuns, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
-        ShownTab is not null, _navUsed, inNavigator, RightOpen, CurrentView() != Names.Root);
+        ShownTab is not null, _navUsed, inNavigator, RightOpen, CurrentView() != Names.Root, ComparingFlows && _compareView is { } view && view.Target.Inside);
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
@@ -68,12 +68,22 @@ internal sealed partial class ReaderView
     /// <summary>Up a level on purpose (Z, Backspace, the breadcrumb): Esc has nothing to go back to from there.</summary>
     private void Up()
     {
+        if (ComparingFlows && _compareView is { } view)
+        {
+            view.Target.Up(); // a pane of a comparison goes up from where it is zoomed to
+            return;
+        }
         if (_folder is { } folder) JumpTo(Views.ParentOf(folder.Model, CurrentView()));
     }
 
     /// <summary>Esc: back to the level the reader came from, or up a level when they did not come from one.</summary>
     private void Back()
     {
+        if (ComparingFlows && _compareView is { } view)
+        {
+            view.Target.Up();
+            return;
+        }
         if (_folder is not { } folder) return;
         var here = CurrentView();
         var came = Levels.CameBack(_levels, here, id => id == Names.Root || CanOpen(id));

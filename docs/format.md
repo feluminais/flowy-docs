@@ -11,10 +11,12 @@ A model is a folder, `flowy/` by default, next to the code it describes.
 | File | Holds | Written by |
 | --- | --- | --- |
 | `model.yaml` | The shapes (`objects`), the lines between them (`connections`) and project settings | You, an AI, the canvas |
-| `flows/<id>.yaml` | One flow: a walkthrough of something happening | You, an AI, the canvas |
+| `flows/<id>.yaml` | One flow: a walkthrough of something happening. It can sit in folders inside `flows/` | You, an AI, the canvas |
 | `failures/<id>.yaml` | One failure analysis | You, an AI, the canvas |
 | `perf/<id>.yaml` | One load-test run | A tool. Flowy reads it, and writes only its `compare` |
 | `layout.yaml` | Where shapes were dragged | The canvas. Don't write it |
+
+A flow's file can sit in folders inside `flows/` (`flows/payments/refund.yaml`), and the folders are yours to arrange. The id is the file name alone, so no two flows share one whatever their folders, and a flow moved to another folder keeps its id. A folder name may hold letters, digits, spaces and most marks, but not `\ / : * ? " < > | # %`; it can't start with a dot (such a folder is left alone), end in a dot or a space, or be longer than 64 characters, and folders nest six deep at most. `flowy check` lists a folder it skips and a name that two files share.
 
 A file name that ends in `.yml` is ignored, and `flowy check` says so. An `<id>` is lowercase letters, digits and dashes, not starting with a dash, and
 `root` is taken. The same rule holds for an object's id in `model.yaml`.
@@ -75,6 +77,7 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `steps` | A list of steps, at least one |
 | `groups` | A mapping of group id to group ([the guide](guide/flows.md#repeats-branches-and-parallel-steps)) |
 | `states` | Where shapes stand before step 1: a mapping of object id to a state |
+| `tags` | A list of words that say what kind of walkthrough it is, up to 32 characters each, such as `happy path`, `error path`, `edge case`, `recovery` and `background`. Any word works, and a word counts once whatever its case |
 | `compare` | The id of the older flow this one is compared with, or `{ with: <id>, note: "text" }` with a line on what changed. The holder is the newer one. It can't name this flow, and the id has to be a flow |
 
 ### A step
@@ -107,6 +110,10 @@ An **animation** is a kind, `send`, `call`, `callback` or `event`, or a mapping 
 | `by` | For `intercepted`: a shape id that is not an end of the step, or `{ name: ... }` of up to 24 characters |
 | `at` | For `lost`: how far along the line, 0.1 to 0.9 |
 | `effect` | `squish`, `bounce`, `pulse` or `wiggle`: what the moving label does on its way, just for fun, without bending its shape. Leave it out for none |
+| `opens` | `stream`, `listener` or `job`: what the step leaves open once its request has arrived. It stays drawn on the later steps until a step closes it ([the guide](guide/flows.md#streams-listeners-and-jobs)). Not with an `outcome` |
+| `name` | With `opens`: a name of up to 24 characters, so a later step can close it |
+| `towards` | With `opens`: `from` or `to`, the end of the line it points at. A stream flows to `to` and a job runs on `to`; a listener sits at `from` |
+| `closes` | The `name` of a channel an earlier step opened. It goes after this step. Not with `opens` or an `outcome` |
 
 ### A group
 
@@ -133,7 +140,7 @@ A **mode** is one way a part fails:
 
 | Key | Takes |
 | --- | --- |
-| `mode` | The condition, as a fact: "Stripe doesn't answer within five seconds". Required |
+| `mode` | The condition, as a fact: "Stripe doesn't answer within 5 s". Required |
 | `on` | The id of the object that fails. Give this, or `from` and `to`, not both |
 | `from`, `to` | For a line: it must be a connection in the model, in that direction |
 | `effect`, `cause` | What a person or another part then sees, and why it happens |

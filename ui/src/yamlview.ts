@@ -1,4 +1,5 @@
 import type { StepFile, StepInfo, StepSource } from '../../src/core/history.ts'
+import { FILE_KINDS, idOfPath } from '../../src/core/filekinds.ts'
 import { diffLines } from '../../src/core/linediff.ts'
 
 /** One line of the text the YAML tab shows. A `note` stands in for text that cannot be shown. */
@@ -14,8 +15,8 @@ export function fileOrder(paths: string[]): string[] {
 
 /** The file to show first: the open flow's, else the model, else the first there is. */
 export function defaultFile(paths: string[], context: { flow?: string }): string {
-  const flow = context.flow === undefined ? undefined : `flows/${context.flow}.yaml`
-  if (flow !== undefined && paths.includes(flow)) return flow
+  const flow = context.flow === undefined ? undefined : paths.find(p => idOfPath(FILE_KINDS.flow, p) === context.flow)
+  if (flow !== undefined) return flow
   if (paths.includes('model.yaml')) return 'model.yaml'
   return fileOrder(paths)[0] ?? 'model.yaml'
 }

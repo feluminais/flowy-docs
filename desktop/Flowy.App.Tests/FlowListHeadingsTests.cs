@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Flowy.App.Tests;
 
-/// <summary>What the Flows list calls its two parts, on the Plum demo: the flows that play on the view you are on, and all the others.</summary>
+/// <summary>What the Flows list shows, on the Plum demo: the flows under the folders they are filed in, and the key for a flow in a pair.</summary>
 public class FlowListHeadingsTests
 {
     private static (Window Window, ReaderView Reader) Open()
@@ -30,15 +30,85 @@ public class FlowListHeadingsTests
     }
 
     [AvaloniaFact]
-    public void The_flows_on_this_view_come_under_This_view_and_the_rest_under_Other_views()
+    public void The_flows_come_under_the_folders_they_are_filed_in()
     {
         var (window, reader) = Open();
-        reader.GoTo("delivery");
         reader.ClickRail(PanelTab.Flows);
         var texts = Texts(window, reader);
-        Assert.Contains("THIS VIEW", texts);
-        Assert.Contains("OTHER VIEWS", texts);
-        Assert.DoesNotContain(texts, t => t.StartsWith("IN ", StringComparison.Ordinal) || t == "EVERYWHERE ELSE");
+        foreach (var folder in new[] { "delivery", "ordering", "payments", "stripe" }) Assert.Contains(folder, texts);
+        Assert.DoesNotContain("THIS VIEW", texts);
+        Assert.DoesNotContain("OTHER VIEWS", texts);
+        var listed = reader.Navigator.Flows.Listed;
+        Assert.Contains(listed, f => f.Id == "stripe-outage" && f.Folder == "payments/stripe");
+        Assert.True(listed.Select(f => f.Folder).Distinct().Count() > 2);
+    }
+
+    [AvaloniaFact]
+    public void Clicking_a_folder_folds_it_and_the_flows_in_it_leave_the_list()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        window.UpdateLayout();
+        var flows = reader.Navigator.Flows;
+        Assert.Contains(flows.Listed, f => f.Folder == "payments/stripe");
+        var folder = flows.GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == "payments/stripe");
+        folder.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.DoesNotContain(flows.Listed, f => f.Folder == "payments/stripe");
+        Assert.Contains(flows.Listed, f => f.Folder == "payments");
+    }
+
+    [AvaloniaFact]
+    public void The_tags_in_use_are_buttons_with_a_count_and_the_most_used_come_first()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        window.UpdateLayout();
+        var flows = reader.Navigator.Flows;
+        Assert.Equal(["error path:9", "happy path:7", "edge case:3", "background:2", "recovery:2"], flows.TagButtons.Select(t => $"{t.Tag}:{t.Count}"));
+        var buttons = flows.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("tagchip")).ToList();
+        Assert.Equal(5, buttons.Count);
+        Assert.Equal(20, flows.Listed.Count);
+    }
+
+    [AvaloniaFact]
+    public void Pressing_a_tag_keeps_the_flows_that_have_it_and_pressing_it_again_lets_them_back()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        var flows = reader.Navigator.Flows;
+        flows.ToggleTag("Error Path"); // whatever the case
+        Dispatcher.UIThread.RunJobs();
+        window.UpdateLayout();
+        Assert.Equal(9, flows.Listed.Count);
+        Assert.All(flows.Listed, f => Assert.Contains("error path", f.Tags));
+        Assert.Contains("9 of 20 flows", Texts(window, reader));
+        var chip = flows.GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == "error path");
+        Assert.Contains("on", chip.Classes);
+        flows.ToggleTag("recovery"); // any of the tags: every recovery flow is an error path as well
+        Assert.Equal(9, flows.Listed.Count);
+        flows.ToggleTag("error path");
+        Assert.Equal(2, flows.Listed.Count);
+        flows.ToggleTag("recovery");
+        Assert.Equal(20, flows.Listed.Count);
+        Assert.Empty(flows.PickedTags);
+    }
+
+    [AvaloniaFact]
+    public void A_flow_row_has_its_tags_under_its_name_and_the_search_finds_a_tag_or_a_folder()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Flows);
+        Assert.Contains("happy path", Texts(window, reader));
+        reader.Navigator.Flows.Filter = "background";
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(["announce-order", "stripe-webhook"], reader.Navigator.Flows.Listed.Select(f => f.Id).Order());
+        reader.Navigator.Flows.Filter = "stripe";
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(["payments", "payments/stripe"], reader.Navigator.Flows.Folders.Select(f => f.Path));
+        reader.Navigator.Flows.ToggleTag("happy path");
+        Assert.Empty(reader.Navigator.Flows.Listed);
+        Assert.Contains("No flow matches “stripe”.", Texts(window, reader));
     }
 
     [AvaloniaFact]
@@ -52,14 +122,14 @@ public class FlowListHeadingsTests
     }
 
     [AvaloniaFact]
-    public void A_view_with_no_flow_of_its_own_says_so_without_counting_the_others_again()
+    public void A_filter_with_no_match_says_so()
     {
         var (window, reader) = Open();
-        reader.GoTo("notifications");
         reader.ClickRail(PanelTab.Flows);
+        reader.Navigator.Flows.Filter = "zzz no flow has this";
+        Dispatcher.UIThread.RunJobs();
         var texts = Texts(window, reader);
-        Assert.Contains("No flows on this view.", texts);
-        Assert.DoesNotContain(texts, t => t.Contains("elsewhere", StringComparison.Ordinal));
-        Assert.Contains("OTHER VIEWS", texts); // their number is on this heading
+        Assert.Contains("No flow matches “zzz no flow has this”.", texts);
+        Assert.Empty(reader.Navigator.Flows.Listed);
     }
 }

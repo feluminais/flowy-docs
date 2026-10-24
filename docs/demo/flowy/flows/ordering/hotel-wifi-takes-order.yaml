@@ -1,0 +1,11 @@
+name: Hotel wifi takes the order
+view: ordering
+tags: [error path, edge case]
+steps:
+  - from: customer-app
+    to: order-api
+    text: POST /orders reaches a sign-in page instead
+    animation: { kind: call, outcome: intercepted, by: { name: Hotel wifi portal } }
+    description: |
+      Hotel wifi holds every request until the guest signs in, so the call never reaches the **Order API**.
+  - { from: customer-app, text: Waits for a reply and offers a Retry button }

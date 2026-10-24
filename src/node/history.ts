@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+import type { Dirent } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import {
@@ -10,6 +11,9 @@ import { hashBytes, isAllowedPath, pointsOutside, saveRaw, VersionConflict, WRIT
 import { defaultStateDir, historyKey, openStore } from './history-store.ts'
 
 export type { StepFile, StepView, YamlNow }
+
+/** How many folders deep under a written folder the history looks for files. */
+const MAX_WALK = 8
 
 /** The files a step covers, as they are on disk now: each path's version, and the bytes behind each version. */
 export type Snapshot = { files: Record<string, string>; bytes: Map<string, Uint8Array> }
@@ -101,15 +105,22 @@ export function openHistory(dir: string, options: HistoryOptions): History {
     }
     await add('model.yaml')
     await add('layout.yaml')
-    for (const folder of WRITTEN_FOLDERS) {
-      let names: string[] = []
+    // Flows may sit in folders, so every folder under a written folder is read; a file only counts when Flowy may write it (a folder of flows is one it may).
+    const walk = async (at: string, depth: number): Promise<void> => {
+      let entries: Dirent[] = []
       try {
-        names = (await readdir(join(dir, folder))).sort()
+        entries = (await readdir(join(dir, at), { withFileTypes: true })).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
       } catch (e) {
         if (!ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) throw e
       }
-      for (const name of names) if (isAllowedPath(`${folder}/${name}`)) await add(`${folder}/${name}`)
+      for (const e of entries) {
+        const rel = `${at}/${e.name}`
+        if (e.isDirectory()) {
+          if (depth < MAX_WALK && !e.name.startsWith('.')) await walk(rel, depth + 1)
+        } else if (isAllowedPath(rel)) await add(rel)
+      }
     }
+    for (const folder of WRITTEN_FOLDERS) await walk(folder, 0)
     return { files, bytes }
   }
 

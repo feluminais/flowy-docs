@@ -23,7 +23,7 @@ internal static class Anim
     /// </summary>
     internal static Func<double>? TestClock { get; set; }
 
-    private static double Now() => TestClock?.Invoke() ?? Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
+    internal static double Now() => TestClock?.Invoke() ?? Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
 
     /// <summary>
     /// Calls <paramref name="done"/> after <paramref name="milliseconds"/> and does nothing meanwhile: a pause, which is no animation and so draws no frames. A test that moves the clock by hand

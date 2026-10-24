@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
-import { ANIMATION_KINDS, EFFECTS } from '../core/animation.ts'
+import { ANIMATION_KINDS, CHANNEL_KINDS, EFFECTS } from '../core/animation.ts'
 import { check, newProblems } from '../core/check.ts'
 import { compareOf } from '../core/compare.ts'
 import type { CompareTag } from '../core/compare.ts'
@@ -13,12 +13,12 @@ import { ICON_GROUPS } from '../core/icons.ts'
 import { sideReport } from '../core/layout.ts'
 import type { SideProblem } from '../core/layout.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
-import { getObject, OBJECT_TYPES, projectAbout, projectName, ROOT } from '../core/model.ts'
+import { folderOf, getObject, MAX_TAG_LENGTH, OBJECT_TYPES, projectAbout, projectName, ROOT, tagsOf } from '../core/model.ts'
 import { changedFiles, changedLayout } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { describeDependent } from '../core/dependents.ts'
 import type { Dependent } from '../core/dependents.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare, setProject, tidyViews } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare, setFlowTags, setProject, tidyViews } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
@@ -35,7 +35,7 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, move_flow (the folder a flow's file is in) and tag_flow (the words that label a flow, such as happy path), put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
 - A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the system's name and a short about (put_project), the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
@@ -219,6 +219,8 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }
   const readOnly = { readOnlyHint: true }
   const destructive = { destructiveHint: true }
+  /** A flow as get_model shows it: its keys, and the folder its file is in, which put_flow takes back as `folder`. */
+  const flowShown = (m: Model, fid: string) => ({ ...m.flows[fid], ...(folderOf(m, fid) === '' ? {} : { folder: folderOf(m, fid) }) })
 
   server.registerTool('get_model', {
     description: 'The model: objects, connections, flows, failure analyses, the custom icons put_icon defined (name → SVG path data), the load-test runs (id and name; a failure mode\'s run is one of these ids) and current problems. Everything it shows can be sent back to put_object, put_flow and the failure tools as it is. A big model is a lot to read, so ask for less: summary gives one short line for each thing, and object, flow or analysis gives that one thing in full (an object with its connections, the flows that use it and the failure modes that name it). Give at most one of the four.',
@@ -239,7 +241,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         ...project(m),
         objects,
         connections: m.connections.map(c => `${c.from} → ${c.to}${c.label ? `: ${c.label}` : ''}`),
-        flows: Object.entries(m.flows).map(([fid, f]) => ({ id: fid, name: f.name, view: f.view, steps: f.steps.length, ...withTag(f.compare) })),
+        flows: Object.entries(m.flows).map(([fid, f]) => ({ id: fid, name: f.name, view: f.view, steps: f.steps.length, ...(folderOf(m, fid) === '' ? {} : { folder: folderOf(m, fid) }), ...(tagsOf(f).length === 0 ? {} : { tags: tagsOf(f) }), ...withTag(f.compare) })),
         failures: Object.entries(m.failures).map(([aid, a]) => ({ id: aid, name: a.name, modes: Object.keys(a.modes).length })),
         icons: Object.keys(customIcons(m.meta)),
         runs: runList,
@@ -259,13 +261,13 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     }
     if (flow !== undefined) {
       if (!Object.hasOwn(m.flows, flow)) throw new Error(`unknown flow "${flow}"`)
-      return { id: flow, flow: m.flows[flow], problems: about(p => p.file === `flows/${flow}.yaml`) }
+      return { id: flow, flow: flowShown(m, flow), problems: about(p => p.file === pathOf(FILE_KINDS.flow, flow, folderOf(m, flow))) }
     }
     if (analysis !== undefined) {
       if (!Object.hasOwn(m.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
       return { id: analysis, analysis: m.failures[analysis], problems: about(p => p.file === `failures/${analysis}.yaml`) }
     }
-    return { ...project(m), objects: m.objects, connections: m.connections, flows: m.flows, failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
+    return { ...project(m), objects: m.objects, connections: m.connections, flows: Object.fromEntries(Object.keys(m.flows).map(fid => [fid, flowShown(m, fid)])), failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
   }))
 
   server.registerTool('get_problems', {
@@ -387,8 +389,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   server.registerTool('put_flow', {
     description: 'Create or replace a flow: a step-by-step walkthrough played on one view. Answers with how each step reads there.',
     inputSchema: {
-      id: id('Flow id, also its file name'),
+      id: id('Flow id, also its file name. No two flows share one, whatever folder they are in'),
       name: z.string().describe('Title, e.g. "Customer checks out"'),
+      folder: z.string().max(400).optional().describe('The folder under flows/ the file goes in, as names joined by "/", such as "payments/refunds". Leave it out to keep where the flow is (a new flow goes at the top of flows/); "" moves it to the top. Folders are made as needed.'),
+      tags: z.array(z.string().max(MAX_TAG_LENGTH)).max(24).optional().describe(`Words that label the flow, each up to ${MAX_TAG_LENGTH} characters, such as "happy path", "error path", "edge case" or "recovery". Leave it out to keep the tags the flow has; [] takes them all out.`),
       view: z.string().max(64).describe('"root" or the id of an object with children. Every step must be visible there.'),
       states: stateMap.optional().describe(`Where shapes stand before step 1: shape id to ${STATE_NAMES.join(', ')}. Leave it out for every shape Running (the default). Only for a flow that starts with a shape not running.`),
       groups: z.record(z.string().max(64), z.strictObject({
@@ -408,6 +412,10 @@ export function createMcpServer(dir: string, history?: History): McpServer {
             kind: z.string(), trigger: z.string().optional(), carries: z.string().optional(), outcome: z.string().optional(),
             share: z.union([z.number(), z.string()]).optional(), reason: z.string().optional(),
             by: z.union([z.string(), z.strictObject({ name: z.string() })]).optional(), at: z.union([z.number(), z.string()]).optional(),
+            opens: z.enum(CHANNEL_KINDS).optional().describe('Leaves something open once the request arrives, drawn on the next steps too until a step closes it: stream (data keeps flowing along the line), listener (a shape keeps listening for callbacks) or job (work keeps running on a shape). Only where the story really keeps it open.'),
+            name: z.string().optional().describe('With opens: a short name for the channel (at most 24 characters), so a later step can close it.'),
+            towards: z.enum(['from', 'to']).optional().describe('With opens: the end of the line it points at. A stream flows to "to" and a job runs on "to"; a listener sits at "from". Say it only when the story is the other way round.'),
+            closes: z.string().optional().describe('The name of a channel an earlier step opened; it stops being drawn after this step. The step must arrive (no outcome).'),
             effect: z.enum(EFFECTS).optional().describe('Only for fun: what the moving label does on its way, without bending its shape. Leave it out for the plain default.'),
           }),
         ]).optional().describe(`How the step plays when a reader steps to it: ${ANIMATION_KINDS.join(', ')}, or { kind, trigger: "inside" | "outside" (callback only), carries: a word, outcome (only where the step really ends that way): "fail" (a send or call that is refused) | "timeout" (a call nobody answers) | "lost" (vanishes on the way; at: how far along the line, 0.1 to 0.9) | "rejected" (turned away at the receiver's door) | "intercepted" (taken by a third party, which needs by: a shape id that is not an end of the step, or { name: up to 24 characters }) | "duplicated" (handled twice) | "delayed" (held up on the way), reason: up to 40 characters on why, share: the whole percent of the requests that meet the outcome (1 to 100; leave it out for one request) }. Optional: a step without one does not move.`),
@@ -418,6 +426,22 @@ export function createMcpServer(dir: string, history?: History): McpServer {
       })).min(1),
     },
   }, input => write(m => putFlow(m, input), before => readout(before, input), mcpLabel('put_flow', input))) // a flow changes no box, so `before` places it right
+
+  server.registerTool('move_flow', {
+    description: 'Move a flow into a folder under flows/ (or back to the top), which only changes where its file is: the flow keeps its id, so nothing that names it needs to change. Folders are made as needed and are the reader\'s own way of sorting flows, apart from the views they play on.',
+    inputSchema: {
+      id: id('Flow id'),
+      folder: z.string().max(400).describe('Names joined by "/", such as "payments/refunds". "" puts the flow at the top of flows/.'),
+    },
+  }, input => write(m => moveFlow(m, input.id, input.folder), `Moved flow ${input.id} ${input.folder.trim() === '' ? 'to the top of flows/' : `into ${input.folder}`}.`, mcpLabel('move_flow', input)))
+
+  server.registerTool('tag_flow', {
+    description: 'Set the tags of a flow to exactly these words, or take them all out with []. Tags label what kind of walkthrough it is, such as "happy path" (everything works), "error path" (something fails and the flow shows it), "edge case" (an unusual input or timing) or "recovery" (the system heals itself); any word is allowed. The reader filters flows by them.',
+    inputSchema: {
+      id: id('Flow id'),
+      tags: z.array(z.string().max(MAX_TAG_LENGTH)).max(24).describe('The tags the flow has afterwards, each up to ' + MAX_TAG_LENGTH + ' characters. [] removes them all.'),
+    },
+  }, input => write(m => setFlowTags(m, input.id, input.tags), input.tags.length === 0 ? `Took the tags off flow ${input.id}.` : `Tagged flow ${input.id}: ${input.tags.join(', ')}.`, mcpLabel('tag_flow', input)))
 
   server.registerTool('delete_flow', {
     description: 'Delete a flow.',

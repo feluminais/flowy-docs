@@ -75,15 +75,7 @@ internal sealed class TrafficLayer : Control
     private Viewport _viewport = new(0, 0, 1);
     private bool _running;
     private DateTime _last;
-    private DateTime _drawn;
-    private Window? _window;
-
-    /// <summary>A window that is minimised shows nothing, so nothing of it is worked out; one that is behind another window (not the active one) is drawn a few times a second, enough to see the flow without spending a core on it.</summary>
-    private static readonly TimeSpan IdleFrame = TimeSpan.FromMilliseconds(66);
-
-    private bool Minimised => _window is { WindowState: WindowState.Minimized };
-
-    private bool Behind => _window is { IsActive: false };
+    private readonly WindowFrames _frames = new();
 
     /// <summary>0 to 1: what decides whether a particle fails. A test sets it to be sure of what is drawn.</summary>
     internal Func<double> Rand { get; set; } = Random.Shared.NextDouble;
@@ -159,21 +151,15 @@ internal sealed class TrafficLayer : Control
     private void Start()
     {
         if (_running || TopLevel.GetTopLevel(this) is not { } top) return;
-        if (top is Window window && !ReferenceEquals(window, _window))
+        _frames.Watch(top, () =>
         {
-            if (_window is not null) _window.PropertyChanged -= OnWindowChanged;
-            _window = window;
-            window.PropertyChanged += OnWindowChanged;
-        }
-        if (Minimised) return; // started again when the window comes back (OnWindowChanged)
+            if (_lines.Count > 0) Start();
+        });
+        if (_frames.Minimised) return; // started again when the window comes back
         _running = true;
-        _last = _drawn = DateTime.UtcNow;
+        _last = DateTime.UtcNow;
+        _frames.Drew(_last);
         top.RequestAnimationFrame(Tick);
-    }
-
-    private void OnWindowChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        if (e.Property == Window.WindowStateProperty && _lines.Count > 0) Start();
     }
 
     private void Stop() => _running = false;
@@ -181,19 +167,18 @@ internal sealed class TrafficLayer : Control
     private void Tick(TimeSpan _)
     {
         if (!_running) return;
-        if (Minimised)
+        if (_frames.Minimised)
         {
             _running = false;
             return;
         }
         var now = DateTime.UtcNow;
-        if (Behind && now - _drawn < IdleFrame)
+        if (!_frames.Due(now))
         {
             if (TopLevel.GetTopLevel(this) is { } waiting) waiting.RequestAnimationFrame(Tick);
             else _running = false;
             return;
         }
-        _drawn = now;
         var ms = Math.Min(100, (now - _last).TotalMilliseconds); // a window that was asleep doesn't pour out everything it missed
         _last = now;
         foreach (var d in _lines)
@@ -219,8 +204,7 @@ internal sealed class TrafficLayer : Control
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         Stop();
-        if (_window is not null) _window.PropertyChanged -= OnWindowChanged;
-        _window = null;
+        _frames.Stop();
         base.OnDetachedFromVisualTree(e);
     }
 
@@ -268,8 +252,11 @@ internal sealed class TrafficLayer : Control
         return geometry;
     }
 
-    /// <summary>The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in screen pixels (and a second). Busier is closer together and quicker.</summary>
-    internal static (double Dash, double Gap, double Speed) StripePace(double busy) => (7, 24 - 15 * busy, 16 + 70 * busy);
+    /// <summary>
+    /// The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in the diagram's units (and a second), so they grow and shrink with the line and its
+    /// arrowhead as the diagram is zoomed. Busier is closer together and a good deal quicker: a quiet line crawls and the busiest runs.
+    /// </summary>
+    internal static (double Dash, double Gap, double Speed) StripePace(double busy) => (8, 26 - 18 * busy, 14 + 110 * busy);
 
     /// <summary>Everything but the inside of all these shapes and labels: a line's stripes are cut to it, so they are not seen over a shape it runs behind or into, or over a label on it.</summary>
     private static StreamGeometry OutsideAll(IEnumerable<ShapeCover> shapes, IReadOnlyList<CoreRect> labels)
@@ -366,17 +353,17 @@ internal sealed class TrafficLayer : Control
             {
                 // The calls: stripes moving along the line itself, closer and quicker the more calls there are, with every few of them red for the share of calls that fail.
                 var pace = StripePace(busy);
-                var px = 1 / _viewport.Zoom;
+                const double px = 1; // the diagram's own units: the stripes grow with the line and its arrowhead
                 var moved = _stripeAt.TryGetValue((d.Line.From, d.Line.To, d.Line.Source), out var at) ? at : 0;
-                var thick = (1 + d.Line.Width * 0.25) * px;
+                var thick = Math.Max(2.4, d.Line.Width + 0.9) * px; // a little thicker than the line it runs on, and growing with it, so the two read as one arrow at any zoom
                 var apart = (pace.Dash + pace.Gap) * px;
                 using var cut = context.PushGeometryClip(d.Cut ??= OutsideAll(opening.Concat(d.Behind), d.Labels));
-                using var dim = context.PushOpacity(d.Line.Bare ? 0.45 : 0.9);
+                using var dim = context.PushOpacity(d.Line.Bare ? 0.6 : 0.95);
                 var offset = (d.Line.Offset ?? 0) * 3 * px;
                 if (d.Stripes is null || d.StripesAside != offset) (d.Stripes, d.StripesAside) = (Along(path, offset), offset);
                 var way = d.Stripes;
                 // Avalonia counts a dash in widths of the pen, so the dashes and the offset are divided by the thickness.
-                context.DrawGeometry(null, new Pen(tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way);
+                context.DrawGeometry(null, new Pen(d.Line.Bare ? Brush("FgBrush") : tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way); // a line with no numbers has plain light stripes
                 if (d.Line.Failed > 0)
                 {
                     var every = Math.Max(1, (int)Math.Round(1 / d.Line.Failed));

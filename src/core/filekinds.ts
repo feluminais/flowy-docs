@@ -1,4 +1,4 @@
-import { isValidId } from './model.ts'
+import { isValidFolder, isValidId } from './model.ts'
 
 /**
  * The kinds of file in a project folder, and how a path names one. Every place that needs to know that `flows/<id>.yaml`
@@ -23,6 +23,8 @@ export type FolderKind = {
   readonly file?: never
   /** What one file is called in messages: "flow" in "a valid flow id". */
   readonly noun: string
+  /** Whether the files may sit in folders under `folder`: the id is then the file's name alone, wherever the file is. */
+  readonly nested: boolean
   readonly writable: boolean
   readonly removable: boolean
   /**
@@ -38,10 +40,10 @@ export type KindInfo = SingleFile | FolderKind
 export const FILE_KINDS = {
   model: { kind: 'model', file: 'model.yaml', writable: true, removable: false },
   layout: { kind: 'layout', file: 'layout.yaml', writable: true, removable: false },
-  flow: { kind: 'flow', folder: 'flows', noun: 'flow', writable: true, removable: true, tolerant: false },
-  failure: { kind: 'failure', folder: 'failures', noun: 'analysis', writable: true, removable: true, tolerant: true },
+  flow: { kind: 'flow', folder: 'flows', noun: 'flow', nested: true, writable: true, removable: true, tolerant: false },
+  failure: { kind: 'failure', folder: 'failures', noun: 'analysis', nested: false, writable: true, removable: true, tolerant: true },
   /** Load-test runs: read only. */
-  run: { kind: 'run', folder: 'perf', noun: 'run', writable: false, removable: false, tolerant: true },
+  run: { kind: 'run', folder: 'perf', noun: 'run', nested: false, writable: false, removable: false, tolerant: true },
 } as const satisfies Record<string, KindInfo>
 
 export type FileKind = keyof typeof FILE_KINDS
@@ -56,31 +58,41 @@ export const WRITTEN_FOLDERS: readonly string[] = FOLDER_KINDS.filter(k => k.wri
 
 const EXTENSION = '.yaml'
 
-/** The path of file `id` of a folder kind. */
-export const pathOf = (kind: FolderKind, id: string): string => `${kind.folder}/${id}${EXTENSION}`
+/** The path of file `id` of a folder kind. A kind whose files nest takes the folder the file is in, a path under the kind's folder ("" for the top). */
+export const pathOf = (kind: FolderKind, id: string, sub = ''): string => `${kind.folder}/${sub === '' ? '' : `${sub}/`}${id}${EXTENSION}`
 
 /** The kind a path belongs to: that single file, or anything under a kind's folder. */
 export const kindOfPath = (rel: string): KindInfo | undefined =>
   KINDS.find(k => (k.file !== undefined ? k.file === rel : rel.startsWith(`${k.folder}/`)))
 
-/** The id a path names in this kind's folder (not checked to be a valid id), or undefined when it is not `<folder>/<id>.yaml`. */
+/** The id a path names in this kind's folder (not checked to be a valid id), or undefined when it is not `<folder>/<id>.yaml`. In a folder that nests, the id is the file's name, whatever folder it is in. */
 export function idOfPath(kind: FolderKind, rel: string): string | undefined {
   if (!rel.startsWith(`${kind.folder}/`) || !rel.endsWith(EXTENSION)) return undefined
-  const id = rel.slice(kind.folder.length + 1, -EXTENSION.length)
+  const id = idUnder(kind, rel)
   return id === '' ? undefined : id
 }
 
 /** The id of a path taken as a file of this folder kind, whatever follows the folder: what parseFile and fileData are given. */
-export const idUnder = (kind: FolderKind, rel: string): string => rel.slice(kind.folder.length + 1, -EXTENSION.length)
+export function idUnder(kind: FolderKind, rel: string): string {
+  const inside = rel.slice(kind.folder.length + 1, -EXTENSION.length)
+  return kind.nested ? inside.slice(inside.lastIndexOf('/') + 1) : inside
+}
 
-/** Whether Flowy may write this path: model.yaml, layout.yaml, or `<id>.yaml` with a valid id in a written folder. */
+/** The folder a path is in under the kind's folder: "" at the top, and always for a kind whose files do not nest. */
+export function folderUnder(kind: FolderKind, rel: string): string {
+  if (!kind.nested) return ''
+  const inside = rel.slice(kind.folder.length + 1)
+  return inside.includes('/') ? inside.slice(0, inside.lastIndexOf('/')) : ''
+}
+
+/** Whether Flowy may write this path: model.yaml, layout.yaml, or `<id>.yaml` with a valid id (in a valid folder, where the kind nests) in a written folder. */
 export function isAllowedPath(rel: unknown): rel is string {
   if (typeof rel !== 'string') return false
   const kind = kindOfPath(rel)
   if (!kind?.writable) return false
   if (kind.file !== undefined) return true
   const id = idOfPath(kind, rel)
-  return id !== undefined && isValidId(id)
+  return id !== undefined && isValidId(id) && isValidFolder(folderUnder(kind, rel))
 }
 
 /** Whether this path is a run file, `perf/<id>.yaml` with a valid id. Runs are read only except for their `compare` tag, so isAllowedPath refuses them. */

@@ -1,0 +1,5 @@
+name: In a folder that cannot be used
+view: shop
+steps:
+  - { from: web, to: api, text: Sends it }
+  - { from: api, to: web, text: Answers }

@@ -11,8 +11,8 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// Every flow in the documentation: first those that play in the level you are in, then all the others under the level they play in.
-/// Picking one goes to its level and plays it (or, while editing, opens it for editing). A flow in a pair has a link mark and its partners are listed together; each row has a Compare button.
+/// Every flow in the documentation as the folders it is filed in (the folders under flows/ in the repo), a folder first and then its flows by file name.
+/// Picking one goes to its level and plays it (or, while editing, opens it for editing). The tags in use filter the list, and so does the search. A flow in a pair has a link mark; each row has a Compare button.
 /// </summary>
 internal sealed class FlowsView : Grid
 {
@@ -22,8 +22,11 @@ internal sealed class FlowsView : Grid
 
     private readonly StackPanel _list = new() { Spacing = 0, Margin = new Thickness(0, 0, Inset, 0) };
     private readonly HashSet<string> _closed = [];
+    private readonly List<string> _picked = [];
+    private readonly WrapPanel _tagBar = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, Inset, 0) };
+    /// <summary>How far each level of folders is moved in, and the room a flow keeps before its mark, which lines it up with the mark of its folder.</summary>
+    private const double Indent = 16, Twist = 22;
     private Model? _model;
-    private string _view = Names.Root;
     private bool _editing;
     private string? _current;
     private readonly Border _foot = LinkedKey();
@@ -38,6 +41,23 @@ internal sealed class FlowsView : Grid
 
     /// <summary>Whether the foot with the Linked key shows: a flow in a pair is on the list.</summary>
     internal bool LinkedKeyShown => _foot.IsVisible;
+
+    /// <summary>The tags that filter the list now, as the filter keeps them (lower case).</summary>
+    internal IReadOnlyList<string> PickedTags => _picked;
+
+    /// <summary>The tag buttons on show, with their counts, in the order they are drawn. What a test can look at.</summary>
+    internal IReadOnlyList<FlowTag> TagButtons { get; private set; } = [];
+
+    /// <summary>The folder rows on the list now, in the order they are drawn.</summary>
+    internal IReadOnlyList<FolderRow> Folders { get; private set; } = [];
+
+    /// <summary>Presses a tag button as a click on it does.</summary>
+    internal void ToggleTag(string tag)
+    {
+        var key = Names.TagKey(tag);
+        if (!_picked.Remove(key)) _picked.Add(key);
+        Rebuild();
+    }
 
     /// <summary>The flows on the list now, in the order they are drawn. What a test can look at.</summary>
     internal IReadOnlyList<FlowRef> Listed { get; private set; } = [];
@@ -56,7 +76,7 @@ internal sealed class FlowsView : Grid
 
     public FlowsView()
     {
-        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)];
+        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)];
         RowSpacing = 8;
         Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the list's scroll bar sits on the panel's edge, where the sash is
         var field = Field(_find, Icons.Search);
@@ -70,10 +90,13 @@ internal sealed class FlowsView : Grid
             e.Handled = true;
         };
         var scroll = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
-        SetRow(scroll, 1);
-        SetRow(_foot, 2);
+        SetRow(_tagBar, 1);
+        SetRow(scroll, 2);
+        SetRow(_foot, 3);
         _foot.IsVisible = false;
+        _tagBar.IsVisible = false;
         Children.Add(field);
+        Children.Add(_tagBar);
         Children.Add(scroll);
         Children.Add(_foot);
     }
@@ -139,7 +162,6 @@ internal sealed class FlowsView : Grid
     {
         CompareOff = CompareChoices.Off(model, editing);
         _model = model;
-        _view = view;
         _editing = editing;
         _current = current;
         Rebuild();
@@ -148,16 +170,6 @@ internal sealed class FlowsView : Grid
     private static TextBlock Muted(string text, double size = 12) => new() { Text = text, FontSize = size, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center };
 
     private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
-
-    private Control Heading(string text, int count)
-    {
-        var title = new TextBlock { Text = text.ToUpperInvariant(), FontSize = 11, FontWeight = FontWeight.SemiBold, Classes = { "muted" } };
-        var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Margin = new Thickness(4, 12, 4, 4), Children = { title } };
-        var number = Muted(count.ToString(), 11);
-        SetColumn(number, 1);
-        row.Children.Add(number);
-        return row;
-    }
 
     private Control Row(FlowRef f)
     {
@@ -171,9 +183,21 @@ internal sealed class FlowsView : Grid
         SetColumn(name, 1);
         SetColumn(mark, 2);
         SetColumn(steps, 3);
+        if (f.Tags.Count > 0)
+        {
+            // The tags of the flow sit under its name.
+            grid.RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto)];
+            var words = new WrapPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 0, 4) };
+            foreach (var tag in f.Tags) words.Children.Add(TagWord(tag));
+            SetRow(words, 1);
+            SetColumn(words, 1);
+            SetColumnSpan(words, 3);
+            grid.Children.Add(words);
+        }
         var button = new Button { Content = grid, MinHeight = 32 };
         button.Classes.Add("flowrow");
         button.Classes.Set("current", f.Id == _current);
+        ToolTip.SetTip(button, Views.NameOf(_model!, f.View ?? Names.Root));
         AutomationProperties.SetName(button, f.Name);
         button.Click += (_, _) => Opened?.Invoke(f);
         // The row opens the flow; the Compare button beside it is a control of its own, so neither takes the other's click.
@@ -182,64 +206,95 @@ internal sealed class FlowsView : Grid
         return new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 2, Children = { button, compare } };
     }
 
+    /// <summary>A tag as a small word with the mark of a tag, on a flow's row.</summary>
+    private static Control TagWord(string tag)
+    {
+        var mark = Icons.Make(Icons.Tag, "tagmark", 11);
+        mark.VerticalAlignment = VerticalAlignment.Center;
+        var text = new TextBlock { Text = tag, FontSize = 11, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } };
+        return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, Margin = new Thickness(0, 0, 10, 0), Children = { mark, text } };
+    }
+
+    /// <summary>The tags in use as buttons, each with how many flows have it. Pressing one keeps the flows that have it, or any of those pressed.</summary>
+    private void ShowTags(IReadOnlyList<FlowTag> tags)
+    {
+        TagButtons = tags;
+        _tagBar.Children.Clear();
+        _tagBar.IsVisible = tags.Count > 0;
+        foreach (var t in tags)
+        {
+            var key = Names.TagKey(t.Tag);
+            var mark = Icons.Make(Icons.Tag, "tagmark", 11);
+            mark.VerticalAlignment = VerticalAlignment.Center;
+            var text = new TextBlock { Text = t.Tag, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+            var number = Muted(t.Count.ToString(), 11);
+            var button = new Button { Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { mark, text, number } } };
+            button.Classes.Add("tagchip");
+            button.Classes.Set("on", _picked.Contains(key));
+            AutomationProperties.SetName(button, t.Tag);
+            button.Click += (_, _) => ToggleTag(t.Tag);
+            _tagBar.Children.Add(button);
+        }
+    }
+
+    // The list is Outlines.FlowList: a folder row, then the flows filed in it, indented by Depth.
     private void Rebuild()
     {
         if (_model is null) return;
-        var groups = Outlines.Groups(_model, _view, _editing);
-        var needle = (_find.Text ?? "").Trim().ToLowerInvariant();
-        bool Keep(FlowRef f) => needle == "" || f.Name.ToLowerInvariant().Contains(needle, StringComparison.Ordinal) || f.Id.Contains(needle, StringComparison.Ordinal);
-        var here = groups.Here.Where(Keep).ToList();
-        var elsewhere = groups.Elsewhere.Select(g => (Group: g, Flows: g.Flows.Where(Keep).ToList())).Where(g => g.Flows.Count > 0).ToList();
-        var other = groups.Total - groups.Here.Count;
+        var needle = (_find.Text ?? "").Trim();
+        var list = Outlines.FlowList(_model, new FlowListOptions(_editing, needle, _picked, _closed));
+        // A tag that no flow has any more is no filter: its button is gone, so it could not be let go of.
+        if (_picked.RemoveAll(p => !list.Tags.Any(t => Names.TagKey(t.Tag) == p)) > 0) list = Outlines.FlowList(_model, new FlowListOptions(_editing, needle, _picked, _closed));
+        var filtering = needle != "" || _picked.Count > 0;
         var shown = new List<FlowRef>();
+        var folders = new List<FolderRow>();
 
+        ShowTags(list.Tags);
         _list.Children.Clear();
-        _list.Children.Add(Heading("This view", groups.Here.Count));
-        foreach (var f in here)
+        if (filtering && list.Shown > 0) _list.Children.Add(Note($"{list.Shown} of {Plural(list.Total, "flow")}"));
+        foreach (var row in list.Rows)
         {
-            _list.Children.Add(Row(f));
-            shown.Add(f);
-        }
-        if (groups.Here.Count == 0) { if (groups.Total > 0) _list.Children.Add(Note("No flows on this view.")); }
-        else if (here.Count == 0) _list.Children.Add(Note("No matches."));
-        if (groups.Elsewhere.Count > 0) _list.Children.Add(Heading("Other views", other));
-        foreach (var (group, flows) in elsewhere)
-        {
-            var open = needle != "" || !_closed.Contains(group.View);
-            _list.Children.Add(GroupHead(group, flows.Count, open));
-            if (!open) continue;
-            foreach (var f in flows)
+            if (row is FolderRow folder)
             {
-                var row = Row(f);
-                row.Margin = new Thickness(16, 0, 0, 0);
-                _list.Children.Add(row);
-                shown.Add(f);
+                _list.Children.Add(FolderHead(folder));
+                folders.Add(folder);
+                continue;
             }
+            var item = (FlowItemRow)row;
+            var control = Row(item.Flow);
+            control.Margin = new Thickness(Indent * item.Depth + Twist, 0, 0, 0);
+            _list.Children.Add(control);
+            shown.Add(item.Flow);
         }
-        if (needle != "" && here.Count == 0 && elsewhere.Count == 0) _list.Children.Add(Note($"No flow matches “{needle}”."));
-        if (groups.Total == 0) _list.Children.Add(Note("No flows yet. New flow in the bar starts one."));
+        if (filtering && list.Shown == 0 && list.Total > 0) _list.Children.Add(Note(needle != "" ? $"No flow matches “{needle}”." : "No flow has these tags."));
+        if (list.Total == 0) _list.Children.Add(Note("No flows yet. New flow in the bar starts one."));
+        Folders = folders;
         Listed = shown;
-        _foot.IsVisible = shown.Any(f => f.Linked); // only while a flow in a pair is on the list: one in a group that is folded away is not
+        _foot.IsVisible = shown.Any(f => f.Linked); // only while a flow in a pair is on the list: one in a folder that is folded away is not
     }
 
     private static Control Note(string text) => new TextBlock { Text = text, FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(6, 8), Classes = { "muted" } };
 
-    private Control GroupHead(FlowGroup group, int count, bool open)
+    private Control FolderHead(FolderRow folder)
     {
         var chevron = Icons.Make(Icons.ChevronRight, "navicon", 14);
-        chevron.RenderTransform = new RotateTransform(open ? 90 : 0);
+        chevron.RenderTransform = new RotateTransform(folder.Open ? 90 : 0);
         chevron.VerticalAlignment = VerticalAlignment.Center;
-        var name = new TextBlock { Text = group.Path.Count > 0 ? string.Join(" › ", group.Path) : group.Name, FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } };
-        var number = Muted(count.ToString(), 12);
-        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { chevron, name, number } };
-        SetColumn(name, 1);
-        SetColumn(number, 2);
-        var button = new Button { Content = grid, MinHeight = 32 };
+        var glyph = Icons.Make(Icons.Folder, "navicon", 15);
+        glyph.VerticalAlignment = VerticalAlignment.Center;
+        var name = new TextBlock { Text = folder.Name, FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, Classes = { "muted" } };
+        var number = Muted(folder.Flows.ToString(), 12);
+        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { chevron, glyph, name, number } };
+        SetColumn(glyph, 1);
+        SetColumn(name, 2);
+        SetColumn(number, 3);
+        var button = new Button { Content = grid, MinHeight = 32, Margin = new Thickness(Indent * folder.Depth, 0, 0, 0) };
         button.Classes.Add("flowrow");
-        AutomationProperties.SetName(button, group.Path.Count > 0 ? string.Join(" › ", group.Path) : group.Name);
+        button.Classes.Add("folderrow"); // a folder, not a flow: it folds
+        AutomationProperties.SetName(button, folder.Path);
         button.Click += (_, _) =>
         {
-            if (!_closed.Remove(group.View)) _closed.Add(group.View);
+            if (!_closed.Remove(folder.Path)) _closed.Add(folder.Path);
             Rebuild();
         };
         return button;

@@ -110,6 +110,8 @@ internal static class JsonDump
     {
         var node = Obj(
                 ("id", id), ("name", flow.Name), ("view", flow.View), ("groups", Raw(flow.Groups)), ("states", Raw(flow.States)),
+                // Left out when the flow is at the top of flows/ or has no tags, as in dump.ts.
+                ("folder", m.FolderOf(id) is "" ? null : m.FolderOf(id)), ("tags", Raw(flow.TagsRaw)),
                 ("steps", Arr(flow.Steps.Select(s =>
                 {
                     var placed = Views.PlaceStep(m, flow.View, s.From, s.To);
