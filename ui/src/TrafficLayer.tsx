@@ -18,11 +18,12 @@ const REACH = 48
 
 /**
  * A line's way for the layer: the path that runs on into the shapes at its ends that open, the same without the run into its end (a rejected call stops at the
- * bar there), the shapes at its start and end that open, and the shapes it runs behind.
+ * bar there), the shapes at its start and end, and the shapes it runs behind. A call is a few pixels on screen whatever the zoom, so one at either end of the line
+ * would spill onto the shape there: it is cut by the outlines of both ends, whether they open or not.
  */
 type Way = { path: ReturnType<typeof flatten>; bounce: ReturnType<typeof flatten>; from?: Shape; to?: Shape; shapes: Shape[] }
 
-/** Cuts the drawing to what is outside `s`: a particle that goes into a shape that opens is not seen on it. Undo it with `ctx.restore()`. */
+/** Cuts the drawing to what is outside `s`: a particle that crosses the outline of a shape at an end of its line is not seen on it. Undo it with `ctx.restore()`. */
 const outside = (ctx: CanvasRenderingContext2D, s: Shape): void => {
   ctx.save()
   ctx.beginPath()
@@ -138,8 +139,8 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
             made.set(key, {
               path: extend(path, before, after),
               bounce: extend(path, before, 0),
-              from: opens(a) ? shapes.find(s => s.id === l.from) : undefined,
-              to: opens(b) ? shapes.find(s => s.id === l.to) : undefined,
+              from: shapes.find(s => s.id === l.from),
+              to: shapes.find(s => s.id === l.to),
               shapes: shapes.filter(s => s.id !== l.from && s.id !== l.to),
             })
           } else made.set(key, undefined)
@@ -207,7 +208,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         // A rejected call stops at the bar at the end of the line, so it doesn't run on into the shape there.
         const path = line.failure === 'rejected' ? way.bounce : way.path
         const { shapes } = way
-        const opening = [way.from, line.failure === 'rejected' ? undefined : way.to].filter(s => s !== undefined)
+        const ends = [way.from, way.to].filter(s => s !== undefined)
         // One stream for each source on a line (a run with one source has none to name).
         const key = line.source === undefined ? `${line.from} ${line.to}` : `${line.from} ${line.to} ${line.source}`
         alive.add(key)
@@ -218,7 +219,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
           const phase = ((stripeAt.current.get(key) ?? 0) + (pace.speed * ms) / 1000 / period) % 1
           stripeAt.current.set(key, phase)
           const asideLine = (line.offset ?? 0) * 3
-          outsideAll(ctx, [...opening, ...shapes], labels) // saves the state: restored below
+          outsideAll(ctx, [...ends, ...shapes], labels) // saves the state: restored below
           ctx.beginPath()
           path.xs.forEach((x, k) => {
             let [nx, ny] = [0, 0]
@@ -252,12 +253,12 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         ctx.lineCap = 'round'
         ctx.lineWidth = radius * 1.15
         ctx.beginPath()
-        const faint: [number, number, number, Shape | undefined, number, number][] = [] // the ones behind something or going into a shape that opens (the shape they are cut by), drawn after the rest one at a time
+        const faint: [number, number, number, Shape | undefined, number, number][] = [] // the ones behind something or crossing the outline of an end (the shape they are cut by), drawn after the rest one at a time
         const other: { x: number; y: number; dx: number; dy: number; bad: boolean; alpha: number; pop?: number; behind: number; cut?: Shape }[] = [] // the ones failing, drawn one at a time
         /** Where a particle is against the shapes it goes into or comes out of: wholly inside one (not drawn), or cut by the outline of one. */
         const against = (x: number, y: number): { gone: boolean; cut?: Shape } => {
           let cut: Shape | undefined
-          for (const s of opening) {
+          for (const s of ends) {
             const how = cutBy(depthIn(s.rect, s.edge, x, y), radius)
             if (how === 'gone') return { gone: true }
             if (how === 'cut') cut = s
