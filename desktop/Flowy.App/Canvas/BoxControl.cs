@@ -162,7 +162,7 @@ internal sealed class BoxControl : Grid
             Width = 18, Height = 18, CornerRadius = new CornerRadius(9),
             HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0, -9, -9, 0), IsHitTestVisible = false,
-            Child = new TextBlock { Text = "!", Foreground = Brushes.White, FontWeight = FontWeight.Bold, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
+            Child = new TextBlock { Text = "!", FontWeight = FontWeight.Bold, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center },
         };
         _problemBadge.Classes.Add("badge");
         Put(_problemBadge, Z.Problem);
@@ -545,7 +545,7 @@ internal sealed class BoxControl : Grid
         StateLine.IsVisible = !mark.Inside;
         _enter = _pulse = 1;
         Paint();
-        // Still, a stopping shape's outline is already drained (phase 1); with motion it starts full and StartMotion drains it.
+        // Still, a stopping shape's outline is already drained (its move at t = 1); with motion it starts full and StartMotion drains it.
         if (!mark.Inside) DashFor(mark, Looks[mark.State].Dash == Dash.Drained ? 1 : 0);
         StartMotion(snap);
     }
