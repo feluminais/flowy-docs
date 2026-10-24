@@ -135,6 +135,11 @@ internal static class DataView
     /// <summary>A table, key set or topic: headings on a faint fill over the sample rows. Cells do not wrap; a long one is cut and its whole text is its tip. A grid wider than the panel scrolls inside its frame.</summary>
     private static Control Table(DataShown entry, Func<string, IBrush> resource)
     {
+        // The checks say a table has at most 8 rows and 12 columns, but a file can hold more, and every cell is a control. Far past the limits the rest is left out, and a line says so.
+        var cutRows = entry.Rows.Count - Math.Min(entry.Rows.Count, DrawRows);
+        var rows = entry.Rows.Count > DrawRows ? entry.Rows.Take(DrawRows).ToList() : entry.Rows;
+        var columns = entry.Columns.Count > DrawColumns ? entry.Columns.Take(DrawColumns).ToList() : entry.Columns;
+        entry = entry with { Rows = rows, Columns = columns };
         var grid = new Grid { HorizontalAlignment = HorizontalAlignment.Stretch };
         foreach (var _ in entry.Columns) grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
         grid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star)); // takes what is left, so the fill and the rules reach the frame's edge
@@ -176,14 +181,25 @@ internal static class DataView
                 Grid.SetColumn(cell, c);
                 grid.Children.Add(cell);
             }
-        return Framed(grid, $"{entry.Name} rows", resource, new Thickness(0, 0, 0, 7)); // room under the rows for the scrollbar, which lies over the content
+        var framed = Framed(grid, $"{entry.Name} rows", resource, new Thickness(0, 0, 0, 7)); // room under the rows for the scrollbar, which lies over the content
+        return cutRows > 0 ? WithMore(framed, $"{cutRows} more rows", resource) : framed;
+    }
+
+    /// <summary>How much of a table or document is drawn: far more than the checks allow, so only a file that breaks them by a long way is cut.</summary>
+    internal const int DrawRows = 60, DrawColumns = 36, DrawLines = 120;
+
+    private static Control WithMore(Control content, string words, Func<string, IBrush> resource)
+    {
+        var more = new TextBlock { Text = words, FontSize = 12, Foreground = resource("MutedBrush"), Margin = new Thickness(2, 4, 0, 0) };
+        return new StackPanel { Children = { content, more } };
     }
 
     /// <summary>A document: one sample, a field to a line, nesting shown by indent, a dot after a field with a note.</summary>
     private static Control Document(DataShown entry, Func<string, IBrush> resource)
     {
         var doc = new StackPanel();
-        foreach (var line in entry.Lines)
+        var cutLines = Math.Max(0, entry.Lines.Count - DrawLines);
+        foreach (var line in entry.Lines.Take(DrawLines))
         {
             var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, Margin = new Thickness((line.Depth - 1) * 14, 0, 0, 0) };
             row.Children.Add(new TextBlock { Text = line.Key, FontFamily = Fonts.Mono, FontSize = 12, Foreground = resource("MutedBrush") });
@@ -191,7 +207,8 @@ internal static class DataView
             if (line.Noted) row.Children.Add(Dot());
             doc.Children.Add(row);
         }
-        return Framed(doc, $"{entry.Name} sample", resource, new Thickness(10, 8, 10, 12)); // room under the lines for the scrollbar, which lies over the content
+        var framedDoc = Framed(doc, $"{entry.Name} sample", resource, new Thickness(10, 8, 10, 12)); // room under the lines for the scrollbar, which lies over the content
+        return cutLines > 0 ? WithMore(framedDoc, $"{cutLines} more fields", resource) : framedDoc;
     }
 
     private static Control Framed(Control content, string name, Func<string, IBrush> resource, Thickness padding)
