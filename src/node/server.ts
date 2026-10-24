@@ -135,7 +135,7 @@ export type Served = { id: string; name: string; where: string; dir: string; his
 export type Discovery = { catalog: Catalog; historyFor?: (m: ModelEntry) => History | undefined }
 
 /** A served model with what the server holds for it: the history API, the pages listening for its changes and the folder watcher. */
-type Host = { served: Served; steps?: HistoryApi; clients: Set<ServerResponse>; close: () => void }
+type Host = { served: Served; steps?: HistoryApi; clients: Set<ServerResponse>; close: () => Promise<void> }
 
 /** A served model opened: its folder made if missing so it can be watched, its history looked at, and the page told when the files change. */
 async function openHost(served: Served, gateMs?: number): Promise<Host> {
@@ -145,21 +145,27 @@ async function openHost(served: Served, gateMs?: number): Promise<Host> {
   await mkdir(dir, { recursive: true })
   await steps?.opened() // the first look at a folder, or what changed while nothing was watching, is a step before the first request is answered
   let timer: ReturnType<typeof setTimeout> | undefined
+  const recording = new Set<Promise<void>>() // what the watcher has started writing, which close waits for
   const watcher = watch(dir, { recursive: true }, (_event, name) => {
     if (name?.endsWith('.tmp')) return // saveFile's temp files; the rename that follows is reported on its own
     clearTimeout(timer)
-    timer = setTimeout(async () => {
-      // A change nobody labelled is recorded before the page hears of it, so the list it then asks for already has the step.
-      await steps?.filesChanged().catch(() => undefined)
-      for (const client of clients) client.write('data: changed\n\n')
+    timer = setTimeout(() => {
+      const changed = (async () => {
+        // A change nobody labelled is recorded before the page hears of it, so the list it then asks for already has the step.
+        await steps?.filesChanged().catch(() => undefined)
+        for (const client of clients) client.write('data: changed\n\n')
+      })()
+      recording.add(changed)
+      void changed.finally(() => recording.delete(changed))
     }, 100)
   })
   watcher.on('error', e => console.error(`Stopped watching ${dir} (${e.message}). Restart flowy to get live updates.`))
   return {
     served, steps, clients,
-    close: () => {
+    close: async () => {
       watcher.close()
       clearTimeout(timer)
+      await Promise.allSettled(recording)
       steps?.close()
     },
   }
@@ -261,7 +267,7 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
       break
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code !== 'EADDRINUSE' || p === 0 || p >= port + 20) {
-        for (const host of hosts.values()) host.close()
+        await Promise.all([...hosts.values()].map(host => host.close()))
         throw e
       }
     }
@@ -272,7 +278,7 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
     close: async () => {
       discovery?.catalog.stop()
       await Promise.allSettled(opening.values()) // a model still opening has a watcher that would keep the process alive
-      for (const host of hosts.values()) host.close()
+      await Promise.all([...hosts.values()].map(host => host.close())) // a step the watcher is writing is finished, so nothing is written after close
       await new Promise<void>(done => {
         server.close(() => done())
         server.closeAllConnections()
