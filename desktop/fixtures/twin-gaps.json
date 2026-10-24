@@ -26,8 +26,6 @@
     "dataProblems",
     "parseData",
     "serializeData",
-    "tidyData",
-    "tidyData",
     "tidyData"
   ],
   "detect": [
@@ -134,8 +132,6 @@
     "languageOf",
     "snippetProblems",
     "snippetsOf",
-    "tidySnippets",
-    "tidySnippets",
     "tidySnippets"
   ],
   "states": [

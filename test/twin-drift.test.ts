@@ -24,10 +24,10 @@ function portedModules(): string[] {
   return [...found].sort()
 }
 
-/** The values (functions, constants, classes) a module exports. */
+/** The values (functions, constants, classes) a module exports, each once: an overloaded function is declared several times. */
 function exportsOf(module: string): string[] {
   const text = read(join(root, 'src', 'core', `${module}.ts`))
-  return [...text.matchAll(/^export (?:async )?(?:function\*?|const|let|class) (\w+)/gm)].map(m => m[1]).sort()
+  return [...new Set([...text.matchAll(/^export (?:async )?(?:function\*?|const|let|class) (\w+)/gm)].map(m => m[1]))].sort()
 }
 
 /** The names the fixture dumps read from a module. */
