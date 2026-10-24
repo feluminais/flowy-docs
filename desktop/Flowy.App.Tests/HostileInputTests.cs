@@ -11,6 +11,7 @@ using Xunit;
 namespace Flowy.App.Tests;
 
 /// <summary>Text from a model nobody here wrote must never take the window down. Each case is one an outside review found to crash or stall the app.</summary>
+[Trait("Weight", "Heavy")]
 public class HostileInputTests
 {
     [AvaloniaTheory]

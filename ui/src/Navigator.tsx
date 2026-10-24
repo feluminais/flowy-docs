@@ -8,7 +8,7 @@ import type { FlowRef, FlowTag, OutlineKey, OutlineRow } from '../../src/core/ou
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
 import type { PickAt } from './ComparePicker.tsx'
-import { Activity, Bolt, ChevronRight, Close, Columns, FileCode, Folder, Home, Info, Link, Pencil, Play, Route, Search as SearchIcon, Tag, Explorer as ExplorerIcon } from './icons.tsx'
+import { Activity, Alert, ChevronRight, Close, Columns, FileCode, Folder, Home, Info, Link, Pencil, Play, Route, Workflow, Search as SearchIcon, Tag, Explorer as ExplorerIcon } from './icons.tsx'
 import { keyOf } from './keymap.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
@@ -63,9 +63,9 @@ export function NavRail({ tab, flows, shapes, perf, failures, onPick }: {
   return (
     <nav className="rail left" aria-label="Navigator">
       <RailButton label="Explorer" hint={keyOf('explorer')} Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
-      <RailButton label="Flows" hint={keyOf('flows')} Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />
+      <RailButton label="Flows" hint={keyOf('flows')} Icon={Workflow} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />
       <RailButton label="Performance" hint={keyOf('perf')} Icon={Activity} count={perf.runs > 0 ? perf.runs : undefined} pressed={tab === 'performance'} off={perf.off} onClick={() => onPick('performance')} />
-      <RailButton label="Failures" hint={keyOf('failures')} Icon={Bolt} count={failures.count > 0 ? failures.count : undefined} pressed={tab === 'failures'} onClick={() => onPick('failures')} />
+      <RailButton label="Failures" hint={keyOf('failures')} Icon={Alert} count={failures.count > 0 ? failures.count : undefined} pressed={tab === 'failures'} onClick={() => onPick('failures')} />
       <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />
     </nav>
   )

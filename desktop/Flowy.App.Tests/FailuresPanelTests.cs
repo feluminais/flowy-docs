@@ -15,6 +15,7 @@ namespace Flowy.App.Tests;
 /// The Failures tab on the left, with Explorer and Flows, on the fixtures' small shop (desktop/fixtures/cases/failures) and on the demo Plum: the rail button, M and
 /// Esc, the list and what narrows it, the detail of a mode, what the canvas wears, Show it, Seen in a run and the copy buttons.
 /// </summary>
+[Trait("Weight", "Heavy")]
 public class FailuresPanelTests
 {
     private static string Shop => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "failures", "flowy");

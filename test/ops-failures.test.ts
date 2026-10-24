@@ -1,12 +1,33 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { connect, deleteAnalysis, deleteMode, deleteObject, disconnect, OpError, putAnalysis, putMode, refuseNewProblems, removeConnection, updateAnalysis, updateMode } from '../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteMode, deleteObject, disconnect, OpError, putAnalysis, putMode, refuseNewProblems, removeConnection, swapSteps, updateAnalysis, updateMode } from '../src/core/ops.ts'
 import type { ModeInput } from '../src/core/ops.ts'
 import { usersOfConnection, usersOfObject } from '../src/core/failures.ts'
 import { ID_RULE } from '../src/core/model.ts'
 import { shop, shopWithFailures } from './fixtures.ts'
 
 const refused = (fn: () => unknown, message: string) => assert.throws(fn, (e: unknown) => e instanceof OpError && e.message === message, message)
+
+test('swapping steps keeps failure modes attached to their steps without changing the original model', () => {
+  const before = shopWithFailures()
+  const modes = before.failures.ordering.modes
+  Object.assign(modes['web-glitch'], { flow: 'checkout', step: '1', extra: 'kept' })
+  Object.assign(modes['api-slow'], { flow: 'checkout', step: '2' })
+  Object.assign(modes['db-down'], { flow: 'checkout', step: '3' })
+  Object.assign(modes['auth-lock'], { flow: 'another', step: '1' })
+  const original = structuredClone(before)
+  const after = swapSteps(before, 'checkout', 0, 1)
+  assert.deepEqual(after.flows.checkout.steps, [before.flows.checkout.steps[1], before.flows.checkout.steps[0], before.flows.checkout.steps[2]])
+  assert.deepEqual(after.failures.ordering.modes, {
+    ...modes,
+    'web-glitch': { ...modes['web-glitch'], step: '2' },
+    'api-slow': { ...modes['api-slow'], step: '1' },
+  })
+  assert.deepEqual(swapSteps(after, 'checkout', 1, 0), before)
+  assert.deepEqual(before, original)
+  refused(() => swapSteps(before, 'checkout', -1, 0), 'flow "checkout" has no step 0')
+  refused(() => swapSteps(before, 'checkout', 0, 3), 'flow "checkout" has no step 4')
+})
 
 test('putAnalysis creates an analysis with its fields in a stable order, whatever order they come in', () => {
   const m = putAnalysis(shop(), {
