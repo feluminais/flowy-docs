@@ -12,7 +12,8 @@ import type { Filter } from './failuresview.ts'
 import { AddMode, AnalysisForm, ModeForm, NewAnalysis } from './FailuresEdit.tsx'
 import type { Preset } from './FailuresEdit.tsx'
 import { Dropdown } from './Dropdown.tsx'
-import { Activity, Alert, Close, Copy, Info, Plus, Route } from './icons.tsx'
+import { Activity, Alert, ChevronRight, Close, Copy, Info, Plus, Route } from './icons.tsx'
+import { ABOUT_FOLDS_OVER } from './perfview.ts'
 import type { SaveEdit as Edit } from './forms.tsx'
 import { KeyItem, KeyRow } from './legend.tsx'
 
@@ -110,16 +111,19 @@ export function FailuresBody(p: FailuresProps) {
 
   return (
     <div className="perf fail">
+      <div className="copyrow">
+        <button aria-label="Copy as CSV" title="Copy as CSV" onClick={() => p.onCopy('csv')}><Copy size={16} />CSV</button>
+        <span className="sep" aria-hidden="true" />
+        <button aria-label="Copy as table" title="Copy as table" onClick={() => p.onCopy('markdown')}><Copy size={16} />Table</button>
+      </div>
       {ids.length > 1
         ? <Dropdown label="Analysis" value={analysisId} options={ids.map(id => [id, model.failures[id].name || id])} onChange={p.onAnalysis} />
         : <h2>{analysis.name || analysisId}</h2>}
       {p.editing && analysisId !== undefined && <AnalysisForm model={model} id={analysisId} run={p.run} />}
       {p.editing && <details className="about"><summary>New analysis</summary><NewAnalysis model={model} run={p.run} onMade={p.onAnalysis} /></details>}
-      {!p.editing && analysis.about && <details className="about"><summary>About</summary><p>{analysis.about}</p></details>}
-      <div className="perf-buttons">
-        <button onClick={() => p.onCopy('markdown')}><Copy size={16} />Copy as table</button>
-        <button onClick={() => p.onCopy('csv')}><Copy size={16} />Copy as CSV</button>
-      </div>
+      {!p.editing && analysis.about && (analysis.about.length > ABOUT_FOLDS_OVER
+        ? <details className="about"><summary><ChevronRight size={14} />About</summary><p>{analysis.about}</p></details>
+        : <p className="about">{analysis.about}</p>)}
 
       <ul className="failsum">
         {BAND_ORDER.map(b => (
@@ -208,7 +212,6 @@ export function FailuresBody(p: FailuresProps) {
         </>
       )}
 
-      <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step</span>
       <Section icon={Info} title="Key" />
       <KeyRow>
         {BAND_ORDER.filter(b => counts[b] > 0).map(b => <KeyItem key={b} swatch={<span className={`sw ${b}`} />}>{BAND_NAMES[b]}</KeyItem>)}
