@@ -1015,6 +1015,9 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .sw.fails { width: 18px; height: 12px; border: 3px solid var(--danger); border-radius: 4px; }
 .sw.affects { width: 18px; height: 12px; border: 2px solid color-mix(in srgb, var(--danger) 45%, transparent); border-radius: 4px; }
 .fail .perf-buttons { flex-wrap: wrap; }
+/* The two copy buttons at the top of the tab, split by a thin rule. */
+.fail .copyrow { display: flex; align-items: center; gap: 6px; }
+.fail .copyrow .sep { width: 1px; height: 16px; background: var(--line); }
 .failsum { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .failsum .count { color: var(--muted); font-variant-numeric: tabular-nums; }
 .failsum button[aria-pressed='true'], .coverage button[aria-pressed='true'] { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--fg); }

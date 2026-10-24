@@ -378,19 +378,40 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
-    public void About_stays_open_while_a_row_is_picked_as_the_browsers_details_does()
+    public void A_short_About_shows_as_it_is_with_nothing_to_open()
     {
         var (window, reader) = Open(Plum);
         Press(window, Key.M, PhysicalKey.M);
         var about = reader.Folder!.Model.Failures["ordering"].About!;
+        Assert.True(about.Length <= PerfView.AboutFoldsOver);
+        Assert.True(reader.FailuresPanelNow.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == about).IsVisible);
+        Assert.DoesNotContain(reader.FailuresPanelNow.Buttons, b => b.Classes.Contains("disclosure"));
+    }
+
+    [AvaloniaFact]
+    public void A_long_About_stays_open_while_a_row_is_picked_as_the_browsers_details_does()
+    {
+        using var temp = new TempFolder();
+        foreach (var file in Directory.GetFiles(Shop, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(temp.Path, Path.GetRelativePath(Shop, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(file, target);
+        }
+        var yaml = Path.Combine(temp.Path, "failures", "ordering.yaml");
+        File.WriteAllText(yaml, File.ReadAllText(yaml).Replace("about: Made-up ratings for a test.", $"about: {string.Concat(Enumerable.Repeat("Made-up ratings for a test. ", 20))}"));
+        var (window, reader) = Open(temp.Path);
+        OpenOn(window, reader, "ordering");
+        var about = reader.Folder!.Model.Failures["ordering"].About!;
+        Assert.True(about.Length > PerfView.AboutFoldsOver);
         bool Shown() => reader.FailuresPanelNow.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == about).IsVisible;
         Assert.False(Shown());
         Click(reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("disclosure")));
         Assert.True(Shown());
-        reader.PickModeById("stripe-timeout"); // the panel is built again
+        reader.PickModeById("db-down"); // the panel is built again
         Assert.True(Shown());
         Click(reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("disclosure")));
-        reader.PickModeById("card-declined");
+        reader.PickModeById("mail-timeout");
         Assert.False(Shown());
     }
 

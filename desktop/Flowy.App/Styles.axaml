@@ -355,6 +355,8 @@
   </Style>
   <Style Selector="Border.pop"><Setter Property="Background" Value="{DynamicResource TextControlBackground}" /></Style>
   <Style Selector="Border.track"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
+  <!-- The thin rule between the Failures tab's two copy buttons. -->
+  <Style Selector="Border.copysep"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
   <Style Selector="Ellipse.thumb"><Setter Property="Fill" Value="{DynamicResource BoxBrush}" /></Style>
   <Style Selector="ToggleButton:checked Border.track"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="ToggleButton:checked Ellipse.thumb"><Setter Property="HorizontalAlignment" Value="Right" /></Style>

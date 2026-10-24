@@ -10,7 +10,7 @@ import type { Dial, Knee, Level, LineTraffic, Metrics, Mode, Pair, Run, RunEvent
 
 export { isTime }
 
-/** A run's note is shown as it is until it is long enough to be worth folding. The same number as `PerfView.AboutFoldsOver` in the desktop app. */
+/** A run's or an analysis's About note is shown as it is until it is long enough to be worth folding. The same number as `PerfView.AboutFoldsOver` in the desktop app. */
 export const ABOUT_FOLDS_OVER = 400
 
 /** The maths and the words of the Performance tab, kept apart from the drawing so the node tests can run them. No DOM in here. */

@@ -158,7 +158,7 @@ public static class PerfView
         _ => $"{Trim(bytes, bytes < 10 ? 1 : 0)} B",
     };
 
-    /// <summary>A run's note is shown as it is until it is longer than this many characters, then it folds. The same number as `ABOUT_FOLDS_OVER` in ui/src/perfview.ts.</summary>
+    /// <summary>A run's or an analysis's About note is shown as it is until it is longer than this many characters, then it folds. The same number as `ABOUT_FOLDS_OVER` in ui/src/perfview.ts.</summary>
     public const int AboutFoldsOver = 400;
 
     /// <summary>A load with its unit: "200 req/s".</summary>
