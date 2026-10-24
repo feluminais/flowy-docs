@@ -27,7 +27,7 @@ test('a branch may have one lane, a repeat may have only an until, and times may
 
 test('G1 to G4: a declaration needs a valid id, a known kind and known options', () => {
   const one = (id: string, g: Record<string, unknown>) => problems(flowOf({ [id]: g } as Flow['groups'], [step({ group: id })]))
-  assert.deepEqual(one('Bad Id', rule('repeat', { times: '2' })), [{ message: 'group "Bad Id": ids use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)' }])
+  assert.deepEqual(one('Bad Id', rule('repeat', { times: '2' })), [{ message: 'group "Bad Id": ids use lowercase letters, digits and dashes, not starting with a dash ("root" and Windows device names such as "con" are reserved)' }])
   assert.deepEqual(one('g', {}), [{ message: 'group "g": kind is missing (use repeat, branch, parallel)' }])
   assert.deepEqual(one('g', { kind: ' ' }), [{ message: 'group "g": kind is missing (use repeat, branch, parallel)' }])
   assert.deepEqual(one('g', rule('loop')), [{ message: 'group "g": unknown kind "loop" (use repeat, branch, parallel)' }])

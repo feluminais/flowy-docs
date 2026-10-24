@@ -208,7 +208,7 @@
     },
     {
       "file": "failures/problems.yaml",
-      "message": "Bad-Id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "message": "Bad-Id: the id must use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "file": "failures/problems.yaml",
@@ -462,7 +462,7 @@
   "failureProblems": [
     {
       "file": "failures/Bad Id.yaml",
-      "message": "\"Bad Id\" is not a valid analysis id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" is reserved)"
+      "message": "\"Bad Id\" is not a valid analysis id: the file name must use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)"
     },
     {
       "file": "failures/broken.yaml",

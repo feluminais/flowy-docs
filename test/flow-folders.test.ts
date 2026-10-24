@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { check } from '../src/core/check.ts'
-import { folderOf, isValidFolder, isValidTag, ParseError, tagsOf } from '../src/core/model.ts'
+import { folderOf, isValidFolder, isValidId, isValidTag, ParseError, tagsOf } from '../src/core/model.ts'
 import { changedFiles, modelFiles, parseFile, parseFlowFile, serializeFile } from '../src/core/modelfiles.ts'
 import { deleteFlow, moveFlow, OpError, putFlow, setFlowTags } from '../src/core/ops.ts'
 import { createMcpServer } from '../src/node/mcp.ts'
@@ -21,6 +21,11 @@ test('a folder is names joined by slashes, and a name may not hide, end in a dot
   for (const ok of ['', 'payments', 'payments/refunds', 'Pay & refund', 'a b', 'v1.2', 'é']) assert.equal(isValidFolder(ok), true, ok)
   for (const bad of ['/a', 'a/', 'a//b', '.hidden', 'a/.b', 'a.', 'a ', ' a', 'a:b', 'a*', 'a?b', 'a"b', 'a<b', 'a|b', 'a#b', 'a%b', 'a\\b', 'nul', 'COM1', 'a/b/c/d/e/f/g', 'x'.repeat(65), 'a\u0001b'])
     assert.equal(isValidFolder(bad), false, JSON.stringify(bad))
+})
+
+test('an id names a file too, so the Windows device names are refused', () => {
+  for (const bad of ['con', 'nul', 'aux', 'prn', 'com1', 'lpt9', 'root']) assert.equal(isValidId(bad), false, bad)
+  for (const ok of ['console', 'aux-db', 'com10', 'null']) assert.equal(isValidId(ok), true, ok)
 })
 
 test('a tag is short text with no space at either end, and a flow lists each once whatever its case', () => {
