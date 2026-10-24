@@ -27,7 +27,7 @@ internal sealed partial class ReaderView
 
     /// <summary>What the keys' conditions ask about, as the reader is now. <paramref name="inNavigator"/>: the press came from inside the navigator.</summary>
     private KeyState KeyStateNow(bool inNavigator) => new(
-        Editing, ReadOnly, _undoMove, _search is not null, _shortcuts is not null, _side is Side.Boxes, Recording is not null,
+        Editing, ReadOnly, _edit.UndoMove, _search is not null, _shortcuts is not null, _side is Side.Boxes, Recording is not null,
         PlayingFlow() is not null, Comparing, Comparing && _compareMode.State is { Mode: "swap" }, ComparingRuns, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
         ShownTab is not null, _panels.NavUsed, inNavigator, RightOpen, CurrentView() != Names.Root, ComparingFlows && _compareMode.View is { } view && view.Target.Inside);
 
@@ -108,9 +108,9 @@ internal sealed partial class ReaderView
             _ = r.UndoAsync();
         }
 
-        public bool ResetPick() => r.ResetPick();
+        public bool ResetPick() => r._gestures.ResetPick();
 
-        public void ClearPicked() => r.ClearPicked();
+        public void ClearPicked() => r._gestures.ClearPicked();
 
         public void CloseShortcuts() => r.ShowShortcuts(false);
 
@@ -136,11 +136,11 @@ internal sealed partial class ReaderView
 
         public void ToggleEdit() => r.SetEditing(!r.Editing);
 
-        public void Add() => r.OpenAdd();
+        public void Add() => r._gestures.OpenAdd();
 
-        public void Delete() => _ = r.DeleteSelectedAsync();
+        public void Delete() => _ = r._gestures.DeleteSelectedAsync();
 
-        public void SelectAll() => r.PickAll();
+        public void SelectAll() => r._gestures.PickAll();
 
         public void Undo() => _ = r.UndoAsync();
 
