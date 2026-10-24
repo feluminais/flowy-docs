@@ -77,6 +77,50 @@ export type RestoreResult =
 
 const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 
+/** The files of a model folder as they are on disk now, read without parsing them and without touching its history. */
+export async function readSnapshot(dir: string): Promise<Snapshot> {
+  const files: Record<string, string> = {}
+  const bytes = new Map<string, Uint8Array>()
+  const add = async (rel: string) => {
+    if (await pointsOutside(dir, rel)) return // a link out of the folder is not part of the model, so it is not kept in its history
+    let data: Uint8Array
+    try {
+      const file = await readFile(join(dir, rel))
+      data = new Uint8Array(file.buffer, file.byteOffset, file.length) // a plain Uint8Array, not a Buffer
+    } catch (e) {
+      if (ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) return
+      throw e
+    }
+    const hash = hashBytes(data)
+    files[rel] = hash
+    bytes.set(hash, data)
+  }
+  await add('model.yaml')
+  await add('layout.yaml')
+  // Flows may sit in folders, so every folder under a written folder is read; a file only counts when Flowy may write it (a folder of flows is one it may).
+  const walk = async (at: string, depth: number): Promise<void> => {
+    let entries: Dirent[] = []
+    try {
+      entries = (await readdir(join(dir, at), { withFileTypes: true })).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
+    } catch (e) {
+      if (!ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) throw e
+    }
+    for (const e of entries) {
+      const rel = `${at}/${e.name}`
+      if (e.isDirectory()) {
+        if (depth < MAX_WALK && !e.name.startsWith('.')) await walk(rel, depth + 1)
+      } else if (isAllowedPath(rel)) await add(rel)
+    }
+  }
+  for (const folder of WRITTEN_FOLDERS) await walk(folder, 0)
+  return { files, bytes }
+}
+
+/** A snapshot as text, with each file's version: what the YAML tab shows. */
+export function yamlOf({ files, bytes }: Snapshot): YamlNow {
+  return { files: Object.fromEntries(Object.entries(files).map(([path, hash]) => [path, decode(bytes.get(hash)!)])), versions: files }
+}
+
 export function openHistory(dir: string, options: HistoryOptions): History {
   const root = join(options.stateDir ?? defaultStateDir(), 'history', historyKey(resolve(dir)))
   const store = openStore(root)
@@ -86,43 +130,7 @@ export function openHistory(dir: string, options: HistoryOptions): History {
   let failure: string | undefined
   let lastMs = 0
 
-  async function snapshot(): Promise<Snapshot> {
-    const files: Record<string, string> = {}
-    const bytes = new Map<string, Uint8Array>()
-    const add = async (rel: string) => {
-      if (await pointsOutside(dir, rel)) return // a link out of the folder is not part of the model, so it is not kept in its history
-      let data: Uint8Array
-      try {
-        const file = await readFile(join(dir, rel))
-        data = new Uint8Array(file.buffer, file.byteOffset, file.length) // a plain Uint8Array, not a Buffer
-      } catch (e) {
-        if (ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) return
-        throw e
-      }
-      const hash = hashBytes(data)
-      files[rel] = hash
-      bytes.set(hash, data)
-    }
-    await add('model.yaml')
-    await add('layout.yaml')
-    // Flows may sit in folders, so every folder under a written folder is read; a file only counts when Flowy may write it (a folder of flows is one it may).
-    const walk = async (at: string, depth: number): Promise<void> => {
-      let entries: Dirent[] = []
-      try {
-        entries = (await readdir(join(dir, at), { withFileTypes: true })).sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0))
-      } catch (e) {
-        if (!ABSENT.has((e as NodeJS.ErrnoException).code ?? '')) throw e
-      }
-      for (const e of entries) {
-        const rel = `${at}/${e.name}`
-        if (e.isDirectory()) {
-          if (depth < MAX_WALK && !e.name.startsWith('.')) await walk(rel, depth + 1)
-        } else if (isAllowedPath(rel)) await add(rel)
-      }
-    }
-    for (const folder of WRITTEN_FOLDERS) await walk(folder, 0)
-    return { files, bytes }
-  }
+  const snapshot = () => readSnapshot(dir)
 
   /** Writes a step for a snapshot, then trims the trail when it has grown past the limit. */
   async function append(snap: Snapshot, label: string, source: StepSource): Promise<Step> {
@@ -204,8 +212,7 @@ export function openHistory(dir: string, options: HistoryOptions): History {
     snapshot,
 
     async now() {
-      const { files, bytes } = await snapshot()
-      return { files: Object.fromEntries(Object.entries(files).map(([path, hash]) => [path, decode(bytes.get(hash)!)])), versions: files }
+      return yamlOf(await snapshot())
     },
 
     async list() {

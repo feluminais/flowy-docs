@@ -1,3 +1,4 @@
+import type { YamlNow } from './history.ts'
 import type { Problem } from './problem.ts'
 import type { Analysis, Flow, Layout, Model } from './model.ts'
 import type { Run } from './perf/types.ts'
@@ -23,6 +24,8 @@ export type State =
     runProblems?: Problem[]
     /** What is wrong with the files in failures/ that were skipped (one that can't be read, a .yml file) and with run links. The analyses' other problems are in `problems`. Left out when there are none. */
     failureProblems?: Problem[]
+    /** The files as text, for the YAML tab of an exported page. Only an export carries it: a server answers for them in /api/yaml. */
+    yaml?: YamlNow
   }
   | { parseError: { file: string; line?: number; message: string } }
 

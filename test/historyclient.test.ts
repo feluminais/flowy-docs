@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { openHistory } from '../src/node/history.ts'
 import { startServer } from '../src/node/server.ts'
-import { httpHistory, statusOf } from '../ui/src/historyclient.ts'
+import { httpHistory, staticHistory, statusOf } from '../ui/src/historyclient.ts'
 import { hostTransport, httpTransport } from '../ui/src/transport.ts'
 
 /** A server with history over a temp folder, and the page's client for it. */
@@ -101,4 +101,16 @@ test('the server transport has a history client; a host transport does not', asy
   const { base } = await setup(t)
   assert.ok(httpTransport(base).history)
   assert.equal(hostTransport(() => undefined, () => undefined).history, undefined)
+})
+
+test("an exported page's client gives its files, no steps, and refuses every write", async () => {
+  const now = { files: { 'model.yaml': { text: 'objects: {}\n' } }, versions: { 'model.yaml': 'abc' } }
+  const client = staticHistory(now)
+  assert.deepEqual(await client.list(), { saving: true, steps: [] })
+  assert.equal(await client.step('anything'), undefined)
+  assert.deepEqual(await client.yaml(), now)
+  assert.equal(await client.record('A label'), false)
+  const restored = await client.restore('anything', {}, 'Restored')
+  assert.equal(restored.ok, false)
+  await assert.rejects(client.clear(), /read only/)
 })

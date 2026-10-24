@@ -151,7 +151,8 @@ test('restore is allowed while editing, or while the model is broken and editing
 test('the YAML tab says why it has no history, and says nothing when it has one', () => {
   const has = { live: true, inVscode: false, hasApi: true, unavailable: false }
   assert.equal(noHistory(has), undefined)
-  assert.match(noHistory({ ...has, live: false }) ?? '', /exported page/)
+  assert.equal(noHistory({ ...has, live: false }), undefined) // an export that carries its files
+  assert.match(noHistory({ ...has, live: false, hasApi: false }) ?? '', /Export it again/)
   assert.match(noHistory({ ...has, inVscode: true, hasApi: false }) ?? '', /VS Code/)
   assert.match(noHistory({ ...has, unavailable: true }) ?? '', /server/)
   assert.match(noHistory({ ...has, hasApi: false }) ?? '', /this page/)

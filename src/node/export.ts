@@ -4,6 +4,7 @@ import { ParseError } from '../core/model.ts'
 import { STATE_ELEMENT } from '../core/state.ts'
 import type { State } from '../core/state.ts'
 import { loadState, realPlace } from './files.ts'
+import { readSnapshot, yamlOf } from './history.ts'
 
 /** How an exported page's state starts. It also tells an earlier export from someone else's page. */
 const OPEN = `<script type="application/json" id="${STATE_ELEMENT}">`
@@ -45,7 +46,7 @@ export async function exportSite({ dir, ui, out }: { dir: string; ui: string; ou
   const html = await readFile(join(ui, 'index.html'), 'utf8').catch((e: NodeJS.ErrnoException) => {
     throw e.code === 'ENOENT' ? new Error('The canvas is not built yet. Run: npm run build:ui') : e
   })
-  const page = inlineState(html, state)
+  const page = inlineState(html, { ...state, yaml: yamlOf(await readSnapshot(dir)) })
   const entries = await readdir(out).catch((e: NodeJS.ErrnoException) => {
     if (e.code === 'ENOENT') return []
     if (e.code === 'ENOTDIR') throw new Error(`${out} is a file. Pick a folder with --out.`)
