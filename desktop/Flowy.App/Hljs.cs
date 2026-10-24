@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using Jint;
+using Jint.Constraints;
 
 namespace Flowy.App;
 
@@ -21,8 +23,12 @@ internal static class Hljs
             using var stream = typeof(Hljs).Assembly.GetManifestResourceStream("hljs.js") ?? throw new InvalidOperationException("hljs.js is not in the app");
             using var reader = new StreamReader(stream);
             // A slow pattern is stopped by its own timeout, not by the script's: the engine counts the one only between statements.
-            var engine = new Engine(o => o.TimeoutInterval(TimeSpan.FromSeconds(2)).RegexTimeoutInterval(TimeSpan.FromMilliseconds(500)).LimitMemory(160L * 1024 * 1024));
+            // Loading the script gets far longer than a snippet does: a load that runs out of time on a busy machine would leave the
+            // engine broken, and every snippet plain, until the app is started again.
+            var budget = new Budget { Limit = TimeSpan.FromSeconds(30) };
+            var engine = new Engine(o => o.Constraint(budget).RegexTimeoutInterval(TimeSpan.FromMilliseconds(500)).LimitMemory(160L * 1024 * 1024));
             engine.Execute(Engine.PrepareScript(reader.ReadToEnd()));
+            budget.Limit = TimeSpan.FromSeconds(2);
             return _engine = engine;
         }
         catch (Exception e) when (e is not OutOfMemoryException)
@@ -52,4 +58,19 @@ internal static class Hljs
 
     /// <summary>Starts the engine on another thread, so the first panel with code does not wait for it. Harmless to call again.</summary>
     public static void WarmUp() => Task.Run(() => Highlight("{}", "json"));
+
+    /// <summary>How long one run of the script may take, counted from the start of each <c>Execute</c> or <c>Invoke</c>; the limit can change between runs.</summary>
+    internal sealed class Budget : Constraint
+    {
+        private long _started;
+
+        public TimeSpan Limit { get; set; }
+
+        public override void Check()
+        {
+            if (Stopwatch.GetElapsedTime(_started) > Limit) throw new TimeoutException($"the script ran past {Limit.TotalSeconds:0.#} s");
+        }
+
+        public override void Reset() => _started = Stopwatch.GetTimestamp();
+    }
 }
