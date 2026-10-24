@@ -7,6 +7,19 @@ export function letter(e: { key: string; code: string }): string {
   return e.code.startsWith('Key') ? e.code.slice(3).toLowerCase() : e.key
 }
 
+/** The kinds of input a person types into. Every other kind (a checkbox, a radio, a colour, a slider, a button) has nothing to type, so it has no keys of its own to keep. */
+const TEXT_TYPES = new Set(['text', 'search', 'number', 'email', 'url', 'tel', 'password', 'date', 'time', 'datetime-local', 'month', 'week'])
+
+/**
+ * Whether a key pressed on this element is its own: typing in a text field, or the arrows in a list. A checkbox or a colour that was clicked keeps the focus, and a page that
+ * let it keep every key would stop answering to its shortcuts until the next click elsewhere.
+ */
+export function keepsKeys(target: { tagName?: string; type?: string; isContentEditable?: boolean } | null): boolean {
+  const tag = target?.tagName?.toLowerCase()
+  if (tag === 'textarea' || tag === 'select' || target?.isContentEditable === true) return true
+  return tag === 'input' && TEXT_TYPES.has(target?.type ?? 'text')
+}
+
 /** Enter belongs to a focused button, link or disclosure summary, not to the canvas behind it. */
 export const takesEnter = (target: { closest?: (selector: string) => unknown } | null): boolean => Boolean(target?.closest?.('button, a, summary'))
 

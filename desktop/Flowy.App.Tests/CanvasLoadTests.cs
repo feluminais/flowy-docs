@@ -33,12 +33,7 @@ public class CanvasLoadTests
         return (canvas, folder);
     }
 
-    /// <summary>The run with every call that has a rate weighing 1000 bytes: the blobs count the data, so a run with no sizes has none, and with these the data a second is the calls a second.</summary>
-    private static LoadRun Sized(LoadRun run) => run with { Levels = [.. run.Levels.Select(l => l with { Connections = [.. l.Connections.Select(c => c.Rate is not null && c.Bytes is null ? c with { Bytes = 1000 } : c)] })] };
-
-    private static Traffic Blobs(Model model, LoadRun run, double load, string view) => Perf.TrafficFor(model, Sized(run), load, view, LoadMeasure.Data, 1000);
-
-    private static Traffic Load(Folder folder, string run, double load, string view = "shop") => Blobs(folder.Model, folder.Runs![run], load, view);
+    private static Traffic Load(Folder folder, string run, double load, string view = "shop") => Perf.TrafficFor(folder.Model, folder.Runs![run], load, view);
 
     [AvaloniaFact]
     public void A_picked_or_lit_line_keeps_the_thickness_its_traffic_gives_it_as_in_the_browser()
@@ -181,7 +176,7 @@ public class CanvasLoadTests
     private static Traffic Source(Folder folder, string source, string connection, string view = "shop")
     {
         var text = $"name: S\nsource: {source}\nlevels:\n  - {{ load: 1, connections: [{connection}] }}\n  - {{ load: 2, connections: [{connection}] }}\n";
-        return Blobs(folder.Model, Perf.ParseRun("s", text).Run, 1, view);
+        return Perf.TrafficFor(folder.Model, Perf.ParseRun("s", text).Run, 1, view);
     }
 
     [AvaloniaFact]

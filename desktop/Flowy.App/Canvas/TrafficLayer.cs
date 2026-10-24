@@ -71,7 +71,7 @@ internal sealed class TrafficLayer : Control
     private List<Drawn> _lines = [];
     private IReadOnlyList<CoreRect> _labels = [];
     private readonly Dictionary<(string, string, string?), ParticleStream> _streams = [];
-    private readonly Dictionary<(string, string, string?), double> _stripeAt = []; // how far each line's stripes have moved, in pixels
+    private readonly Dictionary<(string, string, string?), double> _stripeAt = []; // how far each line's stripes have moved, as a share of one dash and its gap, so a change of spacing while the load is dragged moves them on smoothly
     private Viewport _viewport = new(0, 0, 1);
     private bool _running;
     private DateTime _last;
@@ -187,7 +187,8 @@ internal sealed class TrafficLayer : Control
             if (d.Line.Stripes is { } busy and > 0)
             {
                 var key = (d.Line.From, d.Line.To, d.Line.Source);
-                _stripeAt[key] = (_stripeAt.TryGetValue(key, out var at) ? at : 0) + StripePace(busy).Speed * ms / 1000;
+                var pace = StripePace(busy);
+                _stripeAt[key] = ((_stripeAt.TryGetValue(key, out var at) ? at : 0) + pace.Speed * ms / 1000 / (pace.Dash + pace.Gap)) % 1;
             }
         }
         InvalidateVisual();
@@ -258,6 +259,9 @@ internal sealed class TrafficLayer : Control
     /// </summary>
     internal static (double Dash, double Gap, double Speed) StripePace(double busy) => (8, 26 - 18 * busy, 14 + 110 * busy);
 
+    /// <summary>How big a call's mark is on screen, in pixels, before a run's size makes it bigger or smaller: the same on every line, so only the size of a call changes it.</summary>
+    internal const double MarkSize = 3.6;
+
     /// <summary>Everything but the inside of all these shapes and labels: a line's stripes are cut to it, so they are not seen over a shape it runs behind or into, or over a label on it.</summary>
     private static StreamGeometry OutsideAll(IEnumerable<ShapeCover> shapes, IReadOnlyList<CoreRect> labels)
     {
@@ -317,6 +321,19 @@ internal sealed class TrafficLayer : Control
         return geometry;
     }
 
+    /// <summary>Which way a line runs at <paramref name="s"/> (0 to 1 of the way along it), as a unit step: a call is drawn lying along it. A line with no length has none, so it runs to the right.</summary>
+    private static (double X, double Y) DirAt(FlatLine path, double s)
+    {
+        var (ax, ay) = PathPoints.PointAt(path, Math.Max(0, s - 0.015));
+        var (bx, by) = PathPoints.PointAt(path, Math.Min(1, s + 0.015));
+        var length = Math.Sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
+        return length == 0 ? (1, 0) : ((bx - ax) / length, (by - ay) / length);
+    }
+
+    /// <summary>A call as a small stripe: a short bar lying along its line, centred on (x, y), that sticks out to either side of the line.</summary>
+    private static void Mark(DrawingContext context, IBrush brush, double x, double y, (double X, double Y) dir, double r) =>
+        context.DrawLine(new Pen(brush, r * 1.15, lineCap: PenLineCap.Round), new Point(x - dir.X * r * 0.9, y - dir.Y * r * 0.9), new Point(x + dir.X * r * 0.9, y + dir.Y * r * 0.9));
+
     private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     private readonly Dictionary<(string, bool), IBrush> _tints = [];
@@ -339,11 +356,11 @@ internal sealed class TrafficLayer : Control
         var bad = Brush("DangerBrush");
         foreach (var d in _lines)
         {
-            var radius = (2.2 + d.Line.Width / 2) * (d.Line.Radius ?? 1) / _viewport.Zoom; // a few pixels on screen, whatever the zoom, and bigger or smaller where the run's size says
+            var radius = MarkSize * (d.Line.Radius ?? 1) / _viewport.Zoom; // a few pixels on screen, whatever the zoom and however many calls, and bigger or smaller only where the size of a call says
             var ramp = radius * 2; // how far either side of an outline a particle takes to go from clear to well behind
             var tone = Tint(d.Line.Color, ok);
             // Sources that share a line run a little apart, to either side of it, by steps of a usual dot and its room: so two on one path don't hide each other.
-            var aside = (d.Line.Offset ?? 0) * (2.2 + d.Line.Width / 2) / _viewport.Zoom * 2.4;
+            var aside = (d.Line.Offset ?? 0) * MarkSize / _viewport.Zoom * 2.4;
             var bar = 0.0; // how strongly the bar at the end of a rejected line shows: the strongest of its particles
             // A rejected call stops at the bar at the end of the line, so it doesn't run on into the shape there.
             var rejected = d.Line.Failure == "rejected";
@@ -351,29 +368,24 @@ internal sealed class TrafficLayer : Control
             var opening = d.Opening ??= new[] { d.Way.From, rejected ? null : d.Way.To }.OfType<ShapeCover>().ToList();
             if (d.Line.Stripes is { } busy and > 0 && path.Xs.Length > 1)
             {
-                // The calls: stripes moving along the line itself, closer and quicker the more calls there are, with every few of them red for the share of calls that fail.
+                // A line the run gives no numbers: plain stripes moving along the line itself, closer and quicker the more the run is loaded.
                 var pace = StripePace(busy);
-                const double px = 1; // the diagram's own units: the stripes grow with the line and its arrowhead
-                var moved = _stripeAt.TryGetValue((d.Line.From, d.Line.To, d.Line.Source), out var at) ? at : 0;
-                var thick = Math.Max(2.4, d.Line.Width + 0.9) * px; // a little thicker than the line it runs on, and growing with it, so the two read as one arrow at any zoom
-                var apart = (pace.Dash + pace.Gap) * px;
+                const double px = 1; // the diagram's own units: the stripes scale with the line and its arrowhead
+                var moved = (_stripeAt.TryGetValue((d.Line.From, d.Line.To, d.Line.Source), out var at) ? at : 0) * (pace.Dash + pace.Gap);
+                var thick = Math.Max(2.4, d.Line.Width + 0.9) * px; // a little thicker than the line it runs on, so the two read as one arrow at any zoom
                 using var cut = context.PushGeometryClip(d.Cut ??= OutsideAll(opening.Concat(d.Behind), d.Labels));
-                using var dim = context.PushOpacity(d.Line.Bare ? 0.6 : 0.95);
+                using var dim = context.PushOpacity(0.9);
                 var offset = (d.Line.Offset ?? 0) * 3 * px;
                 if (d.Stripes is null || d.StripesAside != offset) (d.Stripes, d.StripesAside) = (Along(path, offset), offset);
                 var way = d.Stripes;
                 // Avalonia counts a dash in widths of the pen, so the dashes and the offset are divided by the thickness.
-                context.DrawGeometry(null, new Pen(d.Line.Bare ? Brush("FgBrush") : tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way); // a line with no numbers has plain light stripes
-                if (d.Line.Failed > 0)
-                {
-                    var every = Math.Max(1, (int)Math.Round(1 / d.Line.Failed));
-                    context.DrawGeometry(null, new Pen(bad, thick, new DashStyle([pace.Dash * px / thick, (apart * every - pace.Dash * px) / thick], -moved * px / thick), PenLineCap.Round), way);
-                }
+                context.DrawGeometry(null, new Pen(tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way);
             }
             foreach (var m in d.Stream.Motes)
             {
                 var look = Flowy.Core.Particles.Look(m, d.Line.Failure);
                 var (x, y) = PathPoints.PointAt(path, look.At);
+                var dir = DirAt(path, look.At);
                 if (aside != 0)
                 {
                     // To the side of the path, by its direction a little either way along it.
@@ -409,11 +421,11 @@ internal sealed class TrafficLayer : Control
                 var alpha = look.Alpha * ghostAlpha;
                 if (alpha >= 1)
                 {
-                    context.DrawEllipse(brush, null, new Point(x, y), r, r);
+                    Mark(context, brush, x, y, dir, r);
                     continue;
                 }
                 using var dim = context.PushOpacity(alpha);
-                context.DrawEllipse(brush, null, new Point(x, y), r, r);
+                Mark(context, brush, x, y, dir, r);
             }
             if (bar > 0)
             {

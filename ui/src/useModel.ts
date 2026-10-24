@@ -7,6 +7,7 @@ import { isChanged } from '../../src/core/host.ts'
 import { STATE_ELEMENT } from '../../src/core/state.ts'
 import type { State } from '../../src/core/state.ts'
 import { vscode } from './host.ts'
+import { staticHistory } from './historyclient.ts'
 import type { HistoryClient } from './historyclient.ts'
 import { fetchModel, fromState, restoreVersion, saveEdit } from './save.ts'
 import { saveCompare } from './saveCompare.ts'
@@ -34,7 +35,8 @@ const exported = (() => {
   const element = document.getElementById(STATE_ELEMENT)
   if (!element) return undefined
   try {
-    return { loaded: fromState(JSON.parse(element.textContent ?? '') as State) }
+    const state = JSON.parse(element.textContent ?? '') as State
+    return { loaded: fromState(state), ...('yaml' in state && state.yaml ? { history: staticHistory(state.yaml) } : {}) }
   } catch {
     return { banner: "This page's model can't be read. Export it again." }
   }

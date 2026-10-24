@@ -11,6 +11,7 @@ import { afterText, bandCounts, firstErrorAt, ratingCells, STATUS_NAMES } from '
 import type { Filter } from './failuresview.ts'
 import { AddMode, AnalysisForm, ModeForm, NewAnalysis } from './FailuresEdit.tsx'
 import type { Preset } from './FailuresEdit.tsx'
+import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Close, Copy, Info, Plus, Route } from './icons.tsx'
 import type { SaveEdit as Edit } from './forms.tsx'
 import { KeyItem, KeyRow } from './legend.tsx'
@@ -110,7 +111,7 @@ export function FailuresBody(p: FailuresProps) {
   return (
     <div className="perf fail">
       {ids.length > 1
-        ? <select aria-label="Analysis" value={analysisId} onChange={e => { p.onAnalysis(e.target.value); e.target.blur() }}>{ids.map(id => <option key={id} value={id}>{model.failures[id].name || id}</option>)}</select>
+        ? <Dropdown label="Analysis" value={analysisId} options={ids.map(id => [id, model.failures[id].name || id])} onChange={p.onAnalysis} />
         : <h2>{analysis.name || analysisId}</h2>}
       {p.editing && analysisId !== undefined && <AnalysisForm model={model} id={analysisId} run={p.run} />}
       {p.editing && <details className="about"><summary>New analysis</summary><NewAnalysis model={model} run={p.run} onMade={p.onAnalysis} /></details>}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { HistoryStore } from './historystore.ts'
+import { Lock } from './icons.tsx'
 import { scrollToRow, visibleRows } from './window.ts'
 import { blockOf, canRestore, defaultFile, fileOrder, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, timeLabel } from './yamlview.ts'
 
@@ -16,6 +17,8 @@ const tabName = (path: string) => {
 
 export type YamlProps = {
   store: HistoryStore
+  /** The files can't be changed from this page (an exported one): the panel says so, and shows no history to restore from or clear. */
+  readOnly?: boolean
   /** Edit mode is on. */
   editing: boolean
   /** A file can't be read: the page is read-only, and edit mode can't be turned on. */
@@ -32,7 +35,7 @@ export type YamlProps = {
  * The YAML tab of the left-hand panel: the model's files as text with what the shown step changed marked in them, and below them the steps of
  * the history. Picking an older step shows its files and offers to put them back. The marks and the steps come from the store (historystore.ts).
  */
-export function Yaml({ store, editing, broken, flow, selected, onRestore, onClear }: YamlProps) {
+export function Yaml({ store, readOnly = false, editing, broken, flow, selected, onRestore, onClear }: YamlProps) {
   const view = useSyncExternalStore(store.subscribe, store.get)
   const [chosen, setChosen] = useState<string>()
   const [asking, setAsking] = useState(false)
@@ -128,6 +131,7 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
 
   return (
     <>
+      {readOnly && <p className="yreadonly"><Lock size={14} />Read only</p>}
       <div className="yfiles">
         <div className="ytabs" role="tablist" aria-label="Files">
           {paths.map(p => (
@@ -166,13 +170,13 @@ export function Yaml({ store, editing, broken, flow, selected, onRestore, onClea
           <li><i className="sw yremove" aria-hidden="true" />Removed</li>
         </ul>
       )}
-      {!view.saving && (
+      {!readOnly && !view.saving && (
         <p className="ynote ywarn">History isn't being saved{view.reason && <><br /><span className="muted">{view.reason}</span></>}</p>
       )}
       {view.error && <p className="muted ynote">{view.error}</p>}
-      {view.ready && view.steps.length === 0 && view.saving && <p className="muted ynote">No changes yet</p>}
-      <ul ref={steps} className="ysteps" role="listbox" aria-label="History" tabIndex={0} onKeyDown={onStepKeys}>{stepRows}</ul>
-      {view.steps.length > 0 && (
+      {!readOnly && view.ready && view.steps.length === 0 && view.saving && <p className="muted ynote">No changes yet</p>}
+      {!readOnly && <ul ref={steps} className="ysteps" role="listbox" aria-label="History" tabIndex={0} onKeyDown={onStepKeys}>{stepRows}</ul>}
+      {!readOnly && view.steps.length > 0 && (
         <div className="yclear">
           {asking
             ? <><span>Clear history?</span><button className="danger" onClick={() => void onClear().then(() => setAsking(false))}>Clear</button><button onClick={() => setAsking(false)}>Keep</button></>

@@ -13,6 +13,7 @@ import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
+import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
@@ -276,7 +277,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   return (
     <div className="perf">
       {pane ? null : ids.length > 1
-        ? <select aria-label="Run" value={runId} onChange={e => { onRun(e.target.value); e.target.blur() }}>{ids.map(id => <option key={id} value={id}>{runs[id].name}{linked.has(id) ? ' (Linked)' : ''}</option>)}</select>
+        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Linked)' : ''}`])} onChange={onRun} />
         : <h2>{run.name}</h2>}
       {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
       {run.about && (run.about.length > ABOUT_FOLDS_OVER
@@ -338,9 +339,9 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       {onMeasure && (
         <div className="measure" role="group" aria-label="Count">
           <span className="muted">Count</span>
-          <button type="button" aria-pressed={measure === 'calls'} title="Stripes along the lines for the calls a second" onClick={() => onMeasure('calls')}>Calls</button>
-          <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff ?? 'Blobs on the lines for the data a second'} onClick={() => onMeasure('data')}>Data</button>
-          <button type="button" aria-pressed={measure === 'mixed'} disabled={dataOff !== undefined} title={dataOff ?? 'Both: stripes for the calls and blobs for the data'} onClick={() => onMeasure('mixed')}>Mixed</button>
+          <button type="button" aria-pressed={measure === 'calls'} title="One mark for each call a second" onClick={() => onMeasure('calls')}>Calls</button>
+          <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff ?? 'One mark for each bit of data a second (calls times their size)'} onClick={() => onMeasure('data')}>Data</button>
+          <button type="button" aria-pressed={measure === 'mixed'} disabled={dataOff !== undefined} title={dataOff ?? 'Marks for the calls, as big as their calls are'} onClick={() => onMeasure('mixed')}>Mixed</button>
         </div>
       )}
 
@@ -384,9 +385,8 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>
         <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>
         <KeyItem swatch={<span className="sw none" />}>Not measured</KeyItem>
-        {drawn.stripes && <KeyItem swatch={<span className="sw stripes" />}>Calls (denser, faster)</KeyItem>}
-        {drawn.blobs && <KeyItem swatch={<span className="sw call" />}>Data (slower dots, slower calls)</KeyItem>}
-        {drawn.bare && <KeyItem swatch={<span className="sw stripes bare" />}>No numbers</KeyItem>}
+        <KeyItem swatch={<span className="sw call" />}>A call (slower marks, slower calls)</KeyItem>
+        {drawn.bare && <KeyItem swatch={<span className="sw stripes" />}>No numbers</KeyItem>}
         {marks.fade && <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>}
         {marks.lost && <KeyItem swatch={<span className="sw lost" />}>Lost call</KeyItem>}
         {marks.rejected && <KeyItem swatch={<span className="sw rejected" />}>Rejected call</KeyItem>}

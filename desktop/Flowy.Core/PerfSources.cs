@@ -340,17 +340,16 @@ public static partial class Perf
     /// scaled by one common factor when the busiest passes <see cref="AtOnce"/>, so a line of ten times the calls still reads as ten times the dots; they run a little apart, so two on one path don't
     /// hide each other. The line is as thick as everything it carries. A line the run doesn't split by source draws as it would for a run with no source, in a neutral colour.
     /// </summary>
-    private static List<LineTraffic> SharedLines(Pair l, IReadOnlyList<Dial> dials, LoadMeasure measure, double? size, double? peak)
+    private static List<LineTraffic> SharedLines(Pair l, IReadOnlyList<Dial> dials, LoadMeasure measure, double? size)
     {
         var split = dials.Where(d => l.By is { } by && by.Contains(d.Id)).Select(d => (Dial: d, By: l.By![d.Id])).ToList();
         var whole0 = ShownOf(l, measure, size);
-        if (split.Count == 0) return whole0 is { } shownWhole ? [LineTrafficOf(l, shownWhole, null, null, null, peak) with { Color = OtherColor }] : [];
+        if (split.Count == 0) return whole0 is { } shownWhole ? [LineTrafficOf(l, shownWhole, null, null, null, measure, size) with { Color = OtherColor }] : [];
         // What each source carries. A source's own numbers are its own: its size of a call is its own, and the whole line's only when it is the only source named.
         var alone = split.Count == 1;
         Shown? CarriedBy(Metrics by) => ShownOf(new Metrics { Rate = by.Rate ?? (alone ? l.Rate : null), Bytes = by.Bytes ?? (alone ? l.Bytes : null) }, measure, size);
-        static double Main(Shown k) => k.Calls ?? k.Blobs ?? 0;
-        var carried = split.Select(s => CarriedBy(s.By)).Where(k => k is not null).Select(k => Main(k!)).ToList();
-        double? total0 = whole0 is { } w0 ? Main(w0) : carried.Count > 0 ? carried.Aggregate((a, b) => a + b) : null;
+        var carried = split.Select(s => CarriedBy(s.By)).Where(k => k is not null).Select(k => k!.Amount).ToList();
+        double? total0 = whole0 is { } w0 ? w0.Amount : carried.Count > 0 ? carried.Aggregate((a, b) => a + b) : null;
         if (total0 is not { } whole) return [];
         // A source's own numbers are its own. What it doesn't give is the line's where that is fair: the whole line when it is the only source named, the expected call always (it sets only how
         // fast dots cross), and the failing share when no source gives one (then the line's is the best guess for each). Never another source's size or failing share.
@@ -363,7 +362,7 @@ public static partial class Perf
             {
                 Rate = shown.Rate, Bytes = by.Bytes ?? (alone ? l.Bytes : null), P50 = by.P50 ?? l.P50, Errors = by.Errors ?? (alone || !anyErrors ? l.Errors : null), Failure = l.Failure,
             };
-            rows.Add((dial, pair, shown, shown.Blobs is null ? null : DotsFor(pair, shown.Rate, dial.Source)));
+            rows.Add((dial, pair, shown, DotsFor(pair, shown.Rate, dial.Source)));
         }
         var (counts, capped) = CapCounts([.. rows.Where(r => r.Count is not null).Select(r => r.Count!.Value)]);
         var next = 0;
@@ -372,7 +371,7 @@ public static partial class Perf
         {
             var row = rows[i];
             (double Dots, bool Capped)? counted = row.Count is null ? null : (counts[next++], capped);
-            output.Add(LineTrafficOf(row.Pair, row.Shown, row.Dial.Source, whole, counted, peak) with
+            output.Add(LineTrafficOf(row.Pair, row.Shown, row.Dial.Source, whole, counted, measure, size) with
             {
                 Color = row.Dial.Color, Source = row.Dial.Id, Offset = rows.Count > 1 ? i - (rows.Count - 1) / 2.0 : null,
             });
@@ -389,11 +388,11 @@ public static partial class Perf
     {
         if (DialsOf(runs, id) is not { } found) return new LoadFrame(new IdMap<Metrics>(), [], new Traffic(new IdMap<BoxTraffic>(), []));
         var size = measure == LoadMeasure.Calls ? null : CallSize(runs, id);
-        var peak = measure == LoadMeasure.Data ? null : CallPeak(runs, id);
-        if (found.Mode == ModeSingle) return FrameAt(model, runs[id], SettingFor(setting, ""), view, measure, size, peak);
+        var pace = LoadPace(runs, id, setting);
+        if (found.Mode == ModeSingle) return FrameAt(model, runs[id], SettingFor(setting, ""), view, measure, size, pace);
         var (objects, lines) = RollUp(model, LevelAt(runs, id, setting), view);
-        List<LineTraffic> drawn = [.. lines.SelectMany(l => SharedLines(l, found.Items, measure, size, peak))];
-        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), [.. drawn, .. BareLines(model, view, drawn)]));
+        List<LineTraffic> drawn = [.. lines.SelectMany(l => SharedLines(l, found.Items, measure, size))];
+        return new LoadFrame(objects, lines, new Traffic(BoxesOf(objects), [.. drawn, .. BareLines(model, view, drawn, pace)]));
     }
 
     /// <summary>Everything the Performance panel draws for one view at a setting of a run's dials (see <see cref="FrameOf"/>).</summary>
@@ -407,7 +406,7 @@ public static partial class Perf
     {
         var none = new SourcesKey([], false, false);
         if (DialsOf(runs, id) is not { } found) return none;
-        var size = measure == LoadMeasure.Calls ? null : CallSize(runs, id);
+        var size = measure == LoadMeasure.Data ? CallSize(runs, id) : null;
         if (found.Mode == ModeSingle)
             return SourceKeyOf(runs[id], lines, measure, size) is { } k ? new SourcesKey([new KeyedSource("", k.Name, k.Color, k.Scale, k.Bigger)], k.ScaledDown, false) : none;
         var sources = new List<KeyedSource>();

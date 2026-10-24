@@ -333,14 +333,10 @@ public static class PerfView
             failing.Any(l => l.Failure == "rejected"));
     }
 
-    /// <summary>Which marks the lines on screen use now, for the key to draw: stripes (calls), blobs (data), and plain stripes for a line with no numbers.</summary>
-    public sealed record LineMarks(bool Stripes, bool Blobs, bool Bare);
+    /// <summary>Whether a line on screen has no numbers and is drawn with plain stripes, for the key to say so.</summary>
+    public sealed record LineMarks(bool Bare);
 
-    public static LineMarks LineMarksOf(IReadOnlyList<LineTraffic> lines)
-    {
-        var real = lines.Where(l => !l.Bare).ToList();
-        return new LineMarks(real.Any(l => l.Stripes is not null), real.Any(l => l.Dots is not null || l.PerSecond > 0), lines.Count > real.Count);
-    }
+    public static LineMarks LineMarksOf(IReadOnlyList<LineTraffic> lines) => new(lines.Any(l => l.Bare));
 
     /// <summary>A source's colour for the theme that is showing, as <c>#rrggbb</c>: a named colour has one for each theme, a hex is the same in both. Null for text that is neither.</summary>
     public static string? SourceHex(string? color, bool dark) => Look.ColorPair(color) is { } pair ? (dark ? pair.Dark : pair.Light) : null;
