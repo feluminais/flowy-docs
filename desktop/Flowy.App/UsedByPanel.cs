@@ -22,6 +22,7 @@ internal sealed class UsedByPanel : StackPanel
     private readonly EditRun _run;
     private readonly Dictionary<string, Choice> _choices = [];
     private readonly StackPanel _rows = new() { Spacing = 8 };
+    private int _rowsShown; // how many rows the reader has opened, kept when a choice draws the list again
     private readonly StackPanel _chooser = new() { Spacing = 6, IsVisible = false };
     private readonly TextBlock _names = new() { FontSize = 14 };
     private readonly TextBlock _along = new() { FontSize = 13, TextWrapping = TextWrapping.Wrap };
@@ -229,7 +230,7 @@ internal sealed class UsedByPanel : StackPanel
         var going = plan.Targets.Where(t => t.Object is not null).Select(t => t.Object!).ToHashSet();
         _names.Text = going.Count == 1 ? Views.NameOf(_model, going.First()) : going.Count > 1 ? $"{going.Count} shapes" : "A line";
         _rows.Children.Clear();
-        foreach (var row in rows) _rows.Children.Add(Row(row, plan));
+        Paging.Fill(_rows, rows, row => Row(row, plan), kept: _rowsShown, remember: n => _rowsShown = n);
         var along = UsedBy.AlongText(plan.Along);
         _along.Text = along == "" ? "" : $"Goes too: {along}";
         _along.IsVisible = along != "";

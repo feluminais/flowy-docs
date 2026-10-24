@@ -381,7 +381,7 @@ internal sealed class FailuresPanel : StackPanel
     private Control NotAnalysed(Model model, IReadOnlyList<string> left, bool editing)
     {
         var rows = new StackPanel { Spacing = 2 };
-        foreach (var id in left)
+        Paging.Fill(rows, left, id =>
         {
             var row = new Button { Content = new TextBlock { Text = Failures.ShapeName(model, id), TextTrimming = TextTrimming.CharacterEllipsis } };
             row.Classes.Add("failrow");
@@ -392,26 +392,22 @@ internal sealed class FailuresPanel : StackPanel
                 ShapePicked?.Invoke(shape);
                 Used?.Invoke();
             };
-            if (!editing)
-            {
-                rows.Children.Add(row);
-                continue;
-            }
+            if (!editing) return row;
             var add = new Button { Content = "Add failure mode", VerticalAlignment = VerticalAlignment.Center };
             add.Classes.Add("link");
             AutomationProperties.SetName(add, $"Add failure mode to {Failures.ShapeName(model, id)}");
             add.Click += (_, _) => StartAdding(new ModePreset(On: shape));
             var line = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { row, add } };
             Grid.SetColumn(add, 1);
-            rows.Children.Add(line);
-        }
+            return line;
+        });
         return new StackPanel { Children = { Chrome.Section(Icons.Info, "Not analysed", left.Count), rows } };
     }
 
     private Control List(string title, Model model, IReadOnlyList<RankedMode> group, string? current)
     {
         var rows = new StackPanel { Spacing = 2 };
-        foreach (var r in group)
+        Paging.Fill(rows, group, r =>
         {
             var part = Failures.PartName(model, r.Mode);
             var risk = r.Risk is { } n ? n.ToString(CultureInfo.InvariantCulture) : "";
@@ -435,8 +431,8 @@ internal sealed class FailuresPanel : StackPanel
                 ModePicked?.Invoke(id == current ? null : id);
                 Used?.Invoke();
             };
-            rows.Children.Add(row);
-        }
+            return row;
+        });
         return new StackPanel { Children = { Chrome.Section(Icons.Info, title, group.Count), rows } };
     }
 
