@@ -9,9 +9,32 @@ namespace Flowy.App;
 /// </summary>
 internal static class CodeInk
 {
+    // What the colours of a piece of code came to, by the code and its language. A panel is built again for every step, selection and reload, and the same snippets come back each time: colouring
+    // is a script run by an interpreter (170 ms for 8,000 characters), and a snippet it gives up on would cost its whole timeout again every time.
+    private static readonly BoundedCache<(string Text, string Language), IReadOnlyList<CodeRun>> Coloured = new(400);
+
     /// <summary>The code as runs for the language, or one plain run when the language isn't coloured (plain text, or one with no grammar). Never throws.</summary>
     public static IReadOnlyList<CodeRun> Runs(string text, string? languageId) =>
-        languageId is null or "text" || text.Length > Snippets.MaxChars || Hljs.Highlight(text, languageId) is not { } html ? [new CodeRun(text)] : CodeRuns.FromHtml(html);
+        languageId is null or "text" || text.Length > Snippets.MaxChars
+            ? [new CodeRun(text)]
+            : Coloured.GetOrAdd((text, languageId), key => Hljs.Highlight(key.Text, key.Language) is not { } html ? [new CodeRun(key.Text)] : CodeRuns.FromHtml(html));
+
+    /// <summary>
+    /// Colours the snippets of these shapes on another thread, so a panel that shows one finds it done. Starts the engine too, so even the first one does not wait for it. The snippets of a big
+    /// model are not all worked through: the first ones, which are the ones a reader is most likely to open.
+    /// </summary>
+    public static void Prefetch(IEnumerable<FlowyObject> objects) => Task.Run(() =>
+    {
+        Hljs.Highlight("{}", "json");
+        var done = 0;
+        foreach (var o in objects)
+            foreach (var snippet in Snippets.Of(o))
+            {
+                if (done++ >= 60) return;
+                var (language, _) = LanguageFor(snippet.Text, snippet.Language);
+                Runs(string.Join('\n', Snippets.CodeLines(snippet.Text)), language?.Id);
+            }
+    });
 
     /// <summary>The language the code is most likely written in, or null when it is too short or too plain to tell, which is drawn as plain text.</summary>
     public static Language? Identify(string text) => Snippets.LanguageOf(Detect.Guess(text));

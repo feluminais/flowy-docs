@@ -19,6 +19,21 @@ public static class ModelFiles
     private static readonly string[] ScaleFields = ["low", "high"];
     private const double MaxCoordinate = 1_000_000;
 
+    // What a file's text parsed to, kept by the text: a file that did not change is not parsed again, whoever asks (the reader's load, an edit's read of the folder, the model an edit would make).
+    // What comes back is shared and is not changed afterwards: an edit builds new records.
+    private static readonly TextCache Parsed = new(16_000_000);
+
+    private static T Once<T>(char kind, string id, string folder, string text, Func<T> parse) where T : notnull =>
+        (T)Parsed.GetOrAdd((kind, id, folder, text), () => parse());
+
+    public static ParsedModel ParseModel(string text) => Once('m', "", "", text, () => ParseModelNow(text));
+
+    public static Flow ParseFlow(string id, string text, string folder = "") => Once('f', id, folder, text, () => ParseFlowNow(id, text, folder));
+
+    public static FailureAnalysis ParseAnalysis(string id, string text) => Once('a', id, "", text, () => ParseAnalysisNow(id, text));
+
+    public static Dictionary<string, IReadOnlyDictionary<string, LayoutPoint>> ParseLayout(string text) => Once('l', "", "", text, () => ParseLayoutNow(text));
+
     /// <summary>The model.yaml part of a <see cref="Model"/>; the folder loader adds flows and layout.</summary>
     public sealed record ParsedModel(IdMap<FlowyObject> Objects, IReadOnlyList<Connection> Connections, IReadOnlyDictionary<string, object?> Meta);
 
@@ -34,7 +49,7 @@ public static class ModelFiles
                 throw new ParseError(file, $"{what}: \"{field}\" must be plain text, not a list or a mapping");
     }
 
-    public static ParsedModel ParseModel(string text)
+    private static ParsedModel ParseModelNow(string text)
     {
         const string file = FolderLayout.ModelFile;
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> top)
@@ -72,7 +87,7 @@ public static class ModelFiles
     }
 
     /// <summary>An empty file gives a flow with no steps; the checks report what's missing. <paramref name="folder"/> is where the file is under <c>flows/</c>, for the messages.</summary>
-    public static Flow ParseFlow(string id, string text, string folder = "")
+    private static Flow ParseFlowNow(string id, string text, string folder)
     {
         var file = FolderLayout.FlowFile(id, folder);
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
@@ -111,7 +126,7 @@ public static class ModelFiles
     /// Checks the file's shape only, as parseAnalysisFile does: the right kinds of value in the right places. Whether a part exists, a rating is in range or a
     /// status is known is for <see cref="Failures.AnalysisProblems"/>. A blank <c>after</c> or <c>affects</c> is no section; a missing name reads as "".
     /// </summary>
-    public static FailureAnalysis ParseAnalysis(string id, string text)
+    private static FailureAnalysis ParseAnalysisNow(string id, string text)
     {
         var file = FolderLayout.FailureFile(id);
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)
@@ -169,7 +184,7 @@ public static class ModelFiles
         return new LayoutPoint(x, y);
     }
 
-    public static Dictionary<string, IReadOnlyDictionary<string, LayoutPoint>> ParseLayout(string text)
+    private static Dictionary<string, IReadOnlyDictionary<string, LayoutPoint>> ParseLayoutNow(string text)
     {
         const string file = FolderLayout.LayoutFile;
         if (JsCompat.OrEmpty(YamlText.Parse(file, text), NewMap()) is not OrderedDictionary<string, object?> doc)

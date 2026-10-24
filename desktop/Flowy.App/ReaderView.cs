@@ -227,6 +227,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
     internal bool IsMoving => _moving;
     internal bool ShowsEmptyNote => _empty.IsVisible;
     internal string? BannerText => _banner.IsVisible ? _bannerText.Text : null;
+
+    /// <summary>The button that lists the problems, for tests.</summary>
+    internal Button ProblemsButtonNow => _problemsButton;
     internal string? PlayingFlowId => PlayingFlow()?.Id;
     internal int PlayingStep => StopIndex();
     internal PlayerCard Card => _player;
@@ -418,12 +421,14 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>A model that holds code gets the colouring engine started in the background, so the first panel that shows code does not wait for it.</summary>
     private static void WarmCode(Folder folder)
     {
-        if (folder.Model.Objects.Any(o => o.Value.Snippets is List<object?> { Count: > 0 })) Hljs.WarmUp();
+        if (folder.Model.Objects.Any(o => o.Value.Snippets is List<object?> { Count: > 0 })) CodeInk.Prefetch(folder.Model.Objects.Select(o => o.Value).Where(o => o.Snippets is List<object?> { Count: > 0 }));
     }
 
     /// <summary>A changed folder arrives: show it, keeping where the reader is as far as it still exists.</summary>
     public void Reload(Folder folder)
     {
+        // The folder read again is what is on show (the watch says so after the app's own save, which has been shown already): nothing to draw again.
+        if (_folder is { } shown && !_banner.IsVisible && FolderSame.Is(shown, folder)) return;
         _folder = folder;
         WarmCode(folder);
         if (_side is Side.Box box && folder.Model.GetObject(box.Id) is null) _side = null;
