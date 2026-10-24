@@ -7,7 +7,7 @@ import { flowGroups, outline, outlineKey } from '../../src/core/outline.ts'
 import type { FlowRef, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
-import { Activity, Bolt, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
+import { Activity, Alert, ChevronRight, Close, FileCode, Home, Info, Pencil, Play, Route, Workflow, Search as SearchIcon, Explorer as ExplorerIcon } from './icons.tsx'
 import { keyOf } from './keymap.ts'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
@@ -61,9 +61,9 @@ export function NavRail({ tab, flows, shapes, showFlows, showYaml, perf, failure
   return (
     <nav className="rail left" aria-label="Navigator">
       <RailButton label="Explorer" hint={keyOf('explorer')} Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
-      {showFlows && <RailButton label="Flows" hint={keyOf('flows')} Icon={Route} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
+      {showFlows && <RailButton label="Flows" hint={keyOf('flows')} Icon={Workflow} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />}
       <RailButton label="Performance" hint={keyOf('perf')} Icon={Activity} count={perf.runs > 0 ? perf.runs : undefined} pressed={tab === 'performance'} off={perf.off} onClick={() => onPick('performance')} />
-      <RailButton label="Failures" hint={keyOf('failures')} Icon={Bolt} count={failures.count > 0 ? failures.count : undefined} pressed={tab === 'failures'} onClick={() => onPick('failures')} />
+      <RailButton label="Failures" hint={keyOf('failures')} Icon={Alert} count={failures.count > 0 ? failures.count : undefined} pressed={tab === 'failures'} onClick={() => onPick('failures')} />
       {showYaml && <RailButton label="YAML" hint={keyOf('yaml')} Icon={FileCode} pressed={tab === 'yaml'} onClick={() => onPick('yaml')} />}
     </nav>
   )

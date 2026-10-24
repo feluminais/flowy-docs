@@ -139,12 +139,13 @@
     <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
   </Style>
 
-  <!-- Icons share one stroke; their colours come from where they sit. -->
+  <!-- Quiet control strokes; model icons retain their original weight. -->
   <Style Selector="Path.btnicon, Path.ticon, Path.pickicon, Path.chipicon, Path.sectionicon, Path.closeicon, Path.zoomicon, Path.dirnicon, Path.rowicon, Path.crumbicon, Path.warnicon, Path.railicon, Path.navicon, Path.twisticon">
-    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeThickness" Value="1.4" />
     <Setter Property="StrokeLineCap" Value="Round" />
     <Setter Property="StrokeJoin" Value="Round" />
   </Style>
+  <Style Selector="Path.ticon, Path.pickicon"><Setter Property="StrokeThickness" Value="2" /></Style>
 
   <!--
     The top bar, flat like an editor's toolbar: no boxes round the controls, just an icon and a word on the bar itself. Hovering lays a tint
