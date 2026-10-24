@@ -11,6 +11,7 @@ using Xunit;
 namespace Flowy.App.Tests;
 
 /// <summary>Edit mode as a person uses it: switch it on, type into the forms, press Add, Delete, Undo, and look at the files and the screen.</summary>
+[Trait("Weight", "Heavy")]
 public class EditModeTests
 {
     /// <summary>A reader on a copy of the crafted folder (hand-written extras, two flows, a layout), which the test may change.</summary>
