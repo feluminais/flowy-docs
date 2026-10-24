@@ -198,8 +198,12 @@ needs the .NET 10 SDK. The pieces:
   installer-side parts.
 - `Flowy.Tests` (xUnit): the Core, including parity with the TypeScript. `Flowy.App.Tests` (xUnit v3, Avalonia's headless platform):
   keys, clicks, the wheel, windows, the menu, single instance, Explorer entries (in a throwaway registry key, never the real one).
+  The whole suite takes about ten minutes and its memory grows as it goes (six gigabytes at the peak), so the classes that load the big demo,
+  play animations or drive whole panels carry `[Trait("Weight", "Heavy")]`. Give a new class that trait if it does the same.
 
 ```bash
+dotnet test desktop --filter "Weight!=Heavy"                               # the fast set, for every change
+dotnet test desktop --filter "Weight=Heavy"                                # the heavy set, about once a day (CI runs all of it)
 dotnet test desktop                                                        # all of it
 dotnet run --project desktop/Flowy.App -- docs/demo                        # open a repo in the app
 dotnet run --project desktop/Flowy.App -- docs/demo --shot out.png         # save a picture of the window and exit (--scale 2 for twice the size, --picture for the diagram alone)

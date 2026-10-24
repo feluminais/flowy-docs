@@ -482,6 +482,20 @@ export function setCompare(model: Model, flowId: string, tag: CompareTag | undef
   })
 }
 
+/** Swap two steps, keeping failure modes attached to the steps they name. */
+export function swapSteps(model: Model, id: string, index: number, other: number): Model {
+  const next = withFlow(model, id, flow => {
+    const a = existingStep(flow, id, index), b = existingStep(flow, id, other)
+    return { ...flow, steps: flow.steps.with(index, b).with(other, a) }
+  })
+  return editModes(next, mode => {
+    if (mode.flow !== id) return undefined
+    if (mode.step === String(index + 1)) return { ...mode, step: String(other + 1) }
+    if (mode.step === String(other + 1)) return { ...mode, step: String(index + 1) }
+    return undefined
+  })
+}
+
 /** The keys of a step in the order the guide shows them; a key set later goes after the nearest earlier one that is there. */
 const STEP_ORDER = ['from', 'to', 'text', 'description', 'animation', 'states', 'group', 'lane', 'flow']
 

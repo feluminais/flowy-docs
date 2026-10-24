@@ -131,4 +131,25 @@ public class FolderWatcherTests
         watcher.Fault(why);
         Assert.Same(why, failed);
     }
+
+    [Theory]
+    [InlineData("model.yaml", false)]
+    [InlineData("layout.yaml", false)]
+    [InlineData("flows", true)]
+    [InlineData("failures", true)]
+    [InlineData("perf", true)]
+    public void Renaming_a_model_path_away_is_noticed(string name, bool directory)
+    {
+        using var temp = new TempDir();
+        var from = Path.Combine(temp.Dir, name);
+        var to = Path.Combine(temp.Dir, "archived");
+        if (directory) Directory.CreateDirectory(from);
+        else temp.Write(name, "objects:\n");
+        using var watcher = new FolderWatcher(temp.Dir, TimeSpan.FromMilliseconds(30));
+        using var seen = new ManualResetEventSlim();
+        watcher.Changed += seen.Set;
+        if (directory) Directory.Move(from, to);
+        else File.Move(from, to);
+        Assert.True(seen.Wait(Patience, TestContext.Current.CancellationToken));
+    }
 }

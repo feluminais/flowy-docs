@@ -16,6 +16,7 @@ namespace Flowy.App.Tests;
 /// A flow's groups in the player: stops, the card, the steps of a parallel stop moving together, marks on the lines, and Open flow with its trail.
 /// These use desktop/fixtures/cases/groups, whose flow "ok" repeats two steps, branches into two lanes and ends on a parallel stop of two lanes.
 /// </summary>
+[Trait("Weight", "Heavy")]
 public class GroupsTests
 {
     private static string Groups => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "groups", "flowy");
