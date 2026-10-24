@@ -52,8 +52,15 @@ public class EditModeTests
 
     internal static async Task Until(Func<bool> done)
     {
-        for (var i = 0; i < 500 && !done(); i++) await Task.Delay(10);
+        for (var i = 0; i < 500 && !Done(); i++) await Task.Delay(10);
         Assert.True(done(), "gave up waiting");
+
+        // A check that reads a file can land while the app is writing it, and Windows refuses the read then: not yet, try again.
+        bool Done()
+        {
+            try { return done(); }
+            catch (IOException) { return false; }
+        }
     }
 
     [AvaloniaFact]
