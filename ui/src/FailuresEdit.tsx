@@ -10,6 +10,7 @@ import { isView } from '../../src/core/views.ts'
 import { newId } from './edit.ts'
 import { STATUS_NAMES, toLine, toShape } from './failuresview.ts'
 import { Plus, Trash } from './icons.tsx'
+import { Dropdown } from './Dropdown.tsx'
 import { Choice, Field } from './forms.tsx'
 import type { SaveEdit } from './forms.tsx'
 
@@ -91,13 +92,13 @@ export function AddMode({ model, analysisId, preset, run, onAdded, onCancel }: {
   }
   return (
     <form className="form" onSubmit={add}>
-      <label>Part<select value={kind} onChange={e => setKind(e.target.value as 'shape' | 'line')}><option value="shape">A shape</option><option value="line">A line</option></select></label>
+      <label>Part<Dropdown value={kind} options={[['shape', 'A shape'], ['line', 'A line']]} onChange={v => setKind(v as 'shape' | 'line')} /></label>
       {kind === 'shape'
-        ? <label>Shape<select value={on} onChange={e => setOn(e.target.value)}><option value="">None</option>{shapeOptions(model).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
+        ? <label>Shape<Dropdown value={on} options={[['', 'None'], ...shapeOptions(model)]} onChange={setOn} /></label>
         : (
           <>
-            <label>From<select value={from} onChange={e => { setFrom(e.target.value); setTo(toOptions(model, e.target.value)[0]?.[0] ?? '') }}><option value="">None</option>{fromOptions(model).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
-            <label>To<select value={to} onChange={e => setTo(e.target.value)}><option value="">None</option>{targets.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select></label>
+            <label>From<Dropdown value={from} options={[['', 'None'], ...fromOptions(model)]} onChange={v => { setFrom(v); setTo(toOptions(model, v)[0]?.[0] ?? '') }} /></label>
+            <label>To<Dropdown value={to} options={[['', 'None'], ...targets]} onChange={setTo} /></label>
           </>
         )}
       <label>Mode<input name="mode" autoFocus /></label>
@@ -161,10 +162,8 @@ export function ModeForm({ model, analysisId, modeId, runs, run }: { model: Mode
             <li key={id}>{partName(model, { on: id })} <button type="button" className="link" onClick={() => void save({ affects: affects.filter(a => a !== id) })}>Remove</button></li>
           ))}
         </ul>
-        <select aria-label="Add a shape to Affects" value="" onChange={e => { if (e.target.value !== '') void save({ affects: [...affects, e.target.value] }) }}>
-          <option value="">Add a shape</option>
-          {shapeOptions(model).filter(([id]) => !affects.includes(id)).map(([v, t]) => <option key={v} value={v}>{t}</option>)}
-        </select>
+        <Dropdown label="Add a shape to Affects" value="" options={[['', 'Add a shape'], ...shapeOptions(model).filter(([id]) => !affects.includes(id))]}
+          onChange={v => { if (v !== '') void save({ affects: [...affects, v] }) }} />
       </div>
       <Choice label="Flow" value={m.flow ?? ''} options={flows} onSave={flow => save({ flow, ...(flow === '' ? { step: '' } : {}) })} />
       {text('Step (from 1)', 'step')}
