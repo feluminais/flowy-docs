@@ -64,7 +64,7 @@ internal sealed partial class ReaderView
 
         public bool FailuresOpen => r.FailuresOpen;
 
-        public string? SaveOff => r.SaveOff;
+        public string? SaveOff => r._edit.SaveOff;
 
         public void Interacted() => r.Interacted();
 
@@ -78,6 +78,16 @@ internal sealed partial class ReaderView
 
         public void LeavePerformance() => r.LeavePerformance();
 
-        public Task<bool> WriteRunTagAsync(string id, CompareTag? tag) => r.WriteRunTagAsync(id, tag);
+        public Task<bool> WriteRunTagAsync(string id, CompareTag? tag) => r._edit.WriteRunTagAsync(id, tag);
+
+        public bool HasBanner => r._banner.IsVisible;
+
+        public string? WaitingBox => r._opening is { IsEnabled: true } ? r._openingBox : null;
+
+        public void DismissNotice() => r.DismissNotice();
+
+        public void OpenLine(string from, string to) => r.OpenLine(from, to);
+
+        public void FitNow() => r.FitNow();
     }
 }

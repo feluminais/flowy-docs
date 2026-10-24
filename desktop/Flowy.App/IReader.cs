@@ -86,4 +86,16 @@ internal interface IReader
 
     /// <summary>Writes a run's own tag (null takes it out) into the run's file. True once it is saved and on screen.</summary>
     Task<bool> WriteRunTagAsync(string id, CompareTag? tag);
+
+    /// <summary>A file that can't be read is said in the banner over the bar.</summary>
+    bool HasBanner { get; }
+
+    /// <summary>The box a click is waiting out the double-click window on, or null.</summary>
+    string? WaitingBox { get; }
+
+    void DismissNotice();
+
+    void OpenLine(string from, string to);
+
+    void FitNow();
 }

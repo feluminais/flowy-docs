@@ -113,6 +113,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public ReaderView()
     {
         _host = new Host(this);
+        _edit = new EditMode(_host);
+        _gestures = new EditGestures(_host, _edit, _canvas, _pickedBar);
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
 
         _banner.Classes.Add("banner");
@@ -142,12 +144,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
         Children.Add(beside);
 
         _canvas.BoxClicked += BoxClicked;
-        _canvas.BoxToggled += ToggleBox;
-        _canvas.BoxesPicked += PickBoxes;
-        _pickedBar.DeleteRequested += () => _ = DeleteSelectedAsync();
-        _pickedBar.ClearRequested += ClearPicked;
-        _canvas.BoxesMoved += moved => _ = MoveBoxesAsync(moved);
-        _canvas.ConnectRequested += (from, to) => _ = ConnectAsync(from, to);
         _canvas.BoxDoubleClicked += id =>
         {
             if (CanOpen(id)) ZoomInto(id);
@@ -321,8 +317,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>Lets go of the folder's watcher. The window calls this when it closes; without it the watcher outlives the window.</summary>
     public void Dispose()
     {
-        _disk?.Dispose();
-        _disk = null;
+        _edit.Dispose();
     }
 
     public void Load(Folder folder, string dir)
@@ -334,12 +329,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         ShowCurrentModel();
         _modelsLoaded = LoadModels(dir);
         WarmCode(folder);
-        _session = new EditSession(dir);
-        _disk?.Dispose();
-        _disk = new FolderSession(dir);
-        _disk.Loaded += Reload;
-        _disk.Failed += SetBanner;
-        _editMode = false;
+        _edit.Open(dir, Reload, SetBanner);
         _view = Names.Root;
         _side = null;
         _panels.Reset();
@@ -434,7 +424,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _folder = folder;
         WarmCode(folder);
         if (_side is Side.Box box && folder.Model.GetObject(box.Id) is null) _side = null;
-        if (_side is Side.Boxes boxes) _side = SideOf(boxes.Ids.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
+        if (_side is Side.Boxes boxes) _side = EditGestures.SideOf(boxes.Ids.Where(p => folder.Model.GetObject(p) is not null).ToList()); // boxes that went are no longer picked
         if (!PerfOpen || LoadTest is null) _perf.StopRamp(); // a ramp whose run is gone has nothing to run on, and its loop has already ended
         SetBanner(null);
         Refresh();
@@ -587,7 +577,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         var model = folder.Model;
         Playing? shown = null;
         if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index);
-        else if (Recording is { } rec) shown = RecordingShown(model, view, rec);
+        else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec);
         var line = _side is Side.Line l ? SceneBuilder.LineId(l.From, l.To) : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
@@ -680,7 +670,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
                     fresh.Marked += (going, flagged) => _canvas.ShowUsed(going, flagged);
                     fresh.Done += text =>
                     {
-                        CloseSide();
+                        CloseDetails();
                         ShowNotice(text, 0, () => _ = UndoAsync());
                     };
                     fresh.Cancelled += () =>
@@ -703,7 +693,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
             case Side.Line { From: var from, To: var to } when Editing:
-                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseSide, AskDelete);
+                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseDetails, AskDelete);
                 break;
             case Side.Line { From: var from, To: var to, View: var lineView }:
                 _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems);
@@ -713,7 +703,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
                 break;
             case Side.Flow { Rec: var rec } when Editing:
                 _panel.ShowRecorder(model, view, rec, RunAsync,
-                    r => SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseSide, OpenFlow);
+                    r => _gestures.SetRecording(r), name => Navigation.NewId(name, model.Flows.Keys, "flow"), CloseDetails, OpenFlow);
                 break;
             default:
                 ShowViewDetails(model, view);
@@ -927,7 +917,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         Interacted();
         if (Recording is { } rec)
         {
-            PickBox(rec, id);
+            _gestures.PickBox(rec, id);
             return;
         }
         if (_side is Side.Box { Id: var open } && open == id)
