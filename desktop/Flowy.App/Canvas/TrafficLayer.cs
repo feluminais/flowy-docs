@@ -32,7 +32,41 @@ internal sealed class TrafficLayer : Control
     /// </summary>
     internal readonly record struct Way(FlatLine Path, FlatLine Bounce, ShapeCover? From, ShapeCover? To);
 
-    private sealed record Drawn(LineTraffic Line, Way Way, ParticleStream Stream, IReadOnlyList<ShapeCover> Behind);
+    /// <summary>
+    /// One line's traffic. `Behind` and `Labels` are the shapes and labels near enough to the line to hide a particle on it: far ones can't, so a particle is only asked about a few. What is the same
+    /// every frame (the shapes that open at its ends, the cut that keeps stripes off the shapes, the stripes' path) is made once, the first time it is drawn.
+    /// </summary>
+    private sealed class Drawn(LineTraffic line, Way way, ParticleStream stream, IReadOnlyList<ShapeCover> behind, IReadOnlyList<CoreRect> labels)
+    {
+        public LineTraffic Line { get; } = line;
+        public Way Way { get; } = way;
+        public ParticleStream Stream { get; } = stream;
+        public IReadOnlyList<ShapeCover> Behind { get; } = behind;
+        public IReadOnlyList<CoreRect> Labels { get; } = labels;
+        public List<ShapeCover>? Opening { get; set; }
+        public StreamGeometry? Cut { get; set; }
+        public StreamGeometry? Stripes { get; set; }
+        public double StripesAside { get; set; }
+    }
+
+    /// <summary>How far from a line's path a shape or label can still hide a particle on it, in the diagram's units. A particle is a few pixels on screen, so at the smallest zoom it is some dozens of units; this is far more.</summary>
+    private const double Near = 400;
+
+    /// <summary>The box round a line's path, widened by <see cref="Near"/>: what is outside it cannot hide a particle on the line.</summary>
+    private static CoreRect PathBox(FlatLine path)
+    {
+        double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+        for (var i = 0; i < path.Xs.Length; i++)
+        {
+            minX = Math.Min(minX, path.Xs[i]);
+            maxX = Math.Max(maxX, path.Xs[i]);
+            minY = Math.Min(minY, path.Ys[i]);
+            maxY = Math.Max(maxY, path.Ys[i]);
+        }
+        return new CoreRect(minX - Near, minY - Near, maxX - minX + 2 * Near, maxY - minY + 2 * Near);
+    }
+
+    private static bool Meets(CoreRect a, CoreRect b) => a.Right >= b.X && a.X <= b.Right && a.Bottom >= b.Y && a.Y <= b.Bottom;
 
     private List<Drawn> _lines = [];
     private IReadOnlyList<CoreRect> _labels = [];
@@ -98,7 +132,8 @@ internal sealed class TrafficLayer : Control
                 _streams[key] = stream = new ParticleStream();
                 for (double t = 0; t < line.TravelMs; t += 32) Flowy.Core.Particles.Advance(stream, line, 32, Rand);
             }
-            drawn.Add(new Drawn(line, way, stream, shapes.Where(s => s.Id != line.From && s.Id != line.To).ToList()));
+            var reach = PathBox(way.Path);
+            drawn.Add(new Drawn(line, way, stream, shapes.Where(s => s.Id != line.From && s.Id != line.To && Meets(s.Rect, reach)).ToList(), labels.Where(l => Meets(l, reach)).ToList()));
         }
         _lines = drawn;
         foreach (var key in _streams.Keys.Where(k => !drawn.Any(d => (d.Line.From, d.Line.To, d.Line.Source) == k)).ToList())
@@ -326,7 +361,7 @@ internal sealed class TrafficLayer : Control
             // A rejected call stops at the bar at the end of the line, so it doesn't run on into the shape there.
             var rejected = d.Line.Failure == "rejected";
             var path = rejected ? d.Way.Bounce : d.Way.Path;
-            var opening = new[] { d.Way.From, rejected ? null : d.Way.To }.OfType<ShapeCover>().ToList();
+            var opening = d.Opening ??= new[] { d.Way.From, rejected ? null : d.Way.To }.OfType<ShapeCover>().ToList();
             if (d.Line.Stripes is { } busy and > 0 && path.Xs.Length > 1)
             {
                 // The calls: stripes moving along the line itself, closer and quicker the more calls there are, with every few of them red for the share of calls that fail.
@@ -335,9 +370,11 @@ internal sealed class TrafficLayer : Control
                 var moved = _stripeAt.TryGetValue((d.Line.From, d.Line.To, d.Line.Source), out var at) ? at : 0;
                 var thick = (1 + d.Line.Width * 0.25) * px;
                 var apart = (pace.Dash + pace.Gap) * px;
-                using var cut = context.PushGeometryClip(OutsideAll(opening.Concat(d.Behind), _labels));
+                using var cut = context.PushGeometryClip(d.Cut ??= OutsideAll(opening.Concat(d.Behind), d.Labels));
                 using var dim = context.PushOpacity(d.Line.Bare ? 0.45 : 0.9);
-                var way = Along(path, (d.Line.Offset ?? 0) * 3 * px);
+                var offset = (d.Line.Offset ?? 0) * 3 * px;
+                if (d.Stripes is null || d.StripesAside != offset) (d.Stripes, d.StripesAside) = (Along(path, offset), offset);
+                var way = d.Stripes;
                 // Avalonia counts a dash in widths of the pen, so the dashes and the offset are divided by the thickness.
                 context.DrawGeometry(null, new Pen(tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way);
                 if (d.Line.Failed > 0)
@@ -371,7 +408,7 @@ internal sealed class TrafficLayer : Control
                     else if (how == Flowy.Core.Particles.Cut.Cut) cut = s;
                 }
                 if (gone) continue;
-                var (ghostAlpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, _labels, x, y, ramp));
+                var (ghostAlpha, scale) = Flowy.Core.Particles.Ghost(BehindOf(d.Behind, d.Labels, x, y, ramp));
                 var r = radius * scale;
                 using var clip = cut is { } shape ? (IDisposable)context.PushGeometryClip(Outside(shape)) : null;
                 if (look.Pop is { } pop)
