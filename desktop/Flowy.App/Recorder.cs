@@ -12,7 +12,7 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>The flow being recorded. While <see cref="Id"/> is "", it still needs a name. <see cref="From"/> and <see cref="To"/> are the step being picked.</summary>
-internal sealed record Recording(string Id, string Name, string? From = null, string? To = null);
+internal sealed record Recording(string Id, string Name, string? From = null, string? To = null, string? Folder = null);
 
 /// <summary>
 /// The panel for a flow in edit mode: a name for a new one, then its steps (each with its text, a detail a reader can open, the group it is in,
@@ -45,8 +45,12 @@ internal sealed class Recorder : StackPanel
         public required FieldBox Reason;
         public required Chooser Takers;
         public required FieldBox TakerName;
+        public required Chooser Opens;
+        public required FieldBox ChannelName;
+        public required Chooser Towards;
+        public required Chooser Closes;
         public required Control Panel;
-        public required Action<Step> Sync;
+        public required Action<Step, IReadOnlyList<(string Name, string Kind)>> Sync;
     }
 
     private sealed class GroupCard
@@ -125,6 +129,14 @@ internal sealed class Recorder : StackPanel
 
     internal IReadOnlyList<FieldBox> StepTakerNames => _rows.Select(r => r.Animation.TakerName).ToList();
 
+    internal IReadOnlyList<Chooser> StepOpens => _rows.Select(r => r.Animation.Opens).ToList();
+
+    internal IReadOnlyList<FieldBox> StepChannelNames => _rows.Select(r => r.Animation.ChannelName).ToList();
+
+    internal IReadOnlyList<Chooser> StepTowards => _rows.Select(r => r.Animation.Towards).ToList();
+
+    internal IReadOnlyList<Chooser> StepCloses => _rows.Select(r => r.Animation.Closes).ToList();
+
     internal IReadOnlyList<ComboBox> StepFlowBoxes => _rows.Select(r => r.Flow.Box).ToList();
 
     /// <summary>The state tiles of step <paramref name="step"/>: one picker for each end of it that is a shape (the same shape once when it starts and ends there).</summary>
@@ -162,7 +174,20 @@ internal sealed class Recorder : StackPanel
 
     internal FieldBox? FlowNameField => _flowName;
 
+    internal FieldBox? FlowFolderField => _flowFolder;
+
+    internal TagPicker? TagPicker => _tagPicker;
+
+    private FieldBox? _flowFolder;
+
+    private TagPicker? _tagPicker;
+
+    /// <summary>The tags any flow has, for the picker to offer beside the suggested ones.</summary>
+    private static IReadOnlyList<string> UsedTags(Model model) => Outlines.FlowList(model, new FlowListOptions(Editing: true)).Tags.Select(t => t.Tag).ToList();
+
     internal TextBox? NameBox { get; private set; }
+
+    internal TextBox? FolderBox { get; private set; }
 
     private static string Ends(Model model, string? from, string? to) =>
         string.IsNullOrEmpty(to) || to == from ? $"{Views.NameOf(model, from ?? "")}, on its own" : $"{Views.NameOf(model, from ?? "")} → {Views.NameOf(model, to)}";
@@ -193,17 +218,25 @@ internal sealed class Recorder : StackPanel
         {
             _head.Children.Clear();
             _flowName = null;
+            _flowFolder = null;
+            _tagPicker = null;
             NameBox = null;
             if (flow is not null)
             {
                 _flowName = new FieldBox("Flow", flow.Name ?? "", false, v => _run(d => EditOps.UpdateFlow(d, rec.Id, name: v)));
+                _flowFolder = new FieldBox("Folder", model.FolderOf(rec.Id), false, v => _run(d => EditOps.MoveFlow(d, rec.Id, v)), placeholder: "e.g. payments/refunds");
+                _tagPicker = new TagPicker(flow.Tags, UsedTags(model), tags => _run(d => EditOps.SetFlowTags(d, rec.Id, tags)));
                 _head.Children.Add(Chrome.Section(Icons.Route, "Flow"));
                 _head.Children.Add(_flowName);
+                _head.Children.Add(_flowFolder);
+                _head.Children.Add(_tagPicker);
             }
             else _head.Children.Add(_owner.IconHeading(Icons.Route, rec.Name));
             _headFor = $"flow:{rec.Id}:{flow is not null}";
         }
         _flowName?.Sync(flow?.Name ?? "");
+        _flowFolder?.Sync(model.FolderOf(rec.Id));
+        _tagPicker?.Sync(flow?.Tags ?? [], UsedTags(model));
 
         // The steps: the rows stay as they are while only the text changed, so a field being typed in keeps its focus.
         // What a row can pick comes from the flow's groups and the other flows (and a group or flow a step names that is not there), so those rebuild the
@@ -227,6 +260,8 @@ internal sealed class Recorder : StackPanel
             _steps.Children.Clear();
             for (var i = 0; i < steps.Count; i++) _steps.Children.Add(BuildRow(model, rec.Id, steps, i, declared, others));
         }
+        // What a step can close is what is open when its stop is reached, which the other steps' animations decide, so it is worked out afresh at every update.
+        var stops = flow is null ? [] : Structure.Stops(flow);
         for (var i = 0; i < steps.Count; i++)
         {
             _rows[i].Text.Sync(steps[i].Text ?? "");
@@ -236,7 +271,7 @@ internal sealed class Recorder : StackPanel
             _rows[i].Flow.Sync(JsCompat.JsTrim(steps[i].FlowId ?? ""));
             _rows[i].Lane.Sync(steps[i].Lane ?? "");
             _rows[i].Lane.IsVisible = group != "" && FlowForm.HasLanes(FlowForm.KindOf(declared, group));
-            _rows[i].Animation.Sync(steps[i]);
+            _rows[i].Animation.Sync(steps[i], flow is null ? [] : Channels.ClosableAt(flow, stops, i));
             foreach (var (shape, tiles) in _rows[i].States) tiles.Show(FlowForm.StateWord(steps[i].States, shape));
         }
         if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
@@ -263,7 +298,7 @@ internal sealed class Recorder : StackPanel
                 if (e.Key == Key.Escape)
                 {
                     e.Handled = true;
-                    _change(new Recording(rec.Id, rec.Name));
+                    _change(new Recording(rec.Id, rec.Name, Folder: rec.Folder));
                 }
                 else if (e.Key == Key.Enter)
                 {
@@ -369,10 +404,24 @@ internal sealed class Recorder : StackPanel
         var name = new TextBox { PlaceholderText = "e.g. Customer checks out" };
         NameBox = name;
         Avalonia.Automation.AutomationProperties.SetName(name, "Name");
+        var folder = new TextBox { PlaceholderText = "e.g. payments/refunds" };
+        FolderBox = folder;
+        Avalonia.Automation.AutomationProperties.SetName(folder, "Folder");
+        var folderNote = new TextBlock { FontSize = 12, TextWrapping = TextWrapping.Wrap, IsVisible = false };
+        folderNote.Classes.Add("dangertext");
+        folder.TextChanged += (_, _) => folderNote.IsVisible = false;
         void Start()
         {
             var text = (name.Text ?? "").Trim();
-            if (text != "") _change(new Recording(_makeId(text), text));
+            var path = string.Join('/', (folder.Text ?? "").Replace('\\', '/').Split('/').Select(n => JsCompat.JsTrim(n)).Where(n => n != ""));
+            if (!Names.IsValidFolder(path))
+            {
+                // The folder is first used when the first step is saved, so a name that can't be one is said now, under the field, while it can still be fixed.
+                folderNote.Text = $"Not a folder Flowy can use: {Names.FolderRule}";
+                folderNote.IsVisible = true;
+                return;
+            }
+            if (text != "") _change(new Recording(_makeId(text), text, Folder: path == "" ? null : path));
         }
         _startNamed = text =>
         {
@@ -391,6 +440,7 @@ internal sealed class Recorder : StackPanel
             Start();
         };
         _head.Children.Add(new StackPanel { Spacing = 4, Children = { caption, name } });
+        _head.Children.Add(new StackPanel { Spacing = 4, Children = { Caption("Folder"), folder, folderNote } });
         _head.Children.Add(start);
         Dispatcher.UIThread.Post(() => name.Focus());
     }
@@ -414,14 +464,14 @@ internal sealed class Recorder : StackPanel
         // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
         var saved = await _run(d =>
         {
-            if (!d.Flows.ContainsKey(rec.Id)) return EditOps.PutFlow(d, rec.Id, rec.Name, view, [EditOps.NewStep(from, to, text)]);
+            if (!d.Flows.ContainsKey(rec.Id)) return EditOps.PutFlow(d, rec.Id, rec.Name, view, [EditOps.NewStep(from, to, text)], folder: rec.Folder);
             var copy = d.Clone();
             var steps = StepsOf(copy, rec.Id);
             FlowForm.RequireShown(steps, _shownSigs);
             steps.Add(EditOps.NewStep(from, to, text));
             return EditOps.UpdateFlow(d, rec.Id, steps: steps);
         });
-        if (saved) _change(new Recording(rec.Id, rec.Name));
+        if (saved) _change(new Recording(rec.Id, rec.Name, Folder: rec.Folder));
     }
 
     private static string KindName(string? kind) => KindNames.FirstOrDefault(k => k.Kind == kind).Name ?? "no kind";
@@ -635,15 +685,31 @@ internal sealed class Recorder : StackPanel
                 Children = { Chrome.ObjectTile(model, o, 20), new TextBlock { Text = name, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis } },
             });
         }
-        var panel = new StackPanel { Spacing = 10, Children = { kind, outcome, share, reason, takers, takerName } };
-        void Sync(Step step)
+        // What it leaves open, the name it goes by, the end it points at, and what it closes (the names open at its stop, listed by Sync).
+        var opens = new Chooser("Leaves open", new UniformGrid { Columns = 4 }, id => Set("opens", id), id => id == "" ? "Nothing" : Channels.Labels.GetValueOrDefault(id, id)); // a file may name a kind nobody knows: its own word stands
+        foreach (var (id, path) in Animations.ChannelSketches)
         {
-            var (k, o, s, r, by, byName) = FlowForm.ReadAnimation(step.Animation);
+            var name = id == "none" ? "Nothing" : Channels.Labels[id];
+            opens.Add(id == "none" ? "" : id, name, SketchCell(path, name));
+        }
+        var channelName = new FieldBox($"Name ({Animations.NameMax} characters)", "", false, v => Set("name", v), "e.g. Orders");
+        var towards = new Chooser("Points at", new UniformGrid { Columns = 3 }, id => Set("towards", id), id => id == "" ? "Usual end" : Title(id));
+        foreach (var (id, path) in Animations.EndSketches)
+        {
+            var name = id == "none" ? "Usual end" : Title(id);
+            towards.Add(id == "none" ? "" : id, name, SketchCell(path, name));
+        }
+        var openNames = new HashSet<string>();
+        var closes = new Chooser("Closes", new UniformGrid { Columns = 4 }, id => Set("closes", id), id => id == "" ? "Nothing" : openNames.Contains(id) ? id : $"{id} · not open");
+        var closeOptions = "";
+        var panel = new StackPanel { Spacing = 10, Children = { kind, outcome, share, reason, takers, takerName, opens, channelName, towards, closes } };
+        void Sync(Step step, IReadOnlyList<(string Name, string Kind)> closable)
+        {
+            var (k, o, s, r, by, byName, op, called, toward, closing) = FlowForm.ReadAnimation(step.Animation);
             var travels = FlowForm.Travels(step);
             kind.Show(k);
             foreach (var id in kind.Ids) kind.Allow(id, FlowForm.KindBlock(id, travels));
             outcome.Show(o);
-            foreach (var id in outcome.Ids) outcome.Allow(id, Animations.OutcomeBlock(k, id));
             var noOutcome = FlowForm.OutcomeFieldsBlock(o);
             share.Sync(s);
             share.IsEnabled = noOutcome is null;
@@ -657,10 +723,38 @@ internal sealed class Recorder : StackPanel
             takerName.Sync(byName);
             takerName.IsEnabled = noTakerName is null;
             ToolTip.SetTip(takerName, noTakerName);
+
+            // A request that arrives is what leaves a channel open or closes one, so an outcome and a channel exclude each other, each dimmed with the reason in its tooltip.
+            var channelled = op != "" || closing != "";
+            foreach (var id in outcome.Ids) outcome.Allow(id, Animations.OutcomeBlock(k, id) ?? (id != "" && channelled ? "Not while it opens or closes something" : null));
+            string? Away(bool closesIt) => !travels ? "Needs two shapes" : k == "" ? "Pick how it travels first" : o != "" ? "Not while it ends as something else" : closesIt ? "Not while it closes something" : null;
+            opens.Show(op);
+            foreach (var id in opens.Ids) opens.Allow(id, id == "" ? null : Away(closing != ""));
+            var noName = op == "" ? "Pick what it leaves open first" : null;
+            channelName.Sync(called);
+            channelName.IsEnabled = noName is null;
+            ToolTip.SetTip(channelName, noName);
+            towards.Show(toward);
+            foreach (var id in towards.Ids) towards.Allow(id, noName);
+            // The names open at this step's stop; one the step still names that is not open stays on offer, marked, so it can be seen and changed.
+            var stale = closing != "" && !closable.Any(c => c.Name == closing) ? closing : "";
+            var listed = string.Join('', closable.Select(c => $"{c.Name}{c.Kind}")) + '' + stale;
+            openNames.Clear();
+            foreach (var (name, _) in closable) openNames.Add(name);
+            if (listed != closeOptions)
+            {
+                closeOptions = listed;
+                closes.Clear();
+                closes.Add("", "Nothing", SketchCell(Animations.ChannelSketches[0].Path, "Nothing"));
+                foreach (var (name, kindOf) in closable) closes.Add(name, name, SketchCell(Animations.ChannelSketches.First(c => c.Id == kindOf).Path, name));
+                if (stale != "") closes.Add(stale, $"{stale} · not open", SketchCell(Animations.ChannelSketches[0].Path, $"{stale} · not open"));
+            }
+            closes.Show(closing);
+            foreach (var id in closes.Ids) closes.Allow(id, id == "" ? null : !travels ? "Needs two shapes" : k == "" ? "Pick how it travels first" : o != "" ? "Not while it ends as something else" : op != "" ? "Not while it leaves something open" : null);
         }
         panel.IsVisible = first.Animation is not null && first.Animation is not "";
-        var row = new AnimationRow { Kind = kind, Outcome = outcome, Share = share, Reason = reason, Takers = takers, TakerName = takerName, Panel = panel, Sync = Sync };
-        Sync(first);
+        var row = new AnimationRow { Kind = kind, Outcome = outcome, Share = share, Reason = reason, Takers = takers, TakerName = takerName, Opens = opens, ChannelName = channelName, Towards = towards, Closes = closes, Panel = panel, Sync = Sync };
+        Sync(first, []);
         return row;
     }
 

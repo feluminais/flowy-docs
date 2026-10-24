@@ -77,6 +77,17 @@ public class FlowFormTests
     }
 
     [Fact]
+    public void The_channel_keys_of_an_animation_are_read_as_text_fields_and_kept_when_wrong()
+    {
+        var map = new OrderedDictionary<string, object?> { ["kind"] = "call", ["opens"] = "job", ["name"] = "N", ["towards"] = "from" };
+        Assert.Equal(new AnimationFields("call", "", "", "", "", "", "job", "N", "from", ""), FlowForm.ReadAnimation(map));
+        Assert.Equal(new AnimationFields("send", "", "", "", "", "", "", "", "", "N"), FlowForm.ReadAnimation(new OrderedDictionary<string, object?> { ["kind"] = "send", ["closes"] = "N" }));
+        // A mistake stays in the field so the form can show it.
+        Assert.Equal("pipe", FlowForm.ReadAnimation(new OrderedDictionary<string, object?> { ["kind"] = "call", ["opens"] = "pipe" }).Opens);
+        Assert.Equal(new AnimationFields("", "", "", "", "", ""), FlowForm.ReadAnimation(null));
+    }
+
+    [Fact]
     public void An_outcome_decides_which_fields_are_on()
     {
         var step = new Step("web", "api", "Calls", null);

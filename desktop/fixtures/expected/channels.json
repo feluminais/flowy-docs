@@ -1,0 +1,1016 @@
+{
+  "lineStyle": "straight",
+  "projectName": "",
+  "projectAbout": "",
+  "objects": [
+    {
+      "id": "2",
+      "type": "system",
+      "name": "Two"
+    },
+    {
+      "id": "10",
+      "type": "system",
+      "name": "Ten"
+    },
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    },
+    {
+      "id": "orders",
+      "type": "component",
+      "name": "Orders",
+      "in": "api"
+    },
+    {
+      "id": "auth",
+      "type": "component",
+      "name": "Auth",
+      "in": "api"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop"
+    },
+    {
+      "id": "stripe",
+      "type": "system",
+      "name": "Stripe",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "REST"
+    },
+    {
+      "from": "orders",
+      "to": "db",
+      "label": "reads/writes"
+    },
+    {
+      "from": "auth",
+      "to": "db",
+      "label": "checks users"
+    },
+    {
+      "from": "api",
+      "to": "stripe",
+      "label": "charges with"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "bad",
+      "name": "Every way to get a channel wrong",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Closes what is not open",
+          "animation": {
+            "kind": "send",
+            "closes": "Ghost"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Opens one",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "name": "Real"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Closes a wrong name",
+          "animation": {
+            "kind": "send",
+            "closes": "Ghost"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Opens and closes",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "closes": "Real"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A pipe",
+          "animation": {
+            "kind": "send",
+            "opens": "pipe"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Points up",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "towards": "up"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Name alone",
+          "animation": {
+            "kind": "send",
+            "name": "Lonely"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Towards alone",
+          "animation": {
+            "kind": "send",
+            "towards": "from"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Opens on a failure",
+          "animation": {
+            "kind": "send",
+            "opens": "job",
+            "outcome": "fail"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Closes on a loss",
+          "animation": {
+            "kind": "send",
+            "closes": "Real",
+            "outcome": "lost"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A long name",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "name": "abcdefghijklmnopqrstuvwxy"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A name at the limit",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "name": "abcdefghijklmnopqrstuvwx"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A blank name",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "name": " "
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "A blank close",
+          "animation": {
+            "kind": "send",
+            "closes": " "
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "text": "Alone and opening",
+          "animation": {
+            "kind": "send",
+            "opens": "job"
+          },
+          "placed": [
+            "web",
+            "web"
+          ],
+          "ends": "Web app"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Closes it for real",
+          "animation": {
+            "kind": "send",
+            "closes": "Real"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ]
+    },
+    {
+      "id": "branching",
+      "name": "A lane starts from what was open before the branch",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Asks",
+          "animation": {
+            "kind": "call",
+            "opens": "stream",
+            "name": "A"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Keeps it",
+          "group": "outcome",
+          "lane": "Keep",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "text": "Starts a job",
+          "animation": {
+            "kind": "send",
+            "opens": "job",
+            "name": "B"
+          },
+          "group": "outcome",
+          "placed": [
+            "api",
+            "stripe"
+          ],
+          "ends": "API → Stripe"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "text": "Closes the stream",
+          "animation": {
+            "kind": "send",
+            "closes": "A"
+          },
+          "group": "outcome",
+          "lane": "Drop",
+          "placed": [
+            "api",
+            "web"
+          ],
+          "ends": "API → Web app"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Closes B",
+          "animation": {
+            "kind": "send",
+            "closes": "B"
+          },
+          "group": "outcome",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "After",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "groups": {
+        "outcome": {
+          "kind": "branch"
+        }
+      }
+    },
+    {
+      "id": "lifecycle",
+      "name": "A stream opens, stays, closes and opens again",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Asks",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Starts feeding orders",
+          "animation": {
+            "kind": "call",
+            "opens": "stream",
+            "name": "Orders"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Browses meanwhile",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "text": "Starts a charge job",
+          "animation": {
+            "kind": "send",
+            "opens": "job",
+            "name": "Charge"
+          },
+          "placed": [
+            "api",
+            "stripe"
+          ],
+          "ends": "API → Stripe"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Still browsing",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Stops the feed",
+          "animation": {
+            "kind": "send",
+            "closes": "Orders"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "The job runs on",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Feeds orders again",
+          "animation": {
+            "kind": "call",
+            "opens": "stream",
+            "name": "Orders"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "text": "Stops the job",
+          "animation": {
+            "kind": "send",
+            "closes": "Charge"
+          },
+          "placed": [
+            "api",
+            "stripe"
+          ],
+          "ends": "API → Stripe"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Done",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ]
+    },
+    {
+      "id": "parallel",
+      "name": "One stop that opens and closes together",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Asks",
+          "animation": {
+            "kind": "call",
+            "opens": "listener",
+            "name": "Hook"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Opens a stream",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "name": "Rows"
+          },
+          "group": "both",
+          "lane": "Order",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "text": "Closes the hook",
+          "animation": {
+            "kind": "send",
+            "closes": "Hook"
+          },
+          "group": "both",
+          "lane": "Pay",
+          "placed": [
+            "api",
+            "stripe"
+          ],
+          "ends": "API → Stripe"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Then",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Closes the rows",
+          "animation": {
+            "kind": "send",
+            "closes": "Rows"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "groups": {
+        "both": {
+          "kind": "parallel"
+        }
+      }
+    },
+    {
+      "id": "reopen",
+      "name": "A name that is opened while it is open",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Opens it",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "name": "Feed"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "text": "Opens it again",
+          "animation": {
+            "kind": "send",
+            "opens": "job",
+            "name": "Feed"
+          },
+          "placed": [
+            "api",
+            "stripe"
+          ],
+          "ends": "API → Stripe"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Then",
+          "animation": {
+            "kind": "send",
+            "closes": "Feed"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Closes it again",
+          "animation": {
+            "kind": "send",
+            "closes": "Feed"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "End",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ]
+    },
+    {
+      "id": "repeat",
+      "name": "A repeat plays its steps in turn",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Tries",
+          "animation": {
+            "kind": "call",
+            "opens": "job",
+            "name": "Retry"
+          },
+          "group": "again",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Is slow",
+          "group": "again",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Gives up",
+          "animation": {
+            "kind": "send",
+            "closes": "Retry"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ],
+      "groups": {
+        "again": {
+          "kind": "repeat",
+          "times": "3"
+        }
+      }
+    },
+    {
+      "id": "unnamed",
+      "name": "Unnamed channels stay open to the end",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Subscribes",
+          "animation": {
+            "kind": "call",
+            "opens": "listener"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Kicks off a job",
+          "animation": {
+            "kind": "send",
+            "opens": "job"
+          },
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "text": "Streams towards the caller",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "towards": "from"
+          },
+          "placed": [
+            "api",
+            "stripe"
+          ],
+          "ends": "API → Stripe"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Streams to the callee",
+          "animation": {
+            "kind": "send",
+            "opens": "stream",
+            "towards": "to"
+          },
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "text": "Nothing closes them",
+          "placed": [
+            "web",
+            "api"
+          ],
+          "ends": "Web app → API"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 4: animation opens and closes cannot be on one step",
+      "step": 3
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 5: animation opens must be stream, listener or job",
+      "step": 4
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 6: animation towards must be from or to",
+      "step": 5
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 7: animation name needs opens",
+      "step": 6
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 8: animation towards needs opens",
+      "step": 7
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 9: animation opens only applies to a request that arrives, not to outcome fail",
+      "step": 8
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 10: animation closes only applies to a request that arrives, not to outcome lost",
+      "step": 9
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 11: animation name can be at most 24 characters",
+      "step": 10
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 13: animation name must be plain text on one line",
+      "step": 12
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 14: animation closes must be plain text on one line",
+      "step": 13
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 15: animation \"send\" needs a \"to\"",
+      "step": 14
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 1: closes \"Ghost\", but nothing by that name is open",
+      "step": 0
+    },
+    {
+      "file": "flows/bad.yaml",
+      "message": "step 3: closes \"Ghost\", but nothing by that name is open (open: Real)",
+      "step": 2
+    },
+    {
+      "file": "flows/branching.yaml",
+      "message": "step 5: closes \"B\", but nothing by that name is open",
+      "step": 4
+    },
+    {
+      "file": "flows/reopen.yaml",
+      "message": "step 2: opens \"Feed\", which is already open",
+      "step": 1
+    },
+    {
+      "file": "flows/reopen.yaml",
+      "message": "step 4: closes \"Feed\", but nothing by that name is open",
+      "step": 3
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "2",
+        "10",
+        "customer",
+        "shop",
+        "stripe"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "shop",
+          "to": "stripe",
+          "label": "charges with",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api",
+        "db"
+      ],
+      "outsiders": [
+        "customer",
+        "stripe"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "api",
+          "to": "stripe",
+          "label": "charges with",
+          "count": 1
+        }
+      ]
+    },
+    "api": {
+      "id": "api",
+      "members": [
+        "orders",
+        "auth"
+      ],
+      "outsiders": [
+        "db"
+      ],
+      "edges": [
+        {
+          "from": "orders",
+          "to": "db",
+          "label": "reads/writes",
+          "count": 1
+        },
+        {
+          "from": "auth",
+          "to": "db",
+          "label": "checks users",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

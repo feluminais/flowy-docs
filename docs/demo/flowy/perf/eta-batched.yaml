@@ -1,5 +1,5 @@
 name: "Dinner rush, ETA calls batched"
-about: "Made-up numbers for the demo. The same test after ETA was changed to ask Mapbox for all of an order's couriers in one call: Dispatch keeps up at every level, and Order events never backs up."
+about: "Made-up numbers for the demo. The same test with ETA asking Mapbox for all of an order's couriers in one call. Dispatch keeps up at every level and Order events never backs up."
 unit: orders/min
 entry: customer-app
 levels:

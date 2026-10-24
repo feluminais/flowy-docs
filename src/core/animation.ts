@@ -17,7 +17,18 @@ export type Trigger = (typeof TRIGGERS)[number]
  */
 export const OUTCOMES = ['fail', 'timeout', 'lost', 'rejected', 'intercepted', 'duplicated', 'delayed'] as const
 export type Outcome = (typeof OUTCOMES)[number]
-const OPTIONS = ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at'] as const
+const OPTIONS = ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at', 'opens', 'name', 'towards', 'closes'] as const
+/**
+ * What a step can leave open once its request has arrived, so the story's later steps still show it: a `stream` (data keeps flowing along the line),
+ * a `listener` (a shape keeps listening for callbacks) or a `job` (work keeps running on a shape). Drawn until a step `closes` it, or the flow ends.
+ */
+export const CHANNEL_KINDS = ['stream', 'listener', 'job'] as const
+export type ChannelKind = (typeof CHANNEL_KINDS)[number]
+export const isChannelKind = (v: unknown): v is ChannelKind => CHANNEL_KINDS.some(k => k === v)
+/** Which end of the step's line an open channel points at: where a stream's data goes, where a listener sits, where a job runs. */
+export type ChannelEnd = 'from' | 'to'
+/** The end a channel sits at when the step does not say: a stream heads to the step's `to`, a job runs there, and a listener is the shape that asked (`from`). */
+export const DEFAULT_END: Record<ChannelKind, ChannelEnd> = { stream: 'to', listener: 'from', job: 'to' }
 /**
  * What the blob does on its way besides travelling, for the fun of it: nothing unless a step asks. Every one keeps its shape whole, with no distortion:
  * `squish` stretches it along its way, `bounce` hops it like a ball, `pulse` swells it and lets it settle, `wiggle` rocks it from side to side.
@@ -98,6 +109,11 @@ export type Animation = {
   by?: Interceptor
   at?: number
   effect?: Effect
+  /** The channel the step leaves open (see CHANNEL_KINDS), its name, which end it points at, and the name of a channel the step closes. */
+  opens?: ChannelKind
+  name?: string
+  towards?: ChannelEnd
+  closes?: string
 }
 
 export type Glyph = 'envelope' | 'bolt' | 'bell'
@@ -173,6 +189,23 @@ function byProblem(by: unknown): string | undefined {
   return by.name.trim().length > NAME_MAX ? `animation by name can be at most ${NAME_MAX} characters` : undefined
 }
 
+/** What is wrong with the channel options of an animation (opens, name, towards, closes), or undefined. A channel is left open or closed by a request that arrives. */
+function channelProblem({ opens, name, towards, closes, outcome }: { opens: unknown; name: unknown; towards: unknown; closes: unknown; outcome: unknown }): string | undefined {
+  if (opens !== undefined && !isChannelKind(opens)) return `animation opens must be ${orList(CHANNEL_KINDS)}`
+  if (towards !== undefined && towards !== 'from' && towards !== 'to') return 'animation towards must be from or to'
+  for (const [option, value] of [['name', name], ['closes', closes]] as const) {
+    if (value === undefined) continue
+    if (!plainLine(value)) return `animation ${option} must be plain text on one line`
+    if (value.trim().length > NAME_MAX) return `animation ${option} can be at most ${NAME_MAX} characters`
+  }
+  if (opens === undefined) {
+    for (const [option, value] of [['name', name], ['towards', towards]] as const) if (value !== undefined) return `animation ${option} needs opens`
+  }
+  if (opens !== undefined && closes !== undefined) return 'animation opens and closes cannot be on one step'
+  if ((opens !== undefined || closes !== undefined) && outcome !== undefined) return `animation ${opens === undefined ? 'closes' : 'opens'} only applies to a request that arrives, not to outcome ${String(outcome)}`
+  return undefined
+}
+
 /**
  * What is wrong with a step's `animation`, worded to follow "step N: ", or undefined. A blank tag is no tag.
  * `hasTo` is whether the step has a "to": every kind so far travels between two boxes.
@@ -187,7 +220,7 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
   if (isMap(raw)) {
     const extra = Object.keys(raw).find(k => k !== 'effect' && !OPTIONS.some(o => o === k))
     if (extra !== undefined) return `unknown animation option "${extra}" (use ${OPTIONS.join(', ')})`
-    const { trigger, carries, outcome, share, reason, by, at } = raw
+    const { trigger, carries, outcome, share, reason, by, at, opens, name, towards, closes } = raw
     if (trigger !== undefined && !TRIGGERS.some(t => t === trigger)) return `animation trigger must be ${TRIGGERS.join(' or ')}`
     let out = misplaced('trigger', trigger, kind, outcome)
     if (out) return `animation ${out}`
@@ -215,6 +248,8 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
     if (at !== undefined && lostAtOf(at) === undefined) return 'animation at must be a number from 0.1 to 0.9'
     out = misplaced('at', at, kind, outcome)
     if (out) return `animation ${out}`
+    out = channelProblem({ opens, name, towards, closes, outcome })
+    if (out) return out
   }
   if (!hasTo) return `animation "${kind}" needs a "to"`
   return undefined
@@ -253,6 +288,10 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
     ...(by === undefined ? {} : { by }),
     ...(at === undefined ? {} : { at }),
     ...(isEffect(map.effect) ? { effect: map.effect } : {}),
+    ...(isChannelKind(map.opens) ? { opens: map.opens } : {}),
+    ...(isChannelKind(map.opens) && typeof map.name === 'string' ? { name: map.name.trim() } : {}),
+    ...(isChannelKind(map.opens) && (map.towards === 'from' || map.towards === 'to') ? { towards: map.towards } : {}),
+    ...(typeof map.closes === 'string' ? { closes: map.closes.trim() } : {}),
   }
 }
 
@@ -261,7 +300,7 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
  * keeps what is wrong (an unknown kind, a share of "many", a number as text), so the form can show a file's mistake instead of hiding it.
  * A bare tag is the kind. `by` is the id of the shape that takes the request, `byName` the name of a party that is not in the model.
  */
-export type AnimationFields = { kind: string; outcome: string; share: string; reason: string; by: string; byName: string }
+export type AnimationFields = { kind: string; outcome: string; share: string; reason: string; by: string; byName: string; opens: string; name: string; towards: string; closes: string }
 
 export function animationFields(step: { animation?: unknown }): AnimationFields {
   const raw = step.animation
@@ -274,6 +313,10 @@ export function animationFields(step: { animation?: unknown }): AnimationFields 
     reason: text(map.reason),
     by: text(map.by),
     byName: isMap(map.by) ? text(map.by.name) : '',
+    opens: text(map.opens),
+    name: text(map.name),
+    towards: text(map.towards),
+    closes: text(map.closes),
   }
 }
 
@@ -285,6 +328,18 @@ export function animationFields(step: { animation?: unknown }): AnimationFields 
 export function burstOf(share: number): { count: number; hit: boolean[] } {
   const count = share % 10 === 0 ? 10 : share % 5 === 0 ? 20 : 100
   return { count, hit: Array.from({ length: count }, (_, i) => Math.floor(((i + 1) * share) / 100) > Math.floor((i * share) / 100)) }
+}
+
+/** What each kind of channel is said to do when a step opens one, as the start of a line: "Opens a stream", "Starts listening", "Starts a job". */
+const OPENS_WORDS: Record<ChannelKind, string> = { stream: 'Opens a stream', listener: 'Starts listening', job: 'Starts a job' }
+
+/**
+ * How the step's channel reads on the step card and in the Mermaid note, as a fragment: "Opens a stream: Orders", "Starts listening", "Closes Orders".
+ * Undefined when the step neither opens nor closes one. A step that opens or closes has no outcome, so this and outcomeLine never both say something.
+ */
+export function channelLine(a: Animation): string | undefined {
+  if (a.opens !== undefined) return a.name === undefined ? OPENS_WORDS[a.opens] : `${OPENS_WORDS[a.opens]}: ${a.name}`
+  return a.closes === undefined ? undefined : `Closes ${a.closes}`
 }
 
 const lowerFirst = (s: string): string => s.charAt(0).toLowerCase() + s.slice(1)
@@ -535,6 +590,22 @@ export const OUTCOME_SKETCHES: Record<'none' | Outcome, string> = {
 }
 
 /**
+ * The drawings the edit pickers offer for what a step leaves open (`none` for nothing), and for which end of its line a channel points at (`none` is the usual end),
+ * on the same 44 by 24 grid as the sketches above. The browser and the desktop app draw the same strings.
+ */
+export const CHANNEL_SKETCHES: Record<'none' | ChannelKind, string> = {
+  none: 'M6 12H38',
+  stream: 'M5 12h.01M12 12h.01M19 12h.01M26 12h.01M33 12h.01M36 6l6 6l-6 6',
+  listener: 'M16 4a4 4 0 0 0 -4 4v3l-2 3h12l-2 -3v-3a4 4 0 0 0 -4 -4zM14 17a2 2 0 0 0 4 0M26 7a7 7 0 0 1 0 10M31 4a11 11 0 0 1 0 16',
+  job: 'M22 4a8 8 0 1 0 8 8M24 1l-3 3l3 3',
+}
+export const END_SKETCHES: Record<'none' | ChannelEnd, string> = {
+  none: 'M6 12H38',
+  from: 'M6 12H38M6 5v14',
+  to: 'M6 12H38M38 5v14',
+}
+
+/**
  * Why an outcome cannot be picked for a step that travels as `kind`, in a few words for a tooltip, or undefined when it can. The picker greys the choice out
  * with this beside it, and the checker refuses the same pairs. `outcome` "" (the request arrives) always fits.
  */
@@ -545,8 +616,11 @@ export function outcomeBlock(kind: string | undefined, outcome: string): string 
   return isOutcome(outcome) && !OUTCOME_RULES[outcome].kinds.some(k => k === kind) ? OUTCOME_RULES[outcome].needs : undefined
 }
 
+/** The options that leave a channel open, name it, point it, or close one. */
+const CHANNEL_OPTIONS = ['opens', 'name', 'towards', 'closes']
+
 /** The keys of an animation the pickers and fields of edit mode set. `by` is the id of a shape that takes the request, `byName` the name of a party that is not in the model. */
-export type AnimationKey = 'kind' | 'outcome' | 'share' | 'reason' | 'at' | 'carries' | 'by' | 'byName'
+export type AnimationKey = 'kind' | 'outcome' | 'share' | 'reason' | 'at' | 'carries' | 'by' | 'byName' | 'opens' | 'name' | 'towards' | 'closes'
 
 /** Who takes an intercepted request until the reader names one: an interception needs a taker, so picking it never leaves the step without. */
 export const DEFAULT_TAKER = 'Third party'
@@ -572,6 +646,20 @@ export function animationWith(current: unknown, key: AnimationKey, value: string
     else {
       map.outcome = text
       drop(...PLACED_OPTIONS.filter(o => OPTION_RULES[o].outcome !== undefined && OPTION_RULES[o].outcome !== 'any' && OPTION_RULES[o].outcome !== text))
+      // A request that does not arrive leaves nothing open and closes nothing.
+      drop(...CHANNEL_OPTIONS)
+    }
+  } else if (key === 'opens') {
+    if (text === '') drop('opens', 'name', 'towards')
+    else {
+      map.opens = text
+      drop('closes', 'outcome', ...NEEDS_OUTCOME)
+    }
+  } else if (key === 'closes') {
+    if (text === '') drop('closes')
+    else {
+      map.closes = text
+      drop(...CHANNEL_OPTIONS.filter(o => o !== 'closes'), 'outcome', ...NEEDS_OUTCOME)
     }
   } else if (key === 'byName') {
     if (text === '') drop('by')

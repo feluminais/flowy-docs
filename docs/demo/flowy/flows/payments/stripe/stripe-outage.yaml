@@ -1,0 +1,16 @@
+name: Stripe goes down and comes back
+view: ordering
+tags: [error path, recovery]
+steps:
+  - { from: order-api, to: stripe, text: The hold is slow while Stripe shuts down, animation: call, states: { stripe: stopping } }
+  - from: checkout
+    to: stripe
+    text: The hold times out
+    animation: { kind: call, outcome: timeout }
+    states: { stripe: stopped }
+    description: |
+      Checkout waits 5 s for the hold and gets no answer. It does not retry while Stripe is down.
+  - { from: checkout, to: customer-app, text: Offers pay at the door, animation: { kind: send, carries: pay at the door }, states: { checkout: degraded } }
+  - { from: order-api, to: stripe, text: The status page says Stripe is restarting, animation: call, states: { stripe: restarting } }
+  - { from: order-api, to: stripe, text: The next check finds it coming back up, animation: call, states: { stripe: starting } }
+  - { from: checkout, to: stripe, text: The hold goes through, animation: call, states: { stripe: running, checkout: running } }

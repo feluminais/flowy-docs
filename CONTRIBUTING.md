@@ -281,6 +281,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
 - [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".
+- [ ] Press L on `docs/demo`: the Flows tab lists delivery, ordering and payments (with stripe inside it) as folders, each a chevron, a folder mark, its name and its count, with every flow's tags under its name and the tags in use as buttons above the list. Press error path: 9 of 20 flows stay, with the count above them. Press E and open a flow: its form has Folder and Tags under Flow. Type a new folder and press Enter: the file moves and the list follows. Press a tag: it lights and the flow's row gains it. New flow has a Folder field, and a name Flowy cannot use is said under it. Light and dark both read. (Dragging a flow onto a folder is browser only.)
 - [ ] Ctrl+K, type `re`: Restaurant, Refunds in Order API and Data warehouse in Back office. Enter opens Refunds' panel in its view.
 - [ ] Open `desktop/fixtures/cases/problems/flowy` (or its repo): "34 problems" in the bar, "!" on boxes, a click on a problem goes to it.
 - [ ] Save `example/model.yaml` with a new box name while the app is open: it appears without a reload. Add a line `<<<<<<<` and
@@ -309,6 +310,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       form has a Data box holding the same lines as the file: delete a column from `columns` but not from the rows and click elsewhere, and a notice says a row has
       too many cells and the box keeps what you typed. Clear the box: `data:` is gone.
 - [ ] On a copy of `docs/demo`, open Support refunds an order from the Flows tab (**L**): the row has a link mark and a Compare button, quiet until you point at it. Press it: two panes open at once with the note under them (the row of a flow with no link opens a picker under the tabs), and Side by side, Swap, Show changes and Close in the bar. Show changes outlines New, Removed and Changed with the same key as the browser.
+      Double-click a shape that opens in one pane: only that pane zooms in, with a breadcrumb under its title, and **Esc** goes back up before it closes the comparison.
       **X** in Swap glides the shapes, and **Esc** closes the comparison. Press **T** on Orders and pings, tested together, then **C**: two run panes, with Show changes greyed out. In edit mode every Compare button is greyed out
       with "Not while editing". `--compare refund,refund-not-recorded --changes` (below) opens the first pair with its marks on.
 - [ ] While the app has a model open, change it in the browser (or save from an editor): the app shows it without a reload, and an edit
@@ -360,6 +362,8 @@ Reading:
       view goes to API and its Details open on the right, beside the Explorer. Drag the edge of either
       panel (it lights up under the pointer): it resizes, and a double-click puts the width back.
       Esc closes Details first, then the Explorer. Reopen the project: the widths are as you left them.
+- [ ] On `docs/demo`, press L: the Flows tab lists the flows as the folders under `flows/` (delivery, ordering and payments, with stripe inside payments), each a chevron, a folder mark, its name and how many flows are in it, and under every flow its tags as small words. Folders come first, the flows in a folder by file name. Under the search, the tags in use are buttons with a count: press error path and only those flows stay, with "9 of 20 flows" above them and the folders that have none gone; press recovery as well and the flows with either stay; press them again and the list comes back. Type `stripe` in the search: payments, stripe and its two flows show whatever was folded. Fold payments and the rows under it go while its count stays. A flow with a link mark still has Linked in the key at the foot. Light and dark both read.
+- [ ] On a copy of `docs/demo`, press E and open a flow: its form has Folder and Tags under Flow. Type `ordering/waits & timeouts` in Folder and press Enter: the file moves to `flows/ordering/waits & timeouts/`, the list shows the new folder, and Ctrl+Z puts it back. Press happy path in Tags: the flow's row gains it; the field under it adds a tag of your own. New flow has a Folder field too. Drag a flow row onto a folder: it moves in (the folder is ringed while you hover it), and a Top level row at the head of the list takes it back out; Ctrl+Z undoes either. Outside edit mode rows are not dragged.
 - [ ] In Shop, play "Customer checks out". Only the current step's two boxes stay lit, with a blue border, and its line is bold and drawn over the faded boxes. Customer, outside Shop, lights up fully in step 1.
       → and ← move, End and Home jump to the last and first step, the buttons match, Esc stops
       (and a second Esc zooms out). Step 3 lights API alone, with no line, and its
@@ -490,7 +494,7 @@ Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, the
       the thumb moves evenly in time, Stripe goes stopped, then starting, then runs, and the Events rows fill in as it passes. Touching the slider stops it.
 - [ ] Pick Stripe while at 45 s: under its readings is a Stopped line. Pick Dinner rush in the run picker: the tab says Load and Ramp again, and Stripe is as it was. Pick Every state over time in the showcase (`--dir docs/showcase/flowy`):
       the service goes through all six states, and at 45 s the holder shows a dashed ring that reads Stopped inside. With the system's reduce-motion setting on there is no Play, and the states, marks and numbers still show.
-      Light and dark both read. In Plum's Failures tab, Stripe doesn't answer within five seconds has Seen in a run: it opens the tab at 45 s on this run.
+      Light and dark both read. In Plum's Failures tab, Stripe doesn't answer within 5 s has Seen in a run: it opens the tab at 45 s on this run.
 
 Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 
@@ -510,7 +514,7 @@ Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, th
 Compare (`--dir docs/demo/flowy`; `npm run build:ui` first):
 
 - [ ] In the Flows tab (**L**) Support refunds an order has a link mark and every row has a Compare button. Click it on that row: two panes open at once, The refund is not recorded on the left and Support refunds an order on the right, the address is
-      `#root/compare/refund-not-recorded/refund`, and the note about the two refunds is under the panes. The row of a flow with no link (Place an order) opens a picker with a field that says "Find a flow" instead. Each pane zooms, pans and plays on its own. Click a shape in one: Details opens, and a second click on it closes it. Press **Esc** twice: the panel, then the comparison.
+      `#root/compare/refund-not-recorded/refund`, and the note about the two refunds is under the panes. The row of a flow with no link (Place an order) opens a picker with a field that says "Find a flow" instead. Each pane zooms, pans and plays on its own. Click a shape in one: Details opens, and a second click on it closes it. Double-click Order API in the right pane: only that pane zooms in, a breadcrumb (Overview, Ordering, Order API) appears under its title, and the panel does not open. **Esc** goes up to Ordering and the breadcrumb goes away. Press **Esc** twice: the panel, then the comparison.
 - [ ] Press **C** while a flow with no link plays: the picker opens. Press **C** on Support refunds an order: the comparison opens at once. ← → **P** **R** **F** act on the pane you clicked last, which has an outline.
 - [ ] Turn on **Show changes**: the key names New, Removed and Changed. Stripe is Changed in both panes, the left flow's other shapes are Removed and the right's are New, and the steps in the progress bars carry the same outlines.
       Reload: the switch is still on. Pick two flows with no shape in common (The refund is not recorded and Courier pings are lost): the key says Nothing in common and no shape is outlined.

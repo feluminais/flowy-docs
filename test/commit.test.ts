@@ -9,6 +9,7 @@ const loaded = (...skipped: string[]): Loaded => ({
   model: emptyModel(),
   versions: {},
   ignored: [],
+  unusable: [],
   failureProblems: skipped.map(file => ({ file, message: 'x' })),
 })
 

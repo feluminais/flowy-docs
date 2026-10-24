@@ -1,0 +1,720 @@
+{
+  "folderRule": "use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders",
+  "maxTagLength": 32,
+  "suggestedTags": [
+    "happy path",
+    "error path",
+    "edge case",
+    "recovery",
+    "background"
+  ],
+  "folders": [
+    {
+      "folder": "",
+      "valid": true
+    },
+    {
+      "folder": "payments",
+      "valid": true
+    },
+    {
+      "folder": "payments/refunds",
+      "valid": true
+    },
+    {
+      "folder": "Pay & refund",
+      "valid": true
+    },
+    {
+      "folder": "a b",
+      "valid": true
+    },
+    {
+      "folder": "v1.2",
+      "valid": true
+    },
+    {
+      "folder": "é",
+      "valid": true
+    },
+    {
+      "folder": "日本語",
+      "valid": true
+    },
+    {
+      "folder": "a-b_c (d)",
+      "valid": true
+    },
+    {
+      "folder": "it's",
+      "valid": true
+    },
+    {
+      "folder": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "valid": true
+    },
+    {
+      "folder": "/a",
+      "valid": false
+    },
+    {
+      "folder": "a/",
+      "valid": false
+    },
+    {
+      "folder": "a//b",
+      "valid": false
+    },
+    {
+      "folder": ".hidden",
+      "valid": false
+    },
+    {
+      "folder": "a/.b",
+      "valid": false
+    },
+    {
+      "folder": "a.",
+      "valid": false
+    },
+    {
+      "folder": "a ",
+      "valid": false
+    },
+    {
+      "folder": " a",
+      "valid": false
+    },
+    {
+      "folder": "a:b",
+      "valid": false
+    },
+    {
+      "folder": "a*",
+      "valid": false
+    },
+    {
+      "folder": "a?b",
+      "valid": false
+    },
+    {
+      "folder": "a\"b",
+      "valid": false
+    },
+    {
+      "folder": "a<b",
+      "valid": false
+    },
+    {
+      "folder": "a>b",
+      "valid": false
+    },
+    {
+      "folder": "a|b",
+      "valid": false
+    },
+    {
+      "folder": "a#b",
+      "valid": false
+    },
+    {
+      "folder": "a%b",
+      "valid": false
+    },
+    {
+      "folder": "a\\b",
+      "valid": false
+    },
+    {
+      "folder": "nul",
+      "valid": false
+    },
+    {
+      "folder": "NUL",
+      "valid": false
+    },
+    {
+      "folder": "Com1",
+      "valid": false
+    },
+    {
+      "folder": "lpt9",
+      "valid": false
+    },
+    {
+      "folder": "nul.txt",
+      "valid": false
+    },
+    {
+      "folder": "console",
+      "valid": true
+    },
+    {
+      "folder": "a/b/c/d/e/f",
+      "valid": true
+    },
+    {
+      "folder": "a/b/c/d/e/f/g",
+      "valid": false
+    },
+    {
+      "folder": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "valid": false
+    },
+    {
+      "folder": "a\u0001b",
+      "valid": false
+    },
+    {
+      "folder": "a\tb",
+      "valid": false
+    },
+    {
+      "folder": "a\nb",
+      "valid": false
+    },
+    {
+      "folder": " a",
+      "valid": false
+    }
+  ],
+  "tags": [
+    {
+      "tag": "happy path",
+      "valid": true,
+      "key": "happy path"
+    },
+    {
+      "tag": "x",
+      "valid": true,
+      "key": "x"
+    },
+    {
+      "tag": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "valid": true,
+      "key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "tag": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "valid": false,
+      "key": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    {
+      "tag": "",
+      "valid": false,
+      "key": ""
+    },
+    {
+      "tag": " a",
+      "valid": false,
+      "key": " a"
+    },
+    {
+      "tag": "a ",
+      "valid": false,
+      "key": "a "
+    },
+    {
+      "tag": " ",
+      "valid": false,
+      "key": " "
+    },
+    {
+      "tag": "a\nb",
+      "valid": false,
+      "key": "a\nb"
+    },
+    {
+      "tag": "a\tb",
+      "valid": false,
+      "key": "a\tb"
+    },
+    {
+      "tag": "é",
+      "valid": true,
+      "key": "é"
+    },
+    {
+      "tag": "Error Path",
+      "valid": true,
+      "key": "error path"
+    },
+    {
+      "tag": "a, b",
+      "valid": true,
+      "key": "a, b"
+    },
+    {
+      "tag": "[a]",
+      "valid": true,
+      "key": "[a]"
+    }
+  ],
+  "tagLists": [
+    {
+      "raw": [],
+      "tags": []
+    },
+    {
+      "raw": [
+        "happy path"
+      ],
+      "tags": [
+        "happy path"
+      ]
+    },
+    {
+      "raw": [
+        "happy path",
+        "Happy Path",
+        "HAPPY PATH"
+      ],
+      "tags": [
+        "happy path"
+      ]
+    },
+    {
+      "raw": [
+        "a",
+        " b",
+        "c ",
+        "",
+        "d"
+      ],
+      "tags": [
+        "a",
+        "d"
+      ]
+    },
+    {
+      "raw": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "ok"
+      ],
+      "tags": [
+        "ok"
+      ]
+    },
+    {
+      "raw": [
+        "Error path",
+        "error path",
+        "recovery"
+      ],
+      "tags": [
+        "Error path",
+        "recovery"
+      ]
+    },
+    {
+      "raw": "happy path",
+      "tags": []
+    },
+    {
+      "raw": "",
+      "tags": []
+    },
+    {
+      "raw": null,
+      "tags": []
+    },
+    {
+      "raw": 7,
+      "tags": []
+    },
+    {
+      "raw": {
+        "a": 1
+      },
+      "tags": []
+    }
+  ],
+  "folderMaps": [
+    {
+      "folders": {},
+      "paths": [],
+      "of": [
+        {
+          "id": "missing",
+          "folder": ""
+        },
+        {
+          "id": "__proto__",
+          "folder": ""
+        },
+        {
+          "id": "constructor",
+          "folder": ""
+        }
+      ]
+    },
+    {
+      "folders": {
+        "a": "x"
+      },
+      "paths": [
+        "x"
+      ],
+      "of": [
+        {
+          "id": "a",
+          "folder": "x"
+        },
+        {
+          "id": "missing",
+          "folder": ""
+        },
+        {
+          "id": "__proto__",
+          "folder": ""
+        },
+        {
+          "id": "constructor",
+          "folder": ""
+        }
+      ]
+    },
+    {
+      "folders": {
+        "a": "x/y/z",
+        "b": "x",
+        "c": "w"
+      },
+      "paths": [
+        "w",
+        "x",
+        "x/y",
+        "x/y/z"
+      ],
+      "of": [
+        {
+          "id": "a",
+          "folder": "x/y/z"
+        },
+        {
+          "id": "b",
+          "folder": "x"
+        },
+        {
+          "id": "c",
+          "folder": "w"
+        },
+        {
+          "id": "missing",
+          "folder": ""
+        },
+        {
+          "id": "__proto__",
+          "folder": ""
+        },
+        {
+          "id": "constructor",
+          "folder": ""
+        }
+      ]
+    },
+    {
+      "folders": {
+        "a": "B",
+        "b": "a",
+        "c": "B/c",
+        "d": "A"
+      },
+      "paths": [
+        "A",
+        "B",
+        "B/c",
+        "a"
+      ],
+      "of": [
+        {
+          "id": "a",
+          "folder": "B"
+        },
+        {
+          "id": "b",
+          "folder": "a"
+        },
+        {
+          "id": "c",
+          "folder": "B/c"
+        },
+        {
+          "id": "d",
+          "folder": "A"
+        },
+        {
+          "id": "missing",
+          "folder": ""
+        },
+        {
+          "id": "__proto__",
+          "folder": ""
+        },
+        {
+          "id": "constructor",
+          "folder": ""
+        }
+      ]
+    },
+    {
+      "folders": {
+        "a": "payments/refunds",
+        "b": "payments/refunds",
+        "c": "payments"
+      },
+      "paths": [
+        "payments",
+        "payments/refunds"
+      ],
+      "of": [
+        {
+          "id": "a",
+          "folder": "payments/refunds"
+        },
+        {
+          "id": "b",
+          "folder": "payments/refunds"
+        },
+        {
+          "id": "c",
+          "folder": "payments"
+        },
+        {
+          "id": "missing",
+          "folder": ""
+        },
+        {
+          "id": "__proto__",
+          "folder": ""
+        },
+        {
+          "id": "constructor",
+          "folder": ""
+        }
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "path": "flows/a.yaml",
+      "id": "a",
+      "folder": "",
+      "allowed": true
+    },
+    {
+      "path": "flows/x/a.yaml",
+      "id": "a",
+      "folder": "x",
+      "allowed": true
+    },
+    {
+      "path": "flows/x/y/z/a.yaml",
+      "id": "a",
+      "folder": "x/y/z",
+      "allowed": true
+    },
+    {
+      "path": "flows/Pay & refund/a.yaml",
+      "id": "a",
+      "folder": "Pay & refund",
+      "allowed": true
+    },
+    {
+      "path": "flows/a.yaml.tmp",
+      "id": null,
+      "folder": "",
+      "allowed": false
+    },
+    {
+      "path": "flows/a.yml",
+      "id": null,
+      "folder": "",
+      "allowed": false
+    },
+    {
+      "path": "flows/x/a.yml",
+      "id": null,
+      "folder": "x",
+      "allowed": false
+    },
+    {
+      "path": "flows/.yaml",
+      "id": null,
+      "folder": "",
+      "allowed": false
+    },
+    {
+      "path": "flows/x/.yaml",
+      "id": null,
+      "folder": "x",
+      "allowed": false
+    },
+    {
+      "path": "flows/x/",
+      "id": null,
+      "folder": "x",
+      "allowed": false
+    },
+    {
+      "path": "flows/x/A.yaml",
+      "id": "A",
+      "folder": "x",
+      "allowed": false
+    },
+    {
+      "path": "flows/x/root.yaml",
+      "id": "root",
+      "folder": "x",
+      "allowed": false
+    },
+    {
+      "path": "flows/x/-a.yaml",
+      "id": "-a",
+      "folder": "x",
+      "allowed": false
+    },
+    {
+      "path": "flows/.hidden/a.yaml",
+      "id": "a",
+      "folder": ".hidden",
+      "allowed": false
+    },
+    {
+      "path": "flows/a:b/a.yaml",
+      "id": "a",
+      "folder": "a:b",
+      "allowed": false
+    },
+    {
+      "path": "flows/a#b/a.yaml",
+      "id": "a",
+      "folder": "a#b",
+      "allowed": false
+    },
+    {
+      "path": "flows/ a/a.yaml",
+      "id": "a",
+      "folder": " a",
+      "allowed": false
+    },
+    {
+      "path": "flows/a./a.yaml",
+      "id": "a",
+      "folder": "a.",
+      "allowed": false
+    },
+    {
+      "path": "flows/a//a.yaml",
+      "id": "a",
+      "folder": "a/",
+      "allowed": false
+    },
+    {
+      "path": "flows/nul/a.yaml",
+      "id": "a",
+      "folder": "nul",
+      "allowed": false
+    },
+    {
+      "path": "flows/a/b/c/d/e/f/a.yaml",
+      "id": "a",
+      "folder": "a/b/c/d/e/f",
+      "allowed": true
+    },
+    {
+      "path": "flows/a/b/c/d/e/f/g/a.yaml",
+      "id": "a",
+      "folder": "a/b/c/d/e/f/g",
+      "allowed": false
+    },
+    {
+      "path": "flows/a\\b.yaml",
+      "id": "a\\b",
+      "folder": "",
+      "allowed": false
+    },
+    {
+      "path": "failures/a.yaml",
+      "id": null,
+      "folder": "es",
+      "allowed": true
+    },
+    {
+      "path": "failures/x/a.yaml",
+      "id": null,
+      "folder": "es/x",
+      "allowed": false
+    },
+    {
+      "path": "perf/a.yaml",
+      "id": null,
+      "folder": "",
+      "allowed": false
+    },
+    {
+      "path": "perf/x/a.yaml",
+      "id": null,
+      "folder": "",
+      "allowed": false
+    },
+    {
+      "path": "model.yaml",
+      "id": null,
+      "folder": "",
+      "allowed": true
+    },
+    {
+      "path": "layout.yaml",
+      "id": null,
+      "folder": "",
+      "allowed": true
+    },
+    {
+      "path": "other/a.yaml",
+      "id": null,
+      "folder": "",
+      "allowed": false
+    },
+    {
+      "path": "x/flows/a.yaml",
+      "id": null,
+      "folder": "s",
+      "allowed": false
+    },
+    {
+      "path": "../flows/a.yaml",
+      "id": null,
+      "folder": "ws",
+      "allowed": false
+    },
+    {
+      "path": "flows",
+      "id": null,
+      "folder": "",
+      "allowed": false
+    }
+  ],
+  "pathOf": [
+    {
+      "id": "a",
+      "sub": "",
+      "path": "flows/a.yaml"
+    },
+    {
+      "id": "a",
+      "sub": "x",
+      "path": "flows/x/a.yaml"
+    },
+    {
+      "id": "a",
+      "sub": "x/y",
+      "path": "flows/x/y/a.yaml"
+    },
+    {
+      "id": "a",
+      "sub": "Pay & refund",
+      "path": "flows/Pay & refund/a.yaml"
+    }
+  ]
+}

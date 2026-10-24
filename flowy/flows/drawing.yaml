@@ -1,5 +1,6 @@
 name: Dragging a shape
 view: flowy
+tags: [happy path]
 steps:
   - { from: reader, to: canvas, text: Drags a shape in edit mode }
   - from: canvas
@@ -11,7 +12,7 @@ steps:
   - from: server
     text: Refuses the write if the file moved on
     description: |
-      409, and nothing is written, when the hash doesn't match: your editor, an AI or another tab
-      got there first. The page drops the edit and reloads rather than overwriting it.
+      409, and nothing is written, when the hash doesn't match: an editor, an AI or another tab
+      wrote first. The page drops the edit and reloads instead of overwriting.
   - { from: server, to: repo, text: Writes the file }
   - { from: server, to: canvas, text: The watcher says "changed"; the page loads the model again }

@@ -1,17 +1,19 @@
 name: Opening a folder in the app
 view: flowy
+tags: [happy path]
 steps:
   - { from: reader, to: desktop, text: "Opens a folder: File › Open, a drop, Open Recent, or Explorer's menu" }
   - from: desktop
     text: Works out which folder is the model
     description: |
-      A folder called `flowy` as it is, otherwise the `flowy/` inside it, otherwise the folder itself
-      if it holds `model.yaml`. With none of those it says so and stops: a viewer must not write into
-      a repo it was only asked to read. A model that is already open just comes to the front.
+      A folder called `flowy` is used as is; otherwise the `flowy/` inside it; otherwise the folder
+      itself if it holds `model.yaml`. With none of those it says so and stops, since a viewer must
+      not write into a repo it was only asked to read. A model that is already open comes to the
+      front.
   - { from: desktop, to: folder, text: "Reads model.yaml, layout.yaml and every flow" }
   - from: desktop
     text: Draws the first view, and watches the folder
     description: |
-      A file that can't be read leaves an empty view with the reason in a banner, and the view fills in
-      as soon as the file is fixed. While a model is on screen, a file that breaks keeps the last good
-      one there.
+      A file that can't be read leaves an empty view with the reason in a banner, and the view fills
+      in once the file is fixed. While a model is on screen, a file that breaks leaves the last good
+      model in place.

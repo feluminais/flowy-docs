@@ -1,0 +1,6 @@
+name: Customer pays
+view: shop
+tags: [happy path, recovery]
+steps:
+  - { from: web, to: api, text: Sends it }
+  - { from: api, to: web, text: Answers }

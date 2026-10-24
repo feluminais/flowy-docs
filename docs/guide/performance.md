@@ -47,11 +47,11 @@ you see which system is struggling and zoom in to find where. The tab opens on t
 does, and **Go there** gets back to it.
 
 **Calls, Data and Mixed.** A line shows two different things, and the tab draws them with two different marks. **Stripes** moving along the line are the calls: the more calls a second,
-the closer together and the faster the stripes, and the thicker the line. **Blobs** on the line are data: the more bytes a second (the calls times the size of a call, `bytes`), the more blobs. So a line of a
+the closer together and the faster the stripes, and the thicker the line. They are busy against the busiest the run gets on any line, so the busiest line at the top of the run has the closest, quickest stripes and the same line at the bottom crawls. The stripes are as thick as the line and grow with it when you zoom, so the line and its arrowhead stay one arrow. **Blobs** on the line are data: the more bytes a second (the calls times the size of a call, `bytes`), the more blobs. So a line of a
 few large calls has few stripes and many blobs, and a line of many small ones the other way round. Under **Count** the tab has three views: **Calls** draws stripes only, **Data** draws blobs only, and
 **Mixed** draws both on every line. Mixed is where a run opens when it gives both a `rate` and `bytes`, which is why a run is best measured with both: say the calls a second and the size of a call
 on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out with the reason in their tooltip. A run with neither (a connection with no numbers, or a run that
-measures only shapes) is drawn with plain stripes at a middling pace, so its lines still show that something runs on them; the key calls them **No numbers**, and a line that has numbers keeps its own.
+measures only shapes) is drawn with plain stripes at a middling pace, so its lines still show that something runs on them; the key calls them **No numbers**, and a line that has numbers keeps its own. Plain stripes keep one pace at every load, because there is nothing to speed them up: at the overview of Plum most lines are plain, since the runs measure what is inside Delivery, and only the lines they measure (Delivery to Mapbox) speed up as the load climbs.
 Data counts against the mean size of a call over the whole run, rounded to 1, 2 or 5 times a power of ten, so a call of that size draws the same blobs as it would calls. A line with no `bytes` is
 drawn with plain stripes under Data, as one with no `rate` is under Calls.
 

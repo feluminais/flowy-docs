@@ -1,0 +1,13 @@
+name: A stream opens, stays, closes and opens again
+view: shop
+steps:
+  - { from: web, to: api, text: Asks }
+  - { from: api, to: db, text: Starts feeding orders, animation: { kind: call, opens: stream, name: Orders } }
+  - { from: web, to: api, text: Browses meanwhile }
+  - { from: api, to: stripe, text: Starts a charge job, animation: { kind: send, opens: job, name: Charge } }
+  - { from: web, to: api, text: Still browsing }
+  - { from: web, to: api, text: Stops the feed, animation: { kind: send, closes: Orders } }
+  - { from: web, to: api, text: The job runs on }
+  - { from: api, to: db, text: Feeds orders again, animation: { kind: call, opens: stream, name: Orders } }
+  - { from: api, to: stripe, text: Stops the job, animation: { kind: send, closes: Charge } }
+  - { from: web, to: api, text: Done }

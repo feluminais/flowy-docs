@@ -1,66 +1,66 @@
 name: Plum
 about: |
-  Food delivery for one city. Customers order from the app or the website, restaurants cook, and couriers bring the food to the door.
+  Food delivery for one city. Customers order in the app or on the website, restaurants cook, couriers deliver.
 
-  Open **Ordering** first: every order passes through it. **Delivery** shows how a courier is found and followed.
+  Start with **Ordering**, which every order passes through. **Delivery** covers courier matching and tracking.
 objects:
   customer:
     type: actor
     name: Customer
-    description: Someone hungry, ordering from the Plum app or the website.
+    description: Orders from the Plum app or the website.
   restaurant:
     type: actor
     name: Restaurant
-    description: The kitchen staff who accept an order and mark it ready.
+    description: Kitchen staff. Accept orders and mark them ready.
   courier:
     type: actor
     name: Courier
     icon: truck
-    description: Rides or drives the order from the restaurant to the customer's door.
+    description: Carries the order from the restaurant to the customer's door.
   support:
     type: actor
     name: Support agent
-    description: Answers customers and couriers when something goes wrong.
+    description: Handles customer and courier problems.
   ordering:
     type: system
     name: Ordering
     description: |
-      Everything a customer touches: browsing menus, building a basket, paying.
+      Everything customer-facing: menus, basket, payment.
 
-      The **Order API** is the only way in. It keeps orders in Postgres and announces every new
-      order on the **Order events** bus, which is how **Delivery** hears about it.
+      The **Order API** is the only entry point. It stores orders in Postgres and publishes each
+      new order to **Order events**, which **Delivery** consumes.
   delivery:
     type: system
     name: Delivery
     description: |
-      Finds a courier for each order and follows it to the door.
+      Assigns a courier to each order and tracks it to the door.
 
-      Dispatch matches and offers. Live tracking keeps the customer's map moving.
+      Dispatch matches and offers. Live tracking feeds the customer's map.
   notifications:
     type: system
     name: Notifications
-    description: Push, SMS and email, from one place, so no other system talks to a messaging provider.
+    description: Push, SMS and email. The only system that talks to a messaging provider.
   backoffice:
     type: system
     name: Back office
-    description: Tools for Plum's own staff. Nothing here is visible to customers or couriers.
+    description: Internal tools for Plum staff. Not exposed to customers or couriers.
   stripe:
     type: system
     name: Stripe
     external: true
-    description: Takes card payments and sends refunds. Plum never sees a card number.
+    description: Card payments and refunds. Plum never handles card numbers.
     links:
       - { url: "https://status.stripe.com", title: Provider status }
   twilio:
     type: system
     name: Twilio
     external: true
-    description: Sends the SMS messages.
+    description: SMS delivery.
   mapbox:
     type: system
     name: Mapbox
     external: true
-    description: Maps, address lookup and travel times.
+    description: Maps, geocoding and travel times.
     links:
       - { url: "https://docs.mapbox.com/api/overview/#rate-limits", title: Rate limits }
   customer-app:
@@ -72,21 +72,21 @@ objects:
     links:
       - { url: apps/customer/README.md, title: Build and release notes }
     description: |
-      The app on the customer's phone. Browse, order, pay and watch the courier arrive.
+      Mobile client. Browse, order, pay, follow the courier.
 
-      Keeps nothing but the basket and the session.
+      Stores only the basket and the session.
   web:
     type: app
     in: ordering
     name: Website
     tech: Next.js
-    description: The same ordering flow in a browser. Menus are rendered on the server so search engines see them.
+    description: The same ordering flow in a browser. Menus are server-rendered so search engines can index them.
   kitchen-tablet:
     type: app
     in: ordering
     name: Kitchen tablet
     tech: Android
-    description: Rings when an order arrives. The kitchen taps **Accept**, then **Ready** when it can be collected.
+    description: Alerts on a new order. The kitchen taps **Accept**, then **Ready** for pickup.
   order-api:
     type: app
     in: ordering
@@ -94,7 +94,7 @@ objects:
     tech: Node, Fastify
     code: [services/order-api/]
     description: |
-      Every client talks to this, and nothing else talks to the **Orders DB**.
+      Entry point for every client, and the only service that touches the **Orders DB**.
 
       - `GET /menus/:restaurant` reads a menu
       - `POST /orders` places an order
@@ -109,7 +109,7 @@ objects:
       - name: orders
         kind: table
         limits: Kept 7 years, then archived
-        note: One row per order. A refund adds a row to refunds; the order stays.
+        note: One row per order. A refund adds a row to refunds and leaves the order alone.
         columns:
           - {name: id, type: uuid, key: primary}
           - {name: customer_id, type: uuid, to: customers}
@@ -123,7 +123,7 @@ objects:
           - {name: order_id, type: uuid, key: primary, to: orders}
           - {name: item_id, type: uuid, key: primary}
           - {name: quantity, type: int}
-          - {name: unit_price, type: int, note: Copied from the menu when the order is placed. Later menu changes leave it alone.}
+          - {name: unit_price, type: int, note: Copied from the menu at order time. Later menu edits don't change it.}
         rows:
           - [o_1042, i_31, 2, 1245]
           - [o_1043, i_8, 1, 1380]
@@ -148,11 +148,11 @@ objects:
     in: ordering
     name: Menu cache
     tech: Redis
-    description: Menus, kept for five minutes. A restaurant's edit shows up on its own once the entry expires.
+    description: Menus, 5 min TTL. A restaurant's edit appears when the entry expires.
     data:
       - name: Keys
-        limits: Oldest unused go first at 256 MB
-        note: Entries last five minutes because a shorter time put too much load on Postgres.
+        limits: LRU eviction at 256 MB
+        note: 5 min TTL. A shorter one put too much load on Postgres.
         columns: [Key, Value, Expires]
         rows:
           - ["menu:{restaurantId}", "{ items, prices, hours }", 5 min]
@@ -164,14 +164,14 @@ objects:
     shape: queue
     tech: Kafka
     description: |
-      One message for every change to an order: `placed`, `accepted`, `picked-up`, `delivered`.
+      One message per order change: `placed`, `accepted`, `picked-up`, `delivered`.
 
-      Dispatch reads from it, and so does the warehouse.
+      Dispatch and the warehouse are consumers.
     data:
       - name: order-events
         kind: topic
         limits: Kept 7 days, 6 partitions
-        note: Keyed by order id, so one order's messages stay in order.
+        note: Keyed by order id, so each order's messages stay ordered.
         columns: [Key, Value]
         rows:
           - [o_1042, '{ "type": "placed", "total": 2490 }']
@@ -181,21 +181,21 @@ objects:
     type: component
     in: order-api
     name: Menu
-    description: Serves a restaurant's menu from the cache, and from the database when the cache is cold.
+    description: Serves menus from the cache, and from the database on a miss.
   basket:
     type: component
     in: order-api
     name: Basket
-    description: Holds what the customer picked and asks **Pricing** for the running total.
+    description: Holds the picked items and asks **Pricing** for the running total.
   pricing:
     type: component
     in: order-api
     name: Pricing
     code: [services/order-api/src/pricing.ts]
     description: |
-      Works out the total: items, delivery fee (by distance) and any promotion.
+      Computes the total: items, delivery fee and any promotion.
 
-      The delivery fee uses the travel distance from Mapbox, rounded up to the next 500 m.
+      The fee is based on Mapbox travel distance, rounded up to the next 500 m.
     snippets:
       - title: Delivery fee
         language: typescript
@@ -211,12 +211,12 @@ objects:
     description: |
       Prices the basket, authorises the card and places the order.
 
-      Nothing is charged until the restaurant accepts. A rejected order releases the hold.
+      The card is charged only when the restaurant accepts. A rejection releases the hold.
   status:
     type: component
     in: order-api
     name: Order status
-    description: Moves an order through `placed`, `accepted`, `picked-up` and `delivered`, and announces each step.
+    description: Advances an order through `placed`, `accepted`, `picked-up` and `delivered`, publishing each step.
     snippets:
       - title: Accepting an order
         text: |-
@@ -227,13 +227,13 @@ objects:
     type: component
     in: order-api
     name: Refunds
-    description: Returns money to the card, then marks the order refunded. Support can refund in full or by line.
+    description: Refunds the card, then marks the order refunded. Full or per line.
   courier-app:
     type: app
     in: delivery
     name: Courier app
     tech: Kotlin, Swift
-    description: Offers, navigation and proof of delivery. Sends the courier's position every five seconds while a job is open.
+    description: Offers, navigation and proof of delivery. Reports position every 5 s while a job is open.
   dispatch:
     type: app
     in: delivery
@@ -241,53 +241,53 @@ objects:
     tech: Go
     code: [services/dispatch/]
     description: |
-      Turns each new order into a courier on the way.
+      Assigns a courier to each new order.
 
-      It reads `placed` events and offers the job to couriers one at a time, nearest first.
+      Consumes `placed` events and offers the job to couriers one at a time, nearest first.
   tracking:
     type: app
     in: delivery
     name: Live tracking
     tech: Go, WebSocket
-    description: Passes the courier's position to the customer's map. A position older than a minute is dropped.
+    description: Relays courier position to the customer's map. Positions older than 1 min are dropped.
   fleet-db:
     type: store
     in: delivery
     name: Fleet DB
     tech: Postgres, PostGIS
-    description: Couriers, their vehicles, and their last known position.
+    description: Couriers, vehicles and last known position.
   matcher:
     type: component
     in: dispatch
     name: Matcher
     code: [services/dispatch/matcher.go]
-    description: Ranks the idle couriers near a restaurant by how soon each could be there.
+    description: Ranks idle couriers near a restaurant by estimated arrival.
   eta:
     type: component
     in: dispatch
     name: ETA
-    description: Estimates travel time from distance, traffic and the courier's vehicle.
+    description: Estimates travel time from distance, traffic and vehicle.
   offers:
     type: component
     in: dispatch
     name: Offers
     description: |
-      Offers a job to one courier at a time and waits 30 seconds for an answer.
+      Offers the job to one courier at a time with a 30 s timeout.
 
-      A refusal or a timeout moves on to the next courier.
+      A refusal or timeout moves to the next courier.
   notifier:
     type: app
     in: notifications
     name: Notifier
     tech: Node
-    description: Picks push, SMS or email for each message and sends it. Never blocks the caller.
+    description: Chooses push, SMS or email per message and sends it. Never blocks the caller.
   templates:
     type: store
     in: notifications
     name: Message templates
     shape: document
     tech: Postgres
-    description: The wording of every message, per language.
+    description: Message text, per language.
   admin:
     type: app
     in: backoffice
@@ -305,7 +305,7 @@ objects:
     in: backoffice
     name: Data warehouse
     tech: ClickHouse
-    description: Every order event, kept for reporting. Nothing reads it except the **Admin dashboard**.
+    description: Every order event, kept for reporting. Only the **Admin dashboard** reads it.
 connections:
   - { from: customer, to: customer-app, label: orders on a phone }
   - { from: customer, to: web, label: orders in a browser }

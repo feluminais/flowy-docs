@@ -1,5 +1,7 @@
 import { isAbsolute, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { FILE_KINDS, pathOf } from '../../src/core/filekinds.ts'
+import { folderOf } from '../../src/core/model.ts'
 import { fileData, serializeFile, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
@@ -102,7 +104,7 @@ export async function dumpYamlWrite(): Promise<unknown> {
     const state = await loadState(abs)
     if ('parseError' in state) continue
     const model: Model = modelOf(state)
-    const rels = ['model.yaml', ...Object.keys(model.flows).map(id => `flows/${id}.yaml`)]
+    const rels = ['model.yaml', ...Object.keys(model.flows).map(id => pathOf(FILE_KINDS.flow, id, folderOf(model, id)))]
     for (const rel of rels) {
       // A file with an empty value the failsafe schema reads as null can't be written by the TypeScript either: the editor refuses it.
       try {
