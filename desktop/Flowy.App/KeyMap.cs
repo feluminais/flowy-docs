@@ -121,7 +121,7 @@ internal interface IKeyActions
 }
 
 /// <summary>The groups of the shortcut list, in the order it shows them.</summary>
-internal enum HelpGroup { Reading, Flows, Performance, Failures, Editing }
+internal enum HelpGroup { Reading, Flows, Performance, Failures, Editing, UsedBy }
 
 /// <summary>A row an entry has in the shortcut list.</summary>
 internal readonly record struct KeyHelp(HelpGroup Group, string What);
@@ -259,7 +259,8 @@ internal static class KeyMap
         HelpGroup.Flows => "Flows",
         HelpGroup.Performance => "Performance",
         HelpGroup.Failures => "Failures",
-        _ => "Edit mode",
+        HelpGroup.Editing => "Edit mode",
+        _ => "Used by",
     };
 
     /// <summary>Whether the list shows a group: the Performance keys only where T opens a run, the Failures keys only where M opens the analysis.</summary>
@@ -281,6 +282,12 @@ internal static class KeyMap
         [
             R("edit"), R("add"), ("", "Ctrl+click  Shift+click", "Add a shape to the selection, or take it out"), ("", "Shift+drag", "Draw a box round shapes to select them"),
             R("select-all"), R("delete"), R("undo"), R("undo-move"), R("redo"),
+        ],
+        // The keys of the panel that opens when a shape something depends on is deleted; the panel answers them itself (UsedByPanel.cs).
+        [HelpGroup.UsedBy] =
+        [
+            ("", "↑  ↓", "Move between rows"), ("", "X", "Remove the row"), ("", "R", "Reroute the row, or every row"),
+            ("", "Enter", "Remove all, or delete once nothing is left"), ("", "Esc", "Cancel"),
         ],
     };
 

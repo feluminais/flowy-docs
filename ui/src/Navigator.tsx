@@ -288,7 +288,7 @@ export function FlowsTab({ model, editing, canEdit, current, compare, onOpen, on
         {filtering && list.total > 0 && list.shown === 0 && <p className="muted navnote">{query.trim() !== '' ? `No flow matches “${query.trim()}”.` : 'No flow has these tags.'}</p>}
         {list.total === 0 && (editing
           ? <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>
-          : <p className="muted navnote">No flows yet.{canEdit && <span className="hint"><kbd>E</kbd> Edit to add one</span>}</p>)}
+          : <p className="muted navnote">No flows yet.{canEdit && " Edit to add one."}</p>)}
       </div>
       {flows.some(f => f.linked) && <LinkedKey />}
     </>
