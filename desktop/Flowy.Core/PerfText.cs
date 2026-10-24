@@ -33,7 +33,7 @@ public static partial class Perf
         if (source?.Dot is not { } dot || Formulas.LinearInRate(dot.Formula) is not { } k) return null;
         var calls = 1 / k;
         if (!(calls >= 0.001 && calls < 1e9)) return null;
-        if (measure == LoadMeasure.Calls) return $"1 dot = {Plain(calls)} calls/s";
+        if (measure != LoadMeasure.Data) return $"1 dot = {Plain(calls)} calls/s";
         return size is { } s ? $"1 dot = {DataRate(calls * s)}" : null;
     }
 
