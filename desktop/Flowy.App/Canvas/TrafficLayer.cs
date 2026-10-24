@@ -28,13 +28,14 @@ internal sealed class TrafficLayer : Control
 
     /// <summary>
     /// A line's way for the layer: the path that runs on into the shapes at its ends that open, the same without the run into its end (a rejected call stops at
-    /// the bar there), and the shapes at its start and end that open (null: it doesn't).
+    /// the bar there), and the shapes at its start and end (null: not known). A call is a few pixels on screen whatever the zoom, so one at either end of the line
+    /// would spill onto the shape there: it is cut by the outlines of both ends, whether they open or not.
     /// </summary>
     internal readonly record struct Way(FlatLine Path, FlatLine Bounce, ShapeCover? From, ShapeCover? To);
 
     /// <summary>
     /// One line's traffic. `Behind` and `Labels` are the shapes and labels near enough to the line to hide a particle on it: far ones can't, so a particle is only asked about a few. What is the same
-    /// every frame (the shapes that open at its ends, the cut that keeps stripes off the shapes, the stripes' path) is made once, the first time it is drawn.
+    /// every frame (the shapes at its ends, the cut that keeps stripes off the shapes, the stripes' path) is made once, the first time it is drawn.
     /// </summary>
     private sealed class Drawn(LineTraffic line, Way way, ParticleStream stream, IReadOnlyList<ShapeCover> behind, IReadOnlyList<CoreRect> labels)
     {
@@ -43,7 +44,7 @@ internal sealed class TrafficLayer : Control
         public ParticleStream Stream { get; } = stream;
         public IReadOnlyList<ShapeCover> Behind { get; } = behind;
         public IReadOnlyList<CoreRect> Labels { get; } = labels;
-        public List<ShapeCover>? Opening { get; set; }
+        public List<ShapeCover>? Ends { get; set; }
         public StreamGeometry? Cut { get; set; }
         public StreamGeometry? Stripes { get; set; }
         public double StripesAside { get; set; }
@@ -224,7 +225,7 @@ internal sealed class TrafficLayer : Control
         return most;
     }
 
-    /// <summary>Everything but the inside of a shape: the drawing is cut to it where a particle goes into a shape that opens.</summary>
+    /// <summary>Everything but the inside of a shape: the drawing is cut to it where a particle crosses the outline of a shape at an end of its line.</summary>
     private static StreamGeometry Outside(ShapeCover s)
     {
         var geometry = new StreamGeometry();
@@ -365,7 +366,7 @@ internal sealed class TrafficLayer : Control
             // A rejected call stops at the bar at the end of the line, so it doesn't run on into the shape there.
             var rejected = d.Line.Failure == "rejected";
             var path = rejected ? d.Way.Bounce : d.Way.Path;
-            var opening = d.Opening ??= new[] { d.Way.From, rejected ? null : d.Way.To }.OfType<ShapeCover>().ToList();
+            var ends = d.Ends ??= new[] { d.Way.From, d.Way.To }.OfType<ShapeCover>().ToList();
             if (d.Line.Stripes is { } busy and > 0 && path.Xs.Length > 1)
             {
                 // A line the run gives no numbers: plain stripes moving along the line itself, closer and quicker the more the run is loaded.
@@ -373,7 +374,7 @@ internal sealed class TrafficLayer : Control
                 const double px = 1; // the diagram's own units: the stripes scale with the line and its arrowhead
                 var moved = (_stripeAt.TryGetValue((d.Line.From, d.Line.To, d.Line.Source), out var at) ? at : 0) * (pace.Dash + pace.Gap);
                 var thick = Math.Max(2.4, d.Line.Width + 0.9) * px; // a little thicker than the line it runs on, so the two read as one arrow at any zoom
-                using var cut = context.PushGeometryClip(d.Cut ??= OutsideAll(opening.Concat(d.Behind), d.Labels));
+                using var cut = context.PushGeometryClip(d.Cut ??= OutsideAll(ends.Concat(d.Behind), d.Labels));
                 using var dim = context.PushOpacity(0.9);
                 var offset = (d.Line.Offset ?? 0) * 3 * px;
                 if (d.Stripes is null || d.StripesAside != offset) (d.Stripes, d.StripesAside) = (Along(path, offset), offset);
@@ -397,10 +398,10 @@ internal sealed class TrafficLayer : Control
                     y += (bx - ax) / span * aside;
                 }
                 if (look.Bar is { } strength && strength > bar) bar = strength;
-                // Against the shapes it goes into or comes out of: wholly inside one (not drawn), or cut by the outline of one.
+                // Against the shapes at its ends: wholly inside one (not drawn), or cut by the outline of one.
                 ShapeCover? cut = null;
                 var gone = false;
-                foreach (var s in opening)
+                foreach (var s in ends)
                 {
                     var how = Flowy.Core.Particles.CutBy(BoxGeometry.DepthIn(s.Rect, s.Edge, x, y), radius);
                     if (how == Flowy.Core.Particles.Cut.Gone) gone = true;

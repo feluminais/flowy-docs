@@ -472,20 +472,16 @@ internal sealed class CanvasView : Border
     }
 
     /// <summary>A traffic line's path, flattened, in the style the lines are drawn in: the same one the line itself takes, so the particles run on it.</summary>
-    private TrafficLayer.Way? PathOf(LineTraffic line)
+    internal TrafficLayer.Way? PathOf(LineTraffic line)
     {
         if (_scene is null || RectOf(line.From) is not { } a || RectOf(line.To) is not { } b) return null;
         double[]? Outline(string id) => Look.DefOf(_scene.Boxes.First(x => x.Id == id).Object).Edge;
         var path = PathPoints.Flatten(LinePaths.Build(LineStyle, a, b, Outline(line.From), Outline(line.To)).Data);
-        // A line that ends at a shape that opens runs on into it, and one that starts at one comes out of it, drawn only outside it (see Particles.CutBy).
-        TrafficLayer.ShapeCover? Opening(string id)
-        {
-            var box = _scene.Boxes.First(x => x.Id == id);
-            return box.Inside > 0 ? new TrafficLayer.ShapeCover(box.Id, box.Rect, Look.DefOf(box.Object).Edge) : null;
-        }
-        var (from, to) = (Opening(line.From), Opening(line.To));
-        var (before, after) = (from is null ? 0 : TrafficLayer.Reach, to is null ? 0 : TrafficLayer.Reach);
-        return new TrafficLayer.Way(PathPoints.Extend(path, before, after), PathPoints.Extend(path, before, 0), from, to);
+        // A line that ends at a shape that opens runs on into it, and one that starts at one comes out of it. Its traffic is drawn only outside the shapes at both its ends (see Particles.CutBy).
+        var (fromBox, toBox) = (_scene.Boxes.First(x => x.Id == line.From), _scene.Boxes.First(x => x.Id == line.To));
+        TrafficLayer.ShapeCover Cover(SceneBox box) => new(box.Id, box.Rect, Look.DefOf(box.Object).Edge);
+        var (before, after) = (fromBox.Inside > 0 ? TrafficLayer.Reach : 0, toBox.Inside > 0 ? TrafficLayer.Reach : 0);
+        return new TrafficLayer.Way(PathPoints.Extend(path, before, after), PathPoints.Extend(path, before, 0), Cover(fromBox), Cover(toBox));
     }
 
     /// <summary>The scene with the boxes that are being (or were just) dragged where they are now, and the frame around the members following them.</summary>
