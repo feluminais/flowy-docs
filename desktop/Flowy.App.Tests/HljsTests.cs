@@ -6,7 +6,15 @@ using Xunit;
 
 namespace Flowy.App.Tests;
 
+/// <summary>
+/// Test classes that give highlight.js its time limits run on their own, after the rest. Beside other classes a CI machine can starve a
+/// pattern past its 500 ms, and highlight.js then answers with the code uncoloured.
+/// </summary>
+[CollectionDefinition(nameof(RunsAlone), DisableParallelization = true)]
+public sealed class RunsAlone;
+
 /// <summary>highlight.js running inside the app: it must write what node writes for the canvas, give up quietly when it cannot, and never take long over hostile code.</summary>
+[Collection(nameof(RunsAlone))]
 public class HljsTests
 {
     private static JsonNode Expected() => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "highlight.json")))!;
@@ -17,12 +25,12 @@ public class HljsTests
         var snippets = Expected()["snippets"]!.AsArray();
         Assert.True(snippets.Count >= 20);
         foreach (var s in snippets)
-            Assert.Equal(s!["html"]!.GetValue<string>(), Patiently(() => Hljs.Highlight(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()), html => html is not null));
+            Assert.Equal(s!["html"]!.GetValue<string>(), Patiently(() => Hljs.Highlight(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()), html => html?.Contains("<span", StringComparison.Ordinal) == true));
     }
 
     /// <summary>
-    /// A snippet gets 2 s, and past that it shows plain, as the app means it to. A busy test machine can take that long, and these tests are
-    /// about the grammars, so a highlight that came back plain is tried again a few times.
+    /// A snippet gets 2 s and each pattern 500 ms, and past that it shows plain, as the app means it to: as null, or as the code with no
+    /// colours. A busy test machine can take that long, and these tests are about the grammars, so a plain answer is tried again a few times.
     /// </summary>
     private static T Patiently<T>(Func<T> highlight, Func<T, bool> coloured)
     {
