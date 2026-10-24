@@ -76,7 +76,8 @@ The page follows the files: when an AI or your editor changes them, it updates b
 ## Edit it
 
 Press E, or the Edit button. The browser canvas and the [desktop app](desktop.md#the-desktop-app) both do everything below, through the same
-checks, and write the same text, so a change made in one looks the same in git as one made in the other.
+checks, and write the same text, so a change made in one looks the same in git as one made in the other. A save writes the whole
+file again, so comments in it are not kept ([File format](../format.md#the-folder)).
 
 - Drag shapes to arrange the view. Positions go to `flowy/layout.yaml`.
 - Drag from the dot under a shape onto another shape to connect them, then type a label in the panel.

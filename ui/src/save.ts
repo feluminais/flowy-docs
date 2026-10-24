@@ -165,7 +165,7 @@ export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) 
       return notPutBack(why, batch.stuck)
     }
     const back = batch.written
-    if (label !== undefined) await transport.history?.record(`${word === 'undo' ? 'Undid' : 'Redid'}: ${label}`.slice(0, MAX_LABEL))
+    if (label !== undefined) await transport.history?.record(`${word === 'undo' ? 'Undid' : 'Redid'}: ${label}`.slice(0, MAX_STEP_LABEL))
     onDone?.(back)
     return undefined
   } catch (e) {
@@ -173,8 +173,8 @@ export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) 
   }
 }
 
-/** The longest label the history takes. */
-const MAX_LABEL = 200
+/** The longest label a step of the history takes, as src/node/history-api.ts checks it. */
+const MAX_STEP_LABEL = 200
 
 /**
  * What a restore came to: the step that holds what the files were just before and the version each file has now (null: gone), or what to tell

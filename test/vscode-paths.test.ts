@@ -1,5 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { repoFile, repoPath } from '../vscode/src/paths.ts'
 
@@ -28,4 +30,17 @@ test('the repo itself, a sibling folder that starts the same, and anything outsi
   assert.equal(repoPath(root, `${root}2`), undefined)
   assert.equal(repoPath(root, join(`${root}2`, 'a.ts')), undefined)
   assert.equal(repoPath(root, resolve(root, '..', 'elsewhere', 'a.ts')), undefined)
+})
+
+test('a link inside the repo that points out of it leads nowhere', async t => {
+  const base = await mkdtemp(join(tmpdir(), 'flowy-vscode-'))
+  t.after(() => rm(base, { recursive: true, force: true }))
+  const repo = join(base, 'repo')
+  await mkdir(join(repo, 'src'), { recursive: true })
+  await mkdir(join(base, 'outside'))
+  await writeFile(join(base, 'outside', 'secret.txt'), 'x')
+  await symlink(join(base, 'outside'), join(repo, 'docs'), 'junction') // a junction on Windows needs no privilege
+  assert.equal(repoFile(repo, 'docs/secret.txt'), undefined)
+  assert.equal(repoFile(repo, 'docs/'), undefined)
+  assert.equal(repoFile(repo, 'src/new.ts'), join(repo, 'src', 'new.ts')) // a file that doesn't exist yet is still in the repo
 })

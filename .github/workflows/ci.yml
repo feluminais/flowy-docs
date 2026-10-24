@@ -19,11 +19,14 @@ concurrency:
 
 jobs:
   web:
-    name: web (${{ matrix.os }})
+    name: web (${{ matrix.os }}, Node ${{ matrix.node }})
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        node: ['24']
+        include:
+          - { os: ubuntu-latest, node: '22.18.0' } # the oldest Node package.json allows
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -32,7 +35,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm run test:coverage # the whole suite, with a coverage table in the log
@@ -60,7 +63,7 @@ jobs:
       - name: Workflow security audit
         run: pipx run zizmor==1.31.1 --min-severity medium --format plain .github/workflows
       - name: Workflow syntax check
-        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12 -color
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 -color # the tag, and the image it named when pinned
 
   desktop:
     name: desktop (${{ matrix.os }})
@@ -82,7 +85,8 @@ jobs:
         with:
           dotnet-version: 10.0.x
       - run: npm ci
-      - run: dotnet test desktop --collect:"XPlat Code Coverage" --results-directory desktop/coverage
+      - run: dotnet restore desktop --locked-mode # the NuGet packages, transitive ones too, are the ones packages.lock.json names
+      - run: dotnet test desktop --no-restore --collect:"XPlat Code Coverage" --results-directory desktop/coverage
       - name: Coverage
         if: always() && matrix.os == 'ubuntu-latest'
         shell: bash

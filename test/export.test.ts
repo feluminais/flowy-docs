@@ -165,3 +165,8 @@ test('a file, or a folder overlapping the built canvas, cannot take an export', 
   await assert.rejects(exportSite({ dir, ui, out: ui }), /overlaps the built canvas/)
   await assert.rejects(exportSite({ dir, ui, out: join(ui, 'site') }), /overlaps the built canvas/)
 })
+
+test('an exported page carries the server\'s policy, since a static host sends none', () => {
+  const page = inlineState('<html><head><title>Flowy</title></head><body></body></html>', { parseError: { file: 'model.yaml', message: 'x' } })
+  assert.match(page, /^<html><head>\n<meta http-equiv="Content-Security-Policy" content="default-src 'none'; [^"]*img-src 'self' data:[^"]*"><title>/)
+})
