@@ -17,6 +17,7 @@ namespace Flowy.App.Tests;
 /// Shape states on the canvas (desktop/fixtures/cases/states): what a box draws for a state, the roll-up on a container, the key under the player, the State
 /// line in Details, the loops that run only while a state that loops is showing, and the picker in a step's edit form.
 /// </summary>
+[Trait("Weight", "Heavy")]
 public class StateTests
 {
     private static string Case => System.IO.Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "states", "flowy");
