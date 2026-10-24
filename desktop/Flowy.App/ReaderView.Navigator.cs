@@ -46,7 +46,7 @@ internal sealed partial class ReaderView
         if (_compareMode.State is not null && UnlessDraft(() => OpenFlow(id))) return; // playing a flow ends the comparison: a note that isn't saved asks first
         CloseCompare(false); // playing a flow ends the comparison
         if (view != CurrentView()) GoTo(view);
-        if (Editing) EditFlow(id);
+        if (Editing) _gestures.EditFlow(id);
         else Play(id);
     }
 
@@ -100,7 +100,7 @@ internal sealed partial class ReaderView
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
         else if (tab == PanelTab.Explorer) _nav.Explorer.Update(model, _folder!.Problems, Editing, _panels.Expanded, view, SelectedBox, flow?.Id);
         else if (tab == PanelTab.Failures) _failures.Show(model, view);
-        else if (RunsOpen) _nav.RunLinks.Show(model, _folder!.Runs ?? new IdMap<LoadRun>(), SaveOff);
+        else if (RunsOpen) _nav.RunLinks.Show(model, _folder!.Runs ?? new IdMap<LoadRun>(), _edit.SaveOff);
     }
 
     /// <summary>Brings back what this project's navigator remembered: the tab that was open, which shapes were open in the tree, and how wide the panels were.</summary>
