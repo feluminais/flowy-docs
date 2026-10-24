@@ -85,7 +85,7 @@ checks as the rest of the model. An AI does the same through the MCP server: `ge
 coverage and the problems, `put_failure` writes one mode, `delete_failure` removes one, and `put_failures` and `delete_failures`
 write and remove a whole analysis. Every write is checked. How to word a mode is in [Writing good Flowy docs](../writing.md#failure-modes).
 
-**Getting it out.** **Copy as table** and **Copy as CSV** in the tab copy the ranked list with the words the screen uses. So does the
+**Getting it out.** **CSV** and **Table** at the top of the tab copy the ranked list with the words the screen uses. So does the
 command line, which prints one table for each analysis:
 
 ```bash

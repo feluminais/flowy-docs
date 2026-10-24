@@ -119,13 +119,14 @@ internal sealed class FailuresPanel : StackPanel
         var (here, elsewhere) = FailuresView.RowsFor(model, analysis, s.View, s.Band, s.Part);
         var mode = FailuresView.ModeIn(model, s.AnalysisId, s.ModeId);
 
+        var copy = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        copy.Children.Add(CopyButton("CSV", "Copy as CSV", "csv"));
+        copy.Children.Add(new Border { Width = 1, Height = 16, VerticalAlignment = VerticalAlignment.Center, Classes = { "copysep" } });
+        copy.Children.Add(CopyButton("Table", "Copy as table", "markdown"));
+        Children.Add(copy);
         Children.Add(Heading(s, analysis));
         if (s.Edit is { } edit) Children.Add(EditSection(s, edit));
         else if (Failures.Has(analysis.About)) Children.Add(About(analysis.About!));
-        var copy = new WrapPanel { Orientation = Orientation.Horizontal };
-        copy.Children.Add(CopyButton("Copy as table", "markdown"));
-        copy.Children.Add(CopyButton("Copy as CSV", "csv"));
-        Children.Add(copy);
 
         var summary = new WrapPanel { Orientation = Orientation.Horizontal };
         foreach (var band in Bands) summary.Children.Add(BandButton(band, counts[band], s.Band == band));
@@ -144,7 +145,6 @@ internal sealed class FailuresPanel : StackPanel
 
         if (mode is not null) Children.Add(s.Edit is { } form ? ModeSection(s, form, mode) : Detail(s, analysis, mode));
 
-        Children.Add(KeyHint.Of(("← →", "Step")));
         var lit = mode is null ? null : Failures.LightFor(model, s.View, mode);
         Children.Add(Chrome.Section(Icons.Info, "Key"));
         var key = new List<(Control, string)?>();
@@ -294,9 +294,11 @@ internal sealed class FailuresPanel : StackPanel
 
     private bool _aboutOpen; // kept here, not in the control: the panel is built again on every pick, and About stays as the reader left it
 
+    /// <summary>The analysis's note as it is, or folded under About when it is long, as a run's note is.</summary>
     private Control About(string text)
     {
         var note = Muted(text);
+        if (text.Length <= PerfView.AboutFoldsOver) return note;
         note.IsVisible = _aboutOpen;
         var header = new Button { Content = _aboutOpen ? "▾ About" : "▸ About" };
         header.Classes.Add("disclosure");
@@ -310,11 +312,12 @@ internal sealed class FailuresPanel : StackPanel
         return new StackPanel { Children = { header, note } };
     }
 
-    private Button CopyButton(string text, string format)
+    private Button CopyButton(string text, string name, string format)
     {
         var button = new Button();
         button.Classes.Add("tool");
-        Chrome.Fill(button, Icons.Copy, text);
+        Chrome.Fill(button, Icons.Copy, text, name);
+        ToolTip.SetTip(button, name);
         button.Click += (_, _) =>
         {
             Copied?.Invoke(format);

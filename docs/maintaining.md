@@ -224,7 +224,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       key draws a dot for each band that has modes, then Fails and Affects. The list runs Refunds (126), Orders DB (20) and on down; a click on a row picks
       it and a second click puts it away; ← → step down the list and stop at its ends; a click on a shape narrows the list to its modes and the chip clears
       it; a band button filters and "Not analysed (11)" lists the shapes left. Show it plays The payment is captured; Seen in a run on ETA to Mapbox opens
-      Performance on its first level with errors; Copy as table and Copy as CSV put the ranked list on the clipboard. Esc closes the tab (until you click
+      Performance on its first level with errors; CSV and Table at the top of the tab put the ranked list on the clipboard. Esc closes the tab (until you click
       the diagram, as with Explorer), and the marks go with it. Light and dark both read.
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
@@ -401,7 +401,7 @@ Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 - [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
       and the rest fades. The panel reads Risk 96 Medium, "After: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
       Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the tab while the last click was in it.
-- [ ] Press E with the tab open: it stays, beside Details, and gains New analysis, Add failure mode and a form for the mode picked. Copy as table and Copy as CSV put the ranked
+- [ ] Press E with the tab open: it stays, beside Details, and gains New analysis, Add failure mode and a form for the mode picked. CSV and Table put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
 
 How a request ends in Plum (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
