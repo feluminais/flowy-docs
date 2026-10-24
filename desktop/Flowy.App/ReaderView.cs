@@ -45,9 +45,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
         public sealed record UsedBy(IReadOnlyList<Target> Targets, Side? Back) : Side;
     }
 
-    /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in).</summary>
-    private enum RightPanel { Closed, Details }
-
     private readonly IReader _host;
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
@@ -86,12 +83,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly List<string> _levels = []; // the levels the reader has left, for Esc to go back through
     private (string Id, bool Back)? _arriving; // the level a way back (Back) or a jump up is heading for
     private Side? _side; // what is picked: it shows in Details
-    private PanelTab? _tab; // the navigator's tab (Flows or Explorer), chosen on its rail or its strip; null: the navigator is closed
-    private bool _navUsed; // the navigator is where the reader last clicked or opened something: Escape closes it then, and leaves it alone once they work in the diagram
-    private RightPanel _right; // Details is also open while something is picked
-    private double _navWidth = Camera.Nav; // dragged by the sashes on the panels' edges
-    private double _detailsWidth = Camera.Panel;
-    private readonly HashSet<string> _expanded = [Names.Root]; // the shapes whose children show in the Explorer; the project's own row starts open
+    private readonly Panels _panels;
     private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
 
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Flow, IReadOnlyList<Stop>> _stops = new(); // a flow's stops, made once for as long as that flow is the one in the model
@@ -182,30 +174,19 @@ internal sealed partial class ReaderView : Grid, IDisposable
             if (Recording is not null) PaneClicked();
             else ShowLevel();
         };
-        _panel.Closed += CloseDetails;
         _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
         _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Wait(this, ms, then)));
         WirePerformance();
+        _panels = new Panels(_nav, _rail, _detailsRail, _navSash, _detailsSash, _panel, _canvas, _perf, _host);
+        _panels.Changed += state => NavigatorChanged?.Invoke(state);
+        _panels.Resized += ApplyWidths;
+        _compareMode = new CompareMode(_compareHost, _overlay, _player, _nav, _perf, _host);
+        _compareMode.ChangesPicked += on => ChangesPicked?.Invoke(on);
         _failures = new FailuresTab(_nav.Failures, _canvas, _host);
-        _nav.Tabs.Picked += SetTab;
-        _nav.Closed += CloseNav;
-        _rail.Picked += ToggleTab;
-        _detailsRail.Picked += ToggleTab;
-        _navSash.Current = () => _navWidth;
-        _navSash.Resized += w => ResizeNav(w);
-        _navSash.Reset += () => ResizeNav(Camera.Nav);
-        _navSash.Settled += Remember;
-        _detailsSash.Current = () => _detailsWidth;
-        _detailsSash.Resized += w => ResizeDetails(w);
-        _detailsSash.Reset += () => ResizeDetails(Camera.Panel);
-        _detailsSash.Settled += Remember;
         _nav.Flows.Opened += flow => OpenFlow(flow.Id);
-        _nav.Flows.CompareRequested += CompareFromRow;
-        _nav.Explorer.CompareRequested += CompareFromRow;
         _nav.Explorer.Picked += PickRow;
         _nav.Explorer.Opened += OpenRow;
-        _nav.Explorer.Toggled += ToggleOpen;
         _player.Back += () => StepTo(StopIndex() - 1);
         _player.Next += () => StepTo(StopIndex() + 1);
         _player.Stop += Stop;
@@ -213,7 +194,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Replay += _playback.Replay;
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;
-        _player.CompareClicked += ToggleCompare;
 
         Focusable = true;
         // Every press, handled or not (the canvas handles its own): it says which half the reader is working in.
@@ -360,18 +340,14 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _disk.Loaded += Reload;
         _disk.Failed += SetBanner;
         _editMode = false;
-        _navUsed = false;
         _view = Names.Root;
         _side = null;
-        _right = RightPanel.Closed;
+        _panels.Reset();
         _perf.StopRamp();
-        if (_tab is PanelTab.Failures or PanelTab.Performance) _tab = null; // another folder's analyses and runs start from the top
         _failures.Reset();
         _playback.Head = null;
         _hover = null;
-        CloseCompare(false); // another folder has other flows
-        // A note about two of them is no use there. The same folder read again keeps its notes (they are by pair), and a window asks before it goes to another folder (MainWindow.Open).
-        if (!sameFolder) _drafts.Clear();
+        _compareMode.Reset(sameFolder); // another folder has other flows
         _codeBase = null;
         _repoRoot = FolderLoader.RepoRoot(dir);
         SetBanner(null);
@@ -563,7 +539,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         return _folder.Model.Flows.Where(kv => kv.Value.View == view && (kv.Value.Steps.Count > 0 || Editing)).Select(kv => (kv.Key, kv.Value)).ToList();
     }
 
-    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen || _compare is not null ? null : _playback.Head is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
+    private (string Id, Flow Flow)? PlayingFlow() => Editing || PerfOpen || FailuresOpen || _compareMode.State is not null ? null : _playback.Head is { } p && FlowsHere().FirstOrDefault(f => f.Id == p.Flow) is { Flow: not null } found ? found : null;
 
     /// <summary>What the player steps through: the stops of a flow. A flow with no groups has one for each step.</summary>
     private IReadOnlyList<Stop> StopsOf(Flow flow) => _stops.GetValue(flow, f => Structure.Stops(f));
@@ -576,11 +552,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         if (_folder is not { } folder) return;
         var model = folder.Model;
-        CloseCompareIfBroken(folder);
+        _compareMode.CloseIfBroken(folder);
         var view = CurrentView();
         var flow = PlayingFlow();
         var index = StopIndex();
-        FollowCanvas(model, view);
+        _panels.FollowCanvas(model, view);
 
         var shown = Comparing ? null : DrawScene(folder, view, flow, index); // the comparison has canvases of its own
         UpdateEmpty();
@@ -751,7 +727,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>Details with nothing picked, while its rail button is pressed: the level you are inside, or the project's Overview at the top.</summary>
     private void ShowViewDetails(Model model, string view)
     {
-        if (_right != RightPanel.Details) _panel.Clear();
+        if (_panels.Right != RightPanel.Details) _panel.Clear();
         else if (view == Names.Root && Editing) _panel.ShowProjectEditor(model, Totals(), RunAsync);
         else if (view == Names.Root) _panel.ShowOverview(model, Totals());
         else if (Editing) _panel.ShowObjectEditor(model, view, _folder!.Problems, RunAsync, OpenObject, SetHover, AskDelete);
@@ -762,7 +738,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         if (flow is not { } f)
         {
-            if (!_pickerOnRow) DropPicker(); // its flyout hangs on the card of the flow playing; one from a row of the navigator does not
+            if (!_compareMode.PickerFor.OnRow) _compareMode.DropPicker(); // its flyout hangs on the card of the flow playing; one from a row of the navigator does not
             _player.Clear();
             _canvas.SetMarks([]);
             return;
@@ -796,7 +772,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public void GoTo(string view)
     {
         if (_folder is null) return;
-        if (_compare is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
+        if (_compareMode.State is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
         Interacted();
         RememberLevel(view);
         _motion?.Dispose();
@@ -807,7 +783,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _playback.Head = null;
         _playback.StopAuto();
         _hover = null;
-        if (_compare is { Kind: "flow" }) CloseCompare(false); // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level, and both follow it
+        if (_compareMode.State is { Kind: "flow" }) CloseCompare(false); // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level, and both follow it
         if (_side is not (null or Side.Box)) _side = null; // lines belong to one view
         Refresh();
     }
@@ -852,7 +828,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>The old view flies off, then the new one settles in. A second move on the way, or reduced motion, goes straight there.</summary>
     private void ZoomTo(string view, Move direction, Pt origin)
     {
-        if (_moving || MotionSettings.Reduced || _compare is not null) // the comparison is not the canvas that would fly off
+        if (_moving || MotionSettings.Reduced || _compareMode.State is not null) // the comparison is not the canvas that would fly off
         {
             GoTo(view);
             return;
@@ -897,8 +873,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
     public void FitNow()
     {
-        if (Comparing) _compareView?.FitFocused(); // F fits the pane that has the focus, or the canvas of Swap
-        else _canvas.Fit(RightOpen ? _detailsWidth : 0, PlayingFlow() is not null, ShownTab is not null ? _navWidth : 0, 220);
+        if (Comparing) _compareMode.View?.FitFocused(); // F fits the pane that has the focus, or the canvas of Swap
+        else _canvas.Fit(_panels.DetailsInset, PlayingFlow() is not null, _panels.NavInset, 220);
     }
 
     // ---- selecting ---------------------------------------------------------------------------------------------
@@ -935,13 +911,13 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private void ShowLevel()
     {
         Interacted();
-        if (_right == RightPanel.Details && _side is null)
+        if (_panels.Right == RightPanel.Details && _side is null)
         {
             CloseDetails(); // its Details are already showing: a second click closes them
             return;
         }
         _side = null;
-        _right = RightPanel.Details;
+        _panels.Right = RightPanel.Details;
         Refresh();
         Focus();
     }
@@ -981,9 +957,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (_folder?.Model.GetObject(id) is null) return;
         DidSomethingElse();
         _side = new Side.Box(id);
-        if (_compareView is not null) _compareView.Last = null; // shown from a list, not a pane: no pane outlines it
+        if (_compareMode.View is { } compareView) compareView.Last = null; // shown from a list, not a pane: no pane outlines it
         Refresh();
-        _canvas.Reveal(id, _detailsWidth, ShownTab is not null ? _navWidth : 0);
+        _canvas.Reveal(id, _panels.DetailsWidth, _panels.NavInset);
     }
 
     /// <summary>Picks a shape, and while the Failures panel is open a failure mode of the analysis on show if the id is one (for a picture: --select).</summary>

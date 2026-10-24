@@ -59,7 +59,7 @@ internal sealed partial class ReaderView
     {
         if (on && ReadOnly) return;
         if (_editMode == on) return;
-        if (on && _compare is not null && UnlessDraft(() => SetEditing(true))) return; // editing ends the comparison: a note that isn't saved asks first
+        if (on && _compareMode.State is not null && UnlessDraft(() => SetEditing(true))) return; // editing ends the comparison: a note that isn't saved asks first
         _editMode = on;
         CloseCompare(false); // nor does a comparison: it shows the flows as they are
         _perf.StopRamp(); // editing and the numbers of the Performance panel don't mix: they would sit on a model that is changing, so the tab lists the runs to link instead
@@ -344,6 +344,69 @@ internal sealed partial class ReaderView
             await AskDeleteAsync([new Target(Line: new LineTarget(c.From ?? "", c.To ?? "", c.Label ?? ""))], CloseSide);
         }
     }
+
+    /// <summary>Why a tag can't be written: the folder is open and can be written (not a sample inside the install, and no file that can't be read). Null when it can.</summary>
+    private string? SaveOff => CompareUi.NoteOff(_session is not null, !CanEdit || _banner.IsVisible);
+
+    /// <summary>For a test: called between reading a run file and writing its tag, so a change made in that moment is felt as the file changing under the write.</summary>
+    internal Action? BeforeRunWrite { get; set; }
+
+    /// <summary>
+    /// Writes the tag of run <paramref name="id"/> (null takes it out) into the run's own file, in place: the one thing Flowy writes into a run. The file is read just before, and written only if it
+    /// is still as it was read, through a temporary file; one that changed under the write, or can't be read, writes nothing and says so. The history does not keep it (a run is not a file Flowy
+    /// writes whole). True once it is saved and the folder is read again.
+    /// </summary>
+    internal async Task<bool> WriteRunTagAsync(string id, CompareTag? tag)
+    {
+        if (_session is not { } session || _folder is null) return false;
+        DismissNotice();
+        DidSomethingElse();
+        // The same refusals as a flow's, in the same words.
+        string? refusal = null;
+        if (!RunMap.ContainsKey(id)) refusal = $"unknown run \"{id}\"";
+        else if (tag is not null && tag.With == id) refusal = $"run \"{id}\" cannot compare with itself";
+        else if (tag is not null && !RunMap.ContainsKey(tag.With)) refusal = $"unknown run \"{tag.With}\"";
+        if (refusal is not null)
+        {
+            ShowNotice(refusal);
+            return false;
+        }
+        var changedUnder = false;
+        string? problem = null;
+        try
+        {
+            await Task.Run(() =>
+            {
+                var (_, version) = FileStore.Read(session.Dir, FolderLayout.PerfFile(id));
+                BeforeRunWrite?.Invoke();
+                FileStore.SaveRunCompare(session.Dir, id, tag, version);
+            });
+        }
+        catch (VersionConflict)
+        {
+            changedUnder = true;
+            problem = EditSession.ChangedOutside;
+        }
+        catch (ParseError e)
+        {
+            problem = $"Can't read {e.File}{(e.Line is { } line ? $" (line {line})" : "")}: {e.Reason}. Fix the file and the view updates.";
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            problem = $"Couldn't save: {e.Message}";
+        }
+        if (problem is not null)
+        {
+            ShowNotice(problem);
+            if (changedUnder) await ReloadFromDiskAsync(session.Dir);
+            return false;
+        }
+        await ReloadFromDiskAsync(session.Dir);
+        return true;
+    }
+
+    /// <summary>Writes the tag of a run as Link with and a note do (for tests).</summary>
+    internal Task<bool> WriteRunTagForTest(string id, CompareTag? tag) => WriteRunTagAsync(id, tag);
 
     internal Notice? NoticeNow => _notice;
 
