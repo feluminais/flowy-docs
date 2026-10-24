@@ -9,6 +9,38 @@ namespace Flowy.Core;
 /// </summary>
 public sealed record Folder(Model Model, IReadOnlyList<Problem> Problems, IdMap<LoadRun>? Runs = null, IReadOnlyList<Problem>? RunProblems = null, IReadOnlyList<Problem>? FailureProblems = null);
 
+/// <summary>Whether two reads of a folder say the same thing.</summary>
+public static class FolderSame
+{
+    private static bool Same<T>(IReadOnlyDictionary<string, T> a, IReadOnlyDictionary<string, T> b) => ReferenceEquals(a, b) || (a.Count == 0 && b.Count == 0);
+
+    private static bool Same<T>(IdMap<T> a, IdMap<T> b) where T : class
+    {
+        if (ReferenceEquals(a, b)) return true;
+        if (a.Count != b.Count) return false;
+        foreach (var (id, value) in a)
+            if (!b.TryGetValue(id, out var other) || !ReferenceEquals(value, other)) return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Whether <paramref name="then"/> and <paramref name="now"/> are the same folder: every file was read to the same parsed object (a file that did not change is not parsed again, see
+    /// <see cref="FolderLoader"/>), and what the checks and the runs say is the same. A folder read again after the app's own save is this, because the save has been shown already.
+    /// </summary>
+    public static bool Is(Folder then, Folder now)
+    {
+        var (a, b) = (then.Model, now.Model);
+        if (!ReferenceEquals(a.Objects, b.Objects) || !ReferenceEquals(a.Connections, b.Connections) || !Same(a.Meta, b.Meta) || !Same(a.Layout, b.Layout)) return false;
+        if (!Same(a.Flows, b.Flows) || !Same(a.Failures, b.Failures)) return false;
+        if (a.Folders.Count != b.Folders.Count || a.Folders.Any(kv => !b.Folders.TryGetValue(kv.Key, out var f) || f != kv.Value)) return false;
+        if (!then.Problems.SequenceEqual(now.Problems)) return false;
+        if ((then.RunProblems ?? []).Count != (now.RunProblems ?? []).Count || !(then.RunProblems ?? []).SequenceEqual(now.RunProblems ?? [])) return false;
+        if (!(then.FailureProblems ?? []).SequenceEqual(now.FailureProblems ?? [])) return false;
+        if (then.Runs is null || now.Runs is null) return then.Runs is null && now.Runs is null;
+        return Same(then.Runs, now.Runs);
+    }
+}
+
 /// <summary>Reads a flowy/ folder. A port of loadDir and loadState in src/node/files.ts, without the parts that write.</summary>
 public static class FolderLoader
 {
