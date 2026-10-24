@@ -20,7 +20,7 @@ objects:
   support:
     type: actor
     name: Support agent
-    description: Handles customer and courier problems.
+    description: Answers customer and courier tickets.
   ordering:
     type: system
     name: Ordering

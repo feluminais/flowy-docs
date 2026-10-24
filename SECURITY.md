@@ -6,7 +6,7 @@ Please report a vulnerability privately, not in a public issue. Use
 [Report a vulnerability](https://github.com/feluminais/flowy-docs/security/advisories/new) on the Security tab. Say what you
 found, the version or commit, and how to reproduce it. This is a one-person project, so a first answer can take a few days.
 
-Only the latest release and `main` get fixes.
+There is no release yet, so fixes go to `main`.
 
 ## What Flowy touches
 

@@ -125,10 +125,7 @@ Another MCP client runs `node /path/to/flowy-docs/dist/cli.js mcp` over stdio. T
 
 ## Install
 
-The desktop app is the way to read a model. Download the installer from [Releases](https://github.com/feluminais/flowy-docs/releases),
-start it, and open a repo with **File › Open Folder**. **Help › Open the Demo** shows Plum.
-
-The browser version needs Node 22.18 or later and runs from a clone:
+There is no release yet, so both versions run from a clone. The browser version needs Node 22.18 or later:
 
 ```bash
 git clone https://github.com/feluminais/flowy-docs
@@ -143,7 +140,9 @@ Then, from the root of the repo you want to read:
 node /path/to/flowy-docs/dist/cli.js
 ```
 
-To look at Plum first, run `node dist/cli.js --dir docs/demo/flowy` in the clone. The VS Code extension, the other commands
+To look at Plum first, run `node dist/cli.js --dir docs/demo/flowy` in the clone. The desktop app needs the .NET 10 SDK:
+`dotnet run --project desktop/Flowy.App -- docs/demo` opens Plum, and **File › Open Folder** opens a repo. Installers will be on
+[Releases](https://github.com/feluminais/flowy-docs/releases) once the first one is out. The VS Code extension, the other commands
 (`check`, `export`, `mermaid`, `failures`) and updating are in [Install](docs/install.md).
 
 > [!NOTE]
@@ -178,9 +177,12 @@ connections:
 
 ## Contributing
 
-[CONTRIBUTING.md](CONTRIBUTING.md) has the build, the conventions and the checklist for changing the canvas or the app. This repo
+[CONTRIBUTING.md](CONTRIBUTING.md) has the build and the conventions, and [Maintaining](docs/maintaining.md) the rest. This repo
 documents itself: open its own `flowy/` folder in the app, or run `node src/cli.ts`. Bug reports and feature requests go to
 [Issues](https://github.com/feluminais/flowy-docs/issues).
+
+Flowy Docs is written with AI coding agents, which is why most commits carry a `Co-Authored-By` line. Each change has to pass
+the tests and checks in CONTRIBUTING.md.
 
 ## License
 

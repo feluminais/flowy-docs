@@ -26,7 +26,7 @@
       "id": "support",
       "type": "actor",
       "name": "Support agent",
-      "description": "Handles customer and courier problems."
+      "description": "Answers customer and courier tickets."
     },
     {
       "id": "ordering",
