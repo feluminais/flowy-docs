@@ -138,6 +138,13 @@ test('deleteWith: reroute moves the ends that named the shape, and a view moves 
   assert.equal(moved.objects.api.in, 'customer')
 })
 
+test('deleteWith: a shape moved out of shapes that sit inside each other goes to the top instead of looking for a parent forever', () => {
+  const m: Model = { objects: { a: { type: 'system', name: 'A', in: 'b' }, b: { type: 'system', name: 'B', in: 'a' }, c: { type: 'app', name: 'C', in: 'a' } }, connections: [], flows: {}, failures: {} } as unknown as Model
+  const next = deleteWith(m, [{ object: 'a' }], [{ key: 'child:b', action: 'deleteWith' }, { key: 'child:c', action: 'moveOut' }])
+  assert.deepEqual(Object.keys(next.objects), ['c'])
+  assert.equal(next.objects.c.in, undefined)
+})
+
 test('deleteWith: a deleted flow takes the flow and step off the modes that named it, and its other rows need nothing', () => {
   const m = busy()
   const next = deleteWith(m, [{ object: 'db' }], [

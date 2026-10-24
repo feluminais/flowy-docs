@@ -216,6 +216,14 @@ public class EditOpsTests
         Assert.Equal(before, doc.ToFiles());
     }
 
+    [Fact(Timeout = 5000)]
+    public async Task A_shape_moved_out_of_shapes_that_sit_inside_each_other_goes_to_the_top()
+    {
+        var doc = EditDoc.Parse("objects:\n  a: { type: system, name: A, in: b }\n  b: { type: system, name: B, in: a }\n  c: { type: app, name: C, in: a }\n", null, []);
+        var files = await Task.Run(() => EditOps.DeleteWith(doc, [new Target(Object: "a")], [new Resolution("child:b", "deleteWith"), new Resolution("child:c", "moveOut")]).ToFiles());
+        Assert.Equal("objects:\n  c:\n    type: app\n    name: C\nconnections: []\n", files["model.yaml"]);
+    }
+
     [Fact]
     public void A_blank_groups_section_is_no_section_so_an_edit_writes_what_the_browser_writes()
     {

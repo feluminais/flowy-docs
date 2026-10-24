@@ -272,7 +272,13 @@ export function deleteWith(model: Model, targets: Target[], resolutions: Resolut
   for (const [row, r] of of('child', 'moveOut')) {
     const child = row.child as string
     let home = r.to ?? parentOf(model, row.of)
-    if (r.to === undefined) while (gone.has(home)) home = parentOf(model, home)
+    // Shapes that sit inside each other have no parent that stays: the shape goes to the top.
+    const passed = new Set<string>()
+    if (r.to === undefined) while (gone.has(home)) {
+      passed.add(home)
+      home = parentOf(model, home)
+      if (passed.has(home)) home = ROOT
+    }
     if (home !== ROOT && (!exists(model, home) || gone.has(home))) throw new OpError(`moveOut for ${describeDependent(row)} needs "to": "root" or a shape that stays`)
     const { in: _, ...rest } = objects[child]
     objects[child] = (home === ROOT ? rest : { ...objects[child], in: home }) as FlowyObject
