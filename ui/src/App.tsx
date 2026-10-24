@@ -88,6 +88,8 @@ import { usePlayback, usePlayer } from './usePlayer.ts'
 import { useFlowStage } from './useFlowStage.ts'
 import { useZoom } from './useZoom.ts'
 import type { Edit, Loaded, Restore } from './useModel.ts'
+import { Dropdown } from './Dropdown.tsx'
+import { keepsKeys } from './keys.ts'
 import { Yaml } from './Yaml.tsx'
 
 const nodeTypes = { box: Box, frame: Frame }
@@ -813,10 +815,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const inNavigator = e.target instanceof Element && e.target.closest('.navpanel') !== null
-      // A field keeps its keys, except the load slider: its arrows and Home and End are the tab's own, so they work right after it was used.
+      // A text field keeps its keys. A slider, a checkbox or a colour does not: one that was just used keeps the focus, and the keys stay the tab's (arrows and Home and End step the run).
       // The navigator's filters clear themselves on Escape and stop it, so one that gets here is empty: a click in it lets Escape close the navigator.
       // A field in the Failures tab's forms keeps its Escape: a half-filled form is not thrown away by it.
-      if ((e.target instanceof HTMLInputElement && e.target.type !== 'range') || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+      if (keepsKeys(e.target as HTMLElement | null)) {
         if (!(e.key === 'Escape' && inNavigator && e.target instanceof HTMLInputElement && e.target.closest('.navfind') !== null)) return
       }
       const state: KeyState = {
@@ -966,14 +968,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
         <span className="grow" />
         {/* first of the right-hand group: its count changes its width, and what sits to its left only ever moves for words, never for an icon */}
         <Problems problems={problems} onPick={jump} />
-        <select aria-label="Line style" value={lines}
-          title={editing ? 'How lines look for everyone (saved in model.yaml)' : 'How lines look on this screen'}
-          onChange={e => {
-            pickLines(e.target.value)
-            e.target.blur()
-          }}>
-          {LINE_STYLES.map(s => <option key={s} value={s}>Lines: {LINE_NAMES[s]}</option>)}
-        </select>
+        <Dropdown label="Line style" value={lines} options={LINE_STYLES.map(s => [s, `Lines: ${LINE_NAMES[s]}`])} onChange={pickLines}
+          title={editing ? 'How lines look for everyone (saved in model.yaml)' : 'How lines look on this screen'} />
         {/* mousedown would blur the open field, closing it, and the click would open it again */}
         <button title="Find a shape (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => setSearching(!searching)}><SearchIcon size={16} />Search</button>
         <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={() => void copyMermaid()}><Copy size={16} />Mermaid</button>

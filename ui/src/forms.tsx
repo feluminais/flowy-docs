@@ -1,5 +1,6 @@
 import type { FocusEvent, ReactNode } from 'react'
 import type { Model } from '../../src/core/model.ts'
+import { Dropdown } from './Dropdown.tsx'
 import { Close } from './icons.tsx'
 
 /** Runs one edit and resolves to true once it's saved. Whatever went wrong shows as a notice. */
@@ -35,14 +36,12 @@ export function Field({ label, value, multiline, list, placeholder, disabled, ti
   )
 }
 
-/** A select that saves when it changes, and goes back to what it was when the edit is refused. Keyed by its value so it shows the saved one after a reload. */
+/** A dropdown that saves when it changes. It shows the saved value, so it goes back to what it was when the edit is refused. */
 export function Choice({ label, value, options, onSave }: { label: ReactNode; value: string; options: [string, string][]; onSave: (value: string) => Promise<boolean> }) {
   return (
     <label>
       {label}
-      <select key={value} defaultValue={value} onChange={async e => { if (!(await onSave(e.target.value))) e.target.value = value }}>
-        {options.map(([v, text]) => <option key={v} value={v}>{text}</option>)}
-      </select>
+      <Dropdown value={value} options={options} onChange={v => void onSave(v)} />
     </label>
   )
 }

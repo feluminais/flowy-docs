@@ -13,6 +13,7 @@ import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
+import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
@@ -276,7 +277,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   return (
     <div className="perf">
       {pane ? null : ids.length > 1
-        ? <select aria-label="Run" value={runId} onChange={e => { onRun(e.target.value); e.target.blur() }}>{ids.map(id => <option key={id} value={id}>{runs[id].name}{linked.has(id) ? ' (Linked)' : ''}</option>)}</select>
+        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Linked)' : ''}`])} onChange={onRun} />
         : <h2>{run.name}</h2>}
       {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
       {run.about && (run.about.length > ABOUT_FOLDS_OVER
