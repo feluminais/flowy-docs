@@ -164,8 +164,15 @@ public static partial class EditOps
         {
             var child = Entry(d.Objects[row.Child!]);
             var home = r.To ?? Views.ParentOf(model, row.Of);
+            // Shapes that sit inside each other have no parent that stays: the shape goes to the top.
+            var passed = new HashSet<string>();
             if (r.To is null)
-                while (gone.Contains(home)) home = Views.ParentOf(model, home);
+                while (gone.Contains(home))
+                {
+                    passed.Add(home);
+                    home = Views.ParentOf(model, home);
+                    if (passed.Contains(home)) home = Names.Root;
+                }
             if (home != Names.Root && (model.GetObject(home) is null || gone.Contains(home)))
                 throw new OpError($"moveOut for {Dependents.Describe(row)} needs \"to\": \"root\" or a shape that stays");
             if (home == Names.Root) child.Remove("in");
