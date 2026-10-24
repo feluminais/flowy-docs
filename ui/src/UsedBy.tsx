@@ -214,7 +214,6 @@ export function UsedBy({ model, targets, run, onFlag, onDone, onCancel }: {
           </span>
           {reason && <span id="usedby-reason" className="muted">{reason}</span>}
         </div>
-        <p className="hint"><span><kbd>↑</kbd><kbd>↓</kbd> Row</span> <span><kbd>X</kbd> Remove</span> <span><kbd>R</kbd> Reroute</span> <span><kbd>Enter</kbd> {plan.open.length > 0 ? 'Remove all' : 'Delete'}</span> <span><kbd>Esc</kbd> Cancel</span></p>
       </div>
     </Panel>
   )

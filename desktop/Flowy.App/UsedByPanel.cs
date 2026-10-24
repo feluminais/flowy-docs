@@ -32,7 +32,6 @@ internal sealed class UsedByPanel : StackPanel
     private readonly Button _cancel = new();
     private readonly Button _delete = new();
     private readonly Border _deleteHost = new();
-    private readonly TextBlock _enterHint = new() { VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
     private Model _model;
     private string? _active; // the row in focus, by key
     private string? _picking; // the row whose shape is being picked, by key, or "*" for all of them
@@ -64,7 +63,6 @@ internal sealed class UsedByPanel : StackPanel
         _delete.Classes.Add("danger");
         _deleteHost.Child = _delete;
         _reason.Classes.Add("muted");
-        _enterHint.Classes.Add("muted");
 
         var foot = new WrapPanel { Orientation = Orientation.Horizontal };
         foreach (var b in new Control[] { _removeAll, _rerouteAll, _cancel, _deleteHost, _reason }) foot.Children.Add(b);
@@ -74,7 +72,6 @@ internal sealed class UsedByPanel : StackPanel
         Children.Add(_along);
         Children.Add(_chooser);
         Children.Add(foot);
-        Children.Add(Hint());
         Render();
     }
 
@@ -238,7 +235,6 @@ internal sealed class UsedByPanel : StackPanel
         _delete.IsEnabled = open == 0;
         _reason.Text = open == 0 ? "" : $"Choose for {open} more";
         ToolTip.SetTip(_deleteHost, open == 0 ? null : $"Choose for {open} more");
-        _enterHint.Text = open > 0 ? "Remove all" : "Delete";
         DrawChooser(plan);
         var flagged = _active is { } key && rows.FirstOrDefault(r => r.Key == key) is { } active ? UsedBy.TextOf(_model, active).Shapes.ToHashSet() : [];
         Marked?.Invoke(going, flagged);
@@ -383,20 +379,6 @@ internal sealed class UsedByPanel : StackPanel
             none.Classes.Add("muted");
             list.Children.Add(none);
         }
-    }
-
-    /// <summary>The keys of the panel, drawn as caps and one verb each: <c>[↑][↓] Row  [X] Remove  [R] Reroute  [Enter] Remove all  [Esc] Cancel</c>.</summary>
-    private Control Hint()
-    {
-        var wrap = new WrapPanel { Orientation = Orientation.Horizontal };
-        Control Item(string keys, Control verb) { var row = KeyCaps.Of(keys, verb); row.Margin = new Thickness(0, 0, 12, 4); return row; }
-        static TextBlock Verb(string text) { var t = new TextBlock { Text = text, FontSize = 12, VerticalAlignment = VerticalAlignment.Center }; t.Classes.Add("muted"); return t; }
-        wrap.Children.Add(Item("↑ ↓", Verb("Row")));
-        wrap.Children.Add(Item("X", Verb("Remove")));
-        wrap.Children.Add(Item("R", Verb("Reroute")));
-        wrap.Children.Add(Item("Enter", _enterHint));
-        wrap.Children.Add(Item("Esc", Verb("Cancel")));
-        return wrap;
     }
 
     // ---- keys --------------------------------------------------------------------------------------------------

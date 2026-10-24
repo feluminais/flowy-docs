@@ -107,10 +107,7 @@ internal sealed class SidePanel : Border
         column.Children.Add(Heading(model.ProjectName == "" ? "Overview" : model.ProjectName));
         column.Children.Add(Muted(Summary(totals)));
         if (model.ProjectAbout != "") column.Children.Add(new MarkdownView(model.ProjectAbout, 14.5));
-        var hint = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        if (model.ProjectAbout == "") hint.Children.Add(Muted("Click a shape."));
-        hint.Children.Add(KeyHint.Of(("O", "Explorer")));
-        column.Children.Add(hint);
+        if (model.ProjectAbout == "") column.Children.Add(Muted("Click a shape."));
         Show(column, "overview");
     }
 

@@ -51,9 +51,7 @@ export function OverviewPanel({ model, totals, editing, run, onClose }: Common &
           </div>
           <Field label="About (Markdown)" value={about} multiline onSave={value => run(m => setProject(m, { about: value }))} />
         </form>
-      ) : (
-        <p className="hint muted">{about ? '' : 'Click a shape. '}<kbd>O</kbd> Explorer</p>
-      )}
+      ) : !about && <p className="muted">Click a shape.</p>}
     </Panel>
   )
 }

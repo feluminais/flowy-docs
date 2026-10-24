@@ -147,7 +147,7 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
           <label className="ycompare"><input type="checkbox" checked={view.compare} onChange={e => store.setCompare(e.target.checked)} />Compare with now</label>
           <span className="yactions">
             <button className="primary" disabled={!allowed || busy} onClick={() => void restore()}>Restore</button>
-            {!allowed && <span className="hint"><kbd>E</kbd> Edit to restore</span>}
+            {!allowed && <span className="muted">Edit to restore</span>}
             <button onClick={() => pickStep(undefined)}>Back to now</button>
           </span>
         </div>

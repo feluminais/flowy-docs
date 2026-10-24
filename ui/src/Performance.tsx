@@ -334,7 +334,6 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         )}
       <div className="perf-buttons">
         {!multi && !still && <button className="primary" aria-pressed={ramping} onClick={() => onRamp(0)}>{ramping ? <><Pause size={16} />Pause</> : <><Play size={16} />{timed ? 'Play' : 'Ramp'}</>}</button>}
-        <span className="hint muted"><kbd>←</kbd><kbd>→</kbd>Step{!still && <><kbd>P</kbd>{timed ? 'Play' : 'Ramp'}</>}</span>
       </div>
       {onMeasure && (
         <div className="measure" role="group" aria-label="Count">

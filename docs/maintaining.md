@@ -279,7 +279,7 @@ Reading:
       app, API and Orders DB, and Customer and Mail service are faded and dashed outside it.
 - [ ] Double-click API, then press Backspace twice quickly: it zooms back out to the overview. Z does the same from any level.
 - [ ] On `docs/demo`, close every panel and click Details at the top level: the heading reads Plum, with the description and the counts under it. On `example` (no name)
-      it reads Overview with "Click a shape." and an O key for the Explorer. Press E: the same panel holds Name and About (Markdown). Type a name and leave
+      it reads Overview with "Click a shape." and no keycaps. Press E: the same panel holds Name and About (Markdown). Type a name and leave
       the field: the heading changes and `model.yaml` starts with `name:`. Clear it: the key goes. The same in the desktop app.
 - [ ] In edit mode, drag a box and press Esc (then try Backspace on another drag): the box goes back and the level stays; the next press goes
       back. A click in between, or a second edit, turns that off. In the app, press Esc while still holding a drag: the box returns, nothing is saved.
