@@ -122,6 +122,7 @@ public class CanvasCostTests
     public async Task A_pause_calls_back_once_after_its_time_and_not_at_all_when_cancelled()
     {
         var (canvas, _, _) = Open();
+        Flowy.App.Canvas.Anim.WaitsOnFrames = false; // this one is about the timer
         var done = 0;
         var cancelled = 0;
         using var pause = Anim.Wait(canvas, 30, () => done++);
@@ -133,6 +134,7 @@ public class CanvasCostTests
         await Task.Delay(100);
         Assert.Equal(1, done); // once
         Assert.Equal(0, cancelled);
+        Flowy.App.Canvas.Anim.WaitsOnFrames = true;
     }
 
     [AvaloniaFact]
