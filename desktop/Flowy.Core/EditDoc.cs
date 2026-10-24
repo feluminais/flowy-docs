@@ -23,6 +23,9 @@ public sealed class EditDoc
     /// <summary>flow id → the flow's map (name, view, steps: a list of maps, and anything else).</summary>
     public OrderedDictionary<string, object?> Flows { get; init; } = [];
 
+    /// <summary>flow id → the folder its file sits in under flows/ ("payments/refunds"). A flow at the top of flows/ has no entry, and an id with no flow is never here. Where the file is, never written into a flow.</summary>
+    public OrderedDictionary<string, string> Folders { get; init; } = [];
+
     /// <summary>analysis id → the analysis's map (name, scope, modes: a map of mode maps, and anything else). Only analyses that can be read are here; one that can't is left alone.</summary>
     public OrderedDictionary<string, object?> Failures { get; init; } = [];
 
@@ -33,8 +36,12 @@ public sealed class EditDoc
 
     /// <summary>For sections: an empty value, <c>~</c> or <c>null</c> means empty (the same rule as <see cref="ModelFiles"/>).</summary>
 
-    /// <summary>The trees of a folder's files. A null text is a file that isn't there. Throws <see cref="ParseError"/> for a file whose shape is wrong, as loading does.</summary>
-    public static EditDoc Parse(string? modelText, string? layoutText, IEnumerable<KeyValuePair<string, string>> flowTexts, IEnumerable<KeyValuePair<string, string>>? failureTexts = null)
+    /// <summary>
+    /// The trees of a folder's files. A null text is a file that isn't there. Throws <see cref="ParseError"/> for a file whose shape is wrong, as loading does.
+    /// <paramref name="flowFolders"/> is the folder of each flow whose file is in one (flow id → folder); none puts every flow at the top of flows/.
+    /// </summary>
+    public static EditDoc Parse(string? modelText, string? layoutText, IEnumerable<KeyValuePair<string, string>> flowTexts, IEnumerable<KeyValuePair<string, string>>? failureTexts = null,
+        IReadOnlyDictionary<string, string>? flowFolders = null)
     {
         var doc = new EditDoc();
         if (modelText is not null)
@@ -52,13 +59,15 @@ public sealed class EditDoc
         }
         foreach (var (id, text) in flowTexts)
         {
-            ModelFiles.ParseFlow(id, text);
-            var flow = YamlText.Parse(FolderLayout.FlowFile(id), text) as OrderedDictionary<string, object?> ?? [];
+            var folder = flowFolders is not null && flowFolders.TryGetValue(id, out var where) ? where : "";
+            ModelFiles.ParseFlow(id, text, folder);
+            var flow = YamlText.Parse(FolderLayout.FlowFile(id, folder), text) as OrderedDictionary<string, object?> ?? [];
             // Like parseFlowFile: a missing or empty steps is an empty list, in the key's own place, else last.
             flow["steps"] = flow.TryGetValue("steps", out var steps) && !JsCompat.IsEmpty(steps) ? steps : new List<object?>();
             // Like parseFlowFile: a blank `groups:` is no section.
             if (flow.TryGetValue("groups", out var groups) && JsCompat.IsEmpty(groups)) flow.Remove("groups");
             doc.Flows[id] = flow;
+            if (folder != "") doc.Folders[id] = folder;
         }
         foreach (var (id, text) in failureTexts ?? [])
         {
@@ -123,6 +132,7 @@ public sealed class EditDoc
         Objects = CopyMap(Objects),
         Connections = Connections.Select(Copy).ToList(),
         Flows = CopyMap(Flows),
+        Folders = new OrderedDictionary<string, string>(Folders),
         Failures = CopyMap(Failures),
         Layout = CopyMap(Layout),
     };
@@ -143,7 +153,7 @@ public sealed class EditDoc
     public Dictionary<string, string> ToFiles()
     {
         var files = new Dictionary<string, string> { [FolderLayout.ModelFile] = YamlWriter.Write(ModelTree()) };
-        foreach (var id in JsCompat.OrderKeys(Flows.Keys)) files[FolderLayout.FlowFile(id)] = YamlWriter.Write(Flows[id]);
+        foreach (var id in JsCompat.OrderKeys(Flows.Keys)) files[FolderLayout.FlowFile(id, Folders.GetValueOrDefault(id, ""))] = YamlWriter.Write(Flows[id]);
         foreach (var id in JsCompat.OrderKeys(Failures.Keys)) files[FolderLayout.FailureFile(id)] = YamlWriter.Write(Failures[id]);
         files[FolderLayout.LayoutFile] = YamlWriter.WriteLayout(Layout);
         return files;
@@ -156,12 +166,20 @@ public sealed class EditDoc
     {
         var parsed = files.TryGetValue(FolderLayout.ModelFile, out var modelText) ? ModelFiles.ParseModel(modelText) : null;
         var flows = new IdMap<Flow>();
+        var folders = new Dictionary<string, string>();
         foreach (var (rel, text) in files)
-            if (rel.StartsWith(FolderLayout.FlowsDir + "/", StringComparison.Ordinal)) flows.Add(rel[(FolderLayout.FlowsDir.Length + 1)..^FolderLayout.Extension.Length], ModelFiles.ParseFlow(rel[(FolderLayout.FlowsDir.Length + 1)..^FolderLayout.Extension.Length], text));
+        {
+            if (!rel.StartsWith(FolderLayout.FlowsDir + "/", StringComparison.Ordinal)) continue;
+            // The id is the file's name alone, and the folder is what lies between flows/ and it.
+            var id = FolderLayout.FlowIdOf(rel) ?? "";
+            var folder = FolderLayout.FlowFolderOf(rel);
+            flows.Add(id, ModelFiles.ParseFlow(id, text, folder));
+            if (folder != "") folders[id] = folder;
+        }
         var failures = new IdMap<FailureAnalysis>();
         foreach (var (rel, text) in files)
             if (FolderLayout.FailureIdOf(rel) is { } aid) failures.Add(aid, ModelFiles.ParseAnalysis(aid, text));
         var layout = files.TryGetValue(FolderLayout.LayoutFile, out var layoutText) ? ModelFiles.ParseLayout(layoutText) : [];
-        return Model.FromParts(parsed, flows, layout, failures);
+        return Model.FromParts(parsed, flows, layout, failures, folders);
     }
 }

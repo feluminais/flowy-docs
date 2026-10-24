@@ -15,7 +15,11 @@ public class EditOpsTests
         KeyValuePair<string, string>[] Read(string sub) => Directory.Exists(Path.Combine(dir, sub))
             ? Directory.GetFiles(Path.Combine(dir, sub), "*.yaml").OrderBy(f => f, StringComparer.Ordinal).Select(f => KeyValuePair.Create(Path.GetFileNameWithoutExtension(f), File.ReadAllText(f))).ToArray()
             : [];
-        return EditDoc.Parse(File.ReadAllText(Path.Combine(dir, "model.yaml")), File.ReadAllText(Path.Combine(dir, "layout.yaml")), Read("flows"), Read("failures"));
+        // The flows are read as the loader reads them: in the folders under flows/ too, and a file it leaves out left out.
+        var flowFiles = FileStore.FlowFiles(dir);
+        var flows = flowFiles.Select(f => KeyValuePair.Create(f.Id, File.ReadAllText(Path.Combine(dir, f.Rel)))).ToArray();
+        var folders = flowFiles.Where(f => f.Folder != "").ToDictionary(f => f.Id, f => f.Folder);
+        return EditDoc.Parse(File.ReadAllText(Path.Combine(dir, "model.yaml")), File.Exists(Path.Combine(dir, "layout.yaml")) ? File.ReadAllText(Path.Combine(dir, "layout.yaml")) : null, flows, Read("failures"), folders);
     }
 
     private static List<Target> Targets(JsonNode? list) => list!.AsArray().Select(t => t!["line"] is { } l
@@ -25,6 +29,9 @@ public class EditOpsTests
     private static List<Resolution> Resolutions(JsonNode? list) => list!.AsArray().Select(r => new Resolution(r!["key"]!.GetValue<string>(), r["action"]!.GetValue<string>(), r["to"]?.GetValue<string>())).ToList();
 
     private static string? Str(JsonNode s, string key) => s[key]?.GetValue<string>();
+
+    /// <summary>The tags of a script: none if it has none, which keeps the tags a flow has.</summary>
+    private static List<string>? Tags(JsonNode? tags) => tags?.AsArray().Select(t => t!.GetValue<string>()).ToList();
 
     /// <summary>A list of mappings from the script, as the YAML trees the ops take: a flow's steps, an object's links.</summary>
     private static List<OrderedDictionary<string, object?>> Entries(JsonNode? list) =>
@@ -52,7 +59,9 @@ public class EditOpsTests
             case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
-            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]), Groups(s["states"]));
+            case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]), Groups(s["states"]), Str(s, "folder"), Tags(s["tags"]));
+            case "moveFlow": return EditOps.MoveFlow(doc, Str(s, "id")!, Str(s, "folder")!);
+            case "setFlowTags": return EditOps.SetFlowTags(doc, Str(s, "id")!, Tags(s["tags"])!);
             case "updateFlow": return EditOps.UpdateFlow(doc, Str(s, "id")!, Str(s, "name"), s["steps"] is null ? null : Steps(s["steps"]), Groups(s["groups"]));
             case "setCompare": return EditOps.SetCompare(doc, Str(s, "id")!, Str(s, "with") is { } partner ? new CompareTag(partner, Str(s, "note")) : null);
             case "removeStep": return EditOps.RemoveStep(doc, Str(s, "id")!, s["index"]!.GetValue<int>());
@@ -134,6 +143,9 @@ public class EditOpsTests
             var expected = Files(results[i]!["files"]!);
             var actual = doc.ToFiles();
             Assert.True(Differences(expected, actual) == "", $"{step}\n{Differences(expected, actual)}");
+            // Where the files are filed is a part of the model too: the same folders, whatever order they were put in.
+            var folders = results[i]!["folders"]?.AsObject().ToDictionary(f => f.Key, f => f.Value!.GetValue<string>()) ?? [];
+            Assert.True(folders.Count == doc.Folders.Count && folders.All(f => doc.Folders.GetValueOrDefault(f.Key) == f.Value), $"{step}\nfolders: expected {string.Join(", ", folders)}, got {string.Join(", ", doc.Folders)}");
         }
     }
 
@@ -152,6 +164,17 @@ public class EditOpsTests
         Assert.True(Differences(initial, files) == "", Differences(initial, files));
         Assert.Contains("failures/ordering.yaml", files.Keys);
         RunScript(Start("delete"), remove["results"]!.AsArray(), 20);
+    }
+
+    [Fact]
+    public void Filing_and_tagging_flows_write_what_the_typescript_ops_write_and_a_refusal_says_the_same_words()
+    {
+        var edit = Expected()["folderEdit"]!;
+        var files = Start("folders").ToFiles();
+        var initial = Files(edit["initial"]!);
+        Assert.True(Differences(initial, files) == "", Differences(initial, files));
+        Assert.DoesNotContain(files.Keys, k => k.Contains(".drafts", StringComparison.Ordinal) || k.Contains("a#b", StringComparison.Ordinal) || k.EndsWith(".yml", StringComparison.Ordinal)); // a file the loader leaves out is never written
+        RunScript(Start("folders"), edit["results"]!.AsArray(), 30);
     }
 
     [Fact]

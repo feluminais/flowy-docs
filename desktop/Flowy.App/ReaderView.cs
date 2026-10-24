@@ -19,7 +19,7 @@ namespace Flowy.App;
 /// </summary>
 internal sealed partial class ReaderView : Grid, IDisposable
 {
-    private const int DoubleClickMilliseconds = 250;
+    internal const int DoubleClickMilliseconds = 250;
 
     // Opening a box: the old level flies off, the new one settles in. The browser version takes 220 and 320 ms, but there the browser's
     // compositor runs it; here every frame is the UI thread's work, and a shorter move hides any hitch in it.
@@ -587,6 +587,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
         // Where shapes stand at this stop, folded from the flow's start and the steps up to it: nothing is stored, so stepping back needs no undo.
         // While the Performance panel is open a run over time sets the states instead (a flow waits behind the panel).
         _canvas.ShowStates(flow is { } playing ? States.Marks(model, States.At(playing.Flow, StopsOf(playing.Flow), index)) : RunMarks(model));
+        // What the flow has left open by this stop is worked out the same way, so stepping back needs no undo.
+        _canvas.ShowChannels(flow is { } open ? FlowStage.OpenAt(model, view, open.Flow, StopsOf(open.Flow), index) : null);
         return shown;
     }
 
@@ -731,7 +733,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         }
         _player.CompareOff = CompareChoices.Off(model, Editing);
         (string Name, int Step)? trail = _playback.Head is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
-        var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.Auto, trail, _canvas.StatesShown.Values.ToList());
+        var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.Auto, trail, _canvas.StatesShown.Values.ToList(), null, _canvas.ChannelKindsShown);
         _player.Show(card);
         _canvas.SetMarks(marks);
     }

@@ -21,6 +21,8 @@ internal sealed class CanvasView : Border
 
     private readonly BackLayer _back = new();
     private readonly MotionLayer _motion = new();
+    private readonly ChannelLayer _channels = new();
+    private IReadOnlyList<OpenChannel> _open = []; // the channels the stop on show has left open, with the shapes they are on
     private readonly MarksLayer _marks = new();
     private readonly TrafficLayer _traffic = new();
     private Traffic? _load; // the load being shown, if the Performance panel is open
@@ -93,7 +95,7 @@ internal sealed class CanvasView : Border
     {
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        _world.Children.AddRange([_back, _stage, _traffic, _motion, _marks]);
+        _world.Children.AddRange([_back, _stage, _traffic, _channels, _motion, _marks]);
         Child = new Grid { Children = { _world, _marquee } };
     }
 
@@ -296,6 +298,7 @@ internal sealed class CanvasView : Border
         ApplyChanges();
         ApplyUsed();
         ApplyStates();
+        ApplyChannels();
     }
 
     /// <summary>
@@ -348,6 +351,59 @@ internal sealed class CanvasView : Border
     {
         foreach (var (id, box) in _boxes) box.SetState(_states.TryGetValue(id, out var mark) ? mark : null, snap);
     }
+
+    /// <summary>
+    /// A channel the stop on show has left open, with the two boxes its ends are on in this view and, when it opens or closes at this stop, the step whose motion has to land
+    /// before the mark comes or goes (its animation and its two boxes).
+    /// </summary>
+    public sealed record OpenChannel(Channel Channel, string FromBox, string ToBox, StepAnimation? Motion = null, string? MotionFrom = null, string? MotionTo = null);
+
+    /// <summary>
+    /// Shows the channels that are open at the stop on show (see <see cref="Channels.At"/>): a stream as dots along its line, a listener as a bell with a dotted line, a job as a turning
+    /// arc. Null or none takes them away. A mark already there keeps its clock, so a redraw does not bring it in again; <see cref="RestartChannels"/> does.
+    /// </summary>
+    public void ShowChannels(IReadOnlyList<OpenChannel>? open)
+    {
+        _open = open ?? [];
+        ApplyChannels();
+    }
+
+    /// <summary>The step on show is played again: the marks that come or go at it start over.</summary>
+    public void RestartChannels() => _channels.Restart();
+
+    private void ApplyChannels()
+    {
+        if (_scene is null || _open.Count == 0)
+        {
+            _channels.Set(null, LineStyle);
+            return;
+        }
+        var outline = (string id) => _scene.Boxes.FirstOrDefault(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null;
+        var specs = new List<ChannelLayer.Spec>();
+        foreach (var o in _open)
+        {
+            if (RectOf(o.FromBox) is not { } from || RectOf(o.ToBox) is not { } to) continue;
+            // How long the step's own motion takes on its own line, which is how long the mark waits.
+            var after = 0.0;
+            if ((o.Channel.Opening || o.Channel.Closing) && o.Motion is { } motion)
+            {
+                var (a, b) = RectOf(o.MotionFrom ?? o.FromBox) is { } mf && RectOf(o.MotionTo ?? o.ToBox) is { } mt ? (mf, mt) : (from, to);
+                var line = Geometry.Parse(LinePaths.Build(LineStyle, a, b, outline(o.MotionFrom ?? o.FromBox), outline(o.MotionTo ?? o.ToBox)).Data);
+                after = Animations.BeatsFor(motion, line.ContourLength, false).Total;
+            }
+            specs.Add(new ChannelLayer.Spec(ChannelLayer.KeyOf(o.Channel), o.Channel, from, to, outline(o.FromBox), outline(o.ToBox), o.Channel.End == "to" ? o.ToBox : o.FromBox, after));
+        }
+        _channels.Set(specs, LineStyle);
+    }
+
+    /// <summary>The channels drawn now, for the tests and the key under the player.</summary>
+    internal IReadOnlyList<ChannelLayer.Shown> ChannelsShown => _channels.Marks;
+
+    /// <summary>The kinds of channel on the canvas now, in the order of <see cref="Animations.ChannelKinds"/>: what the key under the player lists.</summary>
+    internal IReadOnlyList<string> ChannelKindsShown => Channels.KindsOf(_channels.Marks.Select(m => new Channel(0, m.Kind, m.Name, "", "", "", m.Opening, m.Closing)));
+
+    /// <summary>The channel layer, for the tests.</summary>
+    internal ChannelLayer ChannelLayerNow => _channels;
 
     /// <summary>The shapes on the canvas that are in a state now, by id: what the key under the player lists, and what a test reads.</summary>
     internal IReadOnlyDictionary<string, StateMark> StatesShown => _boxes.Where(b => b.Value.State is not null).ToDictionary(b => b.Key, b => b.Value.State!);

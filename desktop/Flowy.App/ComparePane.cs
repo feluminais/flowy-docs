@@ -1,4 +1,5 @@
 using Avalonia.Automation;
+using Avalonia.Threading;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Input;
@@ -22,12 +23,19 @@ internal interface IFlowKeys
 
     /// <summary>Fits the whole flow's view in the canvas, as F does.</summary>
     void Fit();
+
+    /// <summary>Whether Esc, Backspace and Z take the pane up a level: it is zoomed into a shape, and not at the top.</summary>
+    bool Inside { get; }
+
+    /// <summary>Up a level from the one the pane is zoomed to.</summary>
+    void Up();
 }
 
 /// <summary>
 /// One flow of a comparison, drawn on its own view with a canvas, a playhead and a player card of its own: its own zoom and pan, and its own place in the flow, so acting in one
-/// pane never moves another. It is the reader's single canvas cut down to what a flow needs: nothing is dragged or edited, a double-click goes nowhere, and the card's Stop and
-/// Open flow are greyed out, since a pane never leaves its flow. Its title is the flow's own name. What it plays is a <see cref="PaneFlow"/>, which Swap uses too.
+/// pane never moves another. It is the reader's single canvas cut down to what a flow needs: nothing is dragged or edited, and the card's Stop and Open flow are greyed out, since a pane
+/// never leaves its flow. A double-click on a shape that opens zooms this pane into it, as on the single canvas (the other pane stays where it is); a breadcrumb under the title and Esc,
+/// Backspace and Z go back up. Its title is the flow's own name. What it plays is a <see cref="PaneFlow"/>, which Swap uses too.
 /// </summary>
 internal sealed class ComparePane : Border, IFlowKeys
 {
@@ -36,6 +44,9 @@ internal sealed class ComparePane : Border, IFlowKeys
     private readonly PaneFlow _flow;
     private readonly Border _outline = new() { IsHitTestVisible = false, IsVisible = false };
     private readonly TextBlock _title;
+    private readonly ContentControl _crumbs = new() { IsVisible = false, HorizontalContentAlignment = Avalonia.Layout.HorizontalAlignment.Stretch };
+    private string _crumbsFor = ""; // the level the breadcrumb was built for
+    private DispatcherTimer? _opening; // a click on a shape that opens, waiting out the double-click window
 
     /// <summary>A box or a line (with the view this pane draws it in) was clicked.</summary>
     public event Action<ReaderView.Side>? Picked;
@@ -64,8 +75,9 @@ internal sealed class ComparePane : Border, IFlowKeys
         // The card leaves most of a short pane to the diagram, and a fit keeps that much of the bottom clear for it.
         stage.SizeChanged += (_, e) => _player.MaxHeight = Math.Max(150, e.NewSize.Height * 0.5);
         _canvas.PlayerRoom = () => Math.Min(200, Math.Max(80, _canvas.Bounds.Height * 0.4));
-        Grid.SetRow(stage, 1);
-        var content = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { head, stage } };
+        Grid.SetRow(_crumbs, 1);
+        Grid.SetRow(stage, 2);
+        var content = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { head, _crumbs, stage } };
         // The outline is drawn over the content, not as the pane's own border: a thicker border would move what is inside it.
         Child = new Grid { Children = { content, _outline } };
 
@@ -75,8 +87,35 @@ internal sealed class ComparePane : Border, IFlowKeys
             _title.Text = _flow.Name;
             ToolTip.SetTip(_title, _flow.Name);
             AutomationProperties.SetName(this, Key.Contains('#') ? $"{_flow.Name} (2)" : _flow.Name);
+            if (_crumbsFor == _flow.Level) return;
+            _crumbsFor = _flow.Level;
+            _crumbs.Content = _flow.Crumbs(_flow.ZoomTo);
+            _crumbs.IsVisible = _crumbs.Content is not null;
         };
-        _canvas.BoxClicked += id => Picked?.Invoke(new ReaderView.Side.Box(id));
+        _canvas.BoxClicked += id =>
+        {
+            StopOpening();
+            if (!_flow.CanOpen(id))
+            {
+                Picked?.Invoke(new ReaderView.Side.Box(id));
+                return;
+            }
+            // A click on a shape that opens waits out the double-click window, so the first half of a double-click neither opens its panel nor closes it (that moves the pane under the second click).
+            _opening = new DispatcherTimer(TimeSpan.FromMilliseconds(ReaderView.DoubleClickMilliseconds), DispatcherPriority.Normal, (_, _) =>
+            {
+                StopOpening();
+                Picked?.Invoke(new ReaderView.Side.Box(id));
+            });
+            _opening.Start();
+        };
+        _canvas.BoxDoubleClicked += id =>
+        {
+            StopOpening();
+            if (!_flow.CanOpen(id)) return;
+            FocusRequested?.Invoke();
+            if (_flow.HasSelection) EmptyClicked?.Invoke(); // the zoom replaces the panel this pane had open
+            _flow.ZoomTo(id);
+        };
         _canvas.EdgeClicked += id =>
         {
             FocusRequested?.Invoke();
@@ -147,6 +186,22 @@ internal sealed class ComparePane : Border, IFlowKeys
     public void TogglePlay() => _flow.TogglePlay();
 
     public void Replay() => _flow.Replay();
+
+    private void StopOpening()
+    {
+        _opening?.Stop();
+        _opening = null;
+    }
+
+    /// <summary>The level the pane draws: the one it was zoomed to, else its flow's own view.</summary>
+    public string Level => _flow.Level;
+
+    /// <summary>Whether the breadcrumb of the level shows (for tests).</summary>
+    internal bool CrumbsShown => _crumbs.IsVisible;
+
+    public bool Inside => _flow.Inside;
+
+    public void Up() => _flow.Up();
 
     /// <summary>Fits the whole flow's view in the pane, as F does.</summary>
     public void Fit() => _canvas.Fit(0, true, 0, 220, refit: false);

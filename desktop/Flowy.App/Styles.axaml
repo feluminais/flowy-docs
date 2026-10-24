@@ -146,7 +146,7 @@
   </Style>
 
   <!-- Icons share one stroke; their colours come from where they sit. -->
-  <Style Selector="Path.btnicon, Path.ticon, Path.pickicon, Path.chipicon, Path.sectionicon, Path.closeicon, Path.zoomicon, Path.dirnicon, Path.rowicon, Path.crumbicon, Path.warnicon, Path.railicon, Path.navicon, Path.twisticon, Path.linkmark">
+  <Style Selector="Path.btnicon, Path.ticon, Path.pickicon, Path.chipicon, Path.sectionicon, Path.closeicon, Path.zoomicon, Path.dirnicon, Path.rowicon, Path.crumbicon, Path.warnicon, Path.railicon, Path.navicon, Path.twisticon, Path.linkmark, Path.tagmark">
     <Setter Property="StrokeThickness" Value="2" />
     <Setter Property="StrokeLineCap" Value="Round" />
     <Setter Property="StrokeJoin" Value="Round" />
@@ -420,6 +420,8 @@
   <!-- How a step's request ended (outcomeLine): text in the danger colour with a dot beside it. -->
   <Style Selector="TextBlock.outcome"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Border.outcomedot"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="TextBlock.channelline"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.channeldot"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <!-- The sketches of how a step travels and how its request ends, drawn on a 44 by 24 grid in the colour of the text. -->
   <Style Selector="Path.sketch">
     <Setter Property="Stroke" Value="{DynamicResource FgBrush}" />
@@ -1037,6 +1039,11 @@
     <Setter Property="BorderThickness" Value="0,0,0,1" />
     <Setter Property="Padding" Value="12,7" />
   </Style>
+  <Style Selector="Border.panecrumbs">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+    <Setter Property="Padding" Value="6,2" />
+  </Style>
   <Style Selector="TextBlock.panetitle">
     <Setter Property="FontSize" Value="13" />
     <Setter Property="FontWeight" Value="SemiBold" />
@@ -1263,6 +1270,23 @@
   <Style Selector="Button.flowrow.current /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Button.flowrow.current TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Button.flowrow Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <!-- A tag: a small word with the mark of a tag on a flow's row, and a small button in the filter bar and the flow's form, where a ring and a tint say it is on. -->
+  <Style Selector="Path.tagmark"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Button.tagchip">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="8,0,10,0" />
+    <Setter Property="MinHeight" Value="24" />
+    <Setter Property="Margin" Value="0,0,6,6" />
+    <Setter Property="Cursor" Value="Hand" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="Button.tagchip:pointerover /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Button.tagchip.on /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="Button.tagchip.on TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Button.tagchip.on Path.tagmark"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="ListBox.treelist">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />

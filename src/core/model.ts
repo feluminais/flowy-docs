@@ -44,7 +44,7 @@ export type Step = {
 /** A stretch of neighbouring steps that repeat, branch or run in parallel (see structure.ts). Every known option is text when present; check() reports what is wrong. */
 export type Group = { kind?: string; text?: string; times?: string; until?: string; [extra: string]: unknown }
 /** `states` is where shapes stand before step 1, shape id to state word (see states.ts); left out, every shape is Running. Read it with readStates. */
-export type Flow = { name: string; view: string; steps: Step[]; groups?: Record<string, Group>; states?: unknown; [extra: string]: unknown }
+export type Flow = { name: string; view: string; steps: Step[]; groups?: Record<string, Group>; states?: unknown; tags?: unknown; [extra: string]: unknown }
 export type Layout = Record<string, Record<string, [number, number]>>
 
 /** The three ratings of a failure mode, as the text of a whole number from 1 to 10 (every file value is text). failures.ts reads them as numbers. */
@@ -73,6 +73,11 @@ export type Model = {
   objects: Record<string, FlowyObject>
   connections: Connection[]
   flows: Record<string, Flow>
+  /**
+   * The folder each flow's file sits in under flows/, as a path of names ("payments/refunds"), by flow id. A flow at the top of flows/ has no entry, and the
+   * map is left out when no flow is in a folder. It is where the file is, not something the file says, so it is never written into a flow.
+   */
+  folders?: Record<string, string>
   failures: Record<string, Analysis>
   layout: Layout
   /** Other top-level keys of model.yaml, kept so saving never drops them. */
@@ -106,6 +111,52 @@ export function linksOf(o: FlowyObject): Link[] {
 /** What an id (an object's, or a flow's file name) may be, worded to follow "ids". isValidId is the test. */
 export const ID_RULE = 'use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)'
 export const isValidId = (id: string): boolean => /^[a-z0-9][a-z0-9-]*$/.test(id) && id !== ROOT
+
+/** What a folder of flows may be called: each name between the slashes of its path. isValidFolder is the test. */
+export const FOLDER_RULE = 'use names with no \\ / : * ? " < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders'
+const MAX_FOLDER_DEPTH = 6
+const RESERVED_NAMES = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i
+const isValidFolderName = (name: string): boolean =>
+  name.length <= 64 && /^[^\s.\\/:*?"<>|#%\u0000-\u001f][^\\/:*?"<>|#%\u0000-\u001f]*$/.test(name) && !/[. ]$/.test(name) && !RESERVED_NAMES.test(name)
+
+/** Whether `folder` is a path Flowy writes flows into: "" (the top of flows/), or names joined by "/". */
+export const isValidFolder = (folder: string): boolean => folder === '' || (folder.split('/').length <= MAX_FOLDER_DEPTH && folder.split('/').every(isValidFolderName))
+
+/** Every folder that has a flow in it or in a folder inside it, as paths, in path order. A folder with nothing in it is not here: it is no part of the model. */
+export function folderPaths(model: Pick<Model, 'folders'>): string[] {
+  const paths = new Set<string>()
+  for (const folder of Object.values(model.folders ?? {})) {
+    const names = folder.split('/')
+    for (let i = 1; i <= names.length; i++) paths.add(names.slice(0, i).join('/'))
+  }
+  return [...paths].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+}
+
+/** The folder a flow's file is in ("" at the top of flows/). */
+export const folderOf = (model: Pick<Model, 'folders'>, id: string): string => (model.folders !== undefined && Object.hasOwn(model.folders, id) ? model.folders[id] : '')
+
+/** What a tag on a flow may be: a short piece of text (see tagsOf). check() reports one that is not. */
+export const MAX_TAG_LENGTH = 32
+export const isValidTag = (tag: unknown): tag is string => typeof tag === 'string' && tag === tag.trim() && tag.length > 0 && tag.length <= MAX_TAG_LENGTH && !/[\u0000-\u001f]/.test(tag)
+
+/** The tags a flow's form offers before any flow has them, in this order: what kind of walkthrough it is. Any other word is a tag too. */
+export const SUGGESTED_TAGS = ['happy path', 'error path', 'edge case', 'recovery', 'background'] as const
+
+/** A tag as the filter compares it: whatever the case. */
+export const tagKey = (tag: string): string => tag.toLowerCase()
+
+/** The tags of a flow (`tags:`, a list of words): the ones that are well formed, each once whatever its case, in the order written. check() reports the rest. */
+export function tagsOf(flow: Pick<Flow, 'tags'>): string[] {
+  if (!Array.isArray(flow.tags)) return []
+  const seen = new Set<string>()
+  const out: string[] = []
+  for (const tag of flow.tags) {
+    if (!isValidTag(tag) || seen.has(tagKey(tag))) continue
+    seen.add(tagKey(tag))
+    out.push(tag)
+  }
+  return out
+}
 
 /** Own-property lookup, so ids like "constructor" never reach Object.prototype. */
 export function getObject(model: Model, id: unknown): FlowyObject | undefined {

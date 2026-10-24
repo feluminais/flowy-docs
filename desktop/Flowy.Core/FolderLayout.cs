@@ -1,7 +1,7 @@
 namespace Flowy.Core;
 
 /// <summary>
-/// What a model folder looks like: <c>model.yaml</c>, <c>layout.yaml</c>, and a file for each id in <c>flows/</c>, <c>failures/</c> and <c>perf/</c>. Names and the way a path
+/// What a model folder looks like: <c>model.yaml</c>, <c>layout.yaml</c>, and a file for each id in <c>flows/</c> (in folders under it too), <c>failures/</c> and <c>perf/</c>. Names and the way a path
 /// turns into a kind and an id, as constants and pure functions, so the loader, the editor, the watcher and the problem list agree on one spelling.
 /// </summary>
 public static class FolderLayout
@@ -22,8 +22,11 @@ public static class FolderLayout
     /// <summary>The spelling Flowy does not read: a file that ends in it is reported and ignored.</summary>
     public const string IgnoredExtension = ".yml";
 
-    /// <summary>Where a flow with this id lives, relative to the folder: <c>flows/&lt;id&gt;.yaml</c>.</summary>
-    public static string FlowFile(string id) => $"{FlowsDir}/{id}{Extension}";
+    /// <summary>
+    /// Where a flow with this id lives, relative to the folder: <c>flows/&lt;id&gt;.yaml</c>, or <c>flows/&lt;folder&gt;/&lt;id&gt;.yaml</c> for a flow filed in a folder ("" is the top).
+    /// A port of <c>pathOf</c> in src/core/filekinds.ts.
+    /// </summary>
+    public static string FlowFile(string id, string folder = "") => $"{FlowsDir}/{(folder == "" ? "" : folder + "/")}{id}{Extension}";
 
     /// <summary>Where a failure analysis lives: <c>failures/&lt;id&gt;.yaml</c>.</summary>
     public static string FailureFile(string id) => $"{FailuresDir}/{id}{Extension}";
@@ -31,8 +34,26 @@ public static class FolderLayout
     /// <summary>Where a run lives: <c>perf/&lt;id&gt;.yaml</c>.</summary>
     public static string PerfFile(string id) => $"{PerfDir}/{id}{Extension}";
 
-    /// <summary>The id in <c>flows/&lt;id&gt;.yaml</c>, or null for any other path (or an empty id). Whether the id is a valid one is for <see cref="Names.IsValidId"/>.</summary>
-    public static string? FlowIdOf(string rel) => IdIn(FlowsDir, rel);
+    /// <summary>
+    /// The id of a flow file, or null for any other path (or an empty id): the file's name alone, in <c>flows/&lt;id&gt;.yaml</c> or in a folder of flows. Whether the id is a valid one is for <see cref="Names.IsValidId"/>.
+    /// A port of <c>idOfPath</c> in src/core/filekinds.ts.
+    /// </summary>
+    public static string? FlowIdOf(string rel)
+    {
+        if (IdIn(FlowsDir, rel) is not { } inside) return null;
+        var id = inside[(inside.LastIndexOf('/') + 1)..];
+        return id == "" ? null : id;
+    }
+
+    /// <summary>
+    /// The folder a path is in under <c>flows/</c>: "" at the top. Whatever follows <c>flows/</c> is taken as the folder and the file name, so this is not checked to be a flow file;
+    /// <see cref="Names.IsValidFolder"/> says whether the folder can be used. A port of <c>folderUnder</c> in src/core/filekinds.ts.
+    /// </summary>
+    public static string FlowFolderOf(string rel)
+    {
+        var inside = rel.Length > FlowsDir.Length + 1 ? rel[(FlowsDir.Length + 1)..] : "";
+        return inside.Contains('/') ? inside[..inside.LastIndexOf('/')] : "";
+    }
 
     /// <summary>The id in <c>failures/&lt;id&gt;.yaml</c>, or null for any other path.</summary>
     public static string? FailureIdOf(string rel) => IdIn(FailuresDir, rel);

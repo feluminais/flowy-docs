@@ -58,6 +58,29 @@ public static partial class Perf
     }
 
     /// <summary>
+    /// The most calls a second the run has on any line at any load, which the stripes are busy against: the busiest line at the top of the run has its stripes as close and quick as they get, so the stripes of
+    /// a run that goes from 100 to 1,200 orders a minute visibly speed up. A run of added runs adds their peaks (a line they share carries the sum). Null when the run gives no rate.
+    /// </summary>
+    public static double? CallPeak(IdMap<LoadRun> runs, string id)
+    {
+        double sum = 0;
+        var any = false;
+        foreach (var run in PartsOf(runs, id))
+        {
+            double most = 0;
+            foreach (var level in run.Levels)
+                foreach (var c in level.Connections)
+                {
+                    if (c.Rate is { } rate && rate > most) most = rate;
+                    if (c.By is { } by) foreach (var (_, m) in by) if (m.Rate is { } byRate && byRate > most) most = byRate;
+                }
+            if (most > 0) any = true;
+            sum += most;
+        }
+        return any ? sum : null;
+    }
+
+    /// <summary>
     /// What a line carries under a measure, as a rate: its calls a second under Calls, and under Data its data a second in units of <paramref name="size"/> (so a call of that size is one). Null where
     /// the line gives nothing to count: no rate, or under Data no size of a call.
     /// </summary>

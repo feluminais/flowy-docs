@@ -16,9 +16,11 @@ import { useFlowStage } from './useFlowStage.ts'
  * and lines of its view. A pane of a side-by-side comparison draws one of these; the canvas of Swap keeps two alive and draws the one on show, so each flow keeps its place
  * while the other is on.
  */
-export function usePaneFlow({ model, flowId, startAt, problems, selectedBox, selectedLine, lines, still }: {
+export function usePaneFlow({ model, flowId, level, startAt, problems, selectedBox, selectedLine, lines, still }: {
   model: Model
   flowId: string
+  /** The level to draw the flow on, when the reader zoomed the pane to one. Without it, the flow's own view. */
+  level?: string
   /** The stop to start at (the flow was playing there when the comparison opened). */
   startAt?: number
   problems: Problem[]
@@ -29,7 +31,7 @@ export function usePaneFlow({ model, flowId, startAt, problems, selectedBox, sel
   still: boolean
 }) {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
-  const view = flow?.view ?? ROOT
+  const view = level ?? flow?.view ?? ROOT
   const player = usePlayer({ initialFlow: () => flowId, initialStep: startAt })
   const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = player
   const stage = useFlowStage({ model, view, flow, playing, replays })

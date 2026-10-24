@@ -2950,11 +2950,29 @@
             "described": "flow deliver-order, step 7"
           },
           {
-            "key": "step:follow-the-courier:3",
+            "key": "step:follow-the-courier:1",
             "kind": "step",
             "of": "customer-app",
             "flow": "follow-the-courier",
-            "step": 3,
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 1"
+          },
+          {
+            "key": "step:follow-the-courier:4",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "follow-the-courier",
+            "step": 4,
             "ends": [
               "to"
             ],
@@ -2965,7 +2983,25 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow follow-the-courier, step 3"
+            "described": "flow follow-the-courier, step 4"
+          },
+          {
+            "key": "step:follow-the-courier:6",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "follow-the-courier",
+            "step": 6,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 6"
           },
           {
             "key": "step:hotel-wifi-takes-order:1",
@@ -3672,11 +3708,11 @@
             "described": "flow deliver-order, step 8"
           },
           {
-            "key": "step:follow-the-courier:4",
+            "key": "step:follow-the-courier:5",
             "kind": "step",
             "of": "order-api",
             "flow": "follow-the-courier",
-            "step": 4,
+            "step": 5,
             "ends": [
               "to"
             ],
@@ -3687,7 +3723,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow follow-the-courier, step 4"
+            "described": "flow follow-the-courier, step 5"
           },
           {
             "key": "step:hotel-wifi-takes-order:1",
@@ -5651,11 +5687,11 @@
             "described": "flow deliver-order, step 8"
           },
           {
-            "key": "step:follow-the-courier:1",
+            "key": "step:follow-the-courier:2",
             "kind": "step",
             "of": "courier-app",
             "flow": "follow-the-courier",
-            "step": 1,
+            "step": 2,
             "ends": [
               "from"
             ],
@@ -5666,14 +5702,14 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow follow-the-courier, step 1"
+            "described": "flow follow-the-courier, step 2"
           },
           {
-            "key": "step:follow-the-courier:4",
+            "key": "step:follow-the-courier:5",
             "kind": "step",
             "of": "courier-app",
             "flow": "follow-the-courier",
-            "step": 4,
+            "step": 5,
             "ends": [
               "from"
             ],
@@ -5684,7 +5720,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow follow-the-courier, step 4"
+            "described": "flow follow-the-courier, step 5"
           },
           {
             "key": "step:no-courier-answers:3",
@@ -6182,7 +6218,7 @@
             "flow": "follow-the-courier",
             "step": 2,
             "ends": [
-              "from"
+              "to"
             ],
             "actions": [
               "removeStep",
@@ -6210,6 +6246,42 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow follow-the-courier, step 3"
+          },
+          {
+            "key": "step:follow-the-courier:4",
+            "kind": "step",
+            "of": "tracking",
+            "flow": "follow-the-courier",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 4"
+          },
+          {
+            "key": "step:follow-the-courier:6",
+            "kind": "step",
+            "of": "tracking",
+            "flow": "follow-the-courier",
+            "step": 6,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow follow-the-courier, step 6"
           },
           {
             "key": "mode:ordering:tracking-signal-lost:on",
@@ -6357,11 +6429,11 @@
             "described": "flow events-arrive-late, step 2"
           },
           {
-            "key": "step:follow-the-courier:2",
+            "key": "step:follow-the-courier:3",
             "kind": "step",
             "of": "fleet-db",
             "flow": "follow-the-courier",
-            "step": 2,
+            "step": 3,
             "ends": [
               "to"
             ],
@@ -6372,7 +6444,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow follow-the-courier, step 2"
+            "described": "flow follow-the-courier, step 3"
           },
           {
             "key": "mode:ordering:fleet-position-writes:on",

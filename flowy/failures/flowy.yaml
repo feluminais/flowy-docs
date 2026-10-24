@@ -1,5 +1,5 @@
 name: Flowy fail scenario
-about: Written from Flowy's own code, with ratings that are the author's estimate. It shows the Failures tab on a second model.
+about: Written from Flowy's own code; the ratings are the author's estimates. A second model for the Failures tab.
 scale:
   severity: { low: Nobody loses anything, high: Someone loses work or the model is wrong }
   occurrence: { low: Never seen, high: Most weeks }
@@ -18,7 +18,7 @@ modes:
     status: accepted
     affects: [sync, mcp]
     description: |
-      Before every write, `src/node/writes.ts` loads the whole folder, so one file that fails to parse blocks edits to all of it. That is on purpose: a save would otherwise write a model that disagrees with the file nobody could read.
+      Before every write, `src/node/writes.ts` loads the whole folder, so one file that fails to parse blocks edits to all of it. This is deliberate: otherwise a save would write a model that disagrees with the unreadable file.
   save-loses-to-edit:
     on: filestore
     mode: A file changes on disk between the page reading it and the save
@@ -41,7 +41,7 @@ modes:
     severity: 3
     occurrence: 4
     detection: 2
-    controls: The loader reports the file and the reason, and never lets a file of numbers stop the model loading.
+    controls: The loader reports the file and the reason; a bad run file never stops the model loading.
     owner: Core
     status: accepted
     affects: [perf-tab]

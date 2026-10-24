@@ -51,8 +51,11 @@ const outsideAll = (ctx: CanvasRenderingContext2D, shapes: Shape[], labels: Rect
   ctx.clip('evenodd')
 }
 
-/** The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in screen pixels (and a second). Busier is closer together and quicker. */
-const stripePace = (busy: number): { dash: number; gap: number; speed: number } => ({ dash: 7, gap: 24 - 15 * busy, speed: 16 + 70 * busy })
+/**
+ * The dashes of stripes at a level of busyness (0 to 1): how long, how far apart, and how fast they move along the line, in the diagram's units (and a second), so they grow and shrink with the line and its
+ * arrowhead as the diagram is zoomed. Busier is closer together and a good deal quicker: a quiet line crawls and the busiest runs.
+ */
+const stripePace = (busy: number): { dash: number; gap: number; speed: number } => ({ dash: 8, gap: 26 - 18 * busy, speed: 14 + 110 * busy })
 
 /**
  * How far behind something the particle at (x, y) is, 0 to 1: the most of any shape its line runs behind, or label, which sits on its line with
@@ -141,7 +144,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
     const ctx = el.getContext('2d')!
     let frame = 0
     let last = performance.now()
-    let colours = { ok: '#2563eb', bad: '#b91c1c' }
+    let colours = { ok: '#2563eb', bad: '#b91c1c', ink: '#888888' }
     let dark = false
     const tints = new Map<string, string>() // a source's colour for the theme the page is in now, by the name or hex it was written with
     let colourAt = 0
@@ -163,7 +166,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
       last = t
       if (t - colourAt > 500) {
         const css = getComputedStyle(el)
-        colours = { ok: css.getPropertyValue('--accent').trim() || colours.ok, bad: css.getPropertyValue('--danger').trim() || colours.bad }
+        colours = { ok: css.getPropertyValue('--accent').trim() || colours.ok, bad: css.getPropertyValue('--danger').trim() || colours.bad, ink: css.getPropertyValue('--fg').trim() || colours.ink }
         dark = Number(/\d+/.exec(css.color)?.[0] ?? 0) > 127
         tints.clear()
         colourAt = t
@@ -197,9 +200,8 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
           const pace = stripePace(line.stripes)
           const moved = (stripeAt.current.get(key) ?? 0) + (pace.speed * ms) / 1000
           stripeAt.current.set(key, moved)
-          const px = 1 / zoom
-          const apart = (pace.dash + pace.gap) * px
-          const asideLine = (line.offset ?? 0) * 3 * px
+          const apart = pace.dash + pace.gap
+          const asideLine = (line.offset ?? 0) * 3
           outsideAll(ctx, [...opening, ...shapes], labels) // saves the state: restored below
           ctx.beginPath()
           path.xs.forEach((x, k) => {
@@ -213,17 +215,17 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
             else ctx.lineTo(x + nx, path.ys[k] + ny)
           })
           ctx.lineCap = 'round'
-          ctx.lineWidth = (1 + line.width * 0.25) * px
-          ctx.globalAlpha = line.bare ? 0.45 : 0.9
-          ctx.strokeStyle = tint(line.color)
-          ctx.setLineDash([pace.dash * px, pace.gap * px])
-          ctx.lineDashOffset = -moved * px
+          ctx.lineWidth = Math.max(2.4, line.width + 0.9) // a little thicker than the line it runs on, and growing with it, so the two read as one arrow at any zoom
+          ctx.globalAlpha = line.bare ? 0.6 : 0.95
+          ctx.strokeStyle = line.bare ? colours.ink : tint(line.color) // a line with no numbers has plain light stripes
+          ctx.setLineDash([pace.dash, pace.gap])
+          ctx.lineDashOffset = -moved
           ctx.stroke()
           if (line.failed > 0) {
             // Every nth stripe is red, n being how many calls there are to one that fails.
             const every = Math.max(1, Math.round(1 / line.failed))
             ctx.strokeStyle = colours.bad
-            ctx.setLineDash([pace.dash * px, apart * every - pace.dash * px])
+            ctx.setLineDash([pace.dash, apart * every - pace.dash])
             ctx.stroke()
           }
           ctx.setLineDash([])

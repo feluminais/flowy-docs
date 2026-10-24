@@ -182,4 +182,40 @@ public class CompareUiTests
         Assert.Equal(("After the fix", "now"), CompareUi.NoteOf(tags, "now", "old"));
         Assert.Equal(("", null), CompareUi.NoteOf(tags, "now", "now"));
     }
+
+    private static Model Nested()
+    {
+        var m = new Model();
+        m.Objects.Add("shop", new FlowyObject("system", "Shop", null, null, null, null, null));
+        m.Objects.Add("api", new FlowyObject("app", "API", "shop", null, null, null, null));
+        m.Objects.Add("leaf", new FlowyObject("app", "Leaf", "api", null, null, null, null));
+        m.Objects.Add("lone", new FlowyObject("app", "Lone", null, null, null, null, null));
+        return m;
+    }
+
+    /// <summary>The twin of paneLevel in ui/src/compare.ts: the level a pane draws.</summary>
+    [Fact]
+    public void A_pane_draws_the_view_of_its_flow_until_it_is_zoomed_and_goes_back_to_it_when_the_level_is_gone()
+    {
+        var model = Nested();
+        Assert.Equal("shop", CompareUi.PaneLevel(model, "shop", null));
+        Assert.Equal("api", CompareUi.PaneLevel(model, "shop", "api"));
+        Assert.Equal("root", CompareUi.PaneLevel(model, "shop", "root"));
+        Assert.Equal("shop", CompareUi.PaneLevel(model, "shop", "lone")); // a shape with nothing inside is no level
+        Assert.Equal("shop", CompareUi.PaneLevel(model, "shop", "gone"));
+    }
+
+    /// <summary>The twin of paneInside and paneUp in ui/src/compare.ts.</summary>
+    [Fact]
+    public void Esc_takes_a_pane_up_only_when_it_is_zoomed_away_from_its_flow_and_not_at_the_top()
+    {
+        var model = Nested();
+        Assert.False(CompareUi.PaneInside("shop", "shop"));
+        Assert.True(CompareUi.PaneInside("api", "shop"));
+        Assert.False(CompareUi.PaneInside("root", "shop"));
+        Assert.False(CompareUi.PaneInside("root", "root"));
+        Assert.Equal("shop", CompareUi.PaneUp(model, "api"));
+        Assert.Equal("root", CompareUi.PaneUp(model, "shop"));
+        Assert.Equal("root", CompareUi.PaneUp(model, "root"));
+    }
 }

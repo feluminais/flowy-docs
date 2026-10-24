@@ -3,10 +3,10 @@
  * by where they play, and the keys that move about the tree. Nothing here draws, so the canvas and the desktop app each draw
  * these rows and agree on what is on them. desktop/Flowy.Core/Outline.cs is a port, and desktop/fixtures/outline.ts keeps the two equal.
  */
-import { compareOf, linkedIds } from './compare.ts'
+import { linkedIds } from './compare.ts'
 import { FILE_KINDS, idOfPath } from './filekinds.ts'
 import type { Problem } from './problem.ts'
-import { getObject, isExternal, ROOT } from './model.ts'
+import { folderOf, getObject, isExternal, ROOT, tagKey, tagsOf } from './model.ts'
 import type { Model } from './model.ts'
 import { chain, nameOf, parentOf } from './views.ts'
 
@@ -233,66 +233,97 @@ export function expandTo(model: Model, id: string, expanded: ReadonlySet<string>
   return next
 }
 
-export type FlowRef = { id: string; name: string; steps: number; view: string; /** In a pair, see OutlineRow.linked. */ linked: boolean }
-/** The flows that play in one view, with where that view is: its path of names from the top, without the project. */
-export type FlowGroup = { view: string; name: string; path: string[]; flows: FlowRef[] }
-export type FlowGroups = { here: FlowRef[]; elsewhere: FlowGroup[]; total: number }
+/** A flow on the Flows list: where its file is (`folder`, "" at the top of flows/) and its tags. `view` is where it plays. */
+export type FlowRef = { id: string; name: string; steps: number; view: string; /** In a pair, see OutlineRow.linked. */ linked: boolean; folder: string; tags: string[] }
 
-/**
- * `ids` (the flows of one view, in name order) with partners together. A group is flows joined by tags to flows in the list. It sits where its first member sorts,
- * oldest first: a flow that tags none of the group, then the flows that tag it in key order, and so on, so a chain A <- B <- C reads A, B, C. A group with no oldest
- * (a loop of tags) starts at its first member. A flow with no partner is a group of one, so it does not move.
- */
-function withPartners(model: Model, ids: string[]): string[] {
-  const listed = new Set(ids)
-  const target = (id: string): string | undefined => {
-    const to = compareOf(model.flows[id].compare)?.with
-    return to !== undefined && to !== id && listed.has(to) ? to : undefined
-  }
-  const newer = new Map<string, string[]>() // the flows that tag a flow, in key order
-  for (const id of Object.keys(model.flows)) {
-    const to = listed.has(id) ? target(id) : undefined
-    if (to !== undefined) newer.set(to, [...(newer.get(to) ?? []), id])
-  }
-  const out: string[] = []
-  const placed = new Set<string>()
-  const place = (root: string) => {
-    // A stack, not recursion, so a long chain does not overflow; `placed` keeps a loop from repeating.
-    const stack = [root]
-    while (stack.length > 0) {
-      const id = stack.pop()!
-      if (placed.has(id)) continue
-      placed.add(id)
-      out.push(id)
-      stack.push(...(newer.get(id) ?? []).toReversed())
-    }
-  }
-  for (const id of ids) {
-    if (placed.has(id)) continue
-    const group = new Set([id]) // everything joined to it by a tag, either way round
-    for (const member of group) for (const next of [target(member), ...(newer.get(member) ?? [])]) if (next !== undefined) group.add(next)
-    const members = ids.filter(m => group.has(m))
-    for (const m of [...members.filter(m => target(m) === undefined), ...members]) place(m)
-  }
-  return out
+/** One line of the Flows list: a folder of flows or a flow. A folder's `flows` counts the flows in it and in the folders inside it that the list shows. */
+export type FlowRow =
+  | { kind: 'folder'; key: string; path: string; name: string; depth: number; flows: number; open: boolean }
+  | { kind: 'flow'; key: string; flow: FlowRef; depth: number }
+
+/** A tag in use, as the first flow that has it spells it, with how many flows have it. */
+export type FlowTag = { tag: string; count: number }
+
+export type FlowList = {
+  rows: FlowRow[]
+  /** Every tag any listed flow has, most used first: what the tag filter offers, whatever the filter. */
+  tags: FlowTag[]
+  /** The flows that are listed, and how many of them the filter lets through. */
+  total: number
+  shown: number
 }
 
-/** The flows that play in `view`, and all the others grouped by the view they play in, in tree order. */
-export function flowGroups(model: Model, view: string, { editing = false }: { editing?: boolean } = {}): FlowGroups {
+export type FlowListOptions = {
+  /** A flow with no steps is listed only while editing. */
+  editing?: boolean
+  /** Keeps the flows whose name, file name, folder or a tag has these letters (any case). */
+  query?: string
+  /** Keeps the flows that have at least one of these tags (see tagKey). */
+  tags?: readonly string[]
+  /** The folders (their paths) that are closed. With a query or a tag filter every folder that has a match is open. */
+  closed?: ReadonlySet<string>
+}
+
+type Folder = { folders: Map<string, Folder>; flows: FlowRef[] }
+
+/**
+ * The Flows list: the flows as the folders they are filed in, a folder before the flows beside it, the folders by name and the flows by file name. Only the folders that hold a flow
+ * the filter lets through are listed, and a folder in `closed` shows no rows below it. A flow whose view can't open is left out, as in the tree.
+ */
+export function flowList(model: Model, { editing = false, query = '', tags = [], closed = new Set() }: FlowListOptions = {}): FlowList {
   const tree = treeOf(model, editing)
   const linked = linkedFlows(model)
-  const ref = (id: string): FlowRef => {
+  const playable = new Set([...tree.flowsIn.values()].flat())
+  const refs = Object.keys(model.flows).filter(id => playable.has(id)).map((id): FlowRef => {
     const flow = model.flows[id]
-    return { id, name: flow.name || id, steps: flow.steps.length, view: flow.view, linked: linked.has(id) }
+    return { id, name: flow.name || id, steps: flow.steps.length, view: flow.view, linked: linked.has(id), folder: folderOf(model, id), tags: tagsOf(flow) }
+  })
+  refs.sort((a, b) => byName(a.id, b.id) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+
+  const counts = new Map<string, FlowTag>()
+  for (const ref of refs) {
+    for (const tag of ref.tags) {
+      const known = counts.get(tagKey(tag))
+      if (known) known.count++
+      else counts.set(tagKey(tag), { tag, count: 1 })
+    }
   }
-  const listed = (view: string) => withPartners(model, tree.flowsIn.get(view) ?? []).map(ref)
-  const here = listed(view)
-  const elsewhere: FlowGroup[] = []
-  for (const v of [ROOT, ...tree.preorder]) {
-    if (v === view || !tree.flowsIn.has(v)) continue
-    elsewhere.push({ view: v, name: nameOf(model, v), path: chain(model, v).reverse().slice(1).map(id => nameOf(model, id)), flows: listed(v) })
+  const offered = [...counts.values()].sort((a, b) => b.count - a.count || byName(a.tag, b.tag) || (a.tag < b.tag ? -1 : a.tag > b.tag ? 1 : 0))
+
+  const needle = lower(query.trim())
+  const wanted = new Set(tags.map(tagKey))
+  const keep = (f: FlowRef) =>
+    (needle === '' || [f.name, f.id, f.folder, ...f.tags].some(text => lower(text).includes(needle))) && (wanted.size === 0 || f.tags.some(t => wanted.has(tagKey(t))))
+  const filtering = needle !== '' || wanted.size > 0
+
+  const top: Folder = { folders: new Map(), flows: [] }
+  const shown = refs.filter(keep)
+  for (const ref of shown) {
+    let at = top
+    if (ref.folder !== '') {
+      for (const name of ref.folder.split('/')) {
+        let inner = at.folders.get(name)
+        if (!inner) at.folders.set(name, (inner = { folders: new Map(), flows: [] }))
+        at = inner
+      }
+    }
+    at.flows.push(ref)
   }
-  return { here, elsewhere, total: here.length + elsewhere.reduce((n, g) => n + g.flows.length, 0) }
+  const inside = (f: Folder): number => f.flows.length + [...f.folders.values()].reduce((n, g) => n + inside(g), 0)
+
+  const rows: FlowRow[] = []
+  const emit = (at: Folder, path: string, depth: number) => {
+    for (const name of [...at.folders.keys()].sort((a, b) => byName(a, b) || (a < b ? -1 : a > b ? 1 : 0))) {
+      const inner = at.folders.get(name)!
+      const here = path === '' ? name : `${path}/${name}`
+      const open = filtering || !closed.has(here)
+      rows.push({ kind: 'folder', key: `folder:${here}`, path: here, name, depth, flows: inside(inner), open })
+      if (open) emit(inner, here, depth + 1)
+    }
+    for (const flow of at.flows) rows.push({ kind: 'flow', key: `flow:${flow.id}`, flow, depth })
+  }
+  emit(top, '', 0)
+  return { rows, tags: offered, total: refs.length, shown: shown.length }
 }
 
 export type OutlineKey = 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight' | 'Home' | 'End' | 'Enter'

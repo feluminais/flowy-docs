@@ -136,7 +136,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
   const spots = (prev && out ? prev : target).spots
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
   const fit = () => fitNow.current?.({ ...fitOptions(0, true), duration: 300 })
-  useImperativeHandle(ref, () => ({ ...target.keys, fit }))
+  useImperativeHandle(ref, () => ({ ...target.keys, fit, inside: () => false, up: () => undefined }))
   const name = target.flow?.name || flows[index]
   const settled = now.phase === 'settled'
 

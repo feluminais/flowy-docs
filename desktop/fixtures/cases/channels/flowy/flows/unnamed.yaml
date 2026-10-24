@@ -1,0 +1,8 @@
+name: Unnamed channels stay open to the end
+view: shop
+steps:
+  - { from: web, to: api, text: Subscribes, animation: { kind: call, opens: listener } }
+  - { from: api, to: db, text: Kicks off a job, animation: { kind: send, opens: job } }
+  - { from: api, to: stripe, text: Streams towards the caller, animation: { kind: send, opens: stream, towards: from } }
+  - { from: web, to: api, text: Streams to the callee, animation: { kind: send, opens: stream, towards: to } }
+  - { from: web, to: api, text: Nothing closes them }

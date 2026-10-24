@@ -1,33 +1,35 @@
 name: Flowy Docs
 about: |
-  Architecture docs that live in the repo as YAML and that a reader zooms into. This model describes Flowy itself.
+  Architecture docs kept as YAML in the repo, which a reader zooms into. This model describes Flowy
+  itself.
 
-  Open **Flowy Docs** to see the ways in: the browser canvas, the MCP server, the desktop app and the VS Code extension.
+  Open **Flowy Docs** for the entry points: the browser canvas, the MCP server, the desktop app and
+  the VS Code extension.
 objects:
   reader:
     type: actor
     name: Reader
     description: |
-      Someone on the team who wants to understand the repo. They open the canvas, zoom in where they
-      need to, and in edit mode draw what isn't there yet.
+      A team member reading the repo's architecture. Opens the canvas, zooms in, and in edit mode
+      draws what is missing.
   ai:
     type: actor
     name: AI
-    description: An AI, or any other MCP client, writing the model from what it reads in the code.
+    description: An AI or other MCP client that writes the model from the code it reads.
   flowy:
     type: system
     name: Flowy Docs
     description: |
       Architecture docs you zoom into, kept in your repo.
 
-      One npm package with four ways in: the canvas in a browser, an MCP server for an AI, a static
-      export, and Mermaid on the command line. They all read and write the same YAML through the
-      same checks, so none of them can leave the folder in a state the others refuse.
+      One npm package with four entry points: the canvas in a browser, an MCP server for an AI, a
+      static export, and Mermaid on the command line. All read and write the same YAML through the
+      same checks, so none can leave the folder in a state the others refuse.
 
-      A native desktop app, built separately, reads and edits the same folders and draws them with
-      its own renderer. It writes the same text through the same checks.
+      A native desktop app, built separately, reads and edits the same folders with its own
+      renderer. It writes the same text through the same checks.
 
-      A VS Code extension, also built separately, shows the same canvas in a panel inside the editor.
+      A VS Code extension, also built separately, shows the same canvas in an editor panel.
     links:
       - { title: Guide, url: docs/guide.md }
       - { title: Writing good Flowy docs, url: docs/writing.md }
@@ -35,16 +37,16 @@ objects:
     type: system
     name: Your repo
     description: |
-      The repo being documented. Flowy keeps the model in a `flowy/` folder at its root and points
-      `code` paths at files beside it. Git keeps the history; Flowy has no store of its own.
+      The repo being documented. The model is a `flowy/` folder at its root, and `code` paths point
+      at files beside it. History is Git's; Flowy has no store of its own.
   forge:
     type: system
     name: GitHub or GitLab
-    description: Where `code` paths link to, worked out from the repo's origin, branch and place in the tree. Any other host and the paths are plain text. The desktop app also asks GitHub's Releases whether a newer version exists.
+    description: Where `code` paths link to, derived from the repo's origin, branch and place in the tree. On any other host the paths are plain text. The desktop app also checks GitHub Releases for a newer version.
   host:
     type: system
     name: Static host
-    description: Wherever an export is put (GitHub Pages, S3, a folder behind nginx). It serves plain files; the model travels inside `index.html`.
+    description: Where an export is hosted (GitHub Pages, S3, a folder behind nginx). Serves plain files; the model is inside `index.html`.
   folder:
     type: store
     in: repo
@@ -52,11 +54,11 @@ objects:
     tech: YAML
     code: [flowy/]
     description: |
-      `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each),
-      `failures/<id>.yaml` (one failure analysis each) and `layout.yaml` (where shapes were dragged).
+      `model.yaml` (objects and connections), `flows/<id>.yaml` (one walkthrough each, in folders if you like,
+      with tags such as happy path or error path), `failures/<id>.yaml` (one failure analysis each) and `layout.yaml` (where shapes were dragged).
 
-      Saving rewrites a file, so YAML comments don't survive: notes belong in an object's
-      `description`. This repo documents itself with the folder you're reading now.
+      Saving rewrites the file, so YAML comments are lost: put notes in an object's `description`.
+      This repo documents itself with the folder you are reading.
   cli:
     type: app
     in: flowy
@@ -64,12 +66,13 @@ objects:
     tech: Node 22.18+
     code: [src/cli.ts, flowy.sh, flowy.cmd]
     description: |
-      `node dist/cli.js` and what follows it: no argument serves the canvas, `mcp` speaks MCP over
-      stdio, `check` lists every problem and exits 1 if there is one, `export` writes a static copy, `mermaid` prints a diagram, `failures` prints the ranked failure table. `flowy.sh` and
-      `flowy.cmd` build once and then run the same thing.
+      `node dist/cli.js` with no argument serves the canvas. Subcommands: `mcp` speaks MCP over
+      stdio, `check` lists every problem and exits 1 if there is one, `export` writes a static copy,
+      `mermaid` prints a diagram, `failures` prints the ranked failure table. `flowy.sh` and
+      `flowy.cmd` build once, then run the same command.
 
-      `--dir` picks the model folder, `--port` the port (or the next free one), `--no-open` leaves
-      the browser alone.
+      `--dir` sets the model folder, `--port` the port (or the next free one), `--no-open` skips
+      opening the browser.
   perf-lab:
     type: app
     in: flowy
@@ -77,8 +80,8 @@ objects:
     tech: Node
     code: [perf-lab/]
     description: |
-      A made-up shop that really runs, with an open-loop load generator that measures it and writes
-      the run files the Performance tab reads. It is a test bed for Flowy, not a benchmark.
+      A fictional shop that runs for real, with an open-loop load generator that measures it and
+      writes the run files the Performance tab reads. A test bed for Flowy, not a benchmark.
   desktop:
     type: app
     in: flowy
@@ -86,15 +89,15 @@ objects:
     tech: Avalonia, .NET 10
     code: [desktop/]
     description: |
-      A native reader and editor for the same folders: it reads the YAML itself and draws it with its
-      own renderer, so there is no server and no browser behind it. It shows what the canvas shows (zoom
-      through the levels, the side panel, flows, search, problems, light and dark) and reloads as the
-      files change. One window per model, opened from a menu, a drop, Open Recent, a path on the
-      command line or a right-click in Explorer, at the size it was last closed at. A sample model
-      (Plum) ships with it, and View copies a diagram as Mermaid or saves it as a picture.
+      A native reader and editor for the same folders. It parses the YAML and draws it with its own
+      renderer, with no server and no browser. It shows what the canvas shows (zoom levels, side
+      panel, flows, search, problems, light and dark) and reloads when the files change. One window
+      per model, opened from a menu, a drop, Open Recent, a command-line path or a right-click in
+      Explorer, at the size it was last closed. A sample model (Plum) ships with it, and View copies
+      a diagram as Mermaid or saves it as a picture.
 
-      Press E to edit: the forms, dragging (one shape, or several picked together), connecting,
-      recording flows, Undo and Redo of the canvas. Every edit goes through the same checks as the
+      Press E to edit: forms, dragging (one shape or several), connecting, recording flows, Undo and
+      Redo of the canvas. Every edit goes through the same checks as the
       browser's and an AI's, and a file changed elsewhere since it was read is never overwritten.
       Opening never creates files in a repo; only an edit does.
   desktop-core:
@@ -104,20 +107,21 @@ objects:
     tech: C#
     code: [desktop/Flowy.Core/]
     description: |
-      A C# port of what `src/core` and the folder loader do, plus what the canvas decides: line
-      paths, the camera, layout, the scene, search, the Mermaid text of a view or a flow, which
-      folder a pick means, and what a click on a shape's link may open.
+      A C# port of `src/core` and the folder loader, plus the canvas logic: line paths, camera,
+      layout, scene, search, the Mermaid text of a view or a flow, which folder a pick means, and
+      what a click on a shape's link may open.
 
-      It also edits, on the files' YAML and not on the typed model, so a key it doesn't know is kept.
-      A writer produces the `yaml` package's text byte for byte, the edits twin `src/core/ops.ts`,
-      and a session applies one, refuses it if it would add a problem, and writes the changed files
-      only if they are still as they were read.
+      It also edits the files' YAML directly, not a typed model, so unknown keys are kept. A writer
+      produces the `yaml` package's text byte for byte, the edits twin `src/core/ops.ts`, and a
+      session applies one, refuses it if it would add a problem, and writes the changed files only
+      if they are unchanged since they were read.
 
-      Two readers must give the same answers, so a Node script runs the TypeScript over fixture
+      Both readers must give the same answers: a Node script runs the TypeScript over fixture
       folders and the canvas's own functions, and the C# tests must reproduce every number. That
-      includes the beats of a step's animation and the maths that draws them, the navigator's rows, flow groups and keys, and how a
-      load-test run reads, rolls up, struggles and is drawn, and how a failure analysis ranks, rolls up, lights a picked row and is checked. A root
-      test fails if the TypeScript changes without the fixtures being written again.
+      covers the beats of a step's animation and the maths that draws them, the navigator's rows,
+      flow groups and keys, how a load-test run reads, rolls up, struggles and is drawn, and how a
+      failure analysis ranks, rolls up, lights a picked row and is checked. A root test fails if the
+      TypeScript changes and the fixtures are not regenerated.
   desktop-canvas:
     type: component
     in: desktop
@@ -126,42 +130,41 @@ objects:
     code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs, desktop/Flowy.App/StateMarks.cs, desktop/Flowy.App/FailuresPanel.cs, desktop/Flowy.App/ReaderView.Failures.cs]
     description: |
       Shapes are controls on a stage that moves with the camera, with one layer behind them for the
-      frame and the lines. The reader holds what you've chosen: the view, the open panel, the flow
-      playing.
+      frame and the lines. The reader holds the selection: the view, the open panel, the flow playing.
 
-      A shape is its outline (one of 13, drawn from the same path data as the browser's) with a tint
-      of its own colour over it, then its tile, name and how many it holds. A line meets the outline,
-      not the rectangle around it.
+      A shape is its outline (one of 13, from the same path data as the browser's) under a tint of
+      its colour, then its tile, name and child count. A line meets the outline, not the bounding
+      rectangle.
 
-      The chrome around them is made of a few pieces in the colour of what they are about: a tile
-      with the icon of a type on a tint of its colour, chips, section headings with a count, and
-      cards. The side panel opens on a header in the shape's own colour, then its description, links,
-      code and lines as cards, and the bar's buttons carry icons. All colours come from the stylesheet,
-      so light and dark follow the system.
+      The chrome is a few pieces coloured by their subject: a tile with a type's icon on a tint of
+      its colour, chips, section headings with a count, and cards. The side panel opens on a header
+      in the shape's colour, then its description, links, code and lines as cards, and the bar's
+      buttons have icons. All colours come from the stylesheet, so light and dark follow the system.
 
-      Opening a shape is a short fly-off and settle-in, one step per screen refresh (the window's own
-      animation-frame callback, not a timer, which ticks unevenly), and instant when the system asks
-      for less motion.
+      Opening a shape is a short fly-off and settle-in, one step per screen refresh (the window's
+      animation-frame callback, since a timer ticks unevenly), and instant when the system asks for
+      less motion.
 
-      An animated flow step plays over the shapes: a pipe along its line, something running through it,
-      and the shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
+      An animated flow step plays over the shapes: a pipe along its line, a blob running through it,
+      and shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
       waits, and nothing moves when the system asks for less motion.
 
-      A shape in a state (Starting, Stopped, Degraded and the rest) dims, draws a second outline in the state's dash and carries a
-      glyph on a ring. The loops of Starting, Restarting and Degraded run on the same clock, and only while one of them is on screen.
+      A shape in a state (Starting, Stopped, Degraded and the rest) dims, gets a second outline in
+      the state's dash and a glyph on a ring. The Starting, Restarting and Degraded loops run on the
+      same clock, and only while one is on screen.
 
-      A rail of icons on the left edge opens the navigator, as on the canvas: the whole documentation
-      as a tree drawn a window of rows at a time, shapes that hold others first and then by name, and
-      every flow grouped by where it plays. Details opens on the right, from its own rail or by
-      picking a shape. Both panels are dragged wider or narrower by their inner edge, and a
-      double-click puts the width back. Each project's open tab, open rows and panel widths are
-      remembered in the app's state file.
+      A rail of icons on the left edge opens the navigator, as on the canvas: the whole
+      documentation as a tree windowed to the visible rows, shapes that hold others first and then
+      by name, and every flow grouped by where it plays. Details opens on the right, from its own
+      rail or by picking a shape. Both panels resize by dragging the inner edge, and a double-click
+      resets the width. Each project's open tab, open rows and panel widths are saved in the app's
+      state file.
 
-      Where the folder has load-test runs, a Performance button under Details puts a run's panel in
-      its place: a slider along the tested loads with Ramp, where things first struggle, and the numbers
-      of what is picked. The shapes show their strain and what waits, the lines get thicker, and
-      particles run along them on one layer over the shapes, on the window's animation frames and
-      none when the system asks for less motion.
+      Where the folder has load-test runs, a Performance button under Details replaces it with the
+      run's panel: a slider along the tested loads with Ramp, where things first struggle, and the
+      numbers for the selection. Shapes show their strain and what waits, lines get thicker, and
+      particles run along them on one layer over the shapes, on the window's animation frames (none
+      when the system asks for less motion).
 
       Descriptions are drawn by a small Markdown renderer: raw HTML is dropped, an image shows as
       its description in brackets and is never fetched, and a link opens only if it is http or https.
@@ -173,10 +176,10 @@ objects:
     code: [desktop/Flowy.App/Shell.cs, desktop/Flowy.App/MainWindow.axaml.cs, desktop/Flowy.App/SingleInstance.cs]
     description: |
       One window per model folder, the File, View and Help menus (Open Recent, Reload, Copy as
-      Mermaid, Save Picture, the demo), drops, and the saved state (recent folders, the line style,
-      the window's size, the app chosen to open linked files). A folder that is deleted while open leaves the last good model with a
-      banner, and opening it again carries on. A second launch hands its folder to the one already running through
-      a pipe that only this user can open.
+      Mermaid, Save Picture, the demo), drops, and saved state (recent folders, line style, window
+      size, the app chosen to open linked files). A folder deleted while open leaves the last good
+      model with a banner, and reopening it resumes. A second launch passes its folder to the
+      running instance through a pipe only this user can open.
   desktop-install:
     type: component
     in: desktop
@@ -184,12 +187,12 @@ objects:
     tech: Velopack
     code: [desktop/Flowy.App/Program.cs, desktop/Flowy.App/Updates.cs, desktop/Flowy.App/ExplorerEntries.cs, .github/workflows/desktop.yml]
     description: |
-      Velopack builds the installer and runs the app's hooks: after an install or an update the
-      "Open with Flowy Docs" entries go into Explorer's folder menu for this user, and uninstalling
-      takes them out.
+      Velopack builds the installer and runs the app's hooks: after an install or update it adds the
+      "Open with Flowy Docs" entries to Explorer's folder menu for this user, and uninstalling
+      removes them.
 
-      A few seconds after start-up an installed copy asks GitHub's Releases whether there is a newer
-      version, unless Help › Check for updates automatically is off. Nothing about the reader is sent.
+      A few seconds after start-up an installed copy asks GitHub Releases for a newer version,
+      unless Help › Check for updates automatically is off. Nothing about the reader is sent.
   server:
     type: app
     in: flowy
@@ -209,22 +212,22 @@ objects:
     tech: React, React Flow
     code: [ui/]
     description: |
-      The page: shapes you zoom into, lines that stay quiet until you point at them, flows that play
-      step by step, and edit mode behind E.
+      The page: zoomable shapes, lines that stay quiet until pointed at, flows that play step by
+      step, and edit mode on E.
 
-      A step with an `animation:` plays as a pipe with a blob running through it, and Autoplay
-      steps through a flow on its own. A step's `states` dim a shape and draw a second outline and a glyph on it until another step
-      changes them. A Performance tab plays a load-test run back over the diagram.
+      A step with an `animation:` plays as a pipe with a blob running through it, and Autoplay steps
+      through a flow unattended. A step's `states` dim a shape and add a second outline and a glyph
+      until another step changes them. A Performance tab plays a load-test run back over the diagram.
 
-      A rail of icons on the left edge opens a panel: the whole documentation as a tree, every
-      flow in it, the Performance panel of a load-test run, how things fail, or the files as YAML.
-      Performance and Failures are there whether or not the folder has a run or an analysis (their
-      panels offer to make one). Details opens on the right, from its own rail or by picking a
-      shape, and holds nothing else. Both panels are dragged wider or narrower by
-      their inner edge, as in VS Code, and a double-click puts the width back.
+      A rail of icons on the left edge opens a panel: the whole documentation as a tree, every flow,
+      the Performance panel of a load-test run, how things fail, or the files as YAML. Performance
+      and Failures are always there, with or without a run or an analysis (their panels offer to
+      make one). Details opens on the right, from its own rail or by picking a shape, and holds only
+      that. Both panels resize by dragging the inner edge, as in VS Code, and a double-click resets
+      the width.
 
-      The same bundle is served by the local server, shipped in an export, and shown in the VS Code
-      panel; on an exported page the model comes from the HTML and there is nothing to save to.
+      The same bundle is served by the local server, shipped in an export and shown in the VS Code
+      panel. On an exported page the model comes from the HTML and there is nothing to save to.
   mcp:
     type: app
     in: flowy
@@ -232,15 +235,15 @@ objects:
     tech: stdio
     code: [src/node/mcp.ts, src/node/guidance.ts]
     description: |
-      Seventeen tools over stdio: read the model (all of it, a summary, or one thing), its problems, a view or a Mermaid diagram, and write objects,
-      connections, flows and failure analyses. It also offers prompts for the usual jobs and the guides as resources.
+      Seventeen tools over stdio: read the model (all of it, a summary, or one thing), its problems,
+      a view or a Mermaid diagram; write objects, connections, flows and failure analyses. It also
+      offers prompts for common jobs and the guides as resources.
 
-      Calls arrive in bursts and run one at a time, in order, so each one sees what the one before
-      it wrote. A write that loses a race on the file is retried once.
+      Calls arrive in bursts and run one at a time, in order, so each sees the previous write. A write that loses a race on the file is retried once.
 
-      Its instructions hand the AI the writing rules: survey the repo and check the list first, what
-      earns a shape, how to name one, and how to word a description, a label and a flow step. Before the first flow
-      The AI asks how much to animate: None, Key steps or Every step.
+      Its instructions give the AI the writing rules: survey the repo and check the list first, what
+      earns a shape, how to name one, and how to word a description, a label and a flow step. Before
+      the first flow, the AI asks how much to animate: None, Key steps or Every step.
   exporter:
     type: app
     in: flowy
@@ -249,8 +252,8 @@ objects:
     description: |
       Writes a read-only copy of the canvas, with the model as JSON inside `index.html`.
 
-      It replaces only what it wrote last time, so a `.git` or a `CNAME` beside it stays, and it
-      refuses a folder that holds the model or the canvas it is copying.
+      It replaces only what its last run wrote, so a `.git` or `CNAME` beside it stays, and it
+      refuses a folder that holds the model or the canvas being copied.
   vscode:
     type: app
     in: flowy
@@ -258,26 +261,27 @@ objects:
     tech: VS Code webview
     code: [vscode/]
     description: |
-      `Flowy: Open Docs` opens the folder in a panel inside VS Code, drawn by the same canvas, which
-      reads and edits there as it does in a browser. The page has no server to call, so it asks the
-      extension: for the folder's state, and to write a file. The extension answers a write with the same
-      code the local server runs, version check and all, and tells the page whenever anything under the
-      folder changes, so a save from the editor, the app, the canvas or an AI shows at once.
+      `Flowy: Open Docs` opens the folder in a VS Code panel, drawn by the same canvas, which reads
+      and edits as it does in a browser. The page has no server to call, so it asks the extension
+      for the folder's state and to write files. The extension handles a write with the same code
+      the local server runs, version check included, and tells the page when anything under the
+      folder changes, so a save from the editor, the app, the canvas or an AI shows immediately.
 
-      It is at home in the editor. A path in a shape's `code` (or a link to a path in the repo) opens in
-      the editor beside the panel, and a folder shows in the Explorer. `Show This File in the Docs`, on a
-      file's right-click menu, finds the shape whose `code` lists it (the nearest listing, or a pick
-      between shapes that list it equally) and shows it. `Open Flow…` and `Go to Shape…` jump to a flow
-      or a shape from the palette. The reader's place and settings are kept in the webview's state, so
-      a panel VS Code brings back after a restart opens where it was.
+      It is integrated with the editor. A path in a shape's `code` (or a link to a path in the repo)
+      opens in the editor beside the panel, and a folder shows in the Explorer. `Show This File in
+      the Docs`, on a file's right-click menu, finds the shape whose `code` lists it (the nearest
+      listing, or a pick between shapes that list it equally) and shows it. `Open Flow…` and `Go to
+      Shape…` jump to a flow or a shape from the palette. The reader's place and settings are kept
+      in the webview's state, so a panel VS Code restores after a restart opens where it was.
 
-      The editor's own theme colours the canvas, and the Mermaid button asks the editor to write to the
-      clipboard, because a webview can't count on doing it itself. It needs a trusted, local workspace:
-      it runs git in the folder. It keeps no step history, and a file open with unsaved changes in the
+      The editor's theme colours the canvas, and the Mermaid button asks the editor to write to the
+      clipboard, since a webview can't rely on doing it. It needs a trusted, local workspace because
+      it runs git in the folder. It keeps no step history, and a file with unsaved changes in the
       editor is left to VS Code's own conflict prompt.
 
-      `npm run package:vscode` makes a `.vsix` of it: the bundle, the canvas and the notices for what they
-      hold, and nothing else. It is built to be published to the Marketplace and Open VSX, and isn't yet.
+      `npm run package:vscode` makes a `.vsix`: the bundle, the canvas and the notices for what they
+      contain, and nothing else. It is meant for the Marketplace and Open VSX and is not published
+      yet.
   core:
     type: app
     in: flowy
@@ -287,18 +291,17 @@ objects:
       What a model is and what may be done to it, with no Node and no browser in it: the canvas
       bundles the same files the server runs.
 
-      That is why an edit drawn on the canvas and the same edit from an AI are refused for the
-      same reasons.
+      So the same edit is refused for the same reasons whether it comes from the canvas or an AI.
   api:
     type: component
     in: server
     name: HTTP API
     code: [src/node/server.ts, src/node/writes.ts]
     description: |
-      `GET /api/state` for everything the canvas shows, `PUT`/`DELETE /api/file/<path>` for one
-      file, `GET /api/events` for a line that says "changed" when the folder does.
+      `GET /api/state` returns everything the canvas shows, `PUT`/`DELETE /api/file/<path>` write or
+      delete one file, `GET /api/events` emits "changed" when the folder does.
 
-      The watcher waits 100 ms, so an editor saving three files wakes the page once.
+      The watcher waits 100 ms, so an editor saving three files triggers one page update.
   filestore:
     type: component
     in: server
@@ -307,34 +310,31 @@ objects:
     description: |
       Reads the whole folder into one model and writes one file at a time.
 
-      A write carries the version the caller read (a hash of the file). If the file moved on since,
-      the write is dropped with 409 rather than overwriting someone else's change, and nothing is
-      written at all while any file in the folder fails to parse.
+      A write carries the version the caller read (a hash of the file). If the file has changed since, the write is dropped with 409 instead of overwriting the other change, and nothing is written at all while any file in the folder fails to parse.
   gitlink:
     type: component
     in: server
     name: Code links
     code: [src/node/git.ts]
-    description: Turns the repo's origin, branch and prefix into the address `code` paths link to. Worked out once per folder, so a branch switch shows after a restart.
+    description: Turns the repo's origin, branch and prefix into the address `code` paths link to. Computed once per folder, so a branch switch shows after a restart.
   shell:
     type: component
     in: canvas
     name: Canvas page
     code: [ui/src/App.tsx, ui/src/Camera.tsx]
     description: |
-      The view you're in, the shape or line you picked, the flow playing, and edit mode. It keeps the
-      address in step, so a link opens where it says and Back goes back.
+      The current view, the picked shape or line, the flow playing, and edit mode. It keeps the
+      address in sync, so a link opens where it points and Back goes back.
 
-      The camera fits a view when you arrive and pans a shape out from under the side panels, but never
-      undoes your own panning.
+      The camera fits a view on arrival and pans a shape out from under the side panels, but never
+      undoes the reader's own panning.
   graph:
     type: component
     in: canvas
     name: Layout
     code: [ui/src/graph.ts, ui/src/Box.tsx, ui/src/Line.tsx, ui/src/states.tsx]
     description: |
-      Turns a view into shapes and lines: dagre places what hasn't been dragged, and the shapes that
-      live elsewhere wait around the edges, each on the side that crosses fewest lines.
+      Turns a view into shapes and lines: dagre places what hasn't been dragged, and shapes that live elsewhere sit around the edges, each on the side that crosses fewest lines.
 
       A dragged shape keeps its saved place; the rest flow around it.
   motion:
@@ -357,43 +357,43 @@ objects:
     name: Performance tab
     code: [ui/src/Performance.tsx, ui/src/perfview.ts, ui/src/TrafficLayer.tsx, ui/src/traffic.ts, ui/src/pathpoints.ts, ui/src/hash.ts]
     description: |
-      Plays a load-test run back over the canvas: dots run along the lines as often and as slowly as the
-      calls were, a shape's outline goes from green to red as it fills up, and the panel reads out the
-      load, where things first struggle, and the numbers of what is selected.
+      Plays a load-test run back over the canvas: dots run along the lines at the rate and pace of
+      the calls, a shape's outline goes from green to red as it fills up, and the panel shows the
+      load, where things first struggle, and the numbers for the selection.
 
       The dots are drawn on one canvas from each line's path, flattened once, and during a ramp the
       screen gets a new position at most every 50 ms. Nothing moves when the system asks for less motion.
 
-      A run with several sources has a slider, a colour and an own Ramp for each source, says whether they were
-      added from separate runs or tested together, follows the source you moved last with the others held and named,
-      and draws a stream of dots for each source on a line they share. The address holds one place for each source.
+      A run with several sources has a slider, a colour and its own Ramp for each source, says
+      whether they were added from separate runs or tested together, follows the source moved last
+      with the others held and named, and draws a stream of dots per source on a line they share.
+      The address holds one position per source.
 
-      A run over time has a slider in time with its events marked above it, an Events list whose rows jump,
-      Play instead of Ramp, and the states its events leave on the shapes: they ease for a step, Play or a
-      click, and change at once while the slider is dragged.
+      A run over time has a time slider with its events marked above it, an Events list whose rows
+      jump to them, Play instead of Ramp, and the states its events leave on the shapes: they ease
+      in for a step, Play or a click, and change immediately while the slider is dragged.
   failures-tab:
     type: component
     in: canvas
     name: Failures tab
     code: [ui/src/Failures.tsx, ui/src/FailuresEdit.tsx, ui/src/failuresview.ts, desktop/Flowy.App/FailuresPanel.cs, desktop/Flowy.App/ReaderView.Failures.cs, desktop/Flowy.App/Canvas/FailureOverlay.cs]
     description: |
-      Lists the rows of an analysis worst first, puts a risk mark on each shape and line, and lights what a picked row hurts. In edit mode it holds the forms that write a row.
+      Lists an analysis's rows worst first, puts a risk mark on each shape and line, and lights what
+      a picked row affects. In edit mode it holds the forms that write a row.
 
-      It is a tab on the left, beside Explorer and Flows. The desktop app has it too, read only: a C# port of the same lists, badges and words, held equal by fixtures. It has no forms for an analysis yet.
+      It is a tab on the left, beside Explorer and Flows. The desktop app has it too, read only: a C# port of the same lists, badges and words, kept equal by fixtures. It has no analysis forms yet.
   navigator:
     type: component
     in: canvas
     name: Navigator
     code: [ui/src/Navigator.tsx, ui/src/navstate.ts, ui/src/navstore.ts, ui/src/window.ts]
     description: |
-      The rail of icons on the left edge and the tabs it opens: the whole documentation as a tree
-      drawn a window of rows at a time, every flow, grouped by where it plays, how things fail (the Failures tab) and the YAML. It asks core for the rows,
-      which come in VS Code's order: shapes that hold others first, then the rest, each by name.
+      The rail of icons on the left edge and the tabs it opens: the whole documentation as a tree windowed to the visible rows, every flow grouped by where it plays, how things fail (the Failures tab) and the YAML. It asks core for the rows, in VS Code's order: shapes that hold others first, then the rest, each by name.
 
-      The edges of this panel and of the Details panel are sashes you drag to resize them.
+      The edges of this panel and of the Details panel are draggable sashes.
 
-      Which tab was open, which shapes were open in the tree and how wide the two panels are are
-      remembered for each project, in the browser's storage.
+      The open tab, the open shapes in the tree and the width of both panels are saved per project
+      in the browser's storage.
   sync:
     type: component
     in: canvas
@@ -403,8 +403,8 @@ objects:
       Holds the model the page shows and saves edits one at a time, each one read-apply-check-write
       like the MCP server's.
 
-      It keeps what it can undo for as long as the page is open, and an undo whose file changed
-      since is refused rather than forced.
+      It keeps the undo history while the page is open, and an undo is refused if its file has
+      changed since.
   panel:
     type: component
     in: canvas
@@ -413,7 +413,7 @@ objects:
     description: |
       A shape's description, a store's data, its code snippets, links, source files and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a shape anywhere in the model.
 
-      It looks like the desktop app: a header in the shape's own colour with its tile and chips, then
+      It matches the desktop app: a header in the shape's colour with its tile and chips, then
       section headings and cards, and icons on the bar's buttons.
   model:
     type: component
@@ -421,8 +421,7 @@ objects:
     name: Files
     code: [src/core/model.ts, src/core/state.ts]
     description: |
-      Reads and writes the folder's YAML. Parsed with YAML's failsafe schema, so every value stays
-      the text that was typed: an id like `007` or a version like `3.10` survives a save.
+      Reads and writes the folder's YAML. Parsed with YAML's failsafe schema, so every value stays as typed: an id like `007` or a version like `3.10` survives a save.
 
       A file that can't be trusted (bad syntax, duplicate keys, a merge conflict) is a parse
       error, and nothing is written over it.
@@ -436,24 +435,23 @@ objects:
       it, an unknown shape, colour or icon, a line to nothing, a flow step the view can't show, a
       `code` path that isn't there.
 
-      Problems are shown, not fixed. A file edited by hand keeps its problems until someone deals
-      with them.
+      Problems are reported, not fixed. A hand-edited file keeps its problems until someone resolves
+      them.
   animation:
     type: component
     in: core
     name: Animation
     code: [src/core/animation.ts, desktop/Flowy.Core/Animation.cs]
     description: |
-      What a flow step's `animation:` may say, and what each kind does, written as a timed list of
-      beats: a tube along the line, a blob running through it, a ring or flash or gulp on a shape.
+      What a flow step's `animation:` may say and what each kind does, as a timed list of beats: a
+      tube along the line, a blob running through it, a ring, flash or gulp on a shape.
 
       A step's request can end in seven ways (fail, timeout, lost, rejected, intercepted, duplicated,
       delayed), with a reason, a share of the requests and, for an interception, who takes it. A share
       plays a burst of 10, 20 or 100 requests, the ones that meet the outcome picked evenly and named.
       The same code words what a step card and the Mermaid export say about the outcome.
 
-      Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a
-      recipe here and not new drawing code in both.
+      Nothing here draws. The canvas and the desktop app each draw the beats, so a new kind is a recipe here, not drawing code in both.
   structure:
     type: component
     in: core
@@ -461,7 +459,7 @@ objects:
     code: [src/core/structure.ts, desktop/Flowy.Core/Structure.cs]
     description: |
       How the steps of a flow relate. A stretch of neighbouring steps can repeat, be one of several
-      lanes, or run in parallel, and a step can say that another flow tells the rest. Written as runs
+      lanes, or run in parallel, and a step can say another flow covers the rest. Written as runs
       and stops, the steps a reader sees at once.
 
       Nothing here draws. The checker reports a wrong group, and Mermaid turns a good one into a
@@ -472,7 +470,7 @@ objects:
     name: Shape states
     code: [src/core/states.ts, desktop/Flowy.Core/States.cs]
     description: |
-      Where a shape stands: Running, Starting, Stopping, Stopped, Restarting or Degraded. A flow says where shapes stand before step 1 and a step changes some of them. This works out the state at any stop by following the stops in order, so stepping back needs no undo, and rolls a container's state up from what it holds.
+      Where a shape stands: Running, Starting, Stopping, Stopped, Restarting or Degraded. A flow sets the states before step 1 and a step changes some of them. This computes the state at any stop by following the stops in order, so stepping back needs no undo, and rolls a container's state up from what it holds.
 
       Nothing here draws. The canvas and the desktop app each draw the result (a second outline, a glyph, a dimmed shape), and the desktop app's port (`States.cs`) is kept equal by fixtures.
   store-data:
@@ -481,7 +479,7 @@ objects:
     name: Store data
     code: [src/core/data.ts, desktop/Flowy.Core/StoreData.cs]
     description: |
-      What a store holds: tables as columns and sample rows, key sets, topics and sample documents, each with a limits line and short notes. It works out what the Data section shows and what is wrong with the data: a row of the wrong width, a sample nested too deep, a note on a field that is not there.
+      What a store holds: tables as columns and sample rows, key sets, topics and sample documents, each with a limits line and short notes. It computes what the Data section shows and what is wrong with the data: a row of the wrong width, a sample nested too deep, a note on a field that is not there.
 
       The author types it, or an AI writes it from the code. Flowy never connects to a database. Nothing here draws: the canvas and the desktop app each draw the entries, and the desktop app's port (`StoreData.cs`) is kept equal by fixtures.
   snippets:
@@ -504,33 +502,31 @@ objects:
     code: [src/core/perf/, desktop/Flowy.Core/PerfParse.cs, desktop/Flowy.Core/PerfRollUp.cs, desktop/Flowy.Core/PerfSources.cs]
     description: |
       A load test as numbers: for each load level that was tested, what each shape and each
-      connection measured. It reads a run file, checks it against the model, and works out what the
-      Performance tab will show at a load: the numbers between two tested levels, the worst of what
+      connection measured. It reads a run file, checks it against the model, and computes what the Performance tab shows at a load: the numbers between two tested levels, the worst of what
       a shape holds, where things first struggle, and how busy each line is.
 
       A run can also set a source: the colour of its dots, and formulas for how many dots a line shows
       and how big each is. A line past the screen's limit is scaled down and says so.
 
-      A run can have several sources of requests, two ways. One run can add others, each at its own load: a shape's
-      use and queue add, a line's rate adds and the worst latency and failing share are kept. Or one run can be tested
-      with several sources at once, its levels a full grid of loads, blended between tested combinations, and a
-      connection's `by` says what each source carries. Each source is a dial with its own colour and scale, and the
-      busiest source on a line sets one scale-down for them all, so their ratio stays true.
+      A run can have several request sources, in two ways. One run can add others, each at its own
+      load: a shape's use and queue add, a line's rate adds, and the worst latency and failing share
+      are kept. Or one run can be tested with several sources together: its levels are a full grid
+      of loads, blended between tested combinations, and a connection's `by` says what each source
+      carries. Each source is a dial with its own colour and scale, and the busiest source on a line
+      sets one scale-down for all of them, so their ratio stays true.
 
-      A run can be measured over time instead of over load. Its levels are points in time, and its events
-      put shapes in a state at a time: the state of a shape at a time is the latest event at or before it.
+      A run can be measured over time instead of load. Its levels are points in time, and its events
+      put shapes in a state: a shape's state at a time is the latest event at or before it.
   formula:
     type: component
     in: core
     name: Traffic formula
     code: [src/core/formula.ts, desktop/Flowy.Core/Formula.cs]
     description: |
-      The small arithmetic a run's source uses: numbers, `rate`, `bytes` and `p50`, and `+ - * /`. A
-      hand-written reader and evaluator, with no functions and no `eval`, so a formula that can't be read is
-      a problem with a place in it and never a crash. The desktop app's port (`Formula.cs`) is kept equal by fixtures.
+      The small arithmetic a run's source uses: numbers, `rate`, `bytes` and `p50`, and `+ - * /`. A hand-written reader and evaluator with no functions and no `eval`, so an unreadable formula is a problem with a position, never a crash. The desktop app's port (`Formula.cs`) is kept equal by fixtures.
 
-      It replays what was measured and never predicts: above the highest tested load there is
-      nothing to show. Nothing here draws: the canvas and the desktop app each show it, and the desktop
+      It replays measurements and does not predict: above the highest tested load there is nothing
+      to show. Nothing here draws: the canvas and the desktop app each show it, and the desktop
       app's port (`Perf.cs`) is kept equal by fixtures.
   failures:
     type: component
@@ -538,7 +534,7 @@ objects:
     name: Failure analyses
     code: [src/core/failures.ts]
     description: |
-      A failure analysis as data: one row for each way a part fails, with how bad, how likely and how hard to spot it, and what to do next. It ranks the rows by risk, checks them against the model, and works out where a row's mark goes at each zoom level.
+      A failure analysis as data: one row for each way a part fails, with how bad, how likely and how hard to spot it, and what to do next. It ranks the rows by risk, checks them against the model, and computes where a row's mark goes at each zoom level.
 
       Nothing here draws or reads a file. The canvas shows it, and the checker refuses an analysis that names a shape, a line, a flow or a step that isn't there.
   views:
@@ -559,10 +555,9 @@ objects:
     code: [src/core/outline.ts, desktop/Flowy.Core/Outline.cs]
     description: |
       What the navigator shows: the shapes as a tree with the flows under the systems they play in,
-      the flows grouped by where they play, and what each key does in the tree.
+      the Flows list (the flows as the folders they are filed in, filtered by tag and search), and what each key does in the tree.
 
-      It draws nothing. The canvas and the desktop app each draw these rows, so they agree on what is
-      on every line: its counts, its problem mark and which rows a filter keeps.
+      It draws nothing. The canvas and the desktop app each draw these rows, so both show the same on every line: its counts, its problem mark and which rows a filter keeps.
   ops:
     type: component
     in: core

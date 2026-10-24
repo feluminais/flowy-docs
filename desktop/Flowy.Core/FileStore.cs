@@ -10,6 +10,19 @@ public sealed class VersionConflict(string rel, string? version) : Exception($"{
     public string? Version { get; } = version;
 }
 
+/// <summary>A file found under <c>flows/</c>: the folder it is in ("" at the top of <c>flows/</c>) and its file name.</summary>
+public readonly record struct FlowLocation(string Folder, string Name)
+{
+    /// <summary>The path relative to the model folder.</summary>
+    public string Rel => $"{FolderLayout.FlowsDir}/{(Folder == "" ? "" : Folder + "/")}{Name}";
+
+    /// <summary>The flow's id: the file name without its extension, whatever folder it is in. Only for a file that is read (<c>.yaml</c>).</summary>
+    public string Id => FolderLayout.IdOfName(Name);
+}
+
+/// <summary>What <see cref="FileStore.ListFlows"/> found: the flow files that are read, the <c>.yml</c> files that are ignored (as paths), and what keeps a file or folder out (a name that is taken, a folder name that can't be used).</summary>
+public sealed record FlowListing(List<FlowLocation> Files, List<string> Ignored, List<Problem> Unusable);
+
 /// <summary>
 /// Reads and writes the files of a model folder the way src/node/files.ts does. A file's version is the first 16 hex digits of the SHA-256 of
 /// its text, and a write is made only if the file still has the version the caller read (null: it must not exist yet), so an edit never
@@ -21,10 +34,14 @@ public static class FileStore
     private static readonly UTF8Encoding NoBom = new(false);
     private static readonly ConcurrentDictionary<string, object> Locks = new();
 
-    /// <summary>The files an edit may write: model.yaml, layout.yaml, and flows/&lt;id&gt;.yaml and failures/&lt;id&gt;.yaml with a valid id.</summary>
+    /// <summary>
+    /// The files an edit may write: model.yaml, layout.yaml, flows/&lt;id&gt;.yaml (in a valid folder of flows too) and failures/&lt;id&gt;.yaml with a valid id.
+    /// A port of <c>isAllowedPath</c> in src/core/filekinds.ts.
+    /// </summary>
     public static bool IsAllowed(string rel) =>
         rel is FolderLayout.ModelFile or FolderLayout.LayoutFile
-        || (FolderLayout.FlowIdOf(rel) ?? FolderLayout.FailureIdOf(rel)) is { } id && Names.IsValidId(id);
+        || (FolderLayout.FlowIdOf(rel) is { } flow && Names.IsValidId(flow) && Names.IsValidFolder(FolderLayout.FlowFolderOf(rel)))
+        || (FolderLayout.FailureIdOf(rel) is { } id && Names.IsValidId(id));
 
     public static string Hash(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..16];
 
@@ -35,14 +52,68 @@ public static class FileStore
         return text is null ? (null, null) : (text, Hash(text));
     }
 
-    /// <summary>The folder's flow files, by name, in the order the loader reads them. The .yml ones are not flows.</summary>
-    public static List<string> FlowFiles(string dir)
+    /// <summary>The folder's flow files that are read, in the order the loader reads them. The .yml ones are not flows, and neither is a file the loader leaves out (see <see cref="ListFlows"/>).</summary>
+    public static List<FlowLocation> FlowFiles(string dir) => ListFlows(dir).Files;
+
+    /// <summary>
+    /// The files of <c>flows/</c> and of the folders in it, a port of <c>listFiles</c> and the plan in <c>loadFolder</c> in src/node/files.ts. A folder that starts with a dot is left alone, and one whose
+    /// name can't be used, or that can't be listed, is skipped and becomes a problem. The files are ordered by file name and then by folder, so moving a flow into a folder does not change where it
+    /// comes in the model; of two files with one name the first in that order is the one that is kept, and the other is a problem. A <c>.yml</c> file is listed in <see cref="FlowListing.Ignored"/>.
+    /// </summary>
+    public static FlowListing ListFlows(string dir)
     {
+        var found = new List<FlowLocation>();
+        var unusable = new List<Problem>();
         var flows = Path.Combine(dir, FolderLayout.FlowsDir);
-        if (!Directory.Exists(flows)) return [];
-        var names = Directory.EnumerateFiles(flows).Select(Path.GetFileName).OfType<string>().Where(FolderLayout.IsRead).ToList();
-        names.Sort(StringComparer.Ordinal);
-        return names;
+        if (!Directory.Exists(flows)) return new FlowListing([], [], unusable);
+
+        void Walk(string sub)
+        {
+            var at = sub == "" ? FolderLayout.FlowsDir : $"{FolderLayout.FlowsDir}/{sub}";
+            List<string> files;
+            List<string> folders;
+            try
+            {
+                files = Directory.EnumerateFiles(Path.Combine(dir, at)).Select(Path.GetFileName).OfType<string>().ToList();
+                folders = Directory.EnumerateDirectories(Path.Combine(dir, at)).Select(Path.GetFileName).OfType<string>().Where(n => !n.StartsWith('.')).ToList();
+            }
+            catch (Exception e) when (sub != "" && e is IOException or UnauthorizedAccessException)
+            {
+                unusable.Add(new Problem(at, null, $"Flowy skips this folder: it can't be read ({e.Message})."));
+                return;
+            }
+            found.AddRange(files.Select(name => new FlowLocation(sub, name)));
+            folders.Sort(StringComparer.Ordinal);
+            foreach (var name in folders)
+            {
+                var next = sub == "" ? name : $"{sub}/{name}";
+                if (Names.IsValidFolder(next)) Walk(next);
+                else unusable.Add(new Problem($"{FolderLayout.FlowsDir}/{next}", null, $"Flowy skips this folder, since its name can't be used: {Names.FolderRule}."));
+            }
+        }
+        Walk("");
+
+        found.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name) is var byName and not 0 ? byName : string.CompareOrdinal(a.Rel, b.Rel));
+        var read = new List<FlowLocation>();
+        var ignored = new List<string>();
+        var taken = new Dictionary<string, string>();
+        foreach (var file in found)
+        {
+            if (FolderLayout.IsIgnored(file.Name))
+            {
+                ignored.Add(file.Rel);
+                continue;
+            }
+            if (!FolderLayout.IsRead(file.Name)) continue;
+            if (taken.TryGetValue(file.Id, out var first))
+            {
+                unusable.Add(new Problem(file.Rel, null, $"Flowy reads one flow for each name, and {first} already has \"{file.Id}\", so this one is ignored. Rename it."));
+                continue;
+            }
+            taken[file.Id] = file.Rel;
+            read.Add(file);
+        }
+        return new FlowListing(read, ignored, unusable);
     }
 
     /// <summary>The folder's failure analysis files that have a valid id, by name, in the order the loader reads them. A file that can't be read is the loader's to report.</summary>

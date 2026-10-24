@@ -147,7 +147,7 @@ public class FolderContainmentTests
         var folder = FolderLoader.Load(dir);
         Assert.DoesNotContain(folder.Problems, p => p.Message == "points outside the folder");
         Assert.Equal(["pay"], folder.Model.Flows.Keys);
-        Assert.Equal(["pay.yaml"], FileStore.FlowFiles(dir));
+        Assert.Equal(["pay.yaml"], FileStore.FlowFiles(dir).Select(f => f.Name));
 
         FileStore.Save(dir, "flows/next.yaml", "name: Next\n", null);
         Assert.Equal("name: Next\n", File.ReadAllText(Path.Combine(dir, "shared", "next.yaml")));

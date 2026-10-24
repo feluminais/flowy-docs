@@ -1,0 +1,5 @@
+name: Duplicate in billing
+view: shop
+steps:
+  - { from: web, to: api, text: Sends it }
+  - { from: api, to: web, text: Answers }

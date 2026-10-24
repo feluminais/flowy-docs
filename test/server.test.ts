@@ -87,7 +87,7 @@ test('writes without X-Flowy, and any request with a foreign Host, are refused',
 
 test('only model.yaml, layout.yaml and flow files can be written, and only flows deleted', async t => {
   const { send } = await setup(t)
-  for (const rel of ['notes.txt', 'flows/Bad.yaml', 'flows/root.yaml', 'flows/a/b.yaml', 'flows%2Fa.yaml'])
+  for (const rel of ['notes.txt', 'flows/Bad.yaml', 'flows/root.yaml', 'flows/a/B.yaml', 'flows/.x/b.yaml', 'flows%2Fa.yaml', 'flows/a%2Fb.yaml', 'flows/%2e%2e/b.yaml', 'flows/%E0%A4%A.yaml'])
     assert.equal((await send('PUT', rel, { version: null, data: {} })).status, 400, rel)
   assert.equal((await send('DELETE', 'model.yaml', { version: null })).status, 400)
 })

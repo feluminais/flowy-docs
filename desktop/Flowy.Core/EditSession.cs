@@ -58,8 +58,11 @@ public sealed class EditSession(string dir)
         }
         var model = Read(FolderLayout.ModelFile);
         var layout = Read(FolderLayout.LayoutFile);
-        var flows = FileStore.FlowFiles(dir).Select(name => KeyValuePair.Create(FolderLayout.IdOfName(name), Read(FolderLayout.FlowFile(FolderLayout.IdOfName(name))))).Where(f => f.Value is not null)
+        // A flow may sit in a folder under flows/; its id is the file's name alone.
+        var flowFiles = FileStore.FlowFiles(dir);
+        var flows = flowFiles.Select(file => KeyValuePair.Create(file.Id, Read(file.Rel))).Where(f => f.Value is not null)
             .Select(f => KeyValuePair.Create(f.Key, f.Value!)).ToList();
+        var folders = flowFiles.Where(file => file.Folder != "").ToDictionary(file => file.Id, file => file.Folder);
         // An analysis that can't be read is not part of the edit, so it is never replaced or deleted, as in the browser and MCP.
         var failures = new List<KeyValuePair<string, string>>();
         foreach (var name in FileStore.FailureFiles(dir))
@@ -80,7 +83,7 @@ public sealed class EditSession(string dir)
                 texts.Remove(FolderLayout.FailureFile(id));
             }
         }
-        return new Disk(EditDoc.Parse(model, layout, flows, failures), versions, texts);
+        return new Disk(EditDoc.Parse(model, layout, flows, failures, folders), versions, texts);
     }
 
     /// <summary>For tests: called with each file's path just before it is written, a file put back included, so a write can be made to fail.</summary>

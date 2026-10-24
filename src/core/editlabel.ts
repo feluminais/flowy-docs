@@ -2,6 +2,7 @@ import { compareOf } from './compare.ts'
 import type { CompareTag } from './compare.ts'
 import { customIcons } from './look.ts'
 import { isMap } from './text.ts'
+import { folderOf } from './model.ts'
 import type { Analysis, Connection, Flow, Model } from './model.ts'
 import { isStateName, STATE_LABELS } from './states.ts'
 import type { StateName } from './states.ts'
@@ -163,12 +164,18 @@ const flowsChanged: Detector = (before, after) => {
   for (const id of new Set([...Object.keys(after.flows), ...Object.keys(before.flows)])) {
     if (!has(before.flows, id)) changes.push(`Added the ${flowName(after, id)} flow`)
     else if (!has(after.flows, id)) changes.push(`Deleted the ${flowName(before, id)} flow`)
-    else if (canon(before.flows[id]) !== canon(after.flows[id])) {
+    else if (canon(before.flows[id]) === canon(after.flows[id])) {
+      // Only where the file is can differ: a flow keeps its id when it moves.
+      const to = folderOf(after, id)
+      if (folderOf(before, id) !== to) changes.push(`Moved the ${flowName(after, id)} flow ${to === '' ? 'to the top' : `into ${cut(to)}`}`)
+    } else {
       const onlyTheName = canon({ ...before.flows[id], name: '' }) === canon({ ...after.flows[id], name: '' })
+      const onlyTheTags = canon({ ...before.flows[id], tags: undefined }) === canon({ ...after.flows[id], tags: undefined })
       const state = stateEdit(before.flows[id], after.flows[id])
       const tag = tagEdit(before, after, id)
       changes.push(tag !== undefined ? tag : onlyTheName
         ? `Renamed the flow ${flowName(before, id)} to ${flowName(after, id)}`
+        : onlyTheTags ? `Changed the tags of the ${flowName(after, id)} flow`
         : state === undefined ? `Changed the ${flowName(after, id)} flow` : state.state === undefined ? `Cleared ${nameOf(before, after, state.id)}'s state` : `Set ${nameOf(before, after, state.id)} to ${STATE_LABELS[state.state]}`)
     }
   }
