@@ -106,6 +106,23 @@ public class CanvasLoadTests
     }
 
     [AvaloniaFact]
+    public void A_call_is_cut_by_the_shapes_at_both_ends_of_its_line_whether_they_open_or_not()
+    {
+        // A call is a few pixels on screen, so zoomed out one at the end of a line is many units across: were only the shapes that open cut, it would spill onto the others.
+        var (canvas, folder) = Open();
+        var load = Load(folder, "ramp", 100);
+        foreach (var line in load.Lines)
+        {
+            var way = canvas.PathOf(line)!.Value;
+            Assert.Equal(line.From, way.From?.Id);
+            Assert.Equal(line.To, way.To?.Id);
+            var (x, y) = PathPoints.PointAt(way.Bounce, 1); // where the line meets the shape it ends at
+            var radius = TrafficLayer.MarkSize / 0.2; // a call's size at a fifth of full size
+            Assert.NotEqual(Particles.Cut.Clear, Particles.CutBy(BoxGeometry.DepthIn(way.To!.Value.Rect, way.To.Value.Edge, x, y), radius));
+        }
+    }
+
+    [AvaloniaFact]
     public void Particles_run_along_the_lines_with_motion_and_stop_when_the_load_goes()
     {
         using var motion = Motion.On();
