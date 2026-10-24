@@ -89,4 +89,4 @@ function withSizes(line: Pair, size: Sizes): Pair {
     from, to, ...defined({ rate, bytes: meanBytes(size), p50, p95, errors }),
     ...(size.failures.length === 1 ? { failure: size.failures[0] } : {}), ...(Object.keys(by).length > 0 ? { by } : {}),
   }
-}
+}
