@@ -624,20 +624,25 @@ internal sealed partial class ReaderView : Grid, IDisposable
         var problems = _folder!.Problems;
         _problemsButton.IsVisible = problems.Count > 0;
         Chrome.Fill(_problemsButton, Icons.Alert, $"{problems.Count} problem{(problems.Count == 1 ? "" : "s")}");
-        var list = new StackPanel { Spacing = 0, MaxWidth = 380 };
-        foreach (var p in problems)
+        // The list is made when it is opened, not on every step: a model can have thousands of problems, and the flyout is shut nearly always.
+        var flyout = new Flyout { Placement = PlacementMode.BottomEdgeAlignedLeft };
+        flyout.Opening += (_, _) =>
         {
-            var row = new Button { Content = new TextBlock { Text = $"{p.File}  {p.Message}", TextWrapping = TextWrapping.Wrap } };
-            row.Classes.Add("result");
-            var picked = p;
-            row.Click += (_, _) =>
+            var list = new StackPanel { Spacing = 0, MaxWidth = 380 };
+            Paging.Fill(list, problems, p =>
             {
-                (_problemsButton.Flyout as Flyout)?.Hide();
-                Jump(picked);
-            };
-            list.Children.Add(row);
-        }
-        _problemsButton.Flyout = new Flyout { Content = new ScrollViewer { Content = list, MaxHeight = 420 }, Placement = PlacementMode.BottomEdgeAlignedLeft };
+                var row = new Button { Content = new TextBlock { Text = $"{p.File}  {p.Message}", TextWrapping = TextWrapping.Wrap } };
+                row.Classes.Add("result");
+                row.Click += (_, _) =>
+                {
+                    flyout.Hide();
+                    Jump(p);
+                };
+                return row;
+            });
+            flyout.Content = new ScrollViewer { Content = list, MaxHeight = 420 };
+        };
+        _problemsButton.Flyout = flyout;
     }
 
     /// <summary>An icon beside words, a little lower than the middle of its line, where the words' own middle is.</summary>

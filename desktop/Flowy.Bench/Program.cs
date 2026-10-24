@@ -2,6 +2,12 @@ using System.Diagnostics;
 using System.Text;
 using Flowy.Core;
 
+if (args.Length > 0 && args[0] == "panels")
+{
+    Flowy.Bench.PanelsBench.Run(args.Length > 1 ? int.Parse(args[1]) : 1000);
+    return;
+}
+
 if (args.Length > 0 && args[0] == "canvas")
 {
     Flowy.Bench.CanvasBench.Run(args.Length > 1 ? int.Parse(args[1]) : 300);
