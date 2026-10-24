@@ -18,32 +18,25 @@ internal sealed partial class ReaderView
     private void OnPointerDown(object? sender, PointerPressedEventArgs e)
     {
         var inside = InNavigator(e.Source);
-        PressedOutsidePicker(e.Source);
+        _compareMode.PressedOutsidePicker(e.Source);
         _perfPanel.PressedOutside(e.Source);
         _nav.RunLinks.PressedOutside(e.Source);
-        _navUsed = inside;
+        _panels.NavUsed = inside;
         if (!inside && InNavigator(TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement())) Focus();
     }
 
     /// <summary>What the keys' conditions ask about, as the reader is now. <paramref name="inNavigator"/>: the press came from inside the navigator.</summary>
     private KeyState KeyStateNow(bool inNavigator) => new(
         Editing, ReadOnly, _undoMove, _search is not null, _shortcuts is not null, _side is Side.Boxes, Recording is not null,
-        PlayingFlow() is not null, Comparing, Comparing && _compare is { Mode: "swap" }, ComparingRuns, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
-        ShownTab is not null, _navUsed, inNavigator, RightOpen, CurrentView() != Names.Root, ComparingFlows && _compareView is { } view && view.Target.Inside);
+        PlayingFlow() is not null, Comparing, Comparing && _compareMode.State is { Mode: "swap" }, ComparingRuns, PerfOpen, LoadTest is not null, FailuresOpen, ShowFlows, CanPerf, CanFailures,
+        ShownTab is not null, _panels.NavUsed, inNavigator, RightOpen, CurrentView() != Names.Root, ComparingFlows && _compareMode.View is { } view && view.Target.Inside);
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_folder is null) return;
-        if (_ask is not null && e.Key == Key.Escape)
+        if (e.Key == Key.Escape && _compareMode.AnswerEscape())
         {
-            KeepNote(); // the question is the innermost layer, and Esc answers it with Keep
-            e.Handled = true;
-            return;
-        }
-        if (_unlinkAsk is not null && e.Key == Key.Escape)
-        {
-            KeepLink(); // the same, for the question about a link and its note
-            e.Handled = true;
+            e.Handled = true; // the question is the innermost layer, and Esc answers it with Keep
             return;
         }
         var inNavigator = InNavigator(e.Source);
@@ -63,12 +56,12 @@ internal sealed partial class ReaderView
     }
 
     /// <summary>What the keys of the Performance panel act on while two runs are compared: the pane with the focus, or the run on show in Swap. Null otherwise.</summary>
-    private IRunKeys? RunKeys => ComparingRuns && _compareView is { } view ? view.RunTarget : null;
+    private IRunKeys? RunKeys => ComparingRuns && _compareMode.View is { } view ? view.RunTarget : null;
 
     /// <summary>Up a level on purpose (Z, Backspace, the breadcrumb): Esc has nothing to go back to from there.</summary>
     private void Up()
     {
-        if (ComparingFlows && _compareView is { } view)
+        if (ComparingFlows && _compareMode.View is { } view)
         {
             view.Target.Up(); // a pane of a comparison goes up from where it is zoomed to
             return;
@@ -79,7 +72,7 @@ internal sealed partial class ReaderView
     /// <summary>Esc: back to the level the reader came from, or up a level when they did not come from one.</summary>
     private void Back()
     {
-        if (ComparingFlows && _compareView is { } view)
+        if (ComparingFlows && _compareMode.View is { } view)
         {
             view.Target.Up();
             return;
@@ -121,21 +114,21 @@ internal sealed partial class ReaderView
 
         public void CloseShortcuts() => r.ShowShortcuts(false);
 
-        public void CloseNavigator() => r.CloseNav();
+        public void CloseNavigator() => r._panels.CloseNav();
 
         public void StopFlow()
         {
-            if (r._picker is not null) r.ClosePicker(); // the Compare flyout is the innermost layer over the flow
+            if (r._compareMode.Picker is not null) r._compareMode.ClosePicker(); // the Compare flyout is the innermost layer over the flow
             else r.Stop();
         }
 
         public void ClosePanel() => r.CloseDetails();
 
-        public void CloseCompare() => r.CloseCompare();
+        public void CloseCompare() => r._compareMode.Close();
 
-        public void SwapCompare() => r.SwapCompare();
+        public void SwapCompare() => r._compareMode.Swap();
 
-        public void ToggleCompare() => r.ToggleCompare();
+        public void ToggleCompare() => r._compareMode.Toggle();
 
         public void Back() => r.Back();
 
@@ -183,31 +176,31 @@ internal sealed partial class ReaderView
         // While two flows are compared the keys of a flow act on the pane that has the focus.
         public void FlowStep(int by)
         {
-            if (r._compareView is { } view && r.Comparing) view.Target.Step(by);
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.Step(by);
             else r.StepTo(r.StopIndex() + by);
         }
 
         public void FlowFirst()
         {
-            if (r._compareView is { } view && r.Comparing) view.Target.First();
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.First();
             else r.StepTo(0);
         }
 
         public void FlowLast()
         {
-            if (r._compareView is { } view && r.Comparing) view.Target.Last();
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.Last();
             else if (r.PlayingFlow() is { } flow) r.StepTo(r.StopsOf(flow.Flow).Count - 1);
         }
 
         public void FlowPlay()
         {
-            if (r._compareView is { } view && r.Comparing) view.Target.TogglePlay();
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.TogglePlay();
             else r._playback.ToggleAuto();
         }
 
         public void FlowReplay()
         {
-            if (r._compareView is { } view && r.Comparing) view.Target.Replay();
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.Replay();
             else r._playback.Replay();
         }
 
@@ -219,7 +212,7 @@ internal sealed partial class ReaderView
 
         public void Fit() => r.FitNow();
 
-        public void ToggleTab(PanelTab tab) => r.ToggleTab(tab);
+        public void ToggleTab(PanelTab tab) => r._panels.ToggleTab(tab);
 
         public void TogglePerf() => r.TogglePerf();
 
