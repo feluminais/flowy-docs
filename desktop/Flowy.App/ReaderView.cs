@@ -70,6 +70,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly ComboBox _linePicker = new();
     private readonly ComboBox _modelPicker = new() { IsVisible = false }; // the repo's other models; only there when it has several
     private IReadOnlyList<ModelEntry> _models = [];
+    private Task _modelsLoaded = Task.CompletedTask;
+    private Task _codeBaseLoaded = Task.CompletedTask;
     private string? _dir;
     private readonly Button _searchButton = new();
     private readonly Button _helpButton = new();
@@ -347,7 +349,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _dir = dir;
         _models = [];
         ShowCurrentModel();
-        _ = LoadModels(dir);
+        _modelsLoaded = LoadModels(dir);
         WarmCode(folder);
         _session = new EditSession(dir);
         _disk?.Dispose();
@@ -374,7 +376,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _repoRoot = FolderLoader.RepoRoot(dir);
         SetBanner(null);
         Refresh();
-        _ = LoadCodeBase(dir);
+        _codeBaseLoaded = LoadCodeBase(dir);
         Dispatcher.UIThread.Post(() => Focus());
     }
 
@@ -409,6 +411,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
     internal ComboBox ModelPicker => _modelPicker;
 
     internal IReadOnlyList<ModelEntry> Models => _models;
+
+    /// <summary>Done once what the folder last loaded looks up in the background is in and shown: the repo's other models and the code link.</summary>
+    internal Task Settled => Task.WhenAll(_modelsLoaded, _codeBaseLoaded);
 
     private async Task LoadCodeBase(string dir)
     {
