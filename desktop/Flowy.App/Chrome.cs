@@ -33,11 +33,22 @@ internal static class Chrome
     }
 
     /// <summary>
+    /// A picker that is worked with the mouse takes no focus. A combo box that keeps it after its list closes (Esc, or the same row again) shows the focus ring and answers
+    /// the arrow keys by changing its choice, in place of stepping a run or going on to the next step.
+    /// </summary>
+    public static T WithoutFocus<T>(T box) where T : ComboBox
+    {
+        box.Focusable = false;
+        return box;
+    }
+
+    /// <summary>
     /// A picker for the bar: the words and a chevron right beside them. The box is as wide as the chosen item, so the chevron's column is the chevron
     /// itself instead of the template's fixed 32, and the words move on a pick while the chevron and the hit area stay at the right edge.
     /// </summary>
     public static void FlatPicker(ComboBox box)
     {
+        WithoutFocus(box);
         box.Classes.Add("flat");
         box.TemplateApplied += (_, e) =>
         {
