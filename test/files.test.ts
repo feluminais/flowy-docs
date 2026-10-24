@@ -236,7 +236,7 @@ test('runs load from perf/, and a file that cannot be used becomes a run problem
   assert.deepEqual(Object.keys(state.runs ?? {}), ['ghost', 'ramp'])
   assert.equal(state.runs?.ramp.levels[1].objects.api.util, 0.4)
   assert.deepEqual(state.runProblems?.map(p => `${p.file} ${p.message}`), [
-    'perf/Not Valid.yaml "Not Valid" is not a valid run id: the file name must use lowercase letters, digits and dashes, not starting with a dash ("root" is reserved)',
+    'perf/Not Valid.yaml "Not Valid" is not a valid run id: the file name must use lowercase letters, digits and dashes, not starting with a dash ("root" and Windows device names such as "con" are reserved)',
     'perf/bad.yaml line 1: unresolved merge conflict',
     'perf/binary.yaml is not UTF-8 text. Save it as UTF-8 and try again.',
     'perf/ghost.yaml unknown object "nope"',
