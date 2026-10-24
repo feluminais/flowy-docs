@@ -248,7 +248,7 @@ public class SourcesTests
         var panel = reader.PerfPanelNow;
         Assert.Null(panel.DialLines[0].Ramp.Parent);
         Assert.DoesNotContain("Courier pings|1 dot", string.Join("|", panel.KeyLabels));
-        Assert.Contains("←|→|Step", Text(reader));
+        Assert.DoesNotContain("←|→", Text(reader));
         Assert.DoesNotContain("|P|", Text(reader));
         Press(window, Key.P, PhysicalKey.P);
         Assert.False(reader.PerfState.Ramping);

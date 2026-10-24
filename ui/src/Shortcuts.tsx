@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Section } from './Chrome.tsx'
-import { Activity, Bolt, Close, Pencil, Play, Search } from './icons.tsx'
+import { Activity, Bolt, Close, Pencil, Play, Search, Trash } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
 import { helpRows, HELP_GROUPS } from './keymap.ts'
 import type { HelpGroupId } from './keymap.ts'
@@ -30,6 +30,7 @@ export function Shortcuts({ editable, performance, failures, onClose }: { editab
       {performance && <Group icon={Activity} group="performance" />}
       {failures && <Group icon={Bolt} group="failures" />}
       {editable && <Group icon={Pencil} group="editing" />}
+      {editable && <Group icon={Trash} group="usedby" />}
     </section>
   )
 }

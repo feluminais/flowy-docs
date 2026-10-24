@@ -139,7 +139,8 @@ internal sealed class ShortcutsCard : Border
         HelpGroup.Flows => Icons.Play,
         HelpGroup.Performance => Icons.Activity,
         HelpGroup.Failures => Icons.Bolt,
-        _ => Icons.Pencil,
+        HelpGroup.Editing => Icons.Pencil,
+        _ => Icons.Trash,
     };
 
     private static void AddGroup(StackPanel into, string icon, string title, IReadOnlyList<(string Key, string What)> keys)
