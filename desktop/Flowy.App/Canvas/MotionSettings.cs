@@ -7,6 +7,9 @@ internal static class MotionSettings
 {
     private const uint GetClientAreaAnimation = 0x1042;
 
+    private static long _askedAt = long.MinValue / 2;
+    private static bool _system;
+
     [DllImport("user32.dll", SetLastError = true)]
     private static extern bool SystemParametersInfo(uint action, uint param, out bool value, uint winIni);
 
@@ -26,13 +29,17 @@ internal static class MotionSettings
                     return false;
             }
             if (!OperatingSystem.IsWindows()) return false;
+            // Asked of the system at most once a second: this is read for every shape that changes state, and every call is a call into Windows.
+            var now = Environment.TickCount64;
+            if (now - _askedAt < 1000) return _system;
+            _askedAt = now;
             try
             {
-                return SystemParametersInfo(GetClientAreaAnimation, 0, out var animations, 0) && !animations;
+                return _system = SystemParametersInfo(GetClientAreaAnimation, 0, out var animations, 0) && !animations;
             }
             catch (Exception e) when (e is DllNotFoundException or EntryPointNotFoundException)
             {
-                return false;
+                return _system = false;
             }
         }
     }

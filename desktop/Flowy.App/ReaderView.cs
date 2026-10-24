@@ -180,7 +180,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _panel.Closed += CloseDetails;
         _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
-        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Run(this, ms, t => t, _ => InvalidateVisual(), then)));
+        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Wait(this, ms, then)));
         WirePerformance();
         WireFailures();
         _nav.Tabs.Picked += SetTab;
