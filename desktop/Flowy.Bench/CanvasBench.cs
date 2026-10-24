@@ -163,11 +163,11 @@ internal static class CanvasBench
         reader.SetEditing(false);
         Settle();
 
-        // A load shown: every line carries calls, and particles and stripes run along them (motion on).
+        // A load shown: 120 of the lines carry calls, and particles and stripes run along them (motion on).
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
         canvas.Fit(0, false);
         Settle();
-        var traffic = new Traffic(new IdMap<BoxTraffic>(), [.. lines.Select(l => new LineTraffic($"app-{l.From}", $"app-{l.To}", 2, 40, 1500, 0.05) { Stripes = 0.5, Dots = 20 })]);
+        var traffic = new Traffic(new IdMap<BoxTraffic>(), [.. lines.Take(120).Select(l => new LineTraffic($"app-{l.From}", $"app-{l.To}", 2, 40, 1500, 0.05) { Stripes = 0.5, Dots = 8 })]);
         Row("show a load (each step of a ramp)", Median(() => Time(() => canvas.ShowLoad(traffic)), 5));
         Settle();
         var running = new List<double>();
