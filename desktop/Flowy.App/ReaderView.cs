@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -47,6 +48,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>The panel opened on the right besides what a pick opens: Details from its rail (the level you are in).</summary>
     private enum RightPanel { Closed, Details }
 
+    private readonly IReader _host;
     private readonly CanvasView _canvas = new();
     private readonly Border _motionHost;
     private readonly Border _compareHost = new() { ClipToBounds = true, IsVisible = false }; // the comparison, in the place of the canvas while it is open
@@ -118,6 +120,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
     public ReaderView()
     {
+        _host = new Host(this);
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
 
         _banner.Classes.Add("banner");
@@ -184,7 +187,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
         _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Wait(this, ms, then)));
         WirePerformance();
-        WireFailures();
+        _failures = new FailuresTab(_nav.Failures, _canvas, _host);
         _nav.Tabs.Picked += SetTab;
         _nav.Closed += CloseNav;
         _rail.Picked += ToggleTab;
@@ -363,10 +366,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _right = RightPanel.Closed;
         _perf.StopRamp();
         if (_tab is PanelTab.Failures or PanelTab.Performance) _tab = null; // another folder's analyses and runs start from the top
-        _analysisId = "";
-        _modeId = null;
-        _band = null;
-        _left = false;
+        _failures.Reset();
         _playback.Head = null;
         _hover = null;
         CloseCompare(false); // another folder has other flows
@@ -387,6 +387,27 @@ internal sealed partial class ReaderView : Grid, IDisposable
             ShowNotice("The app chosen for opening links is gone, so links open the default way. Choose another under File > Open Files With.", 6);
         var run = LinkRunner ?? (a => TopLevel.GetTopLevel(this) is { } top ? LinkLauncher.RunAsync(top, a) : Task.FromResult<string?>(null));
         if (await run(action) is { } problem) ShowNotice(problem);
+    }
+
+    /// <summary>The text last copied (the Failures panel's table, the Performance panel's starter run), for a test that has no clipboard.</summary>
+    internal string? CopiedText { get; private set; }
+
+    private async Task<bool> CopyAsync(string text)
+    {
+        CopiedText = text;
+        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+        {
+            try
+            {
+                await clipboard.SetTextAsync(text);
+                return true;
+            }
+            catch (Exception)
+            {
+                // the clipboard wasn't available
+            }
+        }
+        return false;
     }
 
     /// <summary>Looks for the repo's other models away from the UI thread, since a big repo takes a moment to walk. The picker shows only when there are several.</summary>
@@ -577,7 +598,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         RefreshPanel(model, view);
         if (PerfOpen) ShowPerfPanel(model, view); // before ApplyLoad, which moves the panel to the load
         ApplyLoad();
-        ApplyFailures();
+        _failures.Apply();
         RefreshPlayer(model, view, flow, index, shown);
         UpdateMotion(model, view, flow, index, shown);
         RefreshCompare(folder);
@@ -968,7 +989,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>Picks a shape, and while the Failures panel is open a failure mode of the analysis on show if the id is one (for a picture: --select).</summary>
     public void Select(string id)
     {
-        if (FailuresOpen && Analysis is { } analysis && analysis.Modes.Contains(id)) SelectMode(id);
+        if (FailuresOpen && _failures.Analysis is { } analysis && analysis.Modes.Contains(id)) _failures.SelectMode(id);
         else OpenObject(id);
     }
 
@@ -1097,11 +1118,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
                 ShowNotice("Failures are not shown while editing.");
                 return;
             }
-            _analysisId = failure.Analysis;
-            _modeId = failure.Mode;
-            _band = null;
-            _left = false;
-            OpenFailures();
+            _failures.Choose(failure.Analysis, failure.Mode);
+            _failures.Open();
         }
         else if (spot.Flow is { } flow)
         {

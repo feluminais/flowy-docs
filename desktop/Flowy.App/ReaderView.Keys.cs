@@ -178,7 +178,7 @@ internal sealed partial class ReaderView
             else r._perf.ToggleRamp();
         }
 
-        public bool StepFailures(Key key) => r.StepFailures(key);
+        public bool StepFailures(Key key) => r._failures.Step(key);
 
         // While two flows are compared the keys of a flow act on the pane that has the focus.
         public void FlowStep(int by)
@@ -223,6 +223,6 @@ internal sealed partial class ReaderView
 
         public void TogglePerf() => r.TogglePerf();
 
-        public void ToggleFailures() => r.ToggleFailures();
+        public void ToggleFailures() => r._failures.Toggle();
     }
 }
