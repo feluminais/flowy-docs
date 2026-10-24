@@ -147,16 +147,17 @@ public class PerfPanelTests
     }
 
     [AvaloniaFact]
-    public void Without_motion_there_is_no_Ramp_button_and_the_hint_does_not_mention_P()
+    public void Without_motion_there_is_no_Ramp_button_and_the_panel_names_no_keys_either_way()
     {
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 3, still: true);
         Assert.Null(panel.RampButton.Parent);
-        Assert.Contains("←|→|Step", Text(panel));
+        Assert.DoesNotContain("←|→", Text(panel));
         Assert.DoesNotContain("|P|", Text(panel));
         Show(panel, folder, "ramp", 3, still: false);
         Assert.NotNull(panel.RampButton.Parent);
-        Assert.Contains("|P|Ramp", Text(panel));
+        Assert.DoesNotContain("←|→", Text(panel)); // the keys are in the list ? opens
+        Assert.DoesNotContain("|P|", Text(panel));
     }
 
     [AvaloniaFact]

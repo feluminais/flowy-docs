@@ -159,7 +159,6 @@ function Footer({ list, onList }: { list: ModelList; onList: (list: ModelList) =
           {state === 'done' && list.canDeepen && <button onClick={() => void deeper()}>Scan deeper</button>}
         </div>
       )}
-      <div className="mhint"><kbd>↑</kbd><kbd>↓</kbd> Move <kbd>Enter</kbd> Open</div>
     </div>
   )
 }

@@ -20,6 +20,7 @@
 | T | The Performance tab, where a folder has load-test runs |
 | M | The Failures tab, where a folder has failure analyses |
 | Y | The YAML tab: the files as text, and every change to them (browser) |
+| ↑ ↓, Enter | In the model picker: move, then open (browser) |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
@@ -28,3 +29,17 @@
 | Ctrl+Z, Ctrl+Y | Undo and redo |
 | Esc, Backspace | Right after dragging a shape (editing): take the drag back |
 | ? | List every shortcut |
+
+The panels name no keys, so this list is where to find them.
+
+## Used by
+
+The panel that opens when you delete a shape that a flow step or a failure mode names.
+
+| Shortcut | Action |
+| --- | --- |
+| ↑ ↓ | Move between rows |
+| X | Remove the row |
+| R | Reroute the row, or every row |
+| Enter | Remove all, or delete once nothing is left |
+| Esc | Cancel |

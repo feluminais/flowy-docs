@@ -87,7 +87,7 @@ export function contextOf(e: KeyEvent, inNavigator: boolean, s: KeyState, act: K
   return { e, key: letter(e), plain: !e.ctrlKey && !e.metaKey && !e.altKey, control: (e.ctrlKey || e.metaKey) && !e.repeat, inNavigator, s, act }
 }
 
-export type HelpGroupId = 'reading' | 'flows' | 'performance' | 'failures' | 'editing'
+export type HelpGroupId = 'reading' | 'flows' | 'performance' | 'failures' | 'editing' | 'usedby'
 type Help = { keys?: string; text: string } // `keys` is the entry's own when left out
 
 export type KeyId =
@@ -325,17 +325,23 @@ export const HELP_GROUPS: { id: HelpGroupId; title: string }[] = [
   { id: 'performance', title: 'Performance' },
   { id: 'failures', title: 'Failures' },
   { id: 'editing', title: 'Edit mode' },
+  { id: 'usedby', title: 'Used by' },
 ]
 
 /** The order of each group's rows. A row that is not a key (a click, a drag) is written out here. */
 const HELP_ORDER: Record<HelpGroupId, (KeyId | [string, string])[]> = {
-  reading: ['enter', 'escape', 'up', 'search', 'fit', 'flows', 'explorer', 'yaml', 'perf', 'failures', 'shortcuts'],
+  reading: ['enter', 'escape', 'up', 'search', 'fit', 'flows', 'explorer', 'yaml', 'perf', 'failures', ['↑  ↓  Enter', 'In the model picker: move, then open'], 'shortcuts'],
   flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-replay', 'compare', 'swap', 'escape'],
   performance: ['perf-step', 'perf-ends', 'perf-ramp', 'escape'],
   failures: ['failure-step'],
   editing: [
     'edit', 'add', ['Ctrl+click  Shift+click', 'Add a shape to the selection, or take it out'], ['Shift+drag', 'Draw a box round shapes to select them'],
     'select-all', 'delete', 'undo', 'undo-move', 'redo',
+  ],
+  // The keys of the panel that opens when a shape something depends on is deleted; the panel answers them itself (UsedBy.tsx).
+  usedby: [
+    ['↑  ↓', 'Move between rows'], ['X', 'Remove the row'], ['R', 'Reroute the row, or every row'],
+    ['Enter', 'Remove all, or delete once nothing is left'], ['Esc', 'Cancel'],
   ],
 }
 

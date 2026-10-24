@@ -4,7 +4,7 @@ using Avalonia.Media;
 
 namespace Flowy.App;
 
-/// <summary>Keycaps: one drawn cap for each key, as in <c>[←][→] Step</c>. The shortcut list and the hint under the load slider both draw theirs here.</summary>
+/// <summary>Keycaps: one drawn cap for each key, as in <c>[←][→]</c>. Only the shortcut list draws them: a panel names no keys, the list ? opens does.</summary>
 internal static class KeyCaps
 {
     /// <summary>

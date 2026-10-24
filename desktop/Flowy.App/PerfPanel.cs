@@ -391,6 +391,7 @@ internal sealed class PerfPanel : StackPanel
         };
         _ramp.Classes.Add("tool");
         _ramp.Classes.Add("primary");
+        _ramp.HorizontalAlignment = HorizontalAlignment.Left; // alone on its row now, so it keeps its own width
         _ramp.Click += (_, _) =>
         {
             RampClicked?.Invoke();
@@ -609,11 +610,7 @@ internal sealed class PerfPanel : StackPanel
         }
         else Children.Add(_slider);
         Children.Add(new TickLabels(PerfView.TickLabels(run)));
-        var play = timed ? "Play" : "Ramp";
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-        if (!still) buttons.Children.Add(_ramp);
-        buttons.Children.Add(KeyHint.Of(still ? [("← →", "Step")] : [("← →", "Step"), ("P", play)]));
-        Children.Add(buttons);
+        if (!still) Children.Add(_ramp);
         if (!_pane) Children.Add(MeasureRow());
         if (run.Events.Count > 0) Children.Add(BuildEvents(model, run));
 
@@ -1052,7 +1049,6 @@ internal sealed class PerfPanel : StackPanel
         }
         Children.Add(Chrome.Section(Icons.Activity, "Load"));
         for (var i = 0; i < dials.Items.Count; i++) Children.Add(BuildDial(i, dials.Items[i], still));
-        Children.Add(KeyHint.Of(still ? [("← →", "Step")] : [("← →", "Step"), ("P", "Ramp")]));
         if (!_pane) Children.Add(MeasureRow());
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
