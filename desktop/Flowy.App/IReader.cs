@@ -53,4 +53,37 @@ internal interface IReader
 
     /// <summary>Puts text on the clipboard, and keeps it for a test that has none. False when the clipboard wasn't available.</summary>
     Task<bool> CopyAsync(string text);
+
+    /// <summary>The flow on the player and the stop it is at; null when none plays.</summary>
+    (string Flow, int Step)? Playing { get; }
+
+    /// <summary>The line style on show.</summary>
+    string LineStyle { get; }
+
+    /// <summary>The Performance tab is open with its numbers (not while editing).</summary>
+    bool PerfOpen { get; }
+
+    bool FailuresOpen { get; }
+
+    /// <summary>Why a tag can't be written, or null when it can.</summary>
+    string? SaveOff { get; }
+
+    /// <summary>The reader did something: a click on a box that waits out the double-click is dropped, and the drag just made can no longer be taken back with Esc.</summary>
+    void Interacted();
+
+    /// <summary>Something was done that ends the chance to take a dragged box back with Esc.</summary>
+    void DidSomethingElse();
+
+    /// <summary>A click on nothing: it closes the panel.</summary>
+    void PaneClicked();
+
+    void CloseDetails();
+
+    void StopAutoplay();
+
+    /// <summary>The Performance tab gives way, and a ramp stops with it.</summary>
+    void LeavePerformance();
+
+    /// <summary>Writes a run's own tag (null takes it out) into the run's file. True once it is saved and on screen.</summary>
+    Task<bool> WriteRunTagAsync(string id, CompareTag? tag);
 }

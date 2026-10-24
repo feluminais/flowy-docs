@@ -18,7 +18,7 @@ internal sealed partial class ReaderView
             set => r._side = value;
         }
 
-        public PanelTab? Tab => r._tab;
+        public PanelTab? Tab => r._panels.Tab;
 
         public bool Editing => r.Editing;
 
@@ -34,9 +34,9 @@ internal sealed partial class ReaderView
 
         public void Play(string flow, int step = 0) => r.Play(flow, step);
 
-        public void SetTab(PanelTab tab) => r.SetTab(tab);
+        public void SetTab(PanelTab tab) => r._panels.SetTab(tab);
 
-        public void CloseNavigator() => r.CloseNav();
+        public void CloseNavigator() => r._panels.CloseNav();
 
         public void SetEditing(bool on) => r.SetEditing(on);
 
@@ -44,7 +44,7 @@ internal sealed partial class ReaderView
 
         public void TakeFocus() => r.Focus();
 
-        public void RevealAll(IEnumerable<string> ids) => r._canvas.RevealAll(ids, r.RightOpen ? r._detailsWidth : 0, r.ShownTab is not null ? r._navWidth : 0);
+        public void RevealAll(IEnumerable<string> ids) => r._canvas.RevealAll(ids, r._panels.DetailsInset, r._panels.NavInset);
 
         public void ShowRun(string run, double at)
         {
@@ -55,5 +55,29 @@ internal sealed partial class ReaderView
         }
 
         public Task<bool> CopyAsync(string text) => r.CopyAsync(text);
+
+        public (string Flow, int Step)? Playing => r.PlayingFlow() is { } p ? (p.Id, r.StopIndex()) : null;
+
+        public string LineStyle => r.LineStyle;
+
+        public bool PerfOpen => r.PerfOpen;
+
+        public bool FailuresOpen => r.FailuresOpen;
+
+        public string? SaveOff => r.SaveOff;
+
+        public void Interacted() => r.Interacted();
+
+        public void DidSomethingElse() => r.DidSomethingElse();
+
+        public void PaneClicked() => r.PaneClicked();
+
+        public void CloseDetails() => r.CloseDetails();
+
+        public void StopAutoplay() => r._playback.StopAuto();
+
+        public void LeavePerformance() => r.LeavePerformance();
+
+        public Task<bool> WriteRunTagAsync(string id, CompareTag? tag) => r.WriteRunTagAsync(id, tag);
     }
 }
