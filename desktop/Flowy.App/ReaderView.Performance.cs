@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Input.Platform;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
@@ -24,11 +23,13 @@ internal sealed partial class ReaderView
     /// <summary>While editing the tab lists the runs to link, and draws none.</summary>
     private bool CanRuns => Editing && ShowPerf;
 
-    private bool RunsOpen => _tab == PanelTab.Performance && CanRuns;
+    private bool RunsOpen => _panels.Tab == PanelTab.Performance && CanRuns;
 
     private LoadRun? LoadTest => _perf.Run;
 
-    private bool PerfOpen => _tab == PanelTab.Performance && CanPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
+    private IReadOnlyDictionary<string, LoadRun> RunMap => RunDrawing.MapOf(_folder?.Runs);
+
+    private bool PerfOpen => _panels.Tab == PanelTab.Performance && CanPerf; // with only a broken run file there is no load to show, but the panel can say what is wrong
 
     /// <summary>The panel on the right, which is Details.</summary>
     private bool RightOpen => DetailsOpen;
@@ -54,9 +55,6 @@ internal sealed partial class ReaderView
         _perfPanel.PlacePicked += _perf.PlaceAll;
         _perfPanel.DialActivated += _perf.Activate; // pressing a slider makes it the dial the keys act on
         _perfPanel.Used += () => Focus(); // a control in the panel took the keyboard: give it back, so the keys work
-        _perfPanel.CompareChosen += other => OpenRunCompare(PerfRunId, other);
-        _nav.RunLinks.LinkChosen += (id, other) => LinkRun(id, other);
-        _nav.RunLinks.Unlinked += id => LinkRun(id, null);
         _nav.RunLinks.Used += () => Focus();
         _perfPanel.CreateClicked += () => _ = CopyStarterRunAsync();
     }
@@ -66,36 +64,20 @@ internal sealed partial class ReaderView
     {
         if (_folder is not { } folder) return;
         var text = PerfView.StarterRun(folder.Model, CurrentView());
-        CopiedText = text;
-        if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
-        {
-            try
-            {
-                await clipboard.SetTextAsync(text);
-                ShowNotice("Copied a starter run for this view. Fill in your numbers and save it as flowy/perf/<name>.yaml.", 6);
-                return;
-            }
-            catch (Exception)
-            {
-                // fall through to the notice below
-            }
-        }
-        ShowNotice("Couldn't copy: the clipboard wasn't available.", 6);
+        if (await CopyAsync(text)) ShowNotice("Copied a starter run for this view. Fill in your numbers and save it as flowy/perf/<name>.yaml.", 6);
+        else ShowNotice("Couldn't copy: the clipboard wasn't available.", 6);
     }
 
-    /// <summary>The run the Performance panel shows (the first when none was picked).</summary>
-    private string PerfRunId => _folder?.Runs is { } runs ? PerfView.ActiveRun(runs, _perf.RunId) : _perf.RunId;
-
-    private void OpenPerf() => SetTab(PanelTab.Performance);
+    private void OpenPerf() => _panels.SetTab(PanelTab.Performance);
 
     /// <summary>The Performance tab gives way (a comparison opens): a ramp stops with it.</summary>
     private void LeavePerformance()
     {
-        if (_tab == PanelTab.Performance) _tab = null;
+        _panels.Leave(PanelTab.Performance);
         _perf.StopRamp();
     }
 
-    private void ClosePerf() => CloseNav();
+    private void ClosePerf() => _panels.CloseNav();
 
     private void TogglePerf()
     {
