@@ -258,8 +258,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const analysis = analysisKey === undefined ? undefined : model.failures[analysisKey]
   const mode = modeIn(model, analysisKey, modeId)
   const totals = useMemo(() => outline(model, { expanded: new Set(), editing }).totals, [model, editing])
-  // The YAML tab is always there. Its files and steps need a server that keeps the history (not an exported page, not the VS Code webview); without one its panel says why.
-  const yamlStore = useMemo(() => (live && historyApi ? createHistoryStore(historyApi) : undefined), [live, historyApi])
+  // The YAML tab is always there. Its files need a server that keeps the history, or an export that carries them (not the VS Code webview); without either its panel says why.
+  const yamlStore = useMemo(() => (historyApi ? createHistoryStore(historyApi) : undefined), [historyApi])
   // A server that answers 404 keeps no history (an older flowy), and then there is nothing for the tab to show.
   const subscribeYaml = useMemo(() => (listener: () => void) => (yamlStore ? yamlStore.subscribe(listener) : () => undefined), [yamlStore])
   const yamlGone = useSyncExternalStore(subscribeYaml, () => yamlStore?.get().unavailable === true)
@@ -1164,7 +1164,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {nav === 'yaml' && (
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               {yamlStore && yamlWhy === undefined
-                ? <Yaml store={yamlStore} editing={editing} broken={broken} flow={recording?.id || (flow ? playing?.flow : undefined) || undefined} selected={selectedBox}
+                ? <Yaml store={yamlStore} readOnly={!live} editing={editing} broken={broken} flow={recording?.id || (flow ? playing?.flow : undefined) || undefined} selected={selectedBox}
                     onRestore={restoreVersion} onClear={clearHistory} />
                 : <p className="muted navnote">{yamlWhy}</p>}
             </NavPanel>

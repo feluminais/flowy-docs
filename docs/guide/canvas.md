@@ -147,7 +147,7 @@ save, it drops YAML comments and writes the file in Flowy's own layout.
 
 In the browser version, the **YAML** tab of the left-hand panel (beside Explorer and Flows, or **Y**) shows the model's files as text
 and keeps every change to them. It stays open beside Details, so a change can be watched while you edit. It is read only: change a
-model on the canvas, or in your editor.
+model on the canvas, or in your editor. A page made with `flowy export` shows the files too, marked **Read only**, with no steps.
 
 ![The YAML tab: model.yaml with the line an AI's last edit changed marked in red and green, and under it the steps from First seen up to a change to Website's tech](../images/yaml.png)
 

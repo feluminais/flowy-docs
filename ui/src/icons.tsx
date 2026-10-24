@@ -70,6 +70,8 @@ export const Bolt = one('M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11')
 export const Explorer = one('M4 3h4l2 2h9a2 2 0 0 1 2 2v2a2 2 0 0 1 -2 2h-15a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v9.5h3M7 15.5h3M13 15.5h8M13 20.5h8')
 // Tabler's file-code: the file icon of icons.ts with a pair of angle brackets on it
 export const FileCode = one(`${ICONS.file}M10 13l-1 2l1 2M14 13l1 2l-1 2`)
+// Tabler's lock
+export const Lock = icon(<><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2zM11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" /></>)
 export const Repeat = one('M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3')
 export const GitFork = one('M12 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M17 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M7 8v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2 -2v-2M12 12l0 4')
 export const ArrowsSplit = one('M21 17h-8l-3.5 -5h-6.5M21 7h-8l-3.495 5')
