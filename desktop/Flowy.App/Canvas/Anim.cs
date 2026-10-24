@@ -25,6 +25,28 @@ internal static class Anim
 
     private static double Now() => TestClock?.Invoke() ?? Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
 
+    /// <summary>
+    /// Calls <paramref name="done"/> after <paramref name="milliseconds"/> and does nothing meanwhile: a pause, which is no animation and so draws no frames. A test that moves the clock by hand
+    /// (<see cref="TestClock"/>) gets it on the animation frames, as every other run. Disposing the result cancels it.
+    /// </summary>
+    public static IDisposable Wait(Control host, double milliseconds, Action done)
+    {
+        if (TestClock is not null || TopLevel.GetTopLevel(host) is null) return Run(host, milliseconds, t => t, _ => { }, done);
+        DispatcherTimer? timer = null;
+        timer = new DispatcherTimer(TimeSpan.FromMilliseconds(Math.Max(1, milliseconds)), DispatcherPriority.Normal, (_, _) =>
+        {
+            timer!.Stop();
+            done();
+        });
+        timer.Start();
+        return new Stopper(timer);
+    }
+
+    private sealed class Stopper(DispatcherTimer timer) : IDisposable
+    {
+        public void Dispose() => timer.Stop();
+    }
+
     /// <summary>Starts it. Disposing the result stops it where it is, without calling <c>done</c>.</summary>
     public static IDisposable Run(Control host, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done = null)
     {
