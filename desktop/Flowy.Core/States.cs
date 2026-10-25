@@ -1,7 +1,7 @@
 namespace Flowy.Core;
 
 /// <summary>A shape that is not Running (<c>State</c>), and whether that is only because something inside it is not (<c>Inside</c>).</summary>
-public sealed record StateMark(string State, bool Inside);
+public sealed record StateMark(string State, bool Inside, string? Via = null);
 
 /// <summary>
 /// The state a shape is in: a port of src/core/states.ts, with the same wording and the same order. A shape is Running unless a flow says otherwise: a
@@ -124,7 +124,7 @@ public static class States
             {
                 if (above == Flowy.Core.Names.Root || states.ContainsKey(above)) continue;
                 var seen = marks.TryGetValue(above, out var mark) ? mark.State : null;
-                if (seen is null || Array.IndexOf(Worst, state) < Array.IndexOf(Worst, seen)) marks[above] = new StateMark(state, true);
+                if (seen is null || Array.IndexOf(Worst, state) < Array.IndexOf(Worst, seen)) marks[above] = new StateMark(state, true, Views.NameOf(model, id));
             }
         }
         return marks;

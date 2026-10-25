@@ -167,15 +167,15 @@ test('marksOf: a stopped child marks its system inside, own state wins, running 
   const marks = marksOf(model, { orders: 'stopped', db: 'degraded', web: 'running' })
   assert.deepEqual(marks.orders, { state: 'stopped', inside: false })
   assert.deepEqual(marks.db, { state: 'degraded', inside: false })
-  assert.deepEqual(marks.api, { state: 'stopped', inside: true })
-  assert.deepEqual(marks.shop, { state: 'stopped', inside: true }) // the worst below: stopped beats degraded
+  assert.deepEqual(marks.api, { state: 'stopped', inside: true, via: 'Orders' }) // the shape inside that is stopped, by name
+  assert.deepEqual(marks.shop, { state: 'stopped', inside: true, via: 'Orders' }) // the worst below: stopped beats degraded, and it is Orders that is stopped
   assert.equal(Object.hasOwn(marks, 'web'), false) // running draws nothing
   assert.equal(Object.hasOwn(marks, 'customer'), false)
   assert.equal(Object.hasOwn(marks, 'root'), false)
 
   const own = marksOf(model, { orders: 'stopped', api: 'degraded' })
   assert.deepEqual(own.api, { state: 'degraded', inside: false }) // its own state, not the roll-up
-  assert.deepEqual(own.shop, { state: 'stopped', inside: true }) // the roll-up still climbs past it
+  assert.deepEqual(own.shop, { state: 'stopped', inside: true, via: 'Orders' }) // the roll-up still climbs past it
 
   const explicit = marksOf(model, { orders: 'stopped', api: 'running' })
   assert.equal(Object.hasOwn(explicit, 'api'), false) // an own Running is its own state too

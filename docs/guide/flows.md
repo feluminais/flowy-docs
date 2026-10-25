@@ -168,7 +168,7 @@ a parallel group, where stop *k* is the *k*-th step of every lane: five one-step
 together, and a lane that has run out simply drops out. The card says where you are: a chip names the group (`Repeats 3 times`,
 `One of 2`, `At the same time, 2 lanes`), a branch lists its lanes as tabs with yours marked, the group's own `text` follows, and the
 progress bar has a cell for each stop and a box around each group. A repeat's box says ×3, and it is dashed when the repeat has an
-`until` and may stop sooner ("up to 3"). A branch's box has a row for each lane with the lane's name above it, and the lanes you are
+`until` and may stop sooner ("up to 3 times"). A branch's box has a row for each lane with the lane's name above it, and the lanes you are
 not in are hollow. Point at a cell or a box to read what it means, or press the **?** on the card for a key to all of it. A parallel
 stop shows a block for each lane. On the canvas a small label on each lit line says how often it repeats or which lane it is, and the
 lanes of a branch you are not in are dashed and faint. A step with `flow:` has an **Open flow** button. It plays that flow on its own level and puts a bar at the top
@@ -213,7 +213,7 @@ steps:
 - A step's change holds from that stop until another step changes it, so set a shape back to `running` when it recovers. The state at any stop is worked out from the start and the steps before it, which means stepping back needs no undo and no timer.
 - In a parallel stop every lane's change applies, and two lanes that set one shape to different states are a problem. In a branch each lane starts from the state before the branch, and the last lane's changes carry on after it. If a shape's state after a branch matters, set it again in the next step.
 - A flow that another flow opens starts from its own `states`, not from where the first one left off.
-- At the overview, a shape with no state of its own shows the worst state of what is inside it (Stopped, then Restarting, Degraded, Stopping, Starting) on a dashed ring that reads "Stopped inside". A state of its own shows instead.
+- At the overview, a shape with no state of its own shows the worst state of what is inside it (Stopped, then Restarting, Degraded, Stopping, Starting) on a dashed ring that reads "Stopped inside: Checkout", naming the shape inside that is stopped. A state of its own shows instead.
 - The player card has a key for the states on the canvas now, and Details names the state of the shape it shows. A change takes about 0.6 seconds. Starting and Restarting keep moving, and Degraded pulses, for as long as they are on screen. Nothing moves when the system asks for less motion; the dimming, outline and symbol stay.
 
 Flowy checks it as it checks everything else: an id that isn't a shape, a word that isn't one of the six, `states` that isn't a mapping of ids to words, and two lanes of one parallel stop that disagree. A change that deletes a shape that only a `states` names is refused, as it is for a step's shape.
