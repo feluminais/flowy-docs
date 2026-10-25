@@ -1,5 +1,5 @@
 name: "Dinner rush"
-about: "Made-up numbers for the demo. A dinner rush from 100 to 1,200 orders a minute, 5 min per level. Delivery gives way first: each order makes six Mapbox travel-time calls, the plan allows about 100 a second, and Order events backs up behind Dispatch."
+about: "A dinner rush from 100 to 1,200 orders a minute, 5 min per level. Delivery gives way first: each order makes six Mapbox travel-time calls, the plan allows about 100 a second, and Order events backs up behind Dispatch."
 unit: orders/min
 entry: customer-app
 levels:

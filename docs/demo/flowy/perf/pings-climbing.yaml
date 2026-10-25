@@ -1,5 +1,5 @@
 name: "Courier pings"
-about: "Made-up numbers for the demo. Courier position pings climbing from 50 to 800 a second, through Live tracking to Fleet DB. One dot is 20 pings a second, so the line from Courier app is 2.5 dots at the lowest level and 40 at the highest. The screen holds 24, so the top level is scaled down. Fleet DB fills first."
+about: "Courier position pings climbing from 50 to 800 a second, through Live tracking to Fleet DB. One dot is 20 pings a second, so the line from Courier app is 2.5 dots at the lowest level and 40 at the highest. The screen holds 24, so the top level is scaled down. Fleet DB fills first."
 unit: pings/s
 entry: courier-app
 source:

@@ -489,7 +489,7 @@ objects:
     description: |
       What a store holds: tables as columns and sample rows, key sets, topics and sample documents, each with a limits line and short notes. It computes what the Data section shows and what is wrong with the data: a row of the wrong width, a sample nested too deep, a note on a field that is not there.
 
-      The author types it, or an AI writes it from the code. Flowy never connects to a database. Nothing here draws: the canvas and the desktop app each draw the entries, and the desktop app's port (`StoreData.cs`) is kept equal by fixtures.
+      The author types it, or an AI writes it from the schema and the code. Nothing here draws: the canvas and the desktop app each draw the entries, and the desktop app's port (`StoreData.cs`) is kept equal by fixtures.
   snippets:
     type: component
     in: core

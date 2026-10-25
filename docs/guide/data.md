@@ -11,7 +11,7 @@ The browser and the desktop app draw it the same way.
 
 ![Orders DB's panel: the orders table with a key mark on id and customer_id, a dot on total and its note under the table, and three more tables closed to a line each](../images/desktop-data.png)
 
-Flowy never connects to a database. You write the entries, or an AI writes them from the code, and the sample rows are made up. A
+You write the entries by hand, or an AI agent writes them from the schema and the code. A
 store's `data:` is a list, and each entry is one table, one set of keys, one topic or one collection:
 
 ```yaml

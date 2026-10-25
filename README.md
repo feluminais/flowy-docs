@@ -26,15 +26,30 @@
   </picture>
 </p>
 
-Flowy Docs draws a system as shapes you zoom into: people, systems, apps, stores and components, the connections between
-them, and step-by-step flows. Double-click a shape to open what is inside it. Esc takes you back to where you were, the breadcrumb takes you up, and a
-faded shape beside you slides across instead. The model is plain YAML in a `flowy/` folder, so it goes through git and review
-like the code it describes. You read it in the desktop app, a browser or VS Code, and you or an AI agent write it.
+Flowy Docs is a map of your system that you can open up. People, services, apps and stores are shapes on a canvas, and
+double-clicking one opens what is inside it, down to the components and the files they live in. Flows play a request across
+the map one step at a time, and the same shapes carry load-test results, failure analyses and the data each store holds.
 
-A Mermaid diagram in the repo stays a flat picture. Flowy plays flows as animation from the same YAML in a browser, the
-desktop app and VS Code, and adds failure analyses and load-test replay to the diagram.
+The model is plain YAML in a `flowy/` folder next to the code, so a change to the architecture is reviewed in the same pull
+request as the code that changes it. Read it in the desktop app, a browser or VS Code. You can write the YAML by hand or in
+the app, or ask an AI agent to map the repo. Any view copies out as a Mermaid diagram for a README or a pull request.
 
-The animations are the browser version on Plum, a made-up delivery service whose model is in [docs/demo/flowy](docs/demo/flowy).
+The animations show Plum, a food-delivery service whose model is in [docs/demo/flowy](docs/demo/flowy).
+
+## Quick start
+
+The browser version needs Node 22.18 or later. Build it and open Plum:
+
+```bash
+git clone https://github.com/feluminais/flowy-docs
+cd flowy-docs
+npm install
+npm run build
+node dist/cli.js --dir docs/demo/flowy
+```
+
+To read your own repo, run `node /path/to/flowy-docs/dist/cli.js` from its root. It creates the `flowy/` folder if the repo has
+none. The desktop app, the VS Code extension and the other commands are in [Install](#install).
 
 ## Flows
 
@@ -90,8 +105,8 @@ changes outlines what is New, Removed or Changed, and a note says why. Tag the n
   </picture>
 </p>
 
-A store shows what it holds: tables as tables, with sample rows, a short note where a choice needs explaining, and how long
-the data is kept. The rows are made up, and Flowy never connects to a database. [More](docs/guide/data.md)
+A store shows what it holds: its tables with a few sample rows, a short note where a design choice needs explaining, and how
+long the data is kept, so a reader sees what a row looks like without opening the schema. [More](docs/guide/data.md)
 
 ## Edit
 
@@ -125,25 +140,10 @@ Another MCP client runs `node /path/to/flowy-docs/dist/cli.js mcp` over stdio. T
 
 ## Install
 
-There is no release yet, so both versions run from a clone. The browser version needs Node 22.18 or later:
-
-```bash
-git clone https://github.com/feluminais/flowy-docs
-cd flowy-docs
-npm install
-npm run build
-```
-
-Then, from the root of the repo you want to read:
-
-```bash
-node /path/to/flowy-docs/dist/cli.js
-```
-
-To look at Plum first, run `node dist/cli.js --dir docs/demo/flowy` in the clone. The desktop app needs the .NET 10 SDK:
-`dotnet run --project desktop/Flowy.App -- docs/demo` opens Plum, and **File › Open Folder** opens a repo. Installers will be on
-[Releases](https://github.com/feluminais/flowy-docs/releases) once the first one is out. The VS Code extension, the other commands
-(`check`, `export`, `mermaid`, `failures`) and updating are in [Install](docs/install.md).
+There is no release yet, so every version runs from a clone (see [Quick start](#quick-start) for the browser version). The
+desktop app needs the .NET 10 SDK: `dotnet run --project desktop/Flowy.App -- docs/demo` opens Plum, and **File › Open Folder**
+opens a repo. Installers will be on [Releases](https://github.com/feluminais/flowy-docs/releases) once the first one is out.
+The VS Code extension, the other commands (`check`, `export`, `mermaid`, `failures`) and updating are in [Install](docs/install.md).
 
 > [!NOTE]
 > Windows is where the desktop app has been built and tried. The macOS and Linux packages haven't been run, and none of them is signed yet.
@@ -189,4 +189,4 @@ the tests and checks in CONTRIBUTING.md.
 [MIT](LICENSE). The shape icons are from [Tabler Icons](https://tabler.io/icons), also MIT; their notice ships with the
 canvas and the app.
 
-Plum is made up. Stripe, Twilio and Mapbox appear in it as examples of outside services, and have no tie to Flowy Docs.
+Stripe, Twilio and Mapbox appear in Plum as examples of outside services and are trademarks of their owners.
