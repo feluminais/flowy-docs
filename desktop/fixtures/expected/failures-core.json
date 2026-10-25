@@ -3902,6 +3902,10 @@
                 "ids": []
               },
               {
+                "box": "support",
+                "ids": []
+              },
+              {
                 "line": [
                   "customer",
                   "customer-app"
@@ -4257,6 +4261,14 @@
               },
               {
                 "box": "notifications",
+                "ids": []
+              },
+              {
+                "box": "customer",
+                "ids": []
+              },
+              {
+                "box": "restaurant",
                 "ids": []
               },
               {
@@ -4976,6 +4988,10 @@
                 "ids": []
               },
               {
+                "box": "customer",
+                "ids": []
+              },
+              {
                 "line": [
                   "menu",
                   "menu-cache"
@@ -5286,6 +5302,10 @@
               },
               {
                 "box": "notifications",
+                "ids": []
+              },
+              {
+                "box": "customer",
                 "ids": []
               },
               {

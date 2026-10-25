@@ -2,6 +2,8 @@ name: The carrier drops the SMS
 view: root
 tags: [error path]
 steps:
+  - { from: customer, to: ordering, text: Places an order, animation: { kind: send, carries: basket }, flow: place-order }
+  - { from: ordering, to: notifications, text: Asks for an SMS that confirms it, animation: { kind: send, carries: confirm } }
   - { from: notifications, to: twilio, text: Hands the confirmation to Twilio, animation: { kind: send, carries: SMS } }
   - from: twilio
     to: customer

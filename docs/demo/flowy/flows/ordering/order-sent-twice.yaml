@@ -2,6 +2,7 @@ name: A double tap sends the order twice
 view: ordering
 tags: [edge case]
 steps:
+  - { from: customer, to: customer-app, text: "Taps Place order, and again when nothing seems to happen", animation: { kind: send, carries: basket } }
   - from: customer-app
     to: order-api
     text: The same order arrives twice

@@ -164,7 +164,7 @@ const scenes = {
       await play('Customer places an order', 7)
       await s.key('Escape'); await s.wait(900)
       await s.caption('Retries and branches')
-      await play('The payment is captured', 6)
+      await play('The payment is captured', 9)
       await s.caption(null)
       await s.key('Escape'); await s.wait(1000)
     },

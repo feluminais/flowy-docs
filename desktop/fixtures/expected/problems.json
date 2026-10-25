@@ -175,7 +175,10 @@
           "from": "customer",
           "to": "shop",
           "text": "outside to inside",
-          "placed": null,
+          "placed": [
+            "customer",
+            "shop"
+          ],
           "ends": "Customer → Shop"
         },
         {
@@ -348,11 +351,6 @@
     },
     {
       "file": "flows/steps.yaml",
-      "message": "step 1: customer → shop can't be shown in view \"shop\"",
-      "step": 0
-    },
-    {
-      "file": "flows/steps.yaml",
       "message": "step 2: goes from an object to itself (leave out \"to\" for a step one shape does on its own)",
       "step": 1
     },
@@ -415,8 +413,13 @@
         "nameless",
         "actor-in"
       ],
-      "outsiders": [],
-      "edges": []
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [],
+      "actors": [
+        "customer"
+      ]
     }
   }
 }
