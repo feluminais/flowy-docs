@@ -47,11 +47,7 @@ public class FailuresPanelTests
 
     private static Button Named(ReaderView reader, string name) => reader.FailuresPanelNow.Buttons.First(b => Avalonia.Automation.AutomationProperties.GetName(b) == name);
 
-    private static string Name(RankedMode r, Model model)
-    {
-        var part = Failures.PartName(model, r.Mode);
-        return $"{Failures.BandName(r.Band)}. {part}, {r.Mode.Mode}{(r.Risk is { } n ? $", risk {n}" : "")}";
-    }
+    private static string Name(RankedMode r, Model model) => Failures.RowName(model, r);
 
     [AvaloniaFact]
     public void The_left_rail_has_a_Failures_button_where_there_is_an_analysis_and_the_number_on_it_is_how_many_modes()
@@ -132,8 +128,8 @@ public class FailuresPanelTests
         var model = reader.Folder!.Model;
         var expected = Failures.Rank(model.Failures["ordering"]).Select(r => Name(r, model)).ToList();
         Assert.Equal(expected, reader.FailuresPanelNow.Rows.Select(r => r.Name));
-        Assert.Equal("High. Shop > API > Auth, The login lock is never released, risk 150", expected[0]); // 6 x 5 x 5 outranks the database's 40, though its severity is 10
-        Assert.Equal("High. Shop > Orders DB, The database is unreachable, risk 40", expected[1]);
+        Assert.Equal("Auth: The login lock is never released. High, risk 150. Shop > API", expected[0]); // 6 x 5 x 5 outranks the database's 40, though its severity is 10
+        Assert.Equal("Orders DB: The database is unreachable. High, risk 40. Shop", expected[1]);
         Assert.DoesNotContain(reader.FailuresPanelNow.Rows, r => r.Current);
     }
 
@@ -153,21 +149,59 @@ public class FailuresPanelTests
         Assert.Contains("Rehearse the failover. · Platform · Planned", texts);
         Assert.Contains("Web app, API", texts);
         Assert.Contains("40", texts);
-        Assert.Contains(" · After: 40 to 20", texts);
+        Assert.Contains("Risk after next action: 40 to 20", texts);
         Assert.Contains("1: Nobody notices", texts);
         Assert.Contains("10: Someone loses money", texts);
         Assert.Contains(reader.FailuresPanelNow.Rows, r => r.Current && r.Name.Contains("The database is unreachable"));
         Assert.Equal(("ordering", "db-down", null, false), reader.FailuresState);
         Assert.Equal(FailLight.Fails, reader.Canvas.FailureOnBox("db").Light);
         Assert.Equal(FailLight.Affects, reader.Canvas.FailureOnBox("web").Light);
-        Assert.Contains("fails", reader.FailuresPanelNow.KeyMarks); // the key draws the marks the canvas has now
-        Assert.Contains("affects", reader.FailuresPanelNow.KeyMarks);
+        Assert.Contains("fails band-high", reader.FailuresPanelNow.KeyMarks); // the key draws the marks the canvas has now, in the picked mode's band colour
+        Assert.Contains("affects band-high", reader.FailuresPanelNow.KeyMarks);
         Assert.Contains("high", reader.FailuresPanelNow.KeyMarks);
 
         Click(reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("failrow") && b.Classes.Contains("current")));
         Assert.Null(reader.FailuresState.Mode);
         Assert.Equal(FailLight.None, reader.Canvas.FailureOnBox("db").Light);
         Assert.DoesNotContain("Orders can't be saved.", reader.FailuresPanelNow.Texts);
+    }
+
+    [AvaloniaFact]
+    public void The_picked_mode_has_its_card_above_the_list_and_its_row_says_it_is_selected()
+    {
+        var (window, reader) = Open();
+        OpenOn(window, reader, "ordering");
+        reader.GoTo("shop");
+        reader.PickModeById("db-down");
+        var texts = reader.FailuresPanelNow.Texts;
+        Assert.True(texts.ToList().IndexOf("Orders can't be saved.") < texts.ToList().IndexOf("THIS VIEW"), "the card is above the list");
+        var row = reader.FailuresPanelNow.Buttons.First(b => b.Classes.Contains("failrow") && b.Classes.Contains("current"));
+        Assert.Equal("Selected", Avalonia.Automation.AutomationProperties.GetItemStatus(row));
+        Assert.All(reader.FailuresPanelNow.Buttons.Where(b => b.Classes.Contains("failrow") && !b.Classes.Contains("current")), b => Assert.Equal("", Avalonia.Automation.AutomationProperties.GetItemStatus(b) ?? ""));
+        reader.PickModeById(null);
+        Assert.DoesNotContain("Orders can't be saved.", reader.FailuresPanelNow.Texts);
+    }
+
+    [AvaloniaFact]
+    public void The_numbers_are_headed_Risk_and_each_band_says_what_puts_a_mode_in_it()
+    {
+        var (window, reader) = Open();
+        OpenOn(window, reader, "ordering");
+        var texts = reader.FailuresPanelNow.Texts;
+        Assert.Contains("Risk", texts);
+        foreach (var band in new[] { RiskBand.High, RiskBand.Medium, RiskBand.Low, RiskBand.Unrated }) // a button's own words are named by its automation name
+            Assert.Contains(reader.FailuresPanelNow.BandButtons, b => b.Name.EndsWith(". " + Failures.BandRule(band)));
+    }
+
+    [AvaloniaFact]
+    public void The_fails_and_affects_marks_of_a_Medium_mode_are_drawn_in_its_band()
+    {
+        var (window, reader) = Open();
+        OpenOn(window, reader, "ordering");
+        reader.GoTo("shop");
+        reader.PickModeById("mail-timeout");
+        Assert.Contains("fails band-medium", reader.FailuresPanelNow.KeyMarks);
+        Assert.Contains("affects band-medium", reader.FailuresPanelNow.KeyMarks); // it hurts Web app
     }
 
     [AvaloniaFact]
@@ -219,14 +253,14 @@ public class FailuresPanelTests
         var model = reader.Folder!.Model;
         var counts = FailuresView.BandCounts(model.Failures["ordering"]);
         Assert.Equal(
-            new[] { $"High, {counts[RiskBand.High]}", $"Medium, {counts[RiskBand.Medium]}", $"Low, {counts[RiskBand.Low]}", $"Not rated, {counts[RiskBand.Unrated]}" },
+            new[] { $"High, {counts[RiskBand.High]}. Risk 150+ or severity 9+", $"Medium, {counts[RiskBand.Medium]}. Risk 60 to 149", $"Low, {counts[RiskBand.Low]}. Risk under 60", $"Not rated, {counts[RiskBand.Unrated]}. A rating missing" },
             reader.FailuresPanelNow.BandButtons.Select(b => b.Name));
-        Click(Named(reader, $"High, {counts[RiskBand.High]}"));
+        Click(Named(reader, $"High, {counts[RiskBand.High]}. Risk 150+ or severity 9+"));
         Assert.Equal(RiskBand.High, reader.FailuresState.Band);
         Assert.Equal(counts[RiskBand.High], reader.FailuresPanelNow.Rows.Count);
-        Assert.All(reader.FailuresPanelNow.Rows, r => Assert.StartsWith("High.", r.Name));
+        Assert.All(reader.FailuresPanelNow.Rows, r => Assert.Contains(". High", r.Name));
         Assert.True(reader.FailuresPanelNow.BandButtons.First().Pressed);
-        Click(Named(reader, $"High, {counts[RiskBand.High]}"));
+        Click(Named(reader, $"High, {counts[RiskBand.High]}. Risk 150+ or severity 9+"));
         Assert.Null(reader.FailuresState.Band);
         Assert.Equal(model.Failures["ordering"].Modes.Count, reader.FailuresPanelNow.Rows.Count);
     }
@@ -240,10 +274,10 @@ public class FailuresPanelTests
         var left = Failures.Coverage(model, model.Failures["ordering"]).Left.Count;
         Click(Named(reader, $"Not analysed ({left})"));
         Assert.True(reader.FailuresState.Left);
-        Click(Named(reader, "High, 2")); // a band leaves the list of shapes for the rows of that band
+        Click(Named(reader, "High, 2. Risk 150+ or severity 9+")); // a band leaves the list of shapes for the rows of that band
         Assert.False(reader.FailuresState.Left);
         Assert.Equal(RiskBand.High, reader.FailuresState.Band);
-        Assert.All(reader.FailuresPanelNow.Rows, r => Assert.StartsWith("High.", r.Name));
+        Assert.All(reader.FailuresPanelNow.Rows, r => Assert.Contains(". High", r.Name));
         Click(Named(reader, $"Not analysed ({left})")); // and the shapes leave the band
         Assert.True(reader.FailuresState.Left);
         Assert.Null(reader.FailuresState.Band);
@@ -275,7 +309,7 @@ public class FailuresPanelTests
         var (analysed, left) = Failures.Coverage(model, model.Failures["empty"]);
         Assert.Equal(5, left.Count);
         Assert.Contains("No failure modes yet.", reader.FailuresPanelNow.Texts);
-        Assert.Contains($"Analysed {analysed.Count} of {analysed.Count + left.Count}", reader.FailuresPanelNow.Texts);
+        Assert.Contains($"Analysed {analysed.Count} of {analysed.Count + left.Count} shapes", reader.FailuresPanelNow.Texts);
         var link = Named(reader, $"Not analysed ({left.Count})");
         Click(link);
         Assert.True(reader.FailuresState.Left);
@@ -295,7 +329,7 @@ public class FailuresPanelTests
         var mode = model.Failures["ordering"].Modes["stripe-timeout"];
         Assert.Equal("capture-payment", mode.Flow);
         reader.PickModeById("stripe-timeout");
-        Click(Named(reader, "Show it"));
+        Click(Named(reader, "Show it: play the flow \"The payment is captured\""));
         Assert.False(reader.FailuresOpenNow);
         Assert.Equal("capture-payment", reader.PlayingFlowId);
         Assert.Equal(Structure.StopIndexOf(Structure.Stops(model.Flows["capture-payment"]), int.Parse(mode.Step!) - 1), reader.PlayingStep);
@@ -312,7 +346,7 @@ public class FailuresPanelTests
         var mode = model.Failures["ordering"].Modes["mail-timeout"];
         var at = FailuresView.FirstErrorAt(model, run, mode)!.Value;
         reader.PickModeById("mail-timeout");
-        Click(Named(reader, "Seen in a run"));
+        Click(Named(reader, FailuresView.SeenInRunName));
         Assert.False(reader.FailuresOpenNow);
         Assert.True(reader.PerfOpenNow);
         Assert.Equal(("spike", (double)at, false), reader.PerfState);
@@ -325,8 +359,8 @@ public class FailuresPanelTests
         var (window, reader) = Open();
         OpenOn(window, reader, "ordering");
         reader.PickModeById("db-down"); // names no run
-        Assert.DoesNotContain(reader.FailuresPanelNow.Buttons, b => Avalonia.Automation.AutomationProperties.GetName(b) == "Seen in a run");
-        Assert.Contains(reader.FailuresPanelNow.Buttons, b => Avalonia.Automation.AutomationProperties.GetName(b) == "Show it"); // it does name a flow
+        Assert.DoesNotContain(reader.FailuresPanelNow.Buttons, b => Avalonia.Automation.AutomationProperties.GetName(b) == FailuresView.SeenInRunName);
+        Assert.Contains(reader.FailuresPanelNow.Buttons, b => Avalonia.Automation.AutomationProperties.GetName(b)!.StartsWith("Show it: play the flow")); // it does name a flow
     }
 
     [AvaloniaFact]

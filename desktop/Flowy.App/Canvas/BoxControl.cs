@@ -457,7 +457,7 @@ internal sealed class BoxControl : Grid
     /// <summary>What a test can look at: how the Used by panel marks this shape.</summary>
     internal UsedMark UsedShown => Classes.Contains("going") ? UsedMark.Going : Classes.Contains("flagged") ? UsedMark.Flagged : UsedMark.None;
 
-    public void SetFailure(FailureMark? mark, FailLight light)
+    public void SetFailure(FailureMark? mark, FailLight light, RiskBand litBand = RiskBand.High)
     {
         _failMark = mark;
         Classes.Set("failmarked", mark is not null);
@@ -469,13 +469,17 @@ internal sealed class BoxControl : Grid
             AutomationProperties.SetName(badge, mark is null ? null : FailureLabel(mark));
         }
         if (light != FailLight.None) _ = FailLine; // the outline of a shape that fails or is hurt
+        foreach (var band in Enum.GetValues<RiskBand>()) Classes.Set("band-" + Failures.BandKey(band), light is FailLight.Fails or FailLight.Affects && litBand == band); // the outline takes the picked mode's band colour
         Classes.Set("fails", light == FailLight.Fails);
         Classes.Set("affected", light == FailLight.Affects);
         Classes.Set("faildim", light == FailLight.Dim);
     }
 
     /// <summary>The badge's words: how many, and the band, so the colour is never the only copy.</summary>
-    internal static string FailureLabel(FailureMark mark) => $"{mark.Count} failure{(mark.Count == 1 ? "" : "s")}, {Failures.BandName(mark.Band)}";
+    internal static string FailureLabel(FailureMark mark) => Failures.BadgeName(mark);
+
+    /// <summary>What a test can look at: the band whose colour outlines this shape (the picked mode's), or none while it is not outlined.</summary>
+    internal RiskBand? OutlineBand => Enum.GetValues<RiskBand>().Where(b => Classes.Contains("band-" + Failures.BandKey(b))).Select(b => (RiskBand?)b).FirstOrDefault();
 
     /// <summary>What a test can look at: the badge showing now (null when none) and how the shape is lit.</summary>
     internal (FailureMark? Mark, FailLight Light) FailureShown =>
