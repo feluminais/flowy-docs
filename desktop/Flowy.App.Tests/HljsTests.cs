@@ -6,18 +6,16 @@ using Xunit;
 
 namespace Flowy.App.Tests;
 
-/// <summary>
-/// Test classes that give highlight.js its time limits run on their own, after the rest. Beside other classes a CI machine can starve a
-/// pattern past its 500 ms, and highlight.js then answers with the code uncoloured.
-/// </summary>
-[CollectionDefinition(nameof(RunsAlone), DisableParallelization = true)]
-public sealed class RunsAlone;
-
 /// <summary>highlight.js running inside the app: it must write what node writes for the canvas, give up quietly when it cannot, and never take long over hostile code.</summary>
-[Collection(nameof(RunsAlone))]
 public class HljsTests
 {
     private static JsonNode Expected() => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "highlight.json")))!;
+
+    /// <summary>
+    /// The script the app runs, with time to spare. The app's gives a snippet 2 s and a pattern 500 ms and shows it plain past that, and the colours
+    /// keep that plain answer. A test machine running the whole suite can take that long, so the tests about the grammars use this one.
+    /// </summary>
+    private static readonly Hljs Patient = new(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(1));
 
     [Fact]
     public void Each_language_is_coloured_with_the_same_HTML_the_canvas_gets()
@@ -25,18 +23,7 @@ public class HljsTests
         var snippets = Expected()["snippets"]!.AsArray();
         Assert.True(snippets.Count >= 20);
         foreach (var s in snippets)
-            Assert.Equal(s!["html"]!.GetValue<string>(), Patiently(() => Hljs.Highlight(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()), html => html?.Contains("<span", StringComparison.Ordinal) == true));
-    }
-
-    /// <summary>
-    /// A snippet gets 2 s and each pattern 500 ms, and past that it shows plain, as the app means it to: as null, or as the code with no
-    /// colours. A busy test machine can take that long, and these tests are about the grammars, so a plain answer is tried again a few times.
-    /// </summary>
-    private static T Patiently<T>(Func<T> highlight, Func<T, bool> coloured)
-    {
-        var result = highlight();
-        for (var i = 0; i < 3 && !coloured(result); i++) result = highlight();
-        return result;
+            Assert.Equal(s!["html"]!.GetValue<string>(), Patient.Html(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()));
     }
 
     [Fact]
@@ -55,7 +42,7 @@ public class HljsTests
         foreach (var s in Expected()["snippets"]!.AsArray())
         {
             var text = s!["text"]!.GetValue<string>();
-            var runs = Patiently(() => CodeInk.Runs(text, s["language"]!.GetValue<string>()), got => got.Any(r => r.Kind is not null));
+            var runs = CodeRuns.FromHtml(Patient.Html(text, s["language"]!.GetValue<string>())!);
             Assert.Equal(text, string.Concat(runs.Select(r => r.Text)));
             Assert.Contains(runs, r => r.Kind is not null);
         }
@@ -64,7 +51,7 @@ public class HljsTests
     [Fact]
     public void Colours_follow_the_kinds_highlight_js_gives()
     {
-        var runs = CodeInk.Runs("const fee = 2 // later", "typescript");
+        var runs = CodeRuns.FromHtml(Patient.Html("const fee = 2 // later", "typescript")!);
         Assert.Contains(new CodeRun("const", TokenKind.Keyword), runs);
         Assert.Contains(new CodeRun("2", TokenKind.Number), runs);
         Assert.Contains(runs, r => r.Kind == TokenKind.Comment && r.Text.StartsWith("// later"));
@@ -95,7 +82,7 @@ public class HljsTests
     [Fact]
     public void Calls_from_several_threads_at_once_all_get_their_own_answer()
     {
-        var results = Enumerable.Range(0, 40).AsParallel().AsOrdered().Select(i => Hljs.Highlight($"const n{i} = {i}", "typescript")).ToList();
+        var results = Enumerable.Range(0, 40).AsParallel().AsOrdered().Select(i => Patient.Html($"const n{i} = {i}", "typescript")).ToList();
         for (var i = 0; i < results.Count; i++) Assert.Contains($"n{i}", results[i]);
         Assert.All(results, r => Assert.Contains("hljs-keyword", r));
     }

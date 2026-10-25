@@ -19,7 +19,7 @@ internal sealed class MarkdownView : StackPanel
 {
     private static readonly MarkdownPipeline Pipeline = new MarkdownPipelineBuilder().Build();
     // A description this long is a document, and drawing it all would stall the window.
-    private const int MaxLength = 20_000;
+    internal const int MaxLength = 20_000;
 
     private readonly double _size;
 
