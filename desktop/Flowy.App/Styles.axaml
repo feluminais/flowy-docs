@@ -411,6 +411,10 @@
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
   </Style>
   <Style Selector="TextBlock.barlane.on"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <!-- A branch on the bar is a fork: square-cornered lines to each lane, the way to the lane shown in the accent, and a bare line round an "only if". -->
+  <Style Selector="Path.elbow"><Setter Property="Stroke" Value="{DynamicResource LineBrush}" /><Setter Property="StrokeThickness" Value="2" /></Style>
+  <Style Selector="Path.elbow.on"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.round"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
   <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
   <Style Selector="Border.tab">
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
