@@ -39,9 +39,12 @@ public class HostileInputTests
     {
         var clock = Stopwatch.StartNew();
         var view = new MarkdownView(string.Concat(Enumerable.Repeat("[a](", 40_000)));
-        Assert.NotEmpty(view.Children);
-        // About 3 s on a desktop and twice that on a CI machine: the bound is for a parse that slows down sharply as the input grows.
-        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(15), $"took {clock.Elapsed}");
+        var shown = string.Concat(view.Children.OfType<SelectableTextBlock>().SelectMany(t => t.Inlines!.OfType<Run>()).Select(r => r.Text));
+        Assert.Equal(MarkdownView.MaxLength + 1, shown.Length);
+        Assert.EndsWith("…", shown);
+        // The cut is what keeps it quick, and it is checked above. The clock only catches a stall: this takes a second or two on a desktop, and
+        // has taken 16 s on a CI machine late in the whole suite, when the test process has grown to several GB.
+        Assert.True(clock.Elapsed < TimeSpan.FromMinutes(1), $"took {clock.Elapsed}");
     }
 
     [AvaloniaFact]

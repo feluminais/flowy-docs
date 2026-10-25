@@ -9,13 +9,22 @@ namespace Flowy.App;
 /// same colours and the same language in the app and in the browser. Jint is a JavaScript interpreter written in C#; nothing here is a web view
 /// and nothing from the model runs as script, the code is only ever passed in as a string. Slow code is stopped, and a failure gives no answer.
 /// </summary>
-internal static class Hljs
+/// <param name="load">How long loading the script may take.</param>
+/// <param name="snippet">How long one snippet may take.</param>
+/// <param name="pattern">How long one pattern may take over one snippet.</param>
+internal sealed class Hljs(TimeSpan load, TimeSpan snippet, TimeSpan pattern)
 {
-    private static readonly object Gate = new();
-    private static Engine? _engine;
-    private static bool _broken;
+    /// <summary>
+    /// The one the app colours with. Loading the script gets far longer than a snippet does: a load that runs out of time on a busy machine would
+    /// leave the engine broken, and every snippet plain, until the app is started again.
+    /// </summary>
+    private static readonly Hljs App = new(TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(2), TimeSpan.FromMilliseconds(500));
 
-    private static Engine? Start()
+    private readonly object _gate = new();
+    private Engine? _engine;
+    private bool _broken;
+
+    private Engine? Start()
     {
         if (_engine is not null || _broken) return _engine;
         try
@@ -23,12 +32,10 @@ internal static class Hljs
             using var stream = typeof(Hljs).Assembly.GetManifestResourceStream("hljs.js") ?? throw new InvalidOperationException("hljs.js is not in the app");
             using var reader = new StreamReader(stream);
             // A slow pattern is stopped by its own timeout, not by the script's: the engine counts the one only between statements.
-            // Loading the script gets far longer than a snippet does: a load that runs out of time on a busy machine would leave the
-            // engine broken, and every snippet plain, until the app is started again.
-            var budget = new Budget { Limit = TimeSpan.FromSeconds(30) };
-            var engine = new Engine(o => o.Constraint(budget).RegexTimeoutInterval(TimeSpan.FromMilliseconds(500)).LimitMemory(160L * 1024 * 1024));
+            var budget = new Budget { Limit = load };
+            var engine = new Engine(o => o.Constraint(budget).RegexTimeoutInterval(pattern).LimitMemory(160L * 1024 * 1024));
             engine.Execute(Engine.PrepareScript(reader.ReadToEnd()));
-            budget.Limit = TimeSpan.FromSeconds(2);
+            budget.Limit = snippet;
             return _engine = engine;
         }
         catch (Exception e) when (e is not OutOfMemoryException)
@@ -39,9 +46,12 @@ internal static class Hljs
     }
 
     /// <summary>The code as the HTML highlight.js writes, or null for a language it has no grammar for, or when it could not run.</summary>
-    public static string? Highlight(string text, string language)
+    public static string? Highlight(string text, string language) => App.Html(text, language);
+
+    /// <summary>The code as the HTML highlight.js writes within this one's limits, or null for a language it has no grammar for, or when it could not run.</summary>
+    internal string? Html(string text, string language)
     {
-        lock (Gate)
+        lock (_gate)
         {
             if (Start() is not { } engine) return null;
             try
