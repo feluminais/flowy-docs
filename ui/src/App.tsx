@@ -343,7 +343,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 onEdgeMouseLeave={events.onEdgeMouseLeave}
                 onPaneClick={events.onPaneClick}
               >
-                <Camera count={shapes} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} nav={nav ? navWidth : 0} />
+                <Camera count={shapes} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} fitPanel={detailsOpen ? detailsWidth : 0} nav={nav ? navWidth : 0} />
                 {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
                 <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} nav={nav ? navWidth : undefined} />
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}

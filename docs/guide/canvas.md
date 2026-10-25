@@ -36,7 +36,7 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
 - Ctrl+K or / (or Search) finds a shape anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
 - The icons on the left edge open a panel with tabs. Explorer (O) shows everything as a tree, with
-  how many shapes and flows are inside each, a dot where something is wrong, and a filter. It sorts as
+  how many shapes are inside each (the number the canvas shows as "N inside") and how many flows play in it, a dot where something is wrong, and a filter. Point at a row's number for the full count ("7 inside, 13 in all, 12 flows"), which counts every level. It sorts as
   VS Code's Explorer does: shapes that hold others first, then the rest, each by name in any case, and
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
   or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow as the
@@ -49,13 +49,17 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   [Failure modes](failures.md#failure-modes). Details, on the right (its own icon, or a click on a shape or a line), is what the
   click picked, and it is all the right-hand side holds. With nothing picked at the top level it shows the Overview: the system's name and
   what it is (`name` and `about` in `model.yaml`), then how many shapes and flows there are. Inside a shape it shows that shape. Drag the inner edge of either panel to resize it,
-  and double-click it to put the width back.
+  and double-click it to put the width back. When the navigator opens, closes or is resized, or Details opens or closes, the view fits again to the room beside
+  them, so no shape starts under a panel, unless you have zoomed or panned the view since.
+- In the browser, a screen reader gets names, not ids: a connection reads "Customer app to Order API, REST", the level you are on is the
+  current page in the breadcrumb, the two side panels are named Navigator and Details (with Close navigator and Close details), and a folder
+  in the Flows tab sits in a group named for it, inside the group of the folder that holds it.
 - Pick a flow in the Flows tab to play it step by step: ← and → move, Home and End jump to the first
   and last step, Esc stops. A step can be one shape doing something on its own, and a step with more
   to say has a More you can open. When a step lands on a shape that stands for a part inside it, the
   player names the part too ("Scheduler in Core"), so two steps on two parts of one shape don't read
   as a round trip.
-- Every flow row in the Flows tab and the Explorer has a Compare button, and a flow that is half of a pair has a link mark. See [Compare](compare.md).
+- Every flow row in the Flows tab and the Explorer has a Compare button, and a flow that is half of a pair has a link mark that names the flow it is compared with ("Compared with The refund is not recorded"). See [Compare](compare.md).
 - A step can carry an `animation:`. When you arrive at it, something runs
   along its line: `call` goes and comes back while the sender waits, `send` and `event` go one
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).

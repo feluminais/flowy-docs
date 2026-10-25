@@ -20,8 +20,8 @@ test('graph: a box in a stopped state carries data.state, and the rest carry non
 
 test('graph: a container with a stopped child carries inside, and one with a state of its own carries that', () => {
   const stopped = marksOf(shop(), { orders: 'stopped' })
-  assert.deepEqual(byId(toGraph(shop(), 'root', undefined, [], stopped).nodes).shop.data.state, { state: 'stopped', inside: true })
-  assert.deepEqual(byId(toGraph(shop(), 'shop', undefined, [], stopped).nodes).api.data.state, { state: 'stopped', inside: true })
+  assert.deepEqual(byId(toGraph(shop(), 'root', undefined, [], stopped).nodes).shop.data.state, { state: 'stopped', inside: true, via: 'Orders' })
+  assert.deepEqual(byId(toGraph(shop(), 'shop', undefined, [], stopped).nodes).api.data.state, { state: 'stopped', inside: true, via: 'Orders' })
   const own = marksOf(shop(), { orders: 'stopped', shop: 'degraded' })
   assert.deepEqual(byId(toGraph(shop(), 'root', undefined, [], own).nodes).shop.data.state, { state: 'degraded', inside: false })
 })

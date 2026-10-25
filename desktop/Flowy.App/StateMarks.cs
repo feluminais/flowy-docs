@@ -108,8 +108,8 @@ internal sealed class PlainSwatch : Grid
 /// </summary>
 internal static class StateKey
 {
-    /// <summary>A state as a person says it: "Stopped", and "Stopped inside" for a shape that holds one that is.</summary>
-    public static string Word(StateMark mark) => mark.Inside ? $"{States.Labels[mark.State]} inside" : States.Labels[mark.State];
+    /// <summary>A state as a person says it: "Stopped", and "Stopped inside: Checkout" for a shape that holds one that is, naming the shape inside.</summary>
+    public static string Word(StateMark mark) => mark.Inside ? $"{States.Labels[mark.State]} inside{(mark.Via is null ? "" : $": {mark.Via}")}" : States.Labels[mark.State];
 
     /// <summary>The marks the key draws for these shapes: each distinct state once, in the order of the six, a shape's own before one it only holds.</summary>
     public static List<StateMark> Distinct(IEnumerable<StateMark> marks) =>

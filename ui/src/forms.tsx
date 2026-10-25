@@ -9,11 +9,11 @@ export type SaveEdit = (op: (model: Model) => Model) => Promise<boolean>
 /** What every panel gets: the model, the edit runner and the way to close it. */
 export type Common = { model: Model; run: SaveEdit; onClose: () => void }
 
-/** The frame of a side panel: a close button over its content. */
-export function Panel({ onClose, children }: { onClose: () => void; children: ReactNode }) {
+/** The frame of a side panel on the right: a close button over its content. Its name is what a screen reader lists it as, and the button's name says which one it closes. */
+export function Panel({ onClose, children, label = 'Details' }: { onClose: () => void; children: ReactNode; label?: string }) {
   return (
-    <aside className="panel">
-      <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
+    <aside className="panel" aria-label={label}>
+      <button className="close" aria-label={`Close ${label.toLowerCase()}`} onClick={onClose}><Close size={16} /></button>
       {children}
     </aside>
   )

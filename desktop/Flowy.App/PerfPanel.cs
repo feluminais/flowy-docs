@@ -735,7 +735,7 @@ internal sealed class PerfPanel : StackPanel
     {
         var name = new TextBlock { Text = choice?.Name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         if (choice is not { Linked: true }) return name;
-        var mark = Chrome.Chip("Linked", Icons.Link, "accent");
+        var mark = Chrome.Chip("Compare pair", Icons.Link, "accent");
         var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { name, mark } };
         Grid.SetColumn(mark, 1);
         return row;
@@ -755,7 +755,7 @@ internal sealed class PerfPanel : StackPanel
         _compareButton = Make(Icons.Columns, "Compare", "Compare with another run (C)", actions.CompareOff, () => TogglePicker("compare"));
         if (linked)
         {
-            _linkedMark = Chrome.Chip("Linked", Icons.Link, "accent");
+            _linkedMark = Chrome.Chip("Compare pair", Icons.Link, "accent");
             _linkedMark.Margin = new Thickness(4, 0, 0, 0);
             row.Children.Add(_linkedMark);
         }

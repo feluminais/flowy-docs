@@ -74,10 +74,9 @@ public class MultiSelectTests
     {
         var (temp, _, window, reader) = OpenView("root");
         using var _ = temp;
-        var at = Where(window, reader.Canvas, "shop", 60, 25);
-        Click(window, at, RawInputModifiers.Control);
+        Click(window, Where(window, reader.Canvas, "shop", 60, 25), RawInputModifiers.Control);
         Assert.Equal(["shop"], reader.PickedNow);
-        Click(window, at, RawInputModifiers.Control);
+        Click(window, Where(window, reader.Canvas, "shop", 60, 25), RawInputModifiers.Control); // where the box is now: a panel opening fits the view beside it
         await Task.Delay(300);
         Assert.Empty(reader.PickedNow);
         Assert.Equal("root", reader.View);
