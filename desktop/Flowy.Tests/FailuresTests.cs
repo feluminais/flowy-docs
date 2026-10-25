@@ -80,6 +80,7 @@ public class FailuresTests
             var (analysed, left) = Failures.Coverage(model, a);
             Assert.Equal(JsonDump.Pretty(e["coverage"]), JsonDump.Pretty(new JsonObject { ["analysed"] = Strings(analysed), ["left"] = Strings(left) }));
             Assert.Equal(e["coverageText"]!.GetValue<string>(), Failures.CoverageText(model, a));
+            Assert.Equal(JsonDump.Pretty(e["rowNames"]), JsonDump.Pretty(new JsonArray(Failures.Rank(a).Select(r => (JsonNode?)new JsonObject { ["id"] = r.Id, ["name"] = Failures.RowName(model, r) }).ToArray())));
             Assert.Equal(e["markdown"]!.GetValue<string>(), Failures.AnalysisText(model, id, a, "markdown"));
             Assert.Equal(e["csv"]!.GetValue<string>(), Failures.AnalysisText(model, id, a, "csv"));
             Assert.Equal(JsonDump.Pretty(e["problems"]), JsonDump.Pretty(new JsonArray(Failures.AnalysisProblems(model, id, a).Select(p => (JsonNode?)ProblemNode(p)).ToArray())));
@@ -145,5 +146,18 @@ public class FailuresTests
         var expected = Expected()["analysesText"]!.AsArray().Select(n => n!.GetValue<string>()).ToList();
         string[][] ids = [[], ["a"], ["a", "b"], ["a", "b", "c"]];
         Assert.Equal(expected, ids.Select(Failures.AnalysesText).ToList());
+    }
+
+    [Fact]
+    public void The_words_beside_the_marks_are_the_ones_the_TypeScript_says()
+    {
+        var expected = Expected();
+        var rules = expected["bandRules"]!.AsObject();
+        foreach (var band in new[] { RiskBand.High, RiskBand.Medium, RiskBand.Low, RiskBand.Unrated })
+            Assert.Equal(rules[Failures.BandKey(band)]!.GetValue<string>(), Failures.BandRule(band));
+        var analysed = expected["analysedText"]!.AsArray().Select(n => n!.GetValue<string>()).ToList();
+        Assert.Equal(analysed, new[] { (0, 0), (1, 1), (3, 4), (15, 26) }.Select(p => Failures.AnalysedText(p.Item1, p.Item2)).ToList());
+        var badges = expected["badgeNames"]!.AsArray().Select(n => n!.GetValue<string>()).ToList();
+        Assert.Equal(badges, [Failures.BadgeName(new FailureMark(RiskBand.High, 1)), Failures.BadgeName(new FailureMark(RiskBand.Medium, 2), "Ordering to Stripe")]);
     }
 }

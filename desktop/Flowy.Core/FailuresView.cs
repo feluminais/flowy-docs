@@ -50,6 +50,14 @@ public static class FailuresView
     /// <summary>Ten cells, the first <paramref name="rating"/> of them filled.</summary>
     public static bool[] RatingCells(int? rating) => Enumerable.Range(0, 10).Select(i => rating is { } r && i < r).ToArray();
 
+    /// <summary>What the risk line says before the pair of numbers: they are the risk now and once the next action is done.</summary>
+    public const string AfterLabel = "Risk after next action";
+
+    /// <summary>What the two buttons under a picked mode do, for a screen reader: the visible words come first, so the name still holds what is on the button.</summary>
+    public static string ShowItName(string flowName) => $"Show it: play the flow \"{flowName}\"";
+
+    public const string SeenInRunName = "Seen in a run: open Performance at the first load where it fails";
+
     /// <summary>"150 to 30": the risk now and once the next action is done. Null without an <c>after</c>, or when either risk can't be worked out.</summary>
     public static string? AfterText(FailureMode m)
     {
