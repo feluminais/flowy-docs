@@ -24,6 +24,11 @@ internal sealed class FlowsView : Grid
     private readonly HashSet<string> _closed = [];
     private readonly List<string> _picked = [];
     private readonly WrapPanel _tagBar = new() { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, Inset, 0) };
+    /// <summary>
+    /// The tags, three rows and half of a fourth high, then they scroll: many tags must not push the list of flows out of the panel, and the cut row
+    /// says there are more. Its scroll bar sits on the panel's edge, as the list's does.
+    /// </summary>
+    private readonly ScrollViewer _tagScroll;
     /// <summary>How far each level of folders is moved in, and the room a flow keeps before its mark, which lines it up with the mark of its folder.</summary>
     private const double Indent = 16, Twist = 22;
     private Model? _model;
@@ -90,13 +95,14 @@ internal sealed class FlowsView : Grid
             e.Handled = true;
         };
         var scroll = new ScrollViewer { Content = _list, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
-        SetRow(_tagBar, 1);
+        _tagScroll = new ScrollViewer { Content = _tagBar, MaxHeight = 102, VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto };
+        SetRow(_tagScroll, 1);
         SetRow(scroll, 2);
         SetRow(_foot, 3);
         _foot.IsVisible = false;
-        _tagBar.IsVisible = false;
+        _tagScroll.IsVisible = false;
         Children.Add(field);
-        Children.Add(_tagBar);
+        Children.Add(_tagScroll);
         Children.Add(scroll);
         Children.Add(_foot);
     }
@@ -160,6 +166,8 @@ internal sealed class FlowsView : Grid
 
     public void Update(Model model, string view, bool editing, string? current)
     {
+        // Every step of a flow refreshes the reader; the list only changes with the model, edit mode or the flow open, and a long list is slow to build.
+        if (ReferenceEquals(model, _model) && editing == _editing && current == _current) return;
         CompareOff = CompareChoices.Off(model, editing);
         _model = model;
         _editing = editing;
@@ -220,7 +228,7 @@ internal sealed class FlowsView : Grid
     {
         TagButtons = tags;
         _tagBar.Children.Clear();
-        _tagBar.IsVisible = tags.Count > 0;
+        _tagScroll.IsVisible = tags.Count > 0;
         foreach (var t in tags)
         {
             var key = Names.TagKey(t.Tag);

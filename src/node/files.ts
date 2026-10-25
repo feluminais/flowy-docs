@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import type { Dirent } from 'node:fs'
-import { mkdir, readdir, readFile, realpath, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve, sep } from 'node:path'
 import { check } from '../core/check.ts'
 import type { Problem } from '../core/problem.ts'
@@ -9,7 +9,7 @@ import { runLinkProblems } from '../core/failures.ts'
 import type { CompareTag } from '../core/compare.ts'
 import { FILE_KINDS, idOfPath, isAllowedPath, isRunPath, kindOfPath, pathOf } from '../core/filekinds.ts'
 import type { FolderKind } from '../core/filekinds.ts'
-import { emptyModel, FOLDER_RULE, folderOf, ID_RULE, isValidFolder, isValidId, linksOf, ParseError } from '../core/model.ts'
+import { emptyModel, FOLDER_RULE, folderOf, ID_RULE, isValidFolder, isValidId, linksOf, MAX_FILE_BYTES, ParseError, tooBig } from '../core/model.ts'
 import { fileData, parseAnalysisFile, parseFile, parseFlowFile, parseLayoutFile, parseModelFile, serializeFile } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { isRepoPath } from '../core/paths.ts'
@@ -120,6 +120,9 @@ async function readText(dir: string, rel: string, realRoot?: string): Promise<st
   if (await pointsOutside(dir, rel, realRoot)) throw new ParseError(rel, 'points outside the folder')
   let bytes: Uint8Array
   try {
+    // Looked at before reading: a file far past the limit is never taken into memory.
+    const size = (await stat(join(dir, rel))).size
+    if (size > MAX_FILE_BYTES) throw new ParseError(rel, tooBig(size))
     bytes = await readFile(join(dir, rel))
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === 'ENOENT') return null
