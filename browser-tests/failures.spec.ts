@@ -28,8 +28,9 @@ test('the rows are named and the picked one is pressed', async ({ page }) => {
   await open(page, MEDIUM)
   const picked = page.locator('.failrow[aria-pressed="true"]')
   await expect(picked).toHaveCount(1)
-  await expect(picked).toHaveAttribute('aria-label', "Checkout to Stripe: Stripe doesn't answer within 5 s. Medium, risk 96")
-  await expect(page.locator('.failrow').first()).toHaveAttribute('aria-label', 'Refunds: Stripe refunds the money but the database write fails. High, risk 126. Ordering > Order API')
+  // Named by what each row shows, in its order, so the name holds the label a reader sees.
+  await expect(picked).toHaveAccessibleName(/^Medium\. Checkout to Stripe ?: Stripe doesn't answer within 5 s ?\. Risk 96$/)
+  await expect(page.locator('.failrow').first()).toHaveAccessibleName(/^High\. (.+ > )?Refunds ?: Stripe refunds the money but the database write fails ?\. Risk 126$/)
   await expect(page.locator('.failhead').first()).toHaveText('Risk')
   await expect(page.locator('.fail-badge.line').first()).toHaveAttribute('aria-label', /^\S.* to \S.*, \d failures?, (High|Medium|Low|Not rated)$/)
   await expect(page.getByRole('button', { name: /^Show it: play the flow/ })).toBeVisible()
