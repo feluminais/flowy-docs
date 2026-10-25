@@ -382,7 +382,7 @@ svg { flex: none; }
 .player-outcome::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .player-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .player-buttons button:last-child { margin-left: auto; }
-/* How far a flow has got: a cell a stop, filled up to the one shown. A group is a box with the line that says what it is at its foot, a box that may stop early is dashed, and a branch's lanes are named rows, the ones not taken dashed. */
+/* How far a flow has got: a cell a stop, filled up to the one shown. A repeat or parallel group is a box with the line that says what it is at its foot, and a box that may stop early is dashed. A branch is a fork (below). */
 .progress { display: flex; align-items: flex-start; gap: 3px; margin: 8px 0; }
 .progress .stretch { display: grid; min-width: 0; }
 .progress .grp { display: flex; flex-direction: column; gap: 3px; margin: 0 5px; padding: 5px 5px 3px; border: 1px solid var(--line); border-radius: 6px; }
@@ -393,8 +393,17 @@ svg { flex: none; }
 .progress .cell.done { background: var(--accent); }
 .progress .cell.off { box-sizing: border-box; background: none; border: 1px solid var(--line); }
 .progress .cell.off.done { border-color: var(--accent); }
-.progress .lane { overflow: hidden; font-size: 10.5px; line-height: 1.3; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
+/* A branch: the bar's line splits with square corners into a row for each lane, its name over its strip, and meets again after. The way round an "only if" is a bare line.
+   The sizes match LANE and STRIP in Player.tsx. The rest of a forked bar drops to the first lane's strip. */
+.progress .fork { display: flex; align-items: flex-start; }
+.progress .lanes { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.progress .lane { height: 14px; overflow: hidden; font-size: 10.5px; line-height: 14px; color: var(--muted); white-space: nowrap; text-overflow: ellipsis; }
 .progress .lane.on { color: var(--fg); font-weight: 600; }
+.progress .round { height: 2px; margin: 1px 0; background: var(--line); }
+.progress .elbow { flex: none; fill: none; stroke: var(--line); stroke-width: 2; }
+.progress .elbow .on { stroke: var(--accent); }
+.progress.forked > .stretch:not(.fork):not(.grp) { margin-top: 14px; }
+.progress.forked > .grp { margin-top: 8px; }
 .bracket { display: flex; justify-content: center; align-items: center; gap: 3px; font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
 .player .help { margin-left: auto; padding: 2px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; line-height: 0; }
 .player .help:hover, .player .help[aria-pressed='true'] { color: var(--accent); }
