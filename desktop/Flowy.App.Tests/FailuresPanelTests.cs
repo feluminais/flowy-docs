@@ -3,6 +3,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.App.Canvas;
@@ -129,8 +130,24 @@ public class FailuresPanelTests
         var expected = Failures.Rank(model.Failures["ordering"]).Select(r => Name(r, model)).ToList();
         Assert.Equal(expected, reader.FailuresPanelNow.Rows.Select(r => r.Name));
         Assert.Equal("Auth: The login lock is never released. High, risk 150. Shop > API", expected[0]); // 6 x 5 x 5 outranks the database's 40, though its severity is 10
-        Assert.Equal("Orders DB: The database is unreachable. High, risk 40. Shop", expected[1]);
+        Assert.Equal("Orders DB: The database is unreachable. High, risk 40, severity 10. Shop", expected[1]);
         Assert.DoesNotContain(reader.FailuresPanelNow.Rows, r => r.Current);
+    }
+
+    [AvaloniaFact]
+    public void A_High_row_made_so_by_severity_alone_says_so_under_its_number_and_the_others_do_not()
+    {
+        var (window, reader) = Open();
+        OpenOn(window, reader, "ordering");
+        var model = reader.Folder!.Model;
+        var byReason = Failures.Rank(model.Failures["ordering"]).Where(r => Failures.BandReason(r.Mode) is not null).ToList();
+        Assert.Contains(byReason, r => r.Id == "db-down");
+        Assert.All(byReason, r => Assert.Equal(RiskBand.High, r.Band));
+        // A row's content is not in the visual tree until it is laid out, so read it from the row's own children.
+        var shown = reader.FailuresPanelNow.Buttons.Where(b => b.Classes.Contains("failrow") && b.Content is Control)
+            .SelectMany(b => ((Control)b.Content!).GetLogicalDescendants().OfType<TextBlock>()).Select(t => t.Text ?? "").Where(t => t.StartsWith("Severity ")).ToList();
+        Assert.Equal(byReason.Select(r => Failures.BandReason(r.Mode)!).Order().ToList(), shown.Order().ToList());
+        Assert.DoesNotContain(reader.FailuresPanelNow.Texts, t => t.Contains("(") && t.Contains("×")); // no mode is picked, so no card
     }
 
     [AvaloniaFact]
@@ -149,6 +166,8 @@ public class FailuresPanelTests
         Assert.Contains("Rehearse the failover. · Platform · Planned", texts);
         Assert.Contains("Web app, API", texts);
         Assert.Contains("40", texts);
+        Assert.Contains("(10 × 2 × 2)", texts); // how the risk is made, beside it
+        Assert.Contains("High: severity 10", texts); // 40 alone would be Low, so the band says what made it High
         Assert.Contains("Risk after next action: 40 to 20", texts);
         Assert.Contains("1: Nobody notices", texts);
         Assert.Contains("10: Someone loses money", texts);

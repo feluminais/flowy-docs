@@ -40,12 +40,44 @@ internal static class KeyRow
         foreach (var item in items)
         {
             if (item is not { } entry) continue;
-            var label = new TextBlock { Text = entry.Label, Classes = { "muted" }, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
-            var cell = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 16, 6), Children = { entry.Swatch, label } };
-            if (ToolTip.GetTip(entry.Swatch) is string tip) ToolTip.SetTip(cell, tip);
-            row.Children.Add(cell);
+            row.Children.Add(Cell(entry.Swatch, entry.Label, true));
         }
         return row;
+    }
+
+    private static Control Cell(Control swatch, string text, bool muted)
+    {
+        var label = new TextBlock { Text = text, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
+        if (muted) label.Classes.Add("muted");
+        else label.FontWeight = FontWeight.SemiBold;
+        var cell = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 16, 6), Children = { swatch, label } };
+        if (ToolTip.GetTip(swatch) is string tip) ToolTip.SetTip(cell, tip);
+        return cell;
+    }
+
+    /// <summary>
+    /// A source's own marks under its name and colour: its name first (in its call mark), then its scale and size. A bar of its colour down the side holds them together, so the reader
+    /// does not have to pair a colour with a source.
+    /// </summary>
+    public static Control Group(string name, string? color, bool dark, params (Control Swatch, string Label)?[] items)
+    {
+        var row = new WrapPanel();
+        row.Children.Add(Cell(Call(color, dark), name, false));
+        foreach (var item in items)
+            if (item is { } entry) row.Children.Add(Cell(entry.Swatch, entry.Label, true));
+        IBrush bar = PerfView.SourceHex(color, dark) is { } hex ? new SolidColorBrush(Color.Parse(hex)) : Brushes.Transparent;
+        var group = new Border { BorderBrush = bar, BorderThickness = new Thickness(3, 0, 0, 0), Padding = new Thickness(8, 0, 0, 0), Margin = new Thickness(0, 6, 0, 0), Child = row };
+        group.Classes.Add("keygroup");
+        return group;
+    }
+
+    /// <summary>The empty outline of a shape the run does not measure, and with it the muted stripes of a line it gives no numbers when one is on screen: one name for both.</summary>
+    public static Control NotMeasured(bool stripes)
+    {
+        var pair = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Center };
+        pair.Children.Add(Mark("none"));
+        if (stripes) pair.Children.Add(Stripes());
+        return pair;
     }
 
     /// <summary>A mark the styles draw: a line (<c>p50</c>, <c>p95</c>, <c>busy</c>), a dot (<c>call</c>, and <c>bad</c> as well for one that fails) or an outline (<c>none</c>).</summary>
@@ -65,7 +97,7 @@ internal static class KeyRow
         return dashes;
     }
 
-    /// <summary>The plain stripes moving along a line the run gives no numbers.</summary>
+    /// <summary>The plain muted stripes moving along a line the run gives no numbers.</summary>
     public static Control Stripes()
     {
         var stripes = new Avalonia.Controls.Shapes.Line { StartPoint = new Point(0, 0), EndPoint = new Point(20, 0), StrokeThickness = 3, StrokeDashArray = [1.7, 1.3], VerticalAlignment = VerticalAlignment.Center };

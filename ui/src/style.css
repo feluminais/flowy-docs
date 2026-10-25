@@ -917,12 +917,16 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .keyrow { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--muted); }
 .keyrow li { display: flex; align-items: center; gap: 6px; }
 .keyrow .swatch { display: inline-flex; align-items: center; }
+.keyrow .pair { display: inline-flex; align-items: center; gap: 5px; }
+.keyrow.keygroup { margin-top: 6px; padding-left: 8px; border-left: 3px solid var(--src, var(--line)); } /* a source's own marks, under its name and colour */
+.keyrow.keygroup strong { color: var(--fg); font-weight: 600; }
+.measure-off { margin: 4px 0 0; font-size: 12.5px; }
 .sw { flex: none; display: inline-block; box-sizing: border-box; }
 .sw.p50, .sw.p95, .sw.busy { width: 18px; height: 0; border-top: 2px solid var(--accent); border-radius: 1px; }
 .sw.p95 { border-top-color: var(--warn); }
 .sw.busy { border-top: 4px solid var(--muted); }
 .sw.knee { width: 2px; height: 14px; background: repeating-linear-gradient(to bottom, var(--danger) 0 3px, transparent 3px 6px); }
-.sw.stripes { width: 20px; height: 3px; border-radius: 1px; background: repeating-linear-gradient(90deg, var(--src, var(--accent)) 0 5px, transparent 5px 9px); }
+.sw.stripes { width: 20px; height: 3px; border-radius: 1px; background: repeating-linear-gradient(90deg, var(--muted) 0 5px, transparent 5px 9px); }
 .sw.heat { width: 20px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, hsl(150 70% 40%), hsl(75 70% 42%), hsl(0 70% 45%)); }
 .sw.pct { height: 16px; padding: 0 5px; border-radius: 8px; background: var(--box); color: var(--fg); box-shadow: inset 0 0 0 1px var(--line); font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; font-variant-numeric: tabular-nums; }
 .sw.now { width: 2px; height: 14px; background: var(--fg); opacity: 0.6; }
@@ -1065,6 +1069,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .perf > .failhead { margin: -6px 0 -6px; }
 .failhead { display: flex; justify-content: flex-end; padding: 0 8px; color: var(--muted); font-size: 12px; }
 .failrow .risk { flex: none; min-width: 3ch; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.failrow .risk .reason { display: block; font-size: 11px; white-space: nowrap; }
 .fail .modeline { margin: 0; }
 /* The picked mode's card sits above the list, so it is in view when a row is picked. */
 .failcard { display: grid; gap: 10px; scroll-margin-top: 8px; }

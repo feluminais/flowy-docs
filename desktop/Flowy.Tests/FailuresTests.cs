@@ -69,6 +69,9 @@ public class FailuresTests
                 ["after"] = RatedNode(Failures.RatingsAfter(kv.Value)),
                 ["risk"] = Num(Failures.RiskOf(kv.Value)),
                 ["band"] = Failures.BandKey(Failures.BandOf(kv.Value)),
+                ["bandReason"] = JsonValue.Create(Failures.BandReason(kv.Value)),
+                ["bandLabel"] = Failures.BandLabel(kv.Value),
+                ["riskProduct"] = JsonValue.Create(Failures.RiskProduct(kv.Value)),
                 ["part"] = Failures.PartName(model, kv.Value),
                 ["home"] = Failures.HomeView(model, kv.Value),
             }).ToArray();

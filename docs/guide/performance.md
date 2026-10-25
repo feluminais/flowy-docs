@@ -48,7 +48,7 @@ does, and **Go there** gets back to it. The sentence names the shape the way the
 
 **Marks on the canvas.** The tab runs from the controls down: the load, **Where it struggles** (the sentence and **Go there**), **Each stripe**, the **Key**, then the chart and the numbers of what is picked. The key draws only the marks on the canvas now. A run's About note folds under "About this run" once it is over 200 characters, so the load, the sentence and the key stay in view together. A shape's outline runs from green to red as it fills up (**Busy**).
 Once a shape is past the point where a run counts as struggling (85% busy) it also wears its percentage, so the fact does not rest on colour alone (**Struggling**); shapes below that carry nothing. A square badge with a number is
-**Waiting**: how many calls are queued. It is square so it is not taken for the round badge of a failure mode. A plain outline is **Not measured**.
+**Waiting**: how many calls are queued. It is square so it is not taken for the round badge of a failure mode. A plain outline is **Not measured**, and so are the grey stripes on a line the run gives no numbers (below): one name for a shape and a line the run leaves out.
 
 **The chart.** Under the key, the chart says whose calls it shows (the shape the run's `entry` names, "Calls into Customer app", else "All calls"). Its left edge is time on a log scale ("Time (log)"), so 10 ms, 100 ms and 1 s are evenly
 spaced. A blue line is the **Expected call**, an amber one the **Slowest 5%**, red dashes **First struggles**, and the solid grey line is **Now**, the load on the slider. For a screen reader the chart is a list: each tested load with its expected call and its slowest 5%.
@@ -57,11 +57,11 @@ spaced. A blue line is the **Expected call**, an amber one the **Slowest 5%**, r
 stripe for each call a second: the more calls, the more stripes and the thicker the line. **Data** draws one for each bit of data a second, the calls times the size of a call (`bytes`), so a line of a few
 large calls has more of them than a line of a few small ones, and the size is already in the count, so every stripe is the usual size. **Mixed** counts the calls, as Calls does, and draws each stripe as big as
 its call is: twice the bytes is twice the area, against the size of a typical call. Mixed is where a run opens when it gives both a `rate` and `bytes`, which is why a run is best measured with both: say the
-calls a second and the size of a call on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out with "No call sizes in this run" in their tooltip. Only the size of a call makes a
+calls a second and the size of a call on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out, with "No call sizes in this run" in their tooltip and in a muted line under the choice. Only the size of a call makes a
 stripe bigger: more calls give more stripes and a thicker line, never bigger stripes.
 
-A line the run gives nothing to show, because it has no `rate` (or under Data no `bytes`), is not left plain. It gets a line highlight: blue stripes moving along the line itself, as they do on an animated edge,
-and the key calls them **No numbers**. They follow how loaded the run is, the load over the highest tested load (for a run with several sources the mean of its sliders), so they are slow when nothing is asked
+A line the run gives nothing to show, because it has no `rate` (or under Data no `bytes`), is not left plain. It gets a line highlight: grey stripes moving along the line itself, as they do on an animated edge.
+They are grey, not the colour of a source, because the line was not measured, and the key draws them beside the outline under **Not measured** while such a line is on screen. They follow how loaded the run is, the load over the highest tested load (for a run with several sources the mean of its sliders), so they are slow when nothing is asked
 of it and quick at the top, even though the line itself has no numbers. A run over time has no load to follow, so its plain stripes keep one pace. At the overview of Plum most lines are plain, since the runs
 measure what is inside Delivery, and the lines they do measure show calls.
 Data counts against the mean size of a call over the whole run, rounded to 1, 2 or 5 times a power of ten, so a call of that size draws as many stripes under Data as under Calls.
@@ -186,7 +186,7 @@ its own **Ramp**. The block you moved or clicked last is the active one, marked 
 held where they stand and named above the chart. The tab opens where things first struggle when every source rises from its lowest load to its highest together, each along its own loads, and the
 sentence says where each stood: "First struggles with Customer orders at 800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". **Go there** returns to it.
 
-The key draws a swatch and the name of each source on screen, with its scale ("1 dot = 4 calls/s") and **Bigger call** where it has them. A line that sources share has a stream of dots for each, side
+The key draws the marks every source shares once (**Busy**, **Not measured**, **A call that fails**, **More calls**), then a group for each source on screen: its name beside its colour, and under it its own scale ("1 dot = 4 calls/s") and **Bigger call** where it has them. A line that sources share has a stream of dots for each, side
 by side, in each colour. The limit of 24 dots applies to the busiest source on the line: when it is reached every source on that line is scaled down by the same factor, so a source that sends ten times
 the calls still draws ten times the dots, and the key says **Scaled down**.
 

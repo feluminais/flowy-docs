@@ -273,6 +273,9 @@
             },
             "risk": 40,
             "band": "high",
+            "bandReason": "Severity 10",
+            "bandLabel": "High: severity 10",
+            "riskProduct": "10 × 2 × 2",
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -290,6 +293,9 @@
             },
             "risk": 126,
             "band": "medium",
+            "bandReason": null,
+            "bandLabel": "Medium",
+            "riskProduct": "3 × 6 × 7",
             "part": "Orders to Mail service",
             "home": "api"
           },
@@ -307,6 +313,9 @@
             },
             "risk": 8,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "2 × 2 × 2",
             "part": "Shop > API",
             "home": "shop"
           },
@@ -324,6 +333,9 @@
             },
             "risk": 150,
             "band": "high",
+            "bandReason": null,
+            "bandLabel": "High",
+            "riskProduct": "6 × 5 × 5",
             "part": "Shop > API > Auth",
             "home": "api"
           },
@@ -341,6 +353,9 @@
             },
             "risk": 12,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "2 × 3 × 2",
             "part": "Shop > Web app",
             "home": "shop"
           },
@@ -354,6 +369,9 @@
             },
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > API > Orders",
             "home": "api"
           },
@@ -367,6 +385,9 @@
             },
             "risk": null,
             "band": "high",
+            "bandReason": "Severity 9",
+            "bandLabel": "High: severity 9",
+            "riskProduct": null,
             "part": "Mail service",
             "home": "root"
           },
@@ -384,6 +405,9 @@
             },
             "risk": 1,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "1 × 1 × 1",
             "part": "Shop > Orders DB",
             "home": "shop"
           }
@@ -447,11 +471,11 @@
           },
           {
             "id": "db-down",
-            "name": "Orders DB: The database is unreachable. High, risk 40. Shop"
+            "name": "Orders DB: The database is unreachable. High, risk 40, severity 10. Shop"
           },
           {
             "id": "mail-severe",
-            "name": "Mail service: Receipts go to the wrong person. High"
+            "name": "Mail service: Receipts go to the wrong person. High, severity 9"
           },
           {
             "id": "mail-timeout",
@@ -1102,6 +1126,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "",
             "home": "root"
           },
@@ -1111,6 +1138,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1120,6 +1150,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "gone",
             "home": "root"
           },
@@ -1129,6 +1162,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "",
             "home": "root"
           },
@@ -1138,6 +1174,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Web app to Orders DB",
             "home": "shop"
           },
@@ -1147,6 +1186,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Web app to gone",
             "home": "root"
           },
@@ -1156,6 +1198,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1165,6 +1210,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1174,6 +1222,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1183,6 +1234,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1192,6 +1246,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1201,6 +1258,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1210,6 +1270,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1219,6 +1282,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1228,6 +1294,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1237,6 +1306,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1246,6 +1318,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1255,6 +1330,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           },
@@ -1264,6 +1342,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Shop > Orders DB",
             "home": "shop"
           }
@@ -2584,6 +2665,9 @@
             },
             "risk": 96,
             "band": "medium",
+            "bandReason": null,
+            "bandLabel": "Medium",
+            "riskProduct": "8 × 4 × 3",
             "part": "Checkout to Stripe",
             "home": "order-api"
           },
@@ -2601,6 +2685,9 @@
             },
             "risk": 42,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "3 × 7 × 2",
             "part": "Checkout to Stripe",
             "home": "order-api"
           },
@@ -2618,6 +2705,9 @@
             },
             "risk": 126,
             "band": "high",
+            "bandReason": "Severity 9",
+            "bandLabel": "High: severity 9",
+            "riskProduct": "9 × 2 × 7",
             "part": "Ordering > Order API > Refunds",
             "home": "order-api"
           },
@@ -2635,6 +2725,9 @@
             },
             "risk": 20,
             "band": "high",
+            "bandReason": "Severity 10",
+            "bandLabel": "High: severity 10",
+            "riskProduct": "10 × 2 × 1",
             "part": "Ordering > Orders DB",
             "home": "ordering"
           },
@@ -2652,6 +2745,9 @@
             },
             "risk": 24,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "6 × 1 × 4",
             "part": "Ordering > Order API",
             "home": "ordering"
           },
@@ -2669,6 +2765,9 @@
             },
             "risk": 48,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "2 × 8 × 3",
             "part": "Ordering > Menu cache",
             "home": "ordering"
           },
@@ -2686,6 +2785,9 @@
             },
             "risk": 108,
             "band": "medium",
+            "bandReason": null,
+            "bandLabel": "Medium",
+            "riskProduct": "6 × 6 × 3",
             "part": "ETA to Mapbox",
             "home": "dispatch"
           },
@@ -2695,6 +2797,9 @@
             "after": {},
             "risk": null,
             "band": "unrated",
+            "bandReason": null,
+            "bandLabel": "Not rated",
+            "riskProduct": null,
             "part": "Delivery > Fleet DB",
             "home": "delivery"
           },
@@ -2712,6 +2817,9 @@
             },
             "risk": 75,
             "band": "medium",
+            "bandReason": null,
+            "bandLabel": "Medium",
+            "riskProduct": "5 × 5 × 3",
             "part": "Ordering > Order events",
             "home": "ordering"
           },
@@ -2729,6 +2837,9 @@
             },
             "risk": 40,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "4 × 5 × 2",
             "part": "Ordering > Kitchen tablet",
             "home": "ordering"
           },
@@ -2746,6 +2857,9 @@
             },
             "risk": 108,
             "band": "medium",
+            "bandReason": null,
+            "bandLabel": "Medium",
+            "riskProduct": "6 × 6 × 3",
             "part": "Delivery > Dispatch > Offers",
             "home": "dispatch"
           },
@@ -2763,6 +2877,9 @@
             },
             "risk": 28,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "2 × 7 × 2",
             "part": "Delivery > Live tracking",
             "home": "delivery"
           },
@@ -2780,6 +2897,9 @@
             },
             "risk": 144,
             "band": "medium",
+            "bandReason": null,
+            "bandLabel": "Medium",
+            "riskProduct": "4 × 4 × 9",
             "part": "Notifier to Twilio",
             "home": "notifications"
           },
@@ -2797,6 +2917,9 @@
             },
             "risk": 24,
             "band": "low",
+            "bandReason": null,
+            "bandLabel": "Low",
+            "riskProduct": "2 × 3 × 4",
             "part": "Back office > Data warehouse",
             "home": "backoffice"
           }
@@ -2909,11 +3032,11 @@
         "rowNames": [
           {
             "id": "refund-not-recorded",
-            "name": "Refunds: Stripe refunds the money but the database write fails. High, risk 126. Ordering > Order API"
+            "name": "Refunds: Stripe refunds the money but the database write fails. High, risk 126, severity 9. Ordering > Order API"
           },
           {
             "id": "orders-db-down",
-            "name": "Orders DB: Orders DB is unavailable. High, risk 20. Ordering"
+            "name": "Orders DB: Orders DB is unavailable. High, risk 20, severity 10. Ordering"
           },
           {
             "id": "sms-not-delivered",

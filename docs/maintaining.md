@@ -211,8 +211,8 @@ Before merging a change to the app, look at what it could affect, in a real wind
       move between tested loads (← from the first goes down to 0 req/s, where nothing runs on the lines); P ramps up (from the top it starts again from no load) and a click on the slider stops it; drag the slider: the
       load follows the thumb in small steps, "Between 50 and 100, estimated" shows between tested loads, and the thumb pulls onto a tested load, which reads "Tested"; a picked shape or
       line reads out its numbers; under Ramp an Each stripe switch has Calls, Data and Mixed, each beside the stripe it draws. This run gives no sizes of a call, so it opens on Calls (a small stripe for each call, running along the line)
-      and Data and Mixed are greyed out with the reason in their tooltip. A run with sizes opens on Mixed: the stripes count the calls and are as big as their calls. Data counts the data instead and turns the
-      Key's "More calls" into "More data" and the scale into KB/s. A line with no numbers has blue line-highlight stripes that speed up as you drag the slider up ("No numbers" in the Key);
+      and Data and Mixed are greyed out with the reason in their tooltip and in a muted line under the switch ("No call sizes in this run"). A run with sizes opens on Mixed: the stripes count the calls and are as big as their calls. Data counts the data instead and turns the
+      Key's "More calls" into "More data" and the scale into KB/s. A line with no numbers has grey line-highlight stripes that speed up as you drag the slider up (drawn beside the outline under "Not measured" in the Key);
       under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%), red dashes (First
       struggles) and a solid line (Now), the chart says "Calls into" the run's entry shape and "Time (log)" on its left edge, and the Key (under the sentence about where it first struggles, and Each stripe) draws each mark on the canvas
       now (Busy, Struggling, Waiting, Not measured, a call, a failing call, More calls) with no sentences, all of it in view in an 880 px window; a shape past 85% busy wears its percentage and Waiting is a square badge; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
@@ -222,7 +222,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       narrows the list). Opening Performance closes it. Press E: the tab stays open, with Edit analysis and New analysis folded under the name, and Add failure mode
       under the key; the mode picked has a form (part, effect, cause, the three ratings and their After ratings, controls, next action, owner, status, affects, flow,
       step, run, More) where a pick or a typed field is saved at once, and the arrows no longer step through the list. Order API wears a red 2 and is outlined orange (the mode is Medium), so is Stripe, solid, the line between them wears an amber 2 and
-      is orange, Kitchen tablet and Customer app are in a lighter orange outline and the rest fades. The card sits above the list: the Fails and Affects marks in orange, Risk 96 Medium and "Risk after next action: 96 to 32". Each band row has its rule beside the count ("Risk 150+ or severity 9+", "Risk 60 to 149", "Risk under 60", "A rating missing"), the lists have a Risk heading over their numbers, and the
+      is orange, Kitchen tablet and Customer app are in a lighter orange outline and the rest fades. The card sits above the list: the Fails and Affects marks in orange, Risk 96 (8 × 4 × 3) Medium and "Risk after next action: 96 to 32". Each band row has its rule beside the count ("Risk 150+ or severity 9+", "Risk 60 to 149", "Risk under 60", "A rating missing"), the lists have a Risk heading over their numbers (a High row made so by severity alone has "Severity 9" under its number), and the
       key draws a dot for each band that has modes. The list runs Refunds (126), Orders DB (20) and on down; a click on a row picks
       it and a second click puts it away; ← → step down the list and stop at its ends; a click on a shape narrows the list to its modes and the chip clears
       it; a band button filters and "Not analysed (11)" lists the shapes left. Show it plays The payment is captured; Seen in a run on ETA to Mapbox opens
@@ -402,7 +402,7 @@ Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
       carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
       ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.
 - [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API, Stripe and the line between them are outlined orange (a Medium mode), Kitchen tablet and Customer app in a lighter orange outline,
-      and the rest fades. The card is above the list and reads Risk 96 Medium, "Risk after next action: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
+      and the rest fades. The card is above the list and reads Risk 96 (8 × 4 × 3) Medium, "Risk after next action: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
       Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the tab while the last click was in it.
 - [ ] Press E with the tab open: it stays, beside Details, and gains New analysis, Add failure mode and a form for the mode picked. CSV and Table put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
@@ -451,7 +451,7 @@ Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, th
 
 - [ ] Press T and pick Orders and pings, added in the run picker (`#delivery/perf/together/3,3`, with Delivery open). The tab says Added from separate runs. It has a block for Customer orders (a blue dot) and one for
       Courier pings (green), each with a slider, its tested loads under it, "Tested" and its own Ramp, and the first is marked at its edge. It opens at 800 orders/min and 400 pings/s: "First struggles with Customer orders at
-      800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". On the line from Live tracking to Fleet DB blue and green dots run side by side, and the key names both sources with "1 dot = 4 calls/s" and "1 dot = 20 calls/s".
+      800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". On the line from Live tracking to Fleet DB blue and green dots run side by side, and the key names both sources, each in a group with its colour bar, "1 dot = 4 calls/s" under Customer orders and "1 dot = 20 calls/s" under Courier pings, after the marks they share.
 - [ ] ← → Home and End move the marked block only. Press the Courier pings slider: that block is marked now, the chart is headed Courier pings with "Customer orders held at 800 orders/min", and the keys move it. Ramp under Courier pings
       moves that slider alone and P stops it; press Ramp under Customer orders while one runs and the ramp moves there. Go there puts both back.
 - [ ] Put both at their highest (1200 and 800): Fleet DB is red, and clicking it reads Busy 143% and "Added use is over 100%". The line from Live tracking to Fleet DB has 24 green dots and fewer blue ones (15, the ratio of their calls),
