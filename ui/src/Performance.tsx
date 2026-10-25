@@ -17,7 +17,7 @@ import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
-  ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxMarks, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, chartRow, chartSubject, cursorX, dialTicks, dialTop, floorOf, eventFractions, eventRows, failureMarks, lineMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
+  RUN_ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxMarks, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, chartRow, chartSubject, cursorX, dialTicks, dialTop, floorOf, eventFractions, eventRows, failureMarks, lineMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
   lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, loadNote, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, speakLoad, tickLabels, top, xAt,
 } from './perfview.ts'
 import type { Area } from './perfview.ts'
@@ -348,7 +348,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Linked)' : ''}`])} onChange={onRun} />
         : <h2>{run.name}</h2>}
       {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
-      {run.about && (run.about.length > ABOUT_FOLDS_OVER
+      {run.about && (run.about.length > RUN_ABOUT_FOLDS_OVER
         ? <details className="about"><summary><ChevronRight size={14} />About this run</summary><p>{run.about}</p></details>
         : <p className="about">{run.about}</p>)}
       {label !== undefined && <p className="modelabel">{label}</p>}
@@ -363,11 +363,13 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
             const running = ramping && here
             return (
               <div key={d.id} className={here ? 'dial active' : 'dial'} style={srcStyle(d.color)}>
-                <div className="dialname"><span className="sw call" aria-hidden="true" /><span>{d.name}</span></div>
+                <div className="dialname">
+                  <span className="sw call" aria-hidden="true" /><span>{d.name}</span>
+                  {!still && <button className="primary small" aria-pressed={running} aria-label={`${running ? 'Pause' : 'Ramp'} ${d.name}`} onClick={() => onRamp(i)}>{running ? <><Pause size={16} />Pause</> : <><Play size={16} />Ramp</>}</button>}
+                </div>
                 <div className="loadnum">
                   <strong>{fmtLoad(dialLoad, d.unit)}</strong>
                   <span className="muted">{tested ? 'Tested' : `Between ${from} and ${to}, estimated`}</span>
-                  {!still && <button className="primary small" aria-pressed={running} aria-label={`${running ? 'Pause' : 'Ramp'} ${d.name}`} onClick={() => onRamp(i)}>{running ? <><Pause size={16} />Pause</> : <><Play size={16} />Ramp</>}</button>}
                 </div>
                 <div className="slide">
                   <RangeSlider min={floorOf(d)} max={dialTop(d)} value={at} label={d.name} text={speakLoad(fmtLoad(dialLoad, d.unit), tested ? 'Tested' : `Between ${from} and ${to}, estimated`)} onTouch={() => onActive(i)} onMove={v => onSlide(i, slideDial(d, v))} />
@@ -401,6 +403,11 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
             </div>
           </>
         )}
+      <Section icon={Alert} title="Where it struggles" />
+      {struggle
+        ? <p>{kneeTextOf(runs, runId, struggle, place)} <button className="link" title={goText(runs, runId, struggle)} aria-label={goText(runs, runId, struggle)} onClick={() => onPlace(openingPositions(dials, struggle))}>Go there</button></p>
+        : <p className="muted">It never struggled in the tested range.</p>}
+
       {onMeasure && (
         <div className="measure" role="group" aria-label="Each stripe">
           <span className="muted" aria-hidden="true">Each stripe</span>
@@ -411,6 +418,10 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       )}
 
       {keySection}
+
+      {multi ? <Along dials={dials} positions={positions} active={dial} /> : null}
+      {multi ? <StripAlong levels={along!} dial={dials[dial]} pos={positions[dial] ?? 0} subject={subject} /> : <Strip run={run} pos={pos} kneeAt={struggle?.index} subject={subject} />}
+
 
       {rows.length > 0 && !multi && (
         <>
@@ -428,13 +439,6 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
           </ul>
         </>
       )}
-
-      <Section icon={Alert} title="Where it struggles" />
-      {struggle
-        ? <p>{kneeTextOf(runs, runId, struggle, place)} <button className="link" title={goText(runs, runId, struggle)} aria-label={goText(runs, runId, struggle)} onClick={() => onPlace(openingPositions(dials, struggle))}>Go there</button></p>
-        : <p className="muted">It never struggled in the tested range.</p>}
-      {multi ? <Along dials={dials} positions={positions} active={dial} /> : null}
-      {multi ? <StripAlong levels={along!} dial={dials[dial]} pos={positions[dial] ?? 0} subject={subject} /> : <Strip run={run} pos={pos} kneeAt={struggle?.index} subject={subject} />}
 
       <Section icon={Info} title={selected ? selected.title : 'Selected'} />
       {selected === undefined && <p className="muted">Click a shape or a line.</p>}
