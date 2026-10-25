@@ -208,6 +208,27 @@ public class GeometryParityTests
     }
 
     [Fact]
+    public void Line_labels_are_placed_where_the_browser_places_them()
+    {
+        var cases = Expected()["labels"]!.AsArray();
+        Assert.Equal(15, cases.Count);
+        foreach (var c in cases)
+        {
+            var items = c!["items"]!.AsArray().Select(i => new LabelItem(i!["id"]!.GetValue<string>(), i["path"]!.GetValue<string>(),
+                new Pt(D(i["mid"]!["x"]), D(i["mid"]!["y"])), D(i["width"]), D(i["height"]), i["pinned"]!.GetValue<bool>())).ToList();
+            var spots = LineLabels.Place(items, c["boxes"]!.AsArray().Select(b => R(b!)).ToList());
+            var want = c["spots"]!.AsArray();
+            for (var i = 0; i < items.Count; i++) Same(want[i]!, spots[items[i].Id], $"{c["style"]} label {items[i].Id} of {items.Count}");
+        }
+    }
+
+    [Fact]
+    public void Long_line_labels_are_cut_short_as_in_the_browser()
+    {
+        foreach (var c in Expected()["clips"]!.AsArray()) Assert.Equal(c!["clipped"]!.GetValue<string>(), LineLabels.Clip(c["label"]!.GetValue<string>()));
+    }
+
+    [Fact]
     public void Frames_are_drawn_around_boxes_as_the_browser_canvas_draws_them()
     {
         foreach (var f in Expected()["frames"]!.AsArray())
