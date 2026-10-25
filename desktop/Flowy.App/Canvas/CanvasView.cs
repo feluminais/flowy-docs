@@ -680,6 +680,17 @@ internal sealed class CanvasView : Border
         }
     }
 
+    /// <summary>
+    /// Fits again to the room the panels leave, but only while the view is still where the last fit put it: a view the reader has zoomed or panned is theirs. For when a panel opens,
+    /// closes or is dragged to another width. False when the view was left alone.
+    /// </summary>
+    public bool RefitIfFitted(double panel, bool player, double nav, double milliseconds = 0)
+    {
+        if (!_fitOnResize || _fitOnce) return false;
+        Fit(panel, player, nav, milliseconds);
+        return true;
+    }
+
     /// <summary>Pans just far enough that this box isn't hidden under the details panel (`panel` wide: it opens for the box) or the navigator (`nav` wide, 0 when closed).</summary>
     public void Reveal(string id, double panel = Camera.Panel, double nav = 0, double milliseconds = 200)
     {
