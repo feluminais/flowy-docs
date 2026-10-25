@@ -84,11 +84,13 @@
               },
               "api": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Auth"
               },
               "shop": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Auth"
               }
             }
           ],
@@ -161,7 +163,8 @@
               },
               "shop": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Orders DB"
               }
             },
             {
@@ -175,7 +178,8 @@
               },
               "shop": {
                 "state": "restarting",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             },
             {
@@ -189,25 +193,8 @@
               },
               "shop": {
                 "state": "restarting",
-                "inside": true
-              }
-            },
-            {
-              "db": {
-                "state": "stopped",
-                "inside": false
-              },
-              "api": {
-                "state": "degraded",
-                "inside": false
-              },
-              "orders": {
-                "state": "stopping",
-                "inside": false
-              },
-              "shop": {
-                "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             },
             {
@@ -225,7 +212,27 @@
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders DB"
+              }
+            },
+            {
+              "db": {
+                "state": "stopped",
+                "inside": false
+              },
+              "api": {
+                "state": "degraded",
+                "inside": false
+              },
+              "orders": {
+                "state": "stopping",
+                "inside": false
+              },
+              "shop": {
+                "state": "stopped",
+                "inside": true,
+                "via": "Orders DB"
               }
             }
           ],
@@ -306,11 +313,13 @@
               },
               "api": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders"
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders"
               }
             },
             {
@@ -324,11 +333,13 @@
               },
               "api": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders"
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders"
               }
             },
             {
@@ -346,7 +357,8 @@
               },
               "shop": {
                 "state": "restarting",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             },
             {
@@ -356,7 +368,8 @@
               },
               "shop": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Web app"
               }
             }
           ],
@@ -436,7 +449,8 @@
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             },
             {
@@ -446,7 +460,8 @@
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             }
           ],
@@ -611,7 +626,8 @@
               },
               "shop": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Web app"
               }
             },
             {
@@ -625,7 +641,8 @@
               },
               "shop": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Web app"
               }
             }
           ],
@@ -689,7 +706,8 @@
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders DB"
               }
             },
             {
@@ -703,7 +721,8 @@
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders DB"
               }
             },
             {
@@ -717,7 +736,8 @@
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders DB"
               }
             }
           ],
@@ -767,7 +787,8 @@
               },
               "shop": {
                 "state": "starting",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             },
             {
@@ -777,7 +798,8 @@
               },
               "shop": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             },
             {}
@@ -845,7 +867,8 @@
               },
               "shop": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "API"
               }
             }
           ],
@@ -907,7 +930,8 @@
               },
               "ordering": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders DB"
               }
             },
             {
@@ -921,7 +945,8 @@
               },
               "ordering": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "Orders DB"
               }
             },
             {
@@ -935,7 +960,8 @@
               },
               "ordering": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Order API"
               }
             },
             {}
@@ -1015,11 +1041,13 @@
               },
               "order-api": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Checkout"
               },
               "ordering": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Checkout"
               }
             },
             {
@@ -1033,11 +1061,13 @@
               },
               "order-api": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Checkout"
               },
               "ordering": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Checkout"
               }
             },
             {
@@ -1051,11 +1081,13 @@
               },
               "order-api": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Checkout"
               },
               "ordering": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "Checkout"
               }
             },
             {}
@@ -1117,11 +1149,13 @@
               },
               "states-holder": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "State · part"
               },
               "states": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "State · part"
               }
             },
             {
@@ -1135,7 +1169,8 @@
               },
               "states": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "State · part"
               }
             },
             {}
@@ -1198,7 +1233,8 @@
               },
               "states": {
                 "state": "starting",
-                "inside": true
+                "inside": true,
+                "via": "State · service"
               }
             },
             {},
@@ -1209,7 +1245,8 @@
               },
               "states": {
                 "state": "degraded",
-                "inside": true
+                "inside": true,
+                "via": "State · service"
               }
             },
             {
@@ -1219,7 +1256,8 @@
               },
               "states": {
                 "state": "stopping",
-                "inside": true
+                "inside": true,
+                "via": "State · service"
               }
             },
             {
@@ -1229,7 +1267,8 @@
               },
               "states": {
                 "state": "stopped",
-                "inside": true
+                "inside": true,
+                "via": "State · service"
               }
             },
             {
@@ -1239,7 +1278,8 @@
               },
               "states": {
                 "state": "restarting",
-                "inside": true
+                "inside": true,
+                "via": "State · service"
               }
             },
             {}

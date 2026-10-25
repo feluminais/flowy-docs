@@ -18,7 +18,7 @@ public class StatesTests
         new(states.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)JsonValue.Create(kv.Value))));
 
     private static JsonObject MarkNode(IEnumerable<KeyValuePair<string, StateMark>> marks) =>
-        new(marks.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)new JsonObject { ["state"] = kv.Value.State, ["inside"] = kv.Value.Inside })));
+        new(marks.Select(kv => KeyValuePair.Create(kv.Key, (JsonNode?)(kv.Value.Via is null ? new JsonObject { ["state"] = kv.Value.State, ["inside"] = kv.Value.Inside } : new JsonObject { ["state"] = kv.Value.State, ["inside"] = kv.Value.Inside, ["via"] = kv.Value.Via }))));
 
     private static JsonNode ProblemNode(Finding p)
     {
