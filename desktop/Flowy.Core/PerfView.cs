@@ -164,6 +164,25 @@ public static class PerfView
     /// <summary>A load with its unit: "200 req/s".</summary>
     public static string FmtLoad(double load, string unit) => $"{Trim(load, load < 10 ? 1 : 0)} {unit}";
 
+    /// <summary>The load in words for a screen reader, with whether it was tested: "900 orders/min, tested", "70 s, between 60 and 90, estimated". <paramref name="note"/> is what <see cref="LoadNote(LoadRun, double)"/> says.</summary>
+    public static string SpeakLoad(string load, string note) => $"{load}, {char.ToLowerInvariant(note[0])}{note[1..]}";
+
+    /// <summary>Whose calls the chart shows: those into the shape the run's load comes in at ("Calls into Customer app"), else all of them. A run with several sources measures them together.</summary>
+    public static string ChartSubject(string? entry, Func<string, string> nameOf) => entry is null ? "All calls" : $"Calls into {nameOf(entry)}";
+
+    /// <summary>One tested load of the chart as a sentence, for a reader who cannot see it: "900 orders/min: expected call 190 ms, slowest 5% 520 ms".</summary>
+    public static string ChartRow(string load, Metrics overall)
+    {
+        static string Say(double? v) => v is { } n ? FmtMs(n) : "not measured";
+        return $"{load}: expected call {Say(overall.P50)}, slowest 5% {Say(overall.P95)}";
+    }
+
+    /// <summary>The chart of a run as text, one sentence for each tested load or time (see <see cref="ChartRow"/>).</summary>
+    public static IReadOnlyList<string> ChartRows(LoadRun run) => run.Levels.Select(l => ChartRow(FmtLoad(l.Load, run.Unit), l.Overall)).ToList();
+
+    /// <summary>The chart along one dial of a run with several sources as text: <paramref name="levels"/> are the level at each tested load of the dial.</summary>
+    public static IReadOnlyList<string> ChartRows(IReadOnlyList<Level> levels, Dial dial) => levels.Select((l, i) => ChartRow(FmtLoad(dial.Values[i], dial.Unit), l.Overall)).ToList();
+
     /// <summary>How each number is named and written in the panel, by the key it has in a run file.</summary>
     public static IReadOnlyDictionary<string, MetricInfo> Metrics { get; } = new Dictionary<string, MetricInfo>
     {
@@ -337,6 +356,23 @@ public static class PerfView
     public sealed record LineMarks(bool Bare);
 
     public static LineMarks LineMarksOf(IReadOnlyList<LineTraffic> lines) => new(lines.Any(l => l.Bare));
+
+    /// <summary>Which marks of a load are on the canvas now, for the key: the outline colour, the number on a shape past the struggle mark, the waiting badge.</summary>
+    public readonly record struct BoxMarks(bool Busy, bool Struggling, bool Waiting);
+
+    /// <summary>Which marks of a load are on the canvas now (see <see cref="BoxMarks"/>). <paramref name="ids"/> are the shapes the canvas draws.</summary>
+    public static BoxMarks BoxMarksOf(IdMap<BoxTraffic> boxes, IEnumerable<string> ids)
+    {
+        bool busy = false, struggling = false, waiting = false;
+        foreach (var id in ids)
+        {
+            if (!boxes.TryGetValue(id, out var b)) continue;
+            busy |= b.Strain is not null;
+            struggling |= Perf.StrainLabel(b.Strain) is not null;
+            waiting |= b.Queue > 0;
+        }
+        return new BoxMarks(busy, struggling, waiting);
+    }
 
     /// <summary>A source's colour for the theme that is showing, as <c>#rrggbb</c>: a named colour has one for each theme, a hex is the same in both. Null for text that is neither.</summary>
     public static string? SourceHex(string? color, bool dark) => Look.ColorPair(color) is { } pair ? (dark ? pair.Dark : pair.Light) : null;

@@ -124,6 +124,18 @@ public static class Views
     }
 
     /// <summary>
+    /// A shape's name the way the canvas at <paramref name="view"/> shows it: the shape drawn there that holds it, then each shape down to it ("Dispatch > ETA"). A shape the view draws itself is
+    /// just its name; one on another branch is named from where the branches part.
+    /// </summary>
+    public static string PathName(Model model, string view, string id)
+    {
+        var inView = Chain(model, view).ToHashSet();
+        var down = Chain(model, id).Where(x => x != Names.Root).Reverse().ToList();
+        var from = down.FindIndex(x => !inView.Contains(x));
+        return from < 0 ? NameOf(model, id) : string.Join(" > ", down.Skip(from).Select(x => NameOf(model, x)));
+    }
+
+    /// <summary>
     /// A step's ends as a reader sees them. When an end lands on a box that stands for something inside it, both are
     /// named ("Scheduler in Core"), so two steps on two parts of one box never read as a round trip.
     /// </summary>

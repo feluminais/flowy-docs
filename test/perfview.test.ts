@@ -4,7 +4,7 @@ import { parseRun } from '../src/core/perf/parse.ts'
 import {
   activeRun, boxAt, boxSeries, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, isTime, levelLabels, levelX, lineAt, lineSeries, LINE_KEYS, loadAt, METRICS, pathOf, posAt, RAMP_MS, rampFrom, rampPos, scaleOf, sliderFraction, slidePos, sliderRange, sliderValue, snap, sourceCss, starterRun, tickLabels, top, xAt, xOfPos, yAt,
 } from '../ui/src/perfview.ts'
-import { lineMarks } from '../ui/src/perfview.ts'
+import { boxMarks, chartRow, chartSubject, lineMarks, loadNote, speakLoad } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
 /** Three levels against the shop fixture: api and db are measured, and orders inside api; orders → db and auth → db share a line in the shop view. */
@@ -328,4 +328,24 @@ test('the key says so only while a line with no numbers, drawn with plain stripe
   assert.deepEqual(lineMarks([]), { bare: false })
   assert.deepEqual(lineMarks([line({ perSecond: 4, dots: 3 })]), { bare: false })
   assert.deepEqual(lineMarks([line({ perSecond: 4 }), line({ stripes: 0.2, bare: true })]), { bare: true })
+})
+
+test('a slider says its load and whether it was tested, for a screen reader', () => {
+  assert.equal(speakLoad(fmtLoad(loadAt(run, 1), run.unit), loadNote(run, 1)), '200 req/s, tested')
+  assert.equal(speakLoad(fmtLoad(loadAt(run, 1.5), run.unit), loadNote(run, 1.5)), '300 req/s, between 200 and 400, estimated')
+})
+
+test('the chart says whose calls it shows, and each tested load as a sentence', () => {
+  assert.equal(chartSubject('web', id => (id === 'web' ? 'Web' : id)), 'Calls into Web')
+  assert.equal(chartSubject(undefined, id => id), 'All calls')
+  assert.equal(chartRow('200 req/s', { p50: 14, p95: 1200 }), '200 req/s: expected call 14 ms, slowest 5% 1.2 s')
+  assert.equal(chartRow('200 req/s', { p50: 14 }), '200 req/s: expected call 14 ms, slowest 5% not measured')
+})
+
+test('the key draws a mark of a load only when a shape the canvas draws wears it', () => {
+  const boxes = { a: { strain: 0.4, queue: 0 }, b: { strain: 0.9, queue: 3 }, hidden: { strain: 0.95, queue: 9 } }
+  assert.deepEqual(boxMarks(boxes, ['a']), { busy: true, struggling: false, waiting: false })
+  assert.deepEqual(boxMarks(boxes, ['a', 'b']), { busy: true, struggling: true, waiting: true })
+  assert.deepEqual(boxMarks(boxes, ['nobody']), { busy: false, struggling: false, waiting: false })
+  assert.deepEqual(boxMarks({ q: { queue: 2 } }, ['q']), { busy: false, struggling: false, waiting: true })
 })

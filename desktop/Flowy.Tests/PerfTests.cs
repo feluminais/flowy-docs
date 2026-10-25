@@ -218,6 +218,23 @@ public class PerfTests
         Expected()["parsed"]!.AsArray().ToDictionary(i => i!["id"]!.GetValue<string>(), i => i!["text"]!.GetValue<string>());
 
     [Fact]
+    public void A_shape_past_the_struggle_mark_wears_its_percentage_and_the_rest_wear_nothing()
+    {
+        foreach (var c in Expected()["labels"]!.AsArray())
+            Assert.Equal(c!["label"]?.GetValue<string>(), Perf.StrainLabel(c["strain"]?.GetValue<double>()));
+    }
+
+    [Fact]
+    public void Data_greyed_out_says_why_and_a_shape_is_named_the_way_each_view_draws_it()
+    {
+        Assert.Equal(Perf.NoData, Expected()["noData"]!.GetValue<string>());
+        var paths = Expected()["paths"]!.AsArray();
+        Assert.True(paths.Count > 10);
+        foreach (var p in paths)
+            Assert.Equal(p!["name"]!.GetValue<string>(), Views.PathName(Loaded.Model, p["view"]!.GetValue<string>(), p["id"]!.GetValue<string>()));
+    }
+
+    [Fact]
     public void Strain_is_utilisation_or_failures_counted_twenty_times()
     {
         var all = Expected()["strain"]!.AsArray();
@@ -293,6 +310,7 @@ public class PerfTests
             var knee = Perf.FindKnee(run);
             Same(c["knee"], knee is null ? null : Json(knee), $"{id}: the knee");
             Assert.Equal(c["text"]?.GetValue<string>(), knee is null ? null : Perf.KneeText(run, knee, oid => Views.NameOf(Loaded.Model, oid)));
+            Assert.Equal(c["go"]?.GetValue<string>(), knee is null ? null : Perf.GoText(Loaded.Runs!, id, knee));
         }
     }
 
@@ -427,6 +445,7 @@ public class PerfTests
             var knee = Perf.KneeOf(runs, id);
             Same(item["knee"], knee is null ? null : Json(knee), $"{id}: the knee");
             Assert.Equal(item["text"]?.GetValue<string>(), knee is null ? null : Perf.KneeTextOf(runs, id, knee, oid => Views.NameOf(Loaded.Model, oid)));
+            Assert.Equal(item["go"]?.GetValue<string>(), knee is null ? null : Perf.GoText(runs, id, knee));
             foreach (var at in item["settings"]!.AsArray())
             {
                 var setting = Setting(at!["setting"]);
