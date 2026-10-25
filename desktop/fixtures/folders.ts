@@ -1,9 +1,9 @@
 import { FILE_KINDS, folderUnder, idOfPath, isAllowedPath, pathOf } from '../../src/core/filekinds.ts'
-import { FOLDER_RULE, folderOf, folderPaths, isValidFolder, isValidTag, MAX_TAG_LENGTH, SUGGESTED_TAGS, tagKey, tagsOf } from '../../src/core/model.ts'
+import { FOLDER_RULE, folderOf, folderPaths, isValidFolder, isValidTag, MAX_FILE_BYTES, MAX_TAG_LENGTH, SUGGESTED_TAGS, tagKey, tagsOf, tooBig } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 
-// What the native reader must agree on about where flows are filed and how they are tagged: the rules a folder name and a tag follow, the paths of flow files, and the
-// small helpers over a model's folders. The edits, the loader and the Flows list have their own dumps (ops, the folder cases, outline).
+// What the native reader must agree on about where flows are filed and how they are tagged: the rules a folder name and a tag follow, the paths of flow files, the
+// size past which a file is not read and the words that say so, and the small helpers over a model's folders. The edits, the loader and the Flows list have their own dumps (ops, the folder cases, outline).
 
 const FOLDERS = [
   '', 'payments', 'payments/refunds', 'Pay & refund', 'a b', 'v1.2', 'é', '日本語', 'a-b_c (d)', "it's", 'x'.repeat(64),
@@ -22,6 +22,9 @@ const FOLDER_MAPS: Record<string, string>[] = [
   {}, { a: 'x' }, { a: 'x/y/z', b: 'x', c: 'w' }, { a: 'B', b: 'a', c: 'B/c', d: 'A' }, { a: 'payments/refunds', b: 'payments/refunds', c: 'payments' },
 ]
 
+// Sizes in bytes around the limit and the roundings of the words: just over, a whole number of MB, a tenth past one, and far past.
+const SIZES = [MAX_FILE_BYTES + 1, 6 * 1024 * 1024, 6 * 1024 * 1024 + 1, 7_654_321, 200 * 1024 * 1024]
+
 const PATHS = [
   'flows/a.yaml', 'flows/x/a.yaml', 'flows/x/y/z/a.yaml', 'flows/Pay & refund/a.yaml', 'flows/a.yaml.tmp', 'flows/a.yml', 'flows/x/a.yml', 'flows/.yaml', 'flows/x/.yaml', 'flows/x/',
   'flows/x/A.yaml', 'flows/x/root.yaml', 'flows/x/-a.yaml', 'flows/.hidden/a.yaml', 'flows/a:b/a.yaml', 'flows/a#b/a.yaml', 'flows/ a/a.yaml', 'flows/a./a.yaml', 'flows/a//a.yaml',
@@ -35,6 +38,8 @@ export function dumpFolderRules(): unknown {
   return {
     folderRule: FOLDER_RULE,
     maxTagLength: MAX_TAG_LENGTH,
+    maxFileBytes: MAX_FILE_BYTES,
+    tooBig: SIZES.map(bytes => ({ bytes, text: tooBig(bytes) })),
     suggestedTags: [...SUGGESTED_TAGS],
     folders: FOLDERS.map(folder => ({ folder, valid: isValidFolder(folder) })),
     tags: TAGS.map(tag => ({ tag, valid: isValidTag(tag), key: tagKey(tag) })),

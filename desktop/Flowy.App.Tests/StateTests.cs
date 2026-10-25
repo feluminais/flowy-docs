@@ -64,7 +64,7 @@ public class StateTests
 
     /// <summary>The words of the key on the player's card: one for each swatch.</summary>
     private static List<string> Keyed(ReaderView reader) =>
-        reader.Card.GetVisualDescendants().OfType<StateSwatch>().Select(s => ((TextBlock)((StackPanel)s.Parent!).Children[1]).Text ?? "").ToList();
+        reader.Card.Laid().GetVisualDescendants().OfType<StateSwatch>().Select(s => ((TextBlock)((StackPanel)s.Parent!).Children[1]).Text ?? "").ToList();
 
     /// <summary>The text in a panel, found through the logical tree: its content is in a scroll viewer that makes no visuals before a layout.</summary>
     private static List<string> PanelWords(Control root) => root.GetLogicalDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();

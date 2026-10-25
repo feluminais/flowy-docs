@@ -92,6 +92,16 @@ public class FolderLoaderTests
     }
 
     [Fact]
+    public void A_file_over_the_size_limit_stops_the_load_in_the_words_core_uses()
+    {
+        using var temp = new TempDir();
+        temp.Write("flowy/model.yaml", "about: " + new string('x', 5 * 1024 * 1024) + "\n");
+        var e = Assert.Throws<ParseError>(() => FolderLoader.Load(Path.Combine(temp.Dir, "flowy")));
+        Assert.Equal("model.yaml", e.File);
+        Assert.Equal("is 5.1 MB, more than the 5 MB Flowy reads", e.Reason);
+    }
+
+    [Fact]
     public void A_file_with_a_byte_order_mark_loads()
     {
         using var temp = new TempDir();
