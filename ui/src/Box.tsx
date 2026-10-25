@@ -3,7 +3,7 @@ import type { CSSProperties, MouseEvent, PointerEvent, ReactNode } from 'react'
 import { Handle, NodeToolbar, Position, useConnection } from '@xyflow/react'
 import type { NodeProps } from '@xyflow/react'
 import Markdown from 'react-markdown'
-import { BAND_NAMES } from '../../src/core/failures.ts'
+import { badgeName } from '../../src/core/failures.ts'
 import type { Mark } from '../../src/core/failures.ts'
 import type { Change, SideMarks } from '../../src/core/flowdiff.ts'
 import { fillOpacity, isColor, onFill, SHAPE_DEFS, shapeOf, showsTile } from '../../src/core/look.ts'
@@ -39,8 +39,8 @@ export function Description({ text }: { text: string }) {
 }
 
 /** How many failure modes a shape or line carries, in the colour of the worst one. The count and the band's name are also its label, so the colour is never the only copy. */
-export function FailBadge({ mark, className, style }: { mark: Mark; className?: string; style?: CSSProperties }) {
-  const label = `${mark.count} failure${mark.count === 1 ? '' : 's'}, ${BAND_NAMES[mark.band]}`
+export function FailBadge({ mark, line, className, style }: { mark: Mark; line?: string; className?: string; style?: CSSProperties }) {
+  const label = badgeName(mark, line)
   return <span className={['fail-badge', mark.band, className].filter(Boolean).join(' ')} style={style} role="img" aria-label={label} title={label}>{mark.count}</span>
 }
 
