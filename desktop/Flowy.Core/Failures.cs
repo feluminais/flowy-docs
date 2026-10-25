@@ -43,6 +43,17 @@ public static class Failures
     /// <summary>The names a reader sees for the bands.</summary>
     public static string BandName(RiskBand band) => band switch { RiskBand.High => "High", RiskBand.Medium => "Medium", RiskBand.Low => "Low", _ => "Not rated" };
 
+    private const int HighRisk = 150, HighSeverity = 9, MediumRisk = 60;
+
+    /// <summary>What each band stands for, as the key says it beside the band's count. Built from the numbers <see cref="BandOf"/> uses.</summary>
+    public static string BandRule(RiskBand band) => band switch
+    {
+        RiskBand.High => $"Risk {HighRisk}+ or severity {HighSeverity}+",
+        RiskBand.Medium => $"Risk {MediumRisk} to {HighRisk - 1}",
+        RiskBand.Low => $"Risk under {MediumRisk}",
+        _ => "A rating missing",
+    };
+
     /// <summary>The key the TypeScript and the fixtures call a band by.</summary>
     public static string BandKey(RiskBand band) => band switch { RiskBand.High => "high", RiskBand.Medium => "medium", RiskBand.Low => "low", _ => "unrated" };
 
@@ -76,9 +87,9 @@ public static class Failures
     public static RiskBand BandOf(FailureMode m)
     {
         var r = Effective(m);
-        if (r.Severity is >= 9) return RiskBand.High;
+        if (r.Severity is >= HighSeverity) return RiskBand.High;
         if (Risk(r) is not { } n) return RiskBand.Unrated;
-        return n >= 150 ? RiskBand.High : n >= 60 ? RiskBand.Medium : RiskBand.Low;
+        return n >= HighRisk ? RiskBand.High : n >= MediumRisk ? RiskBand.Medium : RiskBand.Low;
     }
 
     /// <summary>
@@ -123,6 +134,19 @@ public static class Failures
         return "";
     }
 
+    /// <summary>What a screen reader says for a row of the list: the part's own name and the mode, then the band with its risk, then where the part sits.</summary>
+    public static string RowName(Model model, RankedMode r)
+    {
+        var part = PartName(model, r.Mode);
+        var at = part.LastIndexOf(" > ", StringComparison.Ordinal);
+        var rating = r.Risk is { } n ? $"{BandName(r.Band)}, risk {n.ToString(System.Globalization.CultureInfo.InvariantCulture)}" : BandName(r.Band);
+        return string.Join(". ", new[] { $"{(at == -1 ? part : part[(at + 3)..])}: {r.Mode.Mode ?? ""}", rating, at == -1 ? "" : part[..at] }.Where(x => x != ""));
+    }
+
+    /// <summary>What a badge on a line says: the line by its two ends, how many modes, and the worst band. A shape's badge leaves the line out.</summary>
+    public static string BadgeName(FailureMark mark, string? line = null) =>
+        $"{(line is null ? "" : line + ", ")}{mark.Count.ToString(System.Globalization.CultureInfo.InvariantCulture)} failure{(mark.Count == 1 ? "" : "s")}, {BandName(mark.Band)}";
+
     private static readonly string[] Columns = ["Risk band", "Part", "Mode", "Effect", "Cause", "Severity", "Likelihood", "Hard to spot", "Risk", "Controls", "Next action", "Owner", "Status"];
     private static readonly string[] AfterColumns = ["Severity after", "Likelihood after", "Hard to spot after"];
 
@@ -163,11 +187,14 @@ public static class Failures
         return string.Join("\n", new[] { Line(head), Line(head.Select(_ => "---")) }.Concat(rows.Select(Line)));
     }
 
-    /// <summary>"Analysed 3 of 4", and when some are left a second line naming them by their path.</summary>
+    /// <summary>"Analysed 15 of 26 shapes": what the panel says under the band counts. The shapes are those that hold no others, actors left out.</summary>
+    public static string AnalysedText(int analysed, int total) => $"Analysed {analysed.ToString(System.Globalization.CultureInfo.InvariantCulture)} of {total.ToString(System.Globalization.CultureInfo.InvariantCulture)} {(total == 1 ? "shape" : "shapes")}";
+
+    /// <summary>"Analysed 3 of 4 shapes", and when some are left a second line naming them by their path.</summary>
     public static string CoverageText(Model model, FailureAnalysis a)
     {
         var (analysed, left) = Coverage(model, a);
-        var first = $"Analysed {analysed.Count} of {analysed.Count + left.Count}";
+        var first = AnalysedText(analysed.Count, analysed.Count + left.Count);
         return left.Count == 0 ? first : $"{first}\nNot analysed: {string.Join(", ", left.Select(id => ShapeName(model, id)))}";
     }
 

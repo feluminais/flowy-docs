@@ -85,6 +85,24 @@ public class CanvasFailuresTests
     }
 
     [AvaloniaFact]
+    public void What_fails_and_what_it_hurts_are_outlined_in_the_colour_of_the_modes_band()
+    {
+        var (canvas, folder) = Open();
+        canvas.ShowFailures(Overlay(folder, "shop", "db-down")); // severity 10: High
+        Assert.Equal(RiskBand.High, canvas.OutlineBandOf("db"));
+        Assert.Equal(RiskBand.High, canvas.OutlineBandOf("web")); // what it hurts takes the same colour, lighter
+        Assert.Null(canvas.OutlineBandOf("mail")); // faded, not outlined
+        canvas.ShowFailures(Overlay(folder, "shop", "mail-timeout")); // 3 x 6 x 7 = 126: Medium
+        Assert.Equal(RiskBand.Medium, canvas.OutlineBandOf("mail"));
+        Assert.Equal(RiskBand.Medium, canvas.OutlineBandOf("api"));
+        Assert.Equal(RiskBand.Medium, canvas.OutlineBandOf("web")); // and what it hurts
+        canvas.ShowFailures(Overlay(folder, "shop", "web-glitch")); // 2 x 3 x 2 = 12: Low
+        Assert.Equal(RiskBand.Low, canvas.OutlineBandOf("web"));
+        canvas.ShowFailures(Overlay(folder, "shop"));
+        Assert.Null(canvas.OutlineBandOf("web"));
+    }
+
+    [AvaloniaFact]
     public void A_picked_mode_on_a_line_outlines_the_line_and_the_shapes_at_its_ends()
     {
         var (canvas, folder) = Open();
