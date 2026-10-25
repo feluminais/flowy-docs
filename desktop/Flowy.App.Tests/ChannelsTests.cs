@@ -29,7 +29,7 @@ public class ChannelsTests
         return (window, reader);
     }
 
-    private static List<string> Words(ReaderView reader) => reader.Card.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
+    private static List<string> Words(ReaderView reader) => reader.Card.Laid().GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
 
     private static string Marks(ReaderView reader) =>
         string.Join(", ", reader.Canvas.ChannelsShown.Select(m => $"{m.Kind}:{m.Name}@{m.AtBox}{(m.Opening ? "+" : "")}{(m.Closing ? "-" : "")}"));

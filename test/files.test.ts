@@ -169,6 +169,12 @@ test('broken files are reported with their name, and never overwritten', async t
   assert.deepEqual(await readFile(join(dir, 'model.yaml')), ansi)
 })
 
+test('a file over the size limit is refused, in words the desktop app uses too', async t => {
+  const dir = await tempDir(t)
+  await writeFile(join(dir, 'model.yaml'), `about: ${'x'.repeat(5 * 1024 * 1024)}\n`)
+  await assert.rejects(loadDir(dir), /model\.yaml: is 5\.1 MB, more than the 5 MB Flowy reads$/)
+})
+
 test('a UTF-8 file with a BOM loads', async t => {
   const dir = await tempDir(t)
   const bom = String.fromCharCode(0xfeff) // built in code so no copy or paste step can drop it

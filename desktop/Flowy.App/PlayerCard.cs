@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
@@ -55,7 +56,7 @@ internal sealed class PlayerCard : Border
         HorizontalAlignment = HorizontalAlignment.Center;
         VerticalAlignment = VerticalAlignment.Bottom;
         MaxWidth = 520;
-        Margin = inPane ? new Thickness(10, 0, 10, 12) : new Thickness(16, 0, 16, 24);
+        Margin = inPane ? new Thickness(10, 0, 10, 12) : new Thickness(16, 24, 16, 24);
         IsVisible = false;
     }
 
@@ -128,13 +129,25 @@ internal sealed class PlayerCard : Border
     private static Control Bar(Progress progress, int now, IReadOnlyList<Change?>? changes)
     {
         var here = progress.Cells.FirstOrDefault(c => c.Stop == now);
-        // What differs at a cell's stop: `changes` runs along the cells.
-        Change? ChangeAt(Cell cell)
+        // The cells by where they go, read once: looking each column up in every cell would cost the square of the steps, at every step of a long flow.
+        var index = new Dictionary<Cell, int>(ReferenceEqualityComparer.Instance);
+        var groupAt = new Dictionary<int, int>();
+        var plainAt = new Dictionary<int, Cell>();
+        var inGroup = new Dictionary<int, List<Cell>>();
+        for (var n = 0; n < progress.Cells.Count; n++)
         {
-            for (var n = 0; n < progress.Cells.Count; n++)
-                if (progress.Cells[n] == cell) return changes is not null && n < changes.Count ? changes[n] : null;
-            return null;
+            var c = progress.Cells[n];
+            index.TryAdd(c, n);
+            if (c.Group < 0) plainAt.TryAdd(c.Col, c);
+            else
+            {
+                if (c.Row == 0) groupAt.TryAdd(c.Col, c.Group);
+                if (!inGroup.TryGetValue(c.Group, out var list)) inGroup[c.Group] = list = [];
+                list.Add(c);
+            }
         }
+        // What differs at a cell's stop: `changes` runs along the cells.
+        Change? ChangeAt(Cell cell) => changes is not null && index.TryGetValue(cell, out var n) && n < changes.Count ? changes[n] : null;
         Control Cell(Cell cell)
         {
             var segment = new Border();
@@ -152,7 +165,7 @@ internal sealed class PlayerCard : Border
         var parts = new List<(int At, int Group)>();
         for (var col = 0; col < progress.Cols;)
         {
-            var group = progress.Cells.FirstOrDefault(c => c.Col == col && c.Row == 0 && c.Group >= 0)?.Group ?? -1;
+            var group = groupAt.TryGetValue(col, out var g) ? g : -1;
             parts.Add((col, group));
             col = group < 0 ? col + 1 : progress.Brackets[group].To + 1;
         }
@@ -174,13 +187,13 @@ internal sealed class PlayerCard : Border
             var ways = rows == 1 ? 2 : rows; // an "only if" may also go round its lane
             var on = here is not null && here.Group == group ? here.Row : -1;
             var lanes = new StackPanel { Spacing = LaneGap };
+            var byRow = mine.ToLookup(c => c.Row);
             for (var r = 0; r < ways; r++)
             {
                 var name = new TextBlock { Text = r < b.Lanes.Count ? b.Lanes[r] : "", Height = LaneName };
                 name.Classes.Add("barlane");
                 if (r == on) name.Classes.Add("on");
-                var row = r;
-                Control way = r < rows ? Cells(b, mine.Where(c => c.Row == row)) : new Border { Height = 2, Margin = new Thickness(0, 3), Classes = { "round" } };
+                Control way = r < rows ? Cells(b, byRow[r]) : new Border { Height = 2, Margin = new Thickness(0, 3), Classes = { "round" } };
                 lanes.Children.Add(new StackPanel { Children = { name, way } });
             }
             var fork = new DockPanel { VerticalAlignment = VerticalAlignment.Top, Background = Brushes.Transparent };
@@ -194,7 +207,10 @@ internal sealed class PlayerCard : Border
                 fork.Children.Add(join);
             }
             fork.Children.Add(lanes);
-            return fork;
+            // Many lanes: five and half of a sixth, then the lanes and their elbows scroll together, kept on the lane this stop is in and its cells.
+            var scroll = Scrolled(fork, 5.5 * Lane, "barlane", below: Lane - LaneName - LaneGap);
+            scroll.VerticalAlignment = VerticalAlignment.Top;
+            return scroll;
         }
         // On a bar with a fork, the rest sits level with the first lane's strip.
         var forked = progress.Brackets.Any(b => b.Kind == "branch");
@@ -205,21 +221,21 @@ internal sealed class PlayerCard : Border
             Control part;
             if (group < 0)
             {
-                part = Cell(progress.Cells.First(c => c.Col == at && c.Group < 0));
+                part = Cell(plainAt[at]);
                 if (forked) (part.VerticalAlignment, part.Margin) = (VerticalAlignment.Top, new Thickness(0, Strip - 4, 0, 0));
             }
             else if (progress.Brackets[group].Kind == "branch")
             {
                 // A fork reaches over the gap to its neighbours, so its line runs on from them: the bar's gap, and a box's margin too. None at an end.
                 double Reach(int n) => n < 0 || n >= parts.Count ? 0 : parts[n].Group >= 0 && progress.Brackets[parts[n].Group].Kind != "branch" ? -8 : -3;
-                part = Fork(progress.Brackets[group], group, progress.Cells.Where(c => c.Group == group).ToList());
+                part = Fork(progress.Brackets[group], group, inGroup[group]);
                 part.Margin = new Thickness(Reach(i - 1), 0, Reach(i + 1), 0);
                 ToolTip.SetTip(part, progress.Brackets[group].Title);
             }
             else
             {
                 var b = progress.Brackets[group];
-                var cells = Cells(b, progress.Cells.Where(c => c.Group == group));
+                var cells = Cells(b, inGroup[group]);
                 var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) };
                 label.Children.Add(Icons.Make(Icons.ForKind(b.Kind), "chipicon", 11));
                 label.Children.Add(new TextBlock { Text = b.Text, FontSize = 10.5, Classes = { "muted" } });
@@ -235,6 +251,21 @@ internal sealed class PlayerCard : Border
             strip.Children.Add(part);
         }
         return strip;
+    }
+
+    /// <summary>
+    /// <paramref name="content"/> in a box at most <paramref name="height"/> high that scrolls, with the scroll kept on its child that is on (the lane
+    /// this stop is in, of class <paramref name="kind"/>), which may be deep inside it, and <paramref name="below"/> pixels under that child.
+    /// </summary>
+    private static ScrollViewer Scrolled(Control content, double height, string kind, double below = 0)
+    {
+        var scroll = new ScrollViewer { Content = content, MaxHeight = height, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+        scroll.Loaded += (_, _) =>
+        {
+            if (content.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Classes.Contains(kind) && c.Classes.Contains("on")) is { } on && on.TranslatePoint(default, content) is { } at)
+                scroll.Offset = new Vector(0, Math.Max(0, at.Y + on.Bounds.Height + below - scroll.Viewport.Height));
+        };
+        return scroll;
     }
 
     /// <summary>What the chips, the bar and the labels on lines mean, in the words core gives it (see <see cref="Captions.Legend"/>).</summary>
@@ -315,6 +346,7 @@ internal sealed class PlayerCard : Border
     {
         _shown = v;
         var grouped = v.Progress.Brackets.Count > 0; // the legend explains groups, so a flow with none has no button
+        var top = new StackPanel { Spacing = 8, Margin = new Thickness(0, 0, 0, 8) };
         var column = new StackPanel { Spacing = 8 };
         if (v.Trail is { } trail)
         {
@@ -322,7 +354,7 @@ internal sealed class PlayerCard : Border
             back.Classes.Add("trail");
             back.HorizontalAlignment = HorizontalAlignment.Stretch;
             back.HorizontalContentAlignment = HorizontalAlignment.Left;
-            column.Children.Add(back);
+            top.Children.Add(back);
         }
         var chips = new List<Control> { Chrome.Chip(v.FlowName, Icons.Play), Chrome.Chip($"Step {v.Stop + 1} of {v.Count}", null, "accent") };
         if (v.Caption.Chip != "") chips.Add(Chrome.Chip(v.Caption.Chip, Icons.ForKind(v.Kind)));
@@ -352,7 +384,7 @@ internal sealed class PlayerCard : Border
             CompareButton = compare;
         }
         head.Children.Add(Chrome.Chips([.. chips]));
-        column.Children.Add(head);
+        top.Children.Add(head);
         if (grouped && s_legend) column.Children.Add(LegendBlock());
         if (v.Caption.Tabs.Count > 0)
         {
@@ -364,7 +396,7 @@ internal sealed class PlayerCard : Border
                 if (i == v.Caption.Tab) tab.Classes.Add("on");
                 tabs.Children.Add(tab);
             }
-            column.Children.Add(tabs);
+            column.Children.Add(Scrolled(tabs, 84, "tab")); // three rows and half of a fourth (24 each), then they scroll
         }
         if (v.Caption.Text != "") column.Children.Add(new SelectableTextBlock { Text = v.Caption.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
         column.Children.Add(Bar(v.Progress, v.Stop, v.Changes));
@@ -372,7 +404,7 @@ internal sealed class PlayerCard : Border
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
         if (v.ChannelKinds is { Count: > 0 } kinds) column.Children.Add(ChannelKey.Of(kinds));
         foreach (var step in v.Steps) column.Children.Add(Block(step, v.Steps.Count > 1));
-        var buttons = new DockPanel { Margin = new Thickness(0, 6, 0, 0), LastChildFill = false };
+        var buttons = new DockPanel { Margin = new Thickness(0, 14, 0, 0), LastChildFill = false }; // the 8 between the card's lines and 6 more
         var stop = Tool(Icons.Close, "Stop", () => Stop?.Invoke(), !_inPane);
         if (_inPane) GreyedWith(stop, "Close the comparison to stop");
         stop.Margin = new Thickness(16, 0, 0, 0);
@@ -382,11 +414,13 @@ internal sealed class PlayerCard : Border
         left.Children.Add(v.Auto ? Tool(Icons.Pause, "Pause", () => Auto?.Invoke()) : Tool(Icons.Play, "Autoplay", () => Auto?.Invoke()));
         if (v.Moving) left.Children.Add(Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step"));
         buttons.Children.Add(left);
-        column.Children.Add(buttons);
         // The flyout from the Compare button sits above the card's content. The last rebuild still holds it, so it is let go of before it is given a new place.
         Detach(_picker);
-        // A pane has little room: its card scrolls when its pane (which sets MaxHeight) is shorter than the card.
-        Control body = _inPane ? new ScrollViewer { Content = column, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled } : column;
+        // The card never grows past the canvas (or its pane, which sets MaxHeight): its name and its buttons stay, and what is between them scrolls.
+        DockPanel.SetDock(top, Dock.Top);
+        DockPanel.SetDock(buttons, Dock.Bottom);
+        var middle = new ScrollViewer { Content = column, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
+        Control body = new DockPanel { Children = { top, buttons, middle } };
         Child = _picker is null ? body : new StackPanel { Spacing = 10, Children = { _picker, body } };
         IsVisible = true;
     }
