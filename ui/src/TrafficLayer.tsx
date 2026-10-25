@@ -161,7 +161,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
     const ctx = el.getContext('2d')!
     let frame = 0
     let last = performance.now()
-    let colours = { ok: '#2563eb', bad: '#b91c1c' }
+    let colours = { ok: '#2563eb', bad: '#b91c1c', muted: '#78716c' }
     let dark = false
     const tints = new Map<string, string>() // a source's colour for the theme the page is in now, by the name or hex it was written with
     let colourAt = 0
@@ -183,7 +183,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
       last = t
       if (t - colourAt > 500) {
         const css = getComputedStyle(el)
-        colours = { ok: css.getPropertyValue('--accent').trim() || colours.ok, bad: css.getPropertyValue('--danger').trim() || colours.bad }
+        colours = { ok: css.getPropertyValue('--accent').trim() || colours.ok, bad: css.getPropertyValue('--danger').trim() || colours.bad, muted: css.getPropertyValue('--muted').trim() || colours.muted }
         dark = Number(/\d+/.exec(css.color)?.[0] ?? 0) > 127
         tints.clear()
         colourAt = t
@@ -213,7 +213,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         const key = line.source === undefined ? `${line.from} ${line.to}` : `${line.from} ${line.to} ${line.source}`
         alive.add(key)
         if (line.stripes !== undefined && line.stripes > 0) {
-          // A line the run gives no numbers: plain stripes moving along the line itself, closer and quicker the more the run is loaded.
+          // A line the run gives no numbers: plain muted stripes moving along the line itself, closer and quicker the more the run is loaded.
           const pace = stripePace(line.stripes)
           const period = pace.dash + pace.gap
           const phase = ((stripeAt.current.get(key) ?? 0) + (pace.speed * ms) / 1000 / period) % 1
@@ -234,7 +234,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
           ctx.lineCap = 'round'
           ctx.lineWidth = Math.max(2.4, line.width + 0.9) // a little thicker than the line it runs on, in the diagram's units, so the two read as one arrow at any zoom
           ctx.globalAlpha = 0.9
-          ctx.strokeStyle = tint(line.color)
+          ctx.strokeStyle = colours.muted // not the source's colour: a line with no numbers of its own is not one that was measured, and the key calls it Not measured
           ctx.setLineDash([pace.dash, pace.gap])
           ctx.lineDashOffset = -phase * period
           ctx.stroke()
