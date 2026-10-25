@@ -92,6 +92,26 @@ public static class Failures
         return n >= HighRisk ? RiskBand.High : n >= MediumRisk ? RiskBand.Medium : RiskBand.Low;
     }
 
+    /// <summary>The severity that made the mode High when its risk alone would not: 9 or 10 with a risk under 150 or none. Null for any other mode.</summary>
+    private static int? SeverityOnly(FailureMode m)
+    {
+        var r = Effective(m);
+        return r.Severity is { } s && s >= HighSeverity && (Risk(r) is not { } n || n < HighRisk) ? s : null;
+    }
+
+    /// <summary>Why the mode is in its band, when its risk does not say it: "Severity 9" for a High row that is High by severity alone. Shown beside the row's risk.</summary>
+    public static string? BandReason(FailureMode m) => SeverityOnly(m) is { } s ? $"Severity {s.ToString(CultureInfo.InvariantCulture)}" : null;
+
+    /// <summary>The band as the picked mode's card says it: "High: severity 9" when severity alone made it High, else just the band's name.</summary>
+    public static string BandLabel(FailureMode m) => SeverityOnly(m) is { } s ? $"{BandName(RiskBand.High)}: severity {s.ToString(CultureInfo.InvariantCulture)}" : BandName(BandOf(m));
+
+    /// <summary>How the risk is made: "8 × 4 × 3", severity times likelihood times hard to spot, of the ratings that count. Null when a rating is missing.</summary>
+    public static string? RiskProduct(FailureMode m)
+    {
+        var r = Effective(m);
+        return Risk(r) is null ? null : $"{r.Severity} × {r.Occurrence} × {r.Detection}";
+    }
+
     /// <summary>
     /// The modes worst first: by band, then by risk, highest first. Inside a band a mode with a risk number comes before one without, and those go by
     /// severity. Ties keep the order of the file, so the list holds still while it is edited.
@@ -134,12 +154,12 @@ public static class Failures
         return "";
     }
 
-    /// <summary>What a screen reader says for a row of the list: the part's own name and the mode, then the band with its risk, then where the part sits.</summary>
+    /// <summary>What a screen reader says for a row of the list: the part's own name and the mode, then the band with its risk and, for a High row made so by severity alone, that severity, then where the part sits.</summary>
     public static string RowName(Model model, RankedMode r)
     {
         var part = PartName(model, r.Mode);
         var at = part.LastIndexOf(" > ", StringComparison.Ordinal);
-        var rating = r.Risk is { } n ? $"{BandName(r.Band)}, risk {n.ToString(System.Globalization.CultureInfo.InvariantCulture)}" : BandName(r.Band);
+        var rating = string.Join(", ", new[] { BandName(r.Band), r.Risk is { } n ? $"risk {n.ToString(CultureInfo.InvariantCulture)}" : "", BandReason(r.Mode)?.ToLowerInvariant() ?? "" }.Where(x => x != ""));
         return string.Join(". ", new[] { $"{(at == -1 ? part : part[(at + 3)..])}: {r.Mode.Mode ?? ""}", rating, at == -1 ? "" : part[..at] }.Where(x => x != ""));
     }
 
