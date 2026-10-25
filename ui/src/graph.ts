@@ -6,7 +6,7 @@ import type { BoxTraffic } from '../../src/core/perf/types.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
-import { childCount, computeView, placeEnds } from '../../src/core/views.ts'
+import { childCount, computeView, nameOf, placeEnds } from '../../src/core/views.ts'
 import { BOX, arrange, membersOf, spotsOf, tangle, untangle } from '../../src/core/layout.ts'
 import type { Region } from '../../src/core/layout.ts'
 
@@ -41,6 +41,9 @@ export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?
 
 /** Whether an edge is one a flow step added (it has no connection of its own), so a click on it opens no panel. */
 export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(id)
+
+/** What a screen reader says for a line: the two shapes by name, and the line's label ("Customer app to Order API, REST"), not the ids React Flow would read. */
+export const lineName = (model: Model, from: string, to: string, label?: string): string => `${nameOf(model, from)} to ${nameOf(model, to)}${label ? `, ${label}` : ''}`
 
 /** The core's lineKey; App.tsx still calls it lineId. */
 export const lineId = lineKey
@@ -99,6 +102,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     source: e.from,
     target: e.to,
     label: e.label || undefined,
+    ariaLabel: lineName(model, e.from, e.to, e.label),
     markerEnd: { type: 'arrowclosed' },
     className: classes(dimming && (isLit(e.from, e.to) ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineKey(e.from, e.to)) && 'problem'),
     ...(dimming && isLit(e.from, e.to) ? litLine : {}),
@@ -109,13 +113,13 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const id = lineKey(e[0], e[1])
     if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) return
     drawn.add(id)
-    lines.push({ id: n === 0 ? 'step' : `step-${n}`, type: 'line', source: e[0], target: e[1], className: 'step', ...litLine })
+    lines.push({ id: n === 0 ? 'step' : `step-${n}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'step', ...litLine })
   })
   for (const { i, e } of faintSteps) {
     const id = lineKey(e[0], e[1])
     if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) continue
     drawn.add(id)
-    lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], className: 'lane', markerEnd: { type: 'arrowclosed' } })
+    lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'lane', markerEnd: { type: 'arrowclosed' } })
   }
   return { nodes, edges: lines, members }
 }

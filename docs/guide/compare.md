@@ -83,7 +83,7 @@ A run's file takes the same key: `compare: together`, or `with` and `note`. The 
 and the flow still opens. [The file format](../format.md) lists the key for flows and for runs.
 
 The tag only helps you find things. It limits nothing: any two flows can be opened together, tagged or not, and a flow can be tagged by many. If A and B tag each other the pair is listed once.
-A flow in a pair has a link mark in the Flows tab and the Explorer, with **Linked** in the key at the foot of the list. A tag that names a flow that isn't there is listed as **Missing**, greyed out.
+A flow in a pair has a link mark in the Flows tab and the Explorer, with **Compare pair** in the key at the foot of the list. Point at the mark to read which flow it is compared with. A tag that names a flow that isn't there is listed as **Missing**, greyed out.
 
 ## Making a pair
 
@@ -91,7 +91,7 @@ A flow in a pair has a link mark in the Flows tab and the Explorer, with **Linke
 - **In edit mode.** A flow's form has **Compare with**: tiles of the other flows and a field to find one. Picking one writes the tag and keeps the note. **Remove** takes it away, and asks first when a note would go with it. Flows that tag this one are listed under **Compared by**. Deleting a flow takes the tag off the flows that tagged it. If one of those tags holds a note, the delete is refused until that link is removed.
 - **In YAML.** Add the `compare` key above to the newer flow, in the YAML tab or in the file.
 - **Over MCP.** The `set_compare` tool sets or removes the tag of a flow or a run, with a note. See [AI and MCP](ai.md#let-an-ai-build-it).
-- **For runs.** While editing, the Performance tab lists the runs, each with **Link with** and **Unlink**. Looking at a run, the tab has **Compare** and the **Linked** mark, and no link buttons. They write only the `compare` field of the run file, in place, and a tool that writes the run again keeps it. A run called `null` can't be linked.
+- **For runs.** While editing, the Performance tab lists the runs, each with **Link with** and **Unlink**. Looking at a run, the tab has **Compare** and the **Compare pair** mark, and no link buttons. They write only the `compare` field of the run file, in place, and a tool that writes the run again keeps it. A run called `null` can't be linked.
 
 ## In the desktop app
 

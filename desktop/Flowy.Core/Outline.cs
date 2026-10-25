@@ -4,18 +4,19 @@ namespace Flowy.Core;
 
 /// <summary>
 /// One line of the navigator's tree: the project, a shape, or a flow. <c>Key</c> is <c>shape:id</c> or <c>flow:id</c>. <c>Linked</c> is set on a flow row only: whether the flow is in a pair, by
-/// tagging a flow that is there or being tagged by one (see <see cref="Compares.Linked"/>).
+/// tagging a flow that is there or being tagged by one (see <see cref="Compares.Linked"/>); <c>Partners</c> then names the flows it is paired with. <c>Inside</c> is the shapes right inside a shape,
+/// the number the canvas shows as "N inside"; <c>Shapes</c> counts them at every level.
 /// </summary>
 public sealed record OutlineRow(
     string Key, string Kind, string Id, string? Parent, int Depth, string Name, string? Type, bool External, int Shapes, int Flows, int? Steps,
-    bool Problem, bool Expandable, bool Expanded, bool Match, bool? Linked = null);
+    bool Problem, bool Expandable, bool Expanded, bool Match, bool? Linked = null, IReadOnlyList<string>? Partners = null, int Inside = 0);
 
 public sealed record OutlineTotals(int Shapes, int Flows, int Problems);
 
 public sealed record Outline(IReadOnlyList<OutlineRow> Rows, OutlineTotals Totals);
 
-/// <summary>A flow on the Flows list: where its file is (<c>Folder</c>, "" at the top of flows/) and its tags. <c>View</c> is where it plays. <c>Linked</c>: it is in a pair (see <see cref="OutlineRow"/>).</summary>
-public sealed record FlowRef(string Id, string Name, int Steps, string? View, bool Linked, string Folder, IReadOnlyList<string> Tags);
+/// <summary>A flow on the Flows list: where its file is (<c>Folder</c>, "" at the top of flows/) and its tags. <c>View</c> is where it plays. <c>Linked</c>: it is in a pair (see <see cref="OutlineRow"/>); <c>Partners</c> names the flows it is paired with.</summary>
+public sealed record FlowRef(string Id, string Name, int Steps, string? View, bool Linked, IReadOnlyList<string> Partners, string Folder, IReadOnlyList<string> Tags);
 
 /// <summary>One line of the Flows list: a folder of flows or a flow. <c>Key</c> is <c>folder:path</c> or <c>flow:id</c>.</summary>
 public abstract record FlowRow(string Key, int Depth);
@@ -165,6 +166,26 @@ public static class Outlines
     /// <summary>The flows that are in a pair (see <see cref="Compares.Linked"/>).</summary>
     private static IReadOnlySet<string> LinkedFlows(Model model) => Compares.Linked(CompareChoices.TagsOf(model, new Dictionary<string, LoadRun>(), "flow"));
 
+    private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
+
+    /// <summary>What a shape row's number says: the shapes right inside it, as the canvas does ("7 inside"), then the flows that play in it at any depth. A flow row has none (it shows its steps).</summary>
+    public static string RowCount(OutlineRow row) =>
+        row.Kind == "flow" ? "" : string.Join(" · ", new[] { row.Inside > 0 ? $"{row.Inside} inside" : null, row.Flows > 0 ? Plural(row.Flows, "flow") : null }.Where(s => s is not null));
+
+    /// <summary>The same in full, for the row's tooltip and its accessible name: "7 inside, 13 in all, 12 flows". "in all" is left out when every shape in it is right inside.</summary>
+    public static string RowCountWords(OutlineRow row) =>
+        row.Kind == "flow" ? "" : string.Join(", ", new[] { row.Inside > 0 ? $"{row.Inside} inside" : null, row.Shapes > row.Inside ? $"{row.Shapes} in all" : null, row.Flows > 0 ? Plural(row.Flows, "flow") : null }.Where(s => s is not null));
+
+    /// <summary>What a flow's pair mark says to a screen reader and in its tooltip: who it is paired with.</summary>
+    public static string ComparedWith(IReadOnlyList<string> partners) => partners.Count == 0 ? "Compare pair" : $"Compared with {string.Join(", ", partners)}";
+
+    /// <summary>The names of the flows <paramref name="id"/> is paired with, the older one first: a tag to a flow that is not there names nobody.</summary>
+    private static IReadOnlyList<string> PartnerNames(Model model, string id)
+    {
+        var tags = CompareChoices.TagsOf(model, new Dictionary<string, LoadRun>(), "flow");
+        return [.. Compares.Partners(tags, id).Where(p => model.Flows.Contains(p.Id)).Select(p => model.Flows[p.Id].Name is { Length: > 0 } name ? name : p.Id)];
+    }
+
     /// <summary>The rows to draw, top to bottom. With a filter, only matching rows and the shapes holding them show, all open.</summary>
     public static Outline Build(Model model, IReadOnlyList<Problem> problems, IReadOnlySet<string> expanded, string? filter = null, bool editing = false)
     {
@@ -208,7 +229,7 @@ public static class Outlines
             {
                 var name = FlowName(id);
                 rows.Add(new OutlineRow($"flow:{id}", "flow", id, parent, depth, name, null, false, 0, 0, model.Flows[id].Steps.Count,
-                    bad.Flows.Contains(id), false, false, Matches(id, name), linked.Contains(id)));
+                    bad.Flows.Contains(id), false, false, Matches(id, name), linked.Contains(id), linked.Contains(id) ? PartnerNames(model, id) : null));
                 continue;
             }
             var obj = model.GetObject(id);
@@ -219,7 +240,7 @@ public static class Outlines
             var size = counts[id];
             var shapeName = Views.NameOf(model, id);
             rows.Add(new OutlineRow($"shape:{id}", "shape", id, parent, depth, shapeName, obj?.Type, obj is not null && Model.IsExternal(obj),
-                size.Shapes, size.Flows, null, bad.Shapes.Contains(id), below, open, Matches(id, shapeName)));
+                size.Shapes, size.Flows, null, bad.Shapes.Contains(id), below, open, Matches(id, shapeName), Inside: tree.Kids.TryGetValue(id, out var direct) ? direct.Count : 0));
             if (!open) continue;
             // Pushed backwards so shapes come off first, in order, and then the flows.
             for (var i = flows.Count - 1; i >= 0; i--) stack.Push(("flow", flows[i], id, depth + 1));
@@ -258,7 +279,7 @@ public static class Outlines
         var refs = model.Flows.Keys.Where(playable.Contains).Select(id =>
         {
             var flow = model.Flows[id];
-            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View, linked.Contains(id), model.FolderOf(id), flow.Tags);
+            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View, linked.Contains(id), linked.Contains(id) ? PartnerNames(model, id) : [], model.FolderOf(id), flow.Tags);
         }).ToList();
         refs.Sort((a, b) => ByName(a.Id, b.Id) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a.Id, b.Id)));
 

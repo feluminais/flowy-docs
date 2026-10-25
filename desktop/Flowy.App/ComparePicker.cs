@@ -90,7 +90,7 @@ internal sealed class ComparePicker : Border
         if (c.Missing) end.Children.Add(new TextBlock { Text = "Missing", FontSize = 12, Classes = { "muted" } });
         else if (_kind == "flow" && _model.Flows.TryGetValue(c.Id, out var flow) && Views.IsView(_model, flow.View))
             end.Children.Add(new TextBlock { Text = Views.NameOf(_model, flow.View!), FontSize = 12, Classes = { "muted" } });
-        if (linked) end.Children.Add(Chrome.Chip("Linked", Icons.Link, "accent"));
+        if (linked) end.Children.Add(Chrome.Chip("Compare pair", Icons.Link, "accent"));
         var name = new TextBlock { Text = c.Name, FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 12, Children = { name, end } };
         Grid.SetColumn(end, 1);
