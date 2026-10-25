@@ -127,7 +127,7 @@ objects:
     in: desktop
     name: Canvas and reader
     tech: Avalonia
-    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs, desktop/Flowy.App/StateMarks.cs, desktop/Flowy.App/FailuresPanel.cs, desktop/Flowy.App/ReaderView.Failures.cs]
+    code: [desktop/Flowy.App/Canvas/, desktop/Flowy.App/ReaderView.cs, desktop/Flowy.App/SidePanel.cs, desktop/Flowy.App/Chrome.cs, desktop/Flowy.App/MarkdownView.cs, desktop/Flowy.App/Navigator.cs, desktop/Flowy.App/ExplorerView.cs, desktop/Flowy.App/FlowsView.cs, desktop/Flowy.App/PerfPanel.cs, desktop/Flowy.App/ReaderView.Performance.cs, desktop/Flowy.App/StateMarks.cs, desktop/Flowy.App/FailuresPanel.cs, desktop/Flowy.App/ReaderView.Failures.cs, desktop/Flowy.App/YamlPanel.cs]
     description: |
       Shapes are controls on a stage that moves with the camera, with one layer behind them for the
       frame and the lines. The reader holds the selection: the view, the open panel, the flow playing.
@@ -155,7 +155,8 @@ objects:
 
       A rail of icons on the left edge opens the navigator, as on the canvas: the whole
       documentation as a tree windowed to the visible rows, shapes that hold others first and then
-      by name, and every flow grouped by where it plays. Details opens on the right, from its own
+      by name, every flow grouped by where it plays, and the files as text (the YAML tab, read only,
+      with no history). Details opens on the right, from its own
       rail or by picking a shape. Both panels resize by dragging the inner edge, and a double-click
       resets the width. Each project's open tab, open rows and panel widths are saved in the app's
       state file.

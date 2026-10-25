@@ -19,7 +19,7 @@
 | X | Swap to the other flow or run of a comparison, when it is set to Swap. Swap flips one canvas between the two: shapes both flows draw glide to their new place and the others fade, while two runs, which draw the same level, fade their traffic. Each keeps its own step or place, and the keys above act on the one on show |
 | T | The Performance tab, where a folder has load-test runs |
 | M | The Failures tab, where a folder has failure analyses |
-| Y | The YAML tab: the files as text, and every change to them (browser) |
+| Y | The YAML tab: the files as text, and every change to them in the browser |
 | ↑ ↓, Enter | In the model picker: move, then open (browser) |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
 | E | Edit mode on and off |

@@ -21,6 +21,12 @@ export function defaultFile(paths: string[], context: { flow?: string }): string
   return fileOrder(paths)[0] ?? 'model.yaml'
 }
 
+/** What a file is called on its tab: the flows by their path inside flows/, unless that would read like the model or the layout. */
+export function tabName(path: string): string {
+  const inside = path.slice('flows/'.length)
+  return path.startsWith('flows/') && inside !== 'model.yaml' && inside !== 'layout.yaml' ? inside : path
+}
+
 /** The lines of a text; a final newline adds no empty line. */
 function linesOf(text: string): string[] {
   const lines = text.split(/\r?\n/)
