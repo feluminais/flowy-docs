@@ -157,6 +157,6 @@ public sealed record LoadFrame(IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines
     /// <summary>An object's numbers, or null when nothing was measured on it.</summary>
     public Metrics? Box(string id) => Objects.TryGetValue(id, out var m) ? m : null;
 
-    /// <summary>The numbers of the line the view draws between two shapes, or null when none was measured.</summary>
-    public Pair? Line(string from, string to) => Lines.FirstOrDefault(p => p.From == from && p.To == to);
+    /// <summary>The numbers of the line the view draws between two shapes, given either way, or null when none was measured.</summary>
+    public Pair? Line(string from, string to) => Lines.FirstOrDefault(p => Views.LineKey(p.From, p.To) == Views.LineKey(from, to));
 }

@@ -325,7 +325,8 @@ async function twoSystems(call: (name: string, args?: Record<string, unknown>) =
   for (const [id, name, parent] of [['api', 'Order API', 'ordering'], ['web', 'Website', 'ordering'], ['admin', 'Admin', 'backoffice'], ['console', 'Console', 'backoffice']]) {
     await call('put_object', { id, type: 'app', name, in: parent })
   }
-  for (const [from, to] of [['web', 'api'], ['admin', 'api'], ['console', 'api'], ['api', 'admin']]) await call('connect', { from, to })
+  // Ordering → Back office comes first, so the top level puts Ordering above, and each system's own view puts the other beside it.
+  for (const [from, to] of [['web', 'api'], ['api', 'admin'], ['admin', 'api'], ['console', 'api']]) await call('connect', { from, to })
 }
 
 test('tidy_layout with check lists neighbours on the wrong side and saves nothing, then puts them right', async t => {

@@ -1,7 +1,11 @@
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 
-export type Edge = { from: string; to: string; label: string; count: number }
+/**
+ * One line between two shapes of a view, whichever way their connections run. `from` and `to` are the way the first of them runs; `both` is
+ * set when some run the other way too, and the line gets an arrowhead at each end.
+ */
+export type Edge = { from: string; to: string; label: string; count: number; both?: true }
 export type View = { id: string; members: string[]; outsiders: string[]; edges: Edge[] }
 
 /** The view an object sits in: its parent, or root when it has none or a broken one (missing, or itself). */
@@ -115,15 +119,22 @@ export function computeView(model: Model, v: string): View {
     const ends = placeEnds(model, v, c.from, c.to)
     if (!ends) continue
     for (const end of ends) if (!inView.has(end) && !seenOutside.has(end)) { seenOutside.add(end); outsiders.push(end) }
-    const key = JSON.stringify(ends)
+    const key = lineKey(...ends)
     const edge = edges.get(key)
     if (edge) {
       edge.count++
       edge.label = `${edge.count} connections`
+      if (edge.from !== ends[0]) edge.both = true
     } else edges.set(key, { from: ends[0], to: ends[1], label: typeof c.label === 'string' ? c.label : '', count: 1 })
   }
   return { id: v, members, outsiders, edges: [...edges.values()] }
 }
+
+/**
+ * The text a drawn line is known by. A view draws one line between two shapes whichever way their connections run, so the two ends go in
+ * sorted order and A → B and B → A are the same line. ui/src/graph.ts draws the lines with it.
+ */
+export const lineKey = (a: string, b: string): string => (a < b ? `${a} ${b}` : `${b} ${a}`)
 
 /** What the canvas calls an object: its name, its id when it has none, and "Overview" for the top level. */
 export const nameOf = (model: Model, id: string) => (id === ROOT ? 'Overview' : getObject(model, id)?.name || id)

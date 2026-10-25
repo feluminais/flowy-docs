@@ -16574,8 +16574,8 @@
           "to": "orders",
           "series": {
             "rate": [
-              null,
-              null
+              5,
+              10
             ],
             "bytes": [
               null,
@@ -16595,9 +16595,21 @@
             ]
           },
           "at": [
-            null,
-            null,
-            null
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 5
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 7.5
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 10
+            }
           ]
         }
       ]
@@ -20492,30 +20504,51 @@
           "to": "orders",
           "series": {
             "rate": [
-              null,
-              null
+              5000,
+              5000
             ],
             "bytes": [
               null,
               null
             ],
             "p50": [
-              null,
-              null
+              100000,
+              100000
             ],
             "p95": [
-              null,
-              null
+              100000,
+              100000
             ],
             "errors": [
-              null,
-              null
+              0.0099,
+              0.0099
             ]
           },
           "at": [
-            null,
-            null,
-            null
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 5000,
+              "p50": 100000,
+              "p95": 100000,
+              "errors": 0.0099
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 5000,
+              "p50": 100000,
+              "p95": 100000,
+              "errors": 0.0099
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 5000,
+              "p50": 100000,
+              "p95": 100000,
+              "errors": 0.0099
+            }
           ]
         }
       ]
@@ -23048,7 +23081,7 @@
           "to": "orders",
           "series": {
             "rate": [
-              null,
+              12,
               null
             ],
             "bytes": [
@@ -23056,11 +23089,11 @@
               null
             ],
             "p50": [
-              null,
+              1,
               null
             ],
             "p95": [
-              null,
+              2,
               null
             ],
             "errors": [
@@ -23069,7 +23102,13 @@
             ]
           },
           "at": [
-            null,
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 12,
+              "p50": 1,
+              "p95": 2
+            },
             null,
             null
           ]
@@ -24670,10 +24709,10 @@
           "to": "orders",
           "series": {
             "rate": [
-              null,
-              null,
-              null,
-              null
+              8,
+              20,
+              40,
+              80
             ],
             "bytes": [
               null,
@@ -24682,28 +24721,49 @@
               null
             ],
             "p50": [
-              null,
-              null,
-              null,
-              null
+              1,
+              1.5,
+              2,
+              4
             ],
             "p95": [
-              null,
-              null,
-              null,
-              null
+              3,
+              4,
+              6,
+              12
             ],
             "errors": [
-              null,
-              null,
-              null,
-              null
+              0,
+              0,
+              0,
+              0
             ]
           },
           "at": [
-            null,
-            null,
-            null
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 8,
+              "p50": 1,
+              "p95": 3,
+              "errors": 0
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 14,
+              "p50": 1.25,
+              "p95": 3.5,
+              "errors": 0
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 80,
+              "p50": 4,
+              "p95": 12,
+              "errors": 0
+            }
           ]
         }
       ]
@@ -25984,9 +26044,9 @@
           "to": "orders",
           "series": {
             "rate": [
-              null,
-              null,
-              null
+              10,
+              20,
+              30
             ],
             "bytes": [
               null,
@@ -25994,14 +26054,14 @@
               null
             ],
             "p50": [
+              2,
               null,
-              null,
-              null
+              6
             ],
             "p95": [
               null,
               null,
-              null
+              9
             ],
             "errors": [
               null,
@@ -26010,9 +26070,25 @@
             ]
           },
           "at": [
-            null,
-            null,
-            null
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 10,
+              "p50": 2
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 15,
+              "p50": 3
+            },
+            {
+              "from": "orders",
+              "to": "db",
+              "rate": 30,
+              "p50": 6,
+              "p95": 9
+            }
           ]
         }
       ]

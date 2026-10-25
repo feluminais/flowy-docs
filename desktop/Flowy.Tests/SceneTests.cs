@@ -70,8 +70,8 @@ public class SceneTests
         Assert.Equal(BoxMode.Lit, Box(scene, "web").Mode);
         Assert.Equal(BoxMode.Lit, Box(scene, "api").Mode);
         Assert.Equal(BoxMode.Dim, Box(scene, "db").Mode);
-        Assert.True(Edge(scene, "web api").Flags.HasFlag(EdgeFlags.Active));
-        Assert.Equal("REST", Edge(scene, "web api").Label); // the lit line shows its label
+        Assert.True(Edge(scene, "api web").Flags.HasFlag(EdgeFlags.Active));
+        Assert.Equal("REST", Edge(scene, "api web").Label); // the lit line shows its label
         Assert.True(Edge(scene, "customer web").Flags.HasFlag(EdgeFlags.Dim));
         Assert.Null(Edge(scene, "customer web").Label);
     }
@@ -95,7 +95,7 @@ public class SceneTests
         var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(ends, Steps: [0, 1]));
         Assert.All(new[] { "web", "api", "db" }, id => Assert.Equal(BoxMode.Lit, Box(scene, id).Mode));
         Assert.Equal(BoxMode.Dim, Box(scene, "mail").Mode);
-        Assert.True(Edge(scene, "web api").Flags.HasFlag(EdgeFlags.Active));
+        Assert.True(Edge(scene, "api web").Flags.HasFlag(EdgeFlags.Active));
         Assert.True(Edge(scene, "api db").Flags.HasFlag(EdgeFlags.Active));
         Assert.True(Edge(scene, "api mail").Flags.HasFlag(EdgeFlags.Dim));
     }
@@ -113,7 +113,7 @@ public class SceneTests
     {
         var ends = new (string, string)?[] { ("web", "api"), ("api", "mail"), ("web", "db") };
         var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(ends, Steps: [0], Faint: [1, 2]));
-        Assert.True(Edge(scene, "web api").Flags.HasFlag(EdgeFlags.Active));
+        Assert.True(Edge(scene, "api web").Flags.HasFlag(EdgeFlags.Active));
         Assert.True(Edge(scene, "api mail").Flags.HasFlag(EdgeFlags.Lane));
         var extra = Edge(scene, "lane-2");
         Assert.Equal(("web", "db"), (extra.From, extra.To));
@@ -164,8 +164,8 @@ public class SceneTests
     public void Selecting_a_box_labels_its_lines_and_fades_the_others()
     {
         var scene = SceneBuilder.Build(TestModels.Shop(), "shop", focus: new Focus(Box: "api"));
-        Assert.Equal("REST", Edge(scene, "web api").Label);
-        Assert.False(Edge(scene, "web api").Flags.HasFlag(EdgeFlags.Faint));
+        Assert.Equal("REST", Edge(scene, "api web").Label);
+        Assert.False(Edge(scene, "api web").Flags.HasFlag(EdgeFlags.Faint));
         Assert.True(Edge(scene, "customer web").Flags.HasFlag(EdgeFlags.Faint));
         Assert.Null(Edge(scene, "customer web").Label);
     }
@@ -176,9 +176,9 @@ public class SceneTests
         var hover = SceneBuilder.Build(TestModels.Shop(), "shop", focus: new Focus(Hover: "customer web"));
         Assert.Equal("browses", Edge(hover, "customer web").Label);
         Assert.True(Edge(hover, "customer web").Flags.HasFlag(EdgeFlags.Hover));
-        var selected = SceneBuilder.Build(TestModels.Shop(), "shop", focus: new Focus(Line: "web api"));
-        Assert.True(Edge(selected, "web api").Selected);
-        Assert.Equal("REST", Edge(selected, "web api").Label);
+        var selected = SceneBuilder.Build(TestModels.Shop(), "shop", focus: new Focus(Line: "api web"));
+        Assert.True(Edge(selected, "api web").Selected);
+        Assert.Equal("REST", Edge(selected, "api web").Label);
     }
 
     [Fact]
@@ -190,7 +190,7 @@ public class SceneTests
         Assert.True(Box(scene, "bare").Problem);
         Assert.False(Box(scene, "shop").Problem);
         Assert.True(Edge(scene, "customer shop").Flags.HasFlag(EdgeFlags.Problem));
-        Assert.False(Edge(scene, "shop mail").Flags.HasFlag(EdgeFlags.Problem));
+        Assert.False(Edge(scene, "mail shop").Flags.HasFlag(EdgeFlags.Problem));
     }
 
     [Fact]
@@ -370,6 +370,7 @@ public class SceneParityTests
                 Assert.Equal(want["target"]!.GetValue<string>(), got.To);
                 Assert.Equal(want["label"]?.GetValue<string>(), got.Label);
                 Assert.Equal(want["selected"]!.GetValue<bool>(), got.Selected);
+                Assert.Equal(want["both"]?.GetValue<bool>() ?? false, got.Both);
                 Assert.True(Tokens(want["classes"]!).SequenceEqual(Tokens(SceneBuilder.Classes(got))), $"{what}: classes of line {got.Id}");
             }
         }

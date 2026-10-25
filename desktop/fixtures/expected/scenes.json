@@ -72,7 +72,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -88,7 +88,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -96,7 +96,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -112,7 +112,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -157,15 +157,8 @@
           "target": "ordering",
           "label": null,
           "classes": [],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -291,7 +284,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -307,7 +300,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -323,7 +316,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -339,7 +332,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -355,7 +348,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -363,7 +356,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -387,7 +380,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -411,7 +404,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -558,7 +551,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -566,7 +559,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -621,7 +614,7 @@
       ],
       "edges": [
         {
-          "id": "ordering notifier",
+          "id": "notifier ordering",
           "source": "ordering",
           "target": "notifier",
           "label": null,
@@ -704,7 +697,7 @@
           "selected": false
         },
         {
-          "id": "support admin",
+          "id": "admin support",
           "source": "support",
           "target": "admin",
           "label": null,
@@ -712,7 +705,7 @@
           "selected": false
         },
         {
-          "id": "support-console ordering",
+          "id": "ordering support-console",
           "source": "support-console",
           "target": "ordering",
           "label": null,
@@ -877,7 +870,7 @@
           "selected": false
         },
         {
-          "id": "pricing mapbox",
+          "id": "mapbox pricing",
           "source": "pricing",
           "target": "mapbox",
           "label": null,
@@ -917,7 +910,7 @@
           "selected": false
         },
         {
-          "id": "status orders-db",
+          "id": "orders-db status",
           "source": "status",
           "target": "orders-db",
           "label": null,
@@ -925,7 +918,7 @@
           "selected": false
         },
         {
-          "id": "status events",
+          "id": "events status",
           "source": "status",
           "target": "events",
           "label": null,
@@ -933,7 +926,7 @@
           "selected": false
         },
         {
-          "id": "status notifications",
+          "id": "notifications status",
           "source": "status",
           "target": "notifications",
           "label": null,
@@ -949,7 +942,7 @@
           "selected": false
         },
         {
-          "id": "refunds orders-db",
+          "id": "orders-db refunds",
           "source": "refunds",
           "target": "orders-db",
           "label": null,
@@ -957,7 +950,7 @@
           "selected": false
         },
         {
-          "id": "refunds notifications",
+          "id": "notifications refunds",
           "source": "refunds",
           "target": "notifications",
           "label": null,
@@ -1035,7 +1028,7 @@
       ],
       "edges": [
         {
-          "id": "matcher fleet-db",
+          "id": "fleet-db matcher",
           "source": "matcher",
           "target": "fleet-db",
           "label": null,
@@ -1043,7 +1036,7 @@
           "selected": false
         },
         {
-          "id": "matcher eta",
+          "id": "eta matcher",
           "source": "matcher",
           "target": "eta",
           "label": null,
@@ -1067,7 +1060,7 @@
           "selected": false
         },
         {
-          "id": "offers notifications",
+          "id": "notifications offers",
           "source": "offers",
           "target": "notifications",
           "label": null,
@@ -1231,7 +1224,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -1251,7 +1244,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -1271,7 +1264,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -1291,7 +1284,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -1311,7 +1304,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": "2 connections",
@@ -1321,7 +1314,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -1351,7 +1344,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -1381,7 +1374,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -1551,7 +1544,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -1571,7 +1564,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -1591,7 +1584,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -1611,7 +1604,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -1631,7 +1624,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -1641,7 +1634,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -1654,9 +1647,9 @@
           "id": "delivery events",
           "source": "delivery",
           "target": "events",
-          "label": null,
+          "label": "reads placed orders",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
@@ -1671,7 +1664,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -1701,22 +1694,12 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "events",
-          "target": "delivery",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -1881,7 +1864,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -1901,7 +1884,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -1921,7 +1904,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -1941,7 +1924,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -1961,7 +1944,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -1971,7 +1954,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -2001,7 +1984,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -2031,7 +2014,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": "streams every event",
@@ -2175,7 +2158,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -2191,7 +2174,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -2207,7 +2190,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -2223,7 +2206,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -2239,7 +2222,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -2247,7 +2230,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -2271,7 +2254,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -2295,7 +2278,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -2475,7 +2458,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -2495,7 +2478,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -2515,7 +2498,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -2535,7 +2518,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -2555,7 +2538,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -2565,7 +2548,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -2595,7 +2578,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -2625,7 +2608,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -2807,7 +2790,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -2827,7 +2810,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -2847,7 +2830,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -2867,7 +2850,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -2887,7 +2870,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -2897,7 +2880,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -2927,7 +2910,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -2957,7 +2940,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -3139,7 +3122,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -3152,14 +3135,14 @@
           "id": "customer-app order-api",
           "source": "customer-app",
           "target": "order-api",
-          "label": null,
+          "label": "REST",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -3179,7 +3162,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -3199,7 +3182,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -3219,7 +3202,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -3229,7 +3212,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -3259,7 +3242,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -3289,22 +3272,12 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "order-api",
-          "target": "customer-app",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -3455,7 +3428,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -3471,7 +3444,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -3487,7 +3460,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -3503,7 +3476,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -3519,7 +3492,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -3527,7 +3500,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -3551,7 +3524,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -3575,7 +3548,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -3768,7 +3741,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -3778,7 +3751,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -3970,7 +3943,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -3980,7 +3953,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": "2 connections",
@@ -4172,7 +4145,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -4182,7 +4155,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -4343,7 +4316,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -4351,7 +4324,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -4484,9 +4457,9 @@
           "id": "dispatch ordering",
           "source": "dispatch",
           "target": "ordering",
-          "label": null,
+          "label": "reads placed orders",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
@@ -4561,7 +4534,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -4571,22 +4544,12 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "ordering",
-          "target": "dispatch",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -4793,7 +4756,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -4803,7 +4766,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -5015,7 +4978,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -5025,7 +4988,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -5206,7 +5169,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -5214,7 +5177,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -5323,9 +5286,9 @@
           "id": "dispatch ordering",
           "source": "dispatch",
           "target": "ordering",
-          "label": null,
+          "label": "reads placed orders",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
@@ -5400,7 +5363,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -5410,22 +5373,12 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "ordering",
-          "target": "dispatch",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -5608,7 +5561,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -5618,7 +5571,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -5775,7 +5728,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -5783,7 +5736,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -5985,7 +5938,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -5995,22 +5948,12 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
-          "label": null,
+          "label": "2 connections",
           "classes": [
-            "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "ordering",
-          "target": "tracking",
-          "label": null,
-          "classes": [
-            "step"
+            "active"
           ],
           "selected": false
         }
@@ -6209,7 +6152,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -6219,7 +6162,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": "2 connections",
@@ -6423,7 +6366,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -6433,22 +6376,12 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
-          "label": null,
+          "label": "2 connections",
           "classes": [
-            "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "ordering",
-          "target": "tracking",
-          "label": null,
-          "classes": [
-            "step"
+            "active"
           ],
           "selected": false
         }
@@ -6616,7 +6549,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -6624,7 +6557,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -6785,7 +6718,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -6805,7 +6738,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -6825,7 +6758,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -6845,7 +6778,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -6865,7 +6798,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -6875,7 +6808,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -6905,7 +6838,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -6935,7 +6868,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -7101,7 +7034,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -7121,7 +7054,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -7141,7 +7074,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -7161,7 +7094,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -7181,7 +7114,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -7191,7 +7124,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -7221,7 +7154,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -7251,7 +7184,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -7391,7 +7324,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -7407,7 +7340,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -7423,7 +7356,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -7439,7 +7372,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -7455,7 +7388,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -7463,7 +7396,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -7487,7 +7420,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -7511,7 +7444,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -7599,7 +7532,7 @@
       ],
       "edges": [
         {
-          "id": "matcher fleet-db",
+          "id": "fleet-db matcher",
           "source": "matcher",
           "target": "fleet-db",
           "label": null,
@@ -7609,7 +7542,7 @@
           "selected": false
         },
         {
-          "id": "matcher eta",
+          "id": "eta matcher",
           "source": "matcher",
           "target": "eta",
           "label": "asks who is quickest",
@@ -7639,7 +7572,7 @@
           "selected": false
         },
         {
-          "id": "offers notifications",
+          "id": "notifications offers",
           "source": "offers",
           "target": "notifications",
           "label": null,
@@ -7725,7 +7658,7 @@
       ],
       "edges": [
         {
-          "id": "matcher fleet-db",
+          "id": "fleet-db matcher",
           "source": "matcher",
           "target": "fleet-db",
           "label": null,
@@ -7735,7 +7668,7 @@
           "selected": false
         },
         {
-          "id": "matcher eta",
+          "id": "eta matcher",
           "source": "matcher",
           "target": "eta",
           "label": null,
@@ -7765,7 +7698,7 @@
           "selected": false
         },
         {
-          "id": "offers notifications",
+          "id": "notifications offers",
           "source": "offers",
           "target": "notifications",
           "label": null,
@@ -7851,7 +7784,7 @@
       ],
       "edges": [
         {
-          "id": "matcher fleet-db",
+          "id": "fleet-db matcher",
           "source": "matcher",
           "target": "fleet-db",
           "label": null,
@@ -7861,7 +7794,7 @@
           "selected": false
         },
         {
-          "id": "matcher eta",
+          "id": "eta matcher",
           "source": "matcher",
           "target": "eta",
           "label": null,
@@ -7891,7 +7824,7 @@
           "selected": false
         },
         {
-          "id": "offers notifications",
+          "id": "notifications offers",
           "source": "offers",
           "target": "notifications",
           "label": null,
@@ -7967,7 +7900,7 @@
       ],
       "edges": [
         {
-          "id": "matcher fleet-db",
+          "id": "fleet-db matcher",
           "source": "matcher",
           "target": "fleet-db",
           "label": null,
@@ -7975,7 +7908,7 @@
           "selected": false
         },
         {
-          "id": "matcher eta",
+          "id": "eta matcher",
           "source": "matcher",
           "target": "eta",
           "label": null,
@@ -7999,7 +7932,7 @@
           "selected": false
         },
         {
-          "id": "offers notifications",
+          "id": "notifications offers",
           "source": "offers",
           "target": "notifications",
           "label": null,
@@ -8204,7 +8137,7 @@
           "selected": false
         },
         {
-          "id": "pricing mapbox",
+          "id": "mapbox pricing",
           "source": "pricing",
           "target": "mapbox",
           "label": null,
@@ -8254,7 +8187,7 @@
           "selected": false
         },
         {
-          "id": "status orders-db",
+          "id": "orders-db status",
           "source": "status",
           "target": "orders-db",
           "label": null,
@@ -8264,7 +8197,7 @@
           "selected": false
         },
         {
-          "id": "status events",
+          "id": "events status",
           "source": "status",
           "target": "events",
           "label": null,
@@ -8274,7 +8207,7 @@
           "selected": false
         },
         {
-          "id": "status notifications",
+          "id": "notifications status",
           "source": "status",
           "target": "notifications",
           "label": null,
@@ -8294,7 +8227,7 @@
           "selected": false
         },
         {
-          "id": "refunds orders-db",
+          "id": "orders-db refunds",
           "source": "refunds",
           "target": "orders-db",
           "label": null,
@@ -8304,7 +8237,7 @@
           "selected": false
         },
         {
-          "id": "refunds notifications",
+          "id": "notifications refunds",
           "source": "refunds",
           "target": "notifications",
           "label": null,
@@ -8544,7 +8477,7 @@
           "selected": false
         },
         {
-          "id": "pricing mapbox",
+          "id": "mapbox pricing",
           "source": "pricing",
           "target": "mapbox",
           "label": null,
@@ -8594,7 +8527,7 @@
           "selected": false
         },
         {
-          "id": "status orders-db",
+          "id": "orders-db status",
           "source": "status",
           "target": "orders-db",
           "label": null,
@@ -8604,7 +8537,7 @@
           "selected": false
         },
         {
-          "id": "status events",
+          "id": "events status",
           "source": "status",
           "target": "events",
           "label": null,
@@ -8614,7 +8547,7 @@
           "selected": false
         },
         {
-          "id": "status notifications",
+          "id": "notifications status",
           "source": "status",
           "target": "notifications",
           "label": null,
@@ -8634,7 +8567,7 @@
           "selected": false
         },
         {
-          "id": "refunds orders-db",
+          "id": "orders-db refunds",
           "source": "refunds",
           "target": "orders-db",
           "label": null,
@@ -8644,7 +8577,7 @@
           "selected": false
         },
         {
-          "id": "refunds notifications",
+          "id": "notifications refunds",
           "source": "refunds",
           "target": "notifications",
           "label": null,
@@ -8874,7 +8807,7 @@
           "selected": false
         },
         {
-          "id": "pricing mapbox",
+          "id": "mapbox pricing",
           "source": "pricing",
           "target": "mapbox",
           "label": null,
@@ -8924,7 +8857,7 @@
           "selected": false
         },
         {
-          "id": "status orders-db",
+          "id": "orders-db status",
           "source": "status",
           "target": "orders-db",
           "label": null,
@@ -8934,7 +8867,7 @@
           "selected": false
         },
         {
-          "id": "status events",
+          "id": "events status",
           "source": "status",
           "target": "events",
           "label": null,
@@ -8944,7 +8877,7 @@
           "selected": false
         },
         {
-          "id": "status notifications",
+          "id": "notifications status",
           "source": "status",
           "target": "notifications",
           "label": null,
@@ -8964,7 +8897,7 @@
           "selected": false
         },
         {
-          "id": "refunds orders-db",
+          "id": "orders-db refunds",
           "source": "refunds",
           "target": "orders-db",
           "label": null,
@@ -8974,7 +8907,7 @@
           "selected": false
         },
         {
-          "id": "refunds notifications",
+          "id": "notifications refunds",
           "source": "refunds",
           "target": "notifications",
           "label": null,
@@ -9184,7 +9117,7 @@
           "selected": false
         },
         {
-          "id": "pricing mapbox",
+          "id": "mapbox pricing",
           "source": "pricing",
           "target": "mapbox",
           "label": null,
@@ -9224,7 +9157,7 @@
           "selected": false
         },
         {
-          "id": "status orders-db",
+          "id": "orders-db status",
           "source": "status",
           "target": "orders-db",
           "label": null,
@@ -9232,7 +9165,7 @@
           "selected": false
         },
         {
-          "id": "status events",
+          "id": "events status",
           "source": "status",
           "target": "events",
           "label": null,
@@ -9240,7 +9173,7 @@
           "selected": false
         },
         {
-          "id": "status notifications",
+          "id": "notifications status",
           "source": "status",
           "target": "notifications",
           "label": null,
@@ -9256,7 +9189,7 @@
           "selected": false
         },
         {
-          "id": "refunds orders-db",
+          "id": "orders-db refunds",
           "source": "refunds",
           "target": "orders-db",
           "label": null,
@@ -9264,7 +9197,7 @@
           "selected": false
         },
         {
-          "id": "refunds notifications",
+          "id": "notifications refunds",
           "source": "refunds",
           "target": "notifications",
           "label": null,
@@ -9480,7 +9413,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -9490,7 +9423,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -9690,7 +9623,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -9700,7 +9633,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -9900,7 +9833,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -9910,7 +9843,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -10079,7 +10012,7 @@
           "selected": false
         },
         {
-          "id": "tracking fleet-db",
+          "id": "fleet-db tracking",
           "source": "tracking",
           "target": "fleet-db",
           "label": null,
@@ -10087,7 +10020,7 @@
           "selected": false
         },
         {
-          "id": "tracking ordering",
+          "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
           "label": null,
@@ -10260,7 +10193,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -10280,7 +10213,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -10293,14 +10226,14 @@
           "id": "kitchen-tablet order-api",
           "source": "kitchen-tablet",
           "target": "order-api",
-          "label": null,
+          "label": "accepts, marks ready",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -10320,7 +10253,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -10340,7 +10273,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -10350,7 +10283,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -10380,7 +10313,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -10410,22 +10343,12 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "order-api",
-          "target": "kitchen-tablet",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -10598,7 +10521,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -10618,7 +10541,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -10638,7 +10561,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -10658,7 +10581,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -10678,7 +10601,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -10688,7 +10611,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -10718,7 +10641,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -10748,7 +10671,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -10926,7 +10849,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -10939,14 +10862,14 @@
           "id": "customer-app order-api",
           "source": "customer-app",
           "target": "order-api",
-          "label": null,
+          "label": "REST",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -10966,7 +10889,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -10986,7 +10909,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -11006,7 +10929,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -11016,7 +10939,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -11046,7 +10969,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -11076,22 +10999,12 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "order-api",
-          "target": "customer-app",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -11238,7 +11151,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -11254,7 +11167,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -11270,7 +11183,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -11286,7 +11199,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -11302,7 +11215,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -11310,7 +11223,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -11334,7 +11247,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -11358,7 +11271,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -11522,7 +11435,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -11542,7 +11455,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -11562,7 +11475,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -11582,7 +11495,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -11602,7 +11515,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -11612,7 +11525,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -11642,7 +11555,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -11672,7 +11585,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -11838,7 +11751,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -11858,7 +11771,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -11878,7 +11791,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -11898,7 +11811,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -11918,7 +11831,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -11928,7 +11841,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -11958,7 +11871,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -11988,7 +11901,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -12128,7 +12041,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -12144,7 +12057,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -12160,7 +12073,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -12176,7 +12089,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -12192,7 +12105,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -12200,7 +12113,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -12224,7 +12137,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -12248,7 +12161,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -12420,7 +12333,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -12440,7 +12353,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -12460,7 +12373,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -12480,7 +12393,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -12500,7 +12413,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -12510,7 +12423,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -12540,7 +12453,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -12570,7 +12483,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -12744,7 +12657,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -12764,7 +12677,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -12784,7 +12697,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -12804,7 +12717,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -12824,7 +12737,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -12834,7 +12747,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -12864,7 +12777,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -12894,7 +12807,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -13068,7 +12981,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -13088,7 +13001,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -13108,7 +13021,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -13128,7 +13041,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -13148,7 +13061,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -13158,7 +13071,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -13188,7 +13101,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -13218,7 +13131,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -13366,7 +13279,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -13382,7 +13295,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -13398,7 +13311,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -13414,7 +13327,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -13430,7 +13343,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -13438,7 +13351,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -13462,7 +13375,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -13486,7 +13399,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -13670,7 +13583,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -13690,7 +13603,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -13710,7 +13623,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -13730,7 +13643,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -13750,7 +13663,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -13760,7 +13673,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -13790,7 +13703,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -13820,7 +13733,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -14006,7 +13919,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -14026,7 +13939,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -14046,7 +13959,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -14066,7 +13979,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -14086,7 +13999,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -14096,7 +14009,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -14126,7 +14039,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -14156,7 +14069,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -14342,7 +14255,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -14362,7 +14275,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -14375,14 +14288,14 @@
           "id": "kitchen-tablet order-api",
           "source": "kitchen-tablet",
           "target": "order-api",
-          "label": null,
+          "label": "accepts, marks ready",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -14402,7 +14315,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -14422,7 +14335,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -14432,7 +14345,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -14462,7 +14375,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -14492,22 +14405,12 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "order-api",
-          "target": "kitchen-tablet",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -14662,7 +14565,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -14678,7 +14581,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -14694,7 +14597,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -14710,7 +14613,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -14726,7 +14629,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -14734,7 +14637,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -14758,7 +14661,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -14782,7 +14685,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -14954,7 +14857,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -14974,7 +14877,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -14994,7 +14897,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -15014,7 +14917,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -15034,7 +14937,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -15044,7 +14947,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -15074,7 +14977,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -15104,7 +15007,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -15278,7 +15181,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -15298,7 +15201,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -15318,7 +15221,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -15338,7 +15241,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -15358,7 +15261,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -15368,7 +15271,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -15398,7 +15301,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -15428,7 +15331,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -15602,7 +15505,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -15622,7 +15525,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -15642,7 +15545,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -15662,7 +15565,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -15682,7 +15585,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -15692,7 +15595,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": "2 connections",
@@ -15722,7 +15625,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -15752,7 +15655,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -15900,7 +15803,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -15916,7 +15819,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -15932,7 +15835,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -15948,7 +15851,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -15964,7 +15867,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -15972,7 +15875,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -15996,7 +15899,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -16020,7 +15923,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -16158,7 +16061,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -16178,7 +16081,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": "2 connections",
@@ -16188,7 +16091,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -16208,7 +16111,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -16265,17 +16168,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [
-            "dim"
-          ],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -16412,7 +16306,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -16432,7 +16326,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -16442,7 +16336,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -16462,7 +16356,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -16519,17 +16413,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [
-            "dim"
-          ],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -16666,7 +16551,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -16686,7 +16571,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -16696,7 +16581,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -16716,7 +16601,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -16773,17 +16658,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [
-            "dim"
-          ],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -16895,7 +16771,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -16911,7 +16787,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -16919,7 +16795,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -16935,7 +16811,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -16980,15 +16856,8 @@
           "target": "ordering",
           "label": null,
           "classes": [],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -17167,7 +17036,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -17187,7 +17056,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -17207,7 +17076,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -17227,7 +17096,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -17247,7 +17116,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -17257,7 +17126,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -17287,7 +17156,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -17317,7 +17186,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -17499,7 +17368,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -17519,7 +17388,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -17539,7 +17408,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -17559,7 +17428,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -17579,7 +17448,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": "2 connections",
@@ -17589,7 +17458,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -17619,7 +17488,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -17649,7 +17518,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -17831,7 +17700,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -17851,7 +17720,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -17871,7 +17740,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -17891,7 +17760,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -17911,7 +17780,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -17921,7 +17790,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -17951,7 +17820,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -17981,7 +17850,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -18147,7 +18016,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -18163,7 +18032,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -18179,7 +18048,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -18195,7 +18064,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -18211,7 +18080,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -18219,7 +18088,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -18243,7 +18112,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -18267,7 +18136,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -18397,7 +18266,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -18417,7 +18286,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -18427,7 +18296,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -18447,7 +18316,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -18504,17 +18373,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [
-            "dim"
-          ],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -18643,7 +18503,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -18663,7 +18523,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -18673,7 +18533,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -18693,7 +18553,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -18750,17 +18610,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [
-            "dim"
-          ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "step",
@@ -18899,7 +18750,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -18919,7 +18770,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -18929,7 +18780,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -18949,7 +18800,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -19006,17 +18857,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [
-            "dim"
-          ],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -19120,7 +18962,7 @@
           "selected": false
         },
         {
-          "id": "restaurant ordering",
+          "id": "ordering restaurant",
           "source": "restaurant",
           "target": "ordering",
           "label": null,
@@ -19136,7 +18978,7 @@
           "selected": false
         },
         {
-          "id": "support backoffice",
+          "id": "backoffice support",
           "source": "support",
           "target": "backoffice",
           "label": null,
@@ -19144,7 +18986,7 @@
           "selected": false
         },
         {
-          "id": "ordering mapbox",
+          "id": "mapbox ordering",
           "source": "ordering",
           "target": "mapbox",
           "label": null,
@@ -19160,7 +19002,7 @@
           "selected": false
         },
         {
-          "id": "ordering notifications",
+          "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
           "label": null,
@@ -19205,15 +19047,8 @@
           "target": "ordering",
           "label": null,
           "classes": [],
-          "selected": false
-        },
-        {
-          "id": "ordering backoffice",
-          "source": "ordering",
-          "target": "backoffice",
-          "label": null,
-          "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         }
       ],
       "members": [
@@ -19392,7 +19227,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -19412,7 +19247,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -19432,7 +19267,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -19452,7 +19287,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -19472,7 +19307,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -19482,7 +19317,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -19512,7 +19347,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -19542,7 +19377,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -19724,7 +19559,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -19744,7 +19579,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -19764,7 +19599,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -19784,7 +19619,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -19804,7 +19639,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -19814,7 +19649,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -19844,7 +19679,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -19874,7 +19709,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -20056,7 +19891,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -20076,7 +19911,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -20096,7 +19931,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -20116,7 +19951,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -20136,7 +19971,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -20146,7 +19981,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -20176,7 +20011,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -20206,7 +20041,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -20362,7 +20197,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -20378,7 +20213,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -20394,7 +20229,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -20410,7 +20245,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -20426,7 +20261,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -20434,7 +20269,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -20458,7 +20293,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -20482,7 +20317,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -20650,7 +20485,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -20670,7 +20505,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -20690,7 +20525,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -20710,7 +20545,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -20723,14 +20558,14 @@
           "id": "order-api stripe",
           "source": "order-api",
           "target": "stripe",
-          "label": null,
+          "label": "2 connections",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -20740,7 +20575,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -20770,7 +20605,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -20800,22 +20635,12 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "stripe",
-          "target": "order-api",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -20980,7 +20805,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -21000,7 +20825,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -21020,7 +20845,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -21040,7 +20865,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -21060,7 +20885,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -21070,7 +20895,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -21100,7 +20925,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -21130,7 +20955,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -21300,7 +21125,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -21320,7 +21145,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -21340,7 +21165,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -21360,7 +21185,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -21380,7 +21205,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -21390,7 +21215,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -21420,7 +21245,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -21450,7 +21275,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -21594,7 +21419,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -21610,7 +21435,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -21626,7 +21451,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -21642,7 +21467,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -21658,7 +21483,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -21666,7 +21491,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -21690,7 +21515,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -21714,7 +21539,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -21764,7 +21589,7 @@
           "selected": false
         },
         {
-          "id": "shop mail",
+          "id": "mail shop",
           "source": "shop",
           "target": "mail",
           "label": null,
@@ -21824,7 +21649,7 @@
           "selected": false
         },
         {
-          "id": "web api",
+          "id": "api web",
           "source": "web",
           "target": "api",
           "label": null,
@@ -21887,7 +21712,7 @@
       ],
       "edges": [
         {
-          "id": "orders db",
+          "id": "db orders",
           "source": "orders",
           "target": "db",
           "label": null,
@@ -21903,7 +21728,7 @@
           "selected": false
         },
         {
-          "id": "orders mail",
+          "id": "mail orders",
           "source": "orders",
           "target": "mail",
           "label": null,
@@ -21996,7 +21821,7 @@
           "selected": false
         },
         {
-          "id": "web api",
+          "id": "api web",
           "source": "web",
           "target": "api",
           "label": null,
@@ -22112,7 +21937,7 @@
           "selected": false
         },
         {
-          "id": "web api",
+          "id": "api web",
           "source": "web",
           "target": "api",
           "label": null,
@@ -22228,7 +22053,7 @@
           "selected": false
         },
         {
-          "id": "web api",
+          "id": "api web",
           "source": "web",
           "target": "api",
           "label": null,
@@ -22333,7 +22158,7 @@
           "selected": false
         },
         {
-          "id": "web api",
+          "id": "api web",
           "source": "web",
           "target": "api",
           "label": null,
@@ -22422,7 +22247,7 @@
       ],
       "edges": [
         {
-          "id": "orders db",
+          "id": "db orders",
           "source": "orders",
           "target": "db",
           "label": null,
@@ -22442,7 +22267,7 @@
           "selected": false
         },
         {
-          "id": "orders mail",
+          "id": "mail orders",
           "source": "orders",
           "target": "mail",
           "label": null,
@@ -22526,7 +22351,7 @@
       ],
       "edges": [
         {
-          "id": "orders db",
+          "id": "db orders",
           "source": "orders",
           "target": "db",
           "label": null,
@@ -22546,7 +22371,7 @@
           "selected": false
         },
         {
-          "id": "orders mail",
+          "id": "mail orders",
           "source": "orders",
           "target": "mail",
           "label": null,
@@ -22612,7 +22437,7 @@
       ],
       "edges": [
         {
-          "id": "orders db",
+          "id": "db orders",
           "source": "orders",
           "target": "db",
           "label": null,
@@ -22628,7 +22453,7 @@
           "selected": false
         },
         {
-          "id": "orders mail",
+          "id": "mail orders",
           "source": "orders",
           "target": "mail",
           "label": null,
@@ -23614,7 +23439,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -23759,7 +23584,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -23772,9 +23597,9 @@
           "id": "api stripe",
           "source": "api",
           "target": "stripe",
-          "label": null,
+          "label": "charges with",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
@@ -23805,16 +23630,6 @@
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "stripe",
-          "target": "api",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -23916,7 +23731,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -23929,9 +23744,9 @@
           "id": "api stripe",
           "source": "api",
           "target": "stripe",
-          "label": null,
+          "label": "charges with",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
@@ -23962,16 +23777,6 @@
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "stripe",
-          "target": "api",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -24073,7 +23878,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -24088,7 +23893,7 @@
           "target": "stripe",
           "label": null,
           "classes": [
-            "dim"
+            "lane"
           ],
           "selected": false
         },
@@ -24119,16 +23924,6 @@
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "lane-4",
-          "source": "stripe",
-          "target": "api",
-          "label": null,
-          "classes": [
-            "lane"
           ],
           "selected": false
         }
@@ -24231,7 +24026,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -24244,9 +24039,9 @@
           "id": "api stripe",
           "source": "api",
           "target": "stripe",
-          "label": null,
+          "label": "charges with",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
@@ -24277,16 +24072,6 @@
           "label": null,
           "classes": [
             "dim"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step",
-          "source": "stripe",
-          "target": "api",
-          "label": null,
-          "classes": [
-            "step"
           ],
           "selected": false
         }
@@ -24387,7 +24172,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -24561,7 +24346,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -24734,7 +24519,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -24909,7 +24694,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -25083,7 +24868,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -25106,9 +24891,9 @@
           "id": "api db",
           "source": "api",
           "target": "db",
-          "label": null,
+          "label": "reads and writes",
           "classes": [
-            "dim"
+            "active"
           ],
           "selected": false
         },
@@ -25136,16 +24921,6 @@
           "id": "step",
           "source": "billing",
           "target": "db",
-          "label": null,
-          "classes": [
-            "step"
-          ],
-          "selected": false
-        },
-        {
-          "id": "step-1",
-          "source": "db",
-          "target": "api",
           "label": null,
           "classes": [
             "step"
@@ -25276,7 +25051,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -25449,7 +25224,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -25622,7 +25397,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -25795,7 +25570,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -25968,7 +25743,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -26141,7 +25916,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -26338,7 +26113,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -26535,7 +26310,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -26732,7 +26507,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -26929,7 +26704,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -27126,7 +26901,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -27323,7 +27098,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -27520,7 +27295,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -27717,7 +27492,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -27914,7 +27689,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -28114,7 +27889,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -28314,7 +28089,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -28514,7 +28289,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -28711,7 +28486,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -28908,7 +28683,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -29105,7 +28880,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -29302,7 +29077,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -29499,7 +29274,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -29696,7 +29471,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -29893,7 +29668,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -30090,7 +29865,7 @@
       ],
       "edges": [
         {
-          "id": "customer api",
+          "id": "api customer",
           "source": "customer",
           "target": "api",
           "label": null,
@@ -30260,7 +30035,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -30278,7 +30053,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -30298,7 +30073,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -30318,7 +30093,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -30338,7 +30113,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -30348,7 +30123,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -30378,7 +30153,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": "live map",
@@ -30406,7 +30181,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -30539,7 +30314,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -30555,7 +30330,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -30571,7 +30346,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -30587,7 +30362,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -30603,7 +30378,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -30611,7 +30386,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -30635,7 +30410,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -30659,7 +30434,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -30788,7 +30563,7 @@
           "selected": true
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -30804,7 +30579,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": null,
@@ -30820,7 +30595,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -30836,7 +30611,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -30852,7 +30627,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -30860,7 +30635,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -30884,7 +30659,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -30908,7 +30683,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,
@@ -31043,7 +30818,7 @@
           "selected": false
         },
         {
-          "id": "restaurant kitchen-tablet",
+          "id": "kitchen-tablet restaurant",
           "source": "restaurant",
           "target": "kitchen-tablet",
           "label": null,
@@ -31063,7 +30838,7 @@
           "selected": false
         },
         {
-          "id": "web order-api",
+          "id": "order-api web",
           "source": "web",
           "target": "order-api",
           "label": "REST",
@@ -31081,7 +30856,7 @@
           "selected": false
         },
         {
-          "id": "order-api menu-cache",
+          "id": "menu-cache order-api",
           "source": "order-api",
           "target": "menu-cache",
           "label": null,
@@ -31101,7 +30876,7 @@
           "selected": false
         },
         {
-          "id": "order-api mapbox",
+          "id": "mapbox order-api",
           "source": "order-api",
           "target": "mapbox",
           "label": null,
@@ -31121,7 +30896,7 @@
           "selected": false
         },
         {
-          "id": "order-api events",
+          "id": "events order-api",
           "source": "order-api",
           "target": "events",
           "label": null,
@@ -31131,7 +30906,7 @@
           "selected": false
         },
         {
-          "id": "order-api notifications",
+          "id": "notifications order-api",
           "source": "order-api",
           "target": "notifications",
           "label": null,
@@ -31161,7 +30936,7 @@
           "selected": false
         },
         {
-          "id": "delivery customer-app",
+          "id": "customer-app delivery",
           "source": "delivery",
           "target": "customer-app",
           "label": null,
@@ -31189,7 +30964,7 @@
           "selected": false
         },
         {
-          "id": "events backoffice",
+          "id": "backoffice events",
           "source": "events",
           "target": "backoffice",
           "label": null,

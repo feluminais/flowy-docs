@@ -1081,7 +1081,7 @@ internal sealed class PerfPanel : StackPanel
         }
         UpdateKey(run, frame);
         ShowSelectedState();
-        if (_scaledRow is not null && _scaledLine is { } line) _scaledRow.IsVisible = !_still && frame.Traffic.Lines.Any(l => l.From == line.From && l.To == line.To && l.Capped);
+        if (_scaledRow is not null && _scaledLine is { } line) _scaledRow.IsVisible = !_still && frame.Traffic.Lines.Any(l => Views.LineKey(l.From, l.To) == Views.LineKey(line.From, line.To) && l.Capped);
         foreach (var r in _readings)
         {
             r.Value.Text = r.At(frame) is { } v ? r.Info.Show(v) : "–";
@@ -1256,7 +1256,7 @@ internal sealed class PerfPanel : StackPanel
         }
         UpdateKeyMulti(frame);
         ShowSelectedState();
-        if (_scaledRow is not null && _scaledLine is { } line) _scaledRow.IsVisible = !_still && frame.Traffic.Lines.Any(l => l.From == line.From && l.To == line.To && l.Capped);
+        if (_scaledRow is not null && _scaledLine is { } line) _scaledRow.IsVisible = !_still && frame.Traffic.Lines.Any(l => Views.LineKey(l.From, l.To) == Views.LineKey(line.From, line.To) && l.Capped);
         foreach (var r in _readings)
         {
             r.Value.Text = r.At(frame) is { } v ? r.Info.Show(v) : "–";

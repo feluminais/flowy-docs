@@ -74,7 +74,8 @@ public static partial class Mermaid
         }
         var lines = new List<string> { "flowchart TB" };
         lines.AddRange(n.Keys.Select(Box));
-        lines.AddRange(v.Edges.Select(e => $"  {n[e.From]} {(e.Label == "" ? "" : $"-- \"{Text(e.Label)}\" ")}--> {n[e.To]}"));
+        // A line with connections both ways has an arrowhead at each end, as on the canvas.
+        lines.AddRange(v.Edges.Select(e => $"  {n[e.From]} {(e.Both ? "<" : "")}{(e.Label == "" ? "" : $"-- \"{Text(e.Label)}\" ")}--> {n[e.To]}"));
         lines.AddRange(n.SelectMany(kv => StyleLine(model, kv.Key, kv.Value)));
         if (v.Outsiders.Count > 0) lines.AddRange(["  classDef outsider stroke-dasharray: 4 3", $"  class {string.Join(',', v.Outsiders.Select(id => n[id]))} outsider"]);
         return string.Join('\n', lines) + "\n";

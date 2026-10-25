@@ -2433,14 +2433,6 @@
             "here": []
           },
           {
-            "view": "root",
-            "line": [
-              "ordering",
-              "backoffice"
-            ],
-            "here": []
-          },
-          {
             "view": "ordering",
             "box": "customer-app",
             "here": []

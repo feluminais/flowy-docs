@@ -222,8 +222,8 @@ public static class Failures
     public static string AnalysisText(Model model, string id, FailureAnalysis a, string format) =>
         format == "csv" ? Table(model, a, "csv") : $"## {(JsCompat.JsTrim(a.Name) == "" ? id : $"{a.Name} ({id})")}\n\n{CoverageText(model, a)}\n\n{Table(model, a, "markdown")}";
 
-    /// <summary>The text a drawn line is known by: the same as <c>lineId</c> in ui/src/graph.ts.</summary>
-    public static string LineKey(string from, string to) => $"{from} {to}";
+    /// <summary>The text a drawn line is known by (see <see cref="Views.LineKey"/>); the failures code and its readers still call it here.</summary>
+    public static string LineKey(string from, string to) => Views.LineKey(from, to);
 
     /// <summary>The box in <paramref name="view"/> that stands for a shape: itself, or the box it is inside. Null when the view does not draw it (and for the view's own frame).</summary>
     private static string? Drawn(Model model, string view, string id) => Views.PlaceStep(model, view, id, null)?.From;

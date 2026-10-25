@@ -377,8 +377,8 @@ internal sealed class SidePanel : Border
         return new StackPanel { Children = { header, items } };
     }
 
-    /// <summary>The two ends of a line at the top of its panel: a tile and a name each, with an arrow between.</summary>
-    internal Control LineHeader(Model model, string from, string to)
+    /// <summary>The two ends of a line at the top of its panel: a tile and a name each, with an arrow between (one each way when <paramref name="both"/>).</summary>
+    internal Control LineHeader(Model model, string from, string to, bool both = false)
     {
         Control End(string id)
         {
@@ -390,7 +390,7 @@ internal sealed class SidePanel : Border
         }
         var left = End(from);
         var right = End(to);
-        var arrow = Icons.Make(Icons.ArrowRight, "rowicon", 22);
+        var arrow = Icons.Make(both ? Icons.ArrowsLeftRight : Icons.ArrowRight, "rowicon", 22);
         arrow.VerticalAlignment = VerticalAlignment.Top;
         arrow.Margin = new Thickness(8, 9, 8, 0);
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { left, arrow, right } };
@@ -399,7 +399,10 @@ internal sealed class SidePanel : Border
         return new StackPanel { Spacing = 18, Children = { grid, Chrome.Rule(Resource("AccentBrush")) } };
     }
 
-    /// <summary>A line in the view: its two ends, and the connections it stands for, each with its label and problems.</summary>
+    /// <summary>
+    /// A line in the view: its two ends, and the connections it stands for, each with its label and problems. A view draws one line between two
+    /// shapes, so when connections run both ways they are listed under one heading per way.
+    /// </summary>
     public void ShowLine(Model model, string view, string from, string to, IReadOnlyList<Problem> problems)
     {
         var lines = Navigation.ConnectionsOf(model, view, from, to);
@@ -408,19 +411,44 @@ internal sealed class SidePanel : Border
             Clear();
             return;
         }
+        var ways = Ways(model, from, to, lines);
         var column = new StackPanel { Spacing = 14 };
-        column.Children.Add(LineHeader(model, from, to));
-        column.Children.Add(Chrome.Section(Icons.Route, lines.Count == 1 ? "Connection" : "Connections", lines.Count));
-        foreach (var (index, c) in lines)
+        column.Children.Add(LineHeader(model, ways.From, ways.To, ways.Both));
+        foreach (var way in ways.Groups)
         {
-            var section = new StackPanel { Spacing = 6 };
-            section.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "No label", FontStyle = FontStyle.Italic, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, FontSize = 15, TextWrapping = TextWrapping.Wrap });
-            if (c.From != from || c.To != to) section.Children.Add(Muted(Describe(model, c), 12));
-            var mine = problems.Where(p => p.Connection == index).Select(p => p.Message).ToList();
-            if (mine.Count > 0) section.Children.Add(Problems(mine));
-            column.Children.Add(Chrome.Card(section));
+            column.Children.Add(way.Heading);
+            foreach (var (index, c, _) in way.Lines)
+            {
+                var section = new StackPanel { Spacing = 6 };
+                section.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "No label", FontStyle = FontStyle.Italic, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, FontSize = 15, TextWrapping = TextWrapping.Wrap });
+                if (c.From != way.From || c.To != way.To) section.Children.Add(Muted(Describe(model, c), 12));
+                var mine = problems.Where(p => p.Connection == index).Select(p => p.Message).ToList();
+                if (mine.Count > 0) section.Children.Add(Problems(mine));
+                column.Children.Add(Chrome.Card(section));
+            }
         }
         Show(column, $"line:{from}>{to}");
+    }
+
+    /// <summary>One way a line's connections run: its heading, its ends, and the connections that run that way.</summary>
+    internal sealed record Way(Control Heading, string From, string To, List<(int Index, Connection Connection, bool Back)> Lines);
+
+    /// <summary>
+    /// How a line's panel groups its connections: one group under "Connection" or "Connections" when they all run one way, else a group per way
+    /// headed by the two names. A line whose connections all run against the way it was given reads the way they run (the same as LinePanel in
+    /// ui/src/Panel.tsx).
+    /// </summary>
+    internal static (string From, string To, bool Both, List<Way> Groups) Ways(Model model, string from, string to, List<(int Index, Connection Connection, bool Back)> lines)
+    {
+        var ahead = lines.Where(l => !l.Back).ToList();
+        var back = lines.Where(l => l.Back).ToList();
+        if (ahead.Count > 0 && back.Count > 0)
+            return (from, to, true, [
+                new Way(Chrome.Section(Icons.ArrowRight, $"{Views.NameOf(model, from)} → {Views.NameOf(model, to)}", ahead.Count), from, to, ahead),
+                new Way(Chrome.Section(Icons.ArrowLeft, $"{Views.NameOf(model, to)} → {Views.NameOf(model, from)}", back.Count), to, from, back),
+            ]);
+        var (a, b) = ahead.Count == 0 ? (to, from) : (from, to);
+        return (a, b, false, [new Way(Chrome.Section(Icons.Route, lines.Count == 1 ? "Connection" : "Connections", lines.Count), a, b, lines)]);
     }
 
     // ---- edit mode ---------------------------------------------------------------------------------------------

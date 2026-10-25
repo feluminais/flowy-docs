@@ -6,7 +6,13 @@ namespace Flowy.Core;
 /// A line between two boxes as an SVG path (the syntax Avalonia's <c>Geometry.Parse</c> reads), where its label sits,
 /// and where it ends and which way it points there, for the arrowhead.
 /// </summary>
-public sealed record LinePath(string Data, Pt Label, Pt End, Pt Direction);
+public sealed record LinePath(string Data, Pt Label, Pt End, Pt Direction)
+{
+    /// <summary>Where the line starts, and which way it points there (out of the line): for the second arrowhead of a line with connections both ways.</summary>
+    public Pt Start { get; init; }
+
+    public Pt StartDirection { get; init; }
+}
 
 /// <summary>Straight, curved and right-angled lines. Ports of getStraightPath, getBezierPath and getSmoothStepPath in @xyflow/system, which the browser canvas draws with.</summary>
 public static class LinePaths
@@ -38,7 +44,7 @@ public static class LinePaths
         var xOffset = Math.Abs(t.X - s.X) / 2;
         var yOffset = Math.Abs(t.Y - s.Y) / 2;
         var label = new Pt(t.X < s.X ? t.X + xOffset : t.X - xOffset, t.Y < s.Y ? t.Y + yOffset : t.Y - yOffset);
-        return new LinePath($"M {N(s.X)},{N(s.Y)}L {N(t.X)},{N(t.Y)}", label, t, Unit(s, t));
+        return new LinePath($"M {N(s.X)},{N(s.Y)}L {N(t.X)},{N(t.Y)}", label, t, Unit(s, t)) { Start = s, StartDirection = Unit(t, s) };
     }
 
     private static double ControlOffset(double distance, double curvature) =>
@@ -62,7 +68,7 @@ public static class LinePaths
             p.From.Y * 0.125 + c1.Y * 0.375 + c2.Y * 0.375 + p.To.Y * 0.125);
         var data = $"M{N(p.From.X)},{N(p.From.Y)} C{N(c1.X)},{N(c1.Y)} {N(c2.X)},{N(c2.Y)} {N(p.To.X)},{N(p.To.Y)}";
         var direction = c2 == p.To ? Unit(p.From, p.To) : Unit(c2, p.To);
-        return new LinePath(data, label, p.To, direction);
+        return new LinePath(data, label, p.To, direction) { Start = p.From, StartDirection = c1 == p.From ? Unit(p.To, p.From) : Unit(c1, p.From) };
     }
 
     private static Pt Dir(Side side) => side switch
@@ -186,6 +192,6 @@ public static class LinePaths
         var data = $"M{N(points[0].X)} {N(points[0].Y)}";
         for (var i = 1; i < points.Count - 1; i++) data += Bend(points[i - 1], points[i], points[i + 1], borderRadius);
         data += $"L{N(points[^1].X)} {N(points[^1].Y)}";
-        return new LinePath(data, center, p.To, Unit(points[^2], points[^1]));
+        return new LinePath(data, center, p.To, Unit(points[^2], points[^1])) { Start = points[0], StartDirection = Unit(points[1], points[0]) };
     }
 }

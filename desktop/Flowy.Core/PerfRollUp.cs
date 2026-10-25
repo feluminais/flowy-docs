@@ -10,7 +10,7 @@ public static partial class Perf
 
     /// <summary>
     /// A level as one view draws it. Each object takes the worst of what it holds and of itself (highest util and errors, queues added). Each line
-    /// the view draws takes the connections that land on it: rates added, worst latency, worst errors. A connection the model doesn't have is left out.
+    /// the view draws takes the connections that land on it, both ways: rates added, worst latency, worst errors. A connection the model doesn't have is left out.
     /// </summary>
     public static (IdMap<Metrics> Objects, IReadOnlyList<Pair> Lines) RollUp(Model model, Level level, string view)
     {
@@ -67,12 +67,16 @@ public static partial class Perf
 
         var lines = new List<Pair>();
         var sizes = new List<Sizes>();
-        var index = new Dictionary<(string, string), int>();
+        var index = new Dictionary<string, int>();
+        // Calls both ways between two shapes land on the one line the view draws, which runs the way the view has it.
+        var drawn = Views.Compute(model, view).Edges.ToDictionary(e => Views.LineKey(e.From, e.To));
         foreach (var c in level.Connections)
         {
             if (!HasConnection(model, c.From, c.To)) continue;
-            if (Views.PlaceEnds(model, view, c.From, c.To) is not { } ends) continue;
-            var so = index.TryGetValue(ends, out var at) ? lines[at] : null;
+            if (Views.PlaceEnds(model, view, c.From, c.To) is not { } placed) continue;
+            var key = Views.LineKey(placed.From, placed.To);
+            var ends = drawn.TryGetValue(key, out var way) ? (way.From, way.To) : placed;
+            var so = index.TryGetValue(key, out var at) ? lines[at] : null;
             var line = new Pair(ends.From, ends.To)
             {
                 Rate = Either(so?.Rate, c.Rate, (a, b) => a + b), P50 = Either(so?.P50, c.P50, Math.Max), P95 = Either(so?.P95, c.P95, Math.Max), Errors = Either(so?.Errors, c.Errors, Math.Max),
@@ -94,7 +98,7 @@ public static partial class Perf
             if (c.Failure is { } failure && !size.Failures.Contains(failure)) size.Failures.Add(failure);
             if (so is null)
             {
-                index[ends] = lines.Count;
+                index[key] = lines.Count;
                 lines.Add(line);
                 sizes.Add(size);
             }

@@ -12,6 +12,7 @@ internal static class JsonDump
         null => null,
         string s => JsonValue.Create(s),
         int i => JsonValue.Create(i),
+        bool b => JsonValue.Create(b),
         double d => JsonValue.Create(d),
         JsonNode n => n,
         _ => throw new ArgumentException($"can't dump a {v.GetType()}"),
@@ -71,7 +72,9 @@ internal static class JsonDump
                 ("id", v.Id),
                 ("members", Arr(v.Members)),
                 ("outsiders", Arr(v.Outsiders)),
-                ("edges", Arr(v.Edges.Select(e => Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count)))))));
+                ("edges", Arr(v.Edges.Select(e => e.Both
+                    ? Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("both", true))
+                    : Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count)))))));
         });
         // Partners and links are dumped only where some flow holds a compare, and the runs only where some run reads one, so older cases dump as before.
         var tags = m.Flows.ToDictionary(kv => kv.Key, kv => kv.Value.CompareRaw);
