@@ -80,7 +80,7 @@ public class PerformanceTests
         Assert.Contains("Performance, 7", reader.Rail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Press(window, Key.T, PhysicalKey.T);
         Assert.Equal(("dinner-rush", 3.0, false), reader.PerfState); // the load where ETA reaches 90%
-        Assert.Contains("First struggles at 900 orders/min: ETA at 90% of capacity", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.Contains("First struggles at 900 orders/min: Delivery > Dispatch > ETA at 90% of capacity", string.Join("|", AllText(reader.PerfPanelNow)));
         Assert.InRange(reader.Canvas.Load!.Boxes["delivery"].Strain!.Value, Perf.KneeStrain, 1); // at the overview the system holding ETA is the one that is red
         Assert.InRange(reader.Canvas.Load!.Boxes["ordering"].Strain!.Value, 0, Perf.KneeStrain - 0.01);
         Assert.Equal(14, reader.Canvas.Load!.Boxes["events"].Queue); // and Order events has begun to fill behind it

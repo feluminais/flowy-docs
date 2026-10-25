@@ -246,9 +246,11 @@ public class PerfPanelTests
     {
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 1);
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower marks, slower calls)|A call that fails|More calls", KeyOf(panel));
+        Assert.Equal("Busy|Not measured|A call|A call that fails|More calls", KeyOf(panel));
         Show(panel, folder, "ramp", 3);
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower marks, slower calls)|A call that fails|More calls", KeyOf(panel));
+        var key = KeyOf(panel);
+        Assert.StartsWith("Busy|Struggling|", key); // a shape is past the struggle mark: its number is on the canvas, and in the key
+        Assert.EndsWith("Not measured|A call|A call that fails|More calls", key);
     }
 
     [AvaloniaFact]
@@ -257,7 +259,7 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower marks, slower calls)|No numbers|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
+        Assert.Equal("Not measured|A call|No numbers|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
     }
 
     [AvaloniaFact]
@@ -313,7 +315,7 @@ public class PerfPanelTests
         var slider = panel.Slider;
         panel.SetPos(1, false);
         Assert.Equal(1, panel.SliderValue);
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower marks, slower calls)|No numbers|A call that fails|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
+        Assert.Equal("Not measured|A call|No numbers|A call that fails|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
         Assert.Same(slider, panel.Slider);
     }
 
@@ -338,7 +340,7 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 1, false, true, new PerfSelection(null, "customer", "web")));
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower marks, slower calls)|A call that fails|More calls", KeyOf(panel));
+        Assert.Equal("Not measured|A call|A call that fails|More calls", KeyOf(panel));
         Assert.False(panel.ScaledDownShown);
     }
 
@@ -348,6 +350,64 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled("source: { color: teal }");
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Busy|Waiting|Not measured|A call (slower marks, slower calls)|No numbers|Lost call|Rejected call|More calls", KeyOf(panel));
+        Assert.Equal("Not measured|A call|No numbers|Lost call|Rejected call|More calls", KeyOf(panel));
+    }
+
+    [AvaloniaFact]
+    public void The_stripe_choice_is_named_for_what_it_sets_and_draws_each_stripe_and_the_greyed_ones_say_why()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 1);
+        var group = panel.GetVisualDescendants().OfType<StackPanel>().Single(p => Avalonia.Automation.AutomationProperties.GetName(p) == "Each stripe");
+        (TopLevel.GetTopLevel(panel) as Window)?.UpdateLayout();
+        Assert.Equal(["Each stripe", "Calls", "Data", "Mixed"], group.GetVisualDescendants().OfType<TextBlock>().Where(t => !t.GetVisualAncestors().OfType<Border>().Any(b => b.Classes.Contains("sw"))).Select(t => t.Text));
+        Assert.DoesNotContain("Count", Text(panel).Split('|'));
+        Assert.All(new[] { panel.DataButton!, panel.MixedButton! }, b => Assert.Equal("No call sizes in this run", ToolTip.GetTip(b)));
+        var stripes = group.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("sw")).ToList();
+        Assert.Equal(4, stripes.Count); // a stripe each for Calls and Data, the small and the big one for Mixed
+    }
+
+    [AvaloniaFact]
+    public void The_chart_says_whose_calls_it_shows_names_its_axis_and_keys_the_line_for_now()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 3);
+        var text = Text(panel);
+        Assert.Contains("Calls into Customer", text);
+        var names = panel.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
+        Assert.Contains("Now", names);
+        Assert.Contains("now", panel.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("sw")).SelectMany(b => b.Classes));
+        var strip = panel.GetVisualDescendants().OfType<LatencyStrip>().Single();
+        Assert.Equal("Calls into Customer: expected call and slowest 5% at each tested load", Avalonia.Automation.AutomationProperties.GetName(strip));
+        Assert.StartsWith("10 req/s: expected call 20 ms, slowest 5% 80 ms; 25 req/s:", strip.Rows);
+        Assert.Equal(strip.Rows, Avalonia.Automation.AutomationProperties.GetHelpText(strip));
+    }
+
+    [AvaloniaFact]
+    public void The_sliders_say_the_load_and_whether_it_was_tested_and_Go_there_says_where()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 3);
+        Assert.Equal("Load, 100 req/s, tested", Avalonia.Automation.AutomationProperties.GetName(panel.Slider));
+        Show(panel, folder, "ramp", 1.5);
+        Assert.StartsWith("Load, ", Avalonia.Automation.AutomationProperties.GetName(panel.Slider));
+        Assert.EndsWith(", estimated", Avalonia.Automation.AutomationProperties.GetName(panel.Slider));
+        Assert.Contains(", between ", Avalonia.Automation.AutomationProperties.GetName(panel.Slider));
+        var go = panel.GetVisualDescendants().OfType<Button>().Single(b => Avalonia.Automation.AutomationProperties.GetName(b)?.StartsWith("Go there to ") == true);
+        Assert.Equal("Go there to 100 req/s", Avalonia.Automation.AutomationProperties.GetName(go));
+        Assert.Equal("Go there to 100 req/s", ToolTip.GetTip(go));
+    }
+
+    [AvaloniaFact]
+    public void The_key_names_the_marks_a_load_has_on_the_canvas_and_the_struggling_number_only_when_a_shape_is_past_the_mark()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 0);
+        var calm = KeyOf(panel);
+        Assert.Contains("Busy", calm);
+        Assert.DoesNotContain("Struggling", calm);
+        Show(panel, folder, "ramp", 3);
+        Assert.Contains("Struggling", KeyOf(panel));
+        Assert.Contains("pct", panel.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("sw")).SelectMany(b => b.Classes));
     }
 }
