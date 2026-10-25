@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 using Xunit;
@@ -61,6 +62,30 @@ public class CanvasLoadTests
         Assert.Equal((false, null), ((BoxControl)canvas.BoxControlFor("worker")!).PerfShown);
         Assert.Equal((false, null), ((BoxControl)canvas.BoxControlFor("queue")!).PerfShown);
         Assert.Null(canvas.Load);
+    }
+
+    [AvaloniaFact]
+    public void A_shape_past_the_struggle_mark_wears_its_percentage_and_one_below_it_wears_nothing()
+    {
+        var (canvas, folder) = Open();
+        canvas.ShowLoad(Load(folder, "ramp", 100));
+        var worker = (BoxControl)canvas.BoxControlFor("worker")!;
+        Assert.Equal("97%", worker.StrainPctShown);
+        Assert.Null(((BoxControl)canvas.BoxControlFor("web")!).StrainPctShown);
+        Assert.Null(((BoxControl)canvas.BoxControlFor("customer")!).StrainPctShown);
+        Assert.Equal("Struggling, 97% busy", Avalonia.Automation.AutomationProperties.GetName(worker.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("strainpct"))));
+        canvas.ShowLoad(null);
+        Assert.Null(worker.StrainPctShown);
+    }
+
+    [AvaloniaFact]
+    public void The_waiting_badge_is_a_square_one_with_its_count_for_a_name()
+    {
+        var (canvas, folder) = Open();
+        canvas.ShowLoad(Load(folder, "ramp", 100));
+        var badge = ((BoxControl)canvas.BoxControlFor("queue")!).GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("queue"));
+        Assert.Equal("40 waiting", Avalonia.Automation.AutomationProperties.GetName(badge));
+        Assert.Equal(4, badge.CornerRadius.TopLeft); // a rounded square, not the round badge of a failure mode (a radius of half its height)
     }
 
     [AvaloniaFact]

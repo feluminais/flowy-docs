@@ -44,13 +44,20 @@ estimated"). Below the first tested load they run down to no load, where nothing
 estimate too ("Between 0 and 100, estimated"). A drag draws once a frame at most, so a fast one costs no more than a slow one. Click a shape or a line to read its numbers at this load,
 with a small curve of each across all of them. A shape that holds others takes the worst of what is inside it, so at the overview
 you see which system is struggling and zoom in to find where. The tab opens on the load where things first struggle, if anything
-does, and **Go there** gets back to it.
+does, and **Go there** gets back to it. The sentence names the shape the way the canvas draws it, so a part inside Dispatch reads "Dispatch > ETA", and the tooltip of **Go there** says which load it goes to.
 
-**Calls, Data and Mixed.** A call is drawn as a small stripe that runs along its line and sticks out to either side of it. Under **Count** the tab has three views. **Calls** draws one
+**Marks on the canvas.** The **Key** sits right under the controls, so it is in view with them, and draws only the marks on the canvas now. A shape's outline runs from green to red as it fills up (**Busy**).
+Once a shape is past the point where a run counts as struggling (85% busy) it also wears its percentage, so the fact does not rest on colour alone (**Struggling**); shapes below that carry nothing. A square badge with a number is
+**Waiting**: how many calls are queued. It is square so it is not taken for the round badge of a failure mode. A plain outline is **Not measured**.
+
+**The chart.** Under **Where it struggles** the chart says whose calls it shows (the shape the run's `entry` names, "Calls into Customer app", else "All calls"). Its left edge is time on a log scale ("Time (log)"), so 10 ms, 100 ms and 1 s are evenly
+spaced. A blue line is the **Expected call**, an amber one the **Slowest 5%**, red dashes **First struggles**, and the solid grey line is **Now**, the load on the slider. For a screen reader the chart is a list: each tested load with its expected call and its slowest 5%.
+
+**Calls, Data and Mixed.** A call is drawn as a small stripe that runs along its line and sticks out to either side of it. **Each stripe** sets what one stripe stands for, and the tab has three choices, each drawn with its stripe. **Calls** draws one
 stripe for each call a second: the more calls, the more stripes and the thicker the line. **Data** draws one for each bit of data a second, the calls times the size of a call (`bytes`), so a line of a few
 large calls has more of them than a line of a few small ones, and the size is already in the count, so every stripe is the usual size. **Mixed** counts the calls, as Calls does, and draws each stripe as big as
 its call is: twice the bytes is twice the area, against the size of a typical call. Mixed is where a run opens when it gives both a `rate` and `bytes`, which is why a run is best measured with both: say the
-calls a second and the size of a call on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out with the reason in their tooltip. Only the size of a call makes a
+calls a second and the size of a call on every connection. A run with `rate` only opens on Calls, and Data and Mixed are greyed out with "No call sizes in this run" in their tooltip. Only the size of a call makes a
 stripe bigger: more calls give more stripes and a thicker line, never bigger stripes.
 
 A line the run gives nothing to show, because it has no `rate` (or under Data no `bytes`), is not left plain. It gets a line highlight: blue stripes moving along the line itself, as they do on an animated edge,
