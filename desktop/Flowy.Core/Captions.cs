@@ -55,7 +55,7 @@ public static class Captions
             var times = group?.Times ?? "";
             var until = group?.Until ?? "";
             var words = RepeatWords(group);
-            var mark = times != "" ? (until != "" ? $"up to {times}" : $"×{times}") : until != "" ? $"until {until}" : "";
+            var mark = times != "" ? (until != "" ? $"up to {times} times" : $"×{times}") : until != "" ? $"until {until}" : "";
             return none with { Chip = words == "" ? "Repeats" : $"Repeats {words}", Text = text, Marks = stop.Steps.Select(_ => mark).ToList() };
         }
         if (stop.Kind == "branch")
@@ -123,7 +123,7 @@ public static class Captions
                 var maybe = group?.Until is not null;
                 var words = RepeatWords(group);
                 brackets.Add(s.Kind == "repeat"
-                    ? new Bracket(s.Kind, start, col - 1, times == "" ? "" : maybe ? $"up to {times}" : $"×{times}", words == "" ? "Repeats" : $"Repeats {words}", [], maybe)
+                    ? new Bracket(s.Kind, start, col - 1, times == "" ? "" : maybe ? $"up to {times} times" : $"×{times}", words == "" ? "Repeats" : $"Repeats {words}", [], maybe)
                     : new Bracket(s.Kind, start, col - 1, "same time", "The lanes happen at the same time: each stop shows the next step of every lane", [], false));
             }
             k = end + 1;

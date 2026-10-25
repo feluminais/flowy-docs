@@ -9,7 +9,7 @@ import type { Flow, Model } from './model.ts'
 import { stopBefore } from './structure.ts'
 import type { Stop } from './structure.ts'
 import { isMap, own } from './text.ts'
-import { chain } from './views.ts'
+import { chain, nameOf } from './views.ts'
 
 export const STATE_NAMES = ['running', 'starting', 'stopping', 'stopped', 'restarting', 'degraded'] as const
 export type StateName = (typeof STATE_NAMES)[number]
@@ -101,15 +101,15 @@ export function statesAt(flow: Flow, stops: Stop[], k: number): States {
   return out
 }
 
-/** A shape that is not Running (`state`), and whether that is only because something inside it is not (`inside`). */
-export type StateMark = { state: StateName; inside: boolean }
+/** A shape that is not Running (`state`), and whether that is only because something inside it is not (`inside`), in which case `via` names the shape inside that is. */
+export type StateMark = { state: StateName; inside: boolean; via?: string }
 
 /** Worst first: what a container shows at the overview when several things inside it are not running. */
 const WORST: readonly StateName[] = ['stopped', 'restarting', 'degraded', 'stopping', 'starting']
 
 /**
  * What to draw for each shape: every shape of the model whose state is not Running, with `inside: false`; and every shape that holds one
- * and has no state of its own, with the worst state below it and `inside: true`. A shape with its own entry (Running included) shows that
+ * and has no state of its own, with the worst state below it, `inside: true` and `via` the name of the shape inside that is in it. A shape with its own entry (Running included) shows that
  * and no roll-up. Running entries and ids the model does not have are dropped.
  */
 export function marksOf(model: Model, states: States): Record<string, StateMark> {
@@ -121,7 +121,7 @@ export function marksOf(model: Model, states: States): Record<string, StateMark>
     for (const above of chain(model, id).slice(1)) {
       if (above === ROOT || Object.hasOwn(states, above)) continue
       const seen = Object.hasOwn(marks, above) ? marks[above].state : undefined
-      if (seen === undefined || WORST.indexOf(state) < WORST.indexOf(seen)) set(above, { state, inside: true })
+      if (seen === undefined || WORST.indexOf(state) < WORST.indexOf(seen)) set(above, { state, inside: true, via: nameOf(model, id) })
     }
   }
   return marks
