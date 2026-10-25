@@ -8,6 +8,7 @@ import type { Mark } from '../../src/core/failures.ts'
 import type { Change, SideMarks } from '../../src/core/flowdiff.ts'
 import { fillOpacity, isColor, onFill, SHAPE_DEFS, shapeOf, showsTile } from '../../src/core/look.ts'
 import { isExternal } from '../../src/core/model.ts'
+import { strainLabel } from '../../src/core/perf/analyse.ts'
 import { languageOf } from '../../src/core/snippets.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { CodeBlock } from './Code.tsx'
@@ -98,6 +99,7 @@ export const Box = memo(function Box({ id, data: { object, inside, icon, perf, f
   const name = object.name || id
   const meta = [external && 'external', object.tech || object.type].filter(Boolean).join(' · ')
   const kind = external ? `external ${object.type}` : object.type
+  const pct = shown && !shown.inside ? undefined : strainLabel(perf?.strain) // a state beats the strain colour, and the number goes with it
   return (
     <div
       className={`box box-${object.type} shape-${shape}${external ? ' external' : ''}${isColor(object.color) ? ' colored' : ''}${fillOpacity(object) > 0 ? ' tinted' : ''}${onFill(object) ? ' on' : ''}${perf?.strain !== undefined ? ' strained' : ''}${shown ? ` ${stateClasses(shown)}${leaving ? ' state-leaving' : ''}` : ''}`}
@@ -114,7 +116,8 @@ export const Box = memo(function Box({ id, data: { object, inside, icon, perf, f
         <div className="box-name">{name}</div>
         <div className="box-meta">{meta}</div>
       </div>
-      {perf && perf.queue > 0 && <span className="queue-badge" title={`${perf.queue} waiting`}>{perf.queue}</span>}
+      {perf && perf.queue > 0 && <span className="queue-badge" role="img" aria-label={`${perf.queue} waiting`} title={`${perf.queue} waiting`}>{perf.queue}</span>}
+      {pct && <span className="strain-pct" role="img" aria-label={`Struggling, ${pct} busy`} title={`Struggling, ${pct} busy`}>{pct}</span>}
       {fail && <FailBadge mark={fail} />}
       {change && <ChangeBadge change={change} />}
       {shown && <StateGlyph mark={shown} />}

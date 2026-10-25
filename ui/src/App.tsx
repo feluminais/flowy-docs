@@ -407,7 +407,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {nav === 'performance' && !editing && (
             <NavPanel tabs={<NavTitle title="Performance" />} onClose={() => setTab(undefined)}>
-              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} positions={here} active={activeDial} lines={drawnLines} ramping={ramping} still={still} states={marksHere} measure={perfRun.measure} dataOff={perfRun.dataOff} onMeasure={perfRun.setMeasure}
+              <PerfBody model={model} view={view} runs={runs} runProblems={runProblems} runId={runKey} positions={here} active={activeDial} boxes={loadTraffic?.boxes} lines={drawnLines} ramping={ramping} still={still} states={marksHere} measure={perfRun.measure} dataOff={perfRun.dataOff} onMeasure={perfRun.setMeasure}
                 selection={side?.kind === 'object' || side?.kind === 'line' ? side : undefined}
                 onRun={id => {
                   perfRun.stopRamp()
