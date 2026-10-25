@@ -62,19 +62,22 @@ modes:
 The band follows: High when Severity is 9 or 10, even with the other ratings missing, since a severe failure never belongs in the quiet
 group. Otherwise Not rated when a rating is missing, then High from a risk of 150, Medium from 60 and Low below that. The list runs
 High, Medium, Low, then Not rated, and inside a band by risk, highest first, with ties in the order of the file. A mode that is `done`
-counts by its `after` ratings, and the panel shows both ("96 to 32").
+counts by its `after` ratings, and the panel shows both ("Risk after next action: 96 to 32"). The rule sits beside each band's
+count in the panel: "Risk 150+ or severity 9+", "Risk 60 to 149", "Risk under 60" and "A rating missing". The number at the right of each
+row is the risk, under a **Risk** heading, so a High 20 can sit above a Medium 144: its severity is 10.
 
-**Coverage.** "Analysed 15 of 26" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
+**Coverage.** "Analysed 15 of 26 shapes" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
 a failure you design for. Lines don't count. **Not analysed** lists the shapes left.
 
 **Reading it.** Open the Failures tab on the left edge, or press **M**. Details stays free on the right: a shape or a line picked on the canvas reads out there and narrows the list. Performance and Failures are never open at once, because the load and the risk would draw over each other. Pick an analysis if there are several. A shape or a line that
 has modes carries a badge: the colour of its worst band and how many. A shape that holds others adds up what is inside it, so at the
-overview you see which system holds the risk and zoom in to find where, as in Performance. Four items count the modes by band, and a
+overview you see which system holds the risk and zoom in to find where, as in Performance. Four rows count the modes by band, each with its rule, and a
 click on one filters the list. The list has two groups: **This view**, the modes whose part is inside the level on screen, and **Other
-views**, and picking one of those moves the canvas to the level that draws its part. Pick a mode to see all of it: Effect, Cause, the
+views**, and picking one of those moves the canvas to the level that draws its part. Pick a mode to see all of it, in a card above the list: Effect, Cause, the
 three ratings drawn as ten small cells, Controls, Next action with the owner and status, and what it affects. On the canvas its part is
-outlined in red, what it affects in a lighter outline, and the rest fades. ← and → move down the list, and Esc closes the tab while your last click was in it, as it does Explorer and Flows. A click on
+outlined in the colour of its band (red for High, orange for Medium, grey for Low and Not rated), what it affects in a lighter outline of
+the same colour, and the rest fades. The card's **Fails** and **Affects** marks show both outlines. ← and → move down the list, and Esc closes the tab while your last click was in it, as it does Explorer and Flows. A click on
 a shape or a line shows the modes on it. **Show it** plays the flow that tells the failure. **Seen in a run** appears when `run` is set
 and the part has errors in it, and opens Performance at the first load where it does. The address is
 `#<view>/failures/<analysis>/<mode>`.

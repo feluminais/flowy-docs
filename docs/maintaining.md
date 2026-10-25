@@ -219,9 +219,9 @@ Before merging a change to the app, look at what it could affect, in a real wind
       Performance with a 14 on it, and M opens its tab beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
       narrows the list). Opening Performance closes it. Press E: the tab stays open, with Edit analysis and New analysis folded under the name, and Add failure mode
       under the key; the mode picked has a form (part, effect, cause, the three ratings and their After ratings, controls, next action, owner, status, affects, flow,
-      step, run, More) where a pick or a typed field is saved at once, and the arrows no longer step through the list. Order API wears a red 2 and is outlined red, so is Stripe, the line between them wears an amber 2 and
-      is red, Kitchen tablet and Customer app are in a lighter outline and the rest fades. The panel reads Risk 96 Medium and "After: 96 to 32", and the
-      key draws a dot for each band that has modes, then Fails and Affects. The list runs Refunds (126), Orders DB (20) and on down; a click on a row picks
+      step, run, More) where a pick or a typed field is saved at once, and the arrows no longer step through the list. Order API wears a red 2 and is outlined orange (the mode is Medium), so is Stripe, solid, the line between them wears an amber 2 and
+      is orange, Kitchen tablet and Customer app are in a lighter orange outline and the rest fades. The card sits above the list: the Fails and Affects marks in orange, Risk 96 Medium and "Risk after next action: 96 to 32". Each band row has its rule beside the count ("Risk 150+ or severity 9+", "Risk 60 to 149", "Risk under 60", "A rating missing"), the lists have a Risk heading over their numbers, and the
+      key draws a dot for each band that has modes. The list runs Refunds (126), Orders DB (20) and on down; a click on a row picks
       it and a second click puts it away; ← → step down the list and stop at its ends; a click on a shape narrows the list to its modes and the chip clears
       it; a band button filters and "Not analysed (11)" lists the shapes left. Show it plays The payment is captured; Seen in a run on ETA to Mapbox opens
       Performance on its first level with errors; CSV and Table at the top of the tab put the ranked list on the clipboard. Esc closes the tab (until you click
@@ -395,11 +395,11 @@ Failures (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`):
 
 - [ ] The left rail has a Failures button under Performance with a 14 on it, and M opens its panel on the left with `#root/failures/ordering` in the
       address. Details stays free on the right: a click on a shape picks it there and narrows the list to its modes, and the chip clears it. Opening Performance (T) takes the panel's place.
-      The panel is not remembered when the page reloads: the address brings it back. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26" and "Not analysed (11)". At the overview Ordering
+      The panel is not remembered when the page reloads: the address brings it back. The key reads High 2, Medium 5, Low 6 and Not rated 1, then "Analysed 15 of 26 shapes" and "Not analysed (11)". At the overview Ordering
       carries a red 6 and the line from Checkout to Stripe an amber 2. Under This view the rows run Refunds (126), Orders DB (20), Notifier to Twilio (144),
       ETA to Mapbox (108) and on down to Fleet DB, which is Not rated.
-- [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API and the line to Stripe are outlined red, Kitchen tablet and Customer app in a lighter outline,
-      and the rest fades. The panel reads Risk 96 Medium, "After: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
+- [ ] Open `#ordering/failures/ordering/stripe-timeout`: Order API, Stripe and the line between them are outlined orange (a Medium mode), Kitchen tablet and Customer app in a lighter orange outline,
+      and the rest fades. The card is above the list and reads Risk 96 Medium, "Risk after next action: 96 to 32". Show it plays The payment is captured. Open `#delivery/failures/ordering/eta-mapbox-fails`:
       Seen in a run opens `#dispatch/perf/dinner-rush/3`. ← → move down the list, and Esc closes the tab while the last click was in it.
 - [ ] Press E with the tab open: it stays, beside Details, and gains New analysis, Add failure mode and a form for the mode picked. CSV and Table put the ranked
       list on the clipboard. `node src/cli.ts failures --dir docs/demo/flowy` prints the same table and exits with 0. Light and dark both read.
