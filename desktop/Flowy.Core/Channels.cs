@@ -101,10 +101,23 @@ public static class Channels
     public static List<Finding> Problems(Flow flow, IReadOnlyList<Stop> stops)
     {
         var output = new List<Finding>();
+        if (!Uses(flow)) return output;
+        // What each stop leaves open, worked out once in stop order (a stop's Before chain only goes back), as At folds it: walking the chain
+        // again for every stop would cost the square of the steps, on every check of a long flow.
+        var after = new OrderedDictionary<string, Channel>[stops.Count];
         for (var k = 0; k < stops.Count; k++)
         {
-            var names = OpenBefore(flow, stops, k).Select(c => c.Name!).ToList();
+            var before = Structure.StopBefore(stops, k) is { } prior ? after[prior] : new OrderedDictionary<string, Channel>();
+            var names = before.Values.Where(c => c.Name is not null).Select(c => c.Name!).ToList();
             var (opened, closed) = ChangesOf(flow, stops[k]);
+            var open = new OrderedDictionary<string, Channel>(before);
+            foreach (var name in closed) open.Remove($"name:{name}");
+            foreach (var c in opened)
+            {
+                open.Remove(KeyOf(c));
+                open[KeyOf(c)] = c with { Opening = false };
+            }
+            after[k] = open;
             foreach (var i in stops[k].Steps)
             {
                 if (i < 0 || i >= flow.Steps.Count) continue;

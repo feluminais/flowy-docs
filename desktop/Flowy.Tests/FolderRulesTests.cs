@@ -32,6 +32,15 @@ public class FolderRulesTests
     }
 
     [Fact]
+    public void A_file_past_the_size_limit_is_refused_in_the_TypeScript_words()
+    {
+        var rules = Rules();
+        Assert.Equal(FileText.MaxBytes, rules["maxFileBytes"]!.GetValue<long>());
+        foreach (var size in rules["tooBig"]!.AsArray())
+            Assert.Equal(size!["text"]!.GetValue<string>(), FileText.TooBig(size["bytes"]!.GetValue<long>()));
+    }
+
+    [Fact]
     public void A_folder_path_is_usable_exactly_when_the_TypeScript_says_so()
     {
         var folders = Rules()["folders"]!.AsArray();

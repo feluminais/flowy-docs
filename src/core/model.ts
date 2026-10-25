@@ -165,6 +165,16 @@ export function getObject(model: Model, id: unknown): FlowyObject | undefined {
 }
 
 /** A file that can't be read as a Flowy file. Nothing may be written over it. */
+/**
+ * The most a file of the model may hold. Reading one takes about a hundred times its size in memory, so a much bigger file would stall the
+ * reader or take it down; the biggest real model file so far is under 40 KB. desktop/Flowy.Core/FileText.cs has the same limit and words.
+ */
+export const MAX_FILE_BYTES = 5 * 1024 * 1024
+
+/** Why a file of `bytes` is not read, worded to follow its path. The size is rounded up, so it never reads as the limit itself. */
+export const tooBig = (bytes: number): string =>
+  `is ${(Math.ceil((bytes * 10) / 1024 / 1024) / 10).toFixed(1)} MB, more than the ${MAX_FILE_BYTES / 1024 / 1024} MB Flowy reads`
+
 export class ParseError extends Error {
   file: string
   line: number | undefined

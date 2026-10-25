@@ -125,7 +125,8 @@ function dagreAt(boxes: string[], edges: Edge[], gap: { nodesep: number; ranksep
   g.setGraph({ rankdir: 'TB', ...gap })
   g.setDefaultEdgeLabel(() => ({}))
   for (const id of boxes) g.setNode(id, { ...BOX })
-  for (const e of edges) if (boxes.includes(e.from) && boxes.includes(e.to)) g.setEdge(e.from, e.to)
+  const here = new Set(boxes)
+  for (const e of edges) if (here.has(e.from) && here.has(e.to)) g.setEdge(e.from, e.to)
   layout(g)
   return new Map(boxes.map(id => {
     const { x, y } = g.node(id)
@@ -255,14 +256,16 @@ function place(members: string[], around: string[], edges: Edge[], fixed: Readon
   // a time budget would let it try more where the machine is fast
   const big = (members.length + around.length) * lines.length > 2000
   const passes = big ? 5 : 30
+  // Known limit: past this many boxes times lines, scoring the tangle alone takes seconds, so dagre's layout stands as it is (as on the desktop).
+  const huge = (members.length + around.length) * lines.length > 500_000
   const orders = [(ids: string[]) => ids, (ids: string[]) => [...ids].reverse(), (ids: string[]) => [...ids].sort((a, b) => degree(b) - degree(a))]
     .concat([1, 2, 3, 4, 5, 6].map(seed => (ids: string[]) => shuffled(ids, seed)))
     .slice(0, big ? 1 : undefined)
   let best: Spots | undefined
   let bestScore = Infinity
   const consider = (at: Spots, rows: string[][], columns: string[][]) => {
-    const tidy = untangle(at, lines, rows, columns, passes)
-    const score = tangle(tidy, lines)
+    const tidy = huge ? at : untangle(at, lines, rows, columns, passes)
+    const score = huge ? 0 : tangle(tidy, lines)
     if (score < bestScore) [best, bestScore] = [tidy, score]
   }
   for (const order of orders) {
@@ -278,7 +281,7 @@ function place(members: string[], around: string[], edges: Edge[], fixed: Readon
     const split = new Map([...given, ...rest.map((id, i): [string, Region] => [id, i < Math.floor(rest.length / 2) ? 'left' : 'right'])])
     const below = new Map([...given, ...rest.map((id): [string, Region] => [id, 'below'])])
     for (const start of [split, below]) {
-      const region = settle(m, lines, start, passes)
+      const region = huge ? start : settle(m, lines, start, passes)
       const { at, rows, columns } = arrange(m, id => region.get(id)!)
       consider(at, rows, columns)
     }

@@ -185,15 +185,31 @@ export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean):
   }
 
   const members = new Map<string, number[]>()
-  flow.steps.forEach((_, i) => {
-    const g = stepGroup(flow, i)
-    if (g !== '') members.set(g, [...(members.get(g) ?? []), i])
+  const groupOfStep = flow.steps.map((_, i) => stepGroup(flow, i))
+  groupOfStep.forEach((g, i) => {
+    if (g === '') return
+    const list = members.get(g)
+    if (list) list.push(i)
+    else members.set(g, [i])
   })
   const laneOf = (i: number): string => (blank(flow.steps[i].lane) ? '' : String(flow.steps[i].lane).trim())
+  // Worked out once, not at every step, so a long flow or one with many groups or lanes costs a line, not a square: the groups whose stretch each
+  // step sits inside without belonging to (in the order of ids), and the lanes each group has used so far.
+  const inside = new Map<number, string[]>()
+  for (const id of ids) {
+    const m = members.get(id) ?? []
+    for (let i = m[0] + 1; m.length >= 2 && i < m[m.length - 1]; i++) {
+      if (groupOfStep[i] === id) continue
+      const list = inside.get(i)
+      if (list) list.push(id)
+      else inside.set(i, [id])
+    }
+  }
+  const usedLanes = new Map<string, Set<string>>()
 
   flow.steps.forEach((s, i) => {
     const at = (message: string) => out.push({ step: i, message })
-    const gid = stepGroup(flow, i)
+    const gid = groupOfStep[i]
     const declared = gid !== '' && Object.hasOwn(groups, gid)
     const kind = declared ? kindOf(flow, gid) : undefined
     const lane = laneOf(i)
@@ -203,12 +219,11 @@ export function structureProblems(flow: Flow, hasFlow: (id: string) => boolean):
     if (declared && hasLanes(kind)) {
       const mine = members.get(gid) ?? []
       if (mine[0] === i && lane === '') at(`the first step of group "${gid}" needs a lane`)
-      if (lane !== '' && mine.some(j => j < i && laneOf(j) === lane)) at(`lane "${lane}" is already used in group "${gid}"`)
+      const used = usedLanes.get(gid) ?? usedLanes.set(gid, new Set()).get(gid)!
+      if (lane !== '' && used.has(lane)) at(`lane "${lane}" is already used in group "${gid}"`)
+      used.add(lane)
     }
-    for (const id of ids) {
-      const m = members.get(id) ?? []
-      if (m.length >= 2 && i > m[0] && i < m[m.length - 1] && gid !== id) at(`sits inside the stretch of group "${id}" without belonging to it`)
-    }
+    for (const id of inside.get(i) ?? []) at(`sits inside the stretch of group "${id}" without belonging to it`)
     if (!blank(s.flow)) {
       const to = String(s.flow).trim()
       if (!hasFlow(to)) at(`unknown flow "${to}"`)
