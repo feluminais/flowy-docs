@@ -46,10 +46,12 @@ their middles are close and long labels land on top of each other. `ui/src/label
 - Move the labels, never the lines or boxes: the layout stays as the reader left it. A label stays at the middle of its line unless something is there.
 - A label slides along its line, nearest the middle first, to the first place clear of every box and of the labels placed before it. Only when no place along it is
   clear does it stack above or below the middle. It never leaves its line to hide a collision.
+- Clear means a few characters apart side by side (`ROW_GAP`), not touching: two labels on one row with a space between them read as one sentence.
 - A lit line's label is pinned: step marks and the pipe are placed by it, and the other labels go round it.
 - No place can hold a label wider than the gap, so a label is cut short past `MAX_LABEL` characters with an ellipsis. Its whole text is in the line's panel.
 - `placeLabels` has no DOM in it and `test/labels.test.ts` runs it: a new case of overlap is a new test there, with the boxes and lines as numbers.
-- The desktop app draws its own labels (`desktop/Flowy.Core/LinePaths.cs`) and does not use this yet.
+- The desktop app places its labels with the C# twin, `desktop/Flowy.Core/LineLabels.cs`, sized by the text it measures. The `labels` cases in
+  `desktop/fixtures/geometry.ts` hold the two to the same places.
 
 ## The animation showcase
 

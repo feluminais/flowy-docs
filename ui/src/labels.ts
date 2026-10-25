@@ -21,8 +21,13 @@ export type LabelItem = { id: string; path: string; mid: Spot; chars: number; pi
 const CHAR = 6.2
 const PAD = 10
 const HEIGHT = 18
-/** The clear space kept between two labels. */
+/** The clear space kept between two labels, one above the other. */
 const APART = 3
+/**
+ * The clear space kept between two labels side by side, about four characters with the padding: closer, two labels on one row read as one
+ * sentence ("reads menus 5 connections").
+ */
+const ROW_GAP = 16
 
 /** How far along a line to try a label, in the order tried: the middle first, then each side of it, so a label moves no further than it must. */
 const ALONG = [0.5, 0.62, 0.38, 0.74, 0.26, 0.85, 0.15]
@@ -38,10 +43,10 @@ export const clip = (label: string): string => (label.length > MAX_LABEL ? `${la
 
 const sizeOf = (chars: number) => ({ width: chars * CHAR + PAD, height: HEIGHT })
 
-/** How much of `a` lies within `b`, with `gap` added all round `b`. */
-function overlap(a: Box, b: Box, gap = 0): number {
-  const w = Math.min(a.x + a.width, b.x + b.width + gap) - Math.max(a.x, b.x - gap)
-  const h = Math.min(a.y + a.height, b.y + b.height + gap) - Math.max(a.y, b.y - gap)
+/** How much of `a` lies within `b`, with `gapX` added to each side of `b` and `gapY` above and below it. */
+function overlap(a: Box, b: Box, gapX = 0, gapY = 0): number {
+  const w = Math.min(a.x + a.width, b.x + b.width + gapX) - Math.max(a.x, b.x - gapX)
+  const h = Math.min(a.y + a.height, b.y + b.height + gapY) - Math.max(a.y, b.y - gapY)
   return w > 0 && h > 0 ? w * h : 0
 }
 
@@ -83,7 +88,7 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
       const label = around(c.at, item.chars)
       const cost = c.cost
         + boxes.reduce((sum, b) => sum + (overlap(label, b) > 0 ? ON_BOX : 0), 0)
-        + placed.reduce((sum, p) => sum + overlap(label, p, APART), 0)
+        + placed.reduce((sum, p) => sum + overlap(label, p, ROW_GAP, APART), 0)
       if (cost < bestCost) {
         best = c
         bestCost = cost
