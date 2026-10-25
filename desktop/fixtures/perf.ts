@@ -4,18 +4,18 @@ import { ParseError, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
-import { eventsPassed, knee, kneeOf, runStates, strain } from '../../src/core/perf/analyse.ts'
+import { eventsPassed, knee, kneeOf, runStates, strain, strainLabel } from '../../src/core/perf/analyse.ts'
 import { checkRun, checkRuns } from '../../src/core/perf/check.ts'
 import { dialsOf, loadOfPosition, lockstepPositions, lockstepTop, settingAt } from '../../src/core/perf/dials.ts'
 import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
 import { parseRun } from '../../src/core/perf/parse.ts'
 import { rollUpLoad } from '../../src/core/perf/rollup.ts'
-import { eventText, kneeText, kneeTextOf, scaleText, sourceKey, sourceKeyAt } from '../../src/core/perf/text.ts'
+import { eventText, goText, kneeText, kneeTextOf, scaleText, sourceKey, sourceKeyAt } from '../../src/core/perf/text.ts'
 import { idleOf } from '../../src/core/perf/idle.ts'
-import { amountOf, callSize, loadPace } from '../../src/core/perf/measure.ts'
+import { amountOf, callSize, loadPace, NO_DATA } from '../../src/core/perf/measure.ts'
 import { BARE_STRIPES, traffic, trafficAt } from '../../src/core/perf/traffic.ts'
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf/types.ts'
-import { nameOf } from '../../src/core/views.ts'
+import { nameOf, pathName } from '../../src/core/views.ts'
 import {
   activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, slideDial, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, loadNote, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../../ui/src/perfview.ts'
@@ -518,6 +518,7 @@ async function dumpSources(model: Model): Promise<unknown> {
         check: checkRun(id, run, model),
         knee: found_knee ?? null,
         text: found_knee ? kneeTextOf(runs, id, found_knee, oid => nameOf(model, oid)) : null,
+        go: found_knee ? goText(runs, id, found_knee) : null,
         settings: (PLAYED.includes(id) ? settingsOf(found.dials) : []).map(setting => {
           const level = levelAt(runs, id, setting)
           return {
@@ -580,6 +581,7 @@ export async function dumpPerf(): Promise<unknown> {
       rolled: run.levels.flatMap(level => views.map(view => ({ load: level.load, view, ...rollUpLoad(model, level, view) }))),
       knee: found ?? null,
       text: found ? kneeText(run, found, oid => nameOf(model, oid)) : null,
+      go: found ? goText(runs, id, found) : null,
     }
   })
 
@@ -635,6 +637,10 @@ export async function dumpPerf(): Promise<unknown> {
   return {
     parsed,
     strain: METRICS_CASES.map(metrics => ({ metrics, strain: strain(metrics) ?? null })),
+    // The number drawn on a shape past the struggle mark, the tooltip of a greyed-out Data, and a shape's name the way each view of the fixture shop draws it.
+    labels: [undefined, 0, 0.5, 0.84, 0.85, 0.854, 0.9, 0.995, 1].map(value => ({ strain: value ?? null, label: strainLabel(value) ?? null })),
+    noData: NO_DATA,
+    paths: [ROOT, 'shop', 'web', 'orders', 'db'].flatMap(view => Object.keys(model.objects).map(id => ({ view, id, name: pathName(model, view, id) }))),
     folder: { runs, problems: state.runProblems ?? [] },
     computed,
     scaled,

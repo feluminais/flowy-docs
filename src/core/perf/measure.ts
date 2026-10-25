@@ -9,6 +9,9 @@ import { meanBytes, newMean, settingFor, takeBytes } from './util.ts'
  */
 export type Measure = 'calls' | 'data' | 'mixed'
 
+/** Why Data and Mixed are blocked for a run that gives no size of a call: the tooltip of the greyed-out choices. */
+export const NO_DATA = 'No call sizes in this run'
+
 /** The nearest of 1, 2 and 5 times a power of ten (on a log scale), so a scale in words reads "2 KB/s" and not "1.6 KB/s". */
 function roundNice(x: number): number {
   const power = 10 ** Math.floor(Math.log10(x))

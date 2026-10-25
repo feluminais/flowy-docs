@@ -49,6 +49,8 @@ internal sealed class BoxControl : Grid
     private Change? _change;
     private Border? _queue;
     private TextBlock? _queueText;
+    private Border? _strainPct;
+    private TextBlock? _strainPctText;
     private Border? _failBadge;
     private TextBlock? _failText;
     private Border? _problemBadge;
@@ -121,6 +123,22 @@ internal sealed class BoxControl : Grid
                 PlaceQueue();
             }
             return (_queue, _queueText!);
+        }
+    }
+
+    /// <summary>The percentage at the bottom left of a shape past the struggle mark: a second copy of the outline colour, for those who can't tell the colours apart.</summary>
+    private (Border Badge, TextBlock Text) StrainPct
+    {
+        get
+        {
+            if (_strainPct is null)
+            {
+                _strainPctText = new TextBlock();
+                _strainPct = new Border { Child = _strainPctText, IsHitTestVisible = false };
+                _strainPct.Classes.Add("strainpct");
+                Put(_strainPct, Z.Queue);
+            }
+            return (_strainPct, _strainPctText!);
         }
     }
 
@@ -438,6 +456,15 @@ internal sealed class BoxControl : Grid
             var (badge, text) = Queue;
             badge.IsVisible = queue > 0;
             text.Text = queue.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            AutomationProperties.SetName(badge, queue > 0 ? $"{queue} waiting" : null);
+        }
+        var pct = Perf.StrainLabel(perf?.Strain);
+        Classes.Set("hot", pct is not null);
+        if (pct is not null || _strainPct is not null)
+        {
+            var (badge, text) = StrainPct;
+            text.Text = pct;
+            AutomationProperties.SetName(badge, pct is null ? null : $"Struggling, {pct} busy");
         }
         PlaceQueue();
     }
@@ -745,6 +772,9 @@ internal sealed class BoxControl : Grid
     }
 
     /// <summary>What a test can look at: whether the strain outline is on, and the number of what is waiting (null when none are).</summary>
+    /// <summary>What a test can look at: the percentage a shape past the struggle mark wears, or null (it is also null while a state hides it).</summary>
+    internal string? StrainPctShown => Classes.Contains("hot") && !Classes.Contains("stated") ? _strainPctText?.Text : null;
+
     internal (bool Strained, string? Queue) PerfShown => (Classes.Contains("strained"), _queue is { IsVisible: true } ? _queueText!.Text : null);
 
     private double _presence = 1;
