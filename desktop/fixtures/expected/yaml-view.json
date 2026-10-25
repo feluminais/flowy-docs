@@ -1,0 +1,225 @@
+{
+  "order": [
+    {
+      "paths": [
+        "layout.yaml",
+        "flows/b.yaml",
+        "model.yaml",
+        "flows/a.yaml"
+      ],
+      "order": [
+        "model.yaml",
+        "flows/a.yaml",
+        "flows/b.yaml",
+        "layout.yaml"
+      ]
+    },
+    {
+      "paths": [
+        "flows/z/checkout.yaml",
+        "flows/a.yaml",
+        "failures/ordering.yaml",
+        "model.yaml",
+        "flows/B.yaml"
+      ],
+      "order": [
+        "model.yaml",
+        "failures/ordering.yaml",
+        "flows/B.yaml",
+        "flows/a.yaml",
+        "flows/z/checkout.yaml"
+      ]
+    },
+    {
+      "paths": [
+        "layout.yaml",
+        "flows/a.yaml"
+      ],
+      "order": [
+        "flows/a.yaml",
+        "layout.yaml"
+      ]
+    },
+    {
+      "paths": [],
+      "order": []
+    }
+  ],
+  "defaults": [
+    {
+      "paths": [
+        "model.yaml",
+        "flows/checkout.yaml",
+        "layout.yaml"
+      ],
+      "flow": "checkout",
+      "file": "flows/checkout.yaml"
+    },
+    {
+      "paths": [
+        "model.yaml",
+        "flows/checkout.yaml",
+        "layout.yaml"
+      ],
+      "flow": "gone",
+      "file": "model.yaml"
+    },
+    {
+      "paths": [
+        "model.yaml",
+        "flows/checkout.yaml",
+        "layout.yaml"
+      ],
+      "flow": null,
+      "file": "model.yaml"
+    },
+    {
+      "paths": [
+        "model.yaml",
+        "flows/rush/checkout.yaml"
+      ],
+      "flow": "checkout",
+      "file": "flows/rush/checkout.yaml"
+    },
+    {
+      "paths": [
+        "layout.yaml",
+        "flows/a.yaml"
+      ],
+      "flow": null,
+      "file": "flows/a.yaml"
+    },
+    {
+      "paths": [],
+      "flow": null,
+      "file": "model.yaml"
+    }
+  ],
+  "names": [
+    {
+      "path": "model.yaml",
+      "name": "model.yaml"
+    },
+    {
+      "path": "layout.yaml",
+      "name": "layout.yaml"
+    },
+    {
+      "path": "flows/a.yaml",
+      "name": "a.yaml"
+    },
+    {
+      "path": "flows/rush/a.yaml",
+      "name": "rush/a.yaml"
+    },
+    {
+      "path": "flows/model.yaml",
+      "name": "flows/model.yaml"
+    },
+    {
+      "path": "flows/layout.yaml",
+      "name": "flows/layout.yaml"
+    },
+    {
+      "path": "failures/ordering.yaml",
+      "name": "failures/ordering.yaml"
+    }
+  ],
+  "blocks": [
+    {
+      "text": "title: Shop\n\nobjects:\n  # the shop\n  shop:\n    type: system\n    name: Shop\n\n  web:\n    type: app\n    in: shop\n  web-2: { type: app, name: Second, in: shop }\n  'quoted':\n    type: actor\n  \"double\": { type: actor }\n\nconnections: []",
+      "id": "shop",
+      "block": {
+        "start": 5,
+        "end": 7
+      }
+    },
+    {
+      "text": "title: Shop\n\nobjects:\n  # the shop\n  shop:\n    type: system\n    name: Shop\n\n  web:\n    type: app\n    in: shop\n  web-2: { type: app, name: Second, in: shop }\n  'quoted':\n    type: actor\n  \"double\": { type: actor }\n\nconnections: []",
+      "id": "web",
+      "block": {
+        "start": 9,
+        "end": 11
+      }
+    },
+    {
+      "text": "title: Shop\n\nobjects:\n  # the shop\n  shop:\n    type: system\n    name: Shop\n\n  web:\n    type: app\n    in: shop\n  web-2: { type: app, name: Second, in: shop }\n  'quoted':\n    type: actor\n  \"double\": { type: actor }\n\nconnections: []",
+      "id": "web-2",
+      "block": {
+        "start": 12,
+        "end": 12
+      }
+    },
+    {
+      "text": "title: Shop\n\nobjects:\n  # the shop\n  shop:\n    type: system\n    name: Shop\n\n  web:\n    type: app\n    in: shop\n  web-2: { type: app, name: Second, in: shop }\n  'quoted':\n    type: actor\n  \"double\": { type: actor }\n\nconnections: []",
+      "id": "quoted",
+      "block": {
+        "start": 13,
+        "end": 14
+      }
+    },
+    {
+      "text": "title: Shop\n\nobjects:\n  # the shop\n  shop:\n    type: system\n    name: Shop\n\n  web:\n    type: app\n    in: shop\n  web-2: { type: app, name: Second, in: shop }\n  'quoted':\n    type: actor\n  \"double\": { type: actor }\n\nconnections: []",
+      "id": "double",
+      "block": {
+        "start": 15,
+        "end": 15
+      }
+    },
+    {
+      "text": "title: Shop\n\nobjects:\n  # the shop\n  shop:\n    type: system\n    name: Shop\n\n  web:\n    type: app\n    in: shop\n  web-2: { type: app, name: Second, in: shop }\n  'quoted':\n    type: actor\n  \"double\": { type: actor }\n\nconnections: []",
+      "id": "missing",
+      "block": null
+    },
+    {
+      "text": "title: x\nconnections: []\n",
+      "id": "shop",
+      "block": null
+    },
+    {
+      "text": "objects: {}\n",
+      "id": "shop",
+      "block": null
+    },
+    {
+      "text": "objects:\r\n  a:\r\n    type: system\r\nconnections: []\r\n",
+      "id": "a",
+      "block": {
+        "start": 2,
+        "end": 3
+      }
+    },
+    {
+      "text": "objects:  # the shapes\n    a:\n        type: system\n    b: {}\n",
+      "id": "a",
+      "block": {
+        "start": 2,
+        "end": 3
+      }
+    }
+  ],
+  "demo": [
+    "model.yaml",
+    "failures/ordering.yaml",
+    "flows/delivery/courier-pings-lost.yaml",
+    "flows/delivery/deliver-order.yaml",
+    "flows/delivery/events-arrive-late.yaml",
+    "flows/delivery/follow-the-courier.yaml",
+    "flows/delivery/mapbox-rate-limit.yaml",
+    "flows/delivery/no-courier-answers.yaml",
+    "flows/delivery/sms-dropped.yaml",
+    "flows/ordering/hotel-wifi-takes-order.yaml",
+    "flows/ordering/menu-is-read.yaml",
+    "flows/ordering/nobody-accepts.yaml",
+    "flows/ordering/order-sent-twice.yaml",
+    "flows/ordering/orders-db-fails-over.yaml",
+    "flows/ordering/place-order.yaml",
+    "flows/ordering/restaurant-accepts.yaml",
+    "flows/payments/announce-order.yaml",
+    "flows/payments/capture-payment.yaml",
+    "flows/payments/refund-not-recorded.yaml",
+    "flows/payments/refund.yaml",
+    "flows/payments/stripe/stripe-outage.yaml",
+    "flows/payments/stripe/stripe-webhook.yaml"
+  ]
+}

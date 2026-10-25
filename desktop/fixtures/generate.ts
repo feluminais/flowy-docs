@@ -25,6 +25,7 @@ import { dumpPerf, dumpPerfView } from './perf.ts'
 import { dumpStates } from './states.ts'
 import { dumpCaptions, dumpStops } from './structure.ts'
 import { dumpOps } from './ops.ts'
+import { dumpYamlView } from './yamlview.ts'
 import { dumpYamlWrite } from './yaml-write.ts'
 import { dumpNavigation, dumpScenes } from './scene.ts'
 
@@ -67,6 +68,7 @@ await write('run-compare-text', dumpRunCompareText())
 await write('compare-choices', await dumpCompareChoices())
 await write('swap-plans', dumpSwapPlans())
 await write('compare-ui', await dumpCompareUi())
+await write('yaml-view', await dumpYamlView())
 
 // The sample trail: the step and blob files the TypeScript store writes, for the C# store to read.
 const trailDir = join(dirname(expectedPath('history')), 'history-trail')

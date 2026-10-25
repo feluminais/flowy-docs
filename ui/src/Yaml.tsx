@@ -3,17 +3,11 @@ import type { KeyboardEvent } from 'react'
 import type { HistoryStore } from './historystore.ts'
 import { Lock } from './icons.tsx'
 import { scrollToRow, visibleRows } from './window.ts'
-import { blockOf, canRestore, defaultFile, fileOrder, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, timeLabel } from './yamlview.ts'
+import { blockOf, canRestore, defaultFile, fileOrder, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, tabName, timeLabel } from './yamlview.ts'
 
 const ROW = 20 // px: every line is this tall, which is what lets the text be windowed
 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
-
-/** What a file is called on its tab: the flows by their path inside flows/, unless that would read like the model or the layout. */
-const tabName = (path: string) => {
-  const inside = path.slice('flows/'.length)
-  return path.startsWith('flows/') && inside !== 'model.yaml' && inside !== 'layout.yaml' ? inside : path
-}
 
 export type YamlProps = {
   store: HistoryStore

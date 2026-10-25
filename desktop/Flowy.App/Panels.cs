@@ -76,8 +76,8 @@ internal sealed class Panels
 
     internal double DetailsWidth => _detailsWidth;
 
-    /// <summary>The navigator's tab showing (Explorer, Flows, Failures or Performance): the one chosen on its rail or its strip, else none. Flows, Failures and Performance are there only with a folder.</summary>
-    internal PanelTab? ShownTab => _tab is PanelTab.Flows or PanelTab.Failures or PanelTab.Performance && _reader.Folder is null ? null : _tab;
+    /// <summary>The navigator's tab showing (Explorer, Flows, Performance, Failures or YAML): the one chosen on its rail or its strip, else none. All but Explorer are there only with a folder.</summary>
+    internal PanelTab? ShownTab => _tab is PanelTab.Flows or PanelTab.Failures or PanelTab.Performance or PanelTab.Yaml && _reader.Folder is null ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
     internal bool DetailsOpen => Right == RightPanel.Details || _reader.Pick is not (null or ReaderView.Side.Boxes);
@@ -92,7 +92,7 @@ internal sealed class Panels
 
     internal void SetTab(PanelTab tab)
     {
-        if (tab is PanelTab.Failures or PanelTab.Performance && _reader.Folder is null) return;
+        if (tab is PanelTab.Failures or PanelTab.Performance or PanelTab.Yaml && _reader.Folder is null) return;
         if (tab == PanelTab.Performance && !_reader.Editing) _perf.Open();
         if (tab != PanelTab.Performance) _perf.StopRamp(); // a ramp ends with its tab
         _tab = tab; // one tab at a time, so the load's traffic and the failure marks never draw over each other
@@ -203,7 +203,7 @@ internal sealed class Panels
     }
 
     private void Remember() => Changed?.Invoke(new NavigatorState(
-        _tab switch { PanelTab.Flows => "flows", PanelTab.Explorer => "explorer", _ => null },
+        _tab switch { PanelTab.Flows => "flows", PanelTab.Explorer => "explorer", PanelTab.Yaml => "yaml", _ => null },
         _expanded.Order(StringComparer.Ordinal).Take(NavigatorState.MaxExpanded).ToList(), _navWidth, _detailsWidth));
 
     /// <summary>Brings back what this project's navigator remembered: the tab that was open, which shapes were open in the tree, and how wide the panels were.</summary>
@@ -213,7 +213,7 @@ internal sealed class Panels
         _expanded.Add(Names.Root);
         _revealedView = null;
         _revealedBox = null;
-        _tab = saved?.Tab switch { "flows" => PanelTab.Flows, "explorer" => PanelTab.Explorer, _ => null };
+        _tab = saved?.Tab switch { "flows" => PanelTab.Flows, "explorer" => PanelTab.Explorer, "yaml" => PanelTab.Yaml, _ => null };
         NavUsed = false; // brought back, not opened: Escape leaves it until the reader uses it
         _navWidth = saved?.NavWidth ?? Camera.Nav;
         _detailsWidth = saved?.DetailsWidth ?? Camera.Panel;

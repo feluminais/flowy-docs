@@ -196,6 +196,8 @@ internal static class KeyMap
         Do("fit", "F", (p, _) => p.Tap(PhysicalKey.F), (_, _, a) => a.Fit(), Reading("Fit the view")),
         Do("flows", "L", (p, s) => p.Tap(PhysicalKey.L) && s.ShowFlows, (_, _, a) => a.ToggleTab(PanelTab.Flows), Reading("Show every flow, and play one")),
         Do("explorer", "O", (p, _) => p.Tap(PhysicalKey.O), (_, _, a) => a.ToggleTab(PanelTab.Explorer), Reading("Show everything as a tree")),
+        // The browser's line adds "and what changed": it keeps a history of the files, which the desktop does not.
+        Do("yaml", "Y", (p, s) => p.Tap(PhysicalKey.Y) && s.ShowFlows, (_, _, a) => a.ToggleTab(PanelTab.Yaml), Reading("The files as YAML")),
         Do("perf", "T", (p, s) => p.Tap(PhysicalKey.T) && s.CanPerf, (_, _, a) => a.TogglePerf(), Reading("Show a load-test run on the diagram, where there is one")),
         Do("failures", "M", (p, s) => p.Tap(PhysicalKey.M) && s.CanFailures, (_, _, a) => a.ToggleFailures(), Reading("Show how things fail, worst first")),
         // Z zooms out, always: in edit mode Esc and Backspace may be busy taking a drag back, and going up should stay one key away.
@@ -274,7 +276,7 @@ internal static class KeyMap
     /// <summary>The order of each group's rows. A row that is not a key (a click, a drag) is written out here.</summary>
     private static readonly IReadOnlyDictionary<HelpGroup, (string Id, string Keys, string What)[]> Order = new Dictionary<HelpGroup, (string, string, string)[]>
     {
-        [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("perf"), R("failures"), R("shortcuts")],
+        [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("yaml"), R("perf"), R("failures"), R("shortcuts")],
         [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
         [HelpGroup.Performance] = [R("perf-step"), R("perf-ends"), R("perf-ramp"), R("escape")],
         [HelpGroup.Failures] = [R("failure-step")],
