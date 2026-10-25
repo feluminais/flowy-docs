@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
-import { analysedText, bandOf, BAND_NAMES, BAND_RULES, coverage, partName, lightFor, ratingsOf, riskOf, rowName } from '../../src/core/failures.ts'
+import { analysedText, bandOf, BAND_NAMES, BAND_RULES, coverage, partName, lightFor, ratingsOf, riskOf } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
@@ -109,10 +109,12 @@ export function FailuresBody(p: FailuresProps) {
       <ul className="failrows">
         {group.map(r => (
           <li key={r.id}>
-            <button className="failrow" aria-pressed={r.id === modeId} aria-label={rowName(model, r)} onClick={() => p.onMode(r.id === modeId ? undefined : r.id)}>
+            {/* Named by what it shows, in the order it shows it (a name that reorders the words fails "label in name"); the hidden words add the band and what the number is. */}
+            <button className="failrow" aria-pressed={r.id === modeId} onClick={() => p.onMode(r.id === modeId ? undefined : r.id)}>
               <span className={`sw ${r.band}`} aria-hidden="true" />
-              <span className="what"><span className="part">{partName(model, r.mode)}</span><span>{r.mode.mode}</span></span>
-              <span className="risk">{r.risk ?? ''}</span>
+              <span className="visually-hidden">{BAND_NAMES[r.band]}. </span>
+              <span className="what"><span className="part">{partName(model, r.mode)}</span><span className="visually-hidden">: </span><span>{r.mode.mode}</span></span>
+              <span className="risk">{r.risk === undefined ? '' : <><span className="visually-hidden">. Risk </span>{r.risk}</>}</span>
             </button>
           </li>
         ))}
