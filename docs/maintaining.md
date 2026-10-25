@@ -13,7 +13,7 @@ and Stripe going down at 40 s and coming back at 85 s, a run over time; `togethe
 is a fourteen-mode failure analysis with made-up ratings, and it names shapes, connections, flows and a run in the same way. The screenshots in
 `docs/images/desktop-*.png` are the desktop app on that model in the light theme, 1200 by 760 (1280 by 760 for the performance one, 1280 by 1000 for the failures one) at twice the pixel
 density, taken with `--shot` (below): `docs/demo --shot out.png --scale 2 --size 1200x760 --theme light`, plus `--view ordering` for the zoom,
-`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --edit --delete orders-db` for `desktop-used-by.png`, `--view ordering --select orders-db` for the Data section, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 4` for the one with groups, `--view ordering --flow stripe-outage --step 3` for `desktop-states.png`,
+`--view ordering --select order-api` for the panel, `--edit` on top of that for the edit one, `--view ordering --edit --delete orders-db` for `desktop-used-by.png`, `--view ordering --select orders-db` for the Data section, `--view order-api --select pricing` for `desktop-code.png`, `--view ordering --flow place-order --step 1` for the flow, `--view ordering --flow capture-payment --step 6` for the one with groups, `--view ordering --flow stripe-outage --step 5` for `desktop-states.png`,
 `--view delivery --tab performance --select dispatch` (1280 by 760) for the performance one, `--view ordering --run stripe-outage --tab performance --at 70` (1280 by 760) for `desktop-time.png`, `--view delivery --run together --tab performance --at 800,400` (1280 by 760) for `desktop-sources.png`, `--view ordering --tab failures --select stripe-timeout` (1280 by 1000) for the failures one, `--compare refund,refund-not-recorded --changes` (1200 by 860) for `desktop-compare.png`, the same with `,swap` on the pair for `desktop-compare-swap.png`, and `--search re` for the search. `desktop-dark.png` is the panel one with `--theme dark`.
 Retake them when the app changes how it looks.
 
@@ -441,7 +441,7 @@ YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing a
 - [ ] Pick the older step: its files show with the marks against the step before it, and Restore is greyed out with "Edit to restore" beside it. Press E, then Restore: the
       model goes back, a "Restored" step is on top, and Ctrl+Z puts the change back. Clear history asks first, and Clear empties the list. On an exported page and in the VS Code panel the tab is there and says it has no history.
 - [ ] In the desktop app on `docs/demo`, press Y: the YAML tab says Read only, has the same file tabs as the browser, and opens on `model.yaml`. Pick Ordering on the canvas: its lines are
-      tinted and in view. Play Deliver order: its file opens. Change `model.yaml` in an editor: the text follows. Light and dark both read.
+      tinted and in view. Play A courier delivers it: its file opens. Change `model.yaml` in an editor: the text follows. Light and dark both read.
 
 Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 

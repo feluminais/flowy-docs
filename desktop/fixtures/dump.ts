@@ -6,7 +6,7 @@ import { dataShown } from '../../src/core/data.ts'
 import { folderOf, lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Analysis, Model } from '../../src/core/model.ts'
-import { computeView, isView, placeStep, stepEnds } from '../../src/core/views.ts'
+import { computeView, flowActors, isView, placeStep, stepEnds } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
@@ -75,6 +75,7 @@ export async function dumpFolder(dir: string): Promise<unknown> {
     ...(Object.values(model.flows).every(f => f.compare === undefined) ? {} : { partners: Object.fromEntries(Object.keys(model.flows).map(id => [id, partnersOf(tags, id)])), linked: [...linkedIds(tags)].sort() }),
     // The load-test runs are not dumped here (perf-runs does), except in a folder where one of them holds a compare tag.
     ...(Object.values(state.runs ?? {}).some(r => r.compare !== undefined) ? { runs: Object.entries(state.runs ?? {}).map(([id, r]) => ({ id, name: r.name, compare: r.compare ?? null })), runProblems: state.runProblems ?? [] } : {}),
-    views: Object.fromEntries([ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id)).map(id => [id, computeView(model, id)])),
+    // A view's `actors` (the ones its flows add, see flowActors) is left out when there are none, so older fixtures are unchanged.
+    views: Object.fromEntries([ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id)).map(id => [id, { ...computeView(model, id), ...(flowActors(model, id).length === 0 ? {} : { actors: flowActors(model, id) }) }])),
   }
 }

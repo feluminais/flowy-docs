@@ -2,6 +2,7 @@ name: Nobody accepts the order
 view: ordering
 tags: [error path]
 steps:
+  - { from: customer, to: customer-app, text: Places an order, animation: { kind: send, carries: basket }, flow: place-order }
   - from: order-api
     to: kitchen-tablet
     text: Rings the restaurant's tablet and gets no answer

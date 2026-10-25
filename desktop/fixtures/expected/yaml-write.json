@@ -3110,6 +3110,17 @@
         },
         "steps": [
           {
+            "from": "stripe",
+            "to": "order-api",
+            "text": "Reports that the charge went through",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "charged"
+            },
+            "flow": "stripe-webhook"
+          },
+          {
             "from": "order-api",
             "to": "events",
             "text": "Publishes the paid event and carries on without waiting",
@@ -3140,7 +3151,7 @@
           }
         ]
       },
-      "text": "name: A paid order is announced\nview: ordering\ntags:\n  - background\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: order-api\n    to: events\n    text: Publishes the paid event and carries on without waiting\n    animation:\n      kind: event\n      carries: paid\n  - from: events\n    to: dispatch\n    text: Dispatch consumes it and starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n    animation: callback\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse\n    group: readers\n    lane: Warehouse\n    animation:\n      kind: event\n      carries: paid\n"
+      "text": "name: A paid order is announced\nview: ordering\ntags:\n  - background\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: stripe\n    to: order-api\n    text: Reports that the charge went through\n    animation:\n      kind: callback\n      trigger: outside\n      carries: charged\n    flow: stripe-webhook\n  - from: order-api\n    to: events\n    text: Publishes the paid event and carries on without waiting\n    animation:\n      kind: event\n      carries: paid\n  - from: events\n    to: dispatch\n    text: Dispatch consumes it and starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n    animation: callback\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse\n    group: readers\n    lane: Warehouse\n    animation:\n      kind: event\n      carries: paid\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3163,6 +3174,25 @@
           }
         },
         "steps": [
+          {
+            "from": "restaurant",
+            "to": "kitchen-tablet",
+            "text": "The kitchen taps Accept",
+            "animation": {
+              "kind": "send",
+              "carries": "accept"
+            },
+            "flow": "restaurant-accepts"
+          },
+          {
+            "from": "kitchen-tablet",
+            "to": "order-api",
+            "text": "Sends the acceptance",
+            "animation": {
+              "kind": "call",
+              "carries": "accept"
+            }
+          },
           {
             "from": "order-api",
             "to": "stripe",
@@ -3211,16 +3241,26 @@
           {
             "from": "order-api",
             "to": "customer-app",
-            "text": "Asks the customer to try another card",
+            "text": "Asks for another card",
             "group": "outcome",
             "animation": {
               "kind": "send",
               "carries": "try another card"
             }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "Shows that the card was declined",
+            "group": "outcome",
+            "animation": {
+              "kind": "send",
+              "carries": "declined"
+            }
           }
         ]
       },
-      "text": "name: The payment is captured\nview: ordering\ntags:\n  - happy path\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Times out after 5 s and retries\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n    animation:\n      kind: send\n      carries: charged\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n    animation: call\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is not retried. The hold is released and the app asks for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n    animation:\n      kind: send\n      carries: try another card\n"
+      "text": "name: The payment is captured\nview: ordering\ntags:\n  - happy path\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: restaurant\n    to: kitchen-tablet\n    text: The kitchen taps Accept\n    animation:\n      kind: send\n      carries: accept\n    flow: restaurant-accepts\n  - from: kitchen-tablet\n    to: order-api\n    text: Sends the acceptance\n    animation:\n      kind: call\n      carries: accept\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Times out after 5 s and retries\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n    animation:\n      kind: send\n      carries: charged\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n    animation: call\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is not retried. The hold is released and the app asks for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks for another card\n    group: outcome\n    animation:\n      kind: send\n      carries: try another card\n  - from: customer-app\n    to: customer\n    text: Shows that the card was declined\n    group: outcome\n    animation:\n      kind: send\n      carries: declined\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3232,6 +3272,15 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "courier",
+            "to": "courier-app",
+            "text": "Rides into streets with a weak signal",
+            "animation": {
+              "kind": "send",
+              "carries": "position"
+            }
+          },
           {
             "from": "courier-app",
             "to": "tracking",
@@ -3247,10 +3296,19 @@
           {
             "from": "tracking",
             "to": "customer-app",
-            "text": "The customer's map moves in jumps",
+            "text": "Sends the positions that did arrive",
             "animation": {
               "kind": "send",
               "carries": "position"
+            }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "The courier jumps across the map",
+            "animation": {
+              "kind": "send",
+              "carries": "map"
             }
           },
           {
@@ -3260,7 +3318,7 @@
           }
         ]
       },
-      "text": "name: Courier pings are lost\nview: delivery\ntags:\n  - error path\nsteps:\n  - from: courier-app\n    to: tracking\n    text: About a third of the pings are lost on the way\n    animation:\n      kind: send\n      outcome: lost\n      share: 30\n      reason: Packet dropped\n    description: |\n      On a weak signal, pings never reach **Live tracking**. The app does not retry them, since a\n      newer one follows in 5 s.\n  - from: tracking\n    to: customer-app\n    text: The customer's map moves in jumps\n    animation:\n      kind: send\n      carries: position\n  - from: fleet-db\n    text: Keeps the last position it got\n    description: |\n      Nothing is written for a lost ping, so the courier can look parked for 10 s or more to readers\n      of **Fleet DB**, such as the matcher ranking couriers for the next offer.\n"
+      "text": "name: Courier pings are lost\nview: delivery\ntags:\n  - error path\nsteps:\n  - from: courier\n    to: courier-app\n    text: Rides into streets with a weak signal\n    animation:\n      kind: send\n      carries: position\n  - from: courier-app\n    to: tracking\n    text: About a third of the pings are lost on the way\n    animation:\n      kind: send\n      outcome: lost\n      share: 30\n      reason: Packet dropped\n    description: |\n      On a weak signal, pings never reach **Live tracking**. The app does not retry them, since a\n      newer one follows in 5 s.\n  - from: tracking\n    to: customer-app\n    text: Sends the positions that did arrive\n    animation:\n      kind: send\n      carries: position\n  - from: customer-app\n    to: customer\n    text: The courier jumps across the map\n    animation:\n      kind: send\n      carries: map\n  - from: fleet-db\n    text: Keeps the last position it got\n    description: |\n      Nothing is written for a lost ping, so the courier can look parked for 10 s or more to readers\n      of **Fleet DB**, such as the matcher ranking couriers for the next offer.\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3273,9 +3331,19 @@
         ],
         "steps": [
           {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
             "from": "events",
             "to": "dispatch",
-            "text": "Receives the placed event",
+            "text": "The placed order reaches Dispatch",
             "animation": {
               "kind": "callback",
               "trigger": "outside",
@@ -3293,8 +3361,13 @@
           },
           {
             "from": "dispatch",
-            "text": "Ranks them by estimated arrival",
-            "description": "The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The\nquickest gets the first offer.\n"
+            "to": "mapbox",
+            "text": "Asks Mapbox how far each courier is",
+            "animation": {
+              "kind": "call",
+              "carries": "travel times"
+            },
+            "description": "**ETA** asks for each courier's travel time (distance, traffic, vehicle), and the **Matcher**\nranks them by arrival. The quickest gets the first offer.\n"
           },
           {
             "from": "dispatch",
@@ -3313,6 +3386,15 @@
             "animation": {
               "kind": "send",
               "carries": "accept"
+            }
+          },
+          {
+            "from": "restaurant",
+            "to": "courier",
+            "text": "Hands the food over at the counter",
+            "animation": {
+              "kind": "send",
+              "carries": "food"
             }
           },
           {
@@ -3337,6 +3419,15 @@
             }
           },
           {
+            "from": "courier",
+            "to": "customer",
+            "text": "Hands the food over at the door",
+            "animation": {
+              "kind": "send",
+              "carries": "food"
+            }
+          },
+          {
             "from": "courier-app",
             "to": "order-api",
             "text": "Marks the order delivered",
@@ -3347,7 +3438,7 @@
           }
         ]
       },
-      "text": "name: A courier delivers it\nview: delivery\ntags:\n  - happy path\nsteps:\n  - from: events\n    to: dispatch\n    text: Receives the placed event\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n    animation:\n      kind: call\n      carries: who is idle\n  - from: dispatch\n    text: Ranks them by estimated arrival\n    description: |\n      The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The\n      quickest gets the first offer.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n    animation:\n      kind: send\n      carries: offer\n      effect: bounce\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n    animation:\n      kind: send\n      carries: accept\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n    flow: follow-the-courier\n    description: |\n      Only while a job is open. Positions older than 1 min are dropped, so a courier who loses\n      signal freezes on the map until a fresh position arrives.\n  - from: tracking\n    to: customer-app\n    text: The customer's map follows the courier\n    animation:\n      kind: send\n      carries: position\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n"
+      "text": "name: A courier delivers it\nview: delivery\ntags:\n  - happy path\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: dispatch\n    text: The placed order reaches Dispatch\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n    animation:\n      kind: call\n      carries: who is idle\n  - from: dispatch\n    to: mapbox\n    text: Asks Mapbox how far each courier is\n    animation:\n      kind: call\n      carries: travel times\n    description: |\n      **ETA** asks for each courier's travel time (distance, traffic, vehicle), and the **Matcher**\n      ranks them by arrival. The quickest gets the first offer.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n    animation:\n      kind: send\n      carries: offer\n      effect: bounce\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n    animation:\n      kind: send\n      carries: accept\n  - from: restaurant\n    to: courier\n    text: Hands the food over at the counter\n    animation:\n      kind: send\n      carries: food\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n    flow: follow-the-courier\n    description: |\n      Only while a job is open. Positions older than 1 min are dropped, so a courier who loses\n      signal freezes on the map until a fresh position arrives.\n  - from: tracking\n    to: customer-app\n    text: The customer's map follows the courier\n    animation:\n      kind: send\n      carries: position\n  - from: courier\n    to: customer\n    text: Hands the food over at the door\n    animation:\n      kind: send\n      carries: food\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3359,6 +3450,16 @@
           "edge case"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order in the dinner rush",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
           {
             "from": "events",
             "to": "dispatch",
@@ -3378,7 +3479,7 @@
           }
         ]
       },
-      "text": "name: Dispatch hears about an order late\nview: delivery\ntags:\n  - edge case\nsteps:\n  - from: events\n    to: dispatch\n    text: The placed event waits behind the dinner rush\n    animation:\n      kind: event\n      outcome: delayed\n      reason: Consumer lag\n    description: |\n      A single consumer reads every `placed` event. When orders arrive faster than it reads, they queue.\n  - from: dispatch\n    to: fleet-db\n    text: Finds couriers minutes after the customer paid\n    animation: call\n"
+      "text": "name: Dispatch hears about an order late\nview: delivery\ntags:\n  - edge case\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order in the dinner rush\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: dispatch\n    text: The placed event waits behind the dinner rush\n    animation:\n      kind: event\n      outcome: delayed\n      reason: Consumer lag\n    description: |\n      A single consumer reads every `placed` event. When orders arrive faster than it reads, they queue.\n  - from: dispatch\n    to: fleet-db\n    text: Finds couriers minutes after the customer paid\n    animation: call\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3397,6 +3498,15 @@
           }
         },
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Opens the order to see where the food is",
+            "animation": {
+              "kind": "send",
+              "carries": "tap"
+            }
+          },
           {
             "from": "customer-app",
             "to": "tracking",
@@ -3456,7 +3566,7 @@
           }
         ]
       },
-      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
+      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3469,6 +3579,15 @@
           "edge case"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order on the hotel wifi",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
           {
             "from": "customer-app",
             "to": "order-api",
@@ -3488,7 +3607,7 @@
           }
         ]
       },
-      "text": "name: Hotel wifi takes the order\nview: ordering\ntags:\n  - error path\n  - edge case\nsteps:\n  - from: customer-app\n    to: order-api\n    text: POST /orders reaches a sign-in page instead\n    animation:\n      kind: call\n      outcome: intercepted\n      by:\n        name: Hotel wifi portal\n    description: |\n      Hotel wifi holds every request until the guest signs in, so the call never reaches the **Order API**.\n  - from: customer-app\n    text: Waits for a reply and offers a Retry button\n"
+      "text": "name: Hotel wifi takes the order\nview: ordering\ntags:\n  - error path\n  - edge case\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order on the hotel wifi\n    animation:\n      kind: send\n      carries: basket\n  - from: customer-app\n    to: order-api\n    text: POST /orders reaches a sign-in page instead\n    animation:\n      kind: call\n      outcome: intercepted\n      by:\n        name: Hotel wifi portal\n    description: |\n      Hotel wifi holds every request until the guest signs in, so the call never reaches the **Order API**.\n  - from: customer-app\n    text: Waits for a reply and offers a Retry button\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3500,6 +3619,26 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places one of 900 orders in a minute",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
+            "from": "events",
+            "to": "matcher",
+            "text": "The placed order reaches the Matcher",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "placed"
+            }
+          },
           {
             "from": "matcher",
             "to": "eta",
@@ -3526,7 +3665,7 @@
           }
         ]
       },
-      "text": "name: Mapbox turns the travel times away\nview: dispatch\ntags:\n  - error path\nsteps:\n  - from: matcher\n    to: eta\n    text: Asks who is quickest\n    animation:\n      kind: call\n      carries: who is quickest\n  - from: eta\n    to: mapbox\n    text: Asks Mapbox for travel times and is turned away\n    animation:\n      kind: call\n      outcome: rejected\n      reason: Rate limit\n    description: |\n      Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once, so the call fails fast.\n  - from: eta\n    text: Falls back to straight-line distance and ranks more roughly\n"
+      "text": "name: Mapbox turns the travel times away\nview: dispatch\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places one of 900 orders in a minute\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: matcher\n    text: The placed order reaches the Matcher\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: matcher\n    to: eta\n    text: Asks who is quickest\n    animation:\n      kind: call\n      carries: who is quickest\n  - from: eta\n    to: mapbox\n    text: Asks Mapbox for travel times and is turned away\n    animation:\n      kind: call\n      outcome: rejected\n      reason: Rate limit\n    description: |\n      Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once, so the call fails fast.\n  - from: eta\n    text: Falls back to straight-line distance and ranks more roughly\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3543,6 +3682,15 @@
           }
         },
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Opens a restaurant",
+            "animation": {
+              "kind": "send",
+              "carries": "tap"
+            }
+          },
           {
             "from": "customer-app",
             "to": "menu",
@@ -3602,10 +3750,19 @@
               "kind": "send",
               "carries": "menu"
             }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "Shows the dishes and prices",
+            "animation": {
+              "kind": "send",
+              "carries": "menu"
+            }
           }
         ]
       },
-      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n"
+      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens a restaurant\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n  - from: customer-app\n    to: customer\n    text: Shows the dishes and prices\n    animation:\n      kind: send\n      carries: menu\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3628,6 +3785,26 @@
         },
         "steps": [
           {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "The placed order reaches Dispatch",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "placed"
+            }
+          },
+          {
             "from": "offers",
             "to": "notifier",
             "text": "Offers the job; the nearest courier doesn't answer in 30 s",
@@ -3644,11 +3821,21 @@
             "group": "offer"
           },
           {
-            "from": "courier-app",
-            "to": "dispatch",
-            "text": "Accepts, and the offers stop",
+            "from": "courier",
+            "to": "courier-app",
+            "text": "A courier taps Accept",
             "group": "result",
             "lane": "A courier accepts",
+            "animation": {
+              "kind": "send",
+              "carries": "accept"
+            }
+          },
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "text": "The offers stop",
+            "group": "result",
             "animation": {
               "kind": "call",
               "carries": "accept"
@@ -3672,7 +3859,7 @@
           }
         ]
       },
-      "text": "name: An offer goes unanswered\nview: delivery\ntags:\n  - error path\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job; the nearest courier doesn't answer in 30 s\n    group: offer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: No answer in 30 s\n  - from: offers\n    text: Moves on to the next courier on the list\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n    animation:\n      kind: call\n      carries: accept\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n    animation:\n      kind: send\n      carries: no courier yet\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
+      "text": "name: An offer goes unanswered\nview: delivery\ntags:\n  - error path\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: dispatch\n    text: The placed order reaches Dispatch\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: offers\n    to: notifier\n    text: Offers the job; the nearest courier doesn't answer in 30 s\n    group: offer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: No answer in 30 s\n  - from: offers\n    text: Moves on to the next courier on the list\n    group: offer\n  - from: courier\n    to: courier-app\n    text: A courier taps Accept\n    group: result\n    lane: A courier accepts\n    animation:\n      kind: send\n      carries: accept\n  - from: courier-app\n    to: dispatch\n    text: The offers stop\n    group: result\n    animation:\n      kind: call\n      carries: accept\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n    animation:\n      kind: send\n      carries: no courier yet\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3684,6 +3871,16 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
           {
             "from": "order-api",
             "to": "kitchen-tablet",
@@ -3728,7 +3925,7 @@
           }
         ]
       },
-      "text": "name: Nobody accepts the order\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: order-api\n    to: kitchen-tablet\n    text: Rings the restaurant's tablet and gets no answer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Tablet offline\n    description: |\n      The tablet lost its Wi-Fi or ran out of battery, so nobody sees the order. The kitchen has two minutes.\n  - from: order-api\n    text: Waits two minutes, then cancels the order\n  - from: order-api\n    to: stripe\n    text: Releases the hold on the card\n    animation:\n      kind: call\n      carries: release\n  - from: order-api\n    to: orders-db\n    text: Marks the order cancelled\n    animation:\n      kind: call\n      carries: cancelled\n  - from: order-api\n    to: customer-app\n    text: Tells the customer the restaurant couldn't take it\n    animation:\n      kind: send\n      carries: cancelled\n"
+      "text": "name: Nobody accepts the order\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: order-api\n    to: kitchen-tablet\n    text: Rings the restaurant's tablet and gets no answer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Tablet offline\n    description: |\n      The tablet lost its Wi-Fi or ran out of battery, so nobody sees the order. The kitchen has two minutes.\n  - from: order-api\n    text: Waits two minutes, then cancels the order\n  - from: order-api\n    to: stripe\n    text: Releases the hold on the card\n    animation:\n      kind: call\n      carries: release\n  - from: order-api\n    to: orders-db\n    text: Marks the order cancelled\n    animation:\n      kind: call\n      carries: cancelled\n  - from: order-api\n    to: customer-app\n    text: Tells the customer the restaurant couldn't take it\n    animation:\n      kind: send\n      carries: cancelled\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3740,6 +3937,15 @@
           "edge case"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order, and again when nothing seems to happen",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
           {
             "from": "customer-app",
             "to": "order-api",
@@ -3760,7 +3966,7 @@
           }
         ]
       },
-      "text": "name: A double tap sends the order twice\nview: ordering\ntags:\n  - edge case\nsteps:\n  - from: customer-app\n    to: order-api\n    text: The same order arrives twice\n    animation:\n      kind: send\n      outcome: duplicated\n      reason: Slow reply\n      carries: order\n    description: |\n      The app resends when the first reply is slow. Both copies carry the same idempotency key.\n  - from: order-api\n    to: orders-db\n    text: Saves the first copy and refuses the second\n    animation: send\n"
+      "text": "name: A double tap sends the order twice\nview: ordering\ntags:\n  - edge case\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order, and again when nothing seems to happen\n    animation:\n      kind: send\n      carries: basket\n  - from: customer-app\n    to: order-api\n    text: The same order arrives twice\n    animation:\n      kind: send\n      outcome: duplicated\n      reason: Slow reply\n      carries: order\n    description: |\n      The app resends when the first reply is slow. Both copies carry the same idempotency key.\n  - from: order-api\n    to: orders-db\n    text: Saves the first copy and refuses the second\n    animation: send\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3773,6 +3979,24 @@
           "recovery"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "POST /orders with the basket",
+            "animation": {
+              "kind": "call",
+              "carries": "POST /orders"
+            }
+          },
           {
             "from": "order-api",
             "to": "orders-db",
@@ -3821,7 +4045,7 @@
           }
         ]
       },
-      "text": "name: Orders DB fails over\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: order-api\n    to: orders-db\n    text: A write gets no answer, because the primary has failed\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Primary is down\n    states:\n      orders-db: stopped\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try again in a minute\n    animation:\n      kind: send\n      carries: try again\n    states:\n      order-api: degraded\n  - from: orders-db\n    text: A standby takes over as the primary\n    states:\n      orders-db: starting\n    description: |\n      The standby has to catch up and be promoted. Plum rehearses this quarterly. Promotion has taken under a minute so far.\n  - from: order-api\n    to: orders-db\n    text: The next write goes through\n    animation:\n      kind: call\n      carries: order\n    states:\n      orders-db: running\n      order-api: running\n"
+      "text": "name: Orders DB fails over\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order\n    animation:\n      kind: send\n      carries: basket\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    animation:\n      kind: call\n      carries: POST /orders\n  - from: order-api\n    to: orders-db\n    text: A write gets no answer, because the primary has failed\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Primary is down\n    states:\n      orders-db: stopped\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try again in a minute\n    animation:\n      kind: send\n      carries: try again\n    states:\n      order-api: degraded\n  - from: orders-db\n    text: A standby takes over as the primary\n    states:\n      orders-db: starting\n    description: |\n      The standby has to catch up and be promoted. Plum rehearses this quarterly. Promotion has taken under a minute so far.\n  - from: order-api\n    to: orders-db\n    text: The next write goes through\n    animation:\n      kind: call\n      carries: order\n    states:\n      orders-db: running\n      order-api: running\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3916,6 +4140,24 @@
         ],
         "steps": [
           {
+            "from": "support",
+            "to": "support-console",
+            "text": "Asks for a refund in the support console",
+            "animation": {
+              "kind": "send",
+              "carries": "refund"
+            }
+          },
+          {
+            "from": "support-console",
+            "to": "refunds",
+            "text": "Sends the refund to the Order API",
+            "animation": {
+              "kind": "call",
+              "carries": "refund"
+            }
+          },
+          {
             "from": "refunds",
             "to": "stripe",
             "text": "Stripe has refunded the charge",
@@ -3949,7 +4191,7 @@
           }
         ]
       },
-      "text": "name: The refund is not recorded\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      The money is already back on the card. What can still go wrong is Plum's own records.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n    animation:\n      kind: send\n      carries: confirm\n"
+      "text": "name: The refund is not recorded\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: support\n    to: support-console\n    text: Asks for a refund in the support console\n    animation:\n      kind: send\n      carries: refund\n  - from: support-console\n    to: refunds\n    text: Sends the refund to the Order API\n    animation:\n      kind: call\n      carries: refund\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      The money is already back on the card. What can still go wrong is Plum's own records.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n    animation:\n      kind: send\n      carries: confirm\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3962,7 +4204,7 @@
         ],
         "compare": {
           "with": "refund-not-recorded",
-          "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+          "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nSupport, Back office and Stripe are in both flows.\n"
         },
         "steps": [
           {
@@ -4005,7 +4247,16 @@
           {
             "from": "notifications",
             "to": "twilio",
-            "text": "The customer gets an SMS",
+            "text": "Hands the SMS to Twilio",
+            "animation": {
+              "kind": "send",
+              "carries": "SMS"
+            }
+          },
+          {
+            "from": "twilio",
+            "to": "customer",
+            "text": "The customer reads that the money is back",
             "animation": {
               "kind": "send",
               "carries": "SMS",
@@ -4014,7 +4265,7 @@
           }
         ]
       },
-      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Stripe is the one shape both flows draw.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation:\n      kind: send\n      carries: order id\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation:\n      kind: call\n      carries: refund\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: The customer gets an SMS\n    animation:\n      kind: send\n      carries: SMS\n      effect: bounce\n"
+      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Support, Back office and Stripe are in both flows.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation:\n      kind: send\n      carries: order id\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation:\n      kind: call\n      carries: refund\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the SMS to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The customer reads that the money is back\n    animation:\n      kind: send\n      carries: SMS\n      effect: bounce\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -4027,9 +4278,18 @@
         ],
         "steps": [
           {
+            "from": "restaurant",
+            "to": "kitchen-tablet",
+            "text": "The kitchen taps Accept",
+            "animation": {
+              "kind": "send",
+              "carries": "accept"
+            }
+          },
+          {
             "from": "kitchen-tablet",
             "to": "order-api",
-            "text": "The kitchen taps Accept",
+            "text": "Sends the acceptance",
             "animation": {
               "kind": "call",
               "carries": "accept"
@@ -4076,16 +4336,25 @@
           {
             "from": "notifier",
             "to": "customer-app",
-            "text": "The customer is notified that the kitchen has started",
+            "text": "Pushes the news to the customer's phone",
             "animation": {
               "kind": "send",
               "carries": "push",
               "effect": "bounce"
             }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "Shows that the kitchen has started",
+            "animation": {
+              "kind": "send",
+              "carries": "accepted"
+            }
           }
         ]
       },
-      "text": "name: The restaurant accepts\nview: ordering\ntags:\n  - happy path\nsteps:\n  - from: kitchen-tablet\n    to: order-api\n    text: The kitchen taps Accept\n    animation:\n      kind: call\n      carries: accept\n  - from: order-api\n    to: orders-db\n    text: Marks the order accepted\n    animation:\n      kind: call\n      carries: accepted\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    animation:\n      kind: call\n      carries: capture\n    flow: capture-payment\n    description: |\n      The card is charged here for the first time. The capture is its own flow because the bank can be slow.\n  - from: order-api\n    to: events\n    text: Publishes accepted\n    animation:\n      kind: event\n      carries: accepted\n  - from: order-api\n    to: notifier\n    text: Asks for a push to the customer\n    animation:\n      kind: send\n      carries: accepted\n  - from: notifier\n    to: customer-app\n    text: The customer is notified that the kitchen has started\n    animation:\n      kind: send\n      carries: push\n      effect: bounce\n"
+      "text": "name: The restaurant accepts\nview: ordering\ntags:\n  - happy path\nsteps:\n  - from: restaurant\n    to: kitchen-tablet\n    text: The kitchen taps Accept\n    animation:\n      kind: send\n      carries: accept\n  - from: kitchen-tablet\n    to: order-api\n    text: Sends the acceptance\n    animation:\n      kind: call\n      carries: accept\n  - from: order-api\n    to: orders-db\n    text: Marks the order accepted\n    animation:\n      kind: call\n      carries: accepted\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    animation:\n      kind: call\n      carries: capture\n    flow: capture-payment\n    description: |\n      The card is charged here for the first time. The capture is its own flow because the bank can be slow.\n  - from: order-api\n    to: events\n    text: Publishes accepted\n    animation:\n      kind: event\n      carries: accepted\n  - from: order-api\n    to: notifier\n    text: Asks for a push to the customer\n    animation:\n      kind: send\n      carries: accepted\n  - from: notifier\n    to: customer-app\n    text: Pushes the news to the customer's phone\n    animation:\n      kind: send\n      carries: push\n      effect: bounce\n  - from: customer-app\n    to: customer\n    text: Shows that the kitchen has started\n    animation:\n      kind: send\n      carries: accepted\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -4097,6 +4366,25 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "ordering",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
+            "from": "ordering",
+            "to": "notifications",
+            "text": "Asks for an SMS that confirms it",
+            "animation": {
+              "kind": "send",
+              "carries": "confirm"
+            }
+          },
           {
             "from": "notifications",
             "to": "twilio",
@@ -4124,7 +4412,7 @@
           }
         ]
       },
-      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
+      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: ordering\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: ordering\n    to: notifications\n    text: Asks for an SMS that confirms it\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -4137,6 +4425,15 @@
           "recovery"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order as Stripe goes down",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
           {
             "from": "order-api",
             "to": "stripe",
@@ -4172,6 +4469,15 @@
             }
           },
           {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Picks pay at the door",
+            "animation": {
+              "kind": "send",
+              "carries": "cash"
+            }
+          },
+          {
             "from": "order-api",
             "to": "stripe",
             "text": "The status page says Stripe is restarting",
@@ -4201,7 +4507,7 @@
           }
         ]
       },
-      "text": "name: Stripe goes down and comes back\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: order-api\n    to: stripe\n    text: The hold is slow while Stripe shuts down\n    animation: call\n    states:\n      stripe: stopping\n  - from: checkout\n    to: stripe\n    text: The hold times out\n    animation:\n      kind: call\n      outcome: timeout\n    states:\n      stripe: stopped\n    description: |\n      Checkout waits 5 s for the hold and gets no answer. It does not retry while Stripe is down.\n  - from: checkout\n    to: customer-app\n    text: Offers pay at the door\n    animation:\n      kind: send\n      carries: pay at the door\n    states:\n      checkout: degraded\n  - from: order-api\n    to: stripe\n    text: The status page says Stripe is restarting\n    animation: call\n    states:\n      stripe: restarting\n  - from: order-api\n    to: stripe\n    text: The next check finds it coming back up\n    animation: call\n    states:\n      stripe: starting\n  - from: checkout\n    to: stripe\n    text: The hold goes through\n    animation: call\n    states:\n      stripe: running\n      checkout: running\n"
+      "text": "name: Stripe goes down and comes back\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order as Stripe goes down\n    animation:\n      kind: send\n      carries: basket\n  - from: order-api\n    to: stripe\n    text: The hold is slow while Stripe shuts down\n    animation: call\n    states:\n      stripe: stopping\n  - from: checkout\n    to: stripe\n    text: The hold times out\n    animation:\n      kind: call\n      outcome: timeout\n    states:\n      stripe: stopped\n    description: |\n      Checkout waits 5 s for the hold and gets no answer. It does not retry while Stripe is down.\n  - from: checkout\n    to: customer-app\n    text: Offers pay at the door\n    animation:\n      kind: send\n      carries: pay at the door\n    states:\n      checkout: degraded\n  - from: customer\n    to: customer-app\n    text: Picks pay at the door\n    animation:\n      kind: send\n      carries: cash\n  - from: order-api\n    to: stripe\n    text: The status page says Stripe is restarting\n    animation: call\n    states:\n      stripe: restarting\n  - from: order-api\n    to: stripe\n    text: The next check finds it coming back up\n    animation: call\n    states:\n      stripe: starting\n  - from: checkout\n    to: stripe\n    text: The hold goes through\n    animation: call\n    states:\n      stripe: running\n      checkout: running\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11254,6 +11560,17 @@
         },
         "steps": [
           {
+            "from": "stripe",
+            "to": "order-api",
+            "text": "Reports that the charge went through",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "charged"
+            },
+            "flow": "stripe-webhook"
+          },
+          {
             "from": "order-api",
             "to": "events",
             "text": "Publishes the paid event and carries on without waiting",
@@ -11284,7 +11601,7 @@
           }
         ]
       },
-      "text": "name: A paid order is announced\nview: ordering\ntags:\n  - background\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: order-api\n    to: events\n    text: Publishes the paid event and carries on without waiting\n    animation:\n      kind: event\n      carries: paid\n  - from: events\n    to: dispatch\n    text: Dispatch consumes it and starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n    animation: callback\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse\n    group: readers\n    lane: Warehouse\n    animation:\n      kind: event\n      carries: paid\n"
+      "text": "name: A paid order is announced\nview: ordering\ntags:\n  - background\ngroups:\n  readers:\n    kind: parallel\nsteps:\n  - from: stripe\n    to: order-api\n    text: Reports that the charge went through\n    animation:\n      kind: callback\n      trigger: outside\n      carries: charged\n    flow: stripe-webhook\n  - from: order-api\n    to: events\n    text: Publishes the paid event and carries on without waiting\n    animation:\n      kind: event\n      carries: paid\n  - from: events\n    to: dispatch\n    text: Dispatch consumes it and starts looking for a courier\n    group: readers\n    lane: Delivery\n    flow: deliver-order\n    animation: callback\n  - from: events\n    to: warehouse\n    text: Streams the same event to the warehouse\n    group: readers\n    lane: Warehouse\n    animation:\n      kind: event\n      carries: paid\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11307,6 +11624,25 @@
           }
         },
         "steps": [
+          {
+            "from": "restaurant",
+            "to": "kitchen-tablet",
+            "text": "The kitchen taps Accept",
+            "animation": {
+              "kind": "send",
+              "carries": "accept"
+            },
+            "flow": "restaurant-accepts"
+          },
+          {
+            "from": "kitchen-tablet",
+            "to": "order-api",
+            "text": "Sends the acceptance",
+            "animation": {
+              "kind": "call",
+              "carries": "accept"
+            }
+          },
           {
             "from": "order-api",
             "to": "stripe",
@@ -11355,16 +11691,26 @@
           {
             "from": "order-api",
             "to": "customer-app",
-            "text": "Asks the customer to try another card",
+            "text": "Asks for another card",
             "group": "outcome",
             "animation": {
               "kind": "send",
               "carries": "try another card"
             }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "Shows that the card was declined",
+            "group": "outcome",
+            "animation": {
+              "kind": "send",
+              "carries": "declined"
+            }
           }
         ]
       },
-      "text": "name: The payment is captured\nview: ordering\ntags:\n  - happy path\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Times out after 5 s and retries\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n    animation:\n      kind: send\n      carries: charged\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n    animation: call\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is not retried. The hold is released and the app asks for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try another card\n    group: outcome\n    animation:\n      kind: send\n      carries: try another card\n"
+      "text": "name: The payment is captured\nview: ordering\ntags:\n  - happy path\ngroups:\n  charge:\n    kind: repeat\n    times: 3\n    until: the bank answers\n    text: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n  outcome:\n    kind: branch\nsteps:\n  - from: restaurant\n    to: kitchen-tablet\n    text: The kitchen taps Accept\n    animation:\n      kind: send\n      carries: accept\n    flow: restaurant-accepts\n  - from: kitchen-tablet\n    to: order-api\n    text: Sends the acceptance\n    animation:\n      kind: call\n      carries: accept\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    group: charge\n    animation:\n      kind: call\n      outcome: timeout\n  - from: order-api\n    text: Times out after 5 s and retries\n    group: charge\n  - from: stripe\n    to: order-api\n    text: Confirms the charge\n    group: outcome\n    lane: The charge goes through\n    animation:\n      kind: send\n      carries: charged\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    group: outcome\n    animation: call\n  - from: stripe\n    to: order-api\n    text: Declines the card\n    group: outcome\n    lane: The card is declined\n    animation:\n      kind: send\n      outcome: fail\n    description: |\n      A decline is not retried. The hold is released and the app asks for another card.\n  - from: order-api\n    to: customer-app\n    text: Asks for another card\n    group: outcome\n    animation:\n      kind: send\n      carries: try another card\n  - from: customer-app\n    to: customer\n    text: Shows that the card was declined\n    group: outcome\n    animation:\n      kind: send\n      carries: declined\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11376,6 +11722,15 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "courier",
+            "to": "courier-app",
+            "text": "Rides into streets with a weak signal",
+            "animation": {
+              "kind": "send",
+              "carries": "position"
+            }
+          },
           {
             "from": "courier-app",
             "to": "tracking",
@@ -11391,10 +11746,19 @@
           {
             "from": "tracking",
             "to": "customer-app",
-            "text": "The customer's map moves in jumps",
+            "text": "Sends the positions that did arrive",
             "animation": {
               "kind": "send",
               "carries": "position"
+            }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "The courier jumps across the map",
+            "animation": {
+              "kind": "send",
+              "carries": "map"
             }
           },
           {
@@ -11404,7 +11768,7 @@
           }
         ]
       },
-      "text": "name: Courier pings are lost\nview: delivery\ntags:\n  - error path\nsteps:\n  - from: courier-app\n    to: tracking\n    text: About a third of the pings are lost on the way\n    animation:\n      kind: send\n      outcome: lost\n      share: 30\n      reason: Packet dropped\n    description: |\n      On a weak signal, pings never reach **Live tracking**. The app does not retry them, since a\n      newer one follows in 5 s.\n  - from: tracking\n    to: customer-app\n    text: The customer's map moves in jumps\n    animation:\n      kind: send\n      carries: position\n  - from: fleet-db\n    text: Keeps the last position it got\n    description: |\n      Nothing is written for a lost ping, so the courier can look parked for 10 s or more to readers\n      of **Fleet DB**, such as the matcher ranking couriers for the next offer.\n"
+      "text": "name: Courier pings are lost\nview: delivery\ntags:\n  - error path\nsteps:\n  - from: courier\n    to: courier-app\n    text: Rides into streets with a weak signal\n    animation:\n      kind: send\n      carries: position\n  - from: courier-app\n    to: tracking\n    text: About a third of the pings are lost on the way\n    animation:\n      kind: send\n      outcome: lost\n      share: 30\n      reason: Packet dropped\n    description: |\n      On a weak signal, pings never reach **Live tracking**. The app does not retry them, since a\n      newer one follows in 5 s.\n  - from: tracking\n    to: customer-app\n    text: Sends the positions that did arrive\n    animation:\n      kind: send\n      carries: position\n  - from: customer-app\n    to: customer\n    text: The courier jumps across the map\n    animation:\n      kind: send\n      carries: map\n  - from: fleet-db\n    text: Keeps the last position it got\n    description: |\n      Nothing is written for a lost ping, so the courier can look parked for 10 s or more to readers\n      of **Fleet DB**, such as the matcher ranking couriers for the next offer.\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11417,9 +11781,19 @@
         ],
         "steps": [
           {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
             "from": "events",
             "to": "dispatch",
-            "text": "Receives the placed event",
+            "text": "The placed order reaches Dispatch",
             "animation": {
               "kind": "callback",
               "trigger": "outside",
@@ -11437,8 +11811,13 @@
           },
           {
             "from": "dispatch",
-            "text": "Ranks them by estimated arrival",
-            "description": "The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The\nquickest gets the first offer.\n"
+            "to": "mapbox",
+            "text": "Asks Mapbox how far each courier is",
+            "animation": {
+              "kind": "call",
+              "carries": "travel times"
+            },
+            "description": "**ETA** asks for each courier's travel time (distance, traffic, vehicle), and the **Matcher**\nranks them by arrival. The quickest gets the first offer.\n"
           },
           {
             "from": "dispatch",
@@ -11457,6 +11836,15 @@
             "animation": {
               "kind": "send",
               "carries": "accept"
+            }
+          },
+          {
+            "from": "restaurant",
+            "to": "courier",
+            "text": "Hands the food over at the counter",
+            "animation": {
+              "kind": "send",
+              "carries": "food"
             }
           },
           {
@@ -11481,6 +11869,15 @@
             }
           },
           {
+            "from": "courier",
+            "to": "customer",
+            "text": "Hands the food over at the door",
+            "animation": {
+              "kind": "send",
+              "carries": "food"
+            }
+          },
+          {
             "from": "courier-app",
             "to": "order-api",
             "text": "Marks the order delivered",
@@ -11491,7 +11888,7 @@
           }
         ]
       },
-      "text": "name: A courier delivers it\nview: delivery\ntags:\n  - happy path\nsteps:\n  - from: events\n    to: dispatch\n    text: Receives the placed event\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n    animation:\n      kind: call\n      carries: who is idle\n  - from: dispatch\n    text: Ranks them by estimated arrival\n    description: |\n      The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The\n      quickest gets the first offer.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n    animation:\n      kind: send\n      carries: offer\n      effect: bounce\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n    animation:\n      kind: send\n      carries: accept\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n    flow: follow-the-courier\n    description: |\n      Only while a job is open. Positions older than 1 min are dropped, so a courier who loses\n      signal freezes on the map until a fresh position arrives.\n  - from: tracking\n    to: customer-app\n    text: The customer's map follows the courier\n    animation:\n      kind: send\n      carries: position\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n"
+      "text": "name: A courier delivers it\nview: delivery\ntags:\n  - happy path\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: dispatch\n    text: The placed order reaches Dispatch\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: dispatch\n    to: fleet-db\n    text: Finds idle couriers near the restaurant\n    animation:\n      kind: call\n      carries: who is idle\n  - from: dispatch\n    to: mapbox\n    text: Asks Mapbox how far each courier is\n    animation:\n      kind: call\n      carries: travel times\n    description: |\n      **ETA** asks for each courier's travel time (distance, traffic, vehicle), and the **Matcher**\n      ranks them by arrival. The quickest gets the first offer.\n  - from: dispatch\n    to: notifier\n    text: Sends the offer as a push\n    animation:\n      kind: send\n      carries: offer\n      effect: bounce\n  - from: courier\n    to: courier-app\n    text: Accepts within 30 seconds\n    animation:\n      kind: send\n      carries: accept\n  - from: restaurant\n    to: courier\n    text: Hands the food over at the counter\n    animation:\n      kind: send\n      carries: food\n  - from: courier-app\n    to: tracking\n    text: Streams its position every 5 seconds\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n    flow: follow-the-courier\n    description: |\n      Only while a job is open. Positions older than 1 min are dropped, so a courier who loses\n      signal freezes on the map until a fresh position arrives.\n  - from: tracking\n    to: customer-app\n    text: The customer's map follows the courier\n    animation:\n      kind: send\n      carries: position\n  - from: courier\n    to: customer\n    text: Hands the food over at the door\n    animation:\n      kind: send\n      carries: food\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11503,6 +11900,16 @@
           "edge case"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order in the dinner rush",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
           {
             "from": "events",
             "to": "dispatch",
@@ -11522,7 +11929,7 @@
           }
         ]
       },
-      "text": "name: Dispatch hears about an order late\nview: delivery\ntags:\n  - edge case\nsteps:\n  - from: events\n    to: dispatch\n    text: The placed event waits behind the dinner rush\n    animation:\n      kind: event\n      outcome: delayed\n      reason: Consumer lag\n    description: |\n      A single consumer reads every `placed` event. When orders arrive faster than it reads, they queue.\n  - from: dispatch\n    to: fleet-db\n    text: Finds couriers minutes after the customer paid\n    animation: call\n"
+      "text": "name: Dispatch hears about an order late\nview: delivery\ntags:\n  - edge case\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order in the dinner rush\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: dispatch\n    text: The placed event waits behind the dinner rush\n    animation:\n      kind: event\n      outcome: delayed\n      reason: Consumer lag\n    description: |\n      A single consumer reads every `placed` event. When orders arrive faster than it reads, they queue.\n  - from: dispatch\n    to: fleet-db\n    text: Finds couriers minutes after the customer paid\n    animation: call\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11541,6 +11948,15 @@
           }
         },
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Opens the order to see where the food is",
+            "animation": {
+              "kind": "send",
+              "carries": "tap"
+            }
+          },
           {
             "from": "customer-app",
             "to": "tracking",
@@ -11600,7 +12016,7 @@
           }
         ]
       },
-      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
+      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11613,6 +12029,15 @@
           "edge case"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order on the hotel wifi",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
           {
             "from": "customer-app",
             "to": "order-api",
@@ -11632,7 +12057,7 @@
           }
         ]
       },
-      "text": "name: Hotel wifi takes the order\nview: ordering\ntags:\n  - error path\n  - edge case\nsteps:\n  - from: customer-app\n    to: order-api\n    text: POST /orders reaches a sign-in page instead\n    animation:\n      kind: call\n      outcome: intercepted\n      by:\n        name: Hotel wifi portal\n    description: |\n      Hotel wifi holds every request until the guest signs in, so the call never reaches the **Order API**.\n  - from: customer-app\n    text: Waits for a reply and offers a Retry button\n"
+      "text": "name: Hotel wifi takes the order\nview: ordering\ntags:\n  - error path\n  - edge case\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order on the hotel wifi\n    animation:\n      kind: send\n      carries: basket\n  - from: customer-app\n    to: order-api\n    text: POST /orders reaches a sign-in page instead\n    animation:\n      kind: call\n      outcome: intercepted\n      by:\n        name: Hotel wifi portal\n    description: |\n      Hotel wifi holds every request until the guest signs in, so the call never reaches the **Order API**.\n  - from: customer-app\n    text: Waits for a reply and offers a Retry button\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11644,6 +12069,26 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places one of 900 orders in a minute",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
+            "from": "events",
+            "to": "matcher",
+            "text": "The placed order reaches the Matcher",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "placed"
+            }
+          },
           {
             "from": "matcher",
             "to": "eta",
@@ -11670,7 +12115,7 @@
           }
         ]
       },
-      "text": "name: Mapbox turns the travel times away\nview: dispatch\ntags:\n  - error path\nsteps:\n  - from: matcher\n    to: eta\n    text: Asks who is quickest\n    animation:\n      kind: call\n      carries: who is quickest\n  - from: eta\n    to: mapbox\n    text: Asks Mapbox for travel times and is turned away\n    animation:\n      kind: call\n      outcome: rejected\n      reason: Rate limit\n    description: |\n      Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once, so the call fails fast.\n  - from: eta\n    text: Falls back to straight-line distance and ranks more roughly\n"
+      "text": "name: Mapbox turns the travel times away\nview: dispatch\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places one of 900 orders in a minute\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: matcher\n    text: The placed order reaches the Matcher\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: matcher\n    to: eta\n    text: Asks who is quickest\n    animation:\n      kind: call\n      carries: who is quickest\n  - from: eta\n    to: mapbox\n    text: Asks Mapbox for travel times and is turned away\n    animation:\n      kind: call\n      outcome: rejected\n      reason: Rate limit\n    description: |\n      Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once, so the call fails fast.\n  - from: eta\n    text: Falls back to straight-line distance and ranks more roughly\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11687,6 +12132,15 @@
           }
         },
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Opens a restaurant",
+            "animation": {
+              "kind": "send",
+              "carries": "tap"
+            }
+          },
           {
             "from": "customer-app",
             "to": "menu",
@@ -11746,10 +12200,19 @@
               "kind": "send",
               "carries": "menu"
             }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "Shows the dishes and prices",
+            "animation": {
+              "kind": "send",
+              "carries": "menu"
+            }
           }
         ]
       },
-      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n"
+      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens a restaurant\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n  - from: customer-app\n    to: customer\n    text: Shows the dishes and prices\n    animation:\n      kind: send\n      carries: menu\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11772,6 +12235,26 @@
         },
         "steps": [
           {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
+            "from": "events",
+            "to": "dispatch",
+            "text": "The placed order reaches Dispatch",
+            "animation": {
+              "kind": "callback",
+              "trigger": "outside",
+              "carries": "placed"
+            }
+          },
+          {
             "from": "offers",
             "to": "notifier",
             "text": "Offers the job; the nearest courier doesn't answer in 30 s",
@@ -11788,11 +12271,21 @@
             "group": "offer"
           },
           {
-            "from": "courier-app",
-            "to": "dispatch",
-            "text": "Accepts, and the offers stop",
+            "from": "courier",
+            "to": "courier-app",
+            "text": "A courier taps Accept",
             "group": "result",
             "lane": "A courier accepts",
+            "animation": {
+              "kind": "send",
+              "carries": "accept"
+            }
+          },
+          {
+            "from": "courier-app",
+            "to": "dispatch",
+            "text": "The offers stop",
+            "group": "result",
             "animation": {
               "kind": "call",
               "carries": "accept"
@@ -11816,7 +12309,7 @@
           }
         ]
       },
-      "text": "name: An offer goes unanswered\nview: delivery\ntags:\n  - error path\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: offers\n    to: notifier\n    text: Offers the job; the nearest courier doesn't answer in 30 s\n    group: offer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: No answer in 30 s\n  - from: offers\n    text: Moves on to the next courier on the list\n    group: offer\n  - from: courier-app\n    to: dispatch\n    text: Accepts, and the offers stop\n    group: result\n    lane: A courier accepts\n    animation:\n      kind: call\n      carries: accept\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n    animation:\n      kind: send\n      carries: no courier yet\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
+      "text": "name: An offer goes unanswered\nview: delivery\ntags:\n  - error path\ngroups:\n  offer:\n    kind: repeat\n    until: a courier accepts, or the list runs out\n    text: One courier at a time, nearest first. Each has 30 seconds.\n  result:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: events\n    to: dispatch\n    text: The placed order reaches Dispatch\n    animation:\n      kind: callback\n      trigger: outside\n      carries: placed\n  - from: offers\n    to: notifier\n    text: Offers the job; the nearest courier doesn't answer in 30 s\n    group: offer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: No answer in 30 s\n  - from: offers\n    text: Moves on to the next courier on the list\n    group: offer\n  - from: courier\n    to: courier-app\n    text: A courier taps Accept\n    group: result\n    lane: A courier accepts\n    animation:\n      kind: send\n      carries: accept\n  - from: courier-app\n    to: dispatch\n    text: The offers stop\n    group: result\n    animation:\n      kind: call\n      carries: accept\n  - from: offers\n    to: notifier\n    text: Tells the customer that no courier is free yet\n    group: result\n    lane: The list runs out\n    animation:\n      kind: send\n      carries: no courier yet\n  - from: dispatch\n    text: Searches again in a minute\n    group: result\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11828,6 +12321,16 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
           {
             "from": "order-api",
             "to": "kitchen-tablet",
@@ -11872,7 +12375,7 @@
           }
         ]
       },
-      "text": "name: Nobody accepts the order\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: order-api\n    to: kitchen-tablet\n    text: Rings the restaurant's tablet and gets no answer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Tablet offline\n    description: |\n      The tablet lost its Wi-Fi or ran out of battery, so nobody sees the order. The kitchen has two minutes.\n  - from: order-api\n    text: Waits two minutes, then cancels the order\n  - from: order-api\n    to: stripe\n    text: Releases the hold on the card\n    animation:\n      kind: call\n      carries: release\n  - from: order-api\n    to: orders-db\n    text: Marks the order cancelled\n    animation:\n      kind: call\n      carries: cancelled\n  - from: order-api\n    to: customer-app\n    text: Tells the customer the restaurant couldn't take it\n    animation:\n      kind: send\n      carries: cancelled\n"
+      "text": "name: Nobody accepts the order\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: customer-app\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: order-api\n    to: kitchen-tablet\n    text: Rings the restaurant's tablet and gets no answer\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Tablet offline\n    description: |\n      The tablet lost its Wi-Fi or ran out of battery, so nobody sees the order. The kitchen has two minutes.\n  - from: order-api\n    text: Waits two minutes, then cancels the order\n  - from: order-api\n    to: stripe\n    text: Releases the hold on the card\n    animation:\n      kind: call\n      carries: release\n  - from: order-api\n    to: orders-db\n    text: Marks the order cancelled\n    animation:\n      kind: call\n      carries: cancelled\n  - from: order-api\n    to: customer-app\n    text: Tells the customer the restaurant couldn't take it\n    animation:\n      kind: send\n      carries: cancelled\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11884,6 +12387,15 @@
           "edge case"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order, and again when nothing seems to happen",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
           {
             "from": "customer-app",
             "to": "order-api",
@@ -11904,7 +12416,7 @@
           }
         ]
       },
-      "text": "name: A double tap sends the order twice\nview: ordering\ntags:\n  - edge case\nsteps:\n  - from: customer-app\n    to: order-api\n    text: The same order arrives twice\n    animation:\n      kind: send\n      outcome: duplicated\n      reason: Slow reply\n      carries: order\n    description: |\n      The app resends when the first reply is slow. Both copies carry the same idempotency key.\n  - from: order-api\n    to: orders-db\n    text: Saves the first copy and refuses the second\n    animation: send\n"
+      "text": "name: A double tap sends the order twice\nview: ordering\ntags:\n  - edge case\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order, and again when nothing seems to happen\n    animation:\n      kind: send\n      carries: basket\n  - from: customer-app\n    to: order-api\n    text: The same order arrives twice\n    animation:\n      kind: send\n      outcome: duplicated\n      reason: Slow reply\n      carries: order\n    description: |\n      The app resends when the first reply is slow. Both copies carry the same idempotency key.\n  - from: order-api\n    to: orders-db\n    text: Saves the first copy and refuses the second\n    animation: send\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -11917,6 +12429,24 @@
           "recovery"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
+          {
+            "from": "customer-app",
+            "to": "order-api",
+            "text": "POST /orders with the basket",
+            "animation": {
+              "kind": "call",
+              "carries": "POST /orders"
+            }
+          },
           {
             "from": "order-api",
             "to": "orders-db",
@@ -11965,7 +12495,7 @@
           }
         ]
       },
-      "text": "name: Orders DB fails over\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: order-api\n    to: orders-db\n    text: A write gets no answer, because the primary has failed\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Primary is down\n    states:\n      orders-db: stopped\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try again in a minute\n    animation:\n      kind: send\n      carries: try again\n    states:\n      order-api: degraded\n  - from: orders-db\n    text: A standby takes over as the primary\n    states:\n      orders-db: starting\n    description: |\n      The standby has to catch up and be promoted. Plum rehearses this quarterly. Promotion has taken under a minute so far.\n  - from: order-api\n    to: orders-db\n    text: The next write goes through\n    animation:\n      kind: call\n      carries: order\n    states:\n      orders-db: running\n      order-api: running\n"
+      "text": "name: Orders DB fails over\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order\n    animation:\n      kind: send\n      carries: basket\n  - from: customer-app\n    to: order-api\n    text: POST /orders with the basket\n    animation:\n      kind: call\n      carries: POST /orders\n  - from: order-api\n    to: orders-db\n    text: A write gets no answer, because the primary has failed\n    animation:\n      kind: call\n      outcome: timeout\n      reason: Primary is down\n    states:\n      orders-db: stopped\n  - from: order-api\n    to: customer-app\n    text: Asks the customer to try again in a minute\n    animation:\n      kind: send\n      carries: try again\n    states:\n      order-api: degraded\n  - from: orders-db\n    text: A standby takes over as the primary\n    states:\n      orders-db: starting\n    description: |\n      The standby has to catch up and be promoted. Plum rehearses this quarterly. Promotion has taken under a minute so far.\n  - from: order-api\n    to: orders-db\n    text: The next write goes through\n    animation:\n      kind: call\n      carries: order\n    states:\n      orders-db: running\n      order-api: running\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -12060,6 +12590,24 @@
         ],
         "steps": [
           {
+            "from": "support",
+            "to": "support-console",
+            "text": "Asks for a refund in the support console",
+            "animation": {
+              "kind": "send",
+              "carries": "refund"
+            }
+          },
+          {
+            "from": "support-console",
+            "to": "refunds",
+            "text": "Sends the refund to the Order API",
+            "animation": {
+              "kind": "call",
+              "carries": "refund"
+            }
+          },
+          {
             "from": "refunds",
             "to": "stripe",
             "text": "Stripe has refunded the charge",
@@ -12093,7 +12641,7 @@
           }
         ]
       },
-      "text": "name: The refund is not recorded\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      The money is already back on the card. What can still go wrong is Plum's own records.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n    animation:\n      kind: send\n      carries: confirm\n"
+      "text": "name: The refund is not recorded\nview: ordering\ntags:\n  - error path\nsteps:\n  - from: support\n    to: support-console\n    text: Asks for a refund in the support console\n    animation:\n      kind: send\n      carries: refund\n  - from: support-console\n    to: refunds\n    text: Sends the refund to the Order API\n    animation:\n      kind: call\n      carries: refund\n  - from: refunds\n    to: stripe\n    text: Stripe has refunded the charge\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      The money is already back on the card. What can still go wrong is Plum's own records.\n  - from: refunds\n    to: orders-db\n    text: Can't mark the order refunded, because Orders DB doesn't answer\n    animation:\n      kind: call\n      outcome: timeout\n  - from: refunds\n    text: Leaves the order marked paid, though the money is back\n  - from: refunds\n    to: notifier\n    text: Still sends the customer a refund confirmation\n    animation:\n      kind: send\n      carries: confirm\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -12106,7 +12654,7 @@
         ],
         "compare": {
           "with": "refund-not-recorded",
-          "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+          "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nSupport, Back office and Stripe are in both flows.\n"
         },
         "steps": [
           {
@@ -12149,7 +12697,16 @@
           {
             "from": "notifications",
             "to": "twilio",
-            "text": "The customer gets an SMS",
+            "text": "Hands the SMS to Twilio",
+            "animation": {
+              "kind": "send",
+              "carries": "SMS"
+            }
+          },
+          {
+            "from": "twilio",
+            "to": "customer",
+            "text": "The customer reads that the money is back",
             "animation": {
               "kind": "send",
               "carries": "SMS",
@@ -12158,7 +12715,7 @@
           }
         ]
       },
-      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Stripe is the one shape both flows draw.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation:\n      kind: send\n      carries: order id\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation:\n      kind: call\n      carries: refund\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: The customer gets an SMS\n    animation:\n      kind: send\n      carries: SMS\n      effect: bounce\n"
+      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Support, Back office and Stripe are in both flows.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation:\n      kind: send\n      carries: order id\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation:\n      kind: call\n      carries: refund\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the SMS to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The customer reads that the money is back\n    animation:\n      kind: send\n      carries: SMS\n      effect: bounce\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -12171,9 +12728,18 @@
         ],
         "steps": [
           {
+            "from": "restaurant",
+            "to": "kitchen-tablet",
+            "text": "The kitchen taps Accept",
+            "animation": {
+              "kind": "send",
+              "carries": "accept"
+            }
+          },
+          {
             "from": "kitchen-tablet",
             "to": "order-api",
-            "text": "The kitchen taps Accept",
+            "text": "Sends the acceptance",
             "animation": {
               "kind": "call",
               "carries": "accept"
@@ -12220,16 +12786,25 @@
           {
             "from": "notifier",
             "to": "customer-app",
-            "text": "The customer is notified that the kitchen has started",
+            "text": "Pushes the news to the customer's phone",
             "animation": {
               "kind": "send",
               "carries": "push",
               "effect": "bounce"
             }
+          },
+          {
+            "from": "customer-app",
+            "to": "customer",
+            "text": "Shows that the kitchen has started",
+            "animation": {
+              "kind": "send",
+              "carries": "accepted"
+            }
           }
         ]
       },
-      "text": "name: The restaurant accepts\nview: ordering\ntags:\n  - happy path\nsteps:\n  - from: kitchen-tablet\n    to: order-api\n    text: The kitchen taps Accept\n    animation:\n      kind: call\n      carries: accept\n  - from: order-api\n    to: orders-db\n    text: Marks the order accepted\n    animation:\n      kind: call\n      carries: accepted\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    animation:\n      kind: call\n      carries: capture\n    flow: capture-payment\n    description: |\n      The card is charged here for the first time. The capture is its own flow because the bank can be slow.\n  - from: order-api\n    to: events\n    text: Publishes accepted\n    animation:\n      kind: event\n      carries: accepted\n  - from: order-api\n    to: notifier\n    text: Asks for a push to the customer\n    animation:\n      kind: send\n      carries: accepted\n  - from: notifier\n    to: customer-app\n    text: The customer is notified that the kitchen has started\n    animation:\n      kind: send\n      carries: push\n      effect: bounce\n"
+      "text": "name: The restaurant accepts\nview: ordering\ntags:\n  - happy path\nsteps:\n  - from: restaurant\n    to: kitchen-tablet\n    text: The kitchen taps Accept\n    animation:\n      kind: send\n      carries: accept\n  - from: kitchen-tablet\n    to: order-api\n    text: Sends the acceptance\n    animation:\n      kind: call\n      carries: accept\n  - from: order-api\n    to: orders-db\n    text: Marks the order accepted\n    animation:\n      kind: call\n      carries: accepted\n  - from: order-api\n    to: stripe\n    text: Captures the amount it held\n    animation:\n      kind: call\n      carries: capture\n    flow: capture-payment\n    description: |\n      The card is charged here for the first time. The capture is its own flow because the bank can be slow.\n  - from: order-api\n    to: events\n    text: Publishes accepted\n    animation:\n      kind: event\n      carries: accepted\n  - from: order-api\n    to: notifier\n    text: Asks for a push to the customer\n    animation:\n      kind: send\n      carries: accepted\n  - from: notifier\n    to: customer-app\n    text: Pushes the news to the customer's phone\n    animation:\n      kind: send\n      carries: push\n      effect: bounce\n  - from: customer-app\n    to: customer\n    text: Shows that the kitchen has started\n    animation:\n      kind: send\n      carries: accepted\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -12241,6 +12816,25 @@
           "error path"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "ordering",
+            "text": "Places an order",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            },
+            "flow": "place-order"
+          },
+          {
+            "from": "ordering",
+            "to": "notifications",
+            "text": "Asks for an SMS that confirms it",
+            "animation": {
+              "kind": "send",
+              "carries": "confirm"
+            }
+          },
           {
             "from": "notifications",
             "to": "twilio",
@@ -12268,7 +12862,7 @@
           }
         ]
       },
-      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
+      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: ordering\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: ordering\n    to: notifications\n    text: Asks for an SMS that confirms it\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -12281,6 +12875,15 @@
           "recovery"
         ],
         "steps": [
+          {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Taps Place order as Stripe goes down",
+            "animation": {
+              "kind": "send",
+              "carries": "basket"
+            }
+          },
           {
             "from": "order-api",
             "to": "stripe",
@@ -12316,6 +12919,15 @@
             }
           },
           {
+            "from": "customer",
+            "to": "customer-app",
+            "text": "Picks pay at the door",
+            "animation": {
+              "kind": "send",
+              "carries": "cash"
+            }
+          },
+          {
             "from": "order-api",
             "to": "stripe",
             "text": "The status page says Stripe is restarting",
@@ -12345,7 +12957,7 @@
           }
         ]
       },
-      "text": "name: Stripe goes down and comes back\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: order-api\n    to: stripe\n    text: The hold is slow while Stripe shuts down\n    animation: call\n    states:\n      stripe: stopping\n  - from: checkout\n    to: stripe\n    text: The hold times out\n    animation:\n      kind: call\n      outcome: timeout\n    states:\n      stripe: stopped\n    description: |\n      Checkout waits 5 s for the hold and gets no answer. It does not retry while Stripe is down.\n  - from: checkout\n    to: customer-app\n    text: Offers pay at the door\n    animation:\n      kind: send\n      carries: pay at the door\n    states:\n      checkout: degraded\n  - from: order-api\n    to: stripe\n    text: The status page says Stripe is restarting\n    animation: call\n    states:\n      stripe: restarting\n  - from: order-api\n    to: stripe\n    text: The next check finds it coming back up\n    animation: call\n    states:\n      stripe: starting\n  - from: checkout\n    to: stripe\n    text: The hold goes through\n    animation: call\n    states:\n      stripe: running\n      checkout: running\n"
+      "text": "name: Stripe goes down and comes back\nview: ordering\ntags:\n  - error path\n  - recovery\nsteps:\n  - from: customer\n    to: customer-app\n    text: Taps Place order as Stripe goes down\n    animation:\n      kind: send\n      carries: basket\n  - from: order-api\n    to: stripe\n    text: The hold is slow while Stripe shuts down\n    animation: call\n    states:\n      stripe: stopping\n  - from: checkout\n    to: stripe\n    text: The hold times out\n    animation:\n      kind: call\n      outcome: timeout\n    states:\n      stripe: stopped\n    description: |\n      Checkout waits 5 s for the hold and gets no answer. It does not retry while Stripe is down.\n  - from: checkout\n    to: customer-app\n    text: Offers pay at the door\n    animation:\n      kind: send\n      carries: pay at the door\n    states:\n      checkout: degraded\n  - from: customer\n    to: customer-app\n    text: Picks pay at the door\n    animation:\n      kind: send\n      carries: cash\n  - from: order-api\n    to: stripe\n    text: The status page says Stripe is restarting\n    animation: call\n    states:\n      stripe: restarting\n  - from: order-api\n    to: stripe\n    text: The next check finds it coming back up\n    animation: call\n    states:\n      stripe: starting\n  - from: checkout\n    to: stripe\n    text: The hold goes through\n    animation: call\n    states:\n      stripe: running\n      checkout: running\n"
     },
     {
       "folder": "docs/demo/flowy",

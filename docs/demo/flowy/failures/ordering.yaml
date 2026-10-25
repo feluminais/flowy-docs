@@ -21,7 +21,7 @@ modes:
     after: { severity: 8, occurrence: 4, detection: 1 }
     affects: [customer-app, kitchen-tablet]
     flow: capture-payment
-    step: 1
+    step: 3
     run: stripe-outage
   card-declined:
     from: checkout
@@ -37,7 +37,7 @@ modes:
     status: accepted
     affects: [customer-app]
     flow: capture-payment
-    step: 5
+    step: 7
   refund-not-recorded:
     on: refunds
     mode: Stripe refunds the money but the database write fails
@@ -52,7 +52,7 @@ modes:
     status: open
     affects: [support-console]
     flow: refund-not-recorded
-    step: 2
+    step: 4
     description: |
       The refund and the write are separate steps, so one can succeed without the other.
       The nightly comparison finds the gap but does not close it.
@@ -70,7 +70,7 @@ modes:
     status: planned
     affects: [customer-app, web, kitchen-tablet, order-api]
     flow: orders-db-fails-over
-    step: 1
+    step: 3
   double-tap:
     on: order-api
     mode: A double tap places two orders
@@ -85,7 +85,7 @@ modes:
     after: { severity: 6, occurrence: 1, detection: 4 }
     affects: [customer-app]
     flow: order-sent-twice
-    step: 1
+    step: 2
   menu-cache-stale:
     on: menu-cache
     mode: Serves a menu up to 5 min old
@@ -99,7 +99,7 @@ modes:
     status: accepted
     affects: [customer-app, web]
     flow: menu-is-read
-    step: 3
+    step: 4
   eta-mapbox-fails:
     from: eta
     to: mapbox
@@ -116,7 +116,7 @@ modes:
     after: { severity: 6, occurrence: 2, detection: 3 }
     affects: [dispatch, offers]
     flow: mapbox-rate-limit
-    step: 2
+    step: 4
     run: dinner-rush
   fleet-position-writes:
     on: fleet-db
@@ -140,7 +140,7 @@ modes:
     after: { severity: 5, occurrence: 2, detection: 3 }
     affects: [dispatch, offers]
     flow: events-arrive-late
-    step: 1
+    step: 2
   kitchen-tablet-offline:
     on: kitchen-tablet
     mode: The tablet goes offline and nobody accepts within two minutes
@@ -154,7 +154,7 @@ modes:
     status: accepted
     affects: [customer-app]
     flow: nobody-accepts
-    step: 1
+    step: 2
   offers-no-answer:
     on: offers
     mode: No courier answers within 30 seconds
@@ -170,7 +170,7 @@ modes:
     after: { severity: 6, occurrence: 3, detection: 3 }
     affects: [customer-app, dispatch]
     flow: no-courier-answers
-    step: 1
+    step: 3
   tracking-signal-lost:
     on: tracking
     mode: The courier loses signal and the map freezes
@@ -184,7 +184,7 @@ modes:
     status: accepted
     affects: [customer-app, web]
     flow: deliver-order
-    step: 6
+    step: 8
   sms-not-delivered:
     from: notifier
     to: twilio
@@ -200,7 +200,7 @@ modes:
     status: open
     affects: [customer-app]
     flow: sms-dropped
-    step: 2
+    step: 4
   warehouse-down:
     on: warehouse
     mode: The warehouse is down

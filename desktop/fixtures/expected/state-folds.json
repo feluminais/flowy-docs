@@ -906,6 +906,8 @@
           "id": "orders-db-fails-over",
           "problems": [],
           "at": [
+            {},
+            {},
             {
               "orders-db": "stopped"
             },
@@ -923,6 +925,8 @@
             }
           ],
           "marks": [
+            {},
+            {},
             {
               "orders-db": {
                 "state": "stopped",
@@ -970,7 +974,9 @@
             null,
             0,
             1,
-            2
+            2,
+            3,
+            4
           ],
           "outside": [
             {
@@ -979,12 +985,12 @@
               "before": null
             },
             {
-              "k": 4,
+              "k": 6,
               "states": {},
               "before": null
             },
             {
-              "k": 9,
+              "k": 11,
               "states": {},
               "before": null
             }
@@ -994,11 +1000,16 @@
           "id": "stripe-outage",
           "problems": [],
           "at": [
+            {},
             {
               "stripe": "stopping"
             },
             {
               "stripe": "stopped"
+            },
+            {
+              "stripe": "stopped",
+              "checkout": "degraded"
             },
             {
               "stripe": "stopped",
@@ -1018,6 +1029,7 @@
             }
           ],
           "marks": [
+            {},
             {
               "stripe": {
                 "state": "stopping",
@@ -1028,6 +1040,26 @@
               "stripe": {
                 "state": "stopped",
                 "inside": false
+              }
+            },
+            {
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true,
+                "via": "Checkout"
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true,
+                "via": "Checkout"
               }
             },
             {
@@ -1098,7 +1130,9 @@
             1,
             2,
             3,
-            4
+            4,
+            5,
+            6
           ],
           "outside": [
             {
@@ -1107,12 +1141,12 @@
               "before": null
             },
             {
-              "k": 6,
+              "k": 8,
               "states": {},
               "before": null
             },
             {
-              "k": 11,
+              "k": 13,
               "states": {},
               "before": null
             }

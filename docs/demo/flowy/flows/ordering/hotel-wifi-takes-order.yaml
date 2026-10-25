@@ -2,6 +2,7 @@ name: Hotel wifi takes the order
 view: ordering
 tags: [error path, edge case]
 steps:
+  - { from: customer, to: customer-app, text: Taps Place order on the hotel wifi, animation: { kind: send, carries: basket } }
   - from: customer-app
     to: order-api
     text: POST /orders reaches a sign-in page instead

@@ -24,6 +24,6 @@ test('Plum plays every kind of step, and uses states and every kind of group', (
 
 test('Plum keeps something open: the live map is a stream that a later step closes', () => {
   const live = flows.find(([id]) => id === 'follow-the-courier')![1].steps.map(s => animationOf(s))
-  assert.equal(live[0]?.opens, 'stream')
-  assert.equal(live.at(-1)?.closes, live[0]?.name)
+  assert.equal(live[1]?.opens, 'stream') // after the customer opens the order
+  assert.equal(live.at(-1)?.closes, live[1]?.name)
 })

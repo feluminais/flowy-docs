@@ -537,6 +537,9 @@
           "label": "sends receipts",
           "count": 1
         }
+      ],
+      "actors": [
+        "customer"
       ]
     },
     "api": {

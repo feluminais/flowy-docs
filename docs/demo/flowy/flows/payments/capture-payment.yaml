@@ -10,6 +10,8 @@ groups:
   outcome:
     kind: branch
 steps:
+  - { from: restaurant, to: kitchen-tablet, text: The kitchen taps Accept, animation: { kind: send, carries: accept }, flow: restaurant-accepts }
+  - { from: kitchen-tablet, to: order-api, text: Sends the acceptance, animation: { kind: call, carries: accept } }
   - { from: order-api, to: stripe, text: Captures the amount it held, group: charge, animation: { kind: call, outcome: timeout } }
   - { from: order-api, text: Times out after 5 s and retries, group: charge }
   - { from: stripe, to: order-api, text: Confirms the charge, group: outcome, lane: The charge goes through, animation: { kind: send, carries: charged } }
@@ -22,4 +24,5 @@ steps:
     animation: { kind: send, outcome: fail }
     description: |
       A decline is not retried. The hold is released and the app asks for another card.
-  - { from: order-api, to: customer-app, text: Asks the customer to try another card, group: outcome, animation: { kind: send, carries: try another card } }
+  - { from: order-api, to: customer-app, text: Asks for another card, group: outcome, animation: { kind: send, carries: try another card } }
+  - { from: customer-app, to: customer, text: Shows that the card was declined, group: outcome, animation: { kind: send, carries: declined } }

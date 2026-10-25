@@ -277,7 +277,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   }, () => reading(({ problems }) => (problems.length === 0 ? 'No problems.' : problems.map(p => `${p.file}: ${p.message}`).join('\n'))))
 
   server.registerTool('get_view', {
-    description: 'What one diagram shows: members (its shapes), outsiders (faded shapes from elsewhere that connect in) and edges (connections merged to that zoom level: one per pair of shapes, with both: true when they run both ways).',
+    description: 'What one diagram shows: members (its shapes), outsiders (faded shapes from elsewhere that connect in, and people its flows name) and edges (connections merged to that zoom level: one per pair of shapes, with both: true when they run both ways).',
     inputSchema: { view: z.string().max(64).describe('"root" for the top level, or the id of an object with children') },
     annotations: readOnly,
   }, ({ view }) => read(m => {

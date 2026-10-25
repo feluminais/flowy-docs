@@ -209,8 +209,11 @@ public static class Layout
         return next;
     }
 
-    /// <summary>Outsiders that only start lines (people, mostly). They always wait above.</summary>
-    private static bool StartsOnly(string id, IReadOnlyList<Ends> edges) => edges.Any(e => e.From == id) && !edges.Any(e => e.To == id);
+    /// <summary>
+    /// Outsiders that only start lines (people, mostly), or have none at all: an actor drawn for the flows of a view (see <see cref="Views.FlowActors"/>)
+    /// may have no line there. They always wait above.
+    /// </summary>
+    private static bool StartsOnly(string id, IReadOnlyList<Ends> edges) => !edges.Any(e => e.To == id);
 
     public static Members MembersOf(OrderedDictionary<string, Pt> inner, IReadOnlyList<string> outsiders, IReadOnlyList<Ends> edges, IReadOnlyDictionary<string, Region>? fixedSides = null)
     {

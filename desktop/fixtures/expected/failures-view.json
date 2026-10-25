@@ -2515,6 +2515,11 @@
           },
           {
             "view": "ordering",
+            "box": "support",
+            "here": []
+          },
+          {
+            "view": "ordering",
             "line": [
               "customer",
               "customer-app"
@@ -2704,6 +2709,16 @@
           {
             "view": "delivery",
             "box": "notifications",
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "box": "restaurant",
             "here": []
           },
           {
@@ -3004,6 +3019,11 @@
           },
           {
             "view": "order-api",
+            "box": "customer",
+            "here": []
+          },
+          {
+            "view": "order-api",
             "line": [
               "menu",
               "menu-cache"
@@ -3171,6 +3191,11 @@
           {
             "view": "dispatch",
             "box": "notifications",
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "box": "customer",
             "here": []
           },
           {
