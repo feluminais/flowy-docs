@@ -89,7 +89,7 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
           <span className="cpick-end muted">
             {!c.missing && kind === 'flow' && Object.hasOwn(model.flows, c.id) && nameOf(model, model.flows[c.id].view)}
             {c.missing && 'Missing'}
-            {isLinked && <span className="linked"><Link size={13} />Linked</span>}
+            {isLinked && <span className="linked"><Link size={13} />Compare pair</span>}
           </span>
         </button>
       </li>

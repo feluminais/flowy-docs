@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url'
 import { ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model } from '../../src/core/model.ts'
-import { expandTo, flowList, outline, outlineKey } from '../../src/core/outline.ts'
+import { comparedWith, expandTo, flowList, outline, outlineKey, rowCount, rowCountWords } from '../../src/core/outline.ts'
 import type { OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { isView } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -13,7 +13,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url))
 
 /** A tree to press keys in: the project open, one shape closed, one open with a shape and a flow in it, and a shape with nothing in it. */
 const row = (key: string, depth: number, extra: Partial<OutlineRow> = {}): OutlineRow => ({
-  key, kind: key.startsWith('flow') ? 'flow' : 'shape', id: key.split(':')[1], depth, name: key, external: false, shapes: 0, flows: 0,
+  key, kind: key.startsWith('flow') ? 'flow' : 'shape', id: key.split(':')[1], depth, name: key, external: false, inside: 0, shapes: 0, flows: 0,
   problem: false, expandable: false, expanded: false, match: true, ...extra,
 })
 const KEY_ROWS = [
@@ -82,7 +82,7 @@ export async function dumpOutline(): Promise<unknown> {
     folders[name] = {
       outlines: states.map(s => {
         const { rows, totals } = outline(model, { expanded: new Set(s.expanded), filter: s.filter, editing: s.editing, problems: state.problems })
-        return { ...s, rows, totals }
+        return { ...s, rows, totals, counts: rows.map(r => ({ key: r.key, short: rowCount(r), words: rowCountWords(r) })) }
       }),
       lists: dumpLists(model),
       expandTo: [...everything, 'nope'].flatMap(id => [false, true].map(self => ({ id, self, opened: [...expandTo(model, id, new Set(), self)].sort() }))),
@@ -90,6 +90,7 @@ export async function dumpOutline(): Promise<unknown> {
   }
   return {
     folders,
+    compared: [[], ['A'], ['The refund is not recorded'], ['A', 'B']].map(partners => ({ partners, words: comparedWith(partners) })),
     keys: {
       rows: KEY_ROWS,
       results: [undefined, ...KEY_ROWS.map(r => r.key), 'shape:gone'].flatMap(focus => KEYS.map(key => ({ focus, key, result: outlineKey(KEY_ROWS, focus, key) }))),

@@ -39,7 +39,7 @@ internal sealed class FlowsView : Grid
     /// <summary>Why the Compare buttons are greyed out (their tooltip), or null when they are not.</summary>
     internal string? CompareOff { get; private set; }
 
-    /// <summary>Whether the foot with the Linked key shows: a flow in a pair is on the list.</summary>
+    /// <summary>Whether the foot with the Compare pair key shows: a flow in a pair is on the list.</summary>
     internal bool LinkedKeyShown => _foot.IsVisible;
 
     /// <summary>The tags that filter the list now, as the filter keeps them (lower case).</summary>
@@ -101,13 +101,14 @@ internal sealed class FlowsView : Grid
         Children.Add(_foot);
     }
 
-    /// <summary>The mark of a flow that is in a pair. Its name is what a screen reader reads on the row.</summary>
-    internal static Control LinkedMark()
+    /// <summary>The mark of a flow that is in a pair. Its name, in the tooltip and for a screen reader, says which flow it is compared with.</summary>
+    internal static Control LinkedMark(IReadOnlyList<string> partners)
     {
         var mark = Icons.Make(Icons.Link, "linkmark", 13);
         mark.VerticalAlignment = VerticalAlignment.Center;
-        AutomationProperties.SetName(mark, "Linked");
-        ToolTip.SetTip(mark, "Linked");
+        var words = Outlines.ComparedWith(partners);
+        AutomationProperties.SetName(mark, words);
+        ToolTip.SetTip(mark, words);
         return mark;
     }
 
@@ -116,7 +117,7 @@ internal sealed class FlowsView : Grid
     {
         var glyph = Icons.Make(Icons.Link, "linkmark", 13);
         glyph.VerticalAlignment = VerticalAlignment.Center;
-        var item = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { glyph, Muted("Linked") } };
+        var item = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { glyph, Muted("Compare pair") } };
         var foot = new Border { Child = item, Padding = new Thickness(4, 8, 0, 0), Margin = new Thickness(0, 0, Inset, 0) };
         foot.Classes.Add("navfoot");
         return foot;
@@ -177,7 +178,7 @@ internal sealed class FlowsView : Grid
         icon.VerticalAlignment = VerticalAlignment.Center;
         var name = new TextBlock { Text = f.Name, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
         var steps = Muted(f.Steps == 0 ? "no steps yet" : Plural(f.Steps, "step"));
-        var mark = LinkedMark();
+        var mark = LinkedMark(f.Partners);
         mark.IsVisible = f.Linked;
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { icon, name, mark, steps } };
         SetColumn(name, 1);

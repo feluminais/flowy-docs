@@ -66,7 +66,7 @@ internal sealed class RunLinksPanel : StackPanel
             var head = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8, Children = { name } };
             if (isLinked)
             {
-                var mark = Chrome.Chip("Linked", Icons.Link, "accent");
+                var mark = Chrome.Chip("Compare pair", Icons.Link, "accent");
                 Grid.SetColumn(mark, 1);
                 head.Children.Add(mark);
             }

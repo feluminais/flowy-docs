@@ -112,13 +112,17 @@ public class FlowListHeadingsTests
     }
 
     [AvaloniaFact]
-    public void The_Linked_key_is_on_the_foot_while_a_listed_flow_is_in_a_pair()
+    public void The_Compare_pair_key_is_on_the_foot_while_a_listed_flow_is_in_a_pair()
     {
         var (window, reader) = Open();
         reader.ClickRail(PanelTab.Flows);
         window.UpdateLayout();
         Assert.True(reader.Navigator.Flows.LinkedKeyShown); // the Plum demo tags the refund flow; a folder with no pair is CompareTests'
-        Assert.Contains(reader.Navigator.Flows.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Linked" && c.IsVisible);
+        Assert.Contains(reader.Navigator.Flows.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Compare pair" && t.IsVisible);
+        // the mark on each row of the pair says which flow it is compared with, for a screen reader and in its tooltip
+        var names = reader.Navigator.Flows.GetVisualDescendants().OfType<Control>().Where(c => c.IsVisible && Avalonia.Automation.AutomationProperties.GetName(c) is { } n && n.StartsWith("Compared with")).ToList();
+        Assert.Equal(["Compared with Support refunds an order", "Compared with The refund is not recorded"], names.Select(c => Avalonia.Automation.AutomationProperties.GetName(c)).Order());
+        Assert.All(names, c => Assert.Equal(Avalonia.Automation.AutomationProperties.GetName(c), ToolTip.GetTip(c)));
     }
 
     [AvaloniaFact]

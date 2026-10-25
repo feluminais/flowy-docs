@@ -32,7 +32,7 @@ public class OutlineTests
 
     private static JsonObject Json(OutlineRow r)
     {
-        var o = new JsonObject { ["key"] = r.Key, ["kind"] = r.Kind, ["id"] = r.Id, ["depth"] = r.Depth, ["name"] = r.Name, ["external"] = r.External, ["shapes"] = r.Shapes, ["flows"] = r.Flows };
+        var o = new JsonObject { ["key"] = r.Key, ["kind"] = r.Kind, ["id"] = r.Id, ["depth"] = r.Depth, ["name"] = r.Name, ["external"] = r.External, ["inside"] = r.Inside, ["shapes"] = r.Shapes, ["flows"] = r.Flows };
         if (r.Parent is not null) o["parent"] = r.Parent;
         if (r.Type is not null) o["type"] = r.Type;
         if (r.Steps is not null) o["steps"] = r.Steps;
@@ -41,12 +41,13 @@ public class OutlineTests
         o["expanded"] = r.Expanded;
         o["match"] = r.Match;
         if (r.Linked is not null) o["linked"] = r.Linked;
+        if (r.Partners is not null) o["partners"] = Strings(r.Partners);
         return o;
     }
 
     private static JsonObject Json(FlowRef f)
     {
-        var o = new JsonObject { ["id"] = f.Id, ["name"] = f.Name, ["steps"] = f.Steps, ["linked"] = f.Linked, ["folder"] = f.Folder, ["tags"] = Strings(f.Tags) };
+        var o = new JsonObject { ["id"] = f.Id, ["name"] = f.Name, ["steps"] = f.Steps, ["linked"] = f.Linked, ["partners"] = Strings(f.Partners), ["folder"] = f.Folder, ["tags"] = Strings(f.Tags) };
         if (f.View is not null) o["view"] = f.View;
         return o;
     }
@@ -92,6 +93,8 @@ public class OutlineTests
                 ["totals"] = new JsonObject { ["shapes"] = actual.Totals.Shapes, ["flows"] = actual.Totals.Flows, ["problems"] = actual.Totals.Problems },
             };
             Assert.Equal(JsonDump.Pretty(new JsonObject { ["rows"] = s["rows"]!.DeepClone(), ["totals"] = s["totals"]!.DeepClone() }), JsonDump.Pretty(json));
+            var counts = new JsonArray(actual.Rows.Select(r => (JsonNode?)new JsonObject { ["key"] = r.Key, ["short"] = Outlines.RowCount(r), ["words"] = Outlines.RowCountWords(r) }).ToArray());
+            Assert.Equal(JsonDump.Pretty(s["counts"]), JsonDump.Pretty(counts)); // what a row's number says, short and in full
         }
     }
 
@@ -156,6 +159,13 @@ public class OutlineTests
         Assert.Equal(["a", "b", "c", "d", "e"], rows.Where(r => r.Kind == "flow").Select(r => r.Id));
         Assert.Equal([true, true, true, false, false], rows.Where(r => r.Kind == "flow").Select(r => r.Linked));
         Assert.All(rows.Where(r => r.Kind == "shape"), r => Assert.Null(r.Linked));
+    }
+
+    [Fact]
+    public void A_flow_in_a_pair_says_who_it_is_compared_with_as_the_TypeScript_does()
+    {
+        foreach (var c in Expected()["compared"]!.AsArray())
+            Assert.Equal(c!["words"]!.GetValue<string>(), Outlines.ComparedWith(c["partners"]!.AsArray().Select(p => p!.GetValue<string>()).ToList()));
     }
 
     [Fact]
