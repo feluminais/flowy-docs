@@ -43,12 +43,25 @@ test('a playing step lights its two boxes and its line, and dims the rest', () =
   assert.deepEqual(nodes.filter(n => n.className?.includes('lit')).map(n => n.id), ['web', 'api'])
   assert.equal(byId(nodes).customer.className, 'outsider dim')
   assert.deepEqual(edges.map(e => [e.id, e.className]), [
-    ['customer web', 'dim'], ['web api', 'active'], ['api db', 'dim'], ['api mail', 'dim'],
+    ['customer web', 'dim'], ['api web', 'active'], ['api db', 'dim'], ['api mail', 'dim'],
   ])
   // The lit line draws over the faded boxes, with an arrowhead in its own colour.
-  const active = byId(edges)['web api']
+  const active = byId(edges)['api web']
   assert.equal(active.zIndex, 1)
   assert.deepEqual(active.markerEnd, { type: 'arrowclosed', color: 'var(--accent)' })
+})
+
+test('connections both ways are one line with an arrowhead at each end, both lit when a step plays on it', () => {
+  const m = shop()
+  m.connections.push({ from: 'api', to: 'web', label: 'pushes' })
+  const quiet = byId(toGraph(m, 'shop').edges)['api web']
+  assert.deepEqual([quiet.source, quiet.target, quiet.label], ['web', 'api', '2 connections'])
+  assert.deepEqual([quiet.markerStart, quiet.markerEnd], [{ type: 'arrowclosed' }, { type: 'arrowclosed' }])
+  assert.equal(quiet.ariaLabel, 'Web app and API, 2 connections')
+  const lit = byId(toGraph(m, 'shop', { ends: [['api', 'web']], step: 0 }).edges)['api web']
+  assert.equal(lit.className, 'active')
+  assert.deepEqual([lit.markerStart, lit.markerEnd], [{ type: 'arrowclosed', color: 'var(--accent)' }, { type: 'arrowclosed', color: 'var(--accent)' }])
+  assert.equal(byId(toGraph(shop(), 'shop').edges)['api web'].markerStart, undefined)
 })
 
 test('an outsider in a playing step is lit like the rest of the step', () => {
@@ -56,9 +69,11 @@ test('an outsider in a playing step is lit like the rest of the step', () => {
   assert.equal(byId(nodes).mail.className, 'outsider lit')
 })
 
-test('a step with no line of its own gets a dashed one, and an unshowable step dims everything', () => {
-  const back = toGraph(shop(), 'shop', { ends: [['api', 'web']], step: 0 }).edges.at(-1)
-  assert.deepEqual([back?.id, back?.source, back?.target, back?.className], ['step', 'api', 'web', 'step'])
+test('a step against the way a line runs lights that line, one with no line of its own gets a dashed one, and an unshowable step dims everything', () => {
+  const back = toGraph(shop(), 'shop', { ends: [['api', 'web']], step: 0 }).edges
+  assert.deepEqual(back.map(e => [e.id, e.className]), [['customer web', 'dim'], ['api web', 'active'], ['api db', 'dim'], ['api mail', 'dim']])
+  const none = toGraph(shop(), 'shop', { ends: [['web', 'db']], step: 0 }).edges.at(-1)
+  assert.deepEqual([none?.id, none?.source, none?.target, none?.className], ['step', 'web', 'db', 'step'])
   const { nodes, edges } = toGraph(shop(), 'shop', { ends: [null], step: 0 })
   assert.ok([...nodes, ...edges].every(item => item.className?.includes('dim')))
 })
@@ -142,11 +157,11 @@ test('boxes arranged around the members never overlap', () => {
 test('lines show a label only for the selected box, the selected or pointed-at line, and a lit step', () => {
   const { edges } = toGraph(shop(), 'shop', { ends: [['web', 'api']], step: 0 })
   const labels = (focus: Parameters<typeof focusEdges>[1]) => focusEdges(edges, focus).filter(e => e.label).map(e => e.id)
-  assert.deepEqual(labels({}), ['web api'], 'only the lit line')
+  assert.deepEqual(labels({}), ['api web'], 'only the lit line')
   assert.deepEqual(focusEdges(toGraph(shop(), 'shop').edges, {}).filter(e => e.label), [], 'a quiet view has no labels')
   const quiet = toGraph(shop(), 'shop').edges
   const shown = (focus: Parameters<typeof focusEdges>[1]) => focusEdges(quiet, focus).filter(e => e.label).map(e => e.id)
-  assert.deepEqual(shown({ box: 'api' }), ['web api', 'api db', 'api mail'])
+  assert.deepEqual(shown({ box: 'api' }), ['api web', 'api db', 'api mail'])
   assert.deepEqual(shown({ line: 'customer web' }), ['customer web'])
   assert.deepEqual(shown({ hover: 'api db' }), ['api db'])
   assert.equal(focusEdges(quiet, { line: 'api db' }).find(e => e.selected)?.id, 'api db')

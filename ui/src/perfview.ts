@@ -1,6 +1,6 @@
 import { colorPair } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
-import { memberIds } from '../../src/core/views.ts'
+import { lineKey, memberIds } from '../../src/core/views.ts'
 import { loadOfPosition, lockstepPositions, settingAt } from '../../src/core/perf/dials.ts'
 import { idleOf } from '../../src/core/perf/idle.ts'
 import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
@@ -294,7 +294,7 @@ export function boxSeries(model: Model, run: Run, view: string, id: string, key:
   return boxSeriesIn(model, run.levels, view, id, key)
 }
 
-/** The same for the line a view draws between two shapes. */
+/** The same for the line a view draws between two shapes, given either way. */
 export function lineSeries(model: Model, run: Run, view: string, from: string, to: string, key: keyof Metrics): (number | undefined)[] {
   return lineSeriesIn(model, run.levels, view, from, to, key)
 }
@@ -307,9 +307,9 @@ export function boxSeriesIn(model: Model, levels: readonly Level[], view: string
   })
 }
 
-/** The same for the line a view draws between two shapes. */
+/** The same for the line a view draws between two shapes, given either way. */
 export function lineSeriesIn(model: Model, levels: readonly Level[], view: string, from: string, to: string, key: keyof Metrics): (number | undefined)[] {
-  return levels.map(l => rollUpLoad(model, l, view).lines.find(p => p.from === from && p.to === to)?.[key])
+  return levels.map(l => rollUpLoad(model, l, view).lines.find(p => lineKey(p.from, p.to) === lineKey(from, to))?.[key])
 }
 
 /** An object's numbers at a load, or undefined when nothing was measured on it. */
@@ -330,7 +330,7 @@ export function boxAtLevel(model: Model, level: Level, view: string, id: string)
 
 /** A line's numbers in a level. */
 export function lineAtLevel(model: Model, level: Level, view: string, from: string, to: string): Pair | undefined {
-  return rollUpLoad(model, level, view).lines.find(p => p.from === from && p.to === to)
+  return rollUpLoad(model, level, view).lines.find(p => lineKey(p.from, p.to) === lineKey(from, to))
 }
 
 // ---- Colour and key

@@ -37,10 +37,10 @@ test('rollUp: a shape that holds others takes the worst band and the count of wh
     boxes: { web: { band: 'low', count: 1 }, api: { band: 'high', count: 3 }, db: { band: 'high', count: 1 } },
     lines: { 'api mail': { band: 'medium', count: 1 } },
   })
-  assert.deepEqual(rollUp(m, m.failures.ordering, 'root'), { boxes: { shop: { band: 'high', count: 5 } }, lines: { 'shop mail': { band: 'medium', count: 1 } } })
+  assert.deepEqual(rollUp(m, m.failures.ordering, 'root'), { boxes: { shop: { band: 'high', count: 5 } }, lines: { 'mail shop': { band: 'medium', count: 1 } } })
   assert.deepEqual(rollUp(m, m.failures.ordering, 'api'), {
     boxes: { auth: { band: 'high', count: 1 }, orders: { band: 'unrated', count: 1 } },
-    lines: { 'orders mail': { band: 'medium', count: 1 } }, // api-slow is on the frame, which carries no badge
+    lines: { 'mail orders': { band: 'medium', count: 1 } }, // api-slow is on the frame, which carries no badge
   })
 })
 
@@ -64,7 +64,7 @@ test('a line whose two ends sit in one drawn box counts toward that box, and sho
   const shop = rollUp(both, both.failures.ordering, 'shop')
   assert.equal(shop.boxes.api.count, 4)
   assert.deepEqual(Object.keys(shop.lines), ['api mail'])
-  assert.equal(rollUp(both, both.failures.ordering, 'api').lines['orders auth'].count, 1)
+  assert.equal(rollUp(both, both.failures.ordering, 'api').lines['auth orders'].count, 1)
   assert.deepEqual(carried(both, both.failures.ordering, 'shop', { box: 'api' }).includes('orders-auth'), true)
 })
 

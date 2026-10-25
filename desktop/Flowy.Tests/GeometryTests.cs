@@ -79,6 +79,17 @@ public class GeometryTests
         Assert.StartsWith("M100,72 C", path.Data);
     }
 
+    [Theory]
+    [InlineData("straight")]
+    [InlineData("curved")]
+    [InlineData("angled")]
+    public void A_path_knows_where_it_starts_and_points_back_out_there_for_a_second_arrow(string style)
+    {
+        var path = LinePaths.Build(style, Top, new Rect(0, 200, 200, 72)); // straight below Top
+        Assert.Equal(new Pt(100, 72), path.Start);
+        Assert.Equal(new Pt(0, -1), path.StartDirection);
+    }
+
     [Fact]
     public void An_angled_path_is_made_of_straight_pieces_and_rounded_bends()
     {

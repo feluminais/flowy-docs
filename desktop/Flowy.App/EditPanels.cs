@@ -359,7 +359,6 @@ internal sealed class LineEditor : StackPanel
         (_owner, _from, _to, _run, _closed, _askDelete) = (owner, from, to, run, closed, askDelete);
         Spacing = 12;
         Children.Add(_header);
-        Children.Add(Chrome.Section(Icons.Route, "Connections"));
         Children.Add(_rows);
     }
 
@@ -367,22 +366,28 @@ internal sealed class LineEditor : StackPanel
 
     public void Update(Model model, string view, IReadOnlyList<Problem> problems)
     {
+        // As the panel a reader sees: one heading per way when connections run both ways (see SidePanel.Ways).
+        var ways = SidePanel.Ways(model, _from, _to, Navigation.ConnectionsOf(model, view, _from, _to));
         _header.Children.Clear();
-        _header.Children.Add(_owner.LineHeader(model, _from, _to));
-        var lines = Navigation.ConnectionsOf(model, view, _from, _to);
-        if (!lines.Select(l => l.Index).SequenceEqual(_live.Select(r => r.Index)))
+        _header.Children.Add(_owner.LineHeader(model, ways.From, ways.To, ways.Both));
+        var lines = ways.Groups.SelectMany(w => w.Lines.Select(l => (l.Index, l.Connection, w.From, w.To))).ToList();
+        if (!lines.Select(l => l.Index).SequenceEqual(_live.Select(r => r.Index)) || _rows.Children.Count != lines.Count + ways.Groups.Count)
         {
             _live.Clear();
             _rows.Children.Clear();
-            foreach (var (index, _) in lines) _rows.Children.Add(Build(index));
+            foreach (var way in ways.Groups)
+            {
+                _rows.Children.Add(way.Heading);
+                foreach (var (index, _, _) in way.Lines) _rows.Children.Add(Build(index));
+            }
         }
         for (var i = 0; i < lines.Count; i++)
         {
-            var (index, c) = lines[i];
+            var (index, c, wayFrom, wayTo) = lines[i];
             var row = _live[i];
             row.Which = new ConnectionInput(c.From ?? "", c.To ?? "", c.Label ?? "");
             row.Label.Sync(c.Label ?? "");
-            row.Inside.IsVisible = c.From != _from || c.To != _to;
+            row.Inside.IsVisible = c.From != wayFrom || c.To != wayTo;
             if (row.Inside is TextBlock t) t.Text = SidePanel.Describe(model, c);
             row.Problems.Children.Clear();
             row.Problems.Children.Add(_owner.Problems(problems.Where(p => p.Connection == index).Select(p => p.Message)));

@@ -20,7 +20,7 @@ test('a stop of several steps lights every step\'s boxes and lines, and dims the
   assert.equal(box.db.className, 'lit')
   assert.equal(box.mail.className, 'outsider dim')
   const line = byId(edges)
-  assert.equal(line['web api'].className, 'active')
+  assert.equal(line['api web'].className, 'active')
   assert.equal(line['api db'].className, 'active')
   assert.equal(line['api mail'].className, 'dim')
 })
@@ -37,7 +37,7 @@ test('a lit step with no line of its own gets a dashed one, and each gets an id 
 test('the steps of the other lanes are drawn faint and dashed, and their boxes stay dim', () => {
   const { nodes, edges } = toGraph(shop(), 'shop', { ends: [['web', 'api'], ['api', 'mail'], ['web', 'db']], steps: [0], faint: [1, 2] })
   const line = byId(edges)
-  assert.equal(line['web api'].className, 'active')
+  assert.equal(line['api web'].className, 'active')
   assert.equal(line['api mail'].className, 'lane')
   const extra = edges.find(e => e.id === 'lane-2')!
   assert.deepEqual([extra.source, extra.target, extra.className], ['web', 'db', 'lane'])

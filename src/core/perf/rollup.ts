@@ -1,6 +1,6 @@
 import { getObject, ROOT } from '../model.ts'
 import type { Model } from '../model.ts'
-import { chain, placeEnds } from '../views.ts'
+import { chain, computeView, lineKey, placeEnds } from '../views.ts'
 import type { Failure, Level, Metrics, Pair } from './types.ts'
 import { add, defined, either, hasConnection, meanBytes, newMean, put, takeBytes } from './util.ts'
 import type { Mean } from './util.ts'
@@ -10,7 +10,7 @@ import type { Mean } from './util.ts'
 /**
  * A level as one view draws it. Each object takes the worst of what it holds and of itself (highest util and errors,
  * queues added; if a run measures both a shape and what is inside it, the queue counts twice, so measure one). Each
- * line the view draws takes the connections that land on it: rates added, worst latency, worst errors. A connection
+ * line the view draws takes the connections that land on it, both ways: rates added, worst latency, worst errors. A connection
  * the model doesn't have is left out. Objects are the same in every view; lines depend on `view`.
  */
 export function rollUpLoad(model: Model, level: Level, view: string): { objects: Record<string, Metrics>; lines: Pair[] } {
@@ -39,11 +39,15 @@ function rollUp(model: Model, level: Level, view: string): { objects: Record<str
 
   const lines = new Map<string, Pair>()
   const sizes = new Map<string, Sizes>()
+  // Calls both ways between two shapes land on the one line the view draws, which runs the way the view has it.
+  const drawn = new Map(computeView(model, view).edges.map(e => [lineKey(e.from, e.to), e]))
   for (const c of level.connections) {
     if (!hasConnection(model, c.from, c.to)) continue
-    const ends = placeEnds(model, view, c.from, c.to)
-    if (!ends) continue
-    const key = JSON.stringify(ends)
+    const placed = placeEnds(model, view, c.from, c.to)
+    if (!placed) continue
+    const key = lineKey(...placed)
+    const way = drawn.get(key)
+    const ends = way ? [way.from, way.to] : placed
     const so = lines.get(key)
     const size: Sizes = sizes.get(key) ?? { ...newMean(), failures: [], by: new Map() }
     sizes.set(key, size)

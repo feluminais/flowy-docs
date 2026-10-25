@@ -60,8 +60,11 @@ test('tidyViews lays out the views that disagree, and a second run finds nothing
   assert.equal(again.model, tidy, 'nothing to change: the same model comes back')
 })
 
+/** The pair with the top level putting Ordering above Back office, as the tests below expect. */
+const stacked = () => placeBoxes(pair(), 'root', { ordering: [0, 0], backoffice: [0, 400] })
+
 test('tidyViews leaves a view that already agrees as it is, dragged positions and all', () => {
-  const tidy = tidyViews(pair()).model
+  const tidy = tidyViews(stacked()).model
   const dragged = placeBoxes(tidy, 'ordering', { web: [0, 0], api: [0, 142], backoffice: [0, 600] })
   const again = tidyViews(dragged)
   assert.equal(again.model, dragged)
@@ -69,7 +72,7 @@ test('tidyViews leaves a view that already agrees as it is, dragged positions an
 })
 
 test('a view the user dragged the wrong way is found, and tidyViews can be limited to one view', () => {
-  const tidy = tidyViews(pair()).model
+  const tidy = tidyViews(stacked()).model
   const wrong = placeBoxes(tidy, 'backoffice', { ordering: [0, 600] }) // the view above has Ordering above Back office
   assert.deepEqual(sideProblems(wrong, 'ordering'), [])
   assert.deepEqual(sideProblems(wrong, 'backoffice').map(p => [p.box, p.drawn, p.wanted]), [['ordering', 'below', 'above']])

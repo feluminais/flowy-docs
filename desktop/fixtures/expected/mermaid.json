@@ -59,7 +59,7 @@
       "views": [
         {
           "view": "root",
-          "text": "flowchart TB\n  n0([\"Customer<br/>actor\"])\n  n1([\"Restaurant<br/>actor\"])\n  n2([\"Courier<br/>actor\"])\n  n3([\"Support agent<br/>actor\"])\n  n4[\"Ordering<br/>system\"]\n  n5[\"Delivery<br/>system\"]\n  n6[\"Notifications<br/>system\"]\n  n7[\"Back office<br/>system\"]\n  n8[\"Stripe<br/>system\"]\n  n9[\"Twilio<br/>system\"]\n  n10[\"Mapbox<br/>system\"]\n  n0 -- \"2 connections\" --> n4\n  n1 -- \"accepts orders\" --> n4\n  n2 -- \"takes deliveries\" --> n5\n  n3 -- \"2 connections\" --> n7\n  n4 -- \"delivery distance\" --> n10\n  n4 -- \"2 connections\" --> n8\n  n4 -- \"2 connections\" --> n6\n  n5 -- \"4 connections\" --> n4\n  n5 -- \"2 connections\" --> n10\n  n5 -- \"sends the offer\" --> n6\n  n6 -- \"SMS\" --> n9\n  n7 -- \"3 connections\" --> n4\n  n4 -- \"streams every event\" --> n7\n"
+          "text": "flowchart TB\n  n0([\"Customer<br/>actor\"])\n  n1([\"Restaurant<br/>actor\"])\n  n2([\"Courier<br/>actor\"])\n  n3([\"Support agent<br/>actor\"])\n  n4[\"Ordering<br/>system\"]\n  n5[\"Delivery<br/>system\"]\n  n6[\"Notifications<br/>system\"]\n  n7[\"Back office<br/>system\"]\n  n8[\"Stripe<br/>system\"]\n  n9[\"Twilio<br/>system\"]\n  n10[\"Mapbox<br/>system\"]\n  n0 -- \"2 connections\" --> n4\n  n1 -- \"accepts orders\" --> n4\n  n2 -- \"takes deliveries\" --> n5\n  n3 -- \"2 connections\" --> n7\n  n4 -- \"delivery distance\" --> n10\n  n4 -- \"2 connections\" --> n8\n  n4 -- \"2 connections\" --> n6\n  n5 -- \"4 connections\" --> n4\n  n5 -- \"2 connections\" --> n10\n  n5 -- \"sends the offer\" --> n6\n  n6 -- \"SMS\" --> n9\n  n7 <-- \"4 connections\" --> n4\n"
         },
         {
           "view": "ordering",

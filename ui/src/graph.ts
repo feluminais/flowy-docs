@@ -42,8 +42,12 @@ export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?
 /** Whether an edge is one a flow step added (it has no connection of its own), so a click on it opens no panel. */
 export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(id)
 
-/** What a screen reader says for a line: the two shapes by name, and the line's label ("Customer app to Order API, REST"), not the ids React Flow would read. */
-export const lineName = (model: Model, from: string, to: string, label?: string): string => `${nameOf(model, from)} to ${nameOf(model, to)}${label ? `, ${label}` : ''}`
+/**
+ * What a screen reader says for a line: the two shapes by name, and the line's label ("Customer app to Order API, REST"), not the ids React Flow
+ * would read. A line with connections both ways says "and" ("Ordering and Back office, 4 connections").
+ */
+export const lineName = (model: Model, from: string, to: string, label?: string, both?: boolean): string =>
+  `${nameOf(model, from)} ${both ? 'and' : 'to'} ${nameOf(model, to)}${label ? `, ${label}` : ''}`
 
 /** The core's lineKey; App.tsx still calls it lineId. */
 export const lineId = lineKey
@@ -80,12 +84,16 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const ends = c && placeEnds(model, view, c.from, c.to)
     return ends ? [lineKey(...ends)] : []
   }))
-  const isLit = (from: string, to: string) => litEnds.some(e => e[0] === from && e[1] === to)
+  // A step lights the line between its two shapes whichever way the step goes: there is one line for both ways.
+  const litLines = new Set(litEnds.map(e => lineKey(...e)))
+  const isLit = (from: string, to: string) => litLines.has(lineKey(from, to))
   const faintSteps = (playing?.faint ?? []).flatMap(i => {
     const e = placedAt(i)
     return e ? [{ i, e }] : []
   })
-  const isFaint = (from: string, to: string) => faintSteps.some(f => f.e[0] === from && f.e[1] === to)
+  const faintLines = new Set(faintSteps.map(f => lineKey(...f.e)))
+  const isFaint = (from: string, to: string) => faintLines.has(lineKey(from, to))
+  const hasLine = new Set(edges.map(e => lineKey(e.from, e.to)))
   const inView = new Set(members)
   const nodes = boxes.map((id): BoxNode => ({
     id,
@@ -95,29 +103,36 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     className: classes(!inView.has(id) && 'outsider', dimming && (litBoxes.has(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
   }))
   // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.
-  const litLine = { zIndex: 1, markerEnd: { type: 'arrowclosed', color: 'var(--accent)' } } as const
-  const lines: Edge[] = edges.map(e => ({
-    id: lineKey(e.from, e.to),
-    type: 'line',
-    source: e.from,
-    target: e.to,
-    label: e.label || undefined,
-    ariaLabel: lineName(model, e.from, e.to, e.label),
-    markerEnd: { type: 'arrowclosed' },
-    className: classes(dimming && (isLit(e.from, e.to) ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineKey(e.from, e.to)) && 'problem'),
-    ...(dimming && isLit(e.from, e.to) ? litLine : {}),
-  }))
+  const arrow = { type: 'arrowclosed' } as const
+  const litArrow = { type: 'arrowclosed', color: 'var(--accent)' } as const
+  const litLine = { zIndex: 1, markerEnd: litArrow } as const
+  const lines: Edge[] = edges.map(e => {
+    const lit = dimming && isLit(e.from, e.to)
+    return {
+      id: lineKey(e.from, e.to),
+      type: 'line',
+      source: e.from,
+      target: e.to,
+      label: e.label || undefined,
+      ariaLabel: lineName(model, e.from, e.to, e.label, e.both),
+      markerEnd: arrow,
+      // Connections both ways: an arrowhead at each end.
+      ...(e.both ? { markerStart: lit ? litArrow : arrow } : {}),
+      className: classes(dimming && (lit ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineKey(e.from, e.to)) && 'problem'),
+      ...(lit ? litLine : {}),
+    }
+  })
   // A one-box step lights its box, no line. A step with no connection of its own gets a dashed line, and so does a faint one.
   const drawn = new Set<string>()
   litEnds.forEach((e, n) => {
     const id = lineKey(e[0], e[1])
-    if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) return
+    if (e[0] === e[1] || hasLine.has(id) || drawn.has(id)) return
     drawn.add(id)
     lines.push({ id: n === 0 ? 'step' : `step-${n}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'step', ...litLine })
   })
   for (const { i, e } of faintSteps) {
     const id = lineKey(e[0], e[1])
-    if (e[0] === e[1] || edges.some(c => c.from === e[0] && c.to === e[1]) || drawn.has(id)) continue
+    if (e[0] === e[1] || hasLine.has(id) || drawn.has(id)) continue
     drawn.add(id)
     lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'lane', markerEnd: { type: 'arrowclosed' } })
   }
