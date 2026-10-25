@@ -1,8 +1,8 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
-  analysedText, analysesText, analysisProblems, analysisText, badgeName, BAND_RULES, bandOf, carried, coverage, coverageText, drawnIn, homeView, inView, lightFor, partName, rank, ratingOf, ratingsAfter, ratingsOf,
-  reach, riskOf, rollUp, rowName, runLinkProblems, usersOfConnection, usersOfObject,
+  analysedText, analysesText, analysisProblems, analysisText, badgeName, BAND_RULES, bandLabel, bandOf, bandReason, carried, coverage, coverageText, drawnIn, homeView, inView, lightFor, partName, rank, ratingOf, ratingsAfter, ratingsOf,
+  reach, riskOf, riskProduct, rollUp, rowName, runLinkProblems, usersOfConnection, usersOfObject,
 } from '../../src/core/failures.ts'
 import { ROOT } from '../../src/core/model.ts'
 import { locate } from '../../ui/src/edit.ts'
@@ -33,7 +33,7 @@ async function dumpDir(dir: string): Promise<unknown> {
   return {
     analyses: Object.entries(model.failures).map(([id, a]) => ({
       id,
-      modes: Object.entries(a.modes).map(([mid, m]) => ({ id: mid, ratings: ratingsOf(m), after: ratingsAfter(m), risk: riskOf(m) ?? null, band: bandOf(m), part: partName(model, m), home: homeView(model, m) })),
+      modes: Object.entries(a.modes).map(([mid, m]) => ({ id: mid, ratings: ratingsOf(m), after: ratingsAfter(m), risk: riskOf(m) ?? null, band: bandOf(m), bandReason: bandReason(m) ?? null, bandLabel: bandLabel(m), riskProduct: riskProduct(m) ?? null, part: partName(model, m), home: homeView(model, m) })),
       rank: rank(a).map(r => ({ id: r.id, risk: r.risk ?? null, band: r.band })),
       coverage: coverage(model, a),
       coverageText: coverageText(model, a),

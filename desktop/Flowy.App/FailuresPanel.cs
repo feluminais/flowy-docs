@@ -431,9 +431,12 @@ internal sealed class FailuresPanel : StackPanel
             };
             var swatch = KeyRow.Mark(Failures.BandKey(r.Band));
             var riskText = new TextBlock { Text = risk, Classes = { "risk" }, MinWidth = 30, TextAlignment = TextAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
-            var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { swatch, what, riskText } };
+            // A High row made so by severity alone says so under its number, since its risk would put it lower.
+            var riskColumn = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Children = { riskText } };
+            if (Failures.BandReason(r.Mode) is { } reason) riskColumn.Children.Add(new TextBlock { Text = reason, Classes = { "risk" }, FontSize = 11, TextAlignment = TextAlignment.Right });
+            var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { swatch, what, riskColumn } };
             Grid.SetColumn(what, 1);
-            Grid.SetColumn(riskText, 2);
+            Grid.SetColumn(riskColumn, 2);
             var row = new Button { Content = grid };
             row.Classes.Add("failrow");
             row.Classes.Set("current", r.Id == current);
@@ -475,8 +478,9 @@ internal sealed class FailuresPanel : StackPanel
         var band = Failures.BandOf(mode);
         var risk = new WrapPanel { Orientation = Orientation.Horizontal };
         risk.Children.Add(new TextBlock { Text = "Risk", Classes = { "muted" }, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center });
-        risk.Children.Add(new TextBlock { Text = Failures.RiskOf(mode) is { } n ? n.ToString(CultureInfo.InvariantCulture) : "None", FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
-        risk.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { KeyRow.Mark(Failures.BandKey(band)), new TextBlock { Text = Failures.BandName(band), VerticalAlignment = VerticalAlignment.Center } } });
+        risk.Children.Add(new TextBlock { Text = Failures.RiskOf(mode) is { } n ? n.ToString(CultureInfo.InvariantCulture) : "None", FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, Failures.RiskProduct(mode) is null ? 8 : 4, 0), VerticalAlignment = VerticalAlignment.Center });
+        if (Failures.RiskProduct(mode) is { } product) risk.Children.Add(new TextBlock { Text = $"({product})", Classes = { "muted" }, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
+        risk.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { KeyRow.Mark(Failures.BandKey(band)), new TextBlock { Text = Failures.BandLabel(mode), VerticalAlignment = VerticalAlignment.Center } } });
         if (FailuresView.AfterText(mode) is { } after) risk.Children.Add(new TextBlock { Text = $"{FailuresView.AfterLabel}: {after}", Classes = { "muted" }, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
         box.Children.Add(risk);
 
