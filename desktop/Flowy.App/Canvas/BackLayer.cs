@@ -14,13 +14,17 @@ namespace Flowy.App.Canvas;
 /// </summary>
 internal sealed class BackLayer : Control
 {
-    /// <summary>A line as drawn. `Made` is what its path was made from: the two boxes and their outlines, so a line whose boxes stayed where they were keeps its path, its geometry and its label.</summary>
+    /// <summary>
+    /// A line as drawn. `Made` is what its path was made from: the two boxes and their outlines, so a line whose boxes stayed where they were keeps its path, its geometry and its label.
+    /// `Label` is the label's box at the middle of the line, as measured; where it is drawn is in `_labelAt`.
+    /// </summary>
     private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds);
 
     private string _style = "";
 
     private List<Drawn> _lines = [];
     private List<CoreRect> _labels = [];
+    private Dictionary<string, CoreRect> _labelAt = []; // where each label is drawn, by line id, kept clear of the boxes and of each other (LineLabels)
     private IReadOnlyDictionary<string, double>? _widths; // how thick each line is drawn while a load shows (by line id), where it differs from the usual
     private FailureOverlay? _failures; // the Failures tab's badges and the line a picked mode fails, while the tab is open
     private IReadOnlyDictionary<string, Change>? _changes; // a comparison's change marks on the lines, by line id, while Show changes is on
@@ -58,12 +62,29 @@ internal sealed class BackLayer : Control
                     && was.Edge.Label == e.Label && (e.Label is null || (e.Flags & EdgeFlags.Active) == (was.Edge.Flags & EdgeFlags.Active)))
                     return was with { Edge = e };
                 var path = LinePaths.Build(style, made.Item1, made.Item2, made.Item3, made.Item4);
-                var label = e.Label is { Length: > 0 } ? LabelBox(path, Format(e, e.Label, Brushes.Black)) : (CoreRect?)null;
+                var label = e.Label is { Length: > 0 } ? LabelBox(path, Format(e, LineLabels.Clip(e.Label), Brushes.Black)) : (CoreRect?)null;
                 var geometry = Geometry.Parse(path.Data);
                 return new Drawn(e, path, geometry, made, label, geometry.Bounds);
             }).ToList();
-        _labels = _lines.Where(l => l.Label is not null).Select(l => l.Label!.Value).ToList();
+        PlaceLabels();
         InvalidateVisual();
+    }
+
+    /// <summary>
+    /// Where the labels on show go, as the browser places them: each slides along its line to the first place clear of the boxes and of the labels placed
+    /// before it. A lit line's label and a lifted one stay at the middle of the line, and the others are placed round them.
+    /// </summary>
+    private void PlaceLabels()
+    {
+        var items = _lines.Where(l => l.Label is not null).Select(l =>
+        {
+            var box = l.Label!.Value;
+            var pinned = l.Edge.Flags.HasFlag(EdgeFlags.Active) || _lifted.Contains((l.Edge.From, l.Edge.To));
+            return new LabelItem(l.Edge.Id, l.Path.Data, new CorePt(box.X + box.Width / 2, box.Y + box.Height / 2), box.Width, box.Height, pinned);
+        }).ToList();
+        var spots = LineLabels.Place(items, _scene?.Boxes.Select(b => b.Rect).ToList() ?? []);
+        _labelAt = items.ToDictionary(i => i.Id, i => LineLabels.Around(spots[i.Id], i));
+        _labels = [.. _labelAt.Values];
     }
 
     private IReadOnlySet<(string From, string To)> _lifted = new HashSet<(string, string)>();
@@ -77,6 +98,7 @@ internal sealed class BackLayer : Control
         var set = lines.ToHashSet();
         if (set.SetEquals(_lifted)) return;
         _lifted = set;
+        PlaceLabels();
         InvalidateVisual();
     }
 
@@ -232,8 +254,8 @@ internal sealed class BackLayer : Control
         var text = new FormattedText(mark.Count.ToString(CultureInfo.InvariantCulture), CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
             new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Bold), 11, Brush(unrated ? "FgBrush" : "BgBrush"));
         var width = Math.Max(20, text.Width + 12);
-        var x = line.Edge.Label is { Length: > 0 } label ? LabelBox(line.Path, Format(line.Edge, label, Brushes.Black)).X - width + 6 : line.Path.Label.X - width / 2;
-        var rect = new Avalonia.Rect(x, line.Path.Label.Y - 10, width, 20);
+        var (x, y) = _labelAt.TryGetValue(line.Edge.Id, out var label) ? (label.X - width + 6, label.Y + label.Height / 2) : (line.Path.Label.X - width / 2, line.Path.Label.Y);
+        var rect = new Avalonia.Rect(x, y - 10, width, 20);
         var fill = Brush(mark.Band switch { RiskBand.High => "DangerBrush", RiskBand.Medium => "WarnBrush", RiskBand.Low => "MutedBrush", _ => "BgBrush" });
         context.DrawRectangle(fill, unrated ? new Pen(Brush("LineBrush"), 1) : null, rect, 10, 10);
         context.DrawText(text, new Point(rect.X + (width - text.Width) / 2, rect.Y + (20 - text.Height) / 2));
@@ -289,8 +311,9 @@ internal sealed class BackLayer : Control
     private void DrawLabel(DrawingContext context, Drawn line, string text)
     {
         using var opacity = context.PushOpacity(Fade(line.Edge));
+        text = LineLabels.Clip(text);
         var formatted = Format(line.Edge, text, Brush("FgBrush"));
-        var box = LabelBox(line.Path, formatted);
+        var box = _labelAt.TryGetValue(line.Edge.Id, out var placed) ? placed : LabelBox(line.Path, formatted);
         if (_lifted.Contains((line.Edge.From, line.Edge.To)) && _scene is { } s
             && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.From) is { } a && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.To) is { } b)
         {
