@@ -206,6 +206,10 @@ public class SourcesTests
         Assert.Equal(1.0, reader.Canvas.Load!.Boxes["db"].Strain); // 0.6 and 0.8 added: past full, drawn at full
         var key = string.Join("|", reader.PerfPanelNow.KeyLabels);
         Assert.Contains("Customer orders|1 dot = 5 calls/s|Bigger call|Courier pings|1 dot = 5 calls/s", key);
+        // the marks every source shares come once, then a group for each source under its name
+        Assert.Equal(1, key.Split("More calls").Length - 1);
+        Assert.True(key.IndexOf("More calls", StringComparison.Ordinal) < key.IndexOf("Customer orders", StringComparison.Ordinal));
+        Assert.Equal(["Customer orders", "Courier pings"], reader.PerfPanelNow.KeyGroups);
     }
 
     [AvaloniaFact]
