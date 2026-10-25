@@ -31,7 +31,7 @@ internal sealed record RunChoice(string Name, bool Linked)
 /// </summary>
 internal sealed class LatencyStrip : Control
 {
-    private static readonly Area Plot = new(44, 8, 266, 84);
+    private static readonly Area Plot = new(54, 8, 256, 84);
     private readonly LoadRun? _run;
     private readonly Dial? _dial;
     private readonly int? _kneeAt;
@@ -39,7 +39,7 @@ internal sealed class LatencyStrip : Control
     private IReadOnlyList<double?> _p95;
     private double _pos;
 
-    public LatencyStrip(LoadRun run, int? kneeAt, double pos)
+    public LatencyStrip(LoadRun run, int? kneeAt, double pos, string subject)
     {
         _run = run;
         _kneeAt = kneeAt;
@@ -47,19 +47,21 @@ internal sealed class LatencyStrip : Control
         _p50 = run.Levels.Select(l => l.Overall.P50).ToList();
         _p95 = run.Levels.Select(l => l.Overall.P95).ToList();
         IsHitTestVisible = false;
-        AutomationProperties.SetName(this, $"Expected call and slowest 5% at each tested {(run.IsTime ? "time" : "load")}");
+        AutomationProperties.SetName(this, $"{subject}: expected call and slowest 5% at each tested {(run.IsTime ? "time" : "load")}");
+        SetText(PerfView.ChartRows(run));
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
     /// <summary>The strip along one dial of a run with several sources: <paramref name="levels"/> are the level at each of the dial's tested loads.</summary>
-    public LatencyStrip(IReadOnlyList<Level> levels, Dial dial, double pos)
+    public LatencyStrip(IReadOnlyList<Level> levels, Dial dial, double pos, string subject)
     {
         _dial = dial;
         _pos = pos;
         _p50 = levels.Select(l => l.Overall.P50).ToList();
         _p95 = levels.Select(l => l.Overall.P95).ToList();
         IsHitTestVisible = false;
-        AutomationProperties.SetName(this, $"Expected call and slowest 5% at each tested load of {dial.Name}");
+        AutomationProperties.SetName(this, $"{subject}: expected call and slowest 5% at each tested load of {dial.Name}");
+        SetText(PerfView.ChartRows(levels, dial));
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
@@ -74,7 +76,17 @@ internal sealed class LatencyStrip : Control
     {
         _p50 = levels.Select(l => l.Overall.P50).ToList();
         _p95 = levels.Select(l => l.Overall.P95).ToList();
+        if (_dial is { } dial) SetText(PerfView.ChartRows(levels, dial));
         InvalidateVisual();
+    }
+
+    /// <summary>The chart as text for a screen reader: each tested load with its expected call and its slowest 5%.</summary>
+    internal string Rows { get; private set; } = "";
+
+    private void SetText(IReadOnlyList<string> rows)
+    {
+        Rows = string.Join("; ", rows);
+        AutomationProperties.SetHelpText(this, Rows);
     }
 
     protected override Size MeasureOverride(Size available) => new(double.IsInfinity(available.Width) ? 320 : available.Width, (double.IsInfinity(available.Width) ? 320 : available.Width) * 120 / 320);
@@ -94,6 +106,9 @@ internal sealed class LatencyStrip : Control
         using var _ = context.PushTransform(Matrix.CreateScale(Bounds.Width / 320, Bounds.Width / 320));
         var muted = Brush("MutedBrush");
         var grid = new Pen(Brush("LineBrush"), 1);
+        var title = Text("Time (log)", muted);
+        using (context.PushTransform(Matrix.CreateTranslation(-title.Width / 2, -title.Height / 2) * Matrix.CreateRotation(-Math.PI / 2) * Matrix.CreateTranslation(8, Plot.Y + Plot.Height / 2)))
+            context.DrawText(title, new Point(0, 0));
         foreach (var (y, label) in PerfView.GridOf(scale, Plot))
         {
             context.DrawLine(grid, new Point(Plot.X, y), new Point(Plot.X + Plot.Width, y));
@@ -328,6 +343,7 @@ internal sealed class PerfPanel : StackPanel
     private TextBlock? _mode; // how the sources were measured
     private Model? _model;
     private string _view = "";
+    private IReadOnlyList<string> _drawn = []; // the shapes the canvas draws at this level, which the key's marks for a load are asked of
     private double _pos;
     private bool _ramping;
     private bool _still;
@@ -492,6 +508,17 @@ internal sealed class PerfPanel : StackPanel
 
     private static string NameOf(Model model, string id) => Views.NameOf(model, id);
 
+    /// <summary>A shape's name the way the canvas at <paramref name="view"/> shows it ("Dispatch > ETA").</summary>
+    private static string PathName(Model model, string view, string id) => Views.PathName(model, view, id);
+
+    /// <summary>The Key under the controls, where it is in view with them: what the key holds depends on what is on the canvas now, so SetPos or SetPlaces fills it.</summary>
+    private void AddKey()
+    {
+        Children.Add(Chrome.Section(Icons.Info, "Key"));
+        _keyShape = "";
+        Children.Add(_keyRows);
+    }
+
     /// <summary>
     /// Shows the run at a position. When only the position or the ramp changed it is updated in place; anything else (another run, another level of the
     /// diagram, another pick) builds the panel again.
@@ -568,6 +595,8 @@ internal sealed class PerfPanel : StackPanel
         if (_dataOff is not null) _measure = LoadMeasure.Calls;
         _model = model;
         _view = view;
+        var drawnView = Views.Compute(model, view);
+        _drawn = [.. drawnView.Members, .. drawnView.Outsiders];
         _pos = pos;
         _ramping = ramping;
         AddHeader(runs, runId, run);
@@ -612,15 +641,19 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(new TickLabels(PerfView.TickLabels(run)));
         if (!still) Children.Add(_ramp);
         if (!_pane) Children.Add(MeasureRow());
+        AddKey();
         if (run.Events.Count > 0) Children.Add(BuildEvents(model, run));
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
         if (knee is null) Children.Add(Muted("It never struggled in the tested range."));
         else
         {
-            var sentence = new TextBlock { Text = Perf.KneeText(run, knee, id => NameOf(model, id)) + " ", TextWrapping = TextWrapping.Wrap };
+            var sentence = new TextBlock { Text = Perf.KneeText(run, knee, id => PathName(model, view, id)) + " ", TextWrapping = TextWrapping.Wrap };
             var go = new Button { Content = new TextBlock { Text = "Go there" } };
             go.Classes.Add("link");
+            var where = Perf.GoText(_runs!, runId, knee);
+            AutomationProperties.SetName(go, where);
+            ToolTip.SetTip(go, where);
             go.Click += (_, _) =>
             {
                 LevelPicked?.Invoke(knee.Index);
@@ -628,18 +661,18 @@ internal sealed class PerfPanel : StackPanel
             };
             Children.Add(new WrapPanel { Children = { sentence, go } });
         }
-        _strip = new LatencyStrip(run, knee?.Index, pos);
+        var subject = PerfView.ChartSubject(run.Entry, id => NameOf(model, id));
+        Children.Add(Muted(subject, 12.5));
+        _strip = new LatencyStrip(run, knee?.Index, pos, subject);
         Children.Add(_strip);
         Children.Add(KeyRow.Of(
             (KeyRow.Mark("p50"), "Expected call"),
             (KeyRow.Mark("p95"), "Slowest 5%"),
-            knee is null ? null : (KeyRow.Dashes(), "First struggles")));
+            knee is null ? null : (KeyRow.Dashes(), "First struggles"),
+            (KeyRow.Mark("now"), "Now")));
 
         BuildSelection(model, view, run, selection);
 
-        Children.Add(Chrome.Section(Icons.Info, "Key"));
-        _keyShape = ""; // what the key holds depends on the lines on screen, so SetPos fills it
-        Children.Add(_keyRows);
         Children.Add(problems);
         SetPos(pos, ramping);
     }
@@ -885,11 +918,15 @@ internal sealed class PerfPanel : StackPanel
         }
     }
 
-    private const string CallsTip = "One mark for each call a second";
-    private const string DataTip = "One mark for each bit of data a second (calls times their size)";
-    private const string MixedTip = "Marks for the calls, as big as their calls are";
+    private const string CallsTip = "One stripe for each call a second";
+    private const string DataTip = "One stripe for each bit of data a second (calls times their size)";
+    private const string MixedTip = "A stripe for each call, as big as its call";
 
-    /// <summary>The Count switch: Calls, Data and Mixed, one pressed. Data and Mixed are greyed out with the reason as their tooltip when the run gives no size of a call, never hidden.</summary>
+    /// <summary>A choice of the Each stripe switch: the real stripe it draws, then its name.</summary>
+    private static void Label(Button button, Control swatch, string text) =>
+        button.Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { swatch, new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Classes = { "btntext" } } } };
+
+    /// <summary>The Each stripe switch: Calls, Data and Mixed, one pressed, each with the stripe it draws. Data and Mixed are greyed out with the reason as their tooltip when the run gives no size of a call, never hidden.</summary>
     private StackPanel MeasureRow()
     {
         _callsButton = new Button();
@@ -898,8 +935,14 @@ internal sealed class PerfPanel : StackPanel
         CompareBar.Make(_callsButton, null, "Calls", "Calls", CallsTip, () => MeasureChosen?.Invoke(LoadMeasure.Calls));
         CompareBar.Make(_dataButton, null, "Data", "Data", _dataOff ?? DataTip, () => MeasureChosen?.Invoke(LoadMeasure.Data));
         CompareBar.Make(_mixedButton, null, "Mixed", "Mixed", _dataOff ?? MixedTip, () => MeasureChosen?.Invoke(LoadMeasure.Mixed));
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { Muted("Count"), _callsButton, _dataButton, _mixedButton } };
-        row.Children[0].VerticalAlignment = VerticalAlignment.Center;
+        Label(_callsButton, KeyRow.Call(null, false, 5), "Calls");
+        Label(_dataButton, KeyRow.Call(null, false, 5), "Data");
+        Label(_mixedButton, KeyRow.Bigger(null, false), "Mixed");
+        var label = Muted("Each stripe");
+        label.VerticalAlignment = VerticalAlignment.Center;
+        label.TextWrapping = TextWrapping.NoWrap;
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { label, _callsButton, _dataButton, _mixedButton } };
+        AutomationProperties.SetName(row, "Each stripe");
         ShowMeasure();
         return row;
     }
@@ -941,22 +984,24 @@ internal sealed class PerfPanel : StackPanel
         var marks = PerfView.FailureMarksOf(drawn);
         var source = Perf.SourceKeyOf(run, drawn, _measure, _measure == LoadMeasure.Data ? Perf.CallSize(_runs!, _runId) : null);
         var shown = PerfView.LineMarksOf(drawn);
+        var onCanvas = PerfView.BoxMarksOf(frame.Traffic.Boxes, _drawn);
         var states = StateKey.Distinct(_states.Values);
-        var shape = $"{_measure}|{marks}|{shown}|{source}|{string.Join(",", states)}";
+        var shape = $"{_measure}|{marks}|{shown}|{onCanvas}|{source}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
         var dark = AppTheme.IsDark(this);
         _keyRows.Children.Clear();
         _keyRows.Children.Add(KeyRow.Of(
-            (new HeatSwatch(), "Busy"),
-            (KeyRow.Count("3"), "Waiting"),
+            onCanvas.Busy ? (new HeatSwatch(), "Busy") : null,
+            onCanvas.Struggling ? (KeyRow.Pct("90%"), "Struggling") : null,
+            onCanvas.Waiting ? (KeyRow.Count("3"), "Waiting") : null,
             (KeyRow.Mark("none"), "Not measured"),
-            (KeyRow.Call(source?.Color, dark), "A call (slower marks, slower calls)"),
+            (KeyRow.Tipped(KeyRow.Call(source?.Color, dark), "Slower stripes are slower calls"), "A call"),
             shown.Bare ? (KeyRow.Stripes(), "No numbers") : null,
             marks.Fade ? (KeyRow.Mark("call", "bad"), "A call that fails") : null,
             marks.Lost ? (KeyRow.Mark("lost"), "Lost call") : null,
             marks.Rejected ? (KeyRow.Rejected(), "Rejected call") : null,
-            (KeyRow.Mark("busy"), _measure == LoadMeasure.Data ? "More data" : "More calls"),
+            (KeyRow.Tipped(KeyRow.Mark("busy"), "Thicker lines carry more calls"), _measure == LoadMeasure.Data ? "More data" : "More calls"),
             source?.Scale is { } scale ? (KeyRow.Call(source.Color, dark), scale) : null,
             source is { Bigger: true } ? (KeyRow.Bigger(source.Color, dark), "Bigger call") : null,
             source is { ScaledDown: true } ? (KeyRow.Scaled(source.Color, dark), "Scaled down") : null));
@@ -1009,7 +1054,7 @@ internal sealed class PerfPanel : StackPanel
         _syncing = true;
         _slider.Value = PerfView.SliderValue(run, pos);
         _syncing = false;
-        AutomationProperties.SetName(_slider, run.IsTime ? "Time" : "Load");
+        AutomationProperties.SetName(_slider, $"{(run.IsTime ? "Time" : "Load")}, {PerfView.SpeakLoad(_loadNumber.Text, _loadNote.Text)}"); // the load in words and whether it was tested, not the position along the levels
         Chrome.Fill(_ramp, ramping ? Icons.Pause : Icons.Play, ramping ? "Pause" : run.IsTime ? "Play" : "Ramp");
         _ramp.Classes.Set("pressed", ramping);
         _strip?.SetPos(pos);
@@ -1050,15 +1095,19 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(Chrome.Section(Icons.Activity, "Load"));
         for (var i = 0; i < dials.Items.Count; i++) Children.Add(BuildDial(i, dials.Items[i], still));
         if (!_pane) Children.Add(MeasureRow());
+        AddKey();
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
         var knee = Perf.KneeOf(runs, runId);
         if (knee is null) Children.Add(Muted("It never struggled in the tested range."));
         else
         {
-            var sentence = new TextBlock { Text = Perf.KneeTextOf(runs, runId, knee, id => NameOf(model, id)) + " ", TextWrapping = TextWrapping.Wrap };
+            var sentence = new TextBlock { Text = Perf.KneeTextOf(runs, runId, knee, id => PathName(model, view, id)) + " ", TextWrapping = TextWrapping.Wrap };
             var go = new Button { Content = new TextBlock { Text = "Go there" } };
             go.Classes.Add("link");
+            var where = Perf.GoText(runs, runId, knee);
+            AutomationProperties.SetName(go, where);
+            ToolTip.SetTip(go, where);
             go.Click += (_, _) =>
             {
                 PlacePicked?.Invoke(PerfView.OpeningPositions(dials.Items, knee));
@@ -1068,15 +1117,14 @@ internal sealed class PerfPanel : StackPanel
         }
         Children.Add(AlongLine());
         var along = AlongSeries(runs, runId, dials.Items);
-        _strip = new LatencyStrip(along, dials.Items[_active], _places[_active]);
+        var subject = PerfView.ChartSubject(null, id => NameOf(model, id));
+        Children.Add(Muted(subject, 12.5));
+        _strip = new LatencyStrip(along, dials.Items[_active], _places[_active], subject);
         Children.Add(_strip);
-        Children.Add(KeyRow.Of((KeyRow.Mark("p50"), "Expected call"), (KeyRow.Mark("p95"), "Slowest 5%")));
+        Children.Add(KeyRow.Of((KeyRow.Mark("p50"), "Expected call"), (KeyRow.Mark("p95"), "Slowest 5%"), (KeyRow.Mark("now"), "Now")));
 
         BuildSelection(model, view, runs[runId], selection, along);
 
-        Children.Add(Chrome.Section(Icons.Info, "Key"));
-        _keyShape = ""; // what the key holds depends on the lines on screen, so SetPlaces fills it
-        Children.Add(_keyRows);
         Children.Add(problems);
         SetPlaces(_places, _active, ramping);
     }
@@ -1166,6 +1214,7 @@ internal sealed class PerfPanel : StackPanel
             view.Number.Text = PerfView.FmtLoad(Perf.LoadOfPosition(view.Dial.Values, _places[i]), view.Dial.Unit);
             view.Note.Text = PerfView.LoadNote(view.Dial, _places[i]);
             view.Slider.Value = _places[i];
+            AutomationProperties.SetName(view.Slider, $"{view.Dial.Name}, {PerfView.SpeakLoad(view.Number.Text, view.Note.Text)}");
             var running = ramping && here;
             Chrome.Fill(view.Ramp, running ? Icons.Pause : Icons.Play, running ? "Pause" : "Ramp");
             view.Ramp.Classes.Set("pressed", running);
@@ -1214,22 +1263,23 @@ internal sealed class PerfPanel : StackPanel
         var marks = PerfView.FailureMarksOf(drawn);
         var keyed = Perf.SourceKeyAt(_runs!, _runId, drawn, _measure);
         var shown = PerfView.LineMarksOf(drawn);
+        var onCanvas = PerfView.BoxMarksOf(frame.Traffic.Boxes, _drawn);
         var states = StateKey.Distinct(_states.Values);
-        var shape = $"{_measure}|{marks}|{shown}|{string.Join(";", keyed.Sources.Select(s => $"{s.Id}/{s.Color}/{s.Scale}/{s.Bigger}"))}|{keyed.ScaledDown}|{keyed.Other}|{string.Join(",", states)}";
+        var shape = $"{_measure}|{marks}|{shown}|{onCanvas}|{string.Join(";", keyed.Sources.Select(s => $"{s.Id}/{s.Color}/{s.Scale}/{s.Bigger}"))}|{keyed.ScaledDown}|{keyed.Other}|{string.Join(",", states)}";
         if (shape == _keyShape) return;
         _keyShape = shape;
         var dark = AppTheme.IsDark(this);
-        var items = new List<(Control Swatch, string Label)?>
-        {
-            (new HeatSwatch(), "Busy"),
-            (KeyRow.Count("3"), "Waiting"),
-            (KeyRow.Mark("none"), "Not measured"),
-        };
+        var items = new List<(Control Swatch, string Label)?>();
+        if (onCanvas.Busy) items.Add((new HeatSwatch(), "Busy"));
+        if (onCanvas.Struggling) items.Add((KeyRow.Pct("90%"), "Struggling"));
+        if (onCanvas.Waiting) items.Add((KeyRow.Count("3"), "Waiting"));
+        items.Add((KeyRow.Mark("none"), "Not measured"));
+        items.Add((KeyRow.Tipped(KeyRow.Call(null, dark), "Slower stripes are slower calls"), "A call"));
         if (shown.Bare) items.Add((KeyRow.Stripes(), "No numbers"));
         if (marks.Fade) items.Add((KeyRow.Mark("call", "bad"), "A call that fails"));
         if (marks.Lost) items.Add((KeyRow.Mark("lost"), "Lost call"));
         if (marks.Rejected) items.Add((KeyRow.Rejected(), "Rejected call"));
-        items.Add((KeyRow.Mark("busy"), _measure == LoadMeasure.Data ? "More data" : "More calls"));
+        items.Add((KeyRow.Tipped(KeyRow.Mark("busy"), "Thicker lines carry more calls"), _measure == LoadMeasure.Data ? "More data" : "More calls"));
         foreach (var source in keyed.Sources)
         {
             items.Add((KeyRow.Call(source.Color, dark), source.Name));
@@ -1244,7 +1294,7 @@ internal sealed class PerfPanel : StackPanel
     }
 
     // Words take their colour from a style, which follows the theme and the control's place in the tree; a brush looked up when the panel is built would not (it is built before it is shown, and lives through a theme change).
-    private static TextBlock Muted(string text) => new() { Text = text, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
+    private static TextBlock Muted(string text, double size = 0) => size > 0 ? new() { Text = text, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap, FontSize = size } : new() { Text = text, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
 
     private Control ProblemsFor(IReadOnlyList<Problem> problems)
     {

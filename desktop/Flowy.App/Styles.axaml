@@ -672,7 +672,7 @@
   </Style>
   <Style Selector=":is(Grid).box Border.queue">
     <Setter Property="Background" Value="{DynamicResource WarnBrush}" />
-    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="MinWidth" Value="20" />
     <Setter Property="Height" Value="20" />
     <Setter Property="Padding" Value="6,0" />
@@ -681,6 +681,30 @@
   </Style>
   <Style Selector=":is(Grid).box Border.queue TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource OnWarnBrush}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- The same fact as the outline colour, as a number at the bottom left once a shape is past the struggle mark. A state beats the strain colour, and the number goes with it. -->
+  <Style Selector=":is(Grid).box Border.strainpct">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="Margin" Value="-7,0,0,-9" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+  </Style>
+  <Style Selector=":is(Grid).box.hot Border.strainpct"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box.hot.stated Border.strainpct"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Grid).box.state-inside Border.strainpct"><Setter Property="Margin" Value="16,0,0,-9" /></Style> <!-- beside the glyph of a state it holds -->
+  <Style Selector=":is(Grid).box Border.strainpct TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
     <Setter Property="FontSize" Value="11" />
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="HorizontalAlignment" Value="Center" />
@@ -775,7 +799,7 @@
     <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
   </Style>
   <Style Selector="Line.knee"><Setter Property="Stroke" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector="Border.sw.heat">
+  <Style Selector=":is(Border).sw.heat">
     <Setter Property="Width" Value="20" />
     <Setter Property="Height" Value="10" />
     <Setter Property="CornerRadius" Value="5" />
@@ -790,7 +814,7 @@
   <Style Selector="Border.sw.queue">
     <Setter Property="MinWidth" Value="16" />
     <Setter Property="Height" Value="16" />
-    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
     <Setter Property="Padding" Value="4,0" />
     <Setter Property="Background" Value="{DynamicResource WarnBrush}" />
   </Style>
@@ -800,6 +824,29 @@
     <Setter Property="FontWeight" Value="Bold" />
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.sw.pct">
+    <Setter Property="MinWidth" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.sw.pct TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- A line down the chart at the load now: the foreground, faded as the chart draws it. -->
+  <Style Selector="Border.sw.now">
+    <Setter Property="Width" Value="2" />
+    <Setter Property="Height" Value="14" />
+    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
+    <Setter Property="Opacity" Value="0.6" />
   </Style>
   <Style Selector="Line.stripes"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.sw.call">
