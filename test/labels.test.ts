@@ -36,6 +36,18 @@ test('labels of the lines that leave one box are placed clear of each other and 
   })
 })
 
+test('labels side by side on one row keep a gap of a few characters, so they do not read as one sentence', () => {
+  // Three lines straight down, 125 apart: labels of 18 characters at their middles would leave 3.4 between them.
+  const items: LabelItem[] = [0, 1, 2].map(i => ({ id: `l${i}`, path: `M${i * 125},0L${i * 125},200`, mid: { x: i * 125, y: 100 }, chars: 18 }))
+  const spots = placeLabels(items, [])
+  const drawn = items.map(i => labelBox(spots.get(i.id)!, 18))
+  drawn.forEach((a, i) => drawn.forEach((b, j) => {
+    if (i >= j || a.y >= b.y + b.height || b.y >= a.y + a.height) return
+    const gap = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width))
+    assert.ok(gap >= 16, `labels ${i} and ${j} share a row ${gap.toFixed(1)} apart`)
+  }))
+})
+
 test('a label stays on its line, wherever it moves along it', () => {
   const { items, boxes } = fan(5, 50)
   const spots = placeLabels(items, boxes)
