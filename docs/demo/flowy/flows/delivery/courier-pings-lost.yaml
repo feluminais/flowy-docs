@@ -2,6 +2,7 @@ name: Courier pings are lost
 view: delivery
 tags: [error path]
 steps:
+  - { from: courier, to: courier-app, text: Rides into streets with a weak signal, animation: { kind: send, carries: position } }
   - from: courier-app
     to: tracking
     text: About a third of the pings are lost on the way
@@ -9,7 +10,8 @@ steps:
     description: |
       On a weak signal, pings never reach **Live tracking**. The app does not retry them, since a
       newer one follows in 5 s.
-  - { from: tracking, to: customer-app, text: The customer's map moves in jumps, animation: { kind: send, carries: position } }
+  - { from: tracking, to: customer-app, text: Sends the positions that did arrive, animation: { kind: send, carries: position } }
+  - { from: customer-app, to: customer, text: The courier jumps across the map, animation: { kind: send, carries: map } }
   - from: fleet-db
     text: Keeps the last position it got
     description: |

@@ -33,7 +33,7 @@ modes:
     after: { severity: 8, occurrence: 4, detection: 1 }
     affects: [customer-app, kitchen-tablet]
     flow: capture-payment
-    step: 1
+    step: 3
 ```
 
 - A mode is keyed by its id: lowercase letters, digits and dashes, unique in the file. The key is what an address and an MCP write use.

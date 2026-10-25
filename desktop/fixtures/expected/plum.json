@@ -960,6 +960,22 @@
       "view": "ordering",
       "steps": [
         {
+          "from": "stripe",
+          "to": "order-api",
+          "text": "Reports that the charge went through",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside",
+            "carries": "charged"
+          },
+          "flow": "stripe-webhook",
+          "placed": [
+            "stripe",
+            "order-api"
+          ],
+          "ends": "Stripe → Order API"
+        },
+        {
           "from": "order-api",
           "to": "events",
           "text": "Publishes the paid event and carries on without waiting",
@@ -1019,6 +1035,35 @@
       "name": "The payment is captured",
       "view": "ordering",
       "steps": [
+        {
+          "from": "restaurant",
+          "to": "kitchen-tablet",
+          "text": "The kitchen taps Accept",
+          "animation": {
+            "kind": "send",
+            "carries": "accept"
+          },
+          "flow": "restaurant-accepts",
+          "placed": [
+            "restaurant",
+            "kitchen-tablet"
+          ],
+          "ends": "Restaurant → Kitchen tablet"
+        },
+        {
+          "from": "kitchen-tablet",
+          "to": "order-api",
+          "text": "Sends the acceptance",
+          "animation": {
+            "kind": "call",
+            "carries": "accept"
+          },
+          "placed": [
+            "kitchen-tablet",
+            "order-api"
+          ],
+          "ends": "Kitchen tablet → Order API"
+        },
         {
           "from": "order-api",
           "to": "stripe",
@@ -1092,7 +1137,7 @@
         {
           "from": "order-api",
           "to": "customer-app",
-          "text": "Asks the customer to try another card",
+          "text": "Asks for another card",
           "animation": {
             "kind": "send",
             "carries": "try another card"
@@ -1103,6 +1148,21 @@
             "customer-app"
           ],
           "ends": "Order API → Customer app"
+        },
+        {
+          "from": "customer-app",
+          "to": "customer",
+          "text": "Shows that the card was declined",
+          "animation": {
+            "kind": "send",
+            "carries": "declined"
+          },
+          "group": "outcome",
+          "placed": [
+            "customer-app",
+            "customer"
+          ],
+          "ends": "Customer app → Customer"
         }
       ],
       "groups": {
@@ -1127,6 +1187,20 @@
       "view": "delivery",
       "steps": [
         {
+          "from": "courier",
+          "to": "courier-app",
+          "text": "Rides into streets with a weak signal",
+          "animation": {
+            "kind": "send",
+            "carries": "position"
+          },
+          "placed": [
+            "courier",
+            "courier-app"
+          ],
+          "ends": "Courier → Courier app"
+        },
+        {
           "from": "courier-app",
           "to": "tracking",
           "text": "About a third of the pings are lost on the way",
@@ -1146,7 +1220,7 @@
         {
           "from": "tracking",
           "to": "customer-app",
-          "text": "The customer's map moves in jumps",
+          "text": "Sends the positions that did arrive",
           "animation": {
             "kind": "send",
             "carries": "position"
@@ -1156,6 +1230,20 @@
             "ordering"
           ],
           "ends": "Live tracking → Customer app in Ordering"
+        },
+        {
+          "from": "customer-app",
+          "to": "customer",
+          "text": "The courier jumps across the map",
+          "animation": {
+            "kind": "send",
+            "carries": "map"
+          },
+          "placed": [
+            "ordering",
+            "customer"
+          ],
+          "ends": "Customer app in Ordering → Customer"
         },
         {
           "from": "fleet-db",
@@ -1179,9 +1267,24 @@
       "view": "delivery",
       "steps": [
         {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Places an order",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "flow": "place-order",
+          "placed": [
+            "customer",
+            "ordering"
+          ],
+          "ends": "Customer → Customer app in Ordering"
+        },
+        {
           "from": "events",
           "to": "dispatch",
-          "text": "Receives the placed event",
+          "text": "The placed order reaches Dispatch",
           "animation": {
             "kind": "callback",
             "trigger": "outside",
@@ -1209,13 +1312,18 @@
         },
         {
           "from": "dispatch",
-          "text": "Ranks them by estimated arrival",
-          "description": "The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The\nquickest gets the first offer.\n",
+          "to": "mapbox",
+          "text": "Asks Mapbox how far each courier is",
+          "description": "**ETA** asks for each courier's travel time (distance, traffic, vehicle), and the **Matcher**\nranks them by arrival. The quickest gets the first offer.\n",
+          "animation": {
+            "kind": "call",
+            "carries": "travel times"
+          },
           "placed": [
             "dispatch",
-            "dispatch"
+            "mapbox"
           ],
-          "ends": "Dispatch"
+          "ends": "Dispatch → Mapbox"
         },
         {
           "from": "dispatch",
@@ -1245,6 +1353,20 @@
             "courier-app"
           ],
           "ends": "Courier → Courier app"
+        },
+        {
+          "from": "restaurant",
+          "to": "courier",
+          "text": "Hands the food over at the counter",
+          "animation": {
+            "kind": "send",
+            "carries": "food"
+          },
+          "placed": [
+            "restaurant",
+            "courier"
+          ],
+          "ends": "Restaurant → Courier"
         },
         {
           "from": "courier-app",
@@ -1278,6 +1400,20 @@
           "ends": "Live tracking → Customer app in Ordering"
         },
         {
+          "from": "courier",
+          "to": "customer",
+          "text": "Hands the food over at the door",
+          "animation": {
+            "kind": "send",
+            "carries": "food"
+          },
+          "placed": [
+            "courier",
+            "customer"
+          ],
+          "ends": "Courier → Customer"
+        },
+        {
           "from": "courier-app",
           "to": "order-api",
           "text": "Marks the order delivered",
@@ -1302,6 +1438,21 @@
       "name": "Dispatch hears about an order late",
       "view": "delivery",
       "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Places an order in the dinner rush",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "flow": "place-order",
+          "placed": [
+            "customer",
+            "ordering"
+          ],
+          "ends": "Customer → Customer app in Ordering"
+        },
         {
           "from": "events",
           "to": "dispatch",
@@ -1340,6 +1491,20 @@
       "name": "The customer follows the courier",
       "view": "delivery",
       "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Opens the order to see where the food is",
+          "animation": {
+            "kind": "send",
+            "carries": "tap"
+          },
+          "placed": [
+            "customer",
+            "ordering"
+          ],
+          "ends": "Customer → Customer app in Ordering"
+        },
         {
           "from": "customer-app",
           "to": "tracking",
@@ -1446,6 +1611,20 @@
       "view": "ordering",
       "steps": [
         {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Taps Place order on the hotel wifi",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
+        },
+        {
           "from": "customer-app",
           "to": "order-api",
           "text": "POST /orders reaches a sign-in page instead",
@@ -1484,6 +1663,36 @@
       "name": "Mapbox turns the travel times away",
       "view": "dispatch",
       "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Places one of 900 orders in a minute",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "flow": "place-order",
+          "placed": [
+            "customer",
+            "ordering"
+          ],
+          "ends": "Customer → Customer app in Ordering"
+        },
+        {
+          "from": "events",
+          "to": "matcher",
+          "text": "The placed order reaches the Matcher",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside",
+            "carries": "placed"
+          },
+          "placed": [
+            "ordering",
+            "matcher"
+          ],
+          "ends": "Order events in Ordering → Matcher"
+        },
         {
           "from": "matcher",
           "to": "eta",
@@ -1534,6 +1743,20 @@
       "name": "A menu is read",
       "view": "order-api",
       "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Opens a restaurant",
+          "animation": {
+            "kind": "send",
+            "carries": "tap"
+          },
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
+        },
         {
           "from": "customer-app",
           "to": "menu",
@@ -1623,6 +1846,20 @@
             "customer-app"
           ],
           "ends": "Menu → Customer app"
+        },
+        {
+          "from": "customer-app",
+          "to": "customer",
+          "text": "Shows the dishes and prices",
+          "animation": {
+            "kind": "send",
+            "carries": "menu"
+          },
+          "placed": [
+            "customer-app",
+            "customer"
+          ],
+          "ends": "Customer app → Customer"
         }
       ],
       "groups": {
@@ -1640,6 +1877,36 @@
       "name": "An offer goes unanswered",
       "view": "delivery",
       "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Places an order",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "flow": "place-order",
+          "placed": [
+            "customer",
+            "ordering"
+          ],
+          "ends": "Customer → Customer app in Ordering"
+        },
+        {
+          "from": "events",
+          "to": "dispatch",
+          "text": "The placed order reaches Dispatch",
+          "animation": {
+            "kind": "callback",
+            "trigger": "outside",
+            "carries": "placed"
+          },
+          "placed": [
+            "ordering",
+            "dispatch"
+          ],
+          "ends": "Order events in Ordering → Dispatch"
+        },
         {
           "from": "offers",
           "to": "notifier",
@@ -1667,15 +1934,30 @@
           "ends": "Offers in Dispatch"
         },
         {
+          "from": "courier",
+          "to": "courier-app",
+          "text": "A courier taps Accept",
+          "animation": {
+            "kind": "send",
+            "carries": "accept"
+          },
+          "group": "result",
+          "lane": "A courier accepts",
+          "placed": [
+            "courier",
+            "courier-app"
+          ],
+          "ends": "Courier → Courier app"
+        },
+        {
           "from": "courier-app",
           "to": "dispatch",
-          "text": "Accepts, and the offers stop",
+          "text": "The offers stop",
           "animation": {
             "kind": "call",
             "carries": "accept"
           },
           "group": "result",
-          "lane": "A courier accepts",
           "placed": [
             "courier-app",
             "dispatch"
@@ -1729,6 +2011,21 @@
       "name": "Nobody accepts the order",
       "view": "ordering",
       "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Places an order",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "flow": "place-order",
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
+        },
         {
           "from": "order-api",
           "to": "kitchen-tablet",
@@ -1808,6 +2105,20 @@
       "view": "ordering",
       "steps": [
         {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Taps Place order, and again when nothing seems to happen",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
+        },
+        {
           "from": "customer-app",
           "to": "order-api",
           "text": "The same order arrives twice",
@@ -1846,6 +2157,34 @@
       "name": "Orders DB fails over",
       "view": "ordering",
       "steps": [
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Taps Place order",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
+        },
+        {
+          "from": "customer-app",
+          "to": "order-api",
+          "text": "POST /orders with the basket",
+          "animation": {
+            "kind": "call",
+            "carries": "POST /orders"
+          },
+          "placed": [
+            "customer-app",
+            "order-api"
+          ],
+          "ends": "Customer app → Order API"
+        },
         {
           "from": "order-api",
           "to": "orders-db",
@@ -2039,6 +2378,34 @@
       "view": "ordering",
       "steps": [
         {
+          "from": "support",
+          "to": "support-console",
+          "text": "Asks for a refund in the support console",
+          "animation": {
+            "kind": "send",
+            "carries": "refund"
+          },
+          "placed": [
+            "support",
+            "backoffice"
+          ],
+          "ends": "Support agent → Support console in Back office"
+        },
+        {
+          "from": "support-console",
+          "to": "refunds",
+          "text": "Sends the refund to the Order API",
+          "animation": {
+            "kind": "call",
+            "carries": "refund"
+          },
+          "placed": [
+            "backoffice",
+            "order-api"
+          ],
+          "ends": "Support console in Back office → Refunds in Order API"
+        },
+        {
           "from": "refunds",
           "to": "stripe",
           "text": "Stripe has refunded the charge",
@@ -2161,17 +2528,31 @@
         {
           "from": "notifications",
           "to": "twilio",
-          "text": "The customer gets an SMS",
+          "text": "Hands the SMS to Twilio",
           "animation": {
             "kind": "send",
-            "carries": "SMS",
-            "effect": "bounce"
+            "carries": "SMS"
           },
           "placed": [
             "notifications",
             "twilio"
           ],
           "ends": "Notifications → Twilio"
+        },
+        {
+          "from": "twilio",
+          "to": "customer",
+          "text": "The customer reads that the money is back",
+          "animation": {
+            "kind": "send",
+            "carries": "SMS",
+            "effect": "bounce"
+          },
+          "placed": [
+            "twilio",
+            "customer"
+          ],
+          "ends": "Twilio → Customer"
         }
       ],
       "folder": "payments",
@@ -2180,7 +2561,7 @@
       ],
       "compare": {
         "with": "refund-not-recorded",
-        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nSupport, Back office and Stripe are in both flows.\n"
       },
       "compareProblem": null
     },
@@ -2190,9 +2571,23 @@
       "view": "ordering",
       "steps": [
         {
+          "from": "restaurant",
+          "to": "kitchen-tablet",
+          "text": "The kitchen taps Accept",
+          "animation": {
+            "kind": "send",
+            "carries": "accept"
+          },
+          "placed": [
+            "restaurant",
+            "kitchen-tablet"
+          ],
+          "ends": "Restaurant → Kitchen tablet"
+        },
+        {
           "from": "kitchen-tablet",
           "to": "order-api",
-          "text": "The kitchen taps Accept",
+          "text": "Sends the acceptance",
           "animation": {
             "kind": "call",
             "carries": "accept"
@@ -2264,7 +2659,7 @@
         {
           "from": "notifier",
           "to": "customer-app",
-          "text": "The customer is notified that the kitchen has started",
+          "text": "Pushes the news to the customer's phone",
           "animation": {
             "kind": "send",
             "carries": "push",
@@ -2275,6 +2670,20 @@
             "customer-app"
           ],
           "ends": "Notifier in Notifications → Customer app"
+        },
+        {
+          "from": "customer-app",
+          "to": "customer",
+          "text": "Shows that the kitchen has started",
+          "animation": {
+            "kind": "send",
+            "carries": "accepted"
+          },
+          "placed": [
+            "customer-app",
+            "customer"
+          ],
+          "ends": "Customer app → Customer"
         }
       ],
       "folder": "ordering",
@@ -2287,6 +2696,35 @@
       "name": "The carrier drops the SMS",
       "view": "root",
       "steps": [
+        {
+          "from": "customer",
+          "to": "ordering",
+          "text": "Places an order",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "flow": "place-order",
+          "placed": [
+            "customer",
+            "ordering"
+          ],
+          "ends": "Customer → Ordering"
+        },
+        {
+          "from": "ordering",
+          "to": "notifications",
+          "text": "Asks for an SMS that confirms it",
+          "animation": {
+            "kind": "send",
+            "carries": "confirm"
+          },
+          "placed": [
+            "ordering",
+            "notifications"
+          ],
+          "ends": "Ordering → Notifications"
+        },
         {
           "from": "notifications",
           "to": "twilio",
@@ -2339,6 +2777,20 @@
       "view": "ordering",
       "steps": [
         {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Taps Place order as Stripe goes down",
+          "animation": {
+            "kind": "send",
+            "carries": "basket"
+          },
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
+        },
+        {
           "from": "order-api",
           "to": "stripe",
           "text": "The hold is slow while Stripe shuts down",
@@ -2386,6 +2838,20 @@
             "customer-app"
           ],
           "ends": "Checkout in Order API → Customer app"
+        },
+        {
+          "from": "customer",
+          "to": "customer-app",
+          "text": "Picks pay at the door",
+          "animation": {
+            "kind": "send",
+            "carries": "cash"
+          },
+          "placed": [
+            "customer",
+            "customer-app"
+          ],
+          "ends": "Customer → Customer app"
         },
         {
           "from": "order-api",
@@ -2525,7 +2991,7 @@
           "owner": "Payments",
           "status": "planned",
           "flow": "capture-payment",
-          "step": "1",
+          "step": "3",
           "run": "stripe-outage",
           "after": {
             "severity": "8",
@@ -2551,7 +3017,7 @@
           "owner": "Payments",
           "status": "accepted",
           "flow": "capture-payment",
-          "step": "5",
+          "step": "7",
           "affects": [
             "customer-app"
           ]
@@ -2570,7 +3036,7 @@
           "owner": "Support tools",
           "status": "open",
           "flow": "refund-not-recorded",
-          "step": "2",
+          "step": "4",
           "description": "The refund and the write are separate steps, so one can succeed without the other.\nThe nightly comparison finds the gap but does not close it.\n",
           "affects": [
             "support-console"
@@ -2590,7 +3056,7 @@
           "owner": "Platform",
           "status": "planned",
           "flow": "orders-db-fails-over",
-          "step": "1",
+          "step": "3",
           "affects": [
             "customer-app",
             "web",
@@ -2611,7 +3077,7 @@
           "owner": "Ordering",
           "status": "done",
           "flow": "order-sent-twice",
-          "step": "1",
+          "step": "2",
           "after": {
             "severity": "6",
             "occurrence": "1",
@@ -2634,7 +3100,7 @@
           "owner": "Ordering",
           "status": "accepted",
           "flow": "menu-is-read",
-          "step": "3",
+          "step": "4",
           "affects": [
             "customer-app",
             "web"
@@ -2655,7 +3121,7 @@
           "owner": "Delivery",
           "status": "planned",
           "flow": "mapbox-rate-limit",
-          "step": "2",
+          "step": "4",
           "run": "dinner-rush",
           "after": {
             "severity": "6",
@@ -2692,7 +3158,7 @@
           "owner": "Delivery",
           "status": "planned",
           "flow": "events-arrive-late",
-          "step": "1",
+          "step": "2",
           "after": {
             "severity": "5",
             "occurrence": "2",
@@ -2716,7 +3182,7 @@
           "owner": "Restaurants",
           "status": "accepted",
           "flow": "nobody-accepts",
-          "step": "1",
+          "step": "2",
           "affects": [
             "customer-app"
           ]
@@ -2735,7 +3201,7 @@
           "owner": "Delivery",
           "status": "planned",
           "flow": "no-courier-answers",
-          "step": "1",
+          "step": "3",
           "after": {
             "severity": "6",
             "occurrence": "3",
@@ -2759,7 +3225,7 @@
           "owner": "Delivery",
           "status": "accepted",
           "flow": "deliver-order",
-          "step": "6",
+          "step": "8",
           "affects": [
             "customer-app",
             "web"
@@ -2780,7 +3246,7 @@
           "owner": "Notifications",
           "status": "open",
           "flow": "sms-dropped",
-          "step": "2",
+          "step": "4",
           "affects": [
             "customer-app"
           ]
@@ -2823,14 +3289,14 @@
       {
         "id": "refund",
         "side": "after",
-        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nSupport, Back office and Stripe are in both flows.\n"
       }
     ],
     "refund": [
       {
         "id": "refund-not-recorded",
         "side": "before",
-        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nStripe is the one shape both flows draw.\n"
+        "note": "The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\nSupport, Back office and Stripe are in both flows.\n"
       }
     ],
     "restaurant-accepts": [],
@@ -2994,7 +3460,8 @@
         "stripe",
         "notifications",
         "delivery",
-        "backoffice"
+        "backoffice",
+        "support"
       ],
       "edges": [
         {
@@ -3105,6 +3572,11 @@
           "label": "streams every event",
           "count": 1
         }
+      ],
+      "actors": [
+        "restaurant",
+        "customer",
+        "support"
       ]
     },
     "delivery": {
@@ -3119,7 +3591,9 @@
         "courier",
         "ordering",
         "mapbox",
-        "notifications"
+        "notifications",
+        "customer",
+        "restaurant"
       ],
       "edges": [
         {
@@ -3188,6 +3662,11 @@
           "label": "2 connections",
           "count": 2
         }
+      ],
+      "actors": [
+        "courier",
+        "customer",
+        "restaurant"
       ]
     },
     "notifications": {
@@ -3296,7 +3775,8 @@
         "events",
         "notifications",
         "delivery",
-        "backoffice"
+        "backoffice",
+        "customer"
       ],
       "edges": [
         {
@@ -3401,6 +3881,9 @@
           "label": "issues refunds",
           "count": 1
         }
+      ],
+      "actors": [
+        "customer"
       ]
     },
     "dispatch": {
@@ -3413,7 +3896,8 @@
       "outsiders": [
         "fleet-db",
         "mapbox",
-        "notifications"
+        "notifications",
+        "customer"
       ],
       "edges": [
         {
@@ -3446,6 +3930,9 @@
           "label": "sends the offer",
           "count": 1
         }
+      ],
+      "actors": [
+        "customer"
       ]
     }
   }

@@ -116,7 +116,7 @@ public class ChecksTests
             name: Steps
             view: shop
             steps:
-              - { from: customer, to: shop, text: outside to inside }
+              - { from: mail, to: shop, text: outside to inside }
               - { from: api, to: api, text: self }
               - { from: ghost, text: alone and unknown }
               - { from: api, text: fine }
@@ -130,7 +130,7 @@ public class ChecksTests
                 "name is missing",
                 "view \"nowhere\" must be \"root\" or an object with children",
                 "has no steps",
-                "step 1: customer → shop can't be shown in view \"shop\"",
+                "step 1: mail → shop can't be shown in view \"shop\"", // two boxes outside the view, and neither is an actor it draws for its flows
                 "step 2: goes from an object to itself (leave out \"to\" for a step one shape does on its own)",
                 "step 3: unknown object \"ghost\"",
                 "step 5: unknown object \"ghost\"",

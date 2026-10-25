@@ -68,13 +68,15 @@ internal static class JsonDump
         var views = new[] { Names.Root }.Concat(m.Objects.Keys).Where(id => Views.IsView(m, id)).Select(id =>
         {
             var v = Views.Compute(m, id);
-            return KeyValuePair.Create(id, (JsonNode?)Obj(
+            var view = Obj(
                 ("id", v.Id),
                 ("members", Arr(v.Members)),
                 ("outsiders", Arr(v.Outsiders)),
                 ("edges", Arr(v.Edges.Select(e => e.Both
                     ? Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("both", true))
-                    : Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count)))))));
+                    : Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count))))));
+            if (Views.FlowActors(m, id) is { Count: > 0 } actors) view["actors"] = Arr(actors); // left out when there are none, as the TypeScript dump does
+            return KeyValuePair.Create(id, (JsonNode?)view);
         });
         // Partners and links are dumped only where some flow holds a compare, and the runs only where some run reads one, so older cases dump as before.
         var tags = m.Flows.ToDictionary(kv => kv.Key, kv => kv.Value.CompareRaw);

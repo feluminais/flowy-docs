@@ -137,3 +137,35 @@ test('pathName names a shape the way the view draws it: the shape drawn there th
   assert.equal(pathName(m, 'api', 'db'), 'Orders DB', 'a neighbour of the shapes in view')
   assert.equal(pathName(m, 'api', 'api'), 'API', 'the view itself keeps its name')
 })
+
+test('an actor a flow names is drawn on the level the flow plays at, even with no line to it there', () => {
+  const m = shop()
+  // Inside api the customer has no line: the web app stands between them. A flow that plays in api and starts with the customer draws them.
+  assert.deepEqual(computeView(m, 'api').outsiders, ['db', 'mail'])
+  m.flows = { ...m.flows, order: { name: 'An order is saved', view: 'api', steps: [{ from: 'customer', to: 'web', text: 'Clicks "Buy"' }, { from: 'web', to: 'orders', text: 'POST /orders' }] } }
+  const v = computeView(m, 'api')
+  assert.deepEqual(v.outsiders, ['db', 'mail', 'customer'])
+  assert.deepEqual(v.edges.map(e => `${e.from}>${e.to}`), ['orders>db', 'auth>db', 'orders>mail']) // no line is made up for it
+  // A step from the customer to another outside box is shown between the two. The web app has no line here: like any box a step
+  // lands on, it joins the view while the flow plays.
+  assert.deepEqual(placeStep(m, 'api', { from: 'customer', to: 'db' }), ['customer', 'db'])
+  assert.deepEqual(placeStep(m, 'api', { from: 'customer', to: 'web' }), ['customer', 'web'])
+})
+
+test('a step between two outside boxes needs an actor drawn for the flows', () => {
+  const m = shop()
+  assert.equal(placeStep(m, 'api', { from: 'customer', to: 'web' }), null) // no flow in api names the customer
+  m.flows = { ...m.flows, order: { name: 'x', view: 'api', steps: [{ from: 'customer', to: 'web', text: 'a' }] } }
+  assert.equal(placeStep(m, 'api', { from: 'web', to: 'mail' }), null) // two outside boxes, neither an actor
+  assert.equal(placeStep(m, 'api', { from: 'customer', to: 'customer' }), null)
+})
+
+test('only actors are drawn for the flows, and only where the view would draw them as themselves', () => {
+  const m = shop()
+  m.objects = { ...m.objects, clerk: { type: 'actor', name: 'Clerk', in: 'shop' } }
+  m.flows = { ...m.flows, order: { name: 'x', view: 'api', steps: [{ from: 'mail', to: 'orders', text: 'a' }, { from: 'clerk', to: 'orders', text: 'b' }, { from: 'customer', to: 'orders', text: 'c' }] } }
+  // Mail is a system, and the clerk sits in the shop beside the api, where the view draws them as themselves too: both are actors only if typed so.
+  assert.deepEqual(computeView(m, 'api').outsiders, ['db', 'mail', 'clerk', 'customer'])
+  m.flows = { order: { ...m.flows.order, view: 'root' } } // an edit makes new maps, which is what the views' caches go by
+  assert.deepEqual(computeView(m, 'api').outsiders, ['db', 'mail']) // a flow that plays elsewhere adds nothing here
+})

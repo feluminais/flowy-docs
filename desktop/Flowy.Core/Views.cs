@@ -1,3 +1,6 @@
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+
 namespace Flowy.Core;
 
 /// <summary>A line as a view draws it. Several connections between the same two boxes merge into one, labelled "N connections".</summary>
@@ -81,13 +84,64 @@ public static class Views
         return ends.From == ends.To ? null : ends;
     }
 
+    /// <summary>The actors the flows of each view name, worked out once per model and dropped when its objects or flows are other ones.</summary>
+    private sealed class FlowDrawn(Model model)
+    {
+        public readonly IdMap<FlowyObject> Objects = model.Objects;
+        public readonly IdMap<Flow> Flows = model.Flows;
+        public readonly ConcurrentDictionary<string, List<string>> Actors = new();
+    }
+
+    private static readonly ConditionalWeakTable<Model, FlowDrawn> FlowCache = new();
+
+    private static FlowDrawn CacheOf(Model model)
+    {
+        if (FlowCache.TryGetValue(model, out var cache) && ReferenceEquals(cache.Objects, model.Objects) && ReferenceEquals(cache.Flows, model.Flows))
+            return cache;
+        cache = new FlowDrawn(model);
+        FlowCache.AddOrUpdate(model, cache);
+        return cache;
+    }
+
+    /// <summary>
+    /// The actors that the flows playing in view v name, where v would draw them as themselves: a person who sets a flow off or takes part in it is drawn on the level the flow
+    /// plays at, even when no line reaches them there, so a flow never looks like the system acting on its own. In the order the flows name them. A port of <c>flowActors</c>.
+    /// </summary>
+    public static IReadOnlyList<string> FlowActors(Model model, string v) => CacheOf(model).Actors.GetOrAdd(v, view =>
+    {
+        var found = new List<string>();
+        var seen = new HashSet<string>();
+        var above = ModelIndex.Of(model).ChainOf(view);
+        foreach (var (_, flow) in model.Flows)
+        {
+            if (flow.View != view) continue;
+            foreach (var step in flow.Steps)
+                foreach (var id in new[] { step.From, step.To })
+                {
+                    if (id is null || !seen.Add(id)) continue;
+                    if (model.GetObject(id)?.Type == "actor" && !above.Contains(id) && Rep(model, id, view) is null && Outsider(model, id, view) == id) found.Add(id);
+                }
+        }
+        return found;
+    });
+
     /// <summary>
     /// Where a flow step lands in view v. A step with no <c>to</c> is one box acting on its own: the box inside the
-    /// view that stands for it, given twice. Null when the view can't show the step.
+    /// view that stands for it, given twice. Null when the view can't show the step. A step with both ends outside is shown when
+    /// one of them is an actor the view draws for its flows (see <see cref="FlowActors"/>); the other end joins the view while the flow plays.
     /// </summary>
     public static (string From, string To)? PlaceStep(Model model, string? v, string? from, string? to)
     {
-        if (to is not null) return PlaceEnds(model, v, from, to);
+        if (to is not null)
+        {
+            var ends = PlaceEnds(model, v, from, to);
+            if (ends is not null || v is null || model.GetObject(from) is null || model.GetObject(to) is null) return ends;
+            if (Rep(model, from!, v) is not null || Rep(model, to, v) is not null) return null;
+            var a = Outsider(model, from!, v);
+            var b = Outsider(model, to, v);
+            var actors = FlowActors(model, v);
+            return a != b && (actors.Contains(a) || actors.Contains(b)) ? (a, b) : null;
+        }
         if (v is null || model.GetObject(from) is null) return null;
         var box = Rep(model, from!, v);
         return box is null ? null : (box, box);
@@ -117,6 +171,7 @@ public static class Views
                 edges[key] = new Edge(ends.From, ends.To, c.Label ?? "", 1);
             }
         }
+        foreach (var id in FlowActors(model, view)) if (known.Add(id)) outsiders.Add(id);
         return new View(view, members, outsiders, order.Select(k => edges[k]).ToList());
     }
 

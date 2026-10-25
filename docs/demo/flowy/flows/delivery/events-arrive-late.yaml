@@ -2,6 +2,7 @@ name: Dispatch hears about an order late
 view: delivery
 tags: [edge case]
 steps:
+  - { from: customer, to: customer-app, text: Places an order in the dinner rush, animation: { kind: send, carries: basket }, flow: place-order }
   - from: events
     to: dispatch
     text: The placed event waits behind the dinner rush

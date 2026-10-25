@@ -1913,7 +1913,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "The refund is not recorded"
@@ -1934,7 +1934,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2242,7 +2242,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2260,7 +2260,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 4,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2296,7 +2296,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2314,7 +2314,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2332,7 +2332,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2350,7 +2350,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2386,7 +2386,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 9,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2404,7 +2404,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "Support refunds an order"
@@ -2425,7 +2425,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2562,7 +2562,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "The refund is not recorded"
@@ -2583,7 +2583,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -2982,7 +2982,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3051,7 +3051,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 8,
+              "steps": 11,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3069,7 +3069,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3087,7 +3087,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3105,7 +3105,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3123,7 +3123,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 7,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3328,7 +3328,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3448,7 +3448,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3466,7 +3466,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 4,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3502,7 +3502,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3520,7 +3520,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3538,7 +3538,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3556,7 +3556,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3592,7 +3592,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 9,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3610,7 +3610,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "Support refunds an order"
@@ -3631,7 +3631,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3768,7 +3768,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "The refund is not recorded"
@@ -3789,7 +3789,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4313,7 +4313,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4382,7 +4382,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 8,
+              "steps": 11,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4400,7 +4400,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4418,7 +4418,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4436,7 +4436,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4454,7 +4454,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 7,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4659,7 +4659,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4779,7 +4779,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4797,7 +4797,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 4,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4833,7 +4833,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4851,7 +4851,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4869,7 +4869,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4887,7 +4887,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4923,7 +4923,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 9,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -4941,7 +4941,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "Support refunds an order"
@@ -4962,7 +4962,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5099,7 +5099,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "The refund is not recorded"
@@ -5120,7 +5120,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5572,7 +5572,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5624,7 +5624,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 8,
+              "steps": 11,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5642,7 +5642,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5660,7 +5660,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5678,7 +5678,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5798,7 +5798,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5867,7 +5867,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5885,7 +5885,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 4,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5921,7 +5921,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 2,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5939,7 +5939,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5957,7 +5957,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 4,
+              "steps": 6,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5975,7 +5975,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -6011,7 +6011,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 9,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -6029,7 +6029,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 6,
+              "steps": 8,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -6098,7 +6098,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "The refund is not recorded"
@@ -6119,7 +6119,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -6660,7 +6660,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 5,
+              "steps": 6,
               "linked": true,
               "partners": [
                 "The refund is not recorded"
@@ -6681,7 +6681,7 @@
               "inside": 0,
               "shapes": 0,
               "flows": 0,
-              "steps": 3,
+              "steps": 5,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -6789,7 +6789,7 @@
                 "flow": {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -6806,7 +6806,7 @@
                 "flow": {
                   "id": "deliver-order",
                   "name": "A courier delivers it",
-                  "steps": 8,
+                  "steps": 11,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -6823,7 +6823,7 @@
                 "flow": {
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -6840,7 +6840,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 6,
+                  "steps": 7,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -6857,7 +6857,7 @@
                 "flow": {
                   "id": "mapbox-rate-limit",
                   "name": "Mapbox turns the travel times away",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "dispatch",
                   "linked": false,
                   "partners": [],
@@ -6874,7 +6874,7 @@
                 "flow": {
                   "id": "no-courier-answers",
                   "name": "An offer goes unanswered",
-                  "steps": 5,
+                  "steps": 8,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -6891,7 +6891,7 @@
                 "flow": {
                   "id": "sms-dropped",
                   "name": "The carrier drops the SMS",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "root",
                   "linked": false,
                   "partners": [],
@@ -6917,7 +6917,7 @@
                 "flow": {
                   "id": "hotel-wifi-takes-order",
                   "name": "Hotel wifi takes the order",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -6935,7 +6935,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -6952,7 +6952,7 @@
                 "flow": {
                   "id": "nobody-accepts",
                   "name": "Nobody accepts the order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -6969,7 +6969,7 @@
                 "flow": {
                   "id": "order-sent-twice",
                   "name": "A double tap sends the order twice",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -6986,7 +6986,7 @@
                 "flow": {
                   "id": "orders-db-fails-over",
                   "name": "Orders DB fails over",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7021,7 +7021,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7056,7 +7056,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7091,7 +7091,7 @@
                 "flow": {
                   "id": "announce-order",
                   "name": "A paid order is announced",
-                  "steps": 3,
+                  "steps": 4,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7108,7 +7108,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7125,7 +7125,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -7144,7 +7144,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -7205,7 +7205,7 @@
                 "flow": {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7222,7 +7222,7 @@
                 "flow": {
                   "id": "deliver-order",
                   "name": "A courier delivers it",
-                  "steps": 8,
+                  "steps": 11,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7239,7 +7239,7 @@
                 "flow": {
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7256,7 +7256,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 6,
+                  "steps": 7,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7273,7 +7273,7 @@
                 "flow": {
                   "id": "mapbox-rate-limit",
                   "name": "Mapbox turns the travel times away",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "dispatch",
                   "linked": false,
                   "partners": [],
@@ -7290,7 +7290,7 @@
                 "flow": {
                   "id": "no-courier-answers",
                   "name": "An offer goes unanswered",
-                  "steps": 5,
+                  "steps": 8,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7307,7 +7307,7 @@
                 "flow": {
                   "id": "sms-dropped",
                   "name": "The carrier drops the SMS",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "root",
                   "linked": false,
                   "partners": [],
@@ -7333,7 +7333,7 @@
                 "flow": {
                   "id": "hotel-wifi-takes-order",
                   "name": "Hotel wifi takes the order",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7351,7 +7351,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -7368,7 +7368,7 @@
                 "flow": {
                   "id": "nobody-accepts",
                   "name": "Nobody accepts the order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7385,7 +7385,7 @@
                 "flow": {
                   "id": "order-sent-twice",
                   "name": "A double tap sends the order twice",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7402,7 +7402,7 @@
                 "flow": {
                   "id": "orders-db-fails-over",
                   "name": "Orders DB fails over",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7437,7 +7437,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7472,7 +7472,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7507,7 +7507,7 @@
                 "flow": {
                   "id": "announce-order",
                   "name": "A paid order is announced",
-                  "steps": 3,
+                  "steps": 4,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7524,7 +7524,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7541,7 +7541,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -7560,7 +7560,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -7621,7 +7621,7 @@
                 "flow": {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7638,7 +7638,7 @@
                 "flow": {
                   "id": "deliver-order",
                   "name": "A courier delivers it",
-                  "steps": 8,
+                  "steps": 11,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7655,7 +7655,7 @@
                 "flow": {
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7672,7 +7672,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 6,
+                  "steps": 7,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7689,7 +7689,7 @@
                 "flow": {
                   "id": "mapbox-rate-limit",
                   "name": "Mapbox turns the travel times away",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "dispatch",
                   "linked": false,
                   "partners": [],
@@ -7706,7 +7706,7 @@
                 "flow": {
                   "id": "no-courier-answers",
                   "name": "An offer goes unanswered",
-                  "steps": 5,
+                  "steps": 8,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -7723,7 +7723,7 @@
                 "flow": {
                   "id": "sms-dropped",
                   "name": "The carrier drops the SMS",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "root",
                   "linked": false,
                   "partners": [],
@@ -7749,7 +7749,7 @@
                 "flow": {
                   "id": "hotel-wifi-takes-order",
                   "name": "Hotel wifi takes the order",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7767,7 +7767,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -7784,7 +7784,7 @@
                 "flow": {
                   "id": "nobody-accepts",
                   "name": "Nobody accepts the order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7801,7 +7801,7 @@
                 "flow": {
                   "id": "order-sent-twice",
                   "name": "A double tap sends the order twice",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7818,7 +7818,7 @@
                 "flow": {
                   "id": "orders-db-fails-over",
                   "name": "Orders DB fails over",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7853,7 +7853,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7888,7 +7888,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7923,7 +7923,7 @@
                 "flow": {
                   "id": "announce-order",
                   "name": "A paid order is announced",
-                  "steps": 3,
+                  "steps": 4,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7940,7 +7940,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -7957,7 +7957,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -7976,7 +7976,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -8046,7 +8046,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8081,7 +8081,7 @@
                 "flow": {
                   "id": "announce-order",
                   "name": "A paid order is announced",
-                  "steps": 3,
+                  "steps": 4,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8098,7 +8098,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8115,7 +8115,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -8134,7 +8134,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -8195,7 +8195,7 @@
                 "flow": {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8212,7 +8212,7 @@
                 "flow": {
                   "id": "deliver-order",
                   "name": "A courier delivers it",
-                  "steps": 8,
+                  "steps": 11,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8229,7 +8229,7 @@
                 "flow": {
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8246,7 +8246,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 6,
+                  "steps": 7,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8263,7 +8263,7 @@
                 "flow": {
                   "id": "mapbox-rate-limit",
                   "name": "Mapbox turns the travel times away",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "dispatch",
                   "linked": false,
                   "partners": [],
@@ -8280,7 +8280,7 @@
                 "flow": {
                   "id": "no-courier-answers",
                   "name": "An offer goes unanswered",
-                  "steps": 5,
+                  "steps": 8,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8297,7 +8297,7 @@
                 "flow": {
                   "id": "sms-dropped",
                   "name": "The carrier drops the SMS",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "root",
                   "linked": false,
                   "partners": [],
@@ -8323,7 +8323,7 @@
                 "flow": {
                   "id": "hotel-wifi-takes-order",
                   "name": "Hotel wifi takes the order",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8341,7 +8341,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -8358,7 +8358,7 @@
                 "flow": {
                   "id": "nobody-accepts",
                   "name": "Nobody accepts the order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8375,7 +8375,7 @@
                 "flow": {
                   "id": "order-sent-twice",
                   "name": "A double tap sends the order twice",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8392,7 +8392,7 @@
                 "flow": {
                   "id": "orders-db-fails-over",
                   "name": "Orders DB fails over",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8427,7 +8427,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8462,7 +8462,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8497,7 +8497,7 @@
                 "flow": {
                   "id": "announce-order",
                   "name": "A paid order is announced",
-                  "steps": 3,
+                  "steps": 4,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8514,7 +8514,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8531,7 +8531,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -8550,7 +8550,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -8645,7 +8645,7 @@
                 "flow": {
                   "id": "deliver-order",
                   "name": "A courier delivers it",
-                  "steps": 8,
+                  "steps": 11,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8662,7 +8662,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 6,
+                  "steps": 7,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8688,7 +8688,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -8722,7 +8722,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8748,7 +8748,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8765,7 +8765,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -8830,7 +8830,7 @@
                 "flow": {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8847,7 +8847,7 @@
                 "flow": {
                   "id": "deliver-order",
                   "name": "A courier delivers it",
-                  "steps": 8,
+                  "steps": 11,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8864,7 +8864,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 6,
+                  "steps": 7,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8881,7 +8881,7 @@
                 "flow": {
                   "id": "mapbox-rate-limit",
                   "name": "Mapbox turns the travel times away",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "dispatch",
                   "linked": false,
                   "partners": [],
@@ -8898,7 +8898,7 @@
                 "flow": {
                   "id": "no-courier-answers",
                   "name": "An offer goes unanswered",
-                  "steps": 5,
+                  "steps": 8,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -8915,7 +8915,7 @@
                 "flow": {
                   "id": "sms-dropped",
                   "name": "The carrier drops the SMS",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "root",
                   "linked": false,
                   "partners": [],
@@ -8941,7 +8941,7 @@
                 "flow": {
                   "id": "hotel-wifi-takes-order",
                   "name": "Hotel wifi takes the order",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8959,7 +8959,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -8976,7 +8976,7 @@
                 "flow": {
                   "id": "nobody-accepts",
                   "name": "Nobody accepts the order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -8993,7 +8993,7 @@
                 "flow": {
                   "id": "orders-db-fails-over",
                   "name": "Orders DB fails over",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9028,7 +9028,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9063,7 +9063,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9081,7 +9081,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -9100,7 +9100,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -9205,7 +9205,7 @@
                 "flow": {
                   "id": "hotel-wifi-takes-order",
                   "name": "Hotel wifi takes the order",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9223,7 +9223,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -9240,7 +9240,7 @@
                 "flow": {
                   "id": "nobody-accepts",
                   "name": "Nobody accepts the order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9257,7 +9257,7 @@
                 "flow": {
                   "id": "order-sent-twice",
                   "name": "A double tap sends the order twice",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9274,7 +9274,7 @@
                 "flow": {
                   "id": "orders-db-fails-over",
                   "name": "Orders DB fails over",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9309,7 +9309,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9344,7 +9344,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9379,7 +9379,7 @@
                 "flow": {
                   "id": "announce-order",
                   "name": "A paid order is announced",
-                  "steps": 3,
+                  "steps": 4,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9396,7 +9396,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9413,7 +9413,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -9432,7 +9432,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -9562,7 +9562,7 @@
                 "flow": {
                   "id": "courier-pings-lost",
                   "name": "Courier pings are lost",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -9579,7 +9579,7 @@
                 "flow": {
                   "id": "deliver-order",
                   "name": "A courier delivers it",
-                  "steps": 8,
+                  "steps": 11,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -9596,7 +9596,7 @@
                 "flow": {
                   "id": "events-arrive-late",
                   "name": "Dispatch hears about an order late",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -9613,7 +9613,7 @@
                 "flow": {
                   "id": "follow-the-courier",
                   "name": "The customer follows the courier",
-                  "steps": 6,
+                  "steps": 7,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -9630,7 +9630,7 @@
                 "flow": {
                   "id": "mapbox-rate-limit",
                   "name": "Mapbox turns the travel times away",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "dispatch",
                   "linked": false,
                   "partners": [],
@@ -9647,7 +9647,7 @@
                 "flow": {
                   "id": "no-courier-answers",
                   "name": "An offer goes unanswered",
-                  "steps": 5,
+                  "steps": 8,
                   "view": "delivery",
                   "linked": false,
                   "partners": [],
@@ -9664,7 +9664,7 @@
                 "flow": {
                   "id": "sms-dropped",
                   "name": "The carrier drops the SMS",
-                  "steps": 3,
+                  "steps": 5,
                   "view": "root",
                   "linked": false,
                   "partners": [],
@@ -9690,7 +9690,7 @@
                 "flow": {
                   "id": "hotel-wifi-takes-order",
                   "name": "Hotel wifi takes the order",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9708,7 +9708,7 @@
                 "flow": {
                   "id": "menu-is-read",
                   "name": "A menu is read",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "order-api",
                   "linked": false,
                   "partners": [],
@@ -9725,7 +9725,7 @@
                 "flow": {
                   "id": "nobody-accepts",
                   "name": "Nobody accepts the order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9742,7 +9742,7 @@
                 "flow": {
                   "id": "order-sent-twice",
                   "name": "A double tap sends the order twice",
-                  "steps": 2,
+                  "steps": 3,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9759,7 +9759,7 @@
                 "flow": {
                   "id": "orders-db-fails-over",
                   "name": "Orders DB fails over",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9794,7 +9794,7 @@
                 "flow": {
                   "id": "restaurant-accepts",
                   "name": "The restaurant accepts",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9829,7 +9829,7 @@
                 "flow": {
                   "id": "stripe-outage",
                   "name": "Stripe goes down and comes back",
-                  "steps": 6,
+                  "steps": 8,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9864,7 +9864,7 @@
                 "flow": {
                   "id": "announce-order",
                   "name": "A paid order is announced",
-                  "steps": 3,
+                  "steps": 4,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9881,7 +9881,7 @@
                 "flow": {
                   "id": "capture-payment",
                   "name": "The payment is captured",
-                  "steps": 6,
+                  "steps": 9,
                   "view": "ordering",
                   "linked": false,
                   "partners": [],
@@ -9898,7 +9898,7 @@
                 "flow": {
                   "id": "refund",
                   "name": "Support refunds an order",
-                  "steps": 5,
+                  "steps": 6,
                   "view": "root",
                   "linked": true,
                   "partners": [
@@ -9917,7 +9917,7 @@
                 "flow": {
                   "id": "refund-not-recorded",
                   "name": "The refund is not recorded",
-                  "steps": 4,
+                  "steps": 6,
                   "view": "ordering",
                   "linked": true,
                   "partners": [
@@ -25177,7 +25177,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": [
             {
@@ -25402,7 +25402,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": [
             {
@@ -25700,7 +25700,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": [
             {
@@ -26084,7 +26084,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": [
             {
@@ -26488,7 +26488,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": [
             {
@@ -26758,7 +26758,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": [
             {
@@ -26824,7 +26824,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": []
         },
@@ -27043,7 +27043,7 @@
           "totals": {
             "shapes": 13,
             "flows": 3,
-            "problems": 34
+            "problems": 33
           },
           "counts": [
             {

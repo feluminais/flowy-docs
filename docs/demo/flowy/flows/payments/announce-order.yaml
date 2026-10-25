@@ -5,6 +5,7 @@ groups:
   readers:
     kind: parallel
 steps:
+  - { from: stripe, to: order-api, text: Reports that the charge went through, animation: { kind: callback, trigger: outside, carries: charged }, flow: stripe-webhook }
   - { from: order-api, to: events, text: Publishes the paid event and carries on without waiting, animation: { kind: event, carries: paid } }
   - from: events
     to: dispatch

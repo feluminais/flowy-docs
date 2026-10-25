@@ -98,13 +98,64 @@ export function placeEnds(model: Model, v: string, from: string, to: string): [s
   return ends[0] === ends[1] ? null : ends
 }
 
+/** The actors the flows of each view name, worked out once per model: the flows and objects are new maps after an edit, so their identity is the key. */
+type FlowDrawn = { objects: Model['objects']; actors: Map<string, string[]> }
+const flowDrawn = new WeakMap<Model['flows'], FlowDrawn>()
+
+function flowCache(model: Model): FlowDrawn {
+  let cache = flowDrawn.get(model.flows)
+  if (!cache || cache.objects !== model.objects) {
+    cache = { objects: model.objects, actors: new Map() }
+    flowDrawn.set(model.flows, cache)
+  }
+  return cache
+}
+
+/**
+ * The actors that the flows playing in view v name, where v would draw them as themselves: a person who sets a flow off or takes part
+ * in it is drawn on the level the flow plays at, even when no line reaches them there, so a flow never looks like the system acting on
+ * its own. In the order the flows name them.
+ */
+export function flowActors(model: Model, v: string): string[] {
+  const cache = flowCache(model)
+  let found = cache.actors.get(v)
+  if (!found) {
+    found = []
+    const seen = new Set<string>()
+    const above = chain(model, v)
+    for (const flow of Object.values(model.flows)) {
+      if (flow?.view !== v || !Array.isArray(flow.steps)) continue
+      for (const step of flow.steps) {
+        for (const id of [step?.from, step?.to]) {
+          if (typeof id !== 'string' || seen.has(id)) continue
+          seen.add(id)
+          if (getObject(model, id)?.type === 'actor' && !above.includes(id) && rep(model, id, v) === undefined && outsider(model, id, v) === id) found.push(id)
+        }
+      }
+    }
+    cache.actors.set(v, found)
+  }
+  return found
+}
+
 /**
  * Where a flow step lands in view v. A step with no `to` is one box acting on its own: the box inside
  * the view that stands for it, given twice. Null when the view can't show the step. Like a line with
  * both ends outside, a one-box step on something outside the view has nothing in the view to show.
+ * A step with both ends outside is shown when one of them is an actor the view draws for its flows
+ * (see flowActors): the customer who places the order that sets the flow off. Like any box a step
+ * lands on, the other end joins the view while the flow plays.
  */
 export function placeStep(model: Model, v: string, step: { from: string; to?: string }): [string, string] | null {
-  if (step.to !== undefined) return placeEnds(model, v, step.from, step.to)
+  if (step.to !== undefined) {
+    const ends = placeEnds(model, v, step.from, step.to)
+    if (ends || !getObject(model, step.from) || !getObject(model, step.to)) return ends
+    if (rep(model, step.from, v) !== undefined || rep(model, step.to, v) !== undefined) return null
+    const a = outsider(model, step.from, v)
+    const b = outsider(model, step.to, v)
+    const actors = flowActors(model, v)
+    return a !== b && (actors.includes(a) || actors.includes(b)) ? [a, b] : null
+  }
   const box = getObject(model, step.from) ? rep(model, step.from, v) : undefined
   return box === undefined ? null : [box, box]
 }
@@ -127,6 +178,7 @@ export function computeView(model: Model, v: string): View {
       if (edge.from !== ends[0]) edge.both = true
     } else edges.set(key, { from: ends[0], to: ends[1], label: typeof c.label === 'string' ? c.label : '', count: 1 })
   }
+  for (const id of flowActors(model, v)) if (!seenOutside.has(id)) { seenOutside.add(id); outsiders.push(id) }
   return { id: v, members, outsiders, edges: [...edges.values()] }
 }
 

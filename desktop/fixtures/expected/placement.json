@@ -511,10 +511,10 @@
             36
           ]
         ],
-        "people": [],
-        "rest": [
+        "people": [
           "stray"
-        ]
+        ],
+        "rest": []
       },
       "arranged": {
         "at": [
@@ -530,8 +530,8 @@
           ],
           [
             "stray",
-            -280,
-            0
+            150,
+            -152
           ]
         ],
         "rows": [
@@ -539,13 +539,13 @@
             "a",
             "b"
           ],
-          [],
-          []
-        ],
-        "columns": [
           [
             "stray"
           ],
+          []
+        ],
+        "columns": [
+          [],
           []
         ]
       },
@@ -563,8 +563,8 @@
         ],
         [
           "stray",
-          -280,
-          0
+          150,
+          -152
         ]
       ],
       "tangleTidy": 0
@@ -1080,7 +1080,8 @@
         "stripe",
         "notifications",
         "delivery",
-        "backoffice"
+        "backoffice",
+        "support"
       ],
       "edges": [
         {
@@ -1163,7 +1164,8 @@
         "stripe": "above",
         "notifications": "left",
         "delivery": "right",
-        "backoffice": "below"
+        "backoffice": "below",
+        "support": "above"
       },
       "fixed": {},
       "members": {
@@ -1210,12 +1212,18 @@
             "backoffice",
             0,
             225
+          ],
+          [
+            "support",
+            400,
+            186
           ]
         ],
         "people": [
           "customer",
           "restaurant",
-          "delivery"
+          "delivery",
+          "support"
         ],
         "rest": [
           "mapbox",
@@ -1292,9 +1300,14 @@
             -152
           ],
           [
-            "restaurant",
+            "support",
             645,
             -152
+          ],
+          [
+            "restaurant",
+            300,
+            -254
           ]
         ],
         "rows": [
@@ -1311,6 +1324,7 @@
             "stripe",
             "delivery",
             "customer",
+            "support",
             "restaurant"
           ],
           [
@@ -1325,7 +1339,7 @@
           []
         ]
       },
-      "tangleArranged": 15,
+      "tangleArranged": 16,
       "tidy": [
         [
           "customer-app",
@@ -1393,12 +1407,17 @@
           -152
         ],
         [
-          "restaurant",
+          "support",
           645,
           -152
+        ],
+        [
+          "restaurant",
+          300,
+          -254
         ]
       ],
-      "tangleTidy": 8
+      "tangleTidy": 9
     },
     {
       "name": "docs/demo/flowy delivery",
@@ -1428,7 +1447,9 @@
         "courier",
         "ordering",
         "mapbox",
-        "notifications"
+        "notifications",
+        "customer",
+        "restaurant"
       ],
       "edges": [
         {
@@ -1480,7 +1501,9 @@
         "courier": "left",
         "ordering": "right",
         "mapbox": "below",
-        "notifications": "above"
+        "notifications": "above",
+        "customer": "left",
+        "restaurant": "right"
       },
       "fixed": {},
       "members": {
@@ -1512,10 +1535,22 @@
             "notifications",
             300,
             0
+          ],
+          [
+            "customer",
+            250,
+            111
+          ],
+          [
+            "restaurant",
+            250,
+            111
           ]
         ],
         "people": [
-          "courier"
+          "courier",
+          "customer",
+          "restaurant"
         ],
         "rest": [
           "ordering",
@@ -1557,12 +1592,22 @@
           ],
           [
             "courier",
+            -195,
+            -152
+          ],
+          [
+            "customer",
             35,
             -152
           ],
           [
-            "notifications",
+            "restaurant",
             265,
+            -152
+          ],
+          [
+            "notifications",
+            495,
             -152
           ]
         ],
@@ -1575,6 +1620,8 @@
           ],
           [
             "courier",
+            "customer",
+            "restaurant",
             "notifications"
           ],
           [
@@ -1622,16 +1669,26 @@
         ],
         [
           "courier",
+          -195,
+          -152
+        ],
+        [
+          "customer",
+          35,
+          -152
+        ],
+        [
+          "restaurant",
           265,
           -152
         ],
         [
           "notifications",
-          35,
+          495,
           -152
         ]
       ],
-      "tangleTidy": 7
+      "tangleTidy": 8
     },
     {
       "name": "example root",
@@ -2096,6 +2153,16 @@
     {
       "folder": "docs/demo/flowy",
       "view": "ordering",
+      "box": "support",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "support"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "ordering",
       "box": "ordering",
       "meets": null
     },
@@ -2143,6 +2210,26 @@
         "view": "root",
         "here": "delivery",
         "there": "notifications"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "customer",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "customer"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "delivery",
+      "box": "restaurant",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "restaurant"
       }
     },
     {
@@ -2314,6 +2401,16 @@
     {
       "folder": "docs/demo/flowy",
       "view": "order-api",
+      "box": "customer",
+      "meets": {
+        "view": "root",
+        "here": "ordering",
+        "there": "customer"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
       "box": "order-api",
       "meets": null
     },
@@ -2351,6 +2448,16 @@
         "view": "root",
         "here": "delivery",
         "there": "notifications"
+      }
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "box": "customer",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "customer"
       }
     },
     {
