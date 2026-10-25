@@ -15,6 +15,17 @@ export type Band = 'high' | 'medium' | 'low' | 'unrated'
 /** The names a reader sees for the bands, worst first. */
 export const BAND_NAMES: Record<Band, string> = { high: 'High', medium: 'Medium', low: 'Low', unrated: 'Not rated' }
 const BANDS: Band[] = ['high', 'medium', 'low', 'unrated']
+/** Where the bands start: High from a risk of 150 or a severity of 9, Medium from a risk of 60. Starting values, as the knee is in Performance. */
+const HIGH_RISK = 150
+const HIGH_SEVERITY = 9
+const MEDIUM_RISK = 60
+/** What each band stands for, as the key says it beside the band's count. Built from the numbers `bandOf` uses, so the two cannot drift. */
+export const BAND_RULES: Record<Band, string> = {
+  high: `Risk ${HIGH_RISK}+ or severity ${HIGH_SEVERITY}+`,
+  medium: `Risk ${MEDIUM_RISK} to ${HIGH_RISK - 1}`,
+  low: `Risk under ${MEDIUM_RISK}`,
+  unrated: 'A rating missing',
+}
 export const STATUSES = ['open', 'planned', 'done', 'accepted'] as const
 /** The keys a file keeps the ratings under. Detection runs the standard way: 10 means nobody would notice. */
 export const RATING_KEYS = ['severity', 'occurrence', 'detection'] as const
@@ -60,10 +71,10 @@ export const riskOf = (m: Mode): number | undefined => risk(effective(m))
  */
 export function bandOf(m: Mode): Band {
   const r = effective(m)
-  if (r.severity !== undefined && r.severity >= 9) return 'high'
+  if (r.severity !== undefined && r.severity >= HIGH_SEVERITY) return 'high'
   const n = risk(r)
   if (n === undefined) return 'unrated'
-  return n >= 150 ? 'high' : n >= 60 ? 'medium' : 'low'
+  return n >= HIGH_RISK ? 'high' : n >= MEDIUM_RISK ? 'medium' : 'low'
 }
 
 export type Ranked = { id: string; mode: Mode; risk?: number; band: Band }
@@ -106,6 +117,21 @@ export function partName(model: Model, m: Mode): string {
   return ''
 }
 
+/**
+ * What a screen reader says for a row of the list: the part's own name and the mode, then the band with its risk, then where the part sits
+ * ("Refunds: Stripe refunds the money but the database write fails. High, risk 126. Ordering > Order API").
+ */
+export function rowName(model: Model, r: Ranked): string {
+  const part = partName(model, r.mode)
+  const at = part.lastIndexOf(' > ')
+  const rating = r.risk === undefined ? BAND_NAMES[r.band] : `${BAND_NAMES[r.band]}, risk ${r.risk}`
+  return [`${at === -1 ? part : part.slice(at + 3)}: ${r.mode.mode ?? ''}`, rating, at === -1 ? '' : part.slice(0, at)].filter(x => x !== '').join('. ')
+}
+
+/** What a badge on a line says: the line by its two ends, how many modes, and the worst band. A shape's badge leaves the line out. */
+export const badgeName = (mark: Mark, line?: string): string =>
+  `${line === undefined ? '' : `${line}, `}${mark.count} failure${mark.count === 1 ? '' : 's'}, ${BAND_NAMES[mark.band]}`
+
 /** The columns of the exported table, in order: the words a reader sees, which are not the keys a file keeps. The After columns follow when some mode has an `after`. */
 const COLUMNS = ['Risk band', 'Part', 'Mode', 'Effect', 'Cause', 'Severity', 'Likelihood', 'Hard to spot', 'Risk', 'Controls', 'Next action', 'Owner', 'Status']
 const AFTER_COLUMNS = ['Severity after', 'Likelihood after', 'Hard to spot after']
@@ -138,10 +164,13 @@ export function table(model: Model, a: Analysis, format: 'markdown' | 'csv'): st
   return [line(head), line(head.map(() => '---')), ...rows.map(line)].join('\n')
 }
 
-/** "Analysed 3 of 4", and when some are left a second line naming them by their path. */
+/** "Analysed 15 of 26 shapes": what the panel says under the band counts. The shapes are those that hold no others, actors left out. */
+export const analysedText = (analysed: number, total: number): string => `Analysed ${analysed} of ${total} ${total === 1 ? 'shape' : 'shapes'}`
+
+/** "Analysed 3 of 4 shapes", and when some are left a second line naming them by their path. */
 export function coverageText(model: Model, a: Analysis): string {
   const { analysed, left } = coverage(model, a)
-  const first = `Analysed ${analysed.length} of ${analysed.length + left.length}`
+  const first = analysedText(analysed.length, analysed.length + left.length)
   return left.length === 0 ? first : `${first}\nNot analysed: ${left.map(id => partName(model, { on: id })).join(', ')}`
 }
 

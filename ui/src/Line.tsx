@@ -94,6 +94,9 @@ const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Botto
 
 export const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
 /** The outline a line meets: the shape's own, so it never ends in the air beside a diamond's corner. */
+/** What a box is called, for the words a badge on a line says. */
+const nameOfNode = (n: InternalNode, id: string): string => (n.data as BoxData).object.name || id
+
 export const outline = (n: InternalNode): Outline => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].edge
 
 /** The SVG path and the label's place for one line in the given style. */
@@ -169,7 +172,7 @@ export const Line = memo(function Line({ id, source, target, label, markerEnd, i
       <BaseEdge id={id} path={path} className={hot ? 'hot' : undefined} label={text} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
       {mark && (
         <EdgeLabelRenderer>
-          <FailBadge mark={mark} className="line" style={{ transform: `translate(-50%, -150%) translate(${x}px, ${y}px)` }} />
+          <FailBadge mark={mark} line={`${nameOfNode(a, source)} to ${nameOfNode(b, target)}`} className="line" style={{ transform: `translate(-50%, -150%) translate(${x}px, ${y}px)` }} />
         </EdgeLabelRenderer>
       )}
     </>

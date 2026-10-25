@@ -56,7 +56,7 @@ export function useCanvasGraph({ model, view, shown, problems, stateMarks, loadT
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
     const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine }).map(e => (lifted.has(e.id) ? { ...e, data: { ...e.data, lift: true } } : e))
     // A picked failure mode outlines its line and fades every other.
-    return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, e.id === lit.failsLine ? 'fails' : 'dim'].filter(Boolean).join(' ') }))
+    return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, e.id === lit.failsLine ? `fails band-${lit.band}` : 'dim'].filter(Boolean).join(' ') }))
   }, [graph, selectedBox, selectedLine, pipes, lit])
   keptEdges.current = keepSame(keptEdges.current, edgesNow)
   const edges = keptEdges.current.list as Edge[] // a hover changes one or two lines, and only those draw again
