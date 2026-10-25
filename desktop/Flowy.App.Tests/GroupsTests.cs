@@ -132,15 +132,15 @@ public class GroupsTests
         public void Dispose() => Directory.Delete(Dir, true);
     }
 
-    private static List<string> Words(ReaderView reader) => reader.Card.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
+    private static List<string> Words(ReaderView reader) => reader.Card.Laid().GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
 
     /// <summary>The boxes of the progress bar: one around each group.</summary>
-    private static List<Avalonia.Controls.Shapes.Rectangle> Boxes(ReaderView reader) => reader.Card.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Rectangle>().Where(r => r.Classes.Contains("box")).ToList();
+    private static List<Avalonia.Controls.Shapes.Rectangle> Boxes(ReaderView reader) => reader.Card.Laid().GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Rectangle>().Where(r => r.Classes.Contains("box")).ToList();
 
-    private static List<Border> Borders(ReaderView reader, string cls) => reader.Card.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains(cls)).ToList();
+    private static List<Border> Borders(ReaderView reader, string cls) => reader.Card.Laid().GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains(cls)).ToList();
 
     private static Button? Named(ReaderView reader, string name) =>
-        reader.Card.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => Avalonia.Automation.AutomationProperties.GetName(b) == name);
+        reader.Card.Laid().GetVisualDescendants().OfType<Button>().FirstOrDefault(b => Avalonia.Automation.AutomationProperties.GetName(b) == name);
 
     private static void Click(Button button) => button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
@@ -171,7 +171,6 @@ public class GroupsTests
         try
         {
             Assert.Single(Borders(reader, "legend"));
-            reader.Card.UpdateLayout(); // a scroll viewer makes its content only when it is measured
             var words = Words(reader);
             foreach (var row in Captions.Legend) Assert.Contains(row.Title, words);
             Assert.Contains(Captions.Legend[2].Text, words);
@@ -214,7 +213,7 @@ public class GroupsTests
         Assert.Equal(["Card declined"], tabs.Where(t => t.Classes.Contains("on")).Select(t => ((TextBlock)t.Child!).Text).ToList());
         Assert.Contains("One of 2", Words(reader));
         // The bar names its rows by the lanes, marks the one shown, and draws the lane that is not shown hollow.
-        var rows = reader.Card.GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Contains("barlane")).ToList();
+        var rows = reader.Card.Laid().GetVisualDescendants().OfType<TextBlock>().Where(t => t.Classes.Contains("barlane")).ToList();
         Assert.Equal(["Card accepted", "Card declined"], rows.Select(t => t.Text).ToList());
         Assert.Equal(["Card declined"], rows.Where(t => t.Classes.Contains("on")).Select(t => t.Text).ToList());
         Assert.Equal(2, Borders(reader, "off").Count); // both cells of the first lane
@@ -238,18 +237,18 @@ public class GroupsTests
         Click(Named(reader, "Open flow: Capture a payment")!);
         Assert.Equal("capture-payment", reader.PlayingFlowId);
         Assert.Equal(0, reader.PlayingStep);
-        var back = reader.Card.GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("trail"));
+        var back = reader.Card.Laid().GetVisualDescendants().OfType<Button>().Single(b => b.Classes.Contains("trail"));
         Assert.Contains("Back to “Customer pays for an order”, step 6", Words(reader).Concat([Avalonia.Automation.AutomationProperties.GetName(back)]));
         Click(back);
         Assert.Equal("ok", reader.PlayingFlowId);
         Assert.Equal(5, reader.PlayingStep);
-        Assert.DoesNotContain(reader.Card.GetVisualDescendants().OfType<Button>(), b => b.Classes.Contains("trail"));
+        Assert.DoesNotContain(reader.Card.Laid().GetVisualDescendants().OfType<Button>(), b => b.Classes.Contains("trail"));
         // Esc leaves the player, and the trail with it.
         Click(Named(reader, "Open flow: Capture a payment")!);
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.Null(reader.PlayingFlowId);
         reader.Play("capture-payment");
-        Assert.DoesNotContain(reader.Card.GetVisualDescendants().OfType<Button>(), b => b.Classes.Contains("trail"));
+        Assert.DoesNotContain(reader.Card.Laid().GetVisualDescendants().OfType<Button>(), b => b.Classes.Contains("trail"));
     }
 
     [AvaloniaFact]

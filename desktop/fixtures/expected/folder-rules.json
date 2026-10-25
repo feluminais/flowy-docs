@@ -1,6 +1,29 @@
 {
   "folderRule": "use names with no \\ / : * ? \" < > | # % and no control characters, not starting with a dot or a space, not ending in a dot or a space, 64 characters at most, and nest no deeper than 6 folders",
   "maxTagLength": 32,
+  "maxFileBytes": 5242880,
+  "tooBig": [
+    {
+      "bytes": 5242881,
+      "text": "is 5.1 MB, more than the 5 MB Flowy reads"
+    },
+    {
+      "bytes": 6291456,
+      "text": "is 6.0 MB, more than the 5 MB Flowy reads"
+    },
+    {
+      "bytes": 6291457,
+      "text": "is 6.1 MB, more than the 5 MB Flowy reads"
+    },
+    {
+      "bytes": 7654321,
+      "text": "is 7.3 MB, more than the 5 MB Flowy reads"
+    },
+    {
+      "bytes": 209715200,
+      "text": "is 200.0 MB, more than the 5 MB Flowy reads"
+    }
+  ],
   "suggestedTags": [
     "happy path",
     "error path",

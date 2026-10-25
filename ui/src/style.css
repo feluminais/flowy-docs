@@ -373,7 +373,11 @@ svg { flex: none; }
   position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 5;
   width: min(460px, calc(100% - 32px)); box-sizing: border-box; padding: 12px 16px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003;
+  display: flex; flex-direction: column; max-height: calc(100% - 48px);
 }
+/* The card never grows past the canvas: its name and its buttons stay, and what is between them scrolls. */
+.player > * { flex: none; }
+.player > .player-body { flex: 0 1 auto; min-height: 0; overflow-y: auto; margin: 0 -16px; padding: 0 16px; }
 .player p { margin: 0 0 6px; }
 .player-ends { font-weight: 600; }
 /* How the step's request ended, in the words every other place uses (outcomeLine): a fact the picture can't give, so it is text, with a mark beside it. */
@@ -388,6 +392,7 @@ svg { flex: none; }
 .progress .grp { display: flex; flex-direction: column; gap: 3px; margin: 0 5px; padding: 5px 5px 3px; border: 1px solid var(--line); border-radius: 6px; }
 .progress .grp.maybe { border-style: dashed; border-color: var(--muted); }
 .progress .runs { display: grid; gap: 2px 3px; }
+.progress .branch .runs { max-height: 120px; overflow-y: auto; } /* five lanes and half of a sixth */
 .progress .cell { position: relative; height: 4px; border-radius: 2px; background: var(--line); }
 .progress .cell::after { content: ''; position: absolute; inset: -1px 0; } /* a strip four pixels high is hard to point at: its hover text comes from a taller one */
 .progress .cell.done { background: var(--accent); }
@@ -408,7 +413,8 @@ svg { flex: none; }
 .legend dt { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 .legend dd { margin: 0 0 6px 19px; color: var(--muted); }
 .legend div:last-child dd { margin-bottom: 0; }
-.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 2px; }
+/* Many lanes: three rows of tabs and half of a fourth, then they scroll (the cut row says there are more). */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; max-height: 92px; overflow-y: auto; margin: 8px 0 2px; }
 .tab { padding: 1px 9px; border: 1px dashed var(--line); border-radius: 99px; font-size: 12px; color: var(--muted); }
 .tab.on { border-style: solid; border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .group-text { color: var(--muted); font-size: 12.5px; }
@@ -779,7 +785,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 /* The tags of a flow sit under its name, in its row. In the filter bar and in a flow's form they are buttons: a ring and a tint say which are on. */
 .flow-tags { box-sizing: border-box; flex: 1 0 100%; display: flex; flex-wrap: wrap; gap: 2px 10px; padding: 0 0 4px 23px; }
 .tagword { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; line-height: 16px; color: var(--muted); }
-.tagbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 2px; }
+/* Three rows and half of a fourth, then it scrolls: many tags must not push the list of flows out of the panel, and the cut row says there are more. */
+.tagbar { flex: none; display: flex; flex-wrap: wrap; gap: 6px; max-height: 102px; overflow-y: auto; margin: 0 -2px; padding: 2px 4px; }
 .panel .tagchip { display: inline-flex; align-items: center; gap: 4px; width: auto; min-height: 24px; padding: 0 9px 0 7px; border: 1px solid var(--line); border-radius: 999px; background: none; color: var(--fg); font-size: 12px; }
 .panel .tagchip .muted { font-size: 11px; }
 .panel .tagchip svg, .tagword svg { flex: none; color: inherit; }
@@ -1208,7 +1215,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 @media (prefers-reduced-motion: reduce) { .pane.states .box .shape, .pane.states .box .tile, .pane.states .box .box-text { transition: none; } }
 /* The zoom buttons sit at the pane's own corner, not beside the navigator. */
 .canvas.nav .compare .react-flow__controls { margin-left: 16px; }
-.pane .player { bottom: 12px; width: calc(100% - 24px); max-width: 460px; max-height: calc(100% - 24px); overflow: auto; }
+.pane .player { bottom: 12px; width: calc(100% - 24px); max-width: 460px; max-height: calc(100% - 24px); }
 /*
  * Swap: one pane at full width. A swap puts both flows' boxes on the one canvas for a moment (see SwapCanvas): the boxes both flows draw glide on a transition of their transform,
  * the others fade (the fade is on the box inside the node, as the node's own opacity is the diagram's dimming), and the lines fade out before the boxes move and back in once they

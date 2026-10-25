@@ -18,4 +18,11 @@ public static class TestApp
     }
 
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>().UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = true });
+
+    /// <summary>The flow card after a layout pass: most of the card sits in a scroll box, which makes its content only when it is measured.</summary>
+    internal static PlayerCard Laid(this PlayerCard card)
+    {
+        card.UpdateLayout();
+        return card;
+    }
 }
