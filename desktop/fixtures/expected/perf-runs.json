@@ -8468,6 +8468,272 @@
       "strain": null
     }
   ],
+  "labels": [
+    {
+      "strain": null,
+      "label": null
+    },
+    {
+      "strain": 0,
+      "label": null
+    },
+    {
+      "strain": 0.5,
+      "label": null
+    },
+    {
+      "strain": 0.84,
+      "label": null
+    },
+    {
+      "strain": 0.85,
+      "label": "85%"
+    },
+    {
+      "strain": 0.854,
+      "label": "85%"
+    },
+    {
+      "strain": 0.9,
+      "label": "90%"
+    },
+    {
+      "strain": 0.995,
+      "label": "100%"
+    },
+    {
+      "strain": 1,
+      "label": "100%"
+    }
+  ],
+  "noData": "No call sizes in this run",
+  "paths": [
+    {
+      "view": "root",
+      "id": "customer",
+      "name": "Customer"
+    },
+    {
+      "view": "root",
+      "id": "shop",
+      "name": "Shop"
+    },
+    {
+      "view": "root",
+      "id": "web",
+      "name": "Shop > Web"
+    },
+    {
+      "view": "root",
+      "id": "orders",
+      "name": "Shop > Web > Orders"
+    },
+    {
+      "view": "root",
+      "id": "auth",
+      "name": "Shop > Web > Auth"
+    },
+    {
+      "view": "root",
+      "id": "db",
+      "name": "Shop > Orders DB"
+    },
+    {
+      "view": "root",
+      "id": "queue",
+      "name": "Shop > Order queue"
+    },
+    {
+      "view": "root",
+      "id": "worker",
+      "name": "Shop > Worker"
+    },
+    {
+      "view": "root",
+      "id": "gateway",
+      "name": "Payment gateway"
+    },
+    {
+      "view": "shop",
+      "id": "customer",
+      "name": "Customer"
+    },
+    {
+      "view": "shop",
+      "id": "shop",
+      "name": "Shop"
+    },
+    {
+      "view": "shop",
+      "id": "web",
+      "name": "Web"
+    },
+    {
+      "view": "shop",
+      "id": "orders",
+      "name": "Web > Orders"
+    },
+    {
+      "view": "shop",
+      "id": "auth",
+      "name": "Web > Auth"
+    },
+    {
+      "view": "shop",
+      "id": "db",
+      "name": "Orders DB"
+    },
+    {
+      "view": "shop",
+      "id": "queue",
+      "name": "Order queue"
+    },
+    {
+      "view": "shop",
+      "id": "worker",
+      "name": "Worker"
+    },
+    {
+      "view": "shop",
+      "id": "gateway",
+      "name": "Payment gateway"
+    },
+    {
+      "view": "web",
+      "id": "customer",
+      "name": "Customer"
+    },
+    {
+      "view": "web",
+      "id": "shop",
+      "name": "Shop"
+    },
+    {
+      "view": "web",
+      "id": "web",
+      "name": "Web"
+    },
+    {
+      "view": "web",
+      "id": "orders",
+      "name": "Orders"
+    },
+    {
+      "view": "web",
+      "id": "auth",
+      "name": "Auth"
+    },
+    {
+      "view": "web",
+      "id": "db",
+      "name": "Orders DB"
+    },
+    {
+      "view": "web",
+      "id": "queue",
+      "name": "Order queue"
+    },
+    {
+      "view": "web",
+      "id": "worker",
+      "name": "Worker"
+    },
+    {
+      "view": "web",
+      "id": "gateway",
+      "name": "Payment gateway"
+    },
+    {
+      "view": "orders",
+      "id": "customer",
+      "name": "Customer"
+    },
+    {
+      "view": "orders",
+      "id": "shop",
+      "name": "Shop"
+    },
+    {
+      "view": "orders",
+      "id": "web",
+      "name": "Web"
+    },
+    {
+      "view": "orders",
+      "id": "orders",
+      "name": "Orders"
+    },
+    {
+      "view": "orders",
+      "id": "auth",
+      "name": "Auth"
+    },
+    {
+      "view": "orders",
+      "id": "db",
+      "name": "Orders DB"
+    },
+    {
+      "view": "orders",
+      "id": "queue",
+      "name": "Order queue"
+    },
+    {
+      "view": "orders",
+      "id": "worker",
+      "name": "Worker"
+    },
+    {
+      "view": "orders",
+      "id": "gateway",
+      "name": "Payment gateway"
+    },
+    {
+      "view": "db",
+      "id": "customer",
+      "name": "Customer"
+    },
+    {
+      "view": "db",
+      "id": "shop",
+      "name": "Shop"
+    },
+    {
+      "view": "db",
+      "id": "web",
+      "name": "Web"
+    },
+    {
+      "view": "db",
+      "id": "orders",
+      "name": "Web > Orders"
+    },
+    {
+      "view": "db",
+      "id": "auth",
+      "name": "Web > Auth"
+    },
+    {
+      "view": "db",
+      "id": "db",
+      "name": "Orders DB"
+    },
+    {
+      "view": "db",
+      "id": "queue",
+      "name": "Order queue"
+    },
+    {
+      "view": "db",
+      "id": "worker",
+      "name": "Worker"
+    },
+    {
+      "view": "db",
+      "id": "gateway",
+      "name": "Payment gateway"
+    }
+  ],
   "folder": {
     "runs": {
       "calm": {
@@ -12896,7 +13162,8 @@
         }
       ],
       "knee": null,
-      "text": null
+      "text": null,
+      "go": null
     },
     {
       "id": "edge",
@@ -17650,7 +17917,8 @@
           "to": 300
         }
       },
-      "text": "First struggles at 3 users: the slowest 5% of calls go from 100 ms to 300 ms"
+      "text": "First struggles at 3 users: the slowest 5% of calls go from 100 ms to 300 ms",
+      "go": "Go there to 3 users"
     },
     {
       "id": "errors",
@@ -23345,7 +23613,8 @@
           "share": 0.08
         }
       },
-      "text": "First struggles at 200 req/s: Payment gateway failing 8% of calls"
+      "text": "First struggles at 200 req/s: Payment gateway failing 8% of calls",
+      "go": "Go there to 200 req/s"
     },
     {
       "id": "extremes",
@@ -27681,7 +27950,8 @@
           "share": 0.85
         }
       },
-      "text": "First struggles at 2 req/s: Web at 85% of capacity"
+      "text": "First struggles at 2 req/s: Web at 85% of capacity",
+      "go": "Go there to 2 req/s"
     },
     {
       "id": "latency",
@@ -33991,7 +34261,8 @@
           "to": 650
         }
       },
-      "text": "First struggles at 4 users: the slowest 5% of calls go from 200 ms to 650 ms"
+      "text": "First struggles at 4 users: the slowest 5% of calls go from 200 ms to 650 ms",
+      "go": "Go there to 4 users"
     },
     {
       "id": "numbers",
@@ -37782,7 +38053,8 @@
         }
       ],
       "knee": null,
-      "text": null
+      "text": null,
+      "go": null
     },
     {
       "id": "ramp",
@@ -47402,7 +47674,8 @@
           "share": 0.97
         }
       },
-      "text": "First struggles at 100 req/s: Worker at 97% of capacity"
+      "text": "First struggles at 100 req/s: Worker at 97% of capacity",
+      "go": "Go there to 100 req/s"
     },
     {
       "id": "sparse",
@@ -52706,7 +52979,8 @@
         }
       ],
       "knee": null,
-      "text": null
+      "text": null,
+      "go": null
     },
     {
       "id": "unknown",
@@ -56077,7 +56351,8 @@
         }
       ],
       "knee": null,
-      "text": null
+      "text": null,
+      "go": null
     }
   ],
   "scaled": [
@@ -74947,6 +75222,7 @@
           }
         },
         "text": "First struggles at 20 orders/min: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to 20 orders/min",
         "settings": [
           {
             "setting": {
@@ -79488,6 +79764,7 @@
           }
         },
         "text": "First struggles at 10 pings/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to 10 pings/s",
         "settings": []
       },
       {
@@ -79524,6 +79801,7 @@
           }
         },
         "text": "First struggles at 2 x/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to 2 x/s",
         "settings": []
       },
       {
@@ -79570,6 +79848,7 @@
           }
         },
         "text": "First struggles at 2 b/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to 2 b/s",
         "settings": []
       },
       {
@@ -79613,6 +79892,7 @@
           }
         },
         "text": "First struggles at 2 a/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to 2 a/s",
         "settings": []
       },
       {
@@ -79656,6 +79936,7 @@
           }
         },
         "text": "First struggles at 2 b/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to 2 b/s",
         "settings": []
       },
       {
@@ -79695,6 +79976,7 @@
           }
         },
         "text": "First struggles at 20 orders/min: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to 20 orders/min",
         "settings": []
       },
       {
@@ -79723,6 +80005,7 @@
         "check": [],
         "knee": null,
         "text": null,
+        "go": null,
         "settings": []
       },
       {
@@ -79797,6 +80080,7 @@
           }
         },
         "text": "First struggles with Customer orders at 20 orders/min and Courier pings at 10 pings/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to Customer orders at 20 orders/min and Courier pings at 10 pings/s",
         "settings": [
           {
             "setting": {
@@ -92194,6 +92478,7 @@
           }
         },
         "text": "First struggles with Customer orders at 20 orders/min, Courier pings at 10 pings/s and Plain at 1.5 x/s: Orders DB at 85% of capacity",
+        "go": "Go there to Customer orders at 20 orders/min, Courier pings at 10 pings/s and Plain at 1.5 x/s",
         "settings": [
           {
             "setting": {
@@ -104221,6 +104506,7 @@
           }
         },
         "text": "First struggles with Busy at 2 b/s, Customer orders at 20 orders/min, Courier pings at 10 pings/s and Hot A at 2 a/s: Orders DB at 140% of capacity",
+        "go": "Go there to Busy at 2 b/s, Customer orders at 20 orders/min, Courier pings at 10 pings/s and Hot A at 2 a/s",
         "settings": [
           {
             "setting": {
@@ -120135,6 +120421,7 @@
           }
         },
         "text": "First struggles with Hot A at 2 a/s and Hot B at 2 b/s: Orders DB at 100% of capacity",
+        "go": "Go there to Hot A at 2 a/s and Hot B at 2 b/s",
         "settings": [
           {
             "setting": {
@@ -126224,6 +126511,7 @@
           }
         },
         "text": "First struggles with Customer orders at 20 orders/min and Courier pings at 10 pings/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to Customer orders at 20 orders/min and Courier pings at 10 pings/s",
         "settings": []
       },
       {
@@ -126298,6 +126586,7 @@
           }
         },
         "text": "First struggles with Customer orders at 20 orders/min and Courier pings at 10 pings/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to Customer orders at 20 orders/min and Courier pings at 10 pings/s",
         "settings": []
       },
       {
@@ -126372,6 +126661,7 @@
           }
         },
         "text": "First struggles with Customer orders at 20 orders/min and Courier pings at 10 pings/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to Customer orders at 20 orders/min and Courier pings at 10 pings/s",
         "settings": []
       },
       {
@@ -126446,6 +126736,7 @@
           }
         },
         "text": "First struggles with Customer orders at 20 orders/min and Courier pings at 10 pings/s: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to Customer orders at 20 orders/min and Courier pings at 10 pings/s",
         "settings": []
       },
       {
@@ -126516,6 +126807,7 @@
           }
         },
         "text": "First struggles with Customer orders at 20 orders/min and Orders again at 15 orders/min: the slowest 5% of calls go from 30 ms to 120 ms",
+        "go": "Go there to Customer orders at 20 orders/min and Orders again at 15 orders/min",
         "settings": []
       },
       {
@@ -126588,6 +126880,7 @@
           }
         },
         "text": "First struggles with Customer orders at 300 orders/min and Courier pings at 100 pings/s: Orders DB at 90% of capacity",
+        "go": "Go there to Customer orders at 300 orders/min and Courier pings at 100 pings/s",
         "settings": [
           {
             "setting": {
@@ -136654,6 +136947,7 @@
         "check": [],
         "knee": null,
         "text": null,
+        "go": null,
         "settings": [
           {
             "setting": {
@@ -146589,6 +146883,7 @@
           }
         },
         "text": "First struggles with Small at 9 v/s and Big at 11 u/s: Orders DB at 90% of capacity",
+        "go": "Go there to Small at 9 v/s and Big at 11 u/s",
         "settings": [
           {
             "setting": {
@@ -151599,6 +151894,7 @@
           }
         },
         "text": "First struggles with Customer orders at 300 orders/min and Courier pings at 100 pings/s: Orders DB at 90% of capacity",
+        "go": "Go there to Customer orders at 300 orders/min and Courier pings at 100 pings/s",
         "settings": []
       },
       {
@@ -151676,6 +151972,7 @@
           }
         },
         "text": "First struggles with Customer orders at 300 orders/min and Courier pings at 100 pings/s: Orders DB at 90% of capacity",
+        "go": "Go there to Customer orders at 300 orders/min and Courier pings at 100 pings/s",
         "settings": []
       }
     ]

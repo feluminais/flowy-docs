@@ -94,7 +94,7 @@ public class SourcesTests
         
         Assert.Equal([2.0, 2.0], dials.Select(d => d.Slider.Maximum)); // 3 loads each: a position along each
         Assert.Contains("Orders and pings, added", string.Join("|", panel.RunChoices.Select(c => c.Name)));
-        Assert.True(Text(reader).Contains("First struggles with Customer orders at 300 orders/min and Courier pings at 200 pings/s: Orders DB at 130% of capacity"), Text(reader));
+        Assert.True(Text(reader).Contains("First struggles with Customer orders at 300 orders/min and Courier pings at 200 pings/s: Shop > Orders DB at 130% of capacity"), Text(reader));
         Assert.Contains("Go there", Text(reader));
         Assert.Null(reader.PerfPanelNow.RampButton.Parent); // the one Ramp of a single run is not there: each dial has its own
     }

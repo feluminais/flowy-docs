@@ -6,24 +6,27 @@ import { kneeOf } from '../../src/core/perf/analyse.ts'
 import { dialsOf, loadOfPosition } from '../../src/core/perf/dials.ts'
 import { levelAt } from '../../src/core/perf/levels.ts'
 import type { Measure } from '../../src/core/perf/measure.ts'
-import { eventText, kneeTextOf, sourceKeyAt } from '../../src/core/perf/text.ts'
+import { eventText, goText, kneeTextOf, sourceKeyAt } from '../../src/core/perf/text.ts'
 import { OTHER_COLOR } from '../../src/core/perf/traffic.ts'
-import type { Dial, Level, LineTraffic, Metrics, Run } from '../../src/core/perf/types.ts'
+import type { BoxTraffic, Dial, Level, LineTraffic, Metrics, Run } from '../../src/core/perf/types.ts'
 import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
-import { nameOf } from '../../src/core/views.ts'
+import { computeView, nameOf, pathName } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
 import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
-  ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, cursorX, dialTicks, dialTop, floorOf, eventFractions, eventRows, failureMarks, lineMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
-  lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, loadNote, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, tickLabels, top, xAt,
+  RUN_ABOUT_FOLDS_OVER, activeSeries, boxAt, boxAtLevel, boxMarks, boxSeries, boxSeriesIn, BOX_KEYS, bracketOf, chartRow, chartSubject, cursorX, dialTicks, dialTop, floorOf, eventFractions, eventRows, failureMarks, lineMarks, fmtLoad, gridOf, heldText, isTested, isTime, levelLabels, levelX,
+  lineAt, lineAtLevel, lineSeries, lineSeriesIn, LINE_KEYS, loadAt, loadNote, METRICS, modeLabel, openingPositions, overText, pathOf, posAt, scaleOf, settingOf, slideDial, slidePos, sliderRange, sliderValue, sourceCss, speakLoad, tickLabels, top, xAt,
 } from './perfview.ts'
 import type { Area } from './perfview.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { RangeSlider } from './RangeSlider.tsx'
 import { PlainSwatch, StateGlyph, StateKey, Swatch } from './states.tsx'
+
+/** No shapes measured, the same object every time so the key is not worked out again. */
+const NO_BOXES: Record<string, BoxTraffic> = {}
 
 /** What the run header offers for comparing: Compare, greyed out with the reason as its tooltip, never hidden. Linking a run is done while editing (see RunLinks). */
 export type RunCompare = {
@@ -48,6 +51,8 @@ export type PerfProps = {
   positions: number[]
   /** The dial the arrow keys and Ramp act on, and the Strip and the curves follow (the one that was moved last). */
   active: number
+  /** What the load does to each shape the canvas draws (its outline strain and its waiting count), which the key is told by so it draws only the marks that are on the canvas. */
+  boxes?: Record<string, BoxTraffic>
   /** The lines the canvas draws traffic on now (none with reduced motion), which the key and the selected line's readout are told by, so the tab makes no traffic of its own. */
   lines: LineTraffic[]
   ramping: boolean
@@ -80,34 +85,53 @@ export type PerfProps = {
   compare?: RunCompare
 }
 
-/** Latency against load, one point for each tested level: the expected call and the slowest 5%, a cursor at where the slider is, and a mark where it first struggles. */
-function Strip({ run, pos, kneeAt }: { run: Run; pos: number; kneeAt?: number }) {
+/** The box the chart's lines are drawn in, inside its 320 by 126 space: room to the left for the numbers and the title of the axis. */
+const PLOT: Area = { x: 54, y: 8, width: 256, height: 84 }
+
+/** The axis of the chart: its numbers on a log scale, and a title that says so. */
+function YAxis({ scale }: { scale: ReturnType<typeof scaleOf> }) {
+  return (
+    <>
+      {gridOf(scale, PLOT).map(g => (
+        <g key={g.label}>
+          <line x1={PLOT.x} x2={PLOT.x + PLOT.width} y1={g.y} y2={g.y} className="grid" />
+          <text x={PLOT.x - 6} y={g.y} className="axis" textAnchor="end" dominantBaseline="central">{g.label}</text>
+        </g>
+      ))}
+      <text transform={`translate(8 ${PLOT.y + PLOT.height / 2}) rotate(-90)`} className="axis" textAnchor="middle" dominantBaseline="central">Time (log)</text>
+    </>
+  )
+}
+
+/** The chart as a list for a screen reader: each tested load with its expected call and its slowest 5%. */
+const ChartRows = ({ rows }: { rows: string[] }) => <ul className="visually-hidden">{rows.map(r => <li key={r}>{r}</li>)}</ul>
+
+/** Latency against load, one point for each tested level: the expected call and the slowest 5%, a line at where the slider is, and a mark where it first struggles. */
+function Strip({ run, pos, kneeAt, subject }: { run: Run; pos: number; kneeAt?: number; subject: string }) {
   const timed = isTime(run)
   const p50 = run.levels.map(l => l.overall.p50)
   const p95 = run.levels.map(l => l.overall.p95)
   const scale = scaleOf([...p50, ...p95], { log: true })
   if (p50.every(v => v === undefined) && p95.every(v => v === undefined)) return null
-  const box: Area = { x: 44, y: 8, width: 266, height: 84 }
+  const box = PLOT
   return (
     <figure className="stripfig">
-    <svg className="strip" viewBox="0 0 320 120" role="img" aria-label={`Expected call and slowest 5% at each tested ${timed ? 'time' : 'load'}`}>
-      {gridOf(scale, box).map(g => (
-        <g key={g.label}>
-          <line x1={box.x} x2={box.x + box.width} y1={g.y} y2={g.y} className="grid" />
-          <text x={box.x - 6} y={g.y} className="axis" textAnchor="end" dominantBaseline="central">{g.label}</text>
-        </g>
-      ))}
+    <p className="subject">{subject}</p>
+    <svg className="strip" viewBox="0 0 320 120" role="img" aria-label={`${subject}: expected call and slowest 5% at each tested ${timed ? 'time' : 'load'}`}>
+      <YAxis scale={scale} />
       {levelLabels(run, box).map(l => <text key={l.x} x={l.x} y={108} className="axis" textAnchor="middle">{l.label}</text>)}
       {kneeAt !== undefined && <line x1={levelX(run, box, kneeAt)} x2={levelX(run, box, kneeAt)} y1={box.y} y2={box.y + box.height} className="knee" />}
       <path d={pathOf(p95, scale, box, run)} className="p95" />
       <path d={pathOf(p50, scale, box, run)} className="p50" />
       <line x1={cursorX(run, box, pos)} x2={cursorX(run, box, pos)} y1={box.y} y2={box.y + box.height} className="cursor" />
     </svg>
+    <ChartRows rows={run.levels.map(l => chartRow(fmtLoad(l.load, run.unit), l.overall))} />
     <figcaption>
       <KeyRow>
         <KeyItem swatch={<span className="sw p50" />}>Expected call</KeyItem>
         <KeyItem swatch={<span className="sw p95" />}>Slowest 5%</KeyItem>
         {kneeAt !== undefined && <KeyItem swatch={<span className="sw knee" />}>First struggles</KeyItem>}
+        <KeyItem swatch={<span className="sw now" />}>Now</KeyItem>
       </KeyRow>
     </figcaption>
     </figure>
@@ -118,31 +142,29 @@ function Strip({ run, pos, kneeAt }: { run: Run; pos: number; kneeAt?: number })
  * The same chart along one dial of a run with several sources, the others held where they stand: one point for each tested load of the dial. It has no mark for where the run first
  * struggles, because that is a step of every dial together and rarely lies on this line.
  */
-function StripAlong({ levels, dial, pos }: { levels: Level[]; dial: Dial; pos: number }) {
+function StripAlong({ levels, dial, pos, subject }: { levels: Level[]; dial: Dial; pos: number; subject: string }) {
   const p50 = levels.map(l => l.overall.p50)
   const p95 = levels.map(l => l.overall.p95)
   const scale = scaleOf([...p50, ...p95], { log: true })
   if (p50.every(v => v === undefined) && p95.every(v => v === undefined)) return null
-  const box: Area = { x: 44, y: 8, width: 266, height: 84 }
+  const box = PLOT
   const x = xAt(box, pos, levels.length)
   return (
     <figure className="stripfig">
-      <svg className="strip" viewBox="0 0 320 120" role="img" aria-label={`Expected call and slowest 5% at each tested load of ${dial.name}`}>
-        {gridOf(scale, box).map(g => (
-          <g key={g.label}>
-            <line x1={box.x} x2={box.x + box.width} y1={g.y} y2={g.y} className="grid" />
-            <text x={box.x - 6} y={g.y} className="axis" textAnchor="end" dominantBaseline="central">{g.label}</text>
-          </g>
-        ))}
+      <p className="subject">{subject}</p>
+      <svg className="strip" viewBox="0 0 320 120" role="img" aria-label={`${subject}: expected call and slowest 5% at each tested load of ${dial.name}`}>
+        <YAxis scale={scale} />
         {dialTicks(dial).map(t => <text key={t.label} x={box.x + box.width * t.fraction} y={108} className="axis" textAnchor="middle">{t.label}</text>)}
         <path d={pathOf(p95, scale, box)} className="p95" />
         <path d={pathOf(p50, scale, box)} className="p50" />
         <line x1={x} x2={x} y1={box.y} y2={box.y + box.height} className="cursor" />
       </svg>
+      <ChartRows rows={levels.map((l, i) => chartRow(fmtLoad(dial.values[i], dial.unit), l.overall))} />
       <figcaption>
         <KeyRow>
           <KeyItem swatch={<span className="sw p50" />}>Expected call</KeyItem>
           <KeyItem swatch={<span className="sw p95" />}>Slowest 5%</KeyItem>
+          <KeyItem swatch={<span className="sw now" />}>Now</KeyItem>
         </KeyRow>
       </figcaption>
     </figure>
@@ -209,7 +231,7 @@ function RunActions({ compare, linked }: { compare: RunCompare; linked: boolean 
 }
 
 /** The Performance tab's body: which run and where in it, what it says about where things first struggle, and the numbers of what is selected. */
-export function PerfBody({ model, view, runs, runProblems, runId, positions, active, lines, ramping, measure = 'calls', dataOff, onMeasure, still, states, selection, onRun, onActive, onSlide, onJump, onPlace, onRamp, onCreate, pane, compare }: PerfProps) {
+export function PerfBody({ model, view, runs, runProblems, runId, positions, active, boxes, lines, ramping, measure = 'calls', dataOff, onMeasure, still, states, selection, onRun, onActive, onSlide, onJump, onPlace, onRamp, onCreate, pane, compare }: PerfProps) {
   const run: Run | undefined = Object.hasOwn(runs, runId) ? runs[runId] : undefined
   const found = useMemo(() => dialsOf(runs, runId), [runs, runId])
   const struggle = useMemo(() => (found ? kneeOf(runs, runId) : undefined), [runs, runId, found])
@@ -266,130 +288,36 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   const shown = selected?.keys.filter(key => selected.series(key).some(v => v !== undefined)) ?? []
   const keyed = sourceKeyAt(runs, runId, lines, measure)
   const marks = failureMarks(lines)
+  // The shapes the canvas draws, which the key's marks for a load are asked of: it says Busy, Struggling and Waiting only when a shape shows one.
+  const drawnIds = useMemo(() => {
+    const { members, outsiders } = computeView(model, view)
+    return [...members, ...outsiders]
+  }, [model, view])
+  const onCanvas = boxMarks(boxes ?? NO_BOXES, drawnIds)
+  const place = (id: string) => pathName(model, view, id)
   const drawn = lineMarks(lines)
   const scaledLine = selection?.kind === 'line' && lines.some(l => l.from === selection.from && l.to === selection.to && l.capped)
   // The source's colour for the dots drawn in the key, in both themes. A run with several sources draws each in its own, and the dots that stand for any call are neutral.
   const one = keyed.sources[0]
   const dots = multi ? srcStyle('gray') : srcStyle(one?.color)
   const label = modeLabel(found.mode)
+  const subject = chartSubject(multi ? undefined : run.entry, id => nameOf(model, id))
   const over = selection?.kind === 'object' && selected ? overText(found.mode, selected.at?.util) : undefined
 
-  return (
-    <div className="perf">
-      {pane ? null : ids.length > 1
-        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Linked)' : ''}`])} onChange={onRun} />
-        : <h2>{run.name}</h2>}
-      {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
-      {run.about && (run.about.length > ABOUT_FOLDS_OVER
-        ? <details className="about"><summary><ChevronRight size={14} />About this run</summary><p>{run.about}</p></details>
-        : <p className="about">{run.about}</p>)}
-      {label !== undefined && <p className="modelabel">{label}</p>}
-
-      <Section icon={timed ? Clock : Activity} title={timed ? 'Time' : 'Load'} />
-      {multi
-        ? dials.map((d, i) => {
-            const at = positions[i] ?? 0
-            const dialLoad = loadOfPosition(d.values, at)
-            const { lower: from, upper: to, tested } = bracketOf(d, at)
-            const here = i === dial
-            const running = ramping && here
-            return (
-              <div key={d.id} className={here ? 'dial active' : 'dial'} style={srcStyle(d.color)}>
-                <div className="dialname"><span className="sw call" aria-hidden="true" /><span>{d.name}</span></div>
-                <div className="loadnum">
-                  <strong>{fmtLoad(dialLoad, d.unit)}</strong>
-                  <span className="muted">{tested ? 'Tested' : `Between ${from} and ${to}, estimated`}</span>
-                </div>
-                <div className="slide">
-                  <RangeSlider min={floorOf(d)} max={dialTop(d)} value={at} label={d.name} text={fmtLoad(dialLoad, d.unit)} onTouch={() => onActive(i)} onMove={v => onSlide(i, slideDial(d, v))} />
-                  <div className="ticks" aria-hidden="true">
-                    {dialTicks(d).map(t => <span key={t.label} style={{ left: `${t.fraction * 100}%` }}>{t.label}</span>)}
-                  </div>
-                </div>
-                {!still && <button className="primary small" aria-pressed={running} aria-label={`${running ? 'Pause' : 'Ramp'} ${d.name}`} onClick={() => onRamp(i)}>{running ? <><Pause size={16} />Pause</> : <><Play size={16} />Ramp</>}</button>}
-              </div>
-            )
-          })
-        : (
-          <>
-            <div className="loadnum">
-              <strong>{fmtLoad(load, run.unit)}</strong>
-              <span className="muted">{loadNote(run, pos)}</span>
-            </div>
-            <div className={timed ? 'slide timed' : 'slide'}>
-              {events.length > 0 && (
-                <div className="event-marks">
-                  {events.map(({ fraction, event }, i) => (
-                    <button key={i} type="button" tabIndex={-1} aria-hidden="true" className={`event-mark state-${event.state}${event.at <= load ? ' passed' : ''}`}
-                      style={{ left: `${fraction * 100}%` }} title={`${fmtLoad(event.at, run.unit)}: ${eventText(event, id => nameOf(model, id))}`} onClick={() => onJump(posAt(run, event.at))} />
-                  ))}
-                </div>
-              )}
-              <RangeSlider min={range.min} max={range.max} value={sliderValue(run, pos)} label={timed ? 'Time' : 'Load'} text={fmtLoad(load, run.unit)} onMove={v => onSlide(0, slidePos(run, v))} />
-              <div className="ticks" aria-hidden="true">
-                {tickLabels(run).map(t => <span key={t.label} style={{ left: `${t.fraction * 100}%` }}>{t.label}</span>)}
-              </div>
-            </div>
-          </>
-        )}
-      <div className="perf-buttons">
-        {!multi && !still && <button className="primary" aria-pressed={ramping} onClick={() => onRamp(0)}>{ramping ? <><Pause size={16} />Pause</> : <><Play size={16} />{timed ? 'Play' : 'Ramp'}</>}</button>}
-      </div>
-      {onMeasure && (
-        <div className="measure" role="group" aria-label="Count">
-          <span className="muted">Count</span>
-          <button type="button" aria-pressed={measure === 'calls'} title="One mark for each call a second" onClick={() => onMeasure('calls')}>Calls</button>
-          <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff ?? 'One mark for each bit of data a second (calls times their size)'} onClick={() => onMeasure('data')}>Data</button>
-          <button type="button" aria-pressed={measure === 'mixed'} disabled={dataOff !== undefined} title={dataOff ?? 'Marks for the calls, as big as their calls are'} onClick={() => onMeasure('mixed')}>Mixed</button>
-        </div>
-      )}
-
-      {rows.length > 0 && !multi && (
-        <>
-          <Section icon={Bolt} title="Events" />
-          <ul className="events">
-            {rows.map(({ event, passed, current }, i) => (
-              <li key={i}>
-                <button type="button" className={`event${passed ? ' passed' : ''}`} aria-current={current ? 'true' : undefined} onClick={() => onJump(posAt(run, event.at))}>
-                  <span className="when">{fmtLoad(event.at, run.unit)}</span>
-                  <EventSwatch state={event.state} />
-                  <span className="what">{eventText(event, id => nameOf(model, id))}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      <Section icon={Alert} title="Where it struggles" />
-      {struggle
-        ? <p>{kneeTextOf(runs, runId, struggle, id => nameOf(model, id))} <button className="link" onClick={() => onPlace(openingPositions(dials, struggle))}>Go there</button></p>
-        : <p className="muted">It never struggled in the tested range.</p>}
-      {multi ? <Along dials={dials} positions={positions} active={dial} /> : null}
-      {multi ? <StripAlong levels={along!} dial={dials[dial]} pos={positions[dial] ?? 0} /> : <Strip run={run} pos={pos} kneeAt={struggle?.index} />}
-
-      <Section icon={Info} title={selected ? selected.title : 'Selected'} />
-      {selected === undefined && <p className="muted">Click a shape or a line.</p>}
-      {selected && shown.length === 0 && <p className="muted">Nothing measured here{selection?.kind === 'object' ? ' or inside it' : ''}.</p>}
-      {selected && shown.length > 0 && multi && <Along dials={dials} positions={positions} active={dial} />}
-      {selected && shown.map(key => (
-        <Reading key={key} run={multi ? undefined : run} count={multi ? dials[dial].values.length : run.levels.length} metric={key} at={selected.at?.[key]} series={selected.series(key)} pos={multi ? positions[dial] ?? 0 : pos} />
-      ))}
-      {over && <p className="over">{over}</p>}
-      {chosen && <p className="stateline"><StateGlyph mark={chosen} />{STATE_LABELS[chosen.state]}</p>}
-      {scaledLine && <KeyRow style={dots}><KeyItem swatch={<Scaled />}>Scaled down</KeyItem></KeyRow>}
-
+  const keySection = (
+    <>
       <Section icon={Info} title="Key" />
       <KeyRow style={dots}>
-        <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>
-        <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>
+        {onCanvas.busy && <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>}
+        {onCanvas.struggling && <KeyItem swatch={<span className="sw pct">90%</span>}>Struggling</KeyItem>}
+        {onCanvas.waiting && <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>}
         <KeyItem swatch={<span className="sw none" />}>Not measured</KeyItem>
-        <KeyItem swatch={<span className="sw call" />}>A call (slower marks, slower calls)</KeyItem>
+        <KeyItem swatch={<span className="sw call" />} title="Slower stripes are slower calls">A call</KeyItem>
         {drawn.bare && <KeyItem swatch={<span className="sw stripes" />}>No numbers</KeyItem>}
         {marks.fade && <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>}
         {marks.lost && <KeyItem swatch={<span className="sw lost" />}>Lost call</KeyItem>}
         {marks.rejected && <KeyItem swatch={<span className="sw rejected" />}>Rejected call</KeyItem>}
-        <KeyItem swatch={<span className="sw busy" />}>{measure === 'data' ? 'More data' : 'More calls'}</KeyItem>
+        <KeyItem swatch={<span className="sw busy" />} title="Thicker lines carry more calls">{measure === 'data' ? 'More data' : 'More calls'}</KeyItem>
         {multi
           ? (
             <>
@@ -411,6 +339,118 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
           )}
       </KeyRow>
       <StateKey marks={states} />
+    </>
+  )
+
+  return (
+    <div className="perf">
+      {pane ? null : ids.length > 1
+        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Linked)' : ''}`])} onChange={onRun} />
+        : <h2>{run.name}</h2>}
+      {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
+      {run.about && (run.about.length > RUN_ABOUT_FOLDS_OVER
+        ? <details className="about"><summary><ChevronRight size={14} />About this run</summary><p>{run.about}</p></details>
+        : <p className="about">{run.about}</p>)}
+      {label !== undefined && <p className="modelabel">{label}</p>}
+
+      <Section icon={timed ? Clock : Activity} title={timed ? 'Time' : 'Load'} />
+      {multi
+        ? dials.map((d, i) => {
+            const at = positions[i] ?? 0
+            const dialLoad = loadOfPosition(d.values, at)
+            const { lower: from, upper: to, tested } = bracketOf(d, at)
+            const here = i === dial
+            const running = ramping && here
+            return (
+              <div key={d.id} className={here ? 'dial active' : 'dial'} style={srcStyle(d.color)}>
+                <div className="dialname">
+                  <span className="sw call" aria-hidden="true" /><span>{d.name}</span>
+                  {!still && <button className="primary small" aria-pressed={running} aria-label={`${running ? 'Pause' : 'Ramp'} ${d.name}`} onClick={() => onRamp(i)}>{running ? <><Pause size={16} />Pause</> : <><Play size={16} />Ramp</>}</button>}
+                </div>
+                <div className="loadnum">
+                  <strong>{fmtLoad(dialLoad, d.unit)}</strong>
+                  <span className="muted">{tested ? 'Tested' : `Between ${from} and ${to}, estimated`}</span>
+                </div>
+                <div className="slide">
+                  <RangeSlider min={floorOf(d)} max={dialTop(d)} value={at} label={d.name} text={speakLoad(fmtLoad(dialLoad, d.unit), tested ? 'Tested' : `Between ${from} and ${to}, estimated`)} onTouch={() => onActive(i)} onMove={v => onSlide(i, slideDial(d, v))} />
+                  <div className="ticks" aria-hidden="true">
+                    {dialTicks(d).map(t => <span key={t.label} style={{ left: `${t.fraction * 100}%` }}>{t.label}</span>)}
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        : (
+          <>
+            <div className="loadnum">
+              <strong>{fmtLoad(load, run.unit)}</strong>
+              <span className="muted">{loadNote(run, pos)}</span>
+              {!still && <button className="primary small" aria-pressed={ramping} onClick={() => onRamp(0)}>{ramping ? <><Pause size={16} />Pause</> : <><Play size={16} />{timed ? 'Play' : 'Ramp'}</>}</button>}
+            </div>
+            <div className={timed ? 'slide timed' : 'slide'}>
+              {events.length > 0 && (
+                <div className="event-marks">
+                  {events.map(({ fraction, event }, i) => (
+                    <button key={i} type="button" tabIndex={-1} aria-hidden="true" className={`event-mark state-${event.state}${event.at <= load ? ' passed' : ''}`}
+                      style={{ left: `${fraction * 100}%` }} title={`${fmtLoad(event.at, run.unit)}: ${eventText(event, id => nameOf(model, id))}`} onClick={() => onJump(posAt(run, event.at))} />
+                  ))}
+                </div>
+              )}
+              <RangeSlider min={range.min} max={range.max} value={sliderValue(run, pos)} label={timed ? 'Time' : 'Load'} text={speakLoad(fmtLoad(load, run.unit), loadNote(run, pos))} onMove={v => onSlide(0, slidePos(run, v))} />
+              <div className="ticks" aria-hidden="true">
+                {tickLabels(run).map(t => <span key={t.label} style={{ left: `${t.fraction * 100}%` }}>{t.label}</span>)}
+              </div>
+            </div>
+          </>
+        )}
+      <Section icon={Alert} title="Where it struggles" />
+      {struggle
+        ? <p>{kneeTextOf(runs, runId, struggle, place)} <button className="link" title={goText(runs, runId, struggle)} aria-label={goText(runs, runId, struggle)} onClick={() => onPlace(openingPositions(dials, struggle))}>Go there</button></p>
+        : <p className="muted">It never struggled in the tested range.</p>}
+
+      {onMeasure && (
+        <div className="measure" role="group" aria-label="Each stripe">
+          <span className="muted" aria-hidden="true">Each stripe</span>
+          <button type="button" aria-pressed={measure === 'calls'} title="One stripe for each call a second" onClick={() => onMeasure('calls')}><span className="swatch" aria-hidden="true"><span className="sw call" /></span>Calls</button>
+          <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff ?? 'One stripe for each bit of data a second (calls times their size)'} onClick={() => onMeasure('data')}><span className="swatch" aria-hidden="true"><span className="sw call" /></span>Data</button>
+          <button type="button" aria-pressed={measure === 'mixed'} disabled={dataOff !== undefined} title={dataOff ?? 'A stripe for each call, as big as its call'} onClick={() => onMeasure('mixed')}><span className="swatch" aria-hidden="true"><span className="sw bigger"><i /><i /></span></span>Mixed</button>
+        </div>
+      )}
+
+      {keySection}
+
+      {multi ? <Along dials={dials} positions={positions} active={dial} /> : null}
+      {multi ? <StripAlong levels={along!} dial={dials[dial]} pos={positions[dial] ?? 0} subject={subject} /> : <Strip run={run} pos={pos} kneeAt={struggle?.index} subject={subject} />}
+
+
+      {rows.length > 0 && !multi && (
+        <>
+          <Section icon={Bolt} title="Events" />
+          <ul className="events">
+            {rows.map(({ event, passed, current }, i) => (
+              <li key={i}>
+                <button type="button" className={`event${passed ? ' passed' : ''}`} aria-current={current ? 'true' : undefined} onClick={() => onJump(posAt(run, event.at))}>
+                  <span className="when">{fmtLoad(event.at, run.unit)}</span>
+                  <EventSwatch state={event.state} />
+                  <span className="what">{eventText(event, id => nameOf(model, id))}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <Section icon={Info} title={selected ? selected.title : 'Selected'} />
+      {selected === undefined && <p className="muted">Click a shape or a line.</p>}
+      {selected && shown.length === 0 && <p className="muted">Nothing measured here{selection?.kind === 'object' ? ' or inside it' : ''}.</p>}
+      {selected && shown.length > 0 && multi && <Along dials={dials} positions={positions} active={dial} />}
+      {selected && shown.map(key => (
+        <Reading key={key} run={multi ? undefined : run} count={multi ? dials[dial].values.length : run.levels.length} metric={key} at={selected.at?.[key]} series={selected.series(key)} pos={multi ? positions[dial] ?? 0 : pos} />
+      ))}
+      {over && <p className="over">{over}</p>}
+      {chosen && <p className="stateline"><StateGlyph mark={chosen} />{STATE_LABELS[chosen.state]}</p>}
+      {scaledLine && <KeyRow style={dots}><KeyItem swatch={<Scaled />}>Scaled down</KeyItem></KeyRow>}
+
       {problems}
     </div>
   )

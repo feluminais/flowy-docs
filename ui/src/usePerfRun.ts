@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { kneeOf } from '../../src/core/perf/analyse.ts'
 import { dialsOf } from '../../src/core/perf/dials.ts'
-import { callSize } from '../../src/core/perf/measure.ts'
+import { callSize, NO_DATA } from '../../src/core/perf/measure.ts'
 import type { Measure } from '../../src/core/perf/measure.ts'
 import type { Dial, Run } from '../../src/core/perf/types.ts'
 import type { Perf } from './hash.ts'
@@ -49,7 +49,7 @@ export function usePerfRun({ runs, named, still }: { runs: Record<string, Run>; 
   const dials = found?.dials ?? NO_DIALS
   const multi = found !== undefined && found.mode !== 'single'
   // Data needs the run to give the size of a call. A run that doesn't draws Calls whatever was chosen, and the switch says why.
-  const dataOff = useMemo(() => (runKey && callSize(runs, runKey) === undefined ? 'No size of a call in this run' : undefined), [runs, runKey])
+  const dataOff = useMemo(() => (runKey && callSize(runs, runKey) === undefined ? NO_DATA : undefined), [runs, runKey])
   // Mixed (stripes for the calls and blobs for the data) when the run gives both, else the calls. A run with no sizes draws Calls whatever was chosen.
   const wanted: Measure = asked ?? (dataOff === undefined ? 'mixed' : 'calls')
   const measure: Measure = wanted !== 'calls' && dataOff !== undefined ? 'calls' : wanted

@@ -41,7 +41,9 @@ internal static class KeyRow
         {
             if (item is not { } entry) continue;
             var label = new TextBlock { Text = entry.Label, Classes = { "muted" }, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap };
-            row.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 16, 6), Children = { entry.Swatch, label } });
+            var cell = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 16, 6), Children = { entry.Swatch, label } };
+            if (ToolTip.GetTip(entry.Swatch) is string tip) ToolTip.SetTip(cell, tip);
+            row.Children.Add(cell);
         }
         return row;
     }
@@ -106,6 +108,22 @@ internal static class KeyRow
         bar.Classes.Add("sw");
         bar.Classes.Add("bar");
         return new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { Mark("call", "bad"), bar } };
+    }
+
+    /// <summary>A mark with a tooltip for the whole key item it sits in (see <see cref="Of"/>).</summary>
+    public static Control Tipped(Control swatch, string tip)
+    {
+        ToolTip.SetTip(swatch, tip);
+        return swatch;
+    }
+
+    /// <summary>The number a shape wears once it is past the struggle mark.</summary>
+    public static Control Pct(string number)
+    {
+        var badge = new Border { Child = new TextBlock { Text = number } };
+        badge.Classes.Add("sw");
+        badge.Classes.Add("pct");
+        return badge;
     }
 
     /// <summary>The badge that says how many are waiting.</summary>

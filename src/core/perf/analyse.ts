@@ -36,6 +36,11 @@ export function strain(m: Metrics): { value: number; by: 'util' | 'errors'; shar
 
 /** A shape this strained is "struggling" (see knee). */
 export const KNEE_STRAIN = 0.85
+/** The number drawn on a shape once it is this strained ("90%"), as a second copy of the outline colour for those who can't tell the colours apart. Undefined below KNEE_STRAIN: a calm canvas has none. */
+export function strainLabel(strain: number | undefined): string | undefined {
+  return strain !== undefined && strain >= KNEE_STRAIN ? `${Math.round(strain * 100)}%` : undefined
+}
+
 /** Overall p95 this many times the lowest level's counts as latency giving way. */
 export const KNEE_LATENCY = 3
 

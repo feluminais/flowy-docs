@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { chain, computeView, hasChildren, memberIds, placeEnds, placeStep, stepEnds } from '../src/core/views.ts'
+import { chain, computeView, hasChildren, memberIds, pathName, placeEnds, placeStep, stepEnds } from '../src/core/views.ts'
 import { shop } from './fixtures.ts'
 
 test('chain walks up to root', () => {
@@ -122,4 +122,13 @@ test('stepEnds names the part inside a box a step lands on, so two steps on one 
   // A step one box does on its own names it once.
   assert.equal(stepEnds(shop(), { from: 'api' }, ['shop', 'shop']), 'API in Shop')
   assert.equal(stepEnds(shop(), { from: 'api' }, null), 'API')
+})
+
+test('pathName names a shape the way the view draws it: the shape drawn there that holds it, then down to it', () => {
+  const m = shop()
+  assert.equal(pathName(m, 'api', 'auth'), 'Auth', 'a shape the view draws is just its name')
+  assert.equal(pathName(m, 'shop', 'auth'), 'API > Auth', 'inside the shape the view draws')
+  assert.equal(pathName(m, 'root', 'auth'), 'Shop > API > Auth', 'from the top, where the view is the overview')
+  assert.equal(pathName(m, 'api', 'db'), 'Orders DB', 'a neighbour of the shapes in view')
+  assert.equal(pathName(m, 'api', 'api'), 'API', 'the view itself keeps its name')
 })

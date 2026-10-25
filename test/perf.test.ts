@@ -1,12 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { ParseError } from '../src/core/model.ts'
-import { eventsPassed, knee, runStates, strain } from '../src/core/perf/analyse.ts'
+import { eventsPassed, knee, runStates, strain, strainLabel } from '../src/core/perf/analyse.ts'
 import { checkRun } from '../src/core/perf/check.ts'
 import { interpolate } from '../src/core/perf/levels.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
 import { rollUpLoad } from '../src/core/perf/rollup.ts'
-import { eventText, kneeText, scaleText, sourceKey } from '../src/core/perf/text.ts'
+import { eventText, goText, kneeText, scaleText, sourceKey } from '../src/core/perf/text.ts'
 import { AT_ONCE, capCounts, RADIUS_MAX, RADIUS_MIN } from '../src/core/perf/traffic.ts'
 import { traffic } from './dots.ts'
 import { shop } from './fixtures.ts'
@@ -888,4 +888,19 @@ test('a size that overflows when weighted by the rate is no number, not Infinity
   const lines = rollUpLoad(m, level, 'root').lines
   assert.ok(lines.length > 0)
   assert.equal(lines[0].bytes, undefined)
+})
+
+test('Go there says where it goes, in the words of the sentence it sits beside', () => {
+  const run = ramp()
+  const k = knee(run)!
+  assert.equal(goText({ ramp: run }, 'ramp', k), 'Go there to 400 req/s')
+})
+
+test('a shape wears its strain as a percentage once it is past the struggle mark, and not before', () => {
+  assert.equal(strainLabel(undefined), undefined)
+  assert.equal(strainLabel(0), undefined)
+  assert.equal(strainLabel(0.84), undefined)
+  assert.equal(strainLabel(0.85), '85%')
+  assert.equal(strainLabel(0.9), '90%')
+  assert.equal(strainLabel(1), '100%')
 })

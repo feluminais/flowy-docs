@@ -76,6 +76,13 @@ export function sourceKey(all: Run, shown: LineTraffic[], measure: Measure = 'ca
 /** "A, B and C". */
 const joinAnd = (items: string[]): string => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
 
+/** Where the dials stood at the knee, as a person reads it: "900 orders/min", or for several sources "Customer orders at 300 orders/min and Courier pings at 100 pings/s". */
+function kneePlace(runs: Record<string, Run>, id: string, k: Knee): string {
+  const found = dialsOf(runs, id)
+  if (!found || found.mode === 'single') return `${k.load} ${runs[id].unit}`
+  return joinAnd(found.dials.map(d => `${d.name} at ${round2(own(k.setting, d.id) ?? d.values[0])} ${d.unit}`))
+}
+
 /**
  * The knee in words. One source: kneeText, unchanged. Several: where each source stood, then what gave out ("First struggles with Customer orders at 300 orders/min and Courier
  * pings at 100 pings/s: Fleet DB at 90% of capacity"). `nameOf` turns a shape id into the name a reader sees.
@@ -83,9 +90,11 @@ const joinAnd = (items: string[]): string => (items.length < 2 ? items.join('') 
 export function kneeTextOf(runs: Record<string, Run>, id: string, k: Knee, nameOf: (id: string) => string): string {
   const found = dialsOf(runs, id)
   if (!found || found.mode === 'single') return kneeText(runs[id], k, nameOf)
-  const stood = found.dials.map(d => `${d.name} at ${round2(own(k.setting, d.id) ?? d.values[0])} ${d.unit}`)
-  return `First struggles with ${joinAnd(stood)}: ${struggleText(k, nameOf)}`
+  return `First struggles with ${kneePlace(runs, id, k)}: ${struggleText(k, nameOf)}`
 }
+
+/** What Go there says it does, for a screen reader and a tooltip: "Go there to 900 orders/min". */
+export const goText = (runs: Record<string, Run>, id: string, k: Knee): string => `Go there to ${kneePlace(runs, id, k)}`
 
 /** A source in the key: its name, the colour of its dots, its scale in words when its formula is a plain ratio of the rate and a line follows it, and whether any dot is bigger or smaller than usual. */
 export type KeyedSource = { id: string; name: string; color?: string; scale?: string; bigger: boolean }

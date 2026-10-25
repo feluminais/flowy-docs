@@ -6,12 +6,16 @@ import { idleOf } from '../../src/core/perf/idle.ts'
 import { interpolate, levelAt } from '../../src/core/perf/levels.ts'
 import { rollUpLoad } from '../../src/core/perf/rollup.ts'
 import { eventsOf, isTime } from '../../src/core/perf/types.ts'
-import type { Dial, Knee, Level, LineTraffic, Metrics, Mode, Pair, Run, RunEvent, Setting } from '../../src/core/perf/types.ts'
+import { strainLabel } from '../../src/core/perf/analyse.ts'
+import type { BoxTraffic, Dial, Knee, Level, LineTraffic, Metrics, Mode, Pair, Run, RunEvent, Setting } from '../../src/core/perf/types.ts'
 
 export { isTime }
 
 /** A run's or an analysis's About note is shown as it is until it is long enough to be worth folding. The same number as `PerfView.AboutFoldsOver` in the desktop app. */
 export const ABOUT_FOLDS_OVER = 400
+
+/** A run's About note folds sooner: the Performance tab keeps the load, where it first struggles and the key in view together, and the note is one tap away. The same number as `PerfView.RunAboutFoldsOver`. */
+export const RUN_ABOUT_FOLDS_OVER = 200
 
 /** The maths and the words of the Performance tab, kept apart from the drawing so the node tests can run them. No DOM in here. */
 
@@ -152,6 +156,31 @@ export function fmtBytes(bytes: number): string {
 }
 /** A load with its unit: "200 req/s". */
 export const fmtLoad = (load: number, unit: string): string => `${trim(load, load < 10 ? 1 : 0)} ${unit}`
+
+/** Which marks of a load are on the canvas now, for the key: the outline colour, the number on a shape past the struggle mark, the waiting badge. `ids` are the shapes the canvas draws. */
+export function boxMarks(boxes: Readonly<Record<string, BoxTraffic>>, ids: readonly string[]): { busy: boolean; struggling: boolean; waiting: boolean } {
+  const marks = { busy: false, struggling: false, waiting: false }
+  for (const id of ids) {
+    const b = Object.hasOwn(boxes, id) ? boxes[id] : undefined
+    if (!b) continue
+    if (b.strain !== undefined) marks.busy = true
+    if (strainLabel(b.strain) !== undefined) marks.struggling = true
+    if (b.queue > 0) marks.waiting = true
+  }
+  return marks
+}
+
+/** The load in words for a screen reader, with whether it was tested: "900 orders/min, tested", "70 s, between 60 and 90, estimated". `note` is what loadNote says. */
+export const speakLoad = (load: string, note: string): string => `${load}, ${note.charAt(0).toLowerCase()}${note.slice(1)}`
+
+/** Whose calls the chart shows: those into the shape the run's load comes in at ("Calls into Customer app"), else all of them. A run with several sources measures them together. */
+export const chartSubject = (entry: string | undefined, nameOf: (id: string) => string): string => (entry === undefined ? 'All calls' : `Calls into ${nameOf(entry)}`)
+
+/** One tested load of the chart as a sentence, for a reader who cannot see it: "900 orders/min: expected call 190 ms, slowest 5% 520 ms". */
+export function chartRow(load: string, overall: Metrics): string {
+  const say = (v: number | undefined) => (v === undefined ? 'not measured' : fmtMs(v))
+  return `${load}: expected call ${say(overall.p50)}, slowest 5% ${say(overall.p95)}`
+}
 
 /** How each number is named and written in the panel, and how its curve is drawn: against zero or on a scale of powers of ten. A `max` fixes the top of the scale. */
 export const METRICS: Record<keyof Metrics, { label: string; show: (v: number) => string; log?: boolean; max?: number }> = {
