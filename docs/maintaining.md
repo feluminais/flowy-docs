@@ -208,12 +208,12 @@ Before merging a change to the app, look at what it could affect, in a real wind
       carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
       move between tested loads (← from the first goes down to 0 req/s, where nothing runs on the lines); P ramps up (from the top it starts again from no load) and a click on the slider stops it; drag the slider: the
       load follows the thumb in small steps, "Between 50 and 100, estimated" shows between tested loads, and the thumb pulls onto a tested load, which reads "Tested"; a picked shape or
-      line reads out its numbers; under Ramp a Count switch has Calls, Data and Mixed. This run gives no sizes of a call, so it opens on Calls (a small stripe for each call, running along the line)
+      line reads out its numbers; under Ramp an Each stripe switch has Calls, Data and Mixed, each beside the stripe it draws. This run gives no sizes of a call, so it opens on Calls (a small stripe for each call, running along the line)
       and Data and Mixed are greyed out with the reason in their tooltip. A run with sizes opens on Mixed: the stripes count the calls and are as big as their calls. Data counts the data instead and turns the
       Key's "More calls" into "More data" and the scale into KB/s. A line with no numbers has blue line-highlight stripes that speed up as you drag the slider up ("No numbers" in the Key);
-      under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%) and red dashes (First
-      struggles), and the Key at the bottom draws each mark it names (Busy, Waiting, Not measured, a call, a failing call, More calls) with no
-      sentences; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
+      under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%), red dashes (First
+      struggles) and a solid line (Now), the chart says "Calls into" the run's entry shape and "Time (log)" on its left edge, and the Key (under the sentence about where it first struggles, and Each stripe) draws each mark on the canvas
+      now (Busy, Struggling, Waiting, Not measured, a call, a failing call, More calls) with no sentences, all of it in view in an 880 px window; a shape past 85% busy wears its percentage and Waiting is a square badge; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo --view ordering --tab failures --select stripe-timeout`: the left rail has a Failures button under
       Performance with a 14 on it, and M opens its tab beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
@@ -239,7 +239,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
 - [ ] With the system's animation effects off (Settings › Accessibility › Visual effects), opening a box is instant. With them on, it
       is smooth: no stutter on the way in or out, and a second double-click during the move doesn't break it.
 - [ ] Help › Open the Demo shows Plum with no problems and a Performance button with a 7 on it; T opens the panel on 900 orders/min,
-      "ETA at 90% of capacity", with Delivery outlined red. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
+      "Delivery > Dispatch > ETA at 90% of capacity" (the shapes down to ETA, as the overview draws them), with Delivery outlined red and wearing 90%. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
       View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing here yet".
 - [ ] Close a window after resizing it, open the app again: it opens at that size.
 - [ ] Delete the open `flowy/` folder: a banner says it is gone. Put it back and open it again: the model returns.
@@ -369,8 +369,8 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red
       along their own outline (SQLite's cylinder, Upload folder's folder, the boxes of Web API and the worker), Order queue carries a
       number but no colour, busy lines are thicker and carry more dots, and Catalog cache (a hexagon with no numbers) and Payment gateway
-      stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5% and red dashes First struggles; the Key at the
-      bottom draws each mark it names. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
+      stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5%, red dashes First struggles and a solid line Now; the Key (under the first-struggles sentence and Each stripe)
+      draws each mark on the canvas now. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
       panel; Back closes it too if you opened it with T (after Esc, Back opens it again). Click a shape and its Details open on the right, beside
       the panel, and the diagram still fits; Esc closes whichever is showing.
 - [ ] On Plum (`--dir docs/demo/flowy`, Delivery at 900 orders/min) the line from Dispatch to Order events runs behind Live tracking: its dots go faint and a little
@@ -455,7 +455,7 @@ Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, th
       and the key says Scaled down. Orders alone (Customer orders in the picker) has no label and one slider, as before.
 - [ ] Pick Orders and pings, tested together: the tab says Tested together, with three loads on each slider. At 600 orders/min and 400 pings/s Fleet DB reads 99%, where the two added read 93%, and nothing says "Added use" at any setting.
       `#delivery/perf/together/2` (one place for two sources) and `#delivery/perf/together/a,b` both open at the first struggle, and `#delivery/perf/together/1,4` opens at 200 orders/min and 800 pings/s.
-- [ ] With reduced motion on there are no dots and no Ramp buttons, and the sliders, numbers and the key's Busy, Waiting and Not measured stay. Both themes read.
+- [ ] With reduced motion on there are no dots and no Ramp buttons, and the sliders, numbers and the key's Busy, Struggling, Waiting and Not measured stay. Both themes read.
 - [ ] In the showcase (`--dir docs/showcase/flowy`, Several sources, T): Several sources added at its highest has blue and green dots side by side on the line into Shared service, both scaled down together, and Shared service reads
       "Added use is over 100%". Several sources tested together has a grey line into Not split by source, and the key says Other calls.
 

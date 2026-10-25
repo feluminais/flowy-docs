@@ -181,7 +181,7 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
           </LineStyleContext>
         </div>
         <div className="run-panel">
-          <PerfBody pane model={model} view={view} runs={runs} runProblems={NO_PROBLEMS} runId={perf.runKey} positions={perf.here} active={perf.activeDial} lines={p.drawnLines}
+          <PerfBody pane model={model} view={view} runs={runs} runProblems={NO_PROBLEMS} runId={perf.runKey} positions={perf.here} active={perf.activeDial} boxes={p.drawing.loadTraffic?.boxes} lines={p.drawnLines}
             ramping={perf.ramping} still={still} states={p.marksHere} selection={selection}
             onRun={() => undefined /* the pane's run is the pane's own */} onActive={perf.setActive} onSlide={(dial, to) => perf.slide(to, dial)} onJump={perf.jumpTo} onPlace={perf.placeAll} onRamp={perf.toggleRamp} />
         </div>

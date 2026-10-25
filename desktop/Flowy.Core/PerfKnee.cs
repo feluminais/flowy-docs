@@ -19,6 +19,9 @@ public static partial class Perf
     /// <summary>A shape this strained is "struggling" (see <see cref="FindKnee"/>).</summary>
     public const double KneeStrain = 0.85;
 
+    /// <summary>The number drawn on a shape once it is this strained ("90%"), as a second copy of the outline colour for those who can't tell the colours apart. Null below <see cref="KneeStrain"/>: a calm canvas has none.</summary>
+    public static string? StrainLabel(double? strain) => strain is { } s && s >= KneeStrain ? $"{(int)Math.Round(s * 100, MidpointRounding.AwayFromZero)}%" : null;
+
     /// <summary>Overall p95 this many times the lowest level's counts as latency giving way.</summary>
     public const double KneeLatency = 3;
 

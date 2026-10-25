@@ -328,9 +328,18 @@ public static partial class Perf
     public static string KneeTextOf(IdMap<LoadRun> runs, string id, Knee k, Func<string, string> nameOf)
     {
         if (DialsOf(runs, id) is not { } found || found.Mode == ModeSingle) return KneeText(runs[id], k, nameOf);
-        var stood = found.Items.Select(d => $"{d.Name} at {JsCompat.Raw(Round2(k.Setting is { } setting && setting.TryGetValue(d.Id, out var at) ? at : d.Values[0]))} {d.Unit}").ToList();
-        return $"First struggles with {JoinAnd(stood)}: {StruggleText(k, nameOf)}";
+        return $"First struggles with {KneePlace(runs, id, k)}: {StruggleText(k, nameOf)}";
     }
+
+    /// <summary>Where the dials stood at the knee, as a person reads it: "900 orders/min", or for several sources "Customer orders at 300 orders/min and Courier pings at 100 pings/s".</summary>
+    private static string KneePlace(IdMap<LoadRun> runs, string id, Knee k)
+    {
+        if (DialsOf(runs, id) is not { } found || found.Mode == ModeSingle) return $"{JsCompat.Raw(k.Load)} {runs[id].Unit}";
+        return JoinAnd(found.Items.Select(d => $"{d.Name} at {JsCompat.Raw(Round2(k.Setting is { } setting && setting.TryGetValue(d.Id, out var at) ? at : d.Values[0]))} {d.Unit}").ToList());
+    }
+
+    /// <summary>What Go there says it does, for a screen reader and a tooltip: "Go there to 900 orders/min".</summary>
+    public static string GoText(IdMap<LoadRun> runs, string id, Knee k) => $"Go there to {KneePlace(runs, id, k)}";
 
     /// <summary>The colour of a line that no source is said to carry: neutral, so it is never mistaken for one of them.</summary>
     public const string OtherColor = "gray";
