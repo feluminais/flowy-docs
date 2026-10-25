@@ -22,6 +22,8 @@ test('a picked mode has its card above the list and in view', async ({ page }) =
   const severity = await page.locator('.failcard .rating .label', { hasText: 'Severity' }).boundingBox()
   expect(severity!.y + severity!.height).toBeLessThan(880)
   await expect(page.locator('.failcard .riskline')).toContainText('Risk after next action: 96 to 32')
+  // The risk shows how it is made.
+  await expect(page.locator('.failcard .riskline')).toContainText('Risk 96 (8 × 4 × 3)')
 })
 
 test('the rows are named and the picked one is pressed', async ({ page }) => {
@@ -30,7 +32,11 @@ test('the rows are named and the picked one is pressed', async ({ page }) => {
   await expect(picked).toHaveCount(1)
   // Named by what each row shows, in its order, so the name holds the label a reader sees.
   await expect(picked).toHaveAccessibleName(/^Medium\. Checkout to Stripe ?: Stripe doesn't answer within 5 s ?\. Risk 96$/)
-  await expect(page.locator('.failrow').first()).toHaveAccessibleName(/^High\. (.+ > )?Refunds ?: Stripe refunds the money but the database write fails ?\. Risk 126$/)
+  await expect(page.locator('.failrow').first()).toHaveAccessibleName(/^High\. (.+ > )?Refunds ?: Stripe refunds the money but the database write fails ?\. Risk 126 ?, ?Severity 9$/)
+  // The reason is on the row itself, under the number, for a row that is High by severity alone.
+  await expect(page.locator('.failrow').first().locator('.risk .reason')).toContainText('Severity 9')
+  expect(await page.locator('.failrow:has(.reason) > .sw:not(.high)').count()).toBe(0) // only High rows carry one
+  await expect(page.locator('.failrow:has(.sw.medium) .reason')).toHaveCount(0)
   await expect(page.locator('.failhead').first()).toHaveText('Risk')
   await expect(page.locator('.fail-badge.line').first()).toHaveAttribute('aria-label', /^\S.* to \S.*, \d failures?, (High|Medium|Low|Not rated)$/)
   await expect(page.getByRole('button', { name: /^Show it: play the flow/ })).toBeVisible()

@@ -77,6 +77,34 @@ export function bandOf(m: Mode): Band {
   return n >= HIGH_RISK ? 'high' : n >= MEDIUM_RISK ? 'medium' : 'low'
 }
 
+/**
+ * The severity that made the mode High when its risk alone would not: severity 9 or 10 with a risk under 150 or none. Nothing for any
+ * other mode, so a High row that is High by its risk says nothing extra.
+ */
+function severityOnly(m: Mode): number | undefined {
+  const r = effective(m)
+  const n = risk(r)
+  return r.severity !== undefined && r.severity >= HIGH_SEVERITY && (n === undefined || n < HIGH_RISK) ? r.severity : undefined
+}
+
+/** Why the mode is in its band, when its risk does not say it: "Severity 9" for a High row that is High by severity alone. Shown beside the row's risk. */
+export const bandReason = (m: Mode): string | undefined => {
+  const s = severityOnly(m)
+  return s === undefined ? undefined : `Severity ${s}`
+}
+
+/** The band as the picked mode's card says it: "High: severity 9" when severity alone made it High, else just the band's name. */
+export const bandLabel = (m: Mode): string => {
+  const s = severityOnly(m)
+  return s === undefined ? BAND_NAMES[bandOf(m)] : `${BAND_NAMES.high}: severity ${s}`
+}
+
+/** How the risk is made: "8 × 4 × 3", severity times likelihood times hard to spot, of the ratings that count. Nothing when a rating is missing. */
+export function riskProduct(m: Mode): string | undefined {
+  const r = effective(m)
+  return risk(r) === undefined ? undefined : `${r.severity} × ${r.occurrence} × ${r.detection}`
+}
+
 export type Ranked = { id: string; mode: Mode; risk?: number; band: Band }
 
 /**
@@ -118,13 +146,13 @@ export function partName(model: Model, m: Mode): string {
 }
 
 /**
- * What a screen reader says for a row of the list: the part's own name and the mode, then the band with its risk, then where the part sits
- * ("Refunds: Stripe refunds the money but the database write fails. High, risk 126. Ordering > Order API").
+ * What a screen reader says for a row of the list: the part's own name and the mode, then the band with its risk and, for a High row made so by severity alone, that severity, then where the part sits
+ * ("Refunds: Stripe refunds the money but the database write fails. High, risk 126, severity 9. Ordering > Order API").
  */
 export function rowName(model: Model, r: Ranked): string {
   const part = partName(model, r.mode)
   const at = part.lastIndexOf(' > ')
-  const rating = r.risk === undefined ? BAND_NAMES[r.band] : `${BAND_NAMES[r.band]}, risk ${r.risk}`
+  const rating = [BAND_NAMES[r.band], r.risk === undefined ? '' : `risk ${r.risk}`, bandReason(r.mode)?.toLowerCase() ?? ''].filter(x => x !== '').join(', ')
   return [`${at === -1 ? part : part.slice(at + 3)}: ${r.mode.mode ?? ''}`, rating, at === -1 ? '' : part.slice(0, at)].filter(x => x !== '').join('. ')
 }
 
