@@ -14,7 +14,7 @@ public enum LoadMeasure
 public static partial class Perf
 {
     /// <summary>Why a run has no Data (it gives no size of a call), as the switch says it in its tooltip.</summary>
-    public const string NoData = "No size of a call in this run";
+    public const string NoData = "No call sizes in this run";
 
     /// <summary>Why Data is blocked for a run: <see cref="NoData"/>, or null when the run gives the size of a call.</summary>
     public static string? DataOff(IdMap<LoadRun> runs, string id) => CallSize(runs, id) is null ? NoData : null;
