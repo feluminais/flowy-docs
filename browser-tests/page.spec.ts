@@ -188,3 +188,38 @@ test.describe('the performance tab on an 880 px window', () => {
     expect(rows[0]).toBe('100 orders/min: expected call 42 ms, slowest 5% 118 ms')
   })
 })
+
+test.describe('the performance key and the stripe choice', () => {
+  test('draws the muted stripes of a line with no numbers under one name, and says why Data and Mixed are greyed', async ({ page }) => {
+    await open(page, '/#delivery/perf/dinner-rush/3', 'light')
+    const item = page.locator('.perf .keyrow li', { hasText: 'Not measured' })
+    await expect(item).toHaveCount(1)
+    await expect(item.locator('.sw.none')).toBeVisible() // the empty outline of a shape
+    await expect(item.locator('.sw.stripes')).toBeVisible() // and the stripes of a line, the same name for both
+    expect(await item.locator('.sw.stripes').evaluate(el => getComputedStyle(el).backgroundImage)).toContain(await page.evaluate(() => {
+      const probe = document.createElement('i')
+      probe.style.color = 'var(--muted)'
+      document.body.append(probe)
+      const colour = getComputedStyle(probe).color
+      probe.remove()
+      return colour
+    }))
+    await expect(page.locator('.perf .keyrow', { hasText: 'No numbers' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Data' })).toBeDisabled()
+    await expect(page.getByText('No call sizes in this run')).toBeVisible() // on screen, not only in a tooltip
+  })
+
+  test('groups the marks of each source of a run with several under its name and colour', async ({ page }) => {
+    await open(page, '/#delivery/perf/together/3,3', 'light')
+    const shared = page.locator('.perf .keyrow').first()
+    await expect(shared.getByText('More calls')).toBeVisible()
+    await expect(shared.getByText('Customer orders')).toHaveCount(0)
+    await expect(shared.getByText('Bigger call')).toHaveCount(0)
+    const groups = page.locator('.perf .keyrow.keygroup')
+    await expect(groups).toHaveCount(2)
+    await expect(groups.nth(0).locator('li').first()).toHaveText('Customer orders')
+    await expect(groups.nth(1).locator('li').first()).toHaveText('Courier pings')
+    await expect(groups.nth(0).getByText('Bigger call')).toBeVisible()
+    await expect(page.getByText('No call sizes in this run')).toHaveCount(0) // this run gives sizes
+  })
+})

@@ -311,33 +311,25 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         {onCanvas.busy && <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>}
         {onCanvas.struggling && <KeyItem swatch={<span className="sw pct">90%</span>}>Struggling</KeyItem>}
         {onCanvas.waiting && <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>}
-        <KeyItem swatch={<span className="sw none" />}>Not measured</KeyItem>
+        <KeyItem swatch={<span className="pair"><span className="sw none" />{drawn.bare && <span className="sw stripes" />}</span>}>Not measured</KeyItem>
         <KeyItem swatch={<span className="sw call" />} title="Slower stripes are slower calls">A call</KeyItem>
-        {drawn.bare && <KeyItem swatch={<span className="sw stripes" />}>No numbers</KeyItem>}
         {marks.fade && <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>}
         {marks.lost && <KeyItem swatch={<span className="sw lost" />}>Lost call</KeyItem>}
         {marks.rejected && <KeyItem swatch={<span className="sw rejected" />}>Rejected call</KeyItem>}
         <KeyItem swatch={<span className="sw busy" />} title="Thicker lines carry more calls">{measure === 'data' ? 'More data' : 'More calls'}</KeyItem>
-        {multi
-          ? (
-            <>
-              {keyed.sources.flatMap(s => [
-                <KeyItem key={s.id} swatch={<span className="sw call" />} style={srcStyle(s.color)}>{s.name}</KeyItem>,
-                s.scale && <KeyItem key={`${s.id} scale`} swatch={<span className="sw call" />} style={srcStyle(s.color)}>{s.scale}</KeyItem>,
-                s.bigger && <KeyItem key={`${s.id} bigger`} swatch={<span className="sw bigger"><i /><i /></span>} style={srcStyle(s.color)}>Bigger call</KeyItem>,
-              ])}
-              {keyed.other && <KeyItem swatch={<span className="sw call" />} style={srcStyle(OTHER_COLOR)}>Other calls</KeyItem>}
-              {keyed.scaledDown && <KeyItem swatch={<Scaled />}>Scaled down</KeyItem>}
-            </>
-          )
-          : one && (
-            <>
-              {one.scale && <KeyItem swatch={<span className="sw call" />}>{one.scale}</KeyItem>}
-              {one.bigger && <KeyItem swatch={<span className="sw bigger"><i /><i /></span>}>Bigger call</KeyItem>}
-              {keyed.scaledDown && <KeyItem swatch={<Scaled />}>Scaled down</KeyItem>}
-            </>
-          )}
+        {multi && keyed.other && <KeyItem swatch={<span className="sw call" />} style={srcStyle(OTHER_COLOR)}>Other calls</KeyItem>}
+        {multi && keyed.scaledDown && <KeyItem swatch={<Scaled />}>Scaled down</KeyItem>}
+        {!multi && one?.scale && <KeyItem swatch={<span className="sw call" />}>{one.scale}</KeyItem>}
+        {!multi && one?.bigger && <KeyItem swatch={<span className="sw bigger"><i /><i /></span>}>Bigger call</KeyItem>}
+        {!multi && one && keyed.scaledDown && <KeyItem swatch={<Scaled />}>Scaled down</KeyItem>}
       </KeyRow>
+      {multi && keyed.sources.map(s => (
+        <KeyRow key={s.id} className="keygroup" style={srcStyle(s.color)}>
+          <KeyItem swatch={<span className="sw call" />}><strong>{s.name}</strong></KeyItem>
+          {s.scale && <KeyItem swatch={<span className="sw call" />}>{s.scale}</KeyItem>}
+          {s.bigger && <KeyItem swatch={<span className="sw bigger"><i /><i /></span>}>Bigger call</KeyItem>}
+        </KeyRow>
+      ))}
       <StateKey marks={states} />
     </>
   )
@@ -409,12 +401,15 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         : <p className="muted">It never struggled in the tested range.</p>}
 
       {onMeasure && (
+        <>
         <div className="measure" role="group" aria-label="Each stripe">
           <span className="muted" aria-hidden="true">Each stripe</span>
           <button type="button" aria-pressed={measure === 'calls'} title="One stripe for each call a second" onClick={() => onMeasure('calls')}><span className="swatch" aria-hidden="true"><span className="sw call" /></span>Calls</button>
           <button type="button" aria-pressed={measure === 'data'} disabled={dataOff !== undefined} title={dataOff ?? 'One stripe for each bit of data a second (calls times their size)'} onClick={() => onMeasure('data')}><span className="swatch" aria-hidden="true"><span className="sw call" /></span>Data</button>
           <button type="button" aria-pressed={measure === 'mixed'} disabled={dataOff !== undefined} title={dataOff ?? 'A stripe for each call, as big as its call'} onClick={() => onMeasure('mixed')}><span className="swatch" aria-hidden="true"><span className="sw bigger"><i /><i /></span></span>Mixed</button>
         </div>
+        {dataOff !== undefined && <p className="muted measure-off">{dataOff}</p>}
+        </>
       )}
 
       {keySection}
