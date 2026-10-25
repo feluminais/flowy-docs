@@ -5,6 +5,6 @@ export function KeyRow({ children, style }: { children: ReactNode; style?: CSSPr
   return <ul className="keyrow" style={style}>{children}</ul>
 }
 
-export function KeyItem({ swatch, children, style }: { swatch: ReactNode; children: ReactNode; style?: CSSProperties }) {
-  return <li style={style}><span className="swatch" aria-hidden="true">{swatch}</span>{children}</li>
+export function KeyItem({ swatch, children, style, title }: { swatch: ReactNode; children: ReactNode; style?: CSSProperties; title?: string }) {
+  return <li style={style} title={title}><span className="swatch" aria-hidden="true">{swatch}</span>{children}</li>
 }
