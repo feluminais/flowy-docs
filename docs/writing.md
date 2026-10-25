@@ -1,6 +1,6 @@
 # Writing good Flowy docs
 
-[The guide](guide.md) says what every part of the canvas does. This page is about what to put in it: which shapes to draw, how to word a description, a connection or a step, and how to keep the model true. The examples marked Plum come from the made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy). The rest are written for this page.
+[The guide](guide.md) says what every part of the canvas does. This page is about what to put in it: which shapes to draw, how to word a description, a connection or a step, and how to keep the model true. The examples marked Plum come from the food-delivery service whose model is in [`docs/demo/flowy`](demo/flowy). The rest are written for this page.
 
 The rules are what IcePanel, the C4 model, arc42, Structurizr and a few others teach for the same job, fitted to Flowy's layers ([where they come from](#where-this-comes-from)). The numbers (about 25 words, a dozen shapes) are suggestions. Nobody has tested them, so change them when your model says otherwise.
 

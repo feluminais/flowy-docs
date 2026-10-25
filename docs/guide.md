@@ -1,6 +1,6 @@
 # Flowy Docs guide
 
-What every part of Flowy does, one page for each part. Read the page for the part you need and no others. The examples come from Plum, a made-up delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
+What every part of Flowy does, one page for each part. Read the page for the part you need and no others. The examples come from Plum, the food-delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
 
 | Page | Covers | Read it when |
 | --- | --- | --- |

@@ -1,5 +1,5 @@
 name: "Orders and pings, tested together"
-about: "Made-up numbers for the demo. Customer orders and courier pings sent together: nine combinations, three loads of each. Fleet DB fills faster than the two runs added, because the two compete for it. ETA and Matcher answer orders only, and Courier app calls Live tracking with pings only."
+about: "Customer orders and courier pings sent together: nine combinations, three loads of each. Fleet DB fills faster than the two runs added, because the two compete for it. ETA and Matcher answer orders only, and Courier app calls Live tracking with pings only."
 compare:
   with: together
   note: "Added is the sum of two separate runs. Tested together sends both at once. At 600 orders a minute and 400 pings a second Fleet DB reads 99%, against 93% added."
