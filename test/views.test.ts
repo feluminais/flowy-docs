@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { chain, computeView, hasChildren, memberIds, pathName, placeEnds, placeStep, stepEnds } from '../src/core/views.ts'
+import { chain, computeView, hasChildren, lineKey, memberIds, pathName, placeEnds, placeStep, stepEnds } from '../src/core/views.ts'
 import { shop } from './fixtures.ts'
 
 test('chain walks up to root', () => {
@@ -74,12 +74,17 @@ test('deep objects in other branches are lifted to the box you can see', () => {
   assert.deepEqual(v.edges.map(e => `${e.from}>${e.to}`), ['web>auth', 'auth>mail'])
 })
 
-test('opposite directions stay separate lines', () => {
+test('connections both ways between two shapes are one line, running the way the first one does', () => {
   const m = shop()
   m.connections.push({ from: 'api', to: 'web', label: 'pushes' })
   const v = computeView(m, 'shop')
-  assert.ok(v.edges.some(e => e.from === 'web' && e.to === 'api' && e.count === 1))
-  assert.ok(v.edges.some(e => e.from === 'api' && e.to === 'web' && e.count === 1))
+  assert.deepEqual(v.edges.filter(e => lineKey(e.from, e.to) === lineKey('api', 'web')), [{ from: 'web', to: 'api', label: '2 connections', count: 2, both: true }])
+  assert.equal(computeView(shop(), 'shop').edges.find(e => e.from === 'web' && e.to === 'api')?.both, undefined, 'one way has no flag')
+})
+
+test('lineKey is the same whichever way a line is given', () => {
+  assert.equal(lineKey('web', 'api'), 'api web')
+  assert.equal(lineKey('api', 'web'), 'api web')
 })
 
 test('a missing or self-pointing parent counts as top level', () => {

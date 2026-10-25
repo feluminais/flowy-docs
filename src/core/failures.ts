@@ -3,7 +3,7 @@ import type { Problem } from './problem.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
 import type { Analysis, Mode, Model } from './model.ts'
 import { hasText, own } from './text.ts'
-import { chain, isView, memberIds, nameOf, parentOf, placeEnds, placeStep } from './views.ts'
+import { chain, isView, lineKey, memberIds, nameOf, parentOf, placeEnds, placeStep } from './views.ts'
 
 /**
  * Failure analyses. An analysis is a file of failure modes: for a part (a shape or a line), how it fails, what that does, three
@@ -208,8 +208,8 @@ export function analysisText(model: Model, id: string, a: Analysis, format: 'mar
   return `## ${a.name.trim() === '' ? id : `${a.name} (${id})`}\n\n${coverageText(model, a)}\n\n${table(model, a, 'markdown')}`
 }
 
-/** The text a drawn line is known by. ui/src/graph.ts draws the lines with it. */
-export const lineKey = (from: string, to: string): string => `${from} ${to}`
+// The text a drawn line is known by lives with the views that draw it; the failures code and its readers still import it from here.
+export { lineKey }
 
 /** What a shape or a line wears on the canvas: the worst band of the modes it carries, and how many. */
 export type Mark = { band: Band; count: number }

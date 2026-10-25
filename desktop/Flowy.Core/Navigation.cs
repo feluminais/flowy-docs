@@ -25,11 +25,18 @@ public static class Navigation
         return Move.Across;
     }
 
-    /// <summary>The connections one line of a view stands for, with their place in model.connections.</summary>
-    public static List<(int Index, Connection Connection)> ConnectionsOf(Model model, string view, string from, string to) =>
-        model.Connections.Select((connection, index) => (index, connection))
-            .Where(x => Views.PlaceEnds(model, view, x.connection.From, x.connection.To) is { } ends && ends.From == from && ends.To == to)
+    /// <summary>
+    /// The connections one line of a view stands for, both ways, with their place in model.connections. <c>Back</c>: it runs from
+    /// <paramref name="to"/> to <paramref name="from"/>, against the way the line is given.
+    /// </summary>
+    public static List<(int Index, Connection Connection, bool Back)> ConnectionsOf(Model model, string view, string from, string to)
+    {
+        var line = Views.LineKey(from, to);
+        return model.Connections.Select((connection, index) => (index, connection, ends: Views.PlaceEnds(model, view, connection.From, connection.To)))
+            .Where(x => x.ends is { } e && Views.LineKey(e.From, e.To) == line)
+            .Select(x => (x.index, x.connection, x.ends!.Value.From != from))
             .ToList();
+    }
 
     /// <summary>The lines touching box <paramref name="id"/> in the view it sits in, going out and coming in.</summary>
     public static (List<BoxLine> Out, List<BoxLine> In) LinesOf(Model model, string id)

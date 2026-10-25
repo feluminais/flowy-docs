@@ -230,6 +230,9 @@ Before merging a change to the app, look at what it could affect, in a real wind
       the diagram, as with Explorer), and the marks go with it. Light and dark both read.
 - [ ] Click Order API: its panel opens and the view moves it out from under the panel. Click a name in the panel's Out list: the panel
       switches. Open "5 connections": each label shows. Point at a row: its line lights up on the canvas.
+- [ ] On the overview, the line between Ordering and Back office has an arrowhead at each end. Click it: the panel has a two-way arrow between the names,
+      "streams every event" under Ordering → Back office and three connections under Back office → Ordering. Press E: the same two headings, a label field
+      and a delete under each.
 - [ ] Pick "Customer places an order" in Ordering: ← and → step, Home and End jump, Esc stops, and the player card shows "More".
 - [ ] Press L on `docs/demo`: the Flows tab lists delivery, ordering and payments (with stripe inside it) as folders, each a chevron, a folder mark, its name and its count, with every flow's tags under its name and the tags in use as buttons above the list. Press error path: 9 of 20 flows stay, with the count above them. Press E and open a flow: its form has Folder and Tags under Flow. Type a new folder and press Enter: the file moves and the list follows. Press a tag: it lights and the flow's row gains it. New flow has a Folder field, and a name Flowy cannot use is said under it. Light and dark both read. (Dragging a flow onto a folder is browser only.)
 - [ ] Ctrl+K, type `re`: Restaurant, Refunds in Order API and Data warehouse in Back office. Enter opens Refunds' panel in its view.
@@ -321,6 +324,9 @@ Reading:
       More shows a paragraph with **Orders DB** in bold.
 - [ ] In API, play "Customer signs in". Web app joins as a faded box, with a dashed line to Auth.
 - [ ] In Shop, click the "2 connections" line: the panel lists both connections.
+- [ ] Open `docs/demo` (Plum). On the overview the line between Ordering and Back office has an arrowhead at each end and no second line under it.
+      Click it: the panel has a two-way arrow between the names, "streams every event" under Ordering → Back office and three connections under
+      Back office → Ordering. Play a flow step from Back office to Ordering: the whole line lights, both arrowheads too.
 - [ ] In Shop, click API: its panel lists Out (Orders DB with "2 connections", Mail service with
       "sends receipts" and "Orders → Mail service" under it) and In (Web app, "REST"). Open "2
       connections": both labels show, each with the boxes inside. Point at a row: its line turns

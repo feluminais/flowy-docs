@@ -284,8 +284,13 @@ internal sealed class BackLayer : Control
         }
         context.DrawGeometry(null, new Pen(brush, thickness, dash, PenLineCap.Flat), line.Geometry);
 
-        // The arrowhead: a closed triangle on the end, pointing along the line.
-        var (end, dir) = (line.Path.End, line.Path.Direction);
+        // The arrowhead: a closed triangle on the end, pointing along the line. A line with connections both ways has one on its start too.
+        DrawArrow(context, brush, line.Path.End, line.Path.Direction);
+        if (e.Both) DrawArrow(context, brush, line.Path.Start, line.Path.StartDirection);
+    }
+
+    private static void DrawArrow(DrawingContext context, IBrush brush, CorePt end, CorePt dir)
+    {
         var tip = new Point(end.X, end.Y);
         var back = new Point(end.X - dir.X * 10, end.Y - dir.Y * 10);
         var side = new Vector(-dir.Y * 4.5, dir.X * 4.5);

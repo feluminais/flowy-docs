@@ -154,7 +154,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
             Interacted();
             var edge = Scene()?.Edges.FirstOrDefault(e => e.Id == id);
             if (edge is null) return;
-            if (_side is Side.Line line && line.From == edge.From && line.To == edge.To)
+            if (_side is Side.Line line && Views.LineKey(line.From, line.To) == edge.Id)
             {
                 CloseDetails(); // its panel is already open: a second click closes it
                 return;

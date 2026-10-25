@@ -1,7 +1,11 @@
 namespace Flowy.Core;
 
 /// <summary>A line as a view draws it. Several connections between the same two boxes merge into one, labelled "N connections".</summary>
-public sealed record Edge(string From, string To, string Label, int Count);
+/// <summary>
+/// One line between two shapes of a view, whichever way their connections run. <c>From</c> and <c>To</c> are the way the first of them runs;
+/// <c>Both</c> is set when some run the other way too, and the line gets an arrowhead at each end.
+/// </summary>
+public sealed record Edge(string From, string To, string Label, int Count, bool Both = false);
 
 /// <summary>What one level shows: the boxes inside it, the boxes elsewhere that its lines reach, and the lines.</summary>
 public sealed record View(string Id, IReadOnlyList<string> Members, IReadOnlyList<string> Outsiders, IReadOnlyList<Edge> Edges);
@@ -94,26 +98,33 @@ public static class Views
         var members = MemberIds(model, view);
         var known = members.ToHashSet(); // members, then outsiders as they are found
         var outsiders = new List<string>();
-        var order = new List<(string From, string To)>();
-        var edges = new Dictionary<(string, string), (string Label, int Count)>();
+        var order = new List<string>();
+        var edges = new Dictionary<string, Edge>();
         foreach (var c in model.Connections)
         {
             if (PlaceEnds(model, view, c.From, c.To) is not { } ends) continue;
             foreach (var end in new[] { ends.From, ends.To })
                 if (known.Add(end)) outsiders.Add(end);
-            if (edges.TryGetValue(ends, out var edge))
+            var key = LineKey(ends.From, ends.To);
+            if (edges.TryGetValue(key, out var edge))
             {
                 var count = edge.Count + 1;
-                edges[ends] = ($"{count} connections", count);
+                edges[key] = edge with { Label = $"{count} connections", Count = count, Both = edge.Both || edge.From != ends.From };
             }
             else
             {
-                order.Add(ends);
-                edges[ends] = (c.Label ?? "", 1);
+                order.Add(key);
+                edges[key] = new Edge(ends.From, ends.To, c.Label ?? "", 1);
             }
         }
-        return new View(view, members, outsiders, order.Select(e => new Edge(e.From, e.To, edges[e].Label, edges[e].Count)).ToList());
+        return new View(view, members, outsiders, order.Select(k => edges[k]).ToList());
     }
+
+    /// <summary>
+    /// The text a drawn line is known by: the same as <c>lineKey</c> in src/core/views.ts. A view draws one line between two shapes whichever way
+    /// their connections run, so the two ends go in sorted order and A → B and B → A are the same line.
+    /// </summary>
+    public static string LineKey(string a, string b) => string.CompareOrdinal(a, b) < 0 ? $"{a} {b}" : $"{b} {a}";
 
     /// <summary>What a reader calls an object: its name, its id when it has none, and "Overview" for the top level.</summary>
     public static string NameOf(Model model, string id)

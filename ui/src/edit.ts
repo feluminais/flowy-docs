@@ -8,7 +8,7 @@ import { setStepStates } from '../../src/core/ops.ts'
 import { isStateName } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { isMap, own } from '../../src/core/text.ts'
-import { chain, isView, parentOf, placeEnds } from '../../src/core/views.ts'
+import { chain, isView, lineKey, parentOf, placeEnds } from '../../src/core/views.ts'
 
 /** One write: a file's new content as PUT /api/file takes it, or null to delete the file. */
 export type Change = { file: string; data: unknown }
@@ -58,11 +58,15 @@ export function pickStepState(model: Model, flow: string, index: number, shape: 
   return setStepStates(model, flow, index, next)
 }
 
-/** The connections one line of a view stands for, with their place in model.connections. */
-export function connectionsOf(model: Model, view: string, from: string, to: string): { index: number; connection: Connection }[] {
+/**
+ * The connections one line of a view stands for, both ways, with their place in model.connections. `back`: it runs from `to` to `from`,
+ * against the way the line is given.
+ */
+export function connectionsOf(model: Model, view: string, from: string, to: string): { index: number; connection: Connection; back: boolean }[] {
+  const line = lineKey(from, to)
   return model.connections.flatMap((connection, index) => {
     const ends = placeEnds(model, view, connection.from, connection.to)
-    return ends?.[0] === from && ends[1] === to ? [{ index, connection }] : []
+    return ends && lineKey(...ends) === line ? [{ index, connection, back: ends[0] !== from }] : []
   })
 }
 

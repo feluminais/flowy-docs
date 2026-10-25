@@ -233,9 +233,9 @@ test('flowy tidy puts neighbours on the side they have in the view above, and --
   console: { type: app, name: Console, in: backoffice }
 connections:
   - { from: web, to: api }
+  - { from: api, to: admin }
   - { from: admin, to: api }
   - { from: console, to: api }
-  - { from: api, to: admin }
 `)
   const flowy = (...args: string[]) => spawnSync(process.execPath, ['src/cli.ts', ...args, '--dir', dir], { encoding: 'utf8' })
   const found = flowy('tidy', '--check')

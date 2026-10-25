@@ -321,7 +321,7 @@ public static class PerfView
 
     /// <summary>The same for the line a view draws between two shapes.</summary>
     public static IReadOnlyList<double?> LineSeriesIn(Model model, IEnumerable<Level> levels, string view, string from, string to, string key) =>
-        levels.Select(l => Perf.RollUp(model, l, view).Lines.FirstOrDefault(p => p.From == from && p.To == to)?[key]).ToList();
+        levels.Select(l => Perf.RollUp(model, l, view).Lines.FirstOrDefault(p => Views.LineKey(p.From, p.To) == Views.LineKey(from, to))?[key]).ToList();
 
     /// <summary>An object's numbers at a load, or null when nothing was measured on it.</summary>
     public static Metrics? BoxAt(Model model, LoadRun run, string view, string id, double load) => BoxAtLevel(model, Perf.Interpolate(run, load), view, id);
@@ -335,7 +335,7 @@ public static class PerfView
 
     /// <summary>A line's numbers in a level.</summary>
     public static Pair? LineAtLevel(Model model, Level level, string view, string from, string to) =>
-        Perf.RollUp(model, level, view).Lines.FirstOrDefault(p => p.From == from && p.To == to);
+        Perf.RollUp(model, level, view).Lines.FirstOrDefault(p => Views.LineKey(p.From, p.To) == Views.LineKey(from, to));
 
     // ---- colour and key -----------------------------------------------------------------------------------------
 

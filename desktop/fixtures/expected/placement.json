@@ -877,10 +877,6 @@
         {
           "from": "backoffice",
           "to": "ordering"
-        },
-        {
-          "from": "ordering",
-          "to": "backoffice"
         }
       ],
       "regions": {},
@@ -978,7 +974,7 @@
           []
         ]
       },
-      "tangleArranged": 7,
+      "tangleArranged": 5,
       "tidy": [
         [
           "customer",
@@ -1036,7 +1032,7 @@
           300
         ]
       ],
-      "tangleTidy": 3
+      "tangleTidy": 2
     },
     {
       "name": "docs/demo/flowy ordering",

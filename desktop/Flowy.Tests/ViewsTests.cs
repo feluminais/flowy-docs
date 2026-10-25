@@ -90,11 +90,26 @@ public class ViewsTests
     }
 
     [Fact]
-    public void Opposite_directions_stay_separate_lines()
+    public void Connections_both_ways_between_two_shapes_are_one_line_running_the_way_the_first_one_does()
     {
         var v = Views.Compute(TestModels.Shop(moreConnections: "  - { from: api, to: web, label: pushes }\n"), "shop");
-        Assert.Contains(v.Edges, e => e is { From: "web", To: "api", Count: 1 });
-        Assert.Contains(v.Edges, e => e is { From: "api", To: "web", Count: 1 });
+        Assert.Equal([new Edge("web", "api", "2 connections", 2, Both: true)], v.Edges.Where(e => Views.LineKey(e.From, e.To) == Views.LineKey("api", "web")));
+        Assert.False(Views.Compute(TestModels.Shop(), "shop").Edges.Single(e => e is { From: "web", To: "api" }).Both); // one way has no flag
+    }
+
+    [Fact]
+    public void A_line_key_is_the_same_whichever_way_the_line_is_given()
+    {
+        Assert.Equal("api web", Views.LineKey("web", "api"));
+        Assert.Equal("api web", Views.LineKey("api", "web"));
+    }
+
+    [Fact]
+    public void A_line_given_either_way_finds_its_connections_and_says_which_run_back()
+    {
+        Assert.Equal([(0, true)], Navigation.ConnectionsOf(TestModels.Shop(), Names.Root, "shop", "customer").Select(c => (c.Index, c.Back)));
+        var both = Navigation.ConnectionsOf(TestModels.Shop(moreConnections: "  - { from: api, to: web, label: pushes }\n"), "shop", "web", "api");
+        Assert.Equal([("REST", false), ("pushes", true)], both.Select(c => (c.Connection.Label, c.Back)));
     }
 
     [Fact]
