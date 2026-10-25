@@ -129,6 +129,17 @@ export function computeView(model: Model, v: string): View {
 export const nameOf = (model: Model, id: string) => (id === ROOT ? 'Overview' : getObject(model, id)?.name || id)
 
 /**
+ * A shape's name the way the canvas at `view` shows it: the shape drawn there that holds it, then each shape down to it ("Dispatch > ETA"). A shape the view draws itself is
+ * just its name; one on another branch is named from where the branches part.
+ */
+export function pathName(model: Model, view: string, id: string): string {
+  const inView = new Set(chain(model, view))
+  const down = chain(model, id).filter(x => x !== ROOT).reverse()
+  const from = down.findIndex(x => !inView.has(x))
+  return from < 0 ? nameOf(model, id) : down.slice(from).map(x => nameOf(model, x)).join(' > ')
+}
+
+/**
  * A step's ends as a reader sees them. `placed` is where the step lands in the view (see placeStep).
  * When an end lands on a box that stands for something inside it, both are named ("Scheduler in Core"),
  * so two steps on two parts of one box never read as a round trip. A step one box does on its own names
