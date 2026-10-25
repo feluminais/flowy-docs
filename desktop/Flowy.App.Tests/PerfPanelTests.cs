@@ -247,6 +247,7 @@ public class PerfPanelTests
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 1);
         Assert.Equal("Busy|Not measured|A call|A call that fails|More calls", KeyOf(panel));
+        Assert.Null(panel.KeyStripes); // no line without numbers on screen: no stripes beside Not measured
         Show(panel, folder, "ramp", 3);
         var key = KeyOf(panel);
         Assert.StartsWith("Busy|Struggling|", key); // a shape is past the struggle mark: its number is on the canvas, and in the key
@@ -259,7 +260,10 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Not measured|A call|No numbers|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
+        Assert.Equal("Not measured|A call|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
+        // a line with no numbers is on screen: its muted stripes sit beside the outline, under the one name
+        Assert.NotNull(panel.KeyStripes);
+        Assert.Equal(AppTheme.Brush(panel.KeyStripes!, "MutedBrush"), panel.KeyStripes!.Stroke);
     }
 
     [AvaloniaFact]
@@ -315,7 +319,7 @@ public class PerfPanelTests
         var slider = panel.Slider;
         panel.SetPos(1, false);
         Assert.Equal(1, panel.SliderValue);
-        Assert.Equal("Not measured|A call|No numbers|A call that fails|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
+        Assert.Equal("Not measured|A call|A call that fails|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
         Assert.Same(slider, panel.Slider);
     }
 
@@ -350,7 +354,7 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled("source: { color: teal }");
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Not measured|A call|No numbers|Lost call|Rejected call|More calls", KeyOf(panel));
+        Assert.Equal("Not measured|A call|Lost call|Rejected call|More calls", KeyOf(panel));
     }
 
     [AvaloniaFact]
@@ -365,6 +369,12 @@ public class PerfPanelTests
         Assert.All(new[] { panel.DataButton!, panel.MixedButton! }, b => Assert.Equal("No call sizes in this run", ToolTip.GetTip(b)));
         var stripes = group.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("sw")).ToList();
         Assert.Equal(4, stripes.Count); // a stripe each for Calls and Data, the small and the big one for Mixed
+        Assert.Equal("No call sizes in this run", panel.MeasureOffText); // the reason is on screen as well as in the tooltips
+
+        var (sized, sizedFolder, temp) = OpenScaled();
+        using var _ = temp;
+        sized.Show(new PerfPanelModel(sizedFolder.Model, "shop", sizedFolder.Runs!, sizedFolder.RunProblems!, "scaled", 0, false, false, null));
+        Assert.Null(sized.MeasureOffText); // a run that gives sizes has nothing to say
     }
 
     [AvaloniaFact]
