@@ -1065,6 +1065,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .perf > .failhead { margin: -6px 0 -6px; }
 .failhead { display: flex; justify-content: flex-end; padding: 0 8px; color: var(--muted); font-size: 12px; }
 .failrow .risk { flex: none; min-width: 3ch; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.failrow .risk .reason { display: block; font-size: 11px; white-space: nowrap; }
 .fail .modeline { margin: 0; }
 /* The picked mode's card sits above the list, so it is in view when a row is picked. */
 .failcard { display: grid; gap: 10px; scroll-margin-top: 8px; }

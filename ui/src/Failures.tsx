@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
-import { analysedText, bandOf, BAND_NAMES, BAND_RULES, coverage, partName, lightFor, ratingsOf, riskOf } from '../../src/core/failures.ts'
+import { analysedText, bandLabel, bandOf, bandReason, BAND_NAMES, BAND_RULES, coverage, partName, lightFor, ratingsOf, riskOf, riskProduct } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
@@ -114,7 +114,10 @@ export function FailuresBody(p: FailuresProps) {
               <span className={`sw ${r.band}`} aria-hidden="true" />
               <span className="visually-hidden">{BAND_NAMES[r.band]}. </span>
               <span className="what"><span className="part">{partName(model, r.mode)}</span><span className="visually-hidden">: </span><span>{r.mode.mode}</span></span>
-              <span className="risk">{r.risk === undefined ? '' : <><span className="visually-hidden">. Risk </span>{r.risk}</>}</span>
+              <span className="risk">
+                {r.risk === undefined ? '' : <><span className="visually-hidden">. Risk </span>{r.risk}</>}
+                {bandReason(r.mode) !== undefined && <span className="reason"><span className="visually-hidden">, </span>{bandReason(r.mode)}</span>}
+              </span>
             </button>
           </li>
         ))}
@@ -193,7 +196,7 @@ export function FailuresBody(p: FailuresProps) {
             )
           })}
           <p className="riskline">
-            <span className="label">Risk</span> <strong>{riskOf(mode) ?? 'None'}</strong> <span className={`sw ${bandOf(mode)}`} aria-hidden="true" />{BAND_NAMES[bandOf(mode)]}
+            <span className="label">Risk</span> <strong>{riskOf(mode) ?? 'None'}</strong>{riskProduct(mode) !== undefined && <span className="muted product"> ({riskProduct(mode)})</span>} <span className={`sw ${bandOf(mode)}`} aria-hidden="true" />{bandLabel(mode)}
             {afterText(mode) !== undefined && <span className="muted after">{AFTER_LABEL}: {afterText(mode)}</span>}
           </p>
           <dl className="faildl">
