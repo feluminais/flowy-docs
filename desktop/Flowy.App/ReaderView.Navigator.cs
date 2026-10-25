@@ -109,6 +109,7 @@ internal sealed partial class ReaderView
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
         else if (tab == PanelTab.Explorer) _nav.Explorer.Update(model, _folder!.Problems, Editing, _panels.Expanded, view, SelectedBox, flow?.Id);
         else if (tab == PanelTab.Failures) _failures.Show(model, view);
+        else if (tab == PanelTab.Yaml && _dir is not null) _nav.Yaml.Show(_dir, _folder!, Recording?.Id ?? flow?.Id, SelectedBox);
         else if (RunsOpen) _nav.RunLinks.Show(model, _folder!.Runs ?? new IdMap<LoadRun>(), _edit.SaveOff);
     }
 
@@ -138,7 +139,7 @@ internal sealed partial class ReaderView
 
     internal void ClickRail(PanelTab tab) => (tab == PanelTab.Details ? _detailsRail : _rail).Press(tab);
 
-    /// <summary>Opens a panel by name ("details", "flows", "explorer", "performance" or "failures"), for a picture (--tab). Anything else is ignored.</summary>
+    /// <summary>Opens a panel by name ("details", "flows", "explorer", "performance", "failures" or "yaml"), for a picture (--tab). Anything else is ignored.</summary>
     public void OpenTab(string name)
     {
         if (!Enum.TryParse<PanelTab>(name, true, out var tab)) return;

@@ -434,6 +434,8 @@ YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing a
       a shape's Tech, and press Tab: a "You" step appears, and the changed line shows red above green. Change a file in an editor: an "Outside" step appears.
 - [ ] Pick the older step: its files show with the marks against the step before it, and Restore is greyed out with "Edit to restore" beside it. Press E, then Restore: the
       model goes back, a "Restored" step is on top, and Ctrl+Z puts the change back. Clear history asks first, and Clear empties the list. On an exported page and in the VS Code panel the tab is there and says it has no history.
+- [ ] In the desktop app on `docs/demo`, press Y: the YAML tab says Read only, has the same file tabs as the browser, and opens on `model.yaml`. Pick Ordering on the canvas: its lines are
+      tinted and in view. Play Deliver order: its file opens. Change `model.yaml` in an editor: the text follows. Light and dark both read.
 
 Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 

@@ -9,11 +9,11 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>What a rail button opens: the Details panel on the right, or one tab of the navigator on the left (the whole documentation as a tree, every flow, how things fail, or how they hold up under load).</summary>
-internal enum PanelTab { Details, Flows, Explorer, Performance, Failures }
+/// <summary>What a rail button opens: the Details panel on the right, or one tab of the navigator on the left (the whole documentation as a tree, every flow, how things fail, how they hold up under load, or the files as text).</summary>
+internal enum PanelTab { Details, Flows, Explorer, Performance, Failures, Yaml }
 
 /// <summary>
-/// A slim column of icons on an edge, always there. The left one holds Explorer, Flows, Failures and Performance, and the counts on it say how much the documentation
+/// A slim column of icons on an edge, always there. The left one holds Explorer, Flows, Performance, Failures and YAML, and the counts on it say how much the documentation
 /// holds: the flows and the shapes in all. The right one holds Details. A click opens that panel, and a click on the open one closes it (ReaderView decides).
 /// </summary>
 internal sealed class NavRail : Border
@@ -45,6 +45,7 @@ internal sealed class NavRail : Border
             Add(column, PanelTab.Flows, Icons.Workflow, "Flows", "L");
             Add(column, PanelTab.Performance, Icons.Activity, "Performance", "T");
             Add(column, PanelTab.Failures, Icons.Alert, "Failures", "M");
+            Add(column, PanelTab.Yaml, Icons.FileCode, "YAML", "Y");
         }
         else
         {
@@ -119,7 +120,7 @@ internal sealed class NavRail : Border
     internal void Press(PanelTab tab) => Picked?.Invoke(tab);
 }
 
-/// <summary>The strip of tabs on top of the navigator: Explorer and Flows share one, and Performance and Failures each have a strip of their own that holds just their name.</summary>
+/// <summary>The strip of tabs on top of the navigator: Explorer and Flows share one, and Performance, Failures and YAML each have a strip of their own that holds just their name.</summary>
 internal sealed class NavTabs : StackPanel
 {
     private readonly Dictionary<PanelTab, Button> _buttons = [];
@@ -131,7 +132,7 @@ internal sealed class NavTabs : StackPanel
         Orientation = Orientation.Horizontal;
         Spacing = 2;
         Classes.Add("navtabs");
-        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Performance, "Performance"), (PanelTab.Failures, "Failures") })
+        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Performance, "Performance"), (PanelTab.Failures, "Failures"), (PanelTab.Yaml, "YAML") })
         {
             var button = new Button { Content = label };
             button.Classes.Add("navtab");
@@ -152,7 +153,7 @@ internal sealed class NavTabs : StackPanel
     }
 }
 
-/// <summary>The panel of the Explorer, Flows, Failures and Performance tabs, on the left. It does no scrolling of its own: each tab scrolls what it holds.</summary>
+/// <summary>The panel of the Explorer, Flows, Performance, Failures and YAML tabs, on the left. It does no scrolling of its own: each tab scrolls what it holds.</summary>
 internal sealed class NavigatorPanel : Border
 {
     private readonly ContentControl _body = new();
@@ -190,6 +191,9 @@ internal sealed class NavigatorPanel : Border
 
     private readonly ScrollViewer _runLinksScroll;
 
+    /// <summary>The YAML tab: the files as text. It scrolls its text itself, and keeps its file tabs and the read-only mark in place.</summary>
+    public YamlPanel Yaml { get; } = new();
+
     public event Action? Closed;
 
     public NavigatorPanel()
@@ -217,7 +221,14 @@ internal sealed class NavigatorPanel : Border
     public void Show(PanelTab tab, bool editing = false)
     {
         Tabs.Update(tab);
-        _body.Content = tab == PanelTab.Flows ? Flows : tab == PanelTab.Failures ? _failuresScroll : tab == PanelTab.Performance ? (editing ? _runLinksScroll : _perfScroll) : Explorer;
+        _body.Content = tab switch
+        {
+            PanelTab.Flows => Flows,
+            PanelTab.Failures => _failuresScroll,
+            PanelTab.Performance => editing ? _runLinksScroll : _perfScroll,
+            PanelTab.Yaml => Yaml,
+            _ => Explorer,
+        };
         IsVisible = true;
     }
 

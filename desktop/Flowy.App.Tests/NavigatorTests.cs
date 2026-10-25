@@ -37,7 +37,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Explorer, 36", "Flows, 20", "Performance, 7", "Failures, 14"], icons.Select(i => i.Name)); // Plum has seven runs and 14 failure modes
+        Assert.Equal(["Explorer, 36", "Flows, 20", "Performance, 7", "Failures, 14", "YAML"], icons.Select(i => i.Name)); // Plum has seven runs and 14 failure modes; YAML has no count
         Assert.All(icons, i => Assert.True(i.Visible));
         Assert.Equal(["Details"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
@@ -51,7 +51,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "text", "flowy"));
         Assert.All(["Flows", "Performance", "Failures"], name => Assert.True(reader.Rail.Shown.First(i => i.Name.StartsWith(name)).Visible));
-        Assert.Equal(["Explorer", "Flows", "Performance", "Failures"], reader.Rail.Shown.Select(i => i.Name.Split(',')[0]));
+        Assert.Equal(["Explorer", "Flows", "Performance", "Failures", "YAML"], reader.Rail.Shown.Select(i => i.Name.Split(',')[0]));
         Press(window, Key.L, PhysicalKey.L);
         Assert.Equal(PanelTab.Flows, reader.ShownTabNow); // the panel says there is no flow
         Press(window, Key.T, PhysicalKey.T);
@@ -466,5 +466,73 @@ public class NavigatorTests
             Assert.Equal(5101, rows.Count);
         }
         Assert.True(fastest < 500, $"took {fastest} ms");
+    }
+
+    [AvaloniaFact]
+    public void Y_opens_the_files_as_text_read_only_with_a_tab_for_each_in_the_browser_s_order()
+    {
+        var (window, reader) = Open();
+        Press(window, Key.Y, PhysicalKey.Y);
+        Assert.Equal(PanelTab.Yaml, reader.ShownTabNow);
+        var yaml = reader.Navigator.Yaml;
+        Assert.Equal(YamlFiles.Read(Plum).Select(f => f.Path), yaml.Tabs);
+        Assert.Equal("model.yaml", yaml.Open);
+        Assert.Equal(string.Join('\n', YamlFiles.LinesOf(File.ReadAllText(Path.Combine(Plum, "model.yaml")))), yaml.Text);
+        Assert.Contains(yaml.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Read only");
+        Assert.Null(yaml.Block); // nothing is selected
+        Press(window, Key.Y, PhysicalKey.Y);
+        Assert.Null(reader.ShownTabNow);
+    }
+
+    [AvaloniaFact]
+    public void The_selected_shape_s_lines_are_tinted_in_the_model_and_a_playing_flow_shows_its_own_file()
+    {
+        var (_, reader) = Open();
+        reader.OpenTab("yaml");
+        Dispatcher.UIThread.RunJobs();
+        var yaml = reader.Navigator.Yaml;
+        yaml.PickFile("layout.yaml"); // Plum has none: the pick is ignored
+        Assert.Equal("model.yaml", yaml.Open);
+        yaml.PickFile("failures/ordering.yaml");
+        Assert.Equal("failures/ordering.yaml", yaml.Open);
+
+        reader.OpenFlowById("deliver-order");
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("flows/delivery/deliver-order.yaml", yaml.Open); // a new flow shows its own file
+        Assert.Null(yaml.Block);
+
+        reader.Select("ordering");
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal("model.yaml", yaml.Open); // a selection shows the model, where the shape is
+        Assert.Equal(YamlFiles.BlockOf(File.ReadAllText(Path.Combine(Plum, "model.yaml")), "ordering"), yaml.Block);
+    }
+
+    [AvaloniaFact]
+    public void A_new_load_of_the_folder_shows_the_files_as_they_are_now_and_the_tab_is_remembered()
+    {
+        var dir = Directory.CreateTempSubdirectory("flowy-yaml-tab-").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "model.yaml"), "title: First\nobjects:\n  shop:\n    type: system\n");
+            var (_, reader) = Open(dir);
+            NavigatorState? last = null;
+            reader.NavigatorChanged += s => last = s;
+            reader.OpenTab("yaml");
+            Dispatcher.UIThread.RunJobs();
+            Assert.StartsWith("title: First", reader.Navigator.Yaml.Text);
+            Assert.Equal("yaml", last!.Tab);
+
+            File.WriteAllText(Path.Combine(dir, "model.yaml"), "title: Second\nobjects:\n  shop:\n    type: system\n");
+            reader.Load(FolderLoader.Load(dir), dir);
+            Dispatcher.UIThread.RunJobs();
+            Assert.StartsWith("title: Second", reader.Navigator.Yaml.Text);
+
+            reader.RestoreNavigator(new NavigatorState("yaml", [], null, null));
+            Assert.Equal(PanelTab.Yaml, reader.ShownTabNow);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
     }
 }

@@ -42,8 +42,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow as the
   folders they are filed in under `flows/`, a folder before the flows beside it and the flows by file name, so `01-place-order` comes before `02-pay`.
   A click goes to the level a flow plays in and plays it. The tags in use sit above the list: press one to keep the flows that have it, or press
-  several to keep those with any of them. The search matches names, file names, folders and tags. In the browser version a YAML tab (Y) beside them shows the files
-  as text, with every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes, flows,
+  several to keep those with any of them. The search matches names, file names, folders and tags. A YAML tab (Y) beside them shows the files
+  as text, and in the browser version every change to them ([YAML and history](#yaml-and-history)). The numbers on the icons are how many shapes, flows,
   failure modes and runs there are in all. A Performance icon (T) and a Failures icon (M) sit with them, whether or not the folder has a
   load-test run or a failure analysis: with none, their panels offer to **Create** one. See [Performance](performance.md#performance) and
   [Failure modes](failures.md#failure-modes). Details, on the right (its own icon, or a click on a shape or a line), is what the
@@ -152,7 +152,8 @@ save, it drops YAML comments and writes the file in Flowy's own layout.
 
 In the browser version, the **YAML** tab of the left-hand panel (beside Explorer and Flows, or **Y**) shows the model's files as text
 and keeps every change to them. It stays open beside Details, so a change can be watched while you edit. It is read only: change a
-model on the canvas, or in your editor. A page made with `flowy export` shows the files too, marked **Read only**, with no steps.
+model on the canvas, or in your editor. A page made with `flowy export` shows the files too, marked **Read only**, with no steps, and
+so does the desktop app, which keeps no history.
 
 ![The YAML tab: model.yaml with the line an AI's last edit changed marked in red and green, and under it the steps from First seen up to a change to Website's tech](../images/yaml.png)
 
