@@ -1014,9 +1014,14 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .fail-badge.medium { background: var(--warn); }
 .fail-badge.low { background: var(--muted); }
 .fail-badge.unrated { background: var(--bg); color: var(--fg); box-shadow: inset 0 0 0 1px var(--line); }
-.react-flow__node.fails .shape path { stroke: var(--danger); stroke-width: 3; }
-.react-flow__node.affected .shape path { stroke: color-mix(in srgb, var(--danger) 45%, transparent); stroke-width: 2; }
-.react-flow__edge.fails .react-flow__edge-path { stroke: var(--danger); stroke-width: 2.5; }
+/* The part a picked mode fails is outlined in the colour of the mode's band (red High, orange Medium, grey Low and Not rated), solid and at full strength whatever level it sits on; what it affects is a lighter form of the same. */
+.react-flow__node.fails, .react-flow__node.affected, .react-flow__edge.fails { --fc: var(--muted); }
+.react-flow__node.band-high, .react-flow__edge.band-high { --fc: var(--danger); }
+.react-flow__node.band-medium, .react-flow__edge.band-medium { --fc: var(--warn); }
+.react-flow__node.fails, .react-flow__node.affected { opacity: 1; }
+.react-flow__node.fails .shape path { stroke: var(--fc); stroke-width: 3; stroke-dasharray: none; }
+.react-flow__node.affected .shape path { stroke: color-mix(in srgb, var(--fc) 45%, transparent); stroke-width: 2; stroke-dasharray: none; }
+.react-flow__edge.fails .react-flow__edge-path { stroke: var(--fc); stroke-width: 2.5; }
 .canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: opacity 0.2s; }
 @media (prefers-reduced-motion: reduce) { .canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: none; } }
 /* The marks of the key and of the list, drawn the way the canvas draws them. */
@@ -1025,14 +1030,20 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .sw.medium { background: var(--warn); }
 .sw.low { background: var(--muted); }
 .sw.unrated { border: 1.5px solid var(--muted); background: transparent; }
-.sw.fails { width: 18px; height: 12px; border: 3px solid var(--danger); border-radius: 4px; }
-.sw.affects { width: 18px; height: 12px; border: 2px solid color-mix(in srgb, var(--danger) 45%, transparent); border-radius: 4px; }
+.sw.fails, .sw.affects { --fc: var(--muted); width: 18px; height: 12px; border-radius: 4px; }
+.sw.band-high { --fc: var(--danger); }
+.sw.band-medium { --fc: var(--warn); }
+.sw.fails { border: 3px solid var(--fc); }
+.sw.affects { border: 2px solid color-mix(in srgb, var(--fc) 45%, transparent); }
 .fail .perf-buttons { flex-wrap: wrap; }
 /* The two copy buttons at the top of the tab, split by a thin rule. */
 .fail .copyrow { display: flex; align-items: center; gap: 6px; }
 .fail .copyrow .sep { width: 1px; height: 16px; background: var(--line); }
-.failsum { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+/* The bands, one to a row: the count, then the rule that puts a mode in it. */
+.failsum { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.panel .failsum button { width: 100%; min-height: 26px; justify-content: flex-start; }
 .failsum .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.failsum .rule { margin-left: auto; color: var(--muted); font-size: 12px; }
 .failsum button[aria-pressed='true'], .coverage button[aria-pressed='true'] { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--fg); }
 .coverage { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; margin: 0; color: var(--muted); font-size: 12.5px; }
 .partchip { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; }
@@ -1040,12 +1051,16 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .partchip button:focus-visible { outline: 2px solid var(--accent); }
 .failrows { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
 .panel .failrow { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 34px; padding: 4px 8px; border-radius: 8px; text-align: left; }
-.panel .failrow[aria-current='true'] { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.panel .failrow[aria-pressed='true'] { background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .failrow .what { flex: 1; min-width: 0; display: grid; gap: 1px; }
 .failrow .what > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .failrow .part { color: var(--muted); font-size: 12px; }
+.perf > .failhead { margin: -6px 0 -6px; }
+.failhead { display: flex; justify-content: flex-end; padding: 0 8px; color: var(--muted); font-size: 12px; }
 .failrow .risk { flex: none; min-width: 3ch; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
 .fail .modeline { margin: 0; }
+/* The picked mode's card sits above the list, so it is in view when a row is picked. */
+.failcard { display: grid; gap: 10px; scroll-margin-top: 8px; }
 .faildl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
 .faildl dt { color: var(--muted); }
 .faildl dd { margin: 0; }
@@ -1057,6 +1072,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .cells i { width: 8px; height: 12px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 2px; }
 .cells i.on { background: var(--fg); border-color: var(--fg); }
 .riskline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0; }
+.riskline .after { margin-left: 8px; }
 .fail .about .form { margin-top: 8px; }
 .affects { display: grid; gap: 4px; font-size: 12px; }
 .affects .label { color: var(--muted); }

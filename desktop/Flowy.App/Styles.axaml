@@ -729,6 +729,10 @@
     <Setter Property="StrokeJoin" Value="Round" />
   </Style>
   <Style Selector=":is(Grid).box.fails Path.failline, :is(Grid).box.affected Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
+  <!-- What a picked mode fails is outlined in the colour of its band (High red, Medium orange, Low and Not rated grey), solid on every level, as the browser draws it. -->
+  <Style Selector=":is(Grid).box.band-medium Path.failline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box.band-low Path.failline, :is(Grid).box.band-unrated Path.failline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).box.outsider.fails Path.outline, :is(Grid).box.outsider.affected Path.outline"><Setter Property="StrokeDashArray" Value="" /></Style>
   <Style Selector=":is(Grid).box.affected Path.failline">
     <Setter Property="StrokeThickness" Value="2" />
     <Setter Property="Opacity" Value="0.45" />
@@ -763,6 +767,8 @@
     <Setter Property="BorderThickness" Value="2" />
     <Setter Property="Opacity" Value="0.45" />
   </Style>
+  <Style Selector="Border.sw.fails.band-medium, Border.sw.affects.band-medium"><Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.sw.fails.band-low, Border.sw.affects.band-low, Border.sw.fails.band-unrated, Border.sw.affects.band-unrated"><Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Border.sw, Line.knee">
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Focusable" Value="False" />
@@ -1177,6 +1183,11 @@
   </Style>
   <Style Selector="Button.failrow:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
   <Style Selector="Button.failrow.current /template/ ContentPresenter, Button.failrow.current:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <!-- The word over the risk numbers of a list, and the rule a band stands for beside its count. -->
+  <Style Selector="TextBlock.failhead, Button.failband TextBlock.rule">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
   <Style Selector="Button.failrow TextBlock.part, Button.failrow TextBlock.risk">
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
     <Setter Property="FontSize" Value="12" />

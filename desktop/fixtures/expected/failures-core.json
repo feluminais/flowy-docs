@@ -63,6 +63,22 @@
     "failure analyses a, b",
     "failure analyses a, b, c"
   ],
+  "bandRules": {
+    "high": "Risk 150+ or severity 9+",
+    "medium": "Risk 60 to 149",
+    "low": "Risk under 60",
+    "unrated": "A rating missing"
+  },
+  "analysedText": [
+    "Analysed 0 of 0 shapes",
+    "Analysed 1 of 1 shape",
+    "Analysed 3 of 4 shapes",
+    "Analysed 15 of 26 shapes"
+  ],
+  "badgeNames": [
+    "1 failure, High",
+    "Ordering to Stripe, 2 failures, Medium"
+  ],
   "shop": {
     "analyses": [
       {
@@ -79,8 +95,9 @@
             "mail"
           ]
         },
-        "coverageText": "Analysed 0 of 5\nNot analysed: Shop > Web app, Shop > Orders DB, Shop > API > Auth, Shop > API > Orders, Mail service",
-        "markdown": "## empty\n\nAnalysed 0 of 5\nNot analysed: Shop > Web app, Shop > Orders DB, Shop > API > Auth, Shop > API > Orders, Mail service\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "coverageText": "Analysed 0 of 5 shapes\nNot analysed: Shop > Web app, Shop > Orders DB, Shop > API > Auth, Shop > API > Orders, Mail service",
+        "rowNames": [],
+        "markdown": "## empty\n\nAnalysed 0 of 5 shapes\nNot analysed: Shop > Web app, Shop > Orders DB, Shop > API > Auth, Shop > API > Orders, Mail service\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status",
         "problems": [
           {
@@ -422,8 +439,42 @@
           ],
           "left": []
         },
-        "coverageText": "Analysed 4 of 4",
-        "markdown": "## Ordering (ordering)\n\nAnalysed 4 of 4\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| High | Shop > API > Auth | The login lock is never released | Nobody can sign in. |  | 6 | 5 | 5 | 150 |  |  |  | accepted |  |  |  |\n| High | Shop > Orders DB | The database is unreachable | Orders can't be saved. | The primary fails. | 10 | 2 | 2 | 40 | A standby takes over. | Rehearse the failover. | Platform | planned |  | 1 |  |\n| High | Mail service | Receipts go to the wrong person |  |  | 9 |  |  |  |  |  |  | open |  |  |  |\n| Medium | Orders to Mail service | The mail service doesn't answer | Receipts arrive late. |  | 3 | 6 | 7 | 126 |  |  |  | open |  |  |  |\n| Low | Shop > Web app | The page flickers | A customer is annoyed. |  | 2 | 3 | 2 | 12 |  |  |  | open |  |  |  |\n| Low | Shop > API | The API answers slowly | Pages hang. |  | 4 | 5 | 3 | 8 |  |  |  | done | 2 | 2 | 2 |\n| Low | Shop > Orders DB | A mode named like something on every object |  |  | 1 | 1 | 1 | 1 |  |  |  | constructor |  |  |  |\n| Not rated | Shop > API > Orders | An order is counted twice | A customer is billed twice. |  | 5 |  |  |  |  |  |  | open |  |  |  |",
+        "coverageText": "Analysed 4 of 4 shapes",
+        "rowNames": [
+          {
+            "id": "auth-lock",
+            "name": "Auth: The login lock is never released. High, risk 150. Shop > API"
+          },
+          {
+            "id": "db-down",
+            "name": "Orders DB: The database is unreachable. High, risk 40. Shop"
+          },
+          {
+            "id": "mail-severe",
+            "name": "Mail service: Receipts go to the wrong person. High"
+          },
+          {
+            "id": "mail-timeout",
+            "name": "Orders to Mail service: The mail service doesn't answer. Medium, risk 126"
+          },
+          {
+            "id": "web-glitch",
+            "name": "Web app: The page flickers. Low, risk 12. Shop"
+          },
+          {
+            "id": "api-slow",
+            "name": "API: The API answers slowly. Low, risk 8. Shop"
+          },
+          {
+            "id": "constructor",
+            "name": "Orders DB: A mode named like something on every object. Low, risk 1. Shop"
+          },
+          {
+            "id": "orders-unrated",
+            "name": "Orders: An order is counted twice. Not rated. Shop > API"
+          }
+        ],
+        "markdown": "## Ordering (ordering)\n\nAnalysed 4 of 4 shapes\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| High | Shop > API > Auth | The login lock is never released | Nobody can sign in. |  | 6 | 5 | 5 | 150 |  |  |  | accepted |  |  |  |\n| High | Shop > Orders DB | The database is unreachable | Orders can't be saved. | The primary fails. | 10 | 2 | 2 | 40 | A standby takes over. | Rehearse the failover. | Platform | planned |  | 1 |  |\n| High | Mail service | Receipts go to the wrong person |  |  | 9 |  |  |  |  |  |  | open |  |  |  |\n| Medium | Orders to Mail service | The mail service doesn't answer | Receipts arrive late. |  | 3 | 6 | 7 | 126 |  |  |  | open |  |  |  |\n| Low | Shop > Web app | The page flickers | A customer is annoyed. |  | 2 | 3 | 2 | 12 |  |  |  | open |  |  |  |\n| Low | Shop > API | The API answers slowly | Pages hang. |  | 4 | 5 | 3 | 8 |  |  |  | done | 2 | 2 | 2 |\n| Low | Shop > Orders DB | A mode named like something on every object |  |  | 1 | 1 | 1 | 1 |  |  |  | constructor |  |  |  |\n| Not rated | Shop > API > Orders | An order is counted twice | A customer is billed twice. |  | 5 |  |  |  |  |  |  | open |  |  |  |",
         "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nHigh,Shop > API > Auth,The login lock is never released,Nobody can sign in.,,6,5,5,150,,,,accepted,,,\nHigh,Shop > Orders DB,The database is unreachable,Orders can't be saved.,The primary fails.,10,2,2,40,A standby takes over.,Rehearse the failover.,Platform,planned,,1,\nHigh,Mail service,Receipts go to the wrong person,,,9,,,,,,,open,,,\nMedium,Orders to Mail service,The mail service doesn't answer,Receipts arrive late.,,3,6,7,126,,,,open,,,\nLow,Shop > Web app,The page flickers,A customer is annoyed.,,2,3,2,12,,,,open,,,\nLow,Shop > API,The API answers slowly,Pages hang.,,4,5,3,8,,,,done,2,2,2\nLow,Shop > Orders DB,A mode named like something on every object,,,1,1,1,1,,,,constructor,,,\nNot rated,Shop > API > Orders,An order is counted twice,A customer is billed twice.,,5,,,,,,,open,,,",
         "problems": [
           {
@@ -1318,8 +1369,86 @@
           "analysed": [],
           "left": []
         },
-        "coverageText": "Analysed 0 of 0",
-        "markdown": "## problems\n\nAnalysed 0 of 0\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Not rated |  | Has no part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Has two kinds of part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | gone | Names a shape that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated |  | Names half a line |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to Orders DB | Names a line the model does not have |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to gone | Names a line with an unknown end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Hurts something that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Rated out of range |  |  | 11 | 07 | 5.5 |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | After rating out of range |  |  |  |  |  |  |  |  |  | open | 0 |  |  |\n| Not rated | Shop > Orders DB | A status nobody knows |  |  |  |  |  |  |  |  |  | finished |  |  |  |\n| Not rated | Shop > Orders DB | Names a flow that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step with no flow |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is not from 1 |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step past the end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB |  |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | An id that is not an id |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Names a run that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is only a byte order mark |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A status that is only a next line character |  |  |  |  |  |  |  |  |  |  |  |  |  |",
+        "coverageText": "Analysed 0 of 0 shapes",
+        "rowNames": [
+          {
+            "id": "no-part",
+            "name": ": Has no part. Not rated"
+          },
+          {
+            "id": "both",
+            "name": "Orders DB: Has two kinds of part. Not rated. Shop"
+          },
+          {
+            "id": "unknown-shape",
+            "name": "gone: Names a shape that is not there. Not rated"
+          },
+          {
+            "id": "half-line",
+            "name": ": Names half a line. Not rated"
+          },
+          {
+            "id": "no-connection",
+            "name": "Web app to Orders DB: Names a line the model does not have. Not rated"
+          },
+          {
+            "id": "unknown-end",
+            "name": "Web app to gone: Names a line with an unknown end. Not rated"
+          },
+          {
+            "id": "bad-affects",
+            "name": "Orders DB: Hurts something that is not there. Not rated. Shop"
+          },
+          {
+            "id": "bad-rating",
+            "name": "Orders DB: Rated out of range. Not rated. Shop"
+          },
+          {
+            "id": "bad-after",
+            "name": "Orders DB: After rating out of range. Not rated. Shop"
+          },
+          {
+            "id": "bad-status",
+            "name": "Orders DB: A status nobody knows. Not rated. Shop"
+          },
+          {
+            "id": "bad-flow",
+            "name": "Orders DB: Names a flow that is not there. Not rated. Shop"
+          },
+          {
+            "id": "step-without-flow",
+            "name": "Orders DB: A step with no flow. Not rated. Shop"
+          },
+          {
+            "id": "step-zero",
+            "name": "Orders DB: A step that is not from 1. Not rated. Shop"
+          },
+          {
+            "id": "step-beyond",
+            "name": "Orders DB: A step past the end. Not rated. Shop"
+          },
+          {
+            "id": "blank-mode",
+            "name": "Orders DB: . Not rated. Shop"
+          },
+          {
+            "id": "Bad-Id",
+            "name": "Orders DB: An id that is not an id. Not rated. Shop"
+          },
+          {
+            "id": "bad-run",
+            "name": "Orders DB: Names a run that is not there. Not rated. Shop"
+          },
+          {
+            "id": "bom-step",
+            "name": "Orders DB: A step that is only a byte order mark. Not rated. Shop"
+          },
+          {
+            "id": "nel-status",
+            "name": "Orders DB: A status that is only a next line character. Not rated. Shop"
+          }
+        ],
+        "markdown": "## problems\n\nAnalysed 0 of 0 shapes\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| Not rated |  | Has no part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Has two kinds of part |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | gone | Names a shape that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated |  | Names half a line |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to Orders DB | Names a line the model does not have |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Web app to gone | Names a line with an unknown end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Hurts something that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Rated out of range |  |  | 11 | 07 | 5.5 |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | After rating out of range |  |  |  |  |  |  |  |  |  | open | 0 |  |  |\n| Not rated | Shop > Orders DB | A status nobody knows |  |  |  |  |  |  |  |  |  | finished |  |  |  |\n| Not rated | Shop > Orders DB | Names a flow that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step with no flow |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is not from 1 |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step past the end |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB |  |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | An id that is not an id |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | Names a run that is not there |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A step that is only a byte order mark |  |  |  |  |  |  |  |  |  | open |  |  |  |\n| Not rated | Shop > Orders DB | A status that is only a next line character |  |  |  |  |  |  |  |  |  |  |  |  |  |",
         "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nNot rated,,Has no part,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Has two kinds of part,,,,,,,,,,open,,,\nNot rated,gone,Names a shape that is not there,,,,,,,,,,open,,,\nNot rated,,Names half a line,,,,,,,,,,open,,,\nNot rated,Web app to Orders DB,Names a line the model does not have,,,,,,,,,,open,,,\nNot rated,Web app to gone,Names a line with an unknown end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Hurts something that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Rated out of range,,,11,07,5.5,,,,,open,,,\nNot rated,Shop > Orders DB,After rating out of range,,,,,,,,,,open,0,,\nNot rated,Shop > Orders DB,A status nobody knows,,,,,,,,,,finished,,,\nNot rated,Shop > Orders DB,Names a flow that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step with no flow,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step that is not from 1,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step past the end,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,An id that is not an id,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,Names a run that is not there,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A step that is only a byte order mark,,,,,,,,,,open,,,\nNot rated,Shop > Orders DB,A status that is only a next line character,,,,,,,,,,,,,",
         "problems": [
           {
@@ -2776,8 +2905,66 @@
             "support-console"
           ]
         },
-        "coverageText": "Analysed 15 of 26\nNot analysed: Ordering > Customer app, Ordering > Website, Ordering > Order API > Menu, Ordering > Order API > Basket, Ordering > Order API > Pricing, Ordering > Order API > Order status, Delivery > Courier app, Delivery > Dispatch > Matcher, Notifications > Message templates, Back office > Admin dashboard, Back office > Support console",
-        "markdown": "## Plum fail scenario (ordering)\n\nAnalysed 15 of 26\nNot analysed: Ordering > Customer app, Ordering > Website, Ordering > Order API > Menu, Ordering > Order API > Basket, Ordering > Order API > Pricing, Ordering > Order API > Order status, Delivery > Courier app, Delivery > Dispatch > Matcher, Notifications > Message templates, Back office > Admin dashboard, Back office > Support console\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| High | Ordering > Order API > Refunds | Stripe refunds the money but the database write fails | The customer has the money back, and Plum still shows the order as paid. | Orders DB is unreachable when the refund is saved. | 9 | 2 | 7 | 126 | Support can see the refund in Stripe. | Compare refunds with Stripe every night. | Support tools | open |  |  |  |\n| High | Ordering > Orders DB | Orders DB is unavailable | No order can be placed or read until it is back. | The primary fails, or a failover takes longer than planned. | 10 | 2 | 1 | 20 | A standby takes over within a minute. | Rehearse the failover quarterly. | Platform | planned |  |  |  |\n| Medium | Notifier to Twilio | Twilio accepts an SMS and the carrier drops it | The customer never gets the confirmation or the courier's arrival message. | The number is wrong, switched off or blocked by the carrier. | 4 | 4 | 9 | 144 | None. Plum does not read Twilio's delivery receipts. | Read the delivery receipts and alert when fewer than 95% arrive. | Notifications | open |  |  |  |\n| Medium | ETA to Mapbox | Mapbox calls fail at dinner rush | Dispatch has no travel times, so couriers are matched on distance alone. | Plum exceeds Mapbox's rate limit above 900 orders a minute. | 6 | 6 | 3 | 108 | Dispatch falls back to straight-line distance. | Batch the travel-time calls, as the second run tries. | Delivery | planned | 6 | 2 | 3 |\n| Medium | Delivery > Dispatch > Offers | No courier answers within 30 seconds | The order waits for a courier, and the arrival time shown keeps growing. | The couriers near the restaurant are busy, out of signal or away from their phones. | 6 | 6 | 3 | 108 | Each offer moves on to the next courier. When the list runs out, the customer is told. | Widen the search when the list runs out. | Delivery | planned | 6 | 3 | 3 |\n| Medium | Checkout to Stripe | Stripe doesn't answer within 5 s | The order waits on a hold that may or may not exist. | Stripe is slow, or the network between Plum and Stripe drops. | 8 | 4 | 3 | 96 | Three tries with backoff. The idempotency key stops a double hold. | Page when over 1% of holds time out for 5 min. | Payments | planned | 8 | 4 | 1 |\n| Medium | Ordering > Order events | Dispatch reads events slower than they arrive | A courier is matched minutes after the customer paid, and the arrival time shown is wrong. | A burst of orders (the dinner rush) outruns Dispatch's single consumer. | 5 | 5 | 3 | 75 | A lag alert fires at 30 s. | Run a second Dispatch consumer. | Delivery | planned | 5 | 2 | 3 |\n| Low | Ordering > Menu cache | Serves a menu up to 5 min old | A customer orders a dish the kitchen has just taken off. | Entries expire after 5 min. | 2 | 8 | 3 | 48 | The kitchen can refuse an item, and the customer is told. |  | Ordering | accepted |  |  |  |\n| Low | Checkout to Stripe | Stripe declines the card | The order is not placed, and the customer is asked for another card. | The card is short of funds, expired or blocked. | 3 | 7 | 2 | 42 | The hold is released and the app asks again. |  | Payments | accepted |  |  |  |\n| Low | Ordering > Kitchen tablet | The tablet goes offline and nobody accepts within two minutes | The customer waits two minutes, then is told the order was cancelled. | The tablet loses its Wi-Fi, or its battery runs out. | 4 | 5 | 2 | 40 | The order cancels itself and the card hold is released. |  | Restaurants | accepted |  |  |  |\n| Low | Delivery > Live tracking | The courier loses signal and the map freezes | The customer sees a courier who has stopped moving. | The courier drives through a tunnel or a dead zone. | 2 | 7 | 2 | 28 | Positions older than 1 min are dropped, so the map holds still until a fresh one arrives. |  | Delivery | accepted |  |  |  |\n| Low | Ordering > Order API | A double tap places two orders | The customer is charged twice for one basket. | The app resends when the first reply is slow. | 6 | 5 | 4 | 24 | Every order carries an idempotency key. A repeated key is refused. |  | Ordering | done | 6 | 1 | 4 |\n| Low | Back office > Data warehouse | The warehouse is down | Reports run late. Orders carry on. | The cluster is being upgraded, or its disk is full. | 2 | 3 | 4 | 24 | Events stay on the stream and replay when it recovers. |  | Data | accepted |  |  |  |\n| Not rated | Delivery > Fleet DB | Position writes fail | Live tracking shows an old position, or none. |  |  |  |  |  |  |  | Delivery | open |  |  |  |",
+        "coverageText": "Analysed 15 of 26 shapes\nNot analysed: Ordering > Customer app, Ordering > Website, Ordering > Order API > Menu, Ordering > Order API > Basket, Ordering > Order API > Pricing, Ordering > Order API > Order status, Delivery > Courier app, Delivery > Dispatch > Matcher, Notifications > Message templates, Back office > Admin dashboard, Back office > Support console",
+        "rowNames": [
+          {
+            "id": "refund-not-recorded",
+            "name": "Refunds: Stripe refunds the money but the database write fails. High, risk 126. Ordering > Order API"
+          },
+          {
+            "id": "orders-db-down",
+            "name": "Orders DB: Orders DB is unavailable. High, risk 20. Ordering"
+          },
+          {
+            "id": "sms-not-delivered",
+            "name": "Notifier to Twilio: Twilio accepts an SMS and the carrier drops it. Medium, risk 144"
+          },
+          {
+            "id": "eta-mapbox-fails",
+            "name": "ETA to Mapbox: Mapbox calls fail at dinner rush. Medium, risk 108"
+          },
+          {
+            "id": "offers-no-answer",
+            "name": "Offers: No courier answers within 30 seconds. Medium, risk 108. Delivery > Dispatch"
+          },
+          {
+            "id": "stripe-timeout",
+            "name": "Checkout to Stripe: Stripe doesn't answer within 5 s. Medium, risk 96"
+          },
+          {
+            "id": "events-lag",
+            "name": "Order events: Dispatch reads events slower than they arrive. Medium, risk 75. Ordering"
+          },
+          {
+            "id": "menu-cache-stale",
+            "name": "Menu cache: Serves a menu up to 5 min old. Low, risk 48. Ordering"
+          },
+          {
+            "id": "card-declined",
+            "name": "Checkout to Stripe: Stripe declines the card. Low, risk 42"
+          },
+          {
+            "id": "kitchen-tablet-offline",
+            "name": "Kitchen tablet: The tablet goes offline and nobody accepts within two minutes. Low, risk 40. Ordering"
+          },
+          {
+            "id": "tracking-signal-lost",
+            "name": "Live tracking: The courier loses signal and the map freezes. Low, risk 28. Delivery"
+          },
+          {
+            "id": "double-tap",
+            "name": "Order API: A double tap places two orders. Low, risk 24. Ordering"
+          },
+          {
+            "id": "warehouse-down",
+            "name": "Data warehouse: The warehouse is down. Low, risk 24. Back office"
+          },
+          {
+            "id": "fleet-position-writes",
+            "name": "Fleet DB: Position writes fail. Not rated. Delivery"
+          }
+        ],
+        "markdown": "## Plum fail scenario (ordering)\n\nAnalysed 15 of 26 shapes\nNot analysed: Ordering > Customer app, Ordering > Website, Ordering > Order API > Menu, Ordering > Order API > Basket, Ordering > Order API > Pricing, Ordering > Order API > Order status, Delivery > Courier app, Delivery > Dispatch > Matcher, Notifications > Message templates, Back office > Admin dashboard, Back office > Support console\n\n| Risk band | Part | Mode | Effect | Cause | Severity | Likelihood | Hard to spot | Risk | Controls | Next action | Owner | Status | Severity after | Likelihood after | Hard to spot after |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| High | Ordering > Order API > Refunds | Stripe refunds the money but the database write fails | The customer has the money back, and Plum still shows the order as paid. | Orders DB is unreachable when the refund is saved. | 9 | 2 | 7 | 126 | Support can see the refund in Stripe. | Compare refunds with Stripe every night. | Support tools | open |  |  |  |\n| High | Ordering > Orders DB | Orders DB is unavailable | No order can be placed or read until it is back. | The primary fails, or a failover takes longer than planned. | 10 | 2 | 1 | 20 | A standby takes over within a minute. | Rehearse the failover quarterly. | Platform | planned |  |  |  |\n| Medium | Notifier to Twilio | Twilio accepts an SMS and the carrier drops it | The customer never gets the confirmation or the courier's arrival message. | The number is wrong, switched off or blocked by the carrier. | 4 | 4 | 9 | 144 | None. Plum does not read Twilio's delivery receipts. | Read the delivery receipts and alert when fewer than 95% arrive. | Notifications | open |  |  |  |\n| Medium | ETA to Mapbox | Mapbox calls fail at dinner rush | Dispatch has no travel times, so couriers are matched on distance alone. | Plum exceeds Mapbox's rate limit above 900 orders a minute. | 6 | 6 | 3 | 108 | Dispatch falls back to straight-line distance. | Batch the travel-time calls, as the second run tries. | Delivery | planned | 6 | 2 | 3 |\n| Medium | Delivery > Dispatch > Offers | No courier answers within 30 seconds | The order waits for a courier, and the arrival time shown keeps growing. | The couriers near the restaurant are busy, out of signal or away from their phones. | 6 | 6 | 3 | 108 | Each offer moves on to the next courier. When the list runs out, the customer is told. | Widen the search when the list runs out. | Delivery | planned | 6 | 3 | 3 |\n| Medium | Checkout to Stripe | Stripe doesn't answer within 5 s | The order waits on a hold that may or may not exist. | Stripe is slow, or the network between Plum and Stripe drops. | 8 | 4 | 3 | 96 | Three tries with backoff. The idempotency key stops a double hold. | Page when over 1% of holds time out for 5 min. | Payments | planned | 8 | 4 | 1 |\n| Medium | Ordering > Order events | Dispatch reads events slower than they arrive | A courier is matched minutes after the customer paid, and the arrival time shown is wrong. | A burst of orders (the dinner rush) outruns Dispatch's single consumer. | 5 | 5 | 3 | 75 | A lag alert fires at 30 s. | Run a second Dispatch consumer. | Delivery | planned | 5 | 2 | 3 |\n| Low | Ordering > Menu cache | Serves a menu up to 5 min old | A customer orders a dish the kitchen has just taken off. | Entries expire after 5 min. | 2 | 8 | 3 | 48 | The kitchen can refuse an item, and the customer is told. |  | Ordering | accepted |  |  |  |\n| Low | Checkout to Stripe | Stripe declines the card | The order is not placed, and the customer is asked for another card. | The card is short of funds, expired or blocked. | 3 | 7 | 2 | 42 | The hold is released and the app asks again. |  | Payments | accepted |  |  |  |\n| Low | Ordering > Kitchen tablet | The tablet goes offline and nobody accepts within two minutes | The customer waits two minutes, then is told the order was cancelled. | The tablet loses its Wi-Fi, or its battery runs out. | 4 | 5 | 2 | 40 | The order cancels itself and the card hold is released. |  | Restaurants | accepted |  |  |  |\n| Low | Delivery > Live tracking | The courier loses signal and the map freezes | The customer sees a courier who has stopped moving. | The courier drives through a tunnel or a dead zone. | 2 | 7 | 2 | 28 | Positions older than 1 min are dropped, so the map holds still until a fresh one arrives. |  | Delivery | accepted |  |  |  |\n| Low | Ordering > Order API | A double tap places two orders | The customer is charged twice for one basket. | The app resends when the first reply is slow. | 6 | 5 | 4 | 24 | Every order carries an idempotency key. A repeated key is refused. |  | Ordering | done | 6 | 1 | 4 |\n| Low | Back office > Data warehouse | The warehouse is down | Reports run late. Orders carry on. | The cluster is being upgraded, or its disk is full. | 2 | 3 | 4 | 24 | Events stay on the stream and replay when it recovers. |  | Data | accepted |  |  |  |\n| Not rated | Delivery > Fleet DB | Position writes fail | Live tracking shows an old position, or none. |  |  |  |  |  |  |  | Delivery | open |  |  |  |",
         "csv": "Risk band,Part,Mode,Effect,Cause,Severity,Likelihood,Hard to spot,Risk,Controls,Next action,Owner,Status,Severity after,Likelihood after,Hard to spot after\nHigh,Ordering > Order API > Refunds,Stripe refunds the money but the database write fails,\"The customer has the money back, and Plum still shows the order as paid.\",Orders DB is unreachable when the refund is saved.,9,2,7,126,Support can see the refund in Stripe.,Compare refunds with Stripe every night.,Support tools,open,,,\nHigh,Ordering > Orders DB,Orders DB is unavailable,No order can be placed or read until it is back.,\"The primary fails, or a failover takes longer than planned.\",10,2,1,20,A standby takes over within a minute.,Rehearse the failover quarterly.,Platform,planned,,,\nMedium,Notifier to Twilio,Twilio accepts an SMS and the carrier drops it,The customer never gets the confirmation or the courier's arrival message.,\"The number is wrong, switched off or blocked by the carrier.\",4,4,9,144,None. Plum does not read Twilio's delivery receipts.,Read the delivery receipts and alert when fewer than 95% arrive.,Notifications,open,,,\nMedium,ETA to Mapbox,Mapbox calls fail at dinner rush,\"Dispatch has no travel times, so couriers are matched on distance alone.\",Plum exceeds Mapbox's rate limit above 900 orders a minute.,6,6,3,108,Dispatch falls back to straight-line distance.,\"Batch the travel-time calls, as the second run tries.\",Delivery,planned,6,2,3\nMedium,Delivery > Dispatch > Offers,No courier answers within 30 seconds,\"The order waits for a courier, and the arrival time shown keeps growing.\",\"The couriers near the restaurant are busy, out of signal or away from their phones.\",6,6,3,108,\"Each offer moves on to the next courier. When the list runs out, the customer is told.\",Widen the search when the list runs out.,Delivery,planned,6,3,3\nMedium,Checkout to Stripe,Stripe doesn't answer within 5 s,The order waits on a hold that may or may not exist.,\"Stripe is slow, or the network between Plum and Stripe drops.\",8,4,3,96,Three tries with backoff. The idempotency key stops a double hold.,Page when over 1% of holds time out for 5 min.,Payments,planned,8,4,1\nMedium,Ordering > Order events,Dispatch reads events slower than they arrive,\"A courier is matched minutes after the customer paid, and the arrival time shown is wrong.\",A burst of orders (the dinner rush) outruns Dispatch's single consumer.,5,5,3,75,A lag alert fires at 30 s.,Run a second Dispatch consumer.,Delivery,planned,5,2,3\nLow,Ordering > Menu cache,Serves a menu up to 5 min old,A customer orders a dish the kitchen has just taken off.,Entries expire after 5 min.,2,8,3,48,\"The kitchen can refuse an item, and the customer is told.\",,Ordering,accepted,,,\nLow,Checkout to Stripe,Stripe declines the card,\"The order is not placed, and the customer is asked for another card.\",\"The card is short of funds, expired or blocked.\",3,7,2,42,The hold is released and the app asks again.,,Payments,accepted,,,\nLow,Ordering > Kitchen tablet,The tablet goes offline and nobody accepts within two minutes,\"The customer waits two minutes, then is told the order was cancelled.\",\"The tablet loses its Wi-Fi, or its battery runs out.\",4,5,2,40,The order cancels itself and the card hold is released.,,Restaurants,accepted,,,\nLow,Delivery > Live tracking,The courier loses signal and the map freezes,The customer sees a courier who has stopped moving.,The courier drives through a tunnel or a dead zone.,2,7,2,28,\"Positions older than 1 min are dropped, so the map holds still until a fresh one arrives.\",,Delivery,accepted,,,\nLow,Ordering > Order API,A double tap places two orders,The customer is charged twice for one basket.,The app resends when the first reply is slow.,6,5,4,24,Every order carries an idempotency key. A repeated key is refused.,,Ordering,done,6,1,4\nLow,Back office > Data warehouse,The warehouse is down,Reports run late. Orders carry on.,\"The cluster is being upgraded, or its disk is full.\",2,3,4,24,Events stay on the stream and replay when it recovers.,,Data,accepted,,,\nNot rated,Delivery > Fleet DB,Position writes fail,\"Live tracking shows an old position, or none.\",,,,,,,,Delivery,open,,,",
         "problems": [],
         "runLinks": [],

@@ -18,7 +18,7 @@ export function useCopyOut({ model, view, flow, playing, analysis, setNotice }: 
       else await navigator.clipboard.writeText(text)
       setNotice(notice)
     } catch {
-      setNotice("Couldn't copy: the browser didn't allow it.")
+      setNotice("Couldn't copy: the browser blocked it. Click the page and try again.")
     }
   }
   const copyMermaid = () => {

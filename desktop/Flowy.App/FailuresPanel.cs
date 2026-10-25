@@ -4,6 +4,7 @@ using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
@@ -70,6 +71,7 @@ internal sealed class FailuresPanel : StackPanel
     private bool _editOpen;
     private bool _newOpen;
     private FailuresShown? _last;
+    private string? _shownMode; // the mode the last build showed a card for, so a new pick brings its card into view
 
     public FailuresPanel() => Spacing = 12;
 
@@ -128,12 +130,22 @@ internal sealed class FailuresPanel : StackPanel
         if (s.Edit is { } edit) Children.Add(EditSection(s, edit));
         else if (Failures.Has(analysis.About)) Children.Add(About(analysis.About!));
 
-        var summary = new WrapPanel { Orientation = Orientation.Horizontal };
+        var summary = new StackPanel { Spacing = 2 };
         foreach (var band in Bands) summary.Children.Add(BandButton(band, counts[band], s.Band == band));
         Children.Add(summary);
         Children.Add(Coverage(analysed.Count, analysed.Count + left.Count, left.Count, s.Left));
         if (s.Part is { } part) Children.Add(PartChip(FailuresView.PartText(model, part)));
         if (s.Edit is { } adder) Children.Add(AddModeSection(s, adder));
+
+        // The picked mode's card sits above the list, so it is in view when a row is picked.
+        var lit = mode is null ? null : Failures.LightFor(model, s.View, mode);
+        if (mode is not null)
+        {
+            var card = s.Edit is { } form ? ModeSection(s, form, mode) : Detail(s, analysis, mode, lit);
+            Children.Add(card);
+            if (s.ModeId != _shownMode) card.AttachedToVisualTree += (_, _) => Dispatcher.UIThread.Post(() => card.BringIntoView(new Avalonia.Rect(0, 0, Math.Max(1, card.Bounds.Width), 1)));
+        }
+        _shownMode = mode is null ? null : s.ModeId;
 
         if (s.Left) Children.Add(NotAnalysed(model, left, s.Edit is not null));
         else
@@ -143,20 +155,15 @@ internal sealed class FailuresPanel : StackPanel
             if (here.Count + elsewhere.Count == 0) Children.Add(Muted(analysis.Modes.Count == 0 ? "No failure modes yet." : "None here."));
         }
 
-        if (mode is not null) Children.Add(s.Edit is { } form ? ModeSection(s, form, mode) : Detail(s, analysis, mode));
-
-        var lit = mode is null ? null : Failures.LightFor(model, s.View, mode);
         Children.Add(Chrome.Section(Icons.Info, "Key"));
         var key = new List<(Control, string)?>();
         foreach (var band in Bands.Where(b => counts[b] > 0)) key.Add((KeyMark(Failures.BandKey(band)), Failures.BandName(band)));
-        if (lit is not null) key.Add((KeyMark("fails"), "Fails"));
-        if (lit is { Affects.Count: > 0 }) key.Add((KeyMark("affects"), "Affects"));
         Children.Add(KeyRow.Of(key.ToArray()));
         Children.Add(ProblemList(problems));
     }
 
     /// <summary>A mark of the key: the same Border the list and the canvas draw it with, so it follows the theme.</summary>
-    private static Control KeyMark(string kind)
+    private static Control KeyMark(params string[] kind)
     {
         var mark = KeyRow.Mark(kind);
         mark.Classes.Add("keymark");
@@ -330,16 +337,19 @@ internal sealed class FailuresPanel : StackPanel
     private Button BandButton(RiskBand band, int count, bool pressed)
     {
         var swatch = KeyRow.Mark(Failures.BandKey(band));
-        var content = new StackPanel
-        {
-            Orientation = Orientation.Horizontal, Spacing = 6,
-            Children = { swatch, new TextBlock { Text = Failures.BandName(band), Classes = { "btntext" }, VerticalAlignment = VerticalAlignment.Center }, new TextBlock { Text = count.ToString(CultureInfo.InvariantCulture), Classes = { "muted" }, FontSize = 12, VerticalAlignment = VerticalAlignment.Center } },
-        };
-        var button = new Button { Content = content };
+        var name = new TextBlock { Text = Failures.BandName(band), Classes = { "btntext" }, VerticalAlignment = VerticalAlignment.Center };
+        var number = new TextBlock { Text = count.ToString(CultureInfo.InvariantCulture), Classes = { "muted" }, FontSize = 12, VerticalAlignment = VerticalAlignment.Center };
+        var rule = new TextBlock { Text = Failures.BandRule(band), Classes = { "rule" }, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
+        var content = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 6, Children = { swatch, name, number, rule } };
+        Grid.SetColumn(name, 1);
+        Grid.SetColumn(number, 2);
+        Grid.SetColumn(rule, 3);
+        var button = new Button { Content = content, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch };
         button.Classes.Add("tool");
         button.Classes.Add("failband");
         button.Classes.Set("pressed", pressed);
-        AutomationProperties.SetName(button, $"{Failures.BandName(band)}, {count}");
+        AutomationProperties.SetName(button, $"{Failures.BandName(band)}, {count}. {Failures.BandRule(band)}");
+        AutomationProperties.SetItemStatus(button, pressed ? "Pressed" : "");
         button.Click += (_, _) =>
         {
             BandPicked?.Invoke(pressed ? null : band);
@@ -351,7 +361,7 @@ internal sealed class FailuresPanel : StackPanel
     private Control Coverage(int analysed, int total, int left, bool narrowed)
     {
         var row = new WrapPanel { Orientation = Orientation.Horizontal };
-        row.Children.Add(new TextBlock { Text = $"Analysed {analysed} of {total}", Classes = { "muted" }, FontSize = 12.5, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
+        row.Children.Add(new TextBlock { Text = Failures.AnalysedText(analysed, total), Classes = { "muted" }, FontSize = 12.5, Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center });
         if (left > 0)
         {
             var link = new Button { Content = new TextBlock { Text = $"Not analysed ({left})", TextDecorations = narrowed ? TextDecorations.Underline : null } };
@@ -427,7 +437,8 @@ internal sealed class FailuresPanel : StackPanel
             var row = new Button { Content = grid };
             row.Classes.Add("failrow");
             row.Classes.Set("current", r.Id == current);
-            AutomationProperties.SetName(row, $"{Failures.BandName(r.Band)}. {part}, {r.Mode.Mode}{(risk == "" ? "" : $", risk {risk}")}");
+            AutomationProperties.SetName(row, Failures.RowName(model, r));
+            AutomationProperties.SetItemStatus(row, r.Id == current ? "Selected" : "");
             var id = r.Id;
             row.Click += (_, _) =>
             {
@@ -436,16 +447,19 @@ internal sealed class FailuresPanel : StackPanel
             };
             return row;
         });
-        return new StackPanel { Children = { Chrome.Section(Icons.Info, title, group.Count), rows } };
+        var head = new TextBlock { Text = "Risk", Classes = { "failhead" }, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 8, 0) };
+        AutomationProperties.SetAccessibilityView(head, AccessibilityView.Raw); // each row's name already says its risk
+        return new StackPanel { Children = { Chrome.Section(Icons.Info, title, group.Count), head, rows } };
     }
 
     /// <summary>Everything about the mode picked: what it is, what it does, the three ratings, the risk, what is done about it, and where to see it.</summary>
-    private Control Detail(FailuresShown s, FailureAnalysis analysis, FailureMode mode)
+    private Control Detail(FailuresShown s, FailureAnalysis analysis, FailureMode mode, Reach? lit)
     {
         var model = s.Model;
         var box = new StackPanel { Spacing = 8 };
         box.Children.Add(Chrome.Section(Icons.Alert, Failures.PartName(model, mode)));
         box.Children.Add(new SelectableTextBlock { Text = mode.Mode, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap });
+        if (lit is not null) box.Children.Add(FailsKey(Failures.BandOf(mode), lit.Affects.Count > 0));
         var facts = new StackPanel { Spacing = 4 };
         AddFact(facts, "Effect", mode.Effect);
         AddFact(facts, "Cause", mode.Cause);
@@ -463,7 +477,7 @@ internal sealed class FailuresPanel : StackPanel
         risk.Children.Add(new TextBlock { Text = "Risk", Classes = { "muted" }, Margin = new Thickness(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center });
         risk.Children.Add(new TextBlock { Text = Failures.RiskOf(mode) is { } n ? n.ToString(CultureInfo.InvariantCulture) : "None", FontWeight = FontWeight.SemiBold, Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center });
         risk.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { KeyRow.Mark(Failures.BandKey(band)), new TextBlock { Text = Failures.BandName(band), VerticalAlignment = VerticalAlignment.Center } } });
-        if (FailuresView.AfterText(mode) is { } after) risk.Children.Add(new TextBlock { Text = $" · After: {after}", Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center });
+        if (FailuresView.AfterText(mode) is { } after) risk.Children.Add(new TextBlock { Text = $"{FailuresView.AfterLabel}: {after}", Classes = { "muted" }, Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center });
         box.Children.Add(risk);
 
         var more = new StackPanel { Spacing = 4 };
@@ -480,7 +494,9 @@ internal sealed class FailuresPanel : StackPanel
         {
             var show = new Button();
             show.Classes.Add("tool");
-            Chrome.Fill(show, Icons.Route, "Show it");
+            var showName = FailuresView.ShowItName(model.Flows[flow].Name is { Length: > 0 } flowName ? flowName : flow);
+            Chrome.Fill(show, Icons.Route, "Show it", showName);
+            ToolTip.SetTip(show, showName);
             var step = FailuresView.StepOf(mode.Step);
             show.Click += (_, _) =>
             {
@@ -493,7 +509,8 @@ internal sealed class FailuresPanel : StackPanel
         {
             var seen = new Button();
             seen.Classes.Add("tool");
-            Chrome.Fill(seen, Icons.Activity, "Seen in a run");
+            Chrome.Fill(seen, Icons.Activity, "Seen in a run", FailuresView.SeenInRunName);
+            ToolTip.SetTip(seen, FailuresView.SeenInRunName);
             var id = s.ModeId!;
             seen.Click += (_, _) =>
             {
@@ -504,6 +521,15 @@ internal sealed class FailuresPanel : StackPanel
         }
         if (buttons.Children.Count > 0) box.Children.Add(buttons);
         return box;
+    }
+
+    /// <summary>The marks of what the picked mode draws on the canvas, in its band's colour: the part that fails and, when it names any, what it hurts.</summary>
+    private static Control FailsKey(RiskBand band, bool affects)
+    {
+        var tone = "band-" + Failures.BandKey(band);
+        var key = new List<(Control, string)?> { (KeyMark("fails", tone), "Fails") };
+        if (affects) key.Add((KeyMark("affects", tone), "Affects"));
+        return KeyRow.Of(key.ToArray());
     }
 
     private static void AddFact(Panel into, string label, string? text)

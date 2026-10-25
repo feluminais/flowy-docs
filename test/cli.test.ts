@@ -109,7 +109,7 @@ test('flowy failures prints each analysis as a table and exits 0', async t => {
   const run = flowy('failures')
   assert.equal(run.status, 0, run.stderr)
   assert.equal(run.stderr, '')
-  assert.ok(run.stdout.startsWith('## Ordering (ordering)\n\nAnalysed 1 of 1\n\n| Risk band | Part |'), run.stdout)
+  assert.ok(run.stdout.startsWith('## Ordering (ordering)\n\nAnalysed 1 of 1 shape\n\n| Risk band | Part |'), run.stdout)
   assert.match(run.stdout, /\n\n## Other \(other\)\n/)
   assert.match(run.stdout, /\| High \| Shop > Orders DB \| The database is unreachable \|/)
 })

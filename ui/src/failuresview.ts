@@ -63,6 +63,13 @@ export function bandCounts(a: Analysis): Record<Band, number> {
 /** Ten cells, the first `rating` of them filled. */
 export const ratingCells = (rating: number | undefined): boolean[] => Array.from({ length: 10 }, (_, i) => rating !== undefined && i < rating)
 
+/** What the risk line says before the pair of numbers: they are the risk now and once the next action is done. */
+export const AFTER_LABEL = 'Risk after next action'
+
+/** What the two buttons under a picked mode do, for a screen reader: the visible words come first, so the name still holds what is on the button. */
+export const showItName = (flowName: string): string => `Show it: play the flow "${flowName}"`
+export const SEEN_IN_RUN_NAME = 'Seen in a run: open Performance at the first load where it fails'
+
 /** "150 to 30": the risk now and once the next action is done. Nothing without an `after`, or when either risk can't be worked out. */
 export function afterText(m: Mode): string | undefined {
   if (m.after === undefined) return undefined
