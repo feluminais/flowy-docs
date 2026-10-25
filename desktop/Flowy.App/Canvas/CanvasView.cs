@@ -436,6 +436,8 @@ internal sealed class CanvasView : Border
     internal FailureOverlay? FailuresShown => _failures;
 
     /// <summary>The badge and the light a shape wears now, for tests.</summary>
+    internal RiskBand? OutlineBandOf(string id) => _boxes.TryGetValue(id, out var box) ? box.OutlineBand : null;
+
     internal (FailureMark? Mark, FailLight Light) FailureOnBox(string id) => _boxes.TryGetValue(id, out var box) ? box.FailureShown : (null, FailLight.None);
 
     /// <summary>The badge and the light a line wears now, for tests.</summary>
@@ -467,7 +469,7 @@ internal sealed class CanvasView : Border
     private void ApplyFailures()
     {
         foreach (var (id, box) in _boxes)
-            box.SetFailure(_failures is not null && _failures.Boxes.TryGetValue(id, out var mark) ? mark : null, _failures?.LightOfBox(id) ?? FailLight.None);
+            box.SetFailure(_failures is not null && _failures.Boxes.TryGetValue(id, out var mark) ? mark : null, _failures?.LightOfBox(id) ?? FailLight.None, _failures?.LitBand ?? RiskBand.High);
         _back.SetFailures(_failures);
     }
 

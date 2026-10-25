@@ -246,9 +246,9 @@ internal sealed class BackLayer : Control
         var emphasised = lit || e.Selected || e.Flags.HasFlag(EdgeFlags.Hover);
         var brush = e.Flags.HasFlag(EdgeFlags.Problem) && !lit ? Brush("WarnBrush") : emphasised ? accent : Brush("EdgeBrush");
         var thickness = ThicknessOf(lit, e.Selected || e.Flags.HasFlag(EdgeFlags.Hover), WidthOf(e.Id));
-        if (_failures?.LightOfLine(e.From, e.To) == FailLight.Fails) // the line a picked failure mode fails, in the colour of a failing call
+        if (_failures?.LightOfLine(e.From, e.To) == FailLight.Fails) // the line a picked failure mode fails, in the colour of the mode's band
         {
-            brush = Brush("DangerBrush");
+            brush = Brush(_failures.LitBand switch { RiskBand.High => "DangerBrush", RiskBand.Medium => "WarnBrush", _ => "MutedBrush" });
             thickness = 2.5;
         }
         var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : e.Flags.HasFlag(EdgeFlags.Lane) ? new DashStyle([4 / thickness, 5 / thickness], 0) : null;
