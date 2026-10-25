@@ -322,6 +322,7 @@ internal sealed class PerfPanel : StackPanel
     private string? _dataOff; // why Data is blocked for the run on show, or null
     private Button? _callsButton;
     private Button? _dataButton;
+    private TextBlock? _measureOff;
     private Button? _mixedButton;
     private bool _pane; // a panel inside a pane of a comparison: no run picker or title, the pane has them
     private RunActions? _actions; // what the header offers for comparing, if anything
@@ -427,6 +428,12 @@ internal sealed class PerfPanel : StackPanel
     internal Button RampButton => _ramp;
 
     internal Button? DataButton => _dataButton;
+    /// <summary>The line under the Each stripe switch that says why Data and Mixed are greyed out, or null when they are not.</summary>
+    /// <summary>The name that heads each source's group in the key of a run with several sources, in order.</summary>
+    internal IReadOnlyList<string> KeyGroups => _keyRows.Children.OfType<Border>().Where(b => b.Classes.Contains("keygroup")).Select(b => b.GetVisualDescendants().OfType<TextBlock>().First().Text ?? "").ToList();
+    /// <summary>The muted stripes in the key, beside the outline under Not measured, while a line with no numbers is on screen.</summary>
+    internal Avalonia.Controls.Shapes.Line? KeyStripes => _keyRows.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Line>().FirstOrDefault(l => l.Classes.Contains("stripes"));
+    internal string? MeasureOffText => _measureOff is { IsVisible: true } ? _measureOff.Text : null;
 
     internal Button? MixedButton => _mixedButton;
 
@@ -926,8 +933,8 @@ internal sealed class PerfPanel : StackPanel
     private static void Label(Button button, Control swatch, string text) =>
         button.Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { swatch, new TextBlock { Text = text, VerticalAlignment = VerticalAlignment.Center, Classes = { "btntext" } } } };
 
-    /// <summary>The Each stripe switch: Calls, Data and Mixed, one pressed, each with the stripe it draws. Data and Mixed are greyed out with the reason as their tooltip when the run gives no size of a call, never hidden.</summary>
-    private StackPanel MeasureRow()
+    /// <summary>The Each stripe switch: Calls, Data and Mixed, one pressed, each with the stripe it draws. Data and Mixed are greyed out with the reason as their tooltip, and in one muted line under the switch, when the run gives no size of a call, never hidden.</summary>
+    private Control MeasureRow()
     {
         _callsButton = new Button();
         _dataButton = new Button { IsEnabled = _dataOff is null };
@@ -943,8 +950,9 @@ internal sealed class PerfPanel : StackPanel
         label.TextWrapping = TextWrapping.NoWrap;
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { label, _callsButton, _dataButton, _mixedButton } };
         AutomationProperties.SetName(row, "Each stripe");
+        _measureOff = new TextBlock { Classes = { "muted" }, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) };
         ShowMeasure();
-        return row;
+        return new StackPanel { Children = { row, _measureOff } };
     }
 
     private void ShowMeasure()
@@ -952,6 +960,11 @@ internal sealed class PerfPanel : StackPanel
         _callsButton?.Classes.Set("pressed", _measure == LoadMeasure.Calls);
         _dataButton?.Classes.Set("pressed", _measure == LoadMeasure.Data);
         _mixedButton?.Classes.Set("pressed", _measure == LoadMeasure.Mixed);
+        if (_measureOff is not null)
+        {
+            _measureOff.Text = _dataOff ?? "";
+            _measureOff.IsVisible = _dataOff is not null;
+        }
         if (_dataButton is not null)
         {
             _dataButton.IsEnabled = _dataOff is null;
@@ -995,9 +1008,8 @@ internal sealed class PerfPanel : StackPanel
             onCanvas.Busy ? (new HeatSwatch(), "Busy") : null,
             onCanvas.Struggling ? (KeyRow.Pct("90%"), "Struggling") : null,
             onCanvas.Waiting ? (KeyRow.Count("3"), "Waiting") : null,
-            (KeyRow.Mark("none"), "Not measured"),
+            (KeyRow.NotMeasured(shown.Bare), "Not measured"),
             (KeyRow.Tipped(KeyRow.Call(source?.Color, dark), "Slower stripes are slower calls"), "A call"),
-            shown.Bare ? (KeyRow.Stripes(), "No numbers") : null,
             marks.Fade ? (KeyRow.Mark("call", "bad"), "A call that fails") : null,
             marks.Lost ? (KeyRow.Mark("lost"), "Lost call") : null,
             marks.Rejected ? (KeyRow.Rejected(), "Rejected call") : null,
@@ -1281,23 +1293,20 @@ internal sealed class PerfPanel : StackPanel
         if (onCanvas.Busy) items.Add((new HeatSwatch(), "Busy"));
         if (onCanvas.Struggling) items.Add((KeyRow.Pct("90%"), "Struggling"));
         if (onCanvas.Waiting) items.Add((KeyRow.Count("3"), "Waiting"));
-        items.Add((KeyRow.Mark("none"), "Not measured"));
+        items.Add((KeyRow.NotMeasured(shown.Bare), "Not measured"));
         items.Add((KeyRow.Tipped(KeyRow.Call(null, dark), "Slower stripes are slower calls"), "A call"));
-        if (shown.Bare) items.Add((KeyRow.Stripes(), "No numbers"));
         if (marks.Fade) items.Add((KeyRow.Mark("call", "bad"), "A call that fails"));
         if (marks.Lost) items.Add((KeyRow.Mark("lost"), "Lost call"));
         if (marks.Rejected) items.Add((KeyRow.Rejected(), "Rejected call"));
         items.Add((KeyRow.Tipped(KeyRow.Mark("busy"), "Thicker lines carry more calls"), _measure == LoadMeasure.Data ? "More data" : "More calls"));
-        foreach (var source in keyed.Sources)
-        {
-            items.Add((KeyRow.Call(source.Color, dark), source.Name));
-            if (source.Scale is { } scale) items.Add((KeyRow.Call(source.Color, dark), scale));
-            if (source.Bigger) items.Add((KeyRow.Bigger(source.Color, dark), "Bigger call"));
-        }
         if (keyed.Other) items.Add((KeyRow.Call(Perf.OtherColor, dark), "Other calls"));
         if (keyed.ScaledDown) items.Add((KeyRow.Scaled(Perf.OtherColor, dark), "Scaled down"));
         _keyRows.Children.Clear();
         _keyRows.Children.Add(KeyRow.Of([.. items]));
+        foreach (var source in keyed.Sources)
+            _keyRows.Children.Add(KeyRow.Group(source.Name, source.Color, dark,
+                source.Scale is { } scale ? (KeyRow.Call(source.Color, dark), scale) : null,
+                source.Bigger ? (KeyRow.Bigger(source.Color, dark), "Bigger call") : null));
         if (StateKey.Of(_states.Values) is { } stateKey) _keyRows.Children.Add(stateKey);
     }
 

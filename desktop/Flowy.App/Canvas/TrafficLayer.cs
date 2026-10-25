@@ -355,6 +355,7 @@ internal sealed class TrafficLayer : Control
         if (_lines.Count == 0) return;
         var ok = Brush("AccentBrush");
         var bad = Brush("DangerBrush");
+        var plain = Brush("MutedBrush"); // the stripes of a line with no numbers of its own: not a source's colour, since the line was not measured
         foreach (var d in _lines)
         {
             var radius = MarkSize * (d.Line.Radius ?? 1) / _viewport.Zoom; // a few pixels on screen, whatever the zoom and however many calls, and bigger or smaller only where the size of a call says
@@ -369,7 +370,7 @@ internal sealed class TrafficLayer : Control
             var ends = d.Ends ??= new[] { d.Way.From, d.Way.To }.OfType<ShapeCover>().ToList();
             if (d.Line.Stripes is { } busy and > 0 && path.Xs.Length > 1)
             {
-                // A line the run gives no numbers: plain stripes moving along the line itself, closer and quicker the more the run is loaded.
+                // A line the run gives no numbers: plain muted stripes moving along the line itself, closer and quicker the more the run is loaded.
                 var pace = StripePace(busy);
                 const double px = 1; // the diagram's own units: the stripes scale with the line and its arrowhead
                 var moved = (_stripeAt.TryGetValue((d.Line.From, d.Line.To, d.Line.Source), out var at) ? at : 0) * (pace.Dash + pace.Gap);
@@ -380,7 +381,7 @@ internal sealed class TrafficLayer : Control
                 if (d.Stripes is null || d.StripesAside != offset) (d.Stripes, d.StripesAside) = (Along(path, offset), offset);
                 var way = d.Stripes;
                 // Avalonia counts a dash in widths of the pen, so the dashes and the offset are divided by the thickness.
-                context.DrawGeometry(null, new Pen(tone, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way);
+                context.DrawGeometry(null, new Pen(plain, thick, new DashStyle([pace.Dash * px / thick, pace.Gap * px / thick], -moved * px / thick), PenLineCap.Round), way);
             }
             foreach (var m in d.Stream.Motes)
             {
