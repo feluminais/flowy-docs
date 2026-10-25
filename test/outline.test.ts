@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { expandTo, flowList, outline, outlineKey } from '../src/core/outline.ts'
+import { comparedWith, expandTo, flowList, outline, outlineKey, rowCount, rowCountWords } from '../src/core/outline.ts'
 import type { OutlineRow } from '../src/core/outline.ts'
 import { ROOT } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
@@ -27,6 +27,17 @@ test('open, a shape shows what is in it, shapes that hold others first and then 
     'Overview -', '  Shop -', '    API +', '    Orders DB', '    Web app', '    Customer checks out (flow)', '  Customer', '  Mail service',
   ])
   assert.deepEqual(lines(shop(), open('shop', 'api')).slice(2, 5), ['    API -', '      Auth', '      Orders'])
+})
+
+test('a row counts the shapes right inside it, the number the canvas shows, and all of them at every level', () => {
+  const rows = outline(shop(), { expanded: open('shop', 'api') }).rows
+  const by = (key: string) => rows.find(r => r.key === key)!
+  assert.deepEqual([by('shape:shop').inside, by('shape:shop').shapes], [3, 5]) // API, Orders DB and Web app; two more inside API
+  assert.deepEqual([by('shape:api').inside, by('shape:api').shapes], [2, 2])
+  assert.deepEqual([by('shape:customer').inside, by('shape:customer').shapes], [0, 0])
+  assert.equal(by('shape:root').inside, 3) // Shop, Customer and Mail service
+  assert.equal(by('shape:root').shapes, 8)
+  assert.equal(rows.find(r => r.kind === 'flow')!.inside, 0)
 })
 
 test('a row counts the shapes and flows inside it at every level, and says what it is', () => {
@@ -239,6 +250,17 @@ test('flowList: a flow in a pair is linked, one that is tagged by nothing and ta
   assert.deepEqual(flows, [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
 })
 
+test('a flow in a pair names the flows it is paired with, one that is in no pair names none', () => {
+  const rows = outline(paired(), { expanded: open('shop') }).rows.filter(r => r.kind === 'flow')
+  const names = Object.fromEntries(rows.map(r => [r.id, r.partners]))
+  assert.deepEqual(names.d, undefined)
+  assert.deepEqual(names.a, ['B middle'])
+  assert.deepEqual(names.b, ['A oldest', 'C newest']) // the older one it tags first, then the newer one that tags it
+  assert.deepEqual(names.c, ['B middle'])
+  const list = flowList(paired()).rows.flatMap(r => (r.kind === 'flow' ? [r.flow] : []))
+  for (const f of list) assert.equal(f.partners.length > 0, f.linked)
+})
+
 test('outline: a flow row says whether it is linked, a shape row does not', () => {
   const rows = outline(paired(), { expanded: open('shop') }).rows
   assert.deepEqual(rows.filter(r => r.kind === 'flow').map(r => [r.id, r.linked]), [['a', true], ['b', true], ['c', true], ['d', false], ['e', false]])
@@ -246,7 +268,7 @@ test('outline: a flow row says whether it is linked, a shape row does not', () =
 })
 
 const R = (key: string, depth: number, extra: Partial<OutlineRow> = {}): OutlineRow => ({
-  key, kind: key.startsWith('flow') ? 'flow' : 'shape', id: key.split(':')[1], depth, name: key, external: false, shapes: 0, flows: 0,
+  key, kind: key.startsWith('flow') ? 'flow' : 'shape', id: key.split(':')[1], depth, name: key, external: false, inside: 0, shapes: 0, flows: 0,
   problem: false, expandable: false, expanded: false, match: true, ...extra,
 })
 const rows = [
@@ -285,4 +307,21 @@ test('keys: right opens a closed shape, then steps in; left closes an open one, 
 
 test('keys: Enter asks for the row to be opened', () => {
   assert.deepEqual(outlineKey(rows, 'flow:f', 'Enter'), { focus: 'flow:f', open: rows[4] })
+})
+
+test('a shape row says how many shapes are right inside it, as the canvas does, and the tooltip gives the rest', () => {
+  const rows = outline(shop(), { expanded: open('shop', 'api') }).rows
+  const by = (key: string) => rows.find(r => r.key === key)!
+  assert.equal(rowCount(by('shape:shop')), '3 inside · 1 flow')
+  assert.equal(rowCountWords(by('shape:shop')), '3 inside, 5 in all, 1 flow')
+  assert.equal(rowCount(by('shape:api')), '2 inside')
+  assert.equal(rowCountWords(by('shape:api')), '2 inside') // every shape in it is right inside: nothing more to say
+  assert.equal(rowCount(by('shape:customer')), '')
+  assert.equal(rowCount(rows.find(r => r.kind === 'flow')!), '')
+})
+
+test('comparedWith names the partners, or says Compare pair when it has none to name', () => {
+  assert.equal(comparedWith(['The refund is not recorded']), 'Compared with The refund is not recorded')
+  assert.equal(comparedWith(['A', 'B']), 'Compared with A, B')
+  assert.equal(comparedWith([]), 'Compare pair')
 })
