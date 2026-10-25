@@ -167,3 +167,21 @@ test.describe('pointing at a line', () => {
     expect(showed).toBeGreaterThan(0)
   })
 })
+
+test.describe('the performance tab on an 880 px window', () => {
+  test('keeps its whole key in view, says what each stripe stands for and reads the load aloud', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 880 })
+    await open(page, '/#delivery/perf/dinner-rush/3', 'light')
+    const key = page.locator('.perf .keyrow').first()
+    const box = await key.boundingBox()
+    expect(box!.y + box!.height).toBeLessThanOrEqual(880)
+    await expect(page.getByRole('group', { name: 'Each stripe' })).toBeVisible()
+    await expect(page.locator('.perf .keyrow').first().getByText('Struggling')).toBeVisible() // Dispatch is past the struggle mark: its number is on the canvas and in the key
+    await expect(page.locator('.strain-pct').first()).toHaveText(/^\d+%$/)
+    expect(await page.locator('.perf input[type=range]').first().getAttribute('aria-valuetext')).toBe('900 orders/min, tested')
+    await expect(page.getByText('Calls into Customer app')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Go there to 900 orders\/min$/ })).toBeVisible()
+    const rows = await page.locator('.stripfig .visually-hidden li').allTextContents()
+    expect(rows[0]).toBe('100 orders/min: expected call 42 ms, slowest 5% 118 ms')
+  })
+})
