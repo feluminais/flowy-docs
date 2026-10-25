@@ -97,9 +97,22 @@ export const closableAt = (flow: Flow, stops: Stop[], step: number): { name: str
  */
 export function channelProblems(flow: Flow, stops: Stop[]): { step: number; message: string }[] {
   const out: { step: number; message: string }[] = []
+  if (!usesChannels(flow)) return out
+  // What each stop leaves open, worked out once in stop order (a stop's `before` chain only goes back), as channelsAt folds it: walking the
+  // chain again for every stop would cost the square of the steps, on every check of a long flow.
+  const after: Map<string, Channel>[] = []
   stops.forEach((stop, k) => {
-    const names = openBefore(flow, stops, k).map(c => c.name)
+    const prior = stopBefore(stops, k)
+    const before = prior === undefined ? new Map<string, Channel>() : after[prior]
+    const names = [...before.values()].flatMap(c => (c.name === undefined ? [] : [c.name]))
     const { opened, closed } = changesOf(flow, stop)
+    const open = new Map(before)
+    for (const name of closed) open.delete(`name:${name}`)
+    for (const c of opened) {
+      open.delete(keyOf(c))
+      open.set(keyOf(c), { ...c, opening: false })
+    }
+    after[k] = open
     for (const i of stop.steps) {
       const a = animationOf(flow.steps[i])
       if (a?.closes !== undefined && !names.includes(a.closes))

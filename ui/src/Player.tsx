@@ -10,6 +10,7 @@ import { CHANGE_NAMES, changeOfStop } from './compare.ts'
 import type { ChannelKind } from '../../src/core/animation.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
+import { useLayoutEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
 import { ChannelKey } from './Channels.tsx'
@@ -68,9 +69,25 @@ const IN_A_PANE = 'Not while comparing'
  */
 function Bar({ progress, now, stops, changes }: { progress: Progress; now: number; stops: Stop[]; changes?: Record<number, Change> }) {
   const here = progress.cells.find(c => c.stop === now)
+  // The cells by where they go, read once: looking each column up in every cell would cost the square of the steps, at every step of a long flow.
+  const groupAt = new Map<number, number>()
+  const plainAt = new Map<number, Progress['cells']>()
+  const inGroup = new Map<number, Progress['cells']>()
+  const add = (map: Map<number, Progress['cells']>, key: number, c: Progress['cells'][number]) => {
+    const list = map.get(key)
+    if (list) list.push(c)
+    else map.set(key, [c])
+  }
+  for (const c of progress.cells) {
+    if (c.group < 0) add(plainAt, c.col, c)
+    else {
+      if (c.row === 0 && !groupAt.has(c.col)) groupAt.set(c.col, c.group)
+      add(inGroup, c.group, c)
+    }
+  }
   const parts: ({ at: number; plain: true } | { at: number; plain: false; group: number })[] = []
   for (let col = 0; col < progress.cols;) {
-    const group = progress.cells.find(c => c.col === col && c.row === 0 && c.group >= 0)?.group ?? -1
+    const group = groupAt.get(col) ?? -1
     if (group < 0) {
       parts.push({ at: col, plain: true })
       col++
@@ -89,12 +106,12 @@ function Bar({ progress, now, stops, changes }: { progress: Progress; now: numbe
   return (
     <div className="progress">
       {parts.map(part => {
-        if (part.plain) return <div key={part.at} className="stretch" style={{ flex: 1 }}>{progress.cells.filter(c => c.col === part.at && c.group < 0).map(c => cell(c, 1))}</div>
+        if (part.plain) return <div key={part.at} className="stretch" style={{ flex: 1 }}>{(plainAt.get(part.at) ?? []).map(c => cell(c, 1))}</div>
         const b = progress.brackets[part.group]
         const Icon = KIND_ICON[b.kind]
-        const mine = progress.cells.filter(c => c.group === part.group)
+        const mine = inGroup.get(part.group) ?? []
         const branch = b.kind === 'branch'
-        const rows = branch ? Math.max(b.lanes.length, ...mine.map(c => c.row + 1)) : 1
+        const rows = branch ? mine.reduce((n, c) => Math.max(n, c.row + 1), b.lanes.length) : 1 // not Math.max(...): a group of very many steps would overflow the stack
         return (
           <div key={part.at} className={`stretch grp ${b.kind}${b.maybe ? ' maybe' : ''}`} style={{ flex: b.to - b.from + 1 }} title={b.title}>
             <div className="runs" style={{ gridTemplateColumns: `repeat(${b.to - b.from + 1}, 1fr)`, gridTemplateRows: branch ? `repeat(${rows}, auto 4px)` : '4px' }}>
@@ -111,6 +128,17 @@ function Bar({ progress, now, stops, changes }: { progress: Progress; now: numbe
   )
 }
 
+/**
+ * Scrolls `box` the least it takes to show `item`, which is in it, and `below` pixels under it. Only `box` moves: scrollIntoView would move the
+ * card and the canvas behind it too.
+ */
+function inView(box: HTMLElement, item: HTMLElement, below = 0) {
+  const b = box.getBoundingClientRect()
+  const i = item.getBoundingClientRect()
+  if (i.top < b.top) box.scrollTop -= b.top - i.top
+  else if (i.bottom + below > b.bottom) box.scrollTop += i.bottom + below - b.bottom
+}
+
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
 export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, auto, moving, repeat, trail, changes, compare, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
@@ -119,6 +147,12 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
   const grouped = progress.brackets.length > 0 // the legend explains groups, so a flow with none has no button
   const toggleLegend = () => setLegendPref(legend ? 'closed' : 'open')
   const GroupIcon = here.kind === undefined ? undefined : KIND_ICON[here.kind]
+  const body = useRef<HTMLDivElement>(null)
+  // The lanes' tabs and the lanes in the bar scroll when there are many: the lane this stop is in is scrolled to.
+  useLayoutEffect(() => {
+    for (const on of body.current?.querySelectorAll<HTMLElement>('.tabs > .on') ?? []) inView(on.parentElement!, on)
+    for (const on of body.current?.querySelectorAll<HTMLElement>('.runs > .lane.on') ?? []) inView(on.parentElement!, on, 8) // its cells, under its name
+  }, [stop, flow])
   return (
     <section className="player" aria-live="polite">
       {trail && onBack && <button className="trail" onClick={onBack}><ArrowLeft size={14} />Back to “{trail.name}”, step {trail.step}</button>}
@@ -133,55 +167,57 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
           <button className="help" aria-label="What do these mean?" title="What do these mean?" aria-pressed={legend} onClick={toggleLegend}><Help size={15} /></button>
         )}
       </div>
-      {grouped && legend && (
-        <dl className="legend">
-          {LEGEND.map(row => {
-            const Icon = row.kind === null ? undefined : KIND_ICON[row.kind]
-            return (
-              <div key={row.title}>
-                <dt>{Icon && <Icon size={13} />}{row.title}</dt>
-                <dd>{row.text}</dd>
-              </div>
-            )
-          })}
-        </dl>
-      )}
-      {caption.tabs.length > 0 && (
-        <div className="tabs">{caption.tabs.map((t, i) => <span key={i} className={i === caption.tab ? 'tab on' : 'tab'}>{t}</span>)}</div>
-      )}
-      {caption.text !== '' && <p className="group-text">{caption.text}</p>}
-      <Bar progress={progress} now={stop} stops={stops} changes={changes} />
-      <StateKey marks={marks} />
-      <ChannelKey kinds={channels} />
-      {here.steps.map((i, n) => {
-        const step = flow.steps[i]
-        const link = typeof step.flow === 'string' && step.flow.trim() !== '' ? step.flow.trim() : undefined
-        const target = link !== undefined && Object.hasOwn(model.flows, link) ? model.flows[link] : undefined
-        const animation = animationOf(step)
-        const ended = animation && outcomeLine(animation, id => nameOf(model, id))
-        // What a step leaves open or closes is not a failure, so it is told in the accent colour, not the outcome's red.
-        const channel = animation && ended === undefined ? channelLine(animation) : undefined
-        const outcome = ended ?? channel
-        return (
-          <div key={i} className={here.steps.length > 1 ? 'lane-block' : undefined}>
-            {caption.lanes[n] && <p className="lane-name">{caption.lanes[n]}</p>}
-            <p className="player-ends">{stepEnds(model, step, ends[i])}</p>
-            <p>{step.text}</p>
-            {outcome !== undefined && <p className={channel === undefined ? 'player-outcome' : 'player-outcome channel'}>{outcome}</p>}
-            {step.description && (
-              <details key={`${stop}-${i}`} className="more">
-                <summary>More</summary>
-                <Description text={String(step.description)} />
-              </details>
-            )}
-            {target && (
-              <div className="player-buttons flow-link">
-                <button disabled={onOpenFlow === undefined || target.steps.length === 0 || !isView(model, target.view)} title={onOpenFlow === undefined ? IN_A_PANE : undefined} onClick={() => onOpenFlow?.(link!)}><Route size={16} />Open flow: {target.name || link}</button>
-              </div>
-            )}
-          </div>
-        )
-      })}
+      <div className="player-body" ref={body}>
+        {grouped && legend && (
+          <dl className="legend">
+            {LEGEND.map(row => {
+              const Icon = row.kind === null ? undefined : KIND_ICON[row.kind]
+              return (
+                <div key={row.title}>
+                  <dt>{Icon && <Icon size={13} />}{row.title}</dt>
+                  <dd>{row.text}</dd>
+                </div>
+              )
+            })}
+          </dl>
+        )}
+        {caption.tabs.length > 0 && (
+          <div className="tabs">{caption.tabs.map((t, i) => <span key={i} className={i === caption.tab ? 'tab on' : 'tab'}>{t}</span>)}</div>
+        )}
+        {caption.text !== '' && <p className="group-text">{caption.text}</p>}
+        <Bar progress={progress} now={stop} stops={stops} changes={changes} />
+        <StateKey marks={marks} />
+        <ChannelKey kinds={channels} />
+        {here.steps.map((i, n) => {
+          const step = flow.steps[i]
+          const link = typeof step.flow === 'string' && step.flow.trim() !== '' ? step.flow.trim() : undefined
+          const target = link !== undefined && Object.hasOwn(model.flows, link) ? model.flows[link] : undefined
+          const animation = animationOf(step)
+          const ended = animation && outcomeLine(animation, id => nameOf(model, id))
+          // What a step leaves open or closes is not a failure, so it is told in the accent colour, not the outcome's red.
+          const channel = animation && ended === undefined ? channelLine(animation) : undefined
+          const outcome = ended ?? channel
+          return (
+            <div key={i} className={here.steps.length > 1 ? 'lane-block' : undefined}>
+              {caption.lanes[n] && <p className="lane-name">{caption.lanes[n]}</p>}
+              <p className="player-ends">{stepEnds(model, step, ends[i])}</p>
+              <p>{step.text}</p>
+              {outcome !== undefined && <p className={channel === undefined ? 'player-outcome' : 'player-outcome channel'}>{outcome}</p>}
+              {step.description && (
+                <details key={`${stop}-${i}`} className="more">
+                  <summary>More</summary>
+                  <Description text={String(step.description)} />
+                </details>
+              )}
+              {target && (
+                <div className="player-buttons flow-link">
+                  <button disabled={onOpenFlow === undefined || target.steps.length === 0 || !isView(model, target.view)} title={onOpenFlow === undefined ? IN_A_PANE : undefined} onClick={() => onOpenFlow?.(link!)}><Route size={16} />Open flow: {target.name || link}</button>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
       <div className="player-buttons">
         <button disabled={stop === 0} onClick={() => onStep(stop - 1)}><StepBack size={16} />Back</button>
         <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>

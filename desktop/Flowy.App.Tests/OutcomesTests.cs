@@ -46,7 +46,7 @@ public class OutcomesTests
         }
     }
 
-    private static List<string> Words(ReaderView reader) => reader.Card.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
+    private static List<string> Words(ReaderView reader) => reader.Card.Laid().GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text ?? "").ToList();
 
     /// <summary>The first beat of a kind, played where the step has it, and the canvas shown a moment into it.</summary>
     private static Beat Find(ReaderView reader, Func<Beat, bool> which) => reader.Canvas.PlayingBeats.First(which);

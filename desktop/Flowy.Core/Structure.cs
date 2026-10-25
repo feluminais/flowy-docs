@@ -207,19 +207,34 @@ public static partial class Structure
         }
 
         var members = new Dictionary<string, List<int>>();
+        var groupOfStep = new string[flow.Steps.Count];
         for (var i = 0; i < flow.Steps.Count; i++)
         {
-            var g = StepGroup(flow, i);
+            var g = groupOfStep[i] = StepGroup(flow, i);
             if (g == "") continue;
             if (!members.TryGetValue(g, out var list)) members[g] = list = [];
             list.Add(i);
         }
+        // Worked out once, not at every step, so a long flow or one with many groups or lanes costs a line, not a square: the groups whose stretch each
+        // step sits inside without belonging to (in the order of ids), and the lanes each group has used so far.
+        var inside = new Dictionary<int, List<string>>();
+        foreach (var id in ids)
+        {
+            var m = members.GetValueOrDefault(id) ?? [];
+            for (var i = m.Count >= 2 ? m[0] + 1 : 0; m.Count >= 2 && i < m[^1]; i++)
+                if (groupOfStep[i] != id)
+                {
+                    if (!inside.TryGetValue(i, out var list)) inside[i] = list = [];
+                    list.Add(id);
+                }
+        }
+        var usedLanes = new Dictionary<string, HashSet<string>>();
 
         for (var i = 0; i < flow.Steps.Count; i++)
         {
             var index = i;
             void At(string message) => output.Add(new Finding(index, message));
-            var gid = StepGroup(flow, i);
+            var gid = groupOfStep[i];
             var declared = gid != "" && groups is not null && groups.ContainsKey(gid);
             var kind = declared ? KindOf(flow, gid) : null;
             var lane = LaneOf(flow, i);
@@ -230,13 +245,11 @@ public static partial class Structure
             {
                 var mine = members.GetValueOrDefault(gid) ?? [];
                 if (mine[0] == i && lane == "") At($"the first step of group \"{gid}\" needs a lane");
-                if (lane != "" && mine.Any(j => j < index && LaneOf(flow, j) == lane)) At($"lane \"{lane}\" is already used in group \"{gid}\"");
+                if (!usedLanes.TryGetValue(gid, out var used)) usedLanes[gid] = used = [];
+                if (lane != "" && used.Contains(lane)) At($"lane \"{lane}\" is already used in group \"{gid}\"");
+                used.Add(lane);
             }
-            foreach (var id in ids)
-            {
-                var m = members.GetValueOrDefault(id) ?? [];
-                if (m.Count >= 2 && i > m[0] && i < m[^1] && gid != id) At($"sits inside the stretch of group \"{id}\" without belonging to it");
-            }
+            foreach (var id in inside.GetValueOrDefault(i) ?? []) At($"sits inside the stretch of group \"{id}\" without belonging to it");
             if (!JsCompat.Blank(flow.Steps[i].FlowId))
             {
                 var to = JsCompat.JsTrim(flow.Steps[i].FlowId!);
