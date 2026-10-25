@@ -61,11 +61,31 @@ type Props = {
 
 const IN_A_PANE = 'Not while comparing'
 
+/** A branch's lanes on the bar, in pixels: a lane is a name 14 high over a strip 4 high, 4 apart, so a strip's middle is 16 down its lane. style.css keeps the same numbers. */
+const LANE = 22
+const STRIP = 16
+const ELBOW = 16
+
 /**
- * How far a flow has got: a cell for each stop, filled up to the stop shown. A group is boxed, with the line that says what it is at the
- * foot of the box, and a box with an `until` is dashed (it may stop before its last time). A branch's lanes are rows of their own, each
- * named, and the lanes the stop shown is not in are dashed, as they are on the canvas. In a comparison, a cell takes the colour of what
- * differs at its stop (`changes`, by file step number).
+ * Where a branch splits, or with `join` where its lanes meet again: straight lines with square corners between the bar's line and each of
+ * `rows` lanes. The way to lane `on` is drawn over the rest in the accent (-1 for none).
+ */
+function Elbow({ rows, on, join }: { rows: number; on: number; join?: boolean }) {
+  const y = (r: number) => r * LANE + STRIP
+  const way = (r: number) => join ? `M0 ${y(r)}H${ELBOW / 2}V${y(0)}H${ELBOW}` : `M0 ${y(0)}H${ELBOW / 2}V${y(r)}H${ELBOW}`
+  return (
+    <svg className="elbow" width={ELBOW} height={y(rows - 1) + 2} aria-hidden="true">
+      {Array.from({ length: rows }, (_, r) => <path key={r} d={way(r)} />)}
+      {on >= 0 && <path className="on" d={way(on)} />}
+    </svg>
+  )
+}
+
+/**
+ * How far a flow has got: a cell for each stop, filled up to the stop shown. A repeat or parallel group is boxed, with the line that says
+ * what it is at the foot of the box, and a box with an `until` is dashed (it may stop before its last time). A branch is a fork: the bar
+ * splits into a row for each lane, each named, and meets again when steps follow; an "only if" has an empty way round. The lanes the stop
+ * shown is not in are hollow. In a comparison, a cell takes the colour of what differs at its stop (`changes`, by file step number).
  */
 function Bar({ progress, now, stops, changes }: { progress: Progress; now: number; stops: Stop[]; changes?: Record<number, Change> }) {
   const here = progress.cells.find(c => c.stop === now)
@@ -103,23 +123,44 @@ function Bar({ progress, now, stops, changes }: { progress: Progress; now: numbe
     const title = [c.title, change && CHANGE_NAMES[change]].filter(Boolean).join(', ')
     return <span key={c.stop} title={title || undefined} data-change={change} className={className} style={{ gridColumn: c.col - (c.group >= 0 ? progress.brackets[c.group].from : c.col) + 1, gridRow: row }} />
   }
+  const forked = progress.brackets.some(b => b.kind === 'branch')
+  // How far a fork reaches over the gap to its neighbour, so its line runs on from it: the bar's gap, and a box's margin too. None at an end.
+  const boxed = (p: (typeof parts)[number] | undefined) => p !== undefined && !p.plain && progress.brackets[p.group].kind !== 'branch'
+  const reach = (p: (typeof parts)[number] | undefined) => (p === undefined ? 0 : boxed(p) ? -8 : -3)
   return (
-    <div className="progress">
-      {parts.map(part => {
+    <div className={forked ? 'progress forked' : 'progress'}>
+      {parts.map((part, i) => {
         if (part.plain) return <div key={part.at} className="stretch" style={{ flex: 1 }}>{(plainAt.get(part.at) ?? []).map(c => cell(c, 1))}</div>
         const b = progress.brackets[part.group]
-        const Icon = KIND_ICON[b.kind]
+        const span = b.to - b.from + 1
         const mine = inGroup.get(part.group) ?? []
-        const branch = b.kind === 'branch'
-        const rows = branch ? mine.reduce((n, c) => Math.max(n, c.row + 1), b.lanes.length) : 1 // not Math.max(...): a group of very many steps would overflow the stack
-        return (
-          <div key={part.at} className={`stretch grp ${b.kind}${b.maybe ? ' maybe' : ''}`} style={{ flex: b.to - b.from + 1 }} title={b.title}>
-            <div className="runs" style={{ gridTemplateColumns: `repeat(${b.to - b.from + 1}, 1fr)`, gridTemplateRows: branch ? `repeat(${rows}, auto 4px)` : '4px' }}>
-              {branch && Array.from({ length: rows }, (_, r) => (
-                <div key={r} className={`lane${here?.group === part.group && here.row === r ? ' on' : ''}`} style={{ gridColumn: '1 / -1', gridRow: r * 2 + 1 }}>{b.lanes[r] ?? ''}</div>
-              ))}
-              {mine.map(c => cell(c, branch ? c.row * 2 + 2 : 1))}
+        if (b.kind === 'branch') {
+          const rows = mine.reduce((n, c) => Math.max(n, c.row + 1), b.lanes.length) // not Math.max(...): a group of very many steps would overflow the stack
+          const ways = rows === 1 ? 2 : rows // an "only if" may also go round its lane
+          const on = here?.group === part.group ? here.row : -1
+          const byRow = new Map<number, Progress['cells']>()
+          for (const c of mine) add(byRow, c.row, c)
+          return (
+            <div key={part.at} className="stretch fork" style={{ flex: span, marginLeft: reach(parts[i - 1]), marginRight: reach(parts[i + 1]) }} title={b.title}>
+              <Elbow rows={ways} on={on} />
+              <div className="lanes">
+                {Array.from({ length: ways }, (_, r) => (
+                  <div key={r}>
+                    <div className={`lane${on === r ? ' on' : ''}`}>{b.lanes[r] ?? ''}</div>
+                    {r < rows
+                      ? <div className="runs" style={{ gridTemplateColumns: `repeat(${span}, 1fr)` }}>{(byRow.get(r) ?? []).map(c => cell(c, 1))}</div>
+                      : <div className="round" />}
+                  </div>
+                ))}
+              </div>
+              {b.to + 1 < progress.cols && <Elbow rows={ways} on={on} join />}
             </div>
+          )
+        }
+        const Icon = KIND_ICON[b.kind]
+        return (
+          <div key={part.at} className={`stretch grp ${b.kind}${b.maybe ? ' maybe' : ''}`} style={{ flex: span }} title={b.title}>
+            <div className="runs" style={{ gridTemplateColumns: `repeat(${span}, 1fr)`, gridTemplateRows: '4px' }}>{mine.map(c => cell(c, 1))}</div>
             <span className="bracket"><Icon size={11} />{b.text}</span>
           </div>
         )
@@ -151,7 +192,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
   // The lanes' tabs and the lanes in the bar scroll when there are many: the lane this stop is in is scrolled to.
   useLayoutEffect(() => {
     for (const on of body.current?.querySelectorAll<HTMLElement>('.tabs > .on') ?? []) inView(on.parentElement!, on)
-    for (const on of body.current?.querySelectorAll<HTMLElement>('.runs > .lane.on') ?? []) inView(on.parentElement!, on, 8) // its cells, under its name
+    for (const on of body.current?.querySelectorAll<HTMLElement>('.fork .lane.on') ?? []) inView(on.closest<HTMLElement>('.fork')!, on, 8) // its cells, under its name
   }, [stop, flow])
   return (
     <section className="player" aria-live="polite">

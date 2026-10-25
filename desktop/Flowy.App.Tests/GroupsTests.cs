@@ -195,7 +195,7 @@ public class GroupsTests
         Assert.Contains("Billing", words);
         Assert.Contains("Dispatch", words);
         Assert.Equal(2, Borders(reader, "laneblock").Count);
-        Assert.Equal(3, Boxes(reader).Count);
+        Assert.Equal(2, Boxes(reader).Count); // the branch is a fork, not a box
         Assert.Equal(6, Borders(reader, "seg").Count); // a cell for each stop
         Assert.NotNull(Named(reader, "Open flow: Capture a payment"));
         Assert.False(Named(reader, "Next")!.IsEnabled);
@@ -217,6 +217,10 @@ public class GroupsTests
         Assert.Equal(["Card accepted", "Card declined"], rows.Select(t => t.Text).ToList());
         Assert.Equal(["Card declined"], rows.Where(t => t.Classes.Contains("on")).Select(t => t.Text).ToList());
         Assert.Equal(2, Borders(reader, "off").Count); // both cells of the first lane
+        // The bar forks into the two lanes and meets again: a way to each lane on both sides, and the way to the lane shown drawn over them.
+        var elbows = reader.Card.Laid().GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().Where(p => p.Classes.Contains("elbow")).ToList();
+        Assert.Equal(6, elbows.Count);
+        Assert.Equal(2, elbows.Count(p => p.Classes.Contains("on")));
     }
 
     [AvaloniaFact]

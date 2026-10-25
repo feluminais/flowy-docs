@@ -101,10 +101,30 @@ internal sealed class PlayerCard : Border
         return button;
     }
 
+    /// <summary>A branch's lanes on the bar: a name 14 high over a strip 8 high (the cell and the room round it to point at), 4 apart, so a strip's middle is 18 down its lane.</summary>
+    private const double LaneName = 14, LaneGap = 4, Lane = 26, Strip = 18, ElbowWidth = 16;
+
     /// <summary>
-    /// How far a flow has got: a cell for each stop, filled up to the stop shown. A group is boxed, with the line that says what it is at the foot of the
-    /// box, and a box with an <c>until</c> is dashed (it may stop before its last time). A branch's lanes are rows of their own, each named, and the lanes the
-    /// stop shown is not in are hollow. A cell says its lane and a box says what its group means when you point at it.
+    /// Where a branch splits, or with <paramref name="join"/> where its lanes meet again: straight lines with square corners between the bar's line and each of
+    /// <paramref name="rows"/> lanes. The way to lane <paramref name="on"/> is drawn over the rest in the accent (-1 for none). The browser's Elbow draws the same.
+    /// </summary>
+    private static Control Elbow(int rows, int on, bool join)
+    {
+        static double Y(int r) => r * Lane + Strip;
+        string Way(int r) => join
+            ? FormattableString.Invariant($"M0,{Y(r)} H{ElbowWidth / 2} V{Y(0)} H{ElbowWidth}")
+            : FormattableString.Invariant($"M0,{Y(0)} H{ElbowWidth / 2} V{Y(r)} H{ElbowWidth}");
+        var canvas = new Avalonia.Controls.Canvas { Width = ElbowWidth, Height = Y(rows - 1) + 2, VerticalAlignment = VerticalAlignment.Top };
+        for (var r = 0; r < rows; r++) canvas.Children.Add(new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(Way(r)), Classes = { "elbow" } });
+        if (on >= 0) canvas.Children.Add(new Avalonia.Controls.Shapes.Path { Data = Geometry.Parse(Way(on)), Classes = { "elbow", "on" } });
+        return canvas;
+    }
+
+    /// <summary>
+    /// How far a flow has got: a cell for each stop, filled up to the stop shown. A repeat or parallel group is boxed, with the line that says what it is at the
+    /// foot of the box, and a box with an <c>until</c> is dashed (it may stop before its last time). A branch is a fork: the bar splits into a row for each lane,
+    /// each named, and meets again when steps follow; an "only if" has an empty way round. The lanes the stop shown is not in are hollow. A cell says its lane
+    /// and a group says what it means when you point at it.
     /// </summary>
     private static Control Bar(Progress progress, int now, IReadOnlyList<Change?>? changes)
     {
@@ -149,49 +169,81 @@ internal sealed class PlayerCard : Border
             parts.Add((col, group));
             col = group < 0 ? col + 1 : progress.Brackets[group].To + 1;
         }
+        Grid Cells(Bracket b, IEnumerable<Cell> mine)
+        {
+            var cells = new Grid { ColumnSpacing = 3 };
+            for (var c = 0; c <= b.To - b.From; c++) cells.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            foreach (var cell in mine)
+            {
+                var hit = Cell(cell);
+                Grid.SetColumn(hit, cell.Col - b.From);
+                cells.Children.Add(hit);
+            }
+            return cells;
+        }
+        Control Fork(Bracket b, int group, List<Cell> mine)
+        {
+            var rows = Math.Max(b.Lanes.Count, mine.Max(c => c.Row) + 1);
+            var ways = rows == 1 ? 2 : rows; // an "only if" may also go round its lane
+            var on = here is not null && here.Group == group ? here.Row : -1;
+            var lanes = new StackPanel { Spacing = LaneGap };
+            var byRow = mine.ToLookup(c => c.Row);
+            for (var r = 0; r < ways; r++)
+            {
+                var name = new TextBlock { Text = r < b.Lanes.Count ? b.Lanes[r] : "", Height = LaneName };
+                name.Classes.Add("barlane");
+                if (r == on) name.Classes.Add("on");
+                Control way = r < rows ? Cells(b, byRow[r]) : new Border { Height = 2, Margin = new Thickness(0, 3), Classes = { "round" } };
+                lanes.Children.Add(new StackPanel { Children = { name, way } });
+            }
+            var fork = new DockPanel { VerticalAlignment = VerticalAlignment.Top, Background = Brushes.Transparent };
+            var split = Elbow(ways, on, false);
+            DockPanel.SetDock(split, Dock.Left);
+            fork.Children.Add(split);
+            if (b.To + 1 < progress.Cols)
+            {
+                var join = Elbow(ways, on, true);
+                DockPanel.SetDock(join, Dock.Right);
+                fork.Children.Add(join);
+            }
+            fork.Children.Add(lanes);
+            // Many lanes: five and half of a sixth, then the lanes and their elbows scroll together, kept on the lane this stop is in and its cells.
+            var scroll = Scrolled(fork, 5.5 * Lane, "barlane", below: Lane - LaneName - LaneGap);
+            scroll.VerticalAlignment = VerticalAlignment.Top;
+            return scroll;
+        }
+        // On a bar with a fork, the rest sits level with the first lane's strip.
+        var forked = progress.Brackets.Any(b => b.Kind == "branch");
         var strip = new Grid { ColumnSpacing = 3, Margin = new Thickness(0, 4) };
         for (var i = 0; i < parts.Count; i++)
         {
             var (at, group) = parts[i];
             Control part;
             if (group < 0)
+            {
                 part = Cell(plainAt[at]);
+                if (forked) (part.VerticalAlignment, part.Margin) = (VerticalAlignment.Top, new Thickness(0, Strip - 4, 0, 0));
+            }
+            else if (progress.Brackets[group].Kind == "branch")
+            {
+                // A fork reaches over the gap to its neighbours, so its line runs on from them: the bar's gap, and a box's margin too. None at an end.
+                double Reach(int n) => n < 0 || n >= parts.Count ? 0 : parts[n].Group >= 0 && progress.Brackets[parts[n].Group].Kind != "branch" ? -8 : -3;
+                part = Fork(progress.Brackets[group], group, inGroup[group]);
+                part.Margin = new Thickness(Reach(i - 1), 0, Reach(i + 1), 0);
+                ToolTip.SetTip(part, progress.Brackets[group].Title);
+            }
             else
             {
                 var b = progress.Brackets[group];
-                var span = b.To - b.From + 1;
-                var branch = b.Kind == "branch";
-                var mine = inGroup[group];
-                var rows = branch ? Math.Max(b.Lanes.Count, mine.Max(c => c.Row) + 1) : 1;
-                var cells = new Grid { ColumnSpacing = 3 };
-                for (var c = 0; c < span; c++) cells.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-                for (var r = 0; r < (branch ? rows * 2 : 1); r++) cells.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
-                if (branch)
-                    for (var r = 0; r < rows; r++)
-                    {
-                        var name = new TextBlock { Text = r < b.Lanes.Count ? b.Lanes[r] : "" };
-                        name.Classes.Add("barlane");
-                        if (here is not null && here.Group == group && here.Row == r) name.Classes.Add("on");
-                        Grid.SetRow(name, r * 2);
-                        Grid.SetColumnSpan(name, span);
-                        cells.Children.Add(name);
-                    }
-                foreach (var cell in mine)
-                {
-                    var hit = Cell(cell);
-                    Grid.SetColumn(hit, cell.Col - b.From);
-                    Grid.SetRow(hit, branch ? cell.Row * 2 + 1 : 0);
-                    cells.Children.Add(hit);
-                }
-                // Many lanes: five and half of a sixth, then they scroll, kept on the lane this stop is in and its cells under its name.
-                Control lanes = branch ? Scrolled(cells, 120, below: 8) : cells;
+                var cells = Cells(b, inGroup[group]);
                 var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) };
                 label.Children.Add(Icons.Make(Icons.ForKind(b.Kind), "chipicon", 11));
                 label.Children.Add(new TextBlock { Text = b.Text, FontSize = 10.5, Classes = { "muted" } });
                 var box = new Rectangle();
                 box.Classes.Add("box");
                 if (b.Maybe) box.Classes.Add("maybe");
-                part = new Grid { Margin = new Thickness(5, 0), VerticalAlignment = VerticalAlignment.Top, Background = Brushes.Transparent, Children = { box, new StackPanel { Margin = new Thickness(5, 3, 5, 0), Children = { lanes, label } } } };
+                // A box's strip is 7 down it, so on a forked bar the box drops by the rest.
+                part = new Grid { Margin = new Thickness(5, forked ? Strip - 7 : 0, 5, 0), VerticalAlignment = VerticalAlignment.Top, Background = Brushes.Transparent, Children = { box, new StackPanel { Margin = new Thickness(5, 3, 5, 0), Children = { cells, label } } } };
                 ToolTip.SetTip(part, b.Title);
             }
             strip.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(group < 0 ? 1 : progress.Brackets[group].To - progress.Brackets[group].From + 1, GridUnitType.Star)));
@@ -203,14 +255,14 @@ internal sealed class PlayerCard : Border
 
     /// <summary>
     /// <paramref name="content"/> in a box at most <paramref name="height"/> high that scrolls, with the scroll kept on its child that is on (the lane
-    /// this stop is in), which may be deep inside it, and <paramref name="below"/> pixels under that child.
+    /// this stop is in, of class <paramref name="kind"/>), which may be deep inside it, and <paramref name="below"/> pixels under that child.
     /// </summary>
-    private static ScrollViewer Scrolled(Control content, double height, double below = 0)
+    private static ScrollViewer Scrolled(Control content, double height, string kind, double below = 0)
     {
         var scroll = new ScrollViewer { Content = content, MaxHeight = height, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled };
         scroll.Loaded += (_, _) =>
         {
-            if (content.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Classes.Contains("on")) is { } on && on.TranslatePoint(default, content) is { } at)
+            if (content.GetVisualDescendants().OfType<Control>().FirstOrDefault(c => c.Classes.Contains(kind) && c.Classes.Contains("on")) is { } on && on.TranslatePoint(default, content) is { } at)
                 scroll.Offset = new Vector(0, Math.Max(0, at.Y + on.Bounds.Height + below - scroll.Viewport.Height));
         };
         return scroll;
@@ -344,7 +396,7 @@ internal sealed class PlayerCard : Border
                 if (i == v.Caption.Tab) tab.Classes.Add("on");
                 tabs.Children.Add(tab);
             }
-            column.Children.Add(Scrolled(tabs, 84)); // three rows and half of a fourth (24 each), then they scroll
+            column.Children.Add(Scrolled(tabs, 84, "tab")); // three rows and half of a fourth (24 each), then they scroll
         }
         if (v.Caption.Text != "") column.Children.Add(new SelectableTextBlock { Text = v.Caption.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
         column.Children.Add(Bar(v.Progress, v.Stop, v.Changes));
