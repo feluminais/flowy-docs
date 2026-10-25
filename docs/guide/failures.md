@@ -64,7 +64,9 @@ group. Otherwise Not rated when a rating is missing, then High from a risk of 15
 High, Medium, Low, then Not rated, and inside a band by risk, highest first, with ties in the order of the file. A mode that is `done`
 counts by its `after` ratings, and the panel shows both ("Risk after next action: 96 to 32"). The rule sits beside each band's
 count in the panel: "Risk 150+ or severity 9+", "Risk 60 to 149", "Risk under 60" and "A rating missing". The number at the right of each
-row is the risk, under a **Risk** heading, so a High 20 can sit above a Medium 144: its severity is 10.
+row is the risk, under a **Risk** heading. A row that is High by severity alone says so under its number ("Severity 10"), so a High 20
+can sit above a Medium 144. The picked mode's card shows the product beside its risk ("Risk 96 (8 × 4 × 3)") and, for such a row, reads
+"High: severity 10".
 
 **Coverage.** "Analysed 15 of 26 shapes" counts the shapes that hold nothing, inside the analysis's scope, that have at least one mode, as the
 part or as an end of a line. Actors are left out, because nothing of ours fails there. Outside services count, since a failing Stripe is
