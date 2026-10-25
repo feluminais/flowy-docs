@@ -49,7 +49,7 @@ export function captionOf(flow: Flow, stop: Stop): Caption {
     const times = g?.times ?? ''
     const until = g?.until ?? ''
     const words = repeatWords(g)
-    const mark = times !== '' ? (until !== '' ? `up to ${times}` : `×${times}`) : until !== '' ? `until ${until}` : ''
+    const mark = times !== '' ? (until !== '' ? `up to ${times} times` : `×${times}`) : until !== '' ? `until ${until}` : ''
     return { ...none, chip: words === '' ? 'Repeats' : `Repeats ${words}`, text, marks: stop.steps.map(() => mark) }
   }
   if (stop.kind === 'branch') {
@@ -116,7 +116,7 @@ export function progressOf(flow: Flow, stops: Stop[]): Progress {
       const maybe = g?.until !== undefined
       const words = repeatWords(g)
       brackets.push(s.kind === 'repeat'
-        ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : maybe ? `up to ${times}` : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}`, lanes: [], maybe }
+        ? { kind: s.kind, from: start, to: col - 1, text: times === '' ? '' : maybe ? `up to ${times} times` : `×${times}`, title: words === '' ? 'Repeats' : `Repeats ${words}`, lanes: [], maybe }
         : { kind: s.kind, from: start, to: col - 1, text: 'same time', title: 'The lanes happen at the same time: each stop shows the next step of every lane', lanes: [], maybe: false })
     }
     k = end + 1

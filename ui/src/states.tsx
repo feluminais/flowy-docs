@@ -16,8 +16,8 @@ const GLYPHS: Record<Exclude<StateName, 'running'>, (size: number) => JSX.Elemen
   degraded: size => <Alert size={size} />,
 }
 
-/** A state as a person says it: "Stopped", and "Stopped inside" for a shape that holds one that is. */
-export const stateWord = (mark: StateMark): string => (mark.inside ? `${STATE_LABELS[mark.state]} inside` : STATE_LABELS[mark.state])
+/** A state as a person says it: "Stopped", and "Stopped inside: Checkout" for a shape that holds one that is, naming the shape inside. */
+export const stateWord = (mark: StateMark): string => (mark.inside ? `${STATE_LABELS[mark.state]} inside${mark.via === undefined ? '' : `: ${mark.via}`}` : STATE_LABELS[mark.state])
 
 /** The state's glyph on a ring in its colour (the ring is dashed when only something inside is in the state). It spins while the state is coming up or restarting. */
 export function StateGlyph({ mark, size = 12, className }: { mark: StateMark; size?: number; className?: string }) {
@@ -46,7 +46,7 @@ export function PlainSwatch({ none }: { none?: boolean }) {
 /** The key under the player: one mark for each state that is on the canvas now, drawn as it looks there, and nothing when no shape is in one. */
 export function StateKey({ marks }: { marks: Record<string, StateMark> }) {
   const distinct = new Map<string, StateMark>()
-  for (const mark of Object.values(marks)) distinct.set(`${mark.state}${mark.inside ? ' inside' : ''}`, mark)
+  for (const mark of Object.values(marks)) distinct.set(stateWord(mark), mark)
   const items = [...distinct.values()].sort((a, b) => STATE_NAMES.indexOf(a.state) - STATE_NAMES.indexOf(b.state) || Number(a.inside) - Number(b.inside))
   if (items.length === 0) return null
   return (

@@ -36,7 +36,7 @@ export function RunLinks({ model, runs, linkOff, picking, onPicking, onLink }: {
           <div key={id} className="run-link">
             <div className="run-link-name">
               <span>{runs[id].name}</span>
-              {linked.has(id) && <span className="linked"><Link size={13} />Linked</span>}
+              {linked.has(id) && <span className="linked"><Link size={13} />Compare pair</span>}
             </div>
             <div className="run-actions">
               <button {...{ [toggle]: '' }} aria-pressed={picking === id} disabled={linkOff !== undefined} title={linkOff ?? 'Link this run with another'} onClick={() => onPicking(picking === id ? undefined : id)}><Link size={14} />Link with</button>

@@ -29,9 +29,18 @@ internal sealed partial class ReaderView
     private Thickness NoticeMargin => new(16 + _panels.NavInset, 12, 16, 12);
 
     /// <summary>Puts the panels at the widths dragged, and keeps what sits beside the navigator (the zoom buttons, a notice) clear of it.</summary>
+    /// <summary>A panel opened, closed or was dragged to another width: the view fits again to the room beside them, unless the reader has moved the view since it was fitted.</summary>
+    private void RefitBesidePanels()
+    {
+        if (Comparing || (_panels.NavInset, _panels.DetailsInset) == _fitRoom) return;
+        _fitRoom = (_panels.NavInset, _panels.DetailsInset);
+        _canvas.RefitIfFitted(_panels.DetailsInset, PlayingFlow() is not null, _panels.NavInset);
+    }
+
     private void ApplyWidths()
     {
         _panels.Place();
+        RefitBesidePanels();
         var nav = ShownTab is not null;
         if (_zoomButtons is not null) _zoomButtons.Margin = new Thickness(16 + (nav ? _panels.NavWidth : 0), 16, 16, 16);
         // The comparison keeps clear of both panels instead of fitting round them, so its panes (each with a zoom of its own) are never under one.

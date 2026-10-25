@@ -22,7 +22,7 @@ test('a repeat says how often, and what it has: times is a rule, until makes it 
   assert.equal(chip({ times: '3', until: 'it works' }).chip, 'Repeats up to 3 times, until it works')
   assert.equal(chip({ text: 'only words' }).chip, 'Repeats')
   assert.deepEqual(chip({ times: '3', text: ' Backs off ' }), { chip: 'Repeats 3 times', text: 'Backs off', tabs: [], tab: -1, lanes: [], marks: ['×3'] })
-  assert.deepEqual(chip({ times: '3', until: 'it works' }).marks, ['up to 3'])
+  assert.deepEqual(chip({ times: '3', until: 'it works' }).marks, ['up to 3 times'])
   assert.deepEqual(chip({ until: 'x' }).marks, ['until x'])
   assert.deepEqual(chip({}).marks, [''])
 })
@@ -76,7 +76,7 @@ test('a repeat with an until is drawn as one that may stop early, and one with o
     return progressOf(flow, stopsOf(flow)).brackets[0]
   }
   assert.deepEqual([bracket({ times: '3' }).text, bracket({ times: '3' }).maybe], ['×3', false])
-  assert.deepEqual([bracket({ times: '3', until: 'it works' }).text, bracket({ times: '3', until: 'it works' }).maybe], ['up to 3', true])
+  assert.deepEqual([bracket({ times: '3', until: 'it works' }).text, bracket({ times: '3', until: 'it works' }).maybe], ['up to 3 times', true])
   assert.deepEqual([bracket({ until: 'it works' }).text, bracket({ until: 'it works' }).maybe, bracket({ until: 'it works' }).title], ['', true, 'Repeats until it works'])
 })
 

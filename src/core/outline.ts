@@ -3,7 +3,7 @@
  * by where they play, and the keys that move about the tree. Nothing here draws, so the canvas and the desktop app each draw
  * these rows and agree on what is on them. desktop/Flowy.Core/Outline.cs is a port, and desktop/fixtures/outline.ts keeps the two equal.
  */
-import { linkedIds } from './compare.ts'
+import { linkedIds, partnersOf } from './compare.ts'
 import { FILE_KINDS, idOfPath } from './filekinds.ts'
 import type { Problem } from './problem.ts'
 import { folderOf, getObject, isExternal, ROOT, tagKey, tagsOf } from './model.ts'
@@ -23,6 +23,8 @@ export type OutlineRow = {
   /** A shape's type, as the file wrote it. */
   type?: string
   external: boolean
+  /** Shapes right inside it: the number the canvas shows as "N inside". 0 for a flow. */
+  inside: number
   /** Shapes inside it, at every level. 0 for a flow. */
   shapes: number
   /** Flows inside it, at every level. 0 for a flow. */
@@ -31,6 +33,8 @@ export type OutlineRow = {
   steps?: number
   /** A flow row only: whether the flow is in a pair, by tagging a flow that is there or being tagged by one (see linkedIds). */
   linked?: boolean
+  /** A flow row only: the names of the flows it is paired with (see partnersOf), whenever `linked`. */
+  partners?: string[]
   /** A problem in it, or in anything inside it. */
   problem: boolean
   /** Whether rows can sit below it. */
@@ -160,6 +164,12 @@ const lower = (text: string) => text.toLowerCase()
 /** The flows that are in a pair (see linkedIds). The named type lets a Flow, whose other keys are open, pass as something with a `compare`. */
 const linkedFlows = (model: Model): Set<string> => linkedIds(model.flows as Record<string, { name?: string; compare?: unknown }>)
 
+/** The names of the flows `id` is paired with, older one first: a tag to a flow that is not there names nobody. */
+function partnerNames(model: Model, id: string): string[] {
+  const flows = model.flows as Record<string, { name?: string; compare?: unknown }>
+  return partnersOf(flows, id).filter(p => Object.hasOwn(flows, p.id)).map(p => flows[p.id].name || p.id)
+}
+
 /**
  * The rows to draw, top to bottom. The project is the first row; below an expanded shape come its shapes, then its flows.
  * With a filter, only matching rows and the shapes holding them show, all open.
@@ -202,8 +212,8 @@ export function outline(model: Model, options: OutlineOptions): Outline {
       const flow = model.flows[id]
       const name = flow.name || id
       rows.push({
-        key: `flow:${id}`, kind, id, parent, depth, name, external: false, shapes: 0, flows: 0, steps: flow.steps.length,
-        linked: linked.has(id), problem: bad.flows.has(id), expandable: false, expanded: false, match: matches(id, name),
+        key: `flow:${id}`, kind, id, parent, depth, name, external: false, inside: 0, shapes: 0, flows: 0, steps: flow.steps.length,
+        linked: linked.has(id), ...(linked.has(id) ? { partners: partnerNames(model, id) } : {}), problem: bad.flows.has(id), expandable: false, expanded: false, match: matches(id, name),
       })
       continue
     }
@@ -216,7 +226,7 @@ export function outline(model: Model, options: OutlineOptions): Outline {
     rows.push({
       key: `shape:${id}`, kind, id, ...(parent === undefined ? {} : { parent }), depth, name: nameOf(model, id),
       ...(object?.type === undefined ? {} : { type: object.type }), external: object ? isExternal(object) : false,
-      shapes: size.shapes, flows: size.flows, problem: bad.shapes.has(id), expandable: below, expanded: open, match: matches(id, nameOf(model, id)),
+      inside: tree.kids.get(id)?.length ?? 0, shapes: size.shapes, flows: size.flows, problem: bad.shapes.has(id), expandable: below, expanded: open, match: matches(id, nameOf(model, id)),
     })
     if (!open) continue
     // Pushed backwards so shapes come off first, in order, and then the flows.
@@ -226,6 +236,23 @@ export function outline(model: Model, options: OutlineOptions): Outline {
   return { rows, totals }
 }
 
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+
+/** What a shape row's number says: the shapes right inside it, as the canvas does ("7 inside"), then the flows that play in it at any depth. A flow row has none (it shows its steps). */
+export function rowCount(row: Pick<OutlineRow, 'kind' | 'inside' | 'flows'>): string {
+  if (row.kind === 'flow') return ''
+  return [row.inside > 0 && `${row.inside} inside`, row.flows > 0 && plural(row.flows, 'flow')].filter(Boolean).join(' · ')
+}
+
+/** The same in full, for the row's tooltip and its accessible name: "7 inside, 13 in all, 12 flows". "in all" is left out when every shape in it is right inside. */
+export function rowCountWords(row: Pick<OutlineRow, 'kind' | 'inside' | 'shapes' | 'flows'>): string {
+  if (row.kind === 'flow') return ''
+  return [row.inside > 0 && `${row.inside} inside`, row.shapes > row.inside && `${row.shapes} in all`, row.flows > 0 && plural(row.flows, 'flow')].filter(Boolean).join(', ')
+}
+
+/** What a flow's pair mark says to a screen reader and in its tooltip: who it is paired with. */
+export const comparedWith = (partners: readonly string[]): string => (partners.length === 0 ? 'Compare pair' : `Compared with ${partners.join(', ')}`)
+
 /** `expanded` with every shape that holds `id` added, so its row is on the list. `self` opens `id` too, to show what is inside it. */
 export function expandTo(model: Model, id: string, expanded: ReadonlySet<string>, self = false): Set<string> {
   const next = new Set(expanded)
@@ -234,7 +261,11 @@ export function expandTo(model: Model, id: string, expanded: ReadonlySet<string>
 }
 
 /** A flow on the Flows list: where its file is (`folder`, "" at the top of flows/) and its tags. `view` is where it plays. */
-export type FlowRef = { id: string; name: string; steps: number; view: string; /** In a pair, see OutlineRow.linked. */ linked: boolean; folder: string; tags: string[] }
+export type FlowRef = {
+  id: string; name: string; steps: number; view: string
+  /** In a pair, see OutlineRow.linked; `partners` names the flows it is paired with (none when it is in no pair). */
+  linked: boolean; partners: string[]; folder: string; tags: string[]
+}
 
 /** One line of the Flows list: a folder of flows or a flow. A folder's `flows` counts the flows in it and in the folders inside it that the list shows. */
 export type FlowRow =
@@ -276,7 +307,7 @@ export function flowList(model: Model, { editing = false, query = '', tags = [],
   const playable = new Set([...tree.flowsIn.values()].flat())
   const refs = Object.keys(model.flows).filter(id => playable.has(id)).map((id): FlowRef => {
     const flow = model.flows[id]
-    return { id, name: flow.name || id, steps: flow.steps.length, view: flow.view, linked: linked.has(id), folder: folderOf(model, id), tags: tagsOf(flow) }
+    return { id, name: flow.name || id, steps: flow.steps.length, view: flow.view, linked: linked.has(id), partners: linked.has(id) ? partnerNames(model, id) : [], folder: folderOf(model, id), tags: tagsOf(flow) }
   })
   refs.sort((a, b) => byName(a.id, b.id) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
 

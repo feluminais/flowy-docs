@@ -168,7 +168,7 @@ a parallel group, where stop *k* is the *k*-th step of every lane: five one-step
 together, and a lane that has run out simply drops out. The card says where you are: a chip names the group (`Repeats 3 times`,
 `One of 2`, `At the same time, 2 lanes`), a branch lists its lanes as tabs with yours marked, the group's own `text` follows, and the
 progress bar has a cell for each stop and a box around each repeat and parallel group. A repeat's box says ×3, and it is dashed when the repeat has an
-`until` and may stop sooner ("up to 3"). At a branch the bar forks: a square-cornered line runs to a row for each lane, with the
+`until` and may stop sooner ("up to 3 times"). At a branch the bar forks: a square-cornered line runs to a row for each lane, with the
 lane's name above it, and the rows meet again where the steps after the branch go on. The way to your lane is in the accent colour,
 the lanes you are not in are hollow, and an "only if" branch has a bare line going round its lane. Point at a cell, a box or a fork to read what it means, or press the **?** on the card for a key to all of it. A parallel
 stop shows a block for each lane. On the canvas a small label on each lit line says how often it repeats or which lane it is, and the

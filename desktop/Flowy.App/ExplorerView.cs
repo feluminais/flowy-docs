@@ -105,7 +105,7 @@ internal sealed class ExplorerView : Grid
     /// <summary>Why the Compare buttons on the flow rows are greyed out (their tooltip), or null when they are not.</summary>
     internal string? CompareOff => _compareOff;
 
-    /// <summary>Whether the foot with the Linked key shows: a flow in a pair is among the rows.</summary>
+    /// <summary>Whether the foot with the Compare pair key shows: a flow in a pair is among the rows.</summary>
     internal bool LinkedKeyShown => _foot.IsVisible;
 
     /// <summary>The Compare button of a flow's row, if the row is on screen (the list draws a window of the rows).</summary>
@@ -263,9 +263,10 @@ internal sealed class ExplorerView : Grid
         ToolTip.SetTip(dot, "A problem in here");
         var counts = row.Kind == "flow"
             ? Plural(row.Steps ?? 0, "step")
-            : string.Join(" · ", new[] { row.Shapes > 0 ? row.Shapes.ToString() : null, row.Flows > 0 ? Plural(row.Flows, "flow") : null }.Where(s => s is not null));
+            : Outlines.RowCount(row);
         var count = new TextBlock { Text = counts, FontSize = 12, VerticalAlignment = VerticalAlignment.Center, Classes = { "treecount" } };
-        var mark = FlowsView.LinkedMark();
+        if (Outlines.RowCountWords(row) is { Length: > 0 } countWords) ToolTip.SetTip(count, countWords); // "7 inside, 13 in all, 12 flows"
+        var mark = FlowsView.LinkedMark(row.Partners ?? []);
         mark.IsVisible = row.Linked == true;
         var grid = new Grid
         {
@@ -288,7 +289,7 @@ internal sealed class ExplorerView : Grid
         var border = new Border { Child = grid, Padding = new Thickness(6 + row.Depth * 16, 0, 8, 0), CornerRadius = new CornerRadius(6) };
         border.Classes.Add("treerow");
         border.Classes.Set("sel", row.Key == _current);
-        AutomationProperties.SetName(border, row.Name);
+        AutomationProperties.SetName(border, Outlines.RowCountWords(row) is { Length: > 0 } words ? $"{row.Name}, {words}" : row.Name);
         border.PointerPressed += (_, e) =>
         {
             if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed) return;

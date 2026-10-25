@@ -110,8 +110,8 @@ svg { flex: none; }
 .crumbs { display: flex; align-items: center; gap: 2px; margin-right: 6px; }
 .crumbs > svg { color: var(--line); }
 .crumbs button { color: var(--accent); }
-.crumbs button:hover:not(:disabled) { background: var(--tint); }
-.crumbs button:disabled { cursor: default; color: var(--fg); font-weight: 600; }
+.crumbs button:hover:not([aria-current='page']) { background: var(--tint); }
+.crumbs button[aria-current='page'] { cursor: default; color: var(--fg); font-weight: 600; }
 
 /* The flat button, on the bar, in a panel and in the player. The one filled button is .primary: what a form is for. */
 :where(.bar > button, .crumbs button, .problems summary, .panel button:not(.close, .link), .player-buttons button, .picked-bar button) {
@@ -1155,8 +1155,9 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .stateline { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; }
 .stateline .state-glyph { position: static; flex: none; }
 .state-key { position: relative; display: inline-block; flex: none; width: 26px; height: 16px; }
-.keyrow .swatch .state-key { margin-left: 6px; }
-.state-key svg { display: block; width: 26px; height: 16px; overflow: visible; }
+.keyrow .swatch .state-key { margin: 6px 0 0 6px; } /* room above and left for the ring that overhangs the outline, so the mark sits level with its name */
+.keyrow .swatch .state-key.state-inside { margin: 0; }
+.state-key > svg { display: block; width: 26px; height: 16px; overflow: visible; }
 .state-key rect { fill: none; stroke: var(--sc); stroke-width: 1.8; stroke-dasharray: var(--sk); stroke-linecap: var(--scap); }
 .state-key .state-glyph { top: -6px; left: -6px; width: 14px; height: 14px; border-width: 1.2px; }
 .state-key.state-inside { width: 14px; margin-left: 0; }

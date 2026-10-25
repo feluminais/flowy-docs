@@ -1652,7 +1652,7 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void The_run_picker_and_the_header_show_Linked_for_the_runs_in_a_pair()
+    public void The_run_picker_and_the_header_show_Compare_pair_for_the_runs_in_a_pair()
     {
         var (temp, window, reader) = Open(BatchedTags());
         using var _ = temp;
@@ -1965,10 +1965,10 @@ public class CompareTests
         Assert.True(reader.HoldsNote); // closed without asking, and the draft is kept for when the pair is compared again
     }
 
-    // ---- Linked in the lists, Compare on a row, and Compare with in the flow form -----------------------------------------
+    // ---- Compare pair in the lists, Compare on a row, and Compare with in the flow form -----------------------------------------
 
-    private static IEnumerable<Control> Named(Control root, string name) =>
-        root.GetVisualDescendants().OfType<Control>().Where(c => Avalonia.Automation.AutomationProperties.GetName(c) == name);
+    private static IEnumerable<Control> Named(Control root, params string[] names) =>
+        root.GetVisualDescendants().OfType<Control>().Where(c => Avalonia.Automation.AutomationProperties.GetName(c) is { } n && names.Contains(n));
 
     private static IEnumerable<string> Words(Control root) => root.GetVisualDescendants().OfType<TextBlock>().Where(t => t.IsVisible).Select(t => t.Text ?? "");
 
@@ -1979,7 +1979,7 @@ public class CompareTests
         IsFlow(rel, "refund-not-recorded") ? "compare: { with: refund, note: \"The ledger write was missed\" }\n" + text : text;
 
     [AvaloniaFact]
-    public void The_Flows_tab_marks_both_flows_of_a_pair_and_shows_the_Linked_key_only_while_one_is_listed()
+    public void The_Flows_tab_marks_both_flows_of_a_pair_and_shows_the_Compare_pair_key_only_while_one_is_listed()
     {
         var (temp, window, reader) = Open(Linked);
         using var _ = temp;
@@ -1987,18 +1987,18 @@ public class CompareTests
         EditModeTests.Settle(window);
         var flows = reader.Navigator.Flows;
         Assert.Equal(["refund", "refund-not-recorded"], flows.Listed.Where(f => f.Linked).Select(f => f.Id).Order());
-        Assert.Equal(2, Named(flows, "Linked").Count(c => c.IsVisible && c is not TextBlock)); // a mark on each row of the pair, named for a screen reader
+        Assert.Equal(2, Named(flows, "Compared with The refund is not recorded", "Compared with Support refunds an order").Count(c => c.IsVisible && c is not TextBlock)); // a mark on each row of the pair, named for a screen reader
         Assert.True(flows.LinkedKeyShown);
-        Assert.Contains("Linked", Words(flows));
+        Assert.Contains("Compare pair", Words(flows));
         flows.Filter = "unanswered"; // only a flow that is in no pair is left on the list
         EditModeTests.Settle(window);
         Assert.Equal(["no-courier-answers"], flows.Listed.Select(f => f.Id));
         Assert.False(flows.LinkedKeyShown);
-        Assert.DoesNotContain(Named(flows, "Linked"), c => c.IsVisible);
+        Assert.DoesNotContain(Named(flows, "Compared with The refund is not recorded", "Compared with Support refunds an order"), c => c.IsVisible);
     }
 
     [AvaloniaFact]
-    public void A_folder_with_no_pair_shows_no_Linked_mark_and_no_key_in_either_list()
+    public void A_folder_with_no_pair_shows_no_Compare_pair_mark_and_no_key_in_either_list()
     {
         var (temp, window, reader) = Open();
         using var _ = temp;
@@ -2013,7 +2013,7 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void The_Explorer_marks_the_pair_on_its_flow_rows_and_shows_the_Linked_key_while_one_is_among_the_rows()
+    public void The_Explorer_marks_the_pair_on_its_flow_rows_and_shows_the_Compare_pair_key_while_one_is_among_the_rows()
     {
         var (temp, window, reader) = Open(Linked);
         using var _ = temp;
@@ -2024,7 +2024,7 @@ public class CompareTests
         Assert.Equal(["flow:refund", "flow:refund-not-recorded"], explorer.Rows.Where(r => r.Linked == true).Select(r => r.Key).Order());
         Assert.All(explorer.Rows.Where(r => r.Kind == "shape"), r => Assert.Null(r.Linked));
         Assert.True(explorer.LinkedKeyShown);
-        Assert.Equal(2, Named(explorer, "Linked").Count(c => c.IsVisible && c is not TextBlock));
+        Assert.Equal(2, Named(explorer, "Compared with The refund is not recorded", "Compared with Support refunds an order").Count(c => c.IsVisible && c is not TextBlock));
         explorer.Filter = "stripe"; // a filter that leaves no flow of a pair
         EditModeTests.Settle(window);
         Assert.DoesNotContain(explorer.Rows, r => r.Linked == true);

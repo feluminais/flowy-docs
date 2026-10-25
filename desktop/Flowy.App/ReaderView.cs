@@ -81,6 +81,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private string? _hover;
     private string? _ownLines; // this reader's own pick of line style
     private string _fitKey = "";
+    private (double Nav, double Details) _fitRoom; // how much of the canvas the navigator and Details covered when the view was last fitted
     private SearchBox? _search;
     private ShortcutsCard? _shortcuts;
     private Notice? _notice;
@@ -495,8 +496,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (key != _fitKey)
         {
             _fitKey = key;
-            _canvas.Fit(0, flow is not null);
+            _fitRoom = (_panels.NavInset, _panels.DetailsInset);
+            _canvas.Fit(_panels.DetailsInset, flow is not null, _panels.NavInset); // into the room beside the open panels, so no shape starts under one
         }
+        else RefitBesidePanels();
 
         RefreshBar(model, view);
         RefreshEdit();

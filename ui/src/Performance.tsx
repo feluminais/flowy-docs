@@ -219,12 +219,12 @@ function Along({ dials, positions, active }: { dials: readonly Dial[]; positions
   )
 }
 
-/** Compare under the run's name, with the Linked mark when the run is in a pair. */
+/** Compare under the run's name, with the Compare pair mark when the run is in a pair. */
 function RunActions({ compare, linked }: { compare: RunCompare; linked: boolean }) {
   return (
     <div className="run-actions">
       <button data-compare-toggle aria-pressed={compare.open} disabled={compare.off !== undefined} title={compare.off ?? 'Compare with another run (C)'} onClick={compare.onToggle}><Columns size={14} />Compare</button>
-      {linked && <span className="linked"><Link size={13} />Linked</span>}
+      {linked && <span className="linked"><Link size={13} />Compare pair</span>}
       {compare.open && compare.picker}
     </div>
   )
@@ -345,7 +345,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   return (
     <div className="perf">
       {pane ? null : ids.length > 1
-        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Linked)' : ''}`])} onChange={onRun} />
+        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Compare pair)' : ''}`])} onChange={onRun} />
         : <h2>{run.name}</h2>}
       {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
       {run.about && (run.about.length > RUN_ABOUT_FOLDS_OVER

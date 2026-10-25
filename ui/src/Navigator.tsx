@@ -3,8 +3,8 @@ import type { DragEvent, KeyboardEvent, ReactNode, Ref } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
 import { folderOf, ROOT, tagKey } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
-import { flowList, outline, outlineKey } from '../../src/core/outline.ts'
-import type { FlowRef, FlowTag, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
+import { comparedWith, flowList, outline, outlineKey, rowCount, rowCountWords } from '../../src/core/outline.ts'
+import type { FlowRef, FlowRow, FlowTag, OutlineKey, OutlineRow } from '../../src/core/outline.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
 import type { PickAt } from './ComparePicker.tsx'
@@ -61,7 +61,7 @@ export function NavRail({ tab, flows, shapes, perf, failures, onPick }: {
   perf: { runs: number; off?: string }; failures: { count: number }; onPick: (tab: NavTab) => void
 }) {
   return (
-    <nav className="rail left" aria-label="Navigator">
+    <nav className="rail left" aria-label="Panels">
       <RailButton label="Explorer" hint={keyOf('explorer')} Icon={ExplorerIcon} count={shapes} pressed={tab === 'explorer'} onClick={() => onPick('explorer')} />
       <RailButton label="Flows" hint={keyOf('flows')} Icon={Workflow} count={flows} pressed={tab === 'flows'} onClick={() => onPick('flows')} />
       <RailButton label="Performance" hint={keyOf('perf')} Icon={Activity} count={perf.runs > 0 ? perf.runs : undefined} pressed={tab === 'performance'} off={perf.off} onClick={() => onPick('performance')} />
@@ -74,7 +74,7 @@ export function NavRail({ tab, flows, shapes, perf, failures, onPick }: {
 /** The slim column on the right edge: a button for the Details panel, which is all the right-hand side holds. */
 export function DetailsRail({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
-    <nav className="rail" aria-label="Details">
+    <nav className="rail" aria-label="Side panel">
       <RailButton label="Details" Icon={Info} pressed={open} onClick={onToggle} />
     </nav>
   )
@@ -112,9 +112,9 @@ export function Sash({ side, width, onResize, onReset }: { side: 'nav' | 'detail
 /** The panel of the tabs on the left (Explorer, Flows, Performance, Failures and YAML). It has no scrolling of its own: each tab scrolls what it holds. */
 export function NavPanel({ tabs, onClose, children }: { tabs: ReactNode; onClose: () => void; children: ReactNode }) {
   return (
-    <aside className="panel navpanel">
+    <aside className="panel navpanel" aria-label="Navigator">
       {tabs}
-      <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
+      <button className="close" aria-label="Close navigator" onClick={onClose}><Close size={16} /></button>
       <div className="navbody">{children}</div>
     </aside>
   )
@@ -145,27 +145,29 @@ function anchorOf(button: HTMLElement): PickAt {
   return row.bottom + 340 > window.innerHeight ? { ...place, bottom: window.innerHeight - row.top + 6 } : { ...place, top: row.bottom + 6 }
 }
 
-/** The mark of a flow that is in a pair. Its name is what a screen reader reads on the row. */
-function LinkedMark() {
-  return <span className="linked-mark" role="img" aria-label="Linked" title="Linked"><Link size={13} /></span>
+/** The mark of a flow that is in a pair. Its name, in the tooltip and for a screen reader, says which flow it is compared with. */
+function LinkedMark({ partners }: { partners: readonly string[] }) {
+  const words = comparedWith(partners)
+  return <span className="linked-mark" role="img" aria-label={words} title={words}><Link size={13} /></span>
 }
 
 /** The foot of a list that has a flow in a pair: the mark and its name. */
 function LinkedKey() {
   return (
     <div className="navfoot">
-      <KeyRow><KeyItem swatch={<span className="linked-mark"><Link size={13} /></span>}>Linked</KeyItem></KeyRow>
+      <KeyRow><KeyItem swatch={<span className="linked-mark"><Link size={13} /></span>}>Compare pair</KeyItem></KeyRow>
     </div>
   )
 }
 
 /**
  * The Compare button of a flow's row. It shows on hover and on focus within the row but is always there and can always be focused; when a mode blocks it
- * it is greyed out with the reason in its tooltip (aria-disabled, so the keyboard can still reach the reason).
+ * it is greyed out with the reason in its tooltip (aria-disabled, so the keyboard can still reach the reason). Its name is only "Compare": the row around it
+ * (a group named for the flow in the Flows tab, the tree item in the Explorer) says which flow, so a screen reader does not read the flow's name twice.
  */
-function RowCompareButton({ flow, name, compare }: { flow: string; name: string; compare: RowCompare }) {
+function RowCompareButton({ flow, compare }: { flow: string; compare: RowCompare }) {
   return (
-    <button type="button" className="row-compare" data-compare-row={flow} aria-label={`Compare ${name}`}
+    <button type="button" className="row-compare" data-compare-row={flow} aria-label="Compare"
       aria-disabled={compare.off !== undefined} aria-pressed={compare.open === flow} title={compare.off ?? 'Compare with another flow'}
       onClick={e => {
         e.stopPropagation() // a row of the tree also opens on a click
@@ -174,6 +176,31 @@ function RowCompareButton({ flow, name, compare }: { flow: string; name: string;
       <Columns size={14} />
     </button>
   )
+}
+
+/**
+ * The rows of the Flows list with each open folder's rows inside a group named for it, so a screen reader hears the nesting (a group in a group is a folder
+ * in a folder) and not a flat run of buttons. The rows themselves are `list.rows`, in order, each with its depth; the groups only wrap them.
+ */
+function nested(rows: FlowRow[], flow: (f: FlowRef, depth: number) => ReactNode, head: (folder: Extract<FlowRow, { kind: 'folder' }>) => ReactNode): ReactNode[] {
+  const build = (from: number, depth: number): [ReactNode[], number] => {
+    const out: ReactNode[] = []
+    let at = from
+    while (at < rows.length && rows[at].depth >= depth) {
+      const r = rows[at]
+      if (r.kind === 'flow') {
+        out.push(flow(r.flow, r.depth))
+        at++
+        continue
+      }
+      const [inside, next] = build(at + 1, r.depth + 1)
+      out.push(head(r))
+      if (r.open) out.push(<div key={`in-${r.key}`} role="group" aria-label={`${r.name} folder`}>{inside}</div>)
+      at = next
+    }
+    return [out, at]
+  }
+  return build(0, 0)[0]
 }
 
 /** What a dragged flow's id is carried as. */
@@ -244,17 +271,17 @@ export function FlowsTab({ model, editing, canEdit, current, compare, onOpen, on
   }
   const marked = (folder: string) => classes(over === folder && dragging !== undefined && 'drop')
   const row = (f: FlowRef, depth: number) => (
-    <div key={f.id} className={classes('flow-item', marked(f.folder), dragging === f.id && 'dragged')} draggable={onMove !== undefined || undefined} {...drop(f.folder)}
+    <div key={f.id} role="group" aria-label={f.name} className={classes('flow-item', marked(f.folder), dragging === f.id && 'dragged')} draggable={onMove !== undefined || undefined} {...drop(f.folder)}
       onDragStart={e => { e.dataTransfer.setData(FLOW_DRAG, f.id); e.dataTransfer.effectAllowed = 'move'; setDragging(f.id) }}
       onDragEnd={() => { setDragging(undefined); setOver(undefined) }}>
       <button className="flow-row" aria-current={f.id === current} style={{ paddingLeft: 6 + INDENT * depth + TWIST }} title={nameOf(model, f.view)} onClick={() => onOpen(f)}>
         {editing ? <Pencil size={15} /> : <Play size={15} />}
         <span className="name">{f.name}</span>
-        {f.linked && <LinkedMark />}
+        {f.linked && <LinkedMark partners={f.partners} />}
         <span className="muted">{f.steps === 0 ? 'no steps yet' : plural(f.steps, 'step')}</span>
         {f.tags.length > 0 && <span className="flow-tags">{f.tags.map(t => <TagWord key={tagKey(t)} tag={t} />)}</span>}
       </button>
-      <RowCompareButton flow={f.id} name={f.name} compare={compare} />
+      <RowCompareButton flow={f.id} compare={compare} />
     </div>
   )
   return (
@@ -275,16 +302,14 @@ export function FlowsTab({ model, editing, canEdit, current, compare, onOpen, on
           </div>
         )}
         {filtering && list.shown > 0 && <p className="muted navnote">{list.shown} of {plural(list.total, 'flow')}</p>}
-        {list.rows.map(r => r.kind === 'flow'
-          ? row(r.flow, r.depth)
-          : (
-            <button key={r.key} className={classes('group-head', 'folder', marked(r.path))} aria-expanded={r.open} style={{ paddingLeft: 6 + INDENT * r.depth }} onClick={() => toggleFolder(r.path)} {...drop(r.path)}>
-              <ChevronRight size={14} />
-              <Folder size={15} />
-              <span className="name">{r.name}</span>
-              <span className="muted">{r.flows}</span>
-            </button>
-          ))}
+        {nested(list.rows, row, folder => (
+          <button key={folder.key} className={classes('group-head', 'folder', marked(folder.path))} aria-expanded={folder.open} style={{ paddingLeft: 6 + INDENT * folder.depth }} onClick={() => toggleFolder(folder.path)} {...drop(folder.path)}>
+            <ChevronRight size={14} />
+            <Folder size={15} />
+            <span className="name">{folder.name}</span>
+            <span className="muted">{folder.flows}</span>
+          </button>
+        ))}
         {filtering && list.total > 0 && list.shown === 0 && <p className="muted navnote">{query.trim() !== '' ? `No flow matches “${query.trim()}”.` : 'No flow has these tags.'}</p>}
         {list.total === 0 && (editing
           ? <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>
@@ -371,7 +396,7 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
   }
 
   const { start, end } = visibleRows(scrollTop, height, rows.length, ROW)
-  const counts = (r: OutlineRow) => (r.kind === 'flow' ? plural(r.steps ?? 0, 'step') : [r.shapes > 0 && String(r.shapes), r.flows > 0 && plural(r.flows, 'flow')].filter(Boolean).join(' · '))
+  const counts = (r: OutlineRow) => (r.kind === 'flow' ? plural(r.steps ?? 0, 'step') : rowCount(r))
   const icon = (r: OutlineRow) => (r.id === ROOT && r.kind === 'shape' ? <Home size={16} /> : r.kind === 'flow' ? <Route size={16} /> : <ObjectTile model={model} object={model.objects[r.id]} size={18} />)
 
   return (
@@ -408,10 +433,13 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
                 : <span className="twist" aria-hidden="true" />}
               {icon(r)}
               <span className="name">{r.name}</span>
-              {r.linked && <LinkedMark />}
+              {r.linked && <LinkedMark partners={r.partners ?? []} />}
               {r.problem && <span className="dot" title="A problem in here" />}
-              <span className="count">{counts(r)}</span>
-              {r.kind === 'flow' && <RowCompareButton flow={r.id} name={r.name} compare={compare} />}
+              <span className="count" title={rowCountWords(r) || undefined}>
+                <span aria-hidden="true">{counts(r)}</span>
+                <span className="visually-hidden">{rowCountWords(r) || counts(r)}</span>
+              </span>
+              {r.kind === 'flow' && <RowCompareButton flow={r.id} compare={compare} />}
             </div>
           ))}
         </div>

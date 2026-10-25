@@ -47,7 +47,7 @@ test('picking another row changes the run and lets go of the focus', async ({ pa
 test('a click elsewhere closes the list', async ({ page }) => {
   await openRun(page)
   await dropdown(page).click()
-  await page.locator('.react-flow__pane').click({ position: { x: 900, y: 400 } }) // clear of the panel
+  await page.locator('.react-flow__pane').click({ position: { x: 1000, y: 30 } }) // clear of the panel and of the shapes, which are fitted beside it
   await expect(page.getByRole('listbox')).toBeHidden()
   expect(await onPage(page)).toBe(true)
 })

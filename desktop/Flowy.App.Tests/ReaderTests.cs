@@ -268,16 +268,22 @@ public class ReaderTests
         var (window, reader) = Open();
         reader.GoTo("ordering");
         Dispatcher.UIThread.RunJobs();
-        var frame = reader.Canvas.Scene!.Frame!.Value;
-        var vp = reader.Canvas.Viewport;
-        var onEdge = reader.Canvas.TranslatePoint(new Point(frame.X * vp.Zoom + vp.X, (frame.Y + frame.Height / 2) * vp.Zoom + vp.Y), window)!.Value;
+        // the outline's left edge, where it is now: opening Details fits the view beside it, so the outline moves
+        Point OnEdge()
+        {
+            var frame = reader.Canvas.Scene!.Frame!.Value;
+            var vp = reader.Canvas.Viewport;
+            return reader.Canvas.TranslatePoint(new Point(frame.X * vp.Zoom + vp.X, (frame.Y + frame.Height / 2) * vp.Zoom + vp.Y), window)!.Value;
+        }
 
-        window.MouseDown(onEdge, MouseButton.Left);
-        window.MouseUp(onEdge, MouseButton.Left);
+        var first = OnEdge();
+        window.MouseDown(first, MouseButton.Left);
+        window.MouseUp(first, MouseButton.Left);
         Assert.True(reader.DetailsOpenNow);
 
-        window.MouseDown(onEdge, MouseButton.Left);
-        window.MouseUp(onEdge, MouseButton.Left);
+        var second = OnEdge();
+        window.MouseDown(second, MouseButton.Left);
+        window.MouseUp(second, MouseButton.Left);
         Assert.False(reader.DetailsOpenNow);
         Assert.Equal("ordering", reader.View);
     }

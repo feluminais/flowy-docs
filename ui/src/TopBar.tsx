@@ -48,7 +48,7 @@ export function TopBar({ model, view, editing, live, readOnly, problems, models,
         {chain(model, view).reverse().map((id, i) => (
           <Fragment key={id}>
             {i > 0 && <ChevronRight size={14} />}
-            <button disabled={id === view} onClick={() => onJump(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
+            <button aria-current={id === view ? 'page' : undefined} onClick={id === view ? undefined : () => onJump(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
           </Fragment>
         ))}
       </nav>

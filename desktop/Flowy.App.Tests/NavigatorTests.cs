@@ -105,6 +105,66 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
+    public void An_Explorer_row_counts_the_shapes_right_inside_it_as_the_canvas_does_and_its_tooltip_says_the_rest()
+    {
+        var (window, reader) = Open();
+        reader.ClickRail(PanelTab.Explorer);
+        window.UpdateLayout();
+        var explorer = reader.Navigator.Explorer;
+        var ordering = explorer.Rows.First(r => r.Key == "shape:ordering");
+        Assert.Equal(7, ordering.Inside); // the "7 inside" the canvas draws on Ordering, and the tree used to say 13
+        Assert.Equal(13, ordering.Shapes);
+        var count = explorer.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == "7 inside · 12 flows");
+        Assert.Equal("7 inside, 13 in all, 12 flows", ToolTip.GetTip(count));
+        Assert.Contains(explorer.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Ordering, 7 inside, 13 in all, 12 flows");
+        Assert.Equal(36, explorer.Rows[0].Shapes); // the project row still holds every shape; the panel header keeps the model's totals
+        Assert.Equal("36 shapes · 20 flows", explorer.SummaryText);
+    }
+
+    [AvaloniaFact]
+    public void Opening_the_navigator_fits_the_view_beside_it_and_closing_it_fits_the_window_again()
+    {
+        var (window, reader) = Open();
+        window.UpdateLayout();
+        double Left() => new[] { "courier", "customer", "restaurant", "support", "backoffice", "delivery" }
+            .Select(id => reader.Canvas.Viewport.ToScreen(new Pt(reader.Canvas.RectOf(id)!.Value.X, 0)).X).Min();
+        var whole = Left();
+        reader.ClickRail(PanelTab.Explorer);
+        window.UpdateLayout();
+        Assert.True(Left() >= Camera.Nav, $"a shape starts at {Left()}, under the navigator ({Camera.Nav} wide)");
+        reader.ClickRail(PanelTab.Explorer);
+        window.UpdateLayout();
+        Assert.Equal(whole, Left(), 1);
+    }
+
+    [AvaloniaFact]
+    public void Opening_Details_fits_the_view_beside_it_too_and_closing_it_fits_the_window_again()
+    {
+        var (window, reader) = Open();
+        window.UpdateLayout();
+        double Right() => new[] { "courier", "customer", "restaurant", "support", "backoffice", "delivery", "mapbox", "stripe", "twilio" }
+            .Select(id => reader.Canvas.Viewport.ToScreen(new Pt(reader.Canvas.RectOf(id)!.Value.Right, 0)).X).Max();
+        var whole = Right();
+        reader.ClickRail(PanelTab.Details);
+        window.UpdateLayout();
+        Assert.True(Right() <= reader.Canvas.Bounds.Width - Camera.Panel, $"a shape ends at {Right()}, under Details ({Camera.Panel} wide)");
+        reader.ClickRail(PanelTab.Details);
+        window.UpdateLayout();
+        Assert.Equal(whole, Right(), 1);
+    }
+
+    [AvaloniaFact]
+    public void A_view_the_reader_has_zoomed_stays_where_it_is_when_the_navigator_opens()
+    {
+        var (window, reader) = Open();
+        window.MouseWheel(new Point(500, 300), new Vector(0, 3));
+        var zoomed = reader.Canvas.Viewport;
+        reader.ClickRail(PanelTab.Explorer);
+        window.UpdateLayout();
+        Assert.Equal(zoomed, reader.Canvas.Viewport);
+    }
+
+    [AvaloniaFact]
     public void Opening_a_row_with_a_chevron_shows_what_is_inside_it()
     {
         var (_, reader) = Open();

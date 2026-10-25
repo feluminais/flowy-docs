@@ -111,7 +111,7 @@ public class StateTests
         Assert.Equal(("stopped", true, false, true, false), shop.StateShown); // the glyph on a dashed ring, no second outline
         Assert.Contains("state-inside", shop.Classes);
         Assert.DoesNotContain("stated", shop.Classes);
-        Assert.Equal(["Stopped inside"], shop.GetVisualDescendants().OfType<StateGlyph>().Select(g => Avalonia.Automation.AutomationProperties.GetName(g)));
+        Assert.Equal(["Stopped inside: Orders"], shop.GetVisualDescendants().OfType<StateGlyph>().Select(g => Avalonia.Automation.AutomationProperties.GetName(g)));
         canvas.ShowStates(Marks(folder, ("orders", "stopped"), ("shop", "degraded")));
         Assert.Equal(("degraded", false, true, true, false), shop.StateShown);
         Assert.Contains("stated", shop.Classes);
@@ -168,13 +168,13 @@ public class StateTests
         reader.Play("hold", 0);
         Assert.Equal([new KeyValuePair<string, StateMark>("stripe", new StateMark("starting", false))], reader.Canvas.StatesShown); // the flow's start: Stripe, drawn beside the shop
         reader.Play("hold", 1); // orders stops: it is inside the API, which the shop view draws
-        Assert.Equal(new StateMark("stopped", true), reader.Canvas.StatesShown["api"]);
+        Assert.Equal(new StateMark("stopped", true, "Orders"), reader.Canvas.StatesShown["api"]);
         Assert.Equal(new StateMark("starting", false), reader.Canvas.StatesShown["stripe"]); // and what held from the start holds
         reader.Play("hold", 3); // the API restarts and the web app is not well: both are the shape's own
         Assert.Equal(new StateMark("restarting", false), reader.Canvas.StatesShown["api"]);
         Assert.Equal(new StateMark("degraded", false), reader.Canvas.StatesShown["web"]);
         window.KeyPress(Key.Left, RawInputModifiers.None, PhysicalKey.ArrowLeft, null);
-        Assert.Equal(new StateMark("stopped", true), reader.Canvas.StatesShown["api"]); // the state at a stop is worked out from the start, so back needs no undo
+        Assert.Equal(new StateMark("stopped", true, "Orders"), reader.Canvas.StatesShown["api"]); // the state at a stop is worked out from the start, so back needs no undo
         Assert.DoesNotContain("web", reader.Canvas.StatesShown.Keys);
         window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
         Assert.Null(reader.PlayingFlowId);
@@ -188,7 +188,7 @@ public class StateTests
         reader.Play("hold", 0);
         Assert.Equal(["Starting"], Keyed(reader)); // Stripe starts out starting, and it is drawn beside the shop
         reader.Play("hold", 1);
-        Assert.Equal(["Starting", "Stopped inside"], Keyed(reader));
+        Assert.Equal(["Starting", "Stopped inside: Orders"], Keyed(reader));
         reader.Play("hold", 3);
         Assert.Equal(["Starting", "Restarting", "Degraded"], Keyed(reader)); // in the order of the six, not of the shapes
         reader.Play("hold", 4); // Stripe and the API are running again; the web app is still not well
@@ -201,8 +201,8 @@ public class StateTests
     [AvaloniaFact]
     public void The_key_puts_the_states_in_the_order_of_the_six_with_a_shape_s_own_before_one_it_holds()
     {
-        var marks = new[] { new StateMark("degraded", false), new StateMark("stopped", true), new StateMark("stopped", false), new StateMark("starting", false), new StateMark("degraded", false) };
-        Assert.Equal(["Starting", "Stopped", "Stopped inside", "Degraded"], StateKey.Distinct(marks).Select(StateKey.Word));
+        var marks = new[] { new StateMark("degraded", false), new StateMark("stopped", true, "Orders"), new StateMark("stopped", false), new StateMark("starting", false), new StateMark("degraded", false) };
+        Assert.Equal(["Starting", "Stopped", "Stopped inside: Orders", "Degraded"], StateKey.Distinct(marks).Select(StateKey.Word));
         Assert.Null(StateKey.Of([]));
     }
 
