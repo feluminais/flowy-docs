@@ -1,13 +1,13 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
-import { bandOf, BAND_NAMES, coverage, partName, lightFor, ratingsOf, riskOf } from '../../src/core/failures.ts'
+import { analysedText, bandOf, BAND_NAMES, BAND_RULES, coverage, partName, lightFor, ratingsOf, riskOf, rowName } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import type { Model } from '../../src/core/model.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { Section } from './Chrome.tsx'
-import { afterText, bandCounts, firstErrorAt, ratingCells, STATUS_NAMES } from './failuresview.ts'
+import { AFTER_LABEL, afterText, bandCounts, firstErrorAt, ratingCells, SEEN_IN_RUN_NAME, showItName, STATUS_NAMES } from './failuresview.ts'
 import type { Filter } from './failuresview.ts'
 import { AddMode, AnalysisForm, ModeForm, NewAnalysis } from './FailuresEdit.tsx'
 import type { Preset } from './FailuresEdit.tsx'
@@ -89,19 +89,30 @@ export function FailuresBody(p: FailuresProps) {
   const lit = mode ? lightFor(model, p.view, mode) : undefined
   const flowShown = mode?.flow !== undefined && Object.hasOwn(model.flows, mode.flow)
   const run = mode?.run !== undefined && Object.hasOwn(p.runs, mode.run) ? p.runs[mode.run] : undefined
+  const showIt = flowShown && mode?.flow !== undefined ? showItName(model.flows[mode.flow].name || mode.flow) : undefined
   const seen = mode && run ? firstErrorAt(model, run, mode) !== undefined : false
+
+  // The card sits above the list, so a mode picked after the panel was scrolled down to its row brings the card's top back into view.
+  const card = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = card.current
+    const box = el?.closest('.perf')
+    if (!el || !box) return
+    const [at, around] = [el.getBoundingClientRect(), box.getBoundingClientRect()]
+    if (at.top < around.top || at.top > around.bottom) el.scrollIntoView({ block: 'start' })
+  }, [modeId])
 
   const list = (title: string, group: Ranked[]) => group.length > 0 && (
     <Fragment key={title}>
       <Section icon={Info} title={title} count={group.length} />
+      <div className="failhead" aria-hidden="true"><span>Risk</span></div>
       <ul className="failrows">
         {group.map(r => (
           <li key={r.id}>
-            <button className="failrow" aria-current={r.id === modeId || undefined} onClick={() => p.onMode(r.id === modeId ? undefined : r.id)}>
+            <button className="failrow" aria-pressed={r.id === modeId} aria-label={rowName(model, r)} onClick={() => p.onMode(r.id === modeId ? undefined : r.id)}>
               <span className={`sw ${r.band}`} aria-hidden="true" />
-              <span className="visually-hidden">{BAND_NAMES[r.band]}.</span>
               <span className="what"><span className="part">{partName(model, r.mode)}</span><span>{r.mode.mode}</span></span>
-              <span className="risk">{riskOf(r.mode) ?? ''}</span>
+              <span className="risk">{r.risk ?? ''}</span>
             </button>
           </li>
         ))}
@@ -129,13 +140,13 @@ export function FailuresBody(p: FailuresProps) {
         {BAND_ORDER.map(b => (
           <li key={b}>
             <button aria-pressed={filter.band === b} onClick={() => p.onFilter({ band: filter.band === b ? undefined : b })}>
-              <span className={`sw ${b}`} aria-hidden="true" />{BAND_NAMES[b]}<span className="count">{counts[b]}</span>
+              <span className={`sw ${b}`} aria-hidden="true" />{BAND_NAMES[b]}<span className="count">{counts[b]}</span><span className="rule">{BAND_RULES[b]}</span>
             </button>
           </li>
         ))}
       </ul>
       <p className="coverage">
-        <span>Analysed {covered.analysed.length} of {total}</span>
+        <span>{analysedText(covered.analysed.length, total)}</span>
         {covered.left.length > 0 && <button className="link" aria-pressed={filter.left === true} onClick={() => p.onFilter({ left: filter.left ? undefined : true })}>Not analysed ({covered.left.length})</button>}
       </p>
       {picked !== undefined && <span className="chip partchip">{picked}<button className="link" aria-label="Clear" onClick={p.onClearPart}><Close size={12} /></button></span>}
@@ -144,6 +155,57 @@ export function FailuresBody(p: FailuresProps) {
         ? <AddMode key={JSON.stringify(adding)} model={model} analysisId={analysisId} preset={adding} run={p.run} onAdded={id => { setAdding(undefined); p.onMode(id) }} onCancel={() => setAdding(undefined)} />
         : <button onClick={() => setAdding(presetOf(model, part))}><Plus size={16} />Add failure mode</button>)}
 
+      {mode && p.editing && analysisId !== undefined && modeId !== undefined && (
+        <div className="failcard" ref={card}>
+          <Section icon={Alert} title={partName(model, mode)} />
+          <ModeForm model={model} analysisId={analysisId} modeId={modeId} runs={p.runs} run={p.run} />
+          <div className="perf-buttons">
+            {flowShown && mode.flow !== undefined && <button aria-label={showIt} title={showIt} onClick={() => p.onShowFlow(mode.flow!, mode.step === undefined ? undefined : Number(mode.step))}><Route size={16} />Show it</button>}
+          </div>
+        </div>
+      )}
+      {mode && !p.editing && (
+        <div className="failcard" ref={card}>
+          <Section icon={Alert} title={partName(model, mode)} />
+          <p className="modeline"><strong>{mode.mode}</strong></p>
+          {lit && (
+            <KeyRow>
+              <KeyItem swatch={<span className={`sw fails band-${bandOf(mode)}`} />}>Fails</KeyItem>
+              {lit.affects.length > 0 && <KeyItem swatch={<span className={`sw affects band-${bandOf(mode)}`} />}>Affects</KeyItem>}
+            </KeyRow>
+          )}
+          <dl className="faildl">
+            {mode.effect && <><dt>Effect</dt><dd>{mode.effect}</dd></>}
+            {mode.cause && <><dt>Cause</dt><dd>{mode.cause}</dd></>}
+          </dl>
+          {RATINGS.map(([key, label]) => {
+            const value = ratingsOf(mode)[key]
+            const scale = analysis.scale?.[key]
+            return (
+              <div className="rating" key={key}>
+                <span className="label">{label}</span>
+                <span className="cells" aria-hidden="true">{ratingCells(value).map((on, i) => <i key={i} className={on ? 'on' : undefined} />)}</span>
+                <span className="value">{value ?? 'Not rated'}</span>
+                {scale && (scale.low || scale.high) && <span className="ends muted"><span>1: {scale.low}</span><span>10: {scale.high}</span></span>}
+              </div>
+            )
+          })}
+          <p className="riskline">
+            <span className="label">Risk</span> <strong>{riskOf(mode) ?? 'None'}</strong> <span className={`sw ${bandOf(mode)}`} aria-hidden="true" />{BAND_NAMES[bandOf(mode)]}
+            {afterText(mode) !== undefined && <span className="muted after">{AFTER_LABEL}: {afterText(mode)}</span>}
+          </p>
+          <dl className="faildl">
+            {mode.controls && <><dt>Controls</dt><dd>{mode.controls}</dd></>}
+            {(mode.action || mode.owner || mode.status) && <><dt>Next action</dt><dd>{[mode.action, mode.owner && `${mode.owner}`, STATUS_NAMES[mode.status ?? 'open'] ?? mode.status].filter(Boolean).join(' · ')}</dd></>}
+            {mode.affects && mode.affects.length > 0 && <><dt>Affects</dt><dd>{mode.affects.map(id => nameOf(model, id)).join(', ')}</dd></>}
+          </dl>
+          {mode.description && <div className="prose"><Description text={mode.description} /></div>}
+          <div className="perf-buttons">
+            {flowShown && mode.flow !== undefined && <button aria-label={showIt} title={showIt} onClick={() => p.onShowFlow(mode.flow!, mode.step === undefined ? undefined : Number(mode.step))}><Route size={16} />Show it</button>}
+            {seen && modeId !== undefined && <button aria-label={SEEN_IN_RUN_NAME} title={SEEN_IN_RUN_NAME} onClick={() => p.onSeenInRun(modeId)}><Activity size={16} />Seen in a run</button>}
+          </div>
+        </div>
+      )}
       {filter.left
         ? (
           <>
@@ -166,57 +228,9 @@ export function FailuresBody(p: FailuresProps) {
           </>
         )}
 
-      {mode && p.editing && analysisId !== undefined && modeId !== undefined && (
-        <>
-          <Section icon={Alert} title={partName(model, mode)} />
-          <ModeForm model={model} analysisId={analysisId} modeId={modeId} runs={p.runs} run={p.run} />
-          <div className="perf-buttons">
-            {flowShown && mode.flow !== undefined && <button onClick={() => p.onShowFlow(mode.flow!, mode.step === undefined ? undefined : Number(mode.step))}><Route size={16} />Show it</button>}
-          </div>
-        </>
-      )}
-      {mode && !p.editing && (
-        <>
-          <Section icon={Alert} title={partName(model, mode)} />
-          <p className="modeline"><strong>{mode.mode}</strong></p>
-          <dl className="faildl">
-            {mode.effect && <><dt>Effect</dt><dd>{mode.effect}</dd></>}
-            {mode.cause && <><dt>Cause</dt><dd>{mode.cause}</dd></>}
-          </dl>
-          {RATINGS.map(([key, label]) => {
-            const value = ratingsOf(mode)[key]
-            const scale = analysis.scale?.[key]
-            return (
-              <div className="rating" key={key}>
-                <span className="label">{label}</span>
-                <span className="cells" aria-hidden="true">{ratingCells(value).map((on, i) => <i key={i} className={on ? 'on' : undefined} />)}</span>
-                <span className="value">{value ?? 'Not rated'}</span>
-                {scale && (scale.low || scale.high) && <span className="ends muted"><span>1: {scale.low}</span><span>10: {scale.high}</span></span>}
-              </div>
-            )
-          })}
-          <p className="riskline">
-            <span className="label">Risk</span> <strong>{riskOf(mode) ?? 'None'}</strong> <span className={`sw ${bandOf(mode)}`} aria-hidden="true" />{BAND_NAMES[bandOf(mode)]}
-            {afterText(mode) !== undefined && <span className="muted"> · After: {afterText(mode)}</span>}
-          </p>
-          <dl className="faildl">
-            {mode.controls && <><dt>Controls</dt><dd>{mode.controls}</dd></>}
-            {(mode.action || mode.owner || mode.status) && <><dt>Next action</dt><dd>{[mode.action, mode.owner && `${mode.owner}`, STATUS_NAMES[mode.status ?? 'open'] ?? mode.status].filter(Boolean).join(' · ')}</dd></>}
-            {mode.affects && mode.affects.length > 0 && <><dt>Affects</dt><dd>{mode.affects.map(id => nameOf(model, id)).join(', ')}</dd></>}
-          </dl>
-          {mode.description && <div className="prose"><Description text={mode.description} /></div>}
-          <div className="perf-buttons">
-            {flowShown && mode.flow !== undefined && <button onClick={() => p.onShowFlow(mode.flow!, mode.step === undefined ? undefined : Number(mode.step))}><Route size={16} />Show it</button>}
-            {seen && modeId !== undefined && <button onClick={() => p.onSeenInRun(modeId)}><Activity size={16} />Seen in a run</button>}
-          </div>
-        </>
-      )}
-
       <Section icon={Info} title="Key" />
       <KeyRow>
         {BAND_ORDER.filter(b => counts[b] > 0).map(b => <KeyItem key={b} swatch={<span className={`sw ${b}`} />}>{BAND_NAMES[b]}</KeyItem>)}
-        {lit && <KeyItem swatch={<span className="sw fails" />}>Fails</KeyItem>}
-        {lit && lit.affects.length > 0 && <KeyItem swatch={<span className="sw affects" />}>Affects</KeyItem>}
       </KeyRow>
       {problemList}
     </div>
