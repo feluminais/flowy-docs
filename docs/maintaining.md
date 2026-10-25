@@ -212,7 +212,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       and Data and Mixed are greyed out with the reason in their tooltip. A run with sizes opens on Mixed: the stripes count the calls and are as big as their calls. Data counts the data instead and turns the
       Key's "More calls" into "More data" and the scale into KB/s. A line with no numbers has blue line-highlight stripes that speed up as you drag the slider up ("No numbers" in the Key);
       under the chart a key draws a blue line (Expected call), an amber one (Slowest 5%), red dashes (First
-      struggles) and a solid line (Now), the chart says "Calls into" the run's entry shape and "Time (log)" on its left edge, and the Key under the controls draws each mark on the canvas
+      struggles) and a solid line (Now), the chart says "Calls into" the run's entry shape and "Time (log)" on its left edge, and the Key (under the sentence about where it first struggles, and Each stripe) draws each mark on the canvas
       now (Busy, Struggling, Waiting, Not measured, a call, a failing call, More calls) with no sentences, all of it in view in an 880 px window; a shape past 85% busy wears its percentage and Waiting is a square badge; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo --view ordering --tab failures --select stripe-timeout`: the left rail has a Failures button under
@@ -369,7 +369,7 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red
       along their own outline (SQLite's cylinder, Upload folder's folder, the boxes of Web API and the worker), Order queue carries a
       number but no colour, busy lines are thicker and carry more dots, and Catalog cache (a hexagon with no numbers) and Payment gateway
-      stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5%, red dashes First struggles and a solid line Now; the Key under the controls
+      stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5%, red dashes First struggles and a solid line Now; the Key (under the first-struggles sentence and Each stripe)
       draws each mark on the canvas now. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
       panel; Back closes it too if you opened it with T (after Esc, Back opens it again). Click a shape and its Details open on the right, beside
       the panel, and the diagram still fits; Esc closes whichever is showing.

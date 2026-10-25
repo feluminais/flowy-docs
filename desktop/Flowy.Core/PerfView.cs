@@ -161,6 +161,9 @@ public static class PerfView
     /// <summary>A run's or an analysis's About note is shown as it is until it is longer than this many characters, then it folds. The same number as `ABOUT_FOLDS_OVER` in ui/src/perfview.ts.</summary>
     public const int AboutFoldsOver = 400;
 
+    /// <summary>A run's About note folds sooner: the Performance panel keeps the load, where it first struggles and the key in view together, and the note is one tap away. The same number as `RUN_ABOUT_FOLDS_OVER` in ui/src/perfview.ts.</summary>
+    public const int RunAboutFoldsOver = 200;
+
     /// <summary>A load with its unit: "200 req/s".</summary>
     public static string FmtLoad(double load, string unit) => $"{Trim(load, load < 10 ? 1 : 0)} {unit}";
 

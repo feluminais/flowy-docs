@@ -407,7 +407,7 @@ internal sealed class PerfPanel : StackPanel
         };
         _ramp.Classes.Add("tool");
         _ramp.Classes.Add("primary");
-        _ramp.HorizontalAlignment = HorizontalAlignment.Left; // alone on its row now, so it keeps its own width
+        _ramp.HorizontalAlignment = HorizontalAlignment.Left; // alone on its row, so it keeps its own width
         _ramp.Click += (_, _) =>
         {
             RampClicked?.Invoke();
@@ -640,9 +640,6 @@ internal sealed class PerfPanel : StackPanel
         else Children.Add(_slider);
         Children.Add(new TickLabels(PerfView.TickLabels(run)));
         if (!still) Children.Add(_ramp);
-        if (!_pane) Children.Add(MeasureRow());
-        AddKey();
-        if (run.Events.Count > 0) Children.Add(BuildEvents(model, run));
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
         if (knee is null) Children.Add(Muted("It never struggled in the tested range."));
@@ -661,6 +658,8 @@ internal sealed class PerfPanel : StackPanel
             };
             Children.Add(new WrapPanel { Children = { sentence, go } });
         }
+        if (!_pane) Children.Add(MeasureRow());
+        AddKey();
         var subject = PerfView.ChartSubject(run.Entry, id => NameOf(model, id));
         Children.Add(Muted(subject, 12.5));
         _strip = new LatencyStrip(run, knee?.Index, pos, subject);
@@ -670,6 +669,7 @@ internal sealed class PerfPanel : StackPanel
             (KeyRow.Mark("p95"), "Slowest 5%"),
             knee is null ? null : (KeyRow.Dashes(), "First struggles"),
             (KeyRow.Mark("now"), "Now")));
+        if (run.Events.Count > 0) Children.Add(BuildEvents(model, run));
 
         BuildSelection(model, view, run, selection);
 
@@ -705,7 +705,7 @@ internal sealed class PerfPanel : StackPanel
         {
             var note = Muted(about);
             // In a pane of a comparison the load and the slider come first: the About note is always folded there, so it does not push them out of a short pane.
-            if (about.Length <= PerfView.AboutFoldsOver && !_pane)
+            if (about.Length <= PerfView.RunAboutFoldsOver && !_pane)
             {
                 Children.Add(note);
                 return;
@@ -1094,8 +1094,6 @@ internal sealed class PerfPanel : StackPanel
         }
         Children.Add(Chrome.Section(Icons.Activity, "Load"));
         for (var i = 0; i < dials.Items.Count; i++) Children.Add(BuildDial(i, dials.Items[i], still));
-        if (!_pane) Children.Add(MeasureRow());
-        AddKey();
 
         Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
         var knee = Perf.KneeOf(runs, runId);
@@ -1115,6 +1113,8 @@ internal sealed class PerfPanel : StackPanel
             };
             Children.Add(new WrapPanel { Children = { sentence, go } });
         }
+        if (!_pane) Children.Add(MeasureRow());
+        AddKey();
         Children.Add(AlongLine());
         var along = AlongSeries(runs, runId, dials.Items);
         var subject = PerfView.ChartSubject(null, id => NameOf(model, id));
@@ -1156,8 +1156,16 @@ internal sealed class PerfPanel : StackPanel
         var heading = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { dot, new TextBlock { Text = dial.Name, FontWeight = FontWeight.SemiBold } } };
         var load = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { number, note } };
         Grid.SetColumn(note, 1);
-        var inside = new StackPanel { Spacing = 6, Children = { heading, load, slider, new TickLabels(PerfView.DialTicks(dial)) } };
-        if (!still) inside.Children.Add(ramp);
+        // Ramp sits on the row of the source's name, which has room, so two sources and where they first struggle stay in view together.
+        ramp.HorizontalAlignment = HorizontalAlignment.Right;
+        ramp.VerticalAlignment = VerticalAlignment.Center;
+        var top = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { heading } };
+        if (!still)
+        {
+            top.Children.Add(ramp);
+            Grid.SetColumn(ramp, 1);
+        }
+        var inside = new StackPanel { Spacing = 6, Children = { top, load, slider, new TickLabels(PerfView.DialTicks(dial)) } };
         var block = new Border { Child = inside };
         block.Classes.Add("dial");
         _dialViews.Add(new DialView(dial, block, dot, number, note, slider, ramp));

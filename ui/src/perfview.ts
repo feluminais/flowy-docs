@@ -14,6 +14,9 @@ export { isTime }
 /** A run's or an analysis's About note is shown as it is until it is long enough to be worth folding. The same number as `PerfView.AboutFoldsOver` in the desktop app. */
 export const ABOUT_FOLDS_OVER = 400
 
+/** A run's About note folds sooner: the Performance tab keeps the load, where it first struggles and the key in view together, and the note is one tap away. The same number as `PerfView.RunAboutFoldsOver`. */
+export const RUN_ABOUT_FOLDS_OVER = 200
+
 /** The maths and the words of the Performance tab, kept apart from the drawing so the node tests can run them. No DOM in here. */
 
 /** How long Ramp takes to sweep from the first tested level to the last, whatever the number of levels. */
