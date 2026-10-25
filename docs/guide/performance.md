@@ -46,11 +46,11 @@ with a small curve of each across all of them. A shape that holds others takes t
 you see which system is struggling and zoom in to find where. The tab opens on the load where things first struggle, if anything
 does, and **Go there** gets back to it. The sentence names the shape the way the canvas draws it, so a part inside Dispatch reads "Dispatch > ETA", and the tooltip of **Go there** says which load it goes to.
 
-**Marks on the canvas.** The **Key** sits right under the controls, so it is in view with them, and draws only the marks on the canvas now. A shape's outline runs from green to red as it fills up (**Busy**).
+**Marks on the canvas.** The tab runs from the controls down: the load, **Where it struggles** (the sentence and **Go there**), **Each stripe**, the **Key**, then the chart and the numbers of what is picked. The key draws only the marks on the canvas now. A run's About note folds under "About this run" once it is over 200 characters, so the load, the sentence and the key stay in view together. A shape's outline runs from green to red as it fills up (**Busy**).
 Once a shape is past the point where a run counts as struggling (85% busy) it also wears its percentage, so the fact does not rest on colour alone (**Struggling**); shapes below that carry nothing. A square badge with a number is
 **Waiting**: how many calls are queued. It is square so it is not taken for the round badge of a failure mode. A plain outline is **Not measured**.
 
-**The chart.** Under **Where it struggles** the chart says whose calls it shows (the shape the run's `entry` names, "Calls into Customer app", else "All calls"). Its left edge is time on a log scale ("Time (log)"), so 10 ms, 100 ms and 1 s are evenly
+**The chart.** Under the key, the chart says whose calls it shows (the shape the run's `entry` names, "Calls into Customer app", else "All calls"). Its left edge is time on a log scale ("Time (log)"), so 10 ms, 100 ms and 1 s are evenly
 spaced. A blue line is the **Expected call**, an amber one the **Slowest 5%**, red dashes **First struggles**, and the solid grey line is **Now**, the load on the slider. For a screen reader the chart is a list: each tested load with its expected call and its slowest 5%.
 
 **Calls, Data and Mixed.** A call is drawn as a small stripe that runs along its line and sticks out to either side of it. **Each stripe** sets what one stripe stands for, and the tab has three choices, each drawn with its stripe. **Calls** draws one

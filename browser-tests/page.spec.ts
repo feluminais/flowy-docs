@@ -175,6 +175,9 @@ test.describe('the performance tab on an 880 px window', () => {
     const key = page.locator('.perf .keyrow').first()
     const box = await key.boundingBox()
     expect(box!.y + box!.height).toBeLessThanOrEqual(880)
+    const sentence = await page.getByText(/^First struggles at 900 orders\/min/).boundingBox()
+    expect(sentence!.y + sentence!.height).toBeLessThan(box!.y) // the sentence comes before the key and stays in view
+    expect((await page.locator('.stripfig').boundingBox())!.y).toBeGreaterThan(box!.y) // and the chart after it
     await expect(page.getByRole('group', { name: 'Each stripe' })).toBeVisible()
     await expect(page.locator('.perf .keyrow').first().getByText('Struggling')).toBeVisible() // Dispatch is past the struggle mark: its number is on the canvas and in the key
     await expect(page.locator('.strain-pct').first()).toHaveText(/^\d+%$/)

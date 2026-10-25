@@ -410,4 +410,47 @@ public class PerfPanelTests
         Assert.Contains("Struggling", KeyOf(panel));
         Assert.Contains("pct", panel.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("sw")).SelectMany(b => b.Classes));
     }
+
+    [AvaloniaFact]
+    public void The_panel_runs_from_the_load_to_where_it_struggles_then_the_stripe_choice_and_the_key_then_the_chart()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 3);
+        var rows = panel.Children.ToList();
+        int At(Func<Control, bool> match) => rows.FindIndex(c => match(c) || c.GetVisualDescendants().OfType<Control>().Any(match));
+        var load = At(c => ReferenceEquals(c, panel.Slider));
+        var struggles = At(c => c is TextBlock t && t.Text?.StartsWith("First struggles") == true);
+        var stripe = At(c => Avalonia.Automation.AutomationProperties.GetName(c) == "Each stripe");
+        var key = At(c => c is TextBlock t && t.Text == "A call");
+        var chart = At(c => c is LatencyStrip);
+        Assert.InRange(load, 0, struggles - 1);
+        Assert.InRange(struggles, load + 1, stripe - 1);
+        Assert.InRange(stripe, struggles + 1, key - 1);
+        Assert.InRange(key, stripe + 1, chart - 1);
+    }
+
+    [AvaloniaFact]
+    public void A_long_About_note_folds_under_About_this_run_so_the_load_the_sentence_and_the_key_stay_in_view()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 3);
+        var short_ = folder.Runs!["ramp"].About!;
+        Assert.True(short_.Length <= PerfView.RunAboutFoldsOver);
+        Assert.Contains(short_, Text(panel)); // a short note is shown as it is
+        Assert.DoesNotContain("About this run", Text(panel));
+
+        using var temp = new TempFolder();
+        File.Copy(Path.Combine(Shop, "model.yaml"), Path.Combine(temp.Path, "model.yaml"));
+        Directory.CreateDirectory(Path.Combine(temp.Path, "perf"));
+        File.WriteAllText(Path.Combine(temp.Path, "perf", "long.yaml"), string.Join('\n', "name: Long", $"about: \"{new string('x', PerfView.RunAboutFoldsOver + 1)}\"", "unit: req/s", "levels:", "  - load: 1", "  - load: 2", ""));
+        var longFolder = FolderLoader.Load(temp.Path);
+        var longPanel = new PerfPanel();
+        new Window { Width = 400, Height = 900, Content = new ScrollViewer { Content = longPanel } }.Show();
+        Dispatcher.UIThread.RunJobs();
+        longPanel.Show(new PerfPanelModel(longFolder.Model, "shop", longFolder.Runs!, longFolder.RunProblems!, "long", 0, false, false, null));
+        var words = Text(longPanel);
+        Assert.Contains("About this run", words);
+        var note = longPanel.GetVisualDescendants().OfType<TextBlock>().Single(b => b.Text == new string('x', PerfView.RunAboutFoldsOver + 1));
+        Assert.False(note.IsVisible); // folded until About this run is opened
+    }
 }
