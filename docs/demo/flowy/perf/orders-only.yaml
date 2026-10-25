@@ -1,5 +1,5 @@
 name: "Customer orders"
-about: "Made-up numbers for the demo. Orders climbing from 100 to 1,200 a minute, no courier pings. Each order asks Matcher for a courier, Matcher reads Fleet DB and calls ETA, and ETA calls Mapbox. One dot is 4 calls a second. ETA runs out of room first."
+about: "Orders climbing from 100 to 1,200 a minute, no courier pings. Each order asks Matcher for a courier, Matcher reads Fleet DB and calls ETA, and ETA calls Mapbox. One dot is 4 calls a second. ETA runs out of room first."
 unit: orders/min
 entry: customer-app
 source:

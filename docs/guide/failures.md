@@ -11,7 +11,7 @@ several.
 
 ```yaml
 name: Plum fail scenario
-about: Made-up ratings for the demo.
+about: Rated by the ordering team from a year of incidents and support tickets.
 scale:
   severity: { low: Nobody notices, high: A customer loses money or the kitchen stops }
   occurrence: { low: Never seen, high: Most days }

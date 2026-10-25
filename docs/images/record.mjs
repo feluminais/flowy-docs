@@ -197,8 +197,7 @@ const scenes = {
       await s.caption('Play how it fails')
       await s.click('::-p-text(Show it)', 700); await s.park(); await s.wait(2600)
       await s.caption(null)
-      await s.key('Escape'); await s.wait(600)
-      await s.key('Escape'); await s.wait(900)
+      await s.key('Escape'); await s.wait(1500) // one Escape stops the flow and closes the tab; a second would go back to Overview
     },
   },
   // A store's tables, opened one after another.
