@@ -70,7 +70,7 @@ public class TidyTests
     [Fact]
     public void A_view_dragged_the_wrong_way_is_found_and_tidy_puts_it_right()
     {
-        var doc = Start();
+        var doc = Start("root:\n  ordering: [0, 0]\n  backoffice: [0, 400]\n"); // the top level puts Ordering above Back office
         foreach (var view in new[] { "ordering", "backoffice" }) doc = EditOps.TidyLayout(doc, view);
         Assert.Empty(AllViews.SelectMany(v => Tidy.SideProblems(doc.ToModel(), v)));
         var wrong = EditOps.PlaceBoxes(doc, "backoffice", [("ordering", 0, 600)]);

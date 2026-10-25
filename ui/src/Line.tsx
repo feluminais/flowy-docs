@@ -146,7 +146,7 @@ export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode):
  * sit above, beside and below the members, so lines that always left at the bottom would loop around.
  * Curved and right-angled lines leave from the middle of the facing side.
  */
-export const Line = memo(function Line({ id, source, target, label, markerEnd, interactionWidth, data }: EdgeProps) {
+export const Line = memo(function Line({ id, source, target, label, markerStart, markerEnd, interactionWidth, data }: EdgeProps) {
   const style = useContext(LineStyleContext)
   const width = useContext(LineWidthsContext).get(id)
   const mark = useContext(LineMarksContext).get(id)
@@ -169,7 +169,7 @@ export const Line = memo(function Line({ id, source, target, label, markerEnd, i
   return (
     <>
       {change && <path className="change-line" data-change={change} d={path} fill="none" />}
-      <BaseEdge id={id} path={path} className={hot ? 'hot' : undefined} label={text} labelX={labelX} labelY={labelY} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
+      <BaseEdge id={id} path={path} className={hot ? 'hot' : undefined} label={text} labelX={labelX} labelY={labelY} markerStart={markerStart} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
       {mark && (
         <EdgeLabelRenderer>
           <FailBadge mark={mark} line={`${nameOfNode(a, source)} to ${nameOfNode(b, target)}`} className="line" style={{ transform: `translate(-50%, -150%) translate(${x}px, ${y}px)` }} />

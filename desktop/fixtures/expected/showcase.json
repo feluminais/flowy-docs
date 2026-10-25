@@ -2754,14 +2754,9 @@
         {
           "from": "repeat-from",
           "to": "repeat-to",
-          "label": "asks and answers",
-          "count": 1
-        },
-        {
-          "from": "repeat-to",
-          "to": "repeat-from",
-          "label": "",
-          "count": 1
+          "label": "2 connections",
+          "count": 2,
+          "both": true
         },
         {
           "from": "branch-from",
@@ -2778,14 +2773,9 @@
         {
           "from": "parallel-from",
           "to": "parallel-a",
-          "label": "lane A",
-          "count": 1
-        },
-        {
-          "from": "parallel-a",
-          "to": "parallel-from",
-          "label": "",
-          "count": 1
+          "label": "2 connections",
+          "count": 2,
+          "both": true
         },
         {
           "from": "parallel-from",
@@ -2802,14 +2792,9 @@
         {
           "from": "link-from",
           "to": "link-to",
-          "label": "hands over and answers",
-          "count": 1
-        },
-        {
-          "from": "link-to",
-          "to": "link-from",
-          "label": "",
-          "count": 1
+          "label": "2 connections",
+          "count": 2,
+          "both": true
         }
       ]
     },
@@ -3108,14 +3093,9 @@
         {
           "from": "chan-client",
           "to": "chan-hook",
-          "label": "registers a webhook",
-          "count": 1
-        },
-        {
-          "from": "chan-hook",
-          "to": "chan-client",
-          "label": "calls back",
-          "count": 1
+          "label": "2 connections",
+          "count": 2,
+          "both": true
         },
         {
           "from": "chan-client",

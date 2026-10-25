@@ -2970,14 +2970,9 @@
         {
           "from": "backoffice",
           "to": "ordering",
-          "label": "3 connections",
-          "count": 3
-        },
-        {
-          "from": "ordering",
-          "to": "backoffice",
-          "label": "streams every event",
-          "count": 1
+          "label": "4 connections",
+          "count": 4,
+          "both": true
         }
       ]
     },

@@ -11,7 +11,7 @@ import { OTHER_COLOR } from '../../src/core/perf/traffic.ts'
 import type { BoxTraffic, Dial, Level, LineTraffic, Metrics, Run } from '../../src/core/perf/types.ts'
 import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
-import { computeView, nameOf, pathName } from '../../src/core/views.ts'
+import { computeView, lineKey, nameOf, pathName } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
 import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
@@ -296,7 +296,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   const onCanvas = boxMarks(boxes ?? NO_BOXES, drawnIds)
   const place = (id: string) => pathName(model, view, id)
   const drawn = lineMarks(lines)
-  const scaledLine = selection?.kind === 'line' && lines.some(l => l.from === selection.from && l.to === selection.to && l.capped)
+  const scaledLine = selection?.kind === 'line' && lines.some(l => lineKey(l.from, l.to) === lineKey(selection.from, selection.to) && l.capped)
   // The source's colour for the dots drawn in the key, in both themes. A run with several sources draws each in its own, and the dots that stand for any call are neutral.
   const one = keyed.sources[0]
   const dots = multi ? srcStyle('gray') : srcStyle(one?.color)

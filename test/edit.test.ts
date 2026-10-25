@@ -29,7 +29,10 @@ test('newId turns a name into a free id', () => {
 test('connectionsOf lists what a merged line stands for', () => {
   assert.deepEqual(connectionsOf(shop(), 'shop', 'api', 'db').map(c => [c.index, c.connection.from]), [[2, 'orders'], [3, 'auth']])
   assert.deepEqual(connectionsOf(shop(), 'root', 'customer', 'shop').map(c => c.index), [0])
-  assert.deepEqual(connectionsOf(shop(), 'root', 'shop', 'customer'), [])
+  assert.deepEqual(connectionsOf(shop(), 'root', 'shop', 'customer').map(c => [c.index, c.back]), [[0, true]], 'a line given the other way still finds it')
+  const both = shop()
+  both.connections.push({ from: 'api', to: 'web', label: 'pushes' })
+  assert.deepEqual(connectionsOf(both, 'shop', 'web', 'api').map(c => [c.connection.label, c.back]), [['REST', false], ['pushes', true]])
 })
 
 test('locate finds the box, line or flow step a problem is about', () => {

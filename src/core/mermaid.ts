@@ -68,7 +68,8 @@ export function viewToMermaid(model: Model, view: string): string {
   const lines = [
     'flowchart TB',
     ...[...n.keys()].map(box),
-    ...v.edges.map(e => `  ${n.get(e.from)} ${e.label ? `-- "${mermaidText(e.label)}" ` : ''}--> ${n.get(e.to)}`),
+    // A line with connections both ways has an arrowhead at each end, as on the canvas.
+    ...v.edges.map(e => `  ${n.get(e.from)} ${e.both ? '<' : ''}${e.label ? `-- "${mermaidText(e.label)}" ` : ''}--> ${n.get(e.to)}`),
     ...[...n].flatMap(([id, node]) => styleLine(model, id, node)),
   ]
   if (v.outsiders.length) lines.push('  classDef outsider stroke-dasharray: 4 3', `  class ${v.outsiders.map(id => n.get(id)).join(',')} outsider`)

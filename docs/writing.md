@@ -138,7 +138,7 @@ A line says that two shapes are connected, and its arrow says which way. Its lab
 - **Don't end on a preposition.** The arrow already says where it goes, so "publishes status" is complete and "publishes status to" is not. A preposition that belongs to the verb and has its object stays: "subscribes to status updates", "signs in with Auth0".
 - **Say what moves.** Avoid "uses", "calls", "talks to", "data", "API". "Sends customer update events" beats "customer updates".
 - **A few words,** two to five. Detail goes in the panel or in a step's More, and code doesn't go in a label.
-- **Run from whoever starts it.** A reply isn't a connection, so show it in a flow. Draw two lines only when each side starts something of its own, such as a server that pushes events to a client that also makes requests.
+- **Run from whoever starts it.** A reply isn't a connection, so show it in a flow. Connect both ways only when each side starts something of its own, such as a server that pushes events to a client that also makes requests. The canvas draws the two as one line with an arrowhead at each end.
 - **One line per relationship, not per feature.** The line says "Browses and makes purchases". A flow step says "Requests the top 20 books". Feature detail belongs in flows.
 - **Name the protocol only where it matters,** in brackets at the end ("Sends requests (JSON/HTTPS)"), or leave it to the target's `tech`. A line has no tech field of its own.
 - **Keep a small set of verbs and give each one meaning:** sends requests, fetches data, reads orders, writes orders, publishes events, subscribes to events, authenticates users. Don't switch between "pushes", "sends" and "posts" for one kind of handover.

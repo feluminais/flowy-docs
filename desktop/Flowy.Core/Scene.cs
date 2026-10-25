@@ -31,8 +31,8 @@ public enum EdgeFlags
     Lane = 64, // a lane of a branch this stop is not in: dashed and faint, not lit
 }
 
-/// <summary><c>Label</c> is null unless the line should show it now.</summary>
-public sealed record SceneEdge(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Selected);
+/// <summary><c>Label</c> is null unless the line should show it now. <c>Both</c>: connections run both ways, so it has an arrowhead at each end.</summary>
+public sealed record SceneEdge(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Selected, bool Both = false);
 
 /// <summary>Everything the canvas draws for one view: boxes with places, lines, and the frame around the members when you are inside a box.</summary>
 public sealed record Scene(string View, string FrameName, IReadOnlyList<SceneBox> Boxes, IReadOnlyList<SceneEdge> Edges, Rect? Frame, IReadOnlyList<string> Members);
@@ -50,7 +50,7 @@ public static class SceneBuilder
 
     private const double Gap = 30;
 
-    public static string LineId(string from, string to) => $"{from} {to}";
+    public static string LineId(string from, string to) => Views.LineKey(from, to);
 
     private static bool Overlaps(Pt a, Pt b) => Math.Abs(a.X - b.X) < BoxGeometry.BoxWidth && Math.Abs(a.Y - b.Y) < BoxGeometry.BoxHeight;
 
@@ -134,34 +134,38 @@ public static class SceneBuilder
         }).Where(id => id is not null).ToHashSet();
 
         var inside = Views.ChildCounts(model);
-        bool IsLit(string from, string to) => litEnds.Any(e => e.From == from && e.To == to);
-        bool IsFaint(string from, string to) => faintSteps.Any(f => f.E.From == from && f.E.To == to);
+        // A step lights the line between its two shapes whichever way the step goes: there is one line for both ways.
+        var litLines = litEnds.Select(e => LineId(e.From, e.To)).ToHashSet();
+        var faintLines = faintSteps.Select(f => LineId(f.E.From, f.E.To)).ToHashSet();
+        var hasLine = computed.Edges.Select(e => LineId(e.From, e.To)).ToHashSet();
+        bool IsLit(string from, string to) => litLines.Contains(LineId(from, to));
+        bool IsFaint(string from, string to) => faintLines.Contains(LineId(from, to));
         var sceneBoxes = boxes.Select(id => new SceneBox(
             id, model.Objects[id], new Rect(at[id].X, at[id].Y, BoxGeometry.BoxWidth, BoxGeometry.BoxHeight), inside.GetValueOrDefault(id),
             !isMember.Contains(id),
             !dimming ? BoxMode.Normal : litBoxes.Contains(id) ? BoxMode.Lit : BoxMode.Dim,
             badBoxes.Contains(id)) { Icon = Look.IconData(model, model.Objects[id]) }).ToList();
 
-        var lines = new List<(string Id, string From, string To, string? Label, EdgeFlags Flags)>();
+        var lines = new List<(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Both)>();
         foreach (var e in computed.Edges)
         {
             var flags = EdgeFlags.None;
             if (dimming) flags |= IsLit(e.From, e.To) ? EdgeFlags.Active : IsFaint(e.From, e.To) ? EdgeFlags.Lane : EdgeFlags.Dim;
             if (badLines.Contains(LineId(e.From, e.To))) flags |= EdgeFlags.Problem;
-            lines.Add((LineId(e.From, e.To), e.From, e.To, e.Label == "" ? null : e.Label, flags));
+            lines.Add((LineId(e.From, e.To), e.From, e.To, e.Label == "" ? null : e.Label, flags, e.Both));
         }
         // A one-box step lights its box, no line. A step with no connection of its own gets a dashed line, and so does a faint one.
         var drawn = new HashSet<string>();
         for (var n = 0; n < litEnds.Count; n++)
         {
             var e = litEnds[n];
-            if (e.From == e.To || computed.Edges.Any(c => c.From == e.From && c.To == e.To) || !drawn.Add(LineId(e.From, e.To))) continue;
-            lines.Add((n == 0 ? "step" : $"step-{n}", e.From, e.To, null, EdgeFlags.Step));
+            if (e.From == e.To || hasLine.Contains(LineId(e.From, e.To)) || !drawn.Add(LineId(e.From, e.To))) continue;
+            lines.Add((n == 0 ? "step" : $"step-{n}", e.From, e.To, null, EdgeFlags.Step, false));
         }
         foreach (var (i, e) in faintSteps)
         {
-            if (e.From == e.To || computed.Edges.Any(c => c.From == e.From && c.To == e.To) || !drawn.Add(LineId(e.From, e.To))) continue;
-            lines.Add(($"lane-{i}", e.From, e.To, null, EdgeFlags.Lane));
+            if (e.From == e.To || hasLine.Contains(LineId(e.From, e.To)) || !drawn.Add(LineId(e.From, e.To))) continue;
+            lines.Add(($"lane-{i}", e.From, e.To, null, EdgeFlags.Lane, false));
         }
 
         var edges = lines.Select(e =>
@@ -171,7 +175,7 @@ public static class SceneBuilder
             var flags = e.Flags;
             if (focus.Box is not null && !touches) flags |= EdgeFlags.Faint;
             if (e.Id == focus.Hover) flags |= EdgeFlags.Hover;
-            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line);
+            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line, e.Both);
         }).ToList();
 
         var inner = sceneBoxes.Where(b => isMember.Contains(b.Id)).Select(b => b.Rect).ToList();

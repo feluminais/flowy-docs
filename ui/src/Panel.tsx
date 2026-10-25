@@ -28,7 +28,7 @@ import { openInEditor, vscode } from './host.ts'
 import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chrome.tsx'
 import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, SketchPicker, StatePicker, TypePicker } from './Pickers.tsx'
 import type { Sketch } from './Pickers.tsx'
-import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
+import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsLeftRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
 import { CodeList, LinkList, linkLine, parseLinks, RepoPath } from './ObjectLinks.tsx'
 
 /**
@@ -205,14 +205,37 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
   )
 }
 
-/** The connections one line stands for (a zoomed-out line can merge several), each with its label. */
+/**
+ * The connections one line stands for (a zoomed-out line can merge several), each with its label. A view draws one line between two shapes,
+ * so when connections run both ways they are listed under one heading per way.
+ */
 export function LinePanel({ model, view, from, to, editing, problems, run, onClose, onDelete }: Common & { onDelete: Delete; view: string; from: string; to: string; editing: boolean; problems: Problem[] }) {
   const lines = connectionsOf(model, view, from, to)
   if (lines.length === 0) return null
+  const ahead = lines.filter(l => !l.back)
+  const back = lines.filter(l => l.back)
+  const both = ahead.length > 0 && back.length > 0
+  const card = ({ index, connection: c }: (typeof lines)[number], a: string, b: string) => {
+    const which = { from: c.from, to: c.to, label: c.label ?? '' }
+    return (
+      <section key={index} className="line card">
+        {(c.from !== a || c.to !== b) && <p className="muted">{nameOf(model, c.from)} → {nameOf(model, c.to)}</p>}
+        {editing ? (
+          <form className="form" onSubmit={e => e.preventDefault()}>
+            <Field label="Label" value={c.label ?? ''} onSave={label => run(m => relabel(m, which, label))} />
+            <button type="button" className="danger" onClick={() => onDelete([{ line: which }])}><Trash size={16} />Delete</button>
+          </form>
+        ) : <p>{c.label || <span className="muted">No label</span>}</p>}
+        <ProblemList problems={problems.filter(p => p.connection === index)} />
+      </section>
+    )
+  }
+  // A line whose connections all run against the way it was given reads the way they run.
+  const [a, b] = ahead.length === 0 ? [to, from] : [from, to]
   return (
     <Panel onClose={onClose}>
       <header className="hero ends">
-        {[from, to].flatMap((end, i) => {
+        {[a, b].flatMap((end, i) => {
           const o = getObject(model, end)
           const name = (
             <div key={end + i} className="end">
@@ -220,26 +243,23 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
               <strong>{nameOf(model, end)}</strong>
             </div>
           )
-          return i === 0 ? [name, <ArrowRight key="arrow" size={22} />] : [name]
+          return i === 0 ? [name, both ? <ArrowsLeftRight key="arrow" size={22} /> : <ArrowRight key="arrow" size={22} />] : [name]
         })}
       </header>
-      <h2 className="visually-hidden">{nameOf(model, from)} → {nameOf(model, to)}</h2>
-      <Section icon={Route} title={lines.length === 1 ? 'Connection' : 'Connections'} count={lines.length} />
-      {lines.map(({ index, connection: c }) => {
-        const which = { from: c.from, to: c.to, label: c.label ?? '' }
-        return (
-          <section key={index} className="line card">
-            {(c.from !== from || c.to !== to) && <p className="muted">{nameOf(model, c.from)} → {nameOf(model, c.to)}</p>}
-            {editing ? (
-              <form className="form" onSubmit={e => e.preventDefault()}>
-                <Field label="Label" value={c.label ?? ''} onSave={label => run(m => relabel(m, which, label))} />
-                <button type="button" className="danger" onClick={() => onDelete([{ line: which }])}><Trash size={16} />Delete</button>
-              </form>
-            ) : <p>{c.label || <span className="muted">No label</span>}</p>}
-            <ProblemList problems={problems.filter(p => p.connection === index)} />
-          </section>
-        )
-      })}
+      <h2 className="visually-hidden">{nameOf(model, a)} {both ? '↔' : '→'} {nameOf(model, b)}</h2>
+      {both ? (
+        <>
+          <Section icon={ArrowRight} title={`${nameOf(model, from)} → ${nameOf(model, to)}`} count={ahead.length} />
+          {ahead.map(l => card(l, from, to))}
+          <Section icon={ArrowLeft} title={`${nameOf(model, to)} → ${nameOf(model, from)}`} count={back.length} />
+          {back.map(l => card(l, to, from))}
+        </>
+      ) : (
+        <>
+          <Section icon={Route} title={lines.length === 1 ? 'Connection' : 'Connections'} count={lines.length} />
+          {lines.map(l => card(l, a, b))}
+        </>
+      )}
     </Panel>
   )
 }

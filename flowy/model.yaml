@@ -556,7 +556,8 @@ objects:
       line between two of them lands.
 
       A line between shapes deeper down is drawn between the shapes that stand for them here, and
-      several such lines merge into one, labelled "N connections".
+      several such lines merge into one, labelled "N connections". Two shapes have one line whichever
+      way their connections run; when they run both ways it has an arrowhead at each end.
   outline:
     type: component
     in: core

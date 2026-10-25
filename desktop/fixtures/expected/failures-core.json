@@ -522,7 +522,7 @@
                 }
               },
               "lines": {
-                "shop mail": {
+                "mail shop": {
                   "band": "medium",
                   "count": 1
                 }
@@ -571,7 +571,7 @@
                     "shop",
                     "mail"
                   ],
-                  "failsLine": "shop mail",
+                  "failsLine": "mail shop",
                   "affects": []
                 },
                 "light": {
@@ -579,7 +579,7 @@
                     "shop",
                     "mail"
                   ],
-                  "failsLine": "shop mail",
+                  "failsLine": "mail shop",
                   "affects": []
                 }
               },
@@ -961,7 +961,7 @@
                 }
               },
               "lines": {
-                "orders mail": {
+                "mail orders": {
                   "band": "medium",
                   "count": 1
                 }
@@ -994,7 +994,7 @@
                     "orders",
                     "mail"
                   ],
-                  "failsLine": "orders mail",
+                  "failsLine": "mail orders",
                   "affects": []
                 },
                 "light": {
@@ -1002,7 +1002,7 @@
                     "orders",
                     "mail"
                   ],
-                  "failsLine": "orders mail",
+                  "failsLine": "mail orders",
                   "affects": []
                 }
               },
@@ -1987,7 +1987,7 @@
                 }
               },
               "lines": {
-                "web db": {
+                "db web": {
                   "band": "unrated",
                   "count": 1
                 }
@@ -2076,7 +2076,7 @@
                     "web",
                     "db"
                   ],
-                  "failsLine": "web db",
+                  "failsLine": "db web",
                   "affects": []
                 },
                 "light": {
@@ -2084,7 +2084,7 @@
                     "web",
                     "db"
                   ],
-                  "failsLine": "web db",
+                  "failsLine": "db web",
                   "affects": []
                 }
               },
@@ -3550,13 +3550,6 @@
                 "line": [
                   "backoffice",
                   "ordering"
-                ],
-                "ids": []
-              },
-              {
-                "line": [
-                  "ordering",
-                  "backoffice"
                 ],
                 "ids": []
               }
