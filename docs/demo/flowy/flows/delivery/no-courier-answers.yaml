@@ -9,8 +9,11 @@ groups:
   result:
     kind: branch
 steps:
+  - { from: customer, to: customer-app, text: Places an order, animation: { kind: send, carries: basket }, flow: place-order }
+  - { from: events, to: dispatch, text: The placed order reaches Dispatch, animation: { kind: callback, trigger: outside, carries: placed } }
   - { from: offers, to: notifier, text: "Offers the job; the nearest courier doesn't answer in 30 s", group: offer, animation: { kind: call, outcome: timeout, reason: No answer in 30 s } }
   - { from: offers, text: Moves on to the next courier on the list, group: offer }
-  - { from: courier-app, to: dispatch, text: "Accepts, and the offers stop", group: result, lane: A courier accepts, animation: { kind: call, carries: accept } }
+  - { from: courier, to: courier-app, text: A courier taps Accept, group: result, lane: A courier accepts, animation: { kind: send, carries: accept } }
+  - { from: courier-app, to: dispatch, text: The offers stop, group: result, animation: { kind: call, carries: accept } }
   - { from: offers, to: notifier, text: Tells the customer that no courier is free yet, group: result, lane: The list runs out, animation: { kind: send, carries: no courier yet } }
   - { from: dispatch, text: Searches again in a minute, group: result }

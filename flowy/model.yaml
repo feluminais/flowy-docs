@@ -552,8 +552,8 @@ objects:
     name: Views
     code: [src/core/views.ts]
     description: |
-      What one level shows: the shapes inside it, the shapes elsewhere that lines reach, and where a
-      line between two of them lands.
+      What one level shows: the shapes inside it, the shapes elsewhere that lines reach, the people its
+      flows name (so a flow can start with whoever sets it off), and where a line between two of them lands.
 
       A line between shapes deeper down is drawn between the shapes that stand for them here, and
       several such lines merge into one, labelled "N connections".

@@ -61,7 +61,7 @@ test('flow rules', () => {
       { from: 'ghost', to: 'auth', text: 'a' },
       { from: 'auth', to: 'orders', text: '' },
       { from: 'auth', to: 'auth', text: 'loop' },
-      { from: 'customer', to: 'web', text: 'far away' },
+      { from: 'web', to: 'mail', text: 'far away' }, // two boxes outside the view, and neither is an actor it draws for its flows
     ],
   }
   assertProblem(m, 'flows/Bad Flow.yaml "Bad Flow" is not a valid flow id')
@@ -71,7 +71,7 @@ test('flow rules', () => {
   assertProblem(m, 'flows/broken.yaml step 1: unknown object "ghost"')
   assertProblem(m, 'flows/broken.yaml step 2: text is missing')
   assertProblem(m, 'flows/broken.yaml step 3: goes from an object to itself (leave out "to" for a step one shape does on its own)')
-  assertProblem(m, `flows/broken.yaml step 4: customer → web can't be shown in view "api"`)
+  assertProblem(m, `flows/broken.yaml step 4: web → mail can't be shown in view "api"`)
 })
 
 test('valid edge cases are not problems', () => {

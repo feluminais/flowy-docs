@@ -138,8 +138,11 @@ function dagreAt(boxes: string[], edges: Edge[], gap: { nodesep: number; ranksep
 export type Region = 'left' | 'right' | 'below' | 'above'
 const REGIONS: Region[] = ['left', 'right', 'below', 'above']
 
-/** Outsiders that only start lines (people, mostly). They always wait above. */
-const startsOnly = (id: string, edges: Ends[]) => edges.some(e => e.from === id) && !edges.some(e => e.to === id)
+/**
+ * Outsiders that only start lines (people, mostly), or have none at all: an actor drawn for the flows of a view (see flowActors in
+ * views.ts) may have no line there. They always wait above.
+ */
+const startsOnly = (id: string, edges: Ends[]) => !edges.some(e => e.to === id)
 
 /**
  * A view's members where dagre put them (`at`), how far they reach, and for each outsider the average

@@ -2,15 +2,19 @@ name: A courier delivers it
 view: delivery
 tags: [happy path]
 steps:
-  - { from: events, to: dispatch, text: Receives the placed event, animation: { kind: callback, trigger: outside, carries: placed } }
+  - { from: customer, to: customer-app, text: Places an order, animation: { kind: send, carries: basket }, flow: place-order }
+  - { from: events, to: dispatch, text: The placed order reaches Dispatch, animation: { kind: callback, trigger: outside, carries: placed } }
   - { from: dispatch, to: fleet-db, text: Finds idle couriers near the restaurant, animation: { kind: call, carries: who is idle } }
   - from: dispatch
-    text: Ranks them by estimated arrival
+    to: mapbox
+    text: Asks Mapbox how far each courier is
+    animation: { kind: call, carries: travel times }
     description: |
-      The **Matcher** asks **ETA** for each courier's travel time (distance, traffic, vehicle). The
-      quickest gets the first offer.
+      **ETA** asks for each courier's travel time (distance, traffic, vehicle), and the **Matcher**
+      ranks them by arrival. The quickest gets the first offer.
   - { from: dispatch, to: notifier, text: Sends the offer as a push, animation: { kind: send, carries: offer, effect: bounce } }
   - { from: courier, to: courier-app, text: Accepts within 30 seconds, animation: { kind: send, carries: accept } }
+  - { from: restaurant, to: courier, text: Hands the food over at the counter, animation: { kind: send, carries: food } }
   - from: courier-app
     to: tracking
     text: Streams its position every 5 seconds
@@ -20,4 +24,5 @@ steps:
       Only while a job is open. Positions older than 1 min are dropped, so a courier who loses
       signal freezes on the map until a fresh position arrives.
   - { from: tracking, to: customer-app, text: The customer's map follows the courier, animation: { kind: send, carries: position } }
+  - { from: courier, to: customer, text: Hands the food over at the door, animation: { kind: send, carries: food } }
   - { from: courier-app, to: order-api, text: Marks the order delivered, animation: { kind: call, carries: delivered } }

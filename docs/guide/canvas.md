@@ -21,8 +21,9 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
   Pick the project's own style and your screen follows the project again.
 - Faded, dashed shapes live elsewhere in the model. They show up because something here connects to
-  them, and they wait around the edges (people above, the rest beside, below or above, wherever
-  fewer lines cross) while what's inside sits in the middle.
+  them, or because they are people a flow on this level names (so you can see who starts it, even
+  where no line reaches them), and they wait around the edges (people above, the rest beside, below
+  or above, wherever fewer lines cross) while what's inside sits in the middle.
 - A shape can hold a few lines of code, such as a formula, a query or the request it takes, in a Code section under its description.
   The code is coloured, and Flowy works out the language unless you pick one ([below](code.md#code)).
 - A shape can list the files and folders it lives in, in a Source section. When the repo's

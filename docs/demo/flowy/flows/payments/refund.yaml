@@ -6,7 +6,7 @@ compare:
   note: |
     The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.
 
-    Stripe is the one shape both flows draw.
+    Support, Back office and Stripe are in both flows.
 steps:
   - { from: support, to: backoffice, text: Finds the order in the support console, animation: { kind: send, carries: order id } }
   - { from: backoffice, to: ordering, text: "Asks for a refund, in full or by line", animation: { kind: call, carries: refund } }
@@ -18,4 +18,5 @@ steps:
       Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,
       so the database never records a refund that didn't happen.
   - { from: ordering, to: notifications, text: Requests a confirmation, animation: { kind: send, carries: confirm } }
-  - { from: notifications, to: twilio, text: The customer gets an SMS, animation: { kind: send, carries: SMS, effect: bounce } }
+  - { from: notifications, to: twilio, text: Hands the SMS to Twilio, animation: { kind: send, carries: SMS } }
+  - { from: twilio, to: customer, text: The customer reads that the money is back, animation: { kind: send, carries: SMS, effect: bounce } }

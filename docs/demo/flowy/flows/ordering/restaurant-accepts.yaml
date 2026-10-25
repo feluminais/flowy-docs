@@ -2,7 +2,8 @@ name: The restaurant accepts
 view: ordering
 tags: [happy path]
 steps:
-  - { from: kitchen-tablet, to: order-api, text: The kitchen taps Accept, animation: { kind: call, carries: accept } }
+  - { from: restaurant, to: kitchen-tablet, text: The kitchen taps Accept, animation: { kind: send, carries: accept } }
+  - { from: kitchen-tablet, to: order-api, text: Sends the acceptance, animation: { kind: call, carries: accept } }
   - { from: order-api, to: orders-db, text: Marks the order accepted, animation: { kind: call, carries: accepted } }
   - from: order-api
     to: stripe
@@ -13,4 +14,5 @@ steps:
       The card is charged here for the first time. The capture is its own flow because the bank can be slow.
   - { from: order-api, to: events, text: Publishes accepted, animation: { kind: event, carries: accepted } }
   - { from: order-api, to: notifier, text: Asks for a push to the customer, animation: { kind: send, carries: accepted } }
-  - { from: notifier, to: customer-app, text: The customer is notified that the kitchen has started, animation: { kind: send, carries: push, effect: bounce } }
+  - { from: notifier, to: customer-app, text: Pushes the news to the customer's phone, animation: { kind: send, carries: push, effect: bounce } }
+  - { from: customer-app, to: customer, text: Shows that the kitchen has started, animation: { kind: send, carries: accepted } }

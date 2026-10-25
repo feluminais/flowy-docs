@@ -2,6 +2,8 @@ name: The refund is not recorded
 view: ordering
 tags: [error path]
 steps:
+  - { from: support, to: support-console, text: Asks for a refund in the support console, animation: { kind: send, carries: refund } }
+  - { from: support-console, to: refunds, text: Sends the refund to the Order API, animation: { kind: call, carries: refund } }
   - from: refunds
     to: stripe
     text: Stripe has refunded the charge

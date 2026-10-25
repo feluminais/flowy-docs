@@ -14,13 +14,13 @@ test('the demo still loads with nothing wrong in it', () => {
   assert.deepEqual(state.problems, [])
 })
 
-test('capture-payment keeps its six steps and the six stops they make', () => {
-  assert.equal(flow.steps.length, 6)
-  assert.deepEqual(stopsOf(flow).map(s => s.steps), [[0], [1], [2], [3], [4], [5]])
+test('capture-payment keeps its nine steps and the nine stops they make', () => {
+  assert.equal(flow.steps.length, 9) // the kitchen's Accept and the tablet's call come first
+  assert.deepEqual(stopsOf(flow).map(s => s.steps), [[0], [1], [2], [3], [4], [5], [6], [7], [8]])
 })
 
-test('the first step is a call that times out, and the second is the API giving up on its own', () => {
-  const [call, gives] = flow.steps
+test('the first try is a call that times out, and the next step is the API giving up on its own', () => {
+  const [, , call, gives] = flow.steps
   assert.deepEqual(call.animation, { kind: 'call', outcome: 'timeout' })
   assert.equal(call.text, 'Captures the amount it held')
   assert.deepEqual(animationOf(call), { kind: 'call', trigger: 'inside', outcome: 'timeout' })
@@ -31,7 +31,7 @@ test('the first step is a call that times out, and the second is the API giving 
 })
 
 test('the decline is a send that fails', () => {
-  const decline = flow.steps[4]
+  const decline = flow.steps[6]
   assert.equal(decline.text, 'Declines the card')
   assert.deepEqual(decline.animation, { kind: 'send', outcome: 'fail' })
   assert.deepEqual(animationOf(decline), { kind: 'send', trigger: 'inside', outcome: 'fail' })
