@@ -1,8 +1,8 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
-  analysesText, analysisProblems, analysisText, bandOf, carried, coverage, coverageText, drawnIn, homeView, inView, lightFor, partName, rank, ratingOf, ratingsAfter, ratingsOf,
-  reach, riskOf, rollUp, runLinkProblems, usersOfConnection, usersOfObject,
+  analysedText, analysesText, analysisProblems, analysisText, badgeName, BAND_RULES, bandOf, carried, coverage, coverageText, drawnIn, homeView, inView, lightFor, partName, rank, ratingOf, ratingsAfter, ratingsOf,
+  reach, riskOf, rollUp, rowName, runLinkProblems, usersOfConnection, usersOfObject,
 } from '../../src/core/failures.ts'
 import { ROOT } from '../../src/core/model.ts'
 import { locate } from '../../ui/src/edit.ts'
@@ -37,6 +37,7 @@ async function dumpDir(dir: string): Promise<unknown> {
       rank: rank(a).map(r => ({ id: r.id, risk: r.risk ?? null, band: r.band })),
       coverage: coverage(model, a),
       coverageText: coverageText(model, a),
+      rowNames: rank(a).map(r => ({ id: r.id, name: rowName(model, r) })),
       markdown: analysisText(model, id, a, 'markdown'),
       csv: analysisText(model, id, a, 'csv'),
       problems: analysisProblems(model, id, a),
@@ -66,6 +67,9 @@ export async function dumpFailures(): Promise<unknown> {
   return {
     ratingOf: RATINGS.map(text => ({ text, rating: ratingOf(text) ?? null })),
     analysesText: [[], ['a'], ['a', 'b'], ['a', 'b', 'c']].map(ids => analysesText(ids)),
+    bandRules: BAND_RULES,
+    analysedText: [[0, 0], [1, 1], [3, 4], [15, 26]].map(([a, t]) => analysedText(a, t)),
+    badgeNames: [badgeName({ band: 'high', count: 1 }), badgeName({ band: 'medium', count: 2 }, 'Ordering to Stripe')],
     shop: await dumpDir(FAILURES_DIRS.shop),
     plum: await dumpDir(FAILURES_DIRS.plum),
   }

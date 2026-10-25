@@ -47,7 +47,7 @@ test('put_failures then get_failures round-trips and ranks', async t => {
   assert.match(await readFile(join(dir, 'failures', 'ordering.yaml'), 'utf8'), /severity: 10/)
   const got = await call('get_failures')
   assert.equal(got.error, false)
-  assert.ok(got.text.startsWith('## Ordering (ordering)\n\nAnalysed 2 of 2\n\n| Risk band | Part |'), got.text)
+  assert.ok(got.text.startsWith('## Ordering (ordering)\n\nAnalysed 2 of 2 shapes\n\n| Risk band | Part |'), got.text)
   assert.ok(got.text.indexOf('The database is unreachable') < got.text.indexOf('The page is slow'))
 })
 

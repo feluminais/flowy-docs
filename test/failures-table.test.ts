@@ -91,17 +91,17 @@ test('an analysis with no modes gives the header only', () => {
 
 test('coverageText says how many are analysed and names the ones left by their path', () => {
   const m = shopWithFailures()
-  assert.equal(coverageText(m, m.failures.ordering), 'Analysed 4 of 4')
+  assert.equal(coverageText(m, m.failures.ordering), 'Analysed 4 of 4 shapes')
   delete m.failures.ordering.modes['web-glitch']
-  assert.equal(coverageText(m, m.failures.ordering), 'Analysed 3 of 4\nNot analysed: Shop > Web app')
+  assert.equal(coverageText(m, m.failures.ordering), 'Analysed 3 of 4 shapes\nNot analysed: Shop > Web app')
   delete m.failures.ordering.modes['db-down']
-  assert.equal(coverageText(m, m.failures.ordering), 'Analysed 2 of 4\nNot analysed: Shop > Web app, Shop > Orders DB')
+  assert.equal(coverageText(m, m.failures.ordering), 'Analysed 2 of 4 shapes\nNot analysed: Shop > Web app, Shop > Orders DB')
 })
 
 test('analysisText is a heading, the coverage and the table in markdown, and the table alone in csv', () => {
   const m = shopWithFailures()
   const md = analysisText(m, 'ordering', m.failures.ordering, 'markdown')
-  assert.ok(md.startsWith(`## Ordering (ordering)\n\nAnalysed 4 of 4\n\n| Risk band | Part |`), md.slice(0, 80))
+  assert.ok(md.startsWith(`## Ordering (ordering)\n\nAnalysed 4 of 4 shapes\n\n| Risk band | Part |`), md.slice(0, 80))
   assert.ok(md.endsWith(table(m, m.failures.ordering, 'markdown')))
   assert.equal(analysisText(m, 'ordering', m.failures.ordering, 'csv'), table(m, m.failures.ordering, 'csv'))
 })
