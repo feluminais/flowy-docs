@@ -8,6 +8,12 @@ if (args.Length > 0 && args[0] == "panels")
     return;
 }
 
+if (args.Length > 0 && args[0] == "zoom")
+{
+    Flowy.Bench.ZoomBench.Run(args.Length > 1 ? args[1] : null);
+    return;
+}
+
 if (args.Length > 0 && args[0] == "canvas")
 {
     Flowy.Bench.CanvasBench.Run(args.Length > 1 ? int.Parse(args[1]) : 300);

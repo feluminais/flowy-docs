@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Controls.Shapes;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.Core;
 using CorePt = Flowy.Core.Pt;
@@ -34,7 +35,13 @@ internal sealed class CanvasView : Border
     private IDisposable? _step;
     private readonly Avalonia.Controls.Canvas _stage = new();
     private readonly Grid _world = new() { RenderTransformOrigin = RelativePoint.TopLeft }; // the stage and the layers, which the camera moves together
-    private readonly Dictionary<string, BoxControl> _boxes = [];
+    private Dictionary<string, BoxControl> _boxes = [];
+    private string _boxesKey = "";
+    // The boxes of the views left lately stay on the stage, hidden: putting a control on the stage is slow (its styles are matched then) and showing one is not, so a view
+    // gone back to costs no new controls. The oldest go first, and no more than a few hundred boxes are kept.
+    private readonly List<(string Key, Dictionary<string, BoxControl> Boxes)> _kept = [];
+    private const int KeptViews = 8;
+    private const int KeptBoxes = 300;
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
     private IDisposable? _animation;
@@ -266,27 +273,10 @@ internal sealed class CanvasView : Border
         _selected = selected.ToList();
         _baseScene = scene;
         scene = WithMoved(scene);
-        var sameBoxes = _scene is not null && _scene.Boxes.Select(b => b.Id).SequenceEqual(scene.Boxes.Select(b => b.Id));
+        var key = KeyOf(scene);
+        var sameBoxes = _scene is not null && key == _boxesKey;
         _scene = scene;
-        if (!sameBoxes)
-        {
-            _stage.Children.Clear();
-            _boxes.Clear();
-            foreach (var box in scene.Boxes)
-            {
-                var control = new BoxControl(box);
-                control.PointerReleased += (_, e) => OnBoxReleased(box.Id, e);
-                control.DoubleTapped += (_, e) =>
-                {
-                    if (_editable && AddsToPick(e.KeyModifiers)) return; // two Ctrl+clicks pick and unpick, they don't open the box
-                    BoxDoubleClicked?.Invoke(box.Id);
-                    e.Handled = true;
-                };
-                control.SetEditable(_editable);
-                _boxes[box.Id] = control;
-                _stage.Children.Add(control);
-            }
-        }
+        if (!sameBoxes) SwapBoxes(key, scene);
         else
         {
             foreach (var box in scene.Boxes) _boxes[box.Id].Update(box);
@@ -299,6 +289,135 @@ internal sealed class CanvasView : Border
         ApplyUsed();
         ApplyStates();
         ApplyChannels();
+    }
+
+    /// <summary>Puts away the boxes on show and brings up the ones for <paramref name="key"/>: the set kept from an earlier visit, or new controls for the scene.</summary>
+    private void SwapBoxes(string key, Scene scene)
+    {
+        if (_boxes.Count > 0)
+        {
+            foreach (var box in _boxes.Values) Park(box);
+            _kept.RemoveAll(k => k.Key == _boxesKey);
+            _kept.Insert(0, (_boxesKey, _boxes));
+        }
+        var at = _kept.FindIndex(k => k.Key == key);
+        if (at >= 0)
+        {
+            _boxes = _kept[at].Boxes;
+            _kept.RemoveAt(at);
+            foreach (var box in scene.Boxes)
+            {
+                // A set made ahead (see Prewarm) may not be finished.
+                if (!_boxes.TryGetValue(box.Id, out var control)) _boxes[box.Id] = control = AddBox(box);
+                else
+                {
+                    control.Update(box);
+                    control.SetEditable(_editable);
+                }
+                control.IsVisible = true;
+            }
+        }
+        else
+        {
+            _boxes = [];
+            foreach (var box in scene.Boxes) _boxes[box.Id] = AddBox(box);
+        }
+        _boxesKey = key;
+        while (_kept.Count > KeptViews || _kept.Sum(k => k.Boxes.Count) > KeptBoxes)
+        {
+            foreach (var old in _kept[^1].Boxes.Values) _stage.Children.Remove(old);
+            _kept.RemoveAt(_kept.Count - 1);
+        }
+    }
+
+    private static string KeyOf(Scene scene) => string.Join('\u0001', scene.Boxes.Select(b => b.Id));
+
+    /// <summary>A new control for a box, on the stage.</summary>
+    private BoxControl AddBox(SceneBox box)
+    {
+        var control = new BoxControl(box);
+        control.PointerReleased += (_, e) => OnBoxReleased(box.Id, e);
+        control.DoubleTapped += (_, e) =>
+        {
+            if (_editable && AddsToPick(e.KeyModifiers)) return; // two Ctrl+clicks pick and unpick, they don't open the box
+            BoxDoubleClicked?.Invoke(box.Id);
+            e.Handled = true;
+        };
+        control.SetEditable(_editable);
+        _stage.Children.Add(control);
+        return control;
+    }
+
+    private readonly Queue<(string Key, Scene Scene)> _warming = new();
+    private bool _warmPosted;
+
+    /// <summary>
+    /// Makes the boxes of views the reader may open next while it is idle, a box at a time so no frame waits long, and keeps them hidden for <see cref="SwapBoxes"/> to find:
+    /// the first visit to a view then costs no new controls either. What is asked for last replaces what was asked for before; views already kept are not made again, and
+    /// nothing is made that would push out a view that was visited.
+    /// </summary>
+    public void Prewarm(IEnumerable<Scene> scenes)
+    {
+        if (!Prewarming.On) return;
+        _warming.Clear();
+        foreach (var scene in scenes)
+        {
+            var key = KeyOf(scene);
+            if (key != _boxesKey && scene.Boxes.Count > 0) _warming.Enqueue((key, scene));
+        }
+        PostWarmStep();
+    }
+
+    private void PostWarmStep()
+    {
+        if (_warmPosted || _warming.Count == 0) return;
+        _warmPosted = true;
+        Dispatcher.UIThread.Post(WarmStep, DispatcherPriority.Background);
+    }
+
+    private void WarmStep()
+    {
+        _warmPosted = false;
+        while (_warming.Count > 0)
+        {
+            var (key, scene) = _warming.Peek();
+            var at = _kept.FindIndex(k => k.Key == key);
+            if (key == _boxesKey || (at >= 0 && scene.Boxes.All(b => _kept[at].Boxes.ContainsKey(b.Id))))
+            {
+                _warming.Dequeue();
+                continue;
+            }
+            if (at < 0)
+            {
+                if (_kept.Count >= KeptViews || _kept.Sum(k => k.Boxes.Count) + scene.Boxes.Count > KeptBoxes)
+                {
+                    _warming.Clear(); // no room that would not cost a view that was visited
+                    return;
+                }
+                _kept.Add((key, []));
+                at = _kept.Count - 1;
+            }
+            var next = scene.Boxes.First(b => !_kept[at].Boxes.ContainsKey(b.Id));
+            var control = AddBox(next);
+            control.IsVisible = false;
+            _kept[at].Boxes[next.Id] = control;
+            break;
+        }
+        PostWarmStep();
+    }
+
+    /// <summary>Hides a box and takes off everything the canvas put on it, so it is as new when it comes back and runs no animation meanwhile.</summary>
+    private static void Park(BoxControl box)
+    {
+        box.IsVisible = false;
+        box.SetState(null, true);
+        box.SetPerf(null);
+        box.SetFailure(null, FailLight.None);
+        box.SetChange(null);
+        box.SetUsed(UsedMark.None);
+        box.SetSquash(0);
+        box.SetSelected(false);
+        box.Presence = 1;
     }
 
     /// <summary>
@@ -652,6 +771,9 @@ internal sealed class CanvasView : Border
         get => _traffic.Opacity;
         set => _traffic.Opacity = value;
     }
+
+    /// <summary>How many controls the stage holds, the hidden boxes of other views among them (for the tests).</summary>
+    internal int ControlsOnStage => _stage.Children.Count;
 
     /// <summary>The boxes' presence and the lines' opacity, for the tests.</summary>
     internal IReadOnlyDictionary<string, double> BoxPresence => _boxes.ToDictionary(b => b.Key, b => b.Value.Presence);

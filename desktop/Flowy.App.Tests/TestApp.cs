@@ -10,6 +10,10 @@ namespace Flowy.App.Tests;
 /// <summary>The real application's styles and resources, on Avalonia's headless platform: no window on screen, but real layout, input and rendering logic.</summary>
 public static class TestApp
 {
+    /// <summary>The views one move away are made ahead when a test asks (ViewSwapTests), not for every reader: each would leave idle work for the tests after it.</summary>
+    [ModuleInitializer]
+    public static void NoPrewarm() => Flowy.App.Canvas.Prewarming.On = false;
+
     [ModuleInitializer]
     public static void NoMotion()
     {

@@ -75,6 +75,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly TopBar _bar = new();
     private readonly Panels _panels;
     private readonly LevelMotion _levelMotion;
+    private bool _navigatorLate; // the side panel waits for the move to land
     private (Model Model, bool Editing, OutlineTotals Totals)? _totals;
 
     private readonly System.Runtime.CompilerServices.ConditionalWeakTable<Flow, IReadOnlyList<Stop>> _stops = new(); // a flow's stops, made once for as long as that flow is the one in the model
@@ -105,6 +106,12 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _edit = new EditMode(_host);
         _gestures = new EditGestures(_host, _edit, _canvas, _pickedBar);
         _levelMotion = new LevelMotion(this, _canvas, _host);
+        _levelMotion.Landed += () =>
+        {
+            if (!_navigatorLate || _folder is not { } folder) return;
+            _navigatorLate = false;
+            RefreshNavigator(folder.Model, CurrentView(), PlayingFlow());
+        };
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
 
         _banner.Classes.Add("banner");
@@ -510,7 +517,35 @@ internal sealed partial class ReaderView : Grid, IDisposable
         RefreshPlayer(model, view, flow, index, shown);
         UpdateMotion(model, view, flow, index, shown);
         RefreshCompare(folder);
-        RefreshNavigator(model, view, flow);
+        if (_levelMotion.Landing) _navigatorLate = true; // the side panel follows when the move lands: building it here would stop the zoom halfway
+        else
+        {
+            _navigatorLate = false;
+            RefreshNavigator(model, view, flow);
+        }
+        if (view != _warmedView || !ReferenceEquals(folder, _warmedFolder)) PrewarmNeighbours(folder, view);
+    }
+
+    private string? _warmedView;
+    private Folder? _warmedFolder;
+
+    /// <summary>Has the canvas make, in idle time, the boxes of the views one move away (the ones inside this view, and the one around it), so the first visit to one is as quick as the next.</summary>
+    private void PrewarmNeighbours(Folder folder, string view)
+    {
+        (_warmedView, _warmedFolder) = (view, folder);
+        if (Comparing) return;
+        var model = folder.Model;
+        var near = Views.Compute(model, view).Members.Where(CanOpen).Take(MaxWarmViews).ToList();
+        if (view != Names.Root) near.Add(Views.ParentOf(model, view));
+        if (near.Count > 0) _ = WarmViews(folder, view, near);
+    }
+
+    private const int MaxWarmViews = 8;
+
+    private async Task WarmViews(Folder folder, string view, List<string> near)
+    {
+        var scenes = await Task.Run(() => near.Select(v => SceneBuilder.Build(folder.Model, v, null, folder.Problems)).ToList());
+        if (ReferenceEquals(folder, _warmedFolder) && view == _warmedView && !Comparing) _canvas.Prewarm(scenes);
     }
 
     /// <summary>The canvas alone: what pointing at a line changes. The panel keeps its scroll, its open rows and its selection.</summary>
@@ -667,6 +702,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (_compareMode.State is { Kind: "flow" } && UnlessDraft(() => GoTo(view))) return; // going to a level ends a comparison of flows: a note that isn't saved asks first
         Interacted();
         RememberLevel(view);
+        _navigatorLate = false; // the Refresh below brings the side panel up to date
         _levelMotion.Stop();
         _view = view;
         _playback.Head = null;
