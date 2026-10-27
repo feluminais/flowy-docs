@@ -421,7 +421,7 @@ export function Explorer({ model, problems, editing, expanded, onToggle, here, s
         onScroll={e => setScrollTop(e.currentTarget.scrollTop)}
         onPointerEnter={() => { using.current = true }} onPointerLeave={() => { using.current = false }}
         onBlur={() => { using.current = false }}>
-        {rows.length === 0 && <p className="muted navnote">{filter.trim() === '' ? 'Nothing here yet.' : `Nothing matches “${filter.trim()}”.`}</p>}
+        {rows.length === 0 && <p className="muted navnote">{filter.trim() === '' ? 'No shapes yet.' : `Nothing matches “${filter.trim()}”.`}</p>}
         <div className="tree-rows" style={{ height: rows.length * ROW }}>
           {rows.slice(start, end).map((r, k) => (
             <div key={r.key} id={`nav-${r.key}`} role="treeitem" aria-level={r.depth + 1} aria-expanded={r.expandable ? r.expanded : undefined} aria-selected={r.key === current}

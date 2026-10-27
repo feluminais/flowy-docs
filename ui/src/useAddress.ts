@@ -47,7 +47,7 @@ export function useAddress({ model, runs, view, viewId, flow, playing, setPlayin
       // pair, and the reader is told it is there. (Taking the address back and asking would need to know which way the reader went, which the History API doesn't say.)
       const keeps = fromAddress(model, runs, named.compare).compare
       if (dirtyRef.current && !(keeps && compare && keeps.kind === compare.kind && pairKey(keeps.a, keeps.b) === pairKey(compare.a, compare.b)))
-        setNotice('The note is kept until you close this page. Compare the pair again to see it')
+        setNotice('The note is kept until you close this page. It comes back when you compare the pair again.')
       goNow(named.view)
       if (named.flow !== undefined) {
         // Back arrives twice (popstate, then hashchange), and the second must not undo the first: a flow already playing stays where it is.
