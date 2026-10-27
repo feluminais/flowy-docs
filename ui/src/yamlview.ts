@@ -144,7 +144,7 @@ export function neighbour(steps: StepInfo[], id: string | undefined, delta: -1 |
 
 /** Why the YAML tab has no files and steps to show, in a line for its panel, or undefined when it has them. */
 export function noHistory(s: { live: boolean; inVscode: boolean; hasApi: boolean; unavailable: boolean }): string | undefined {
-  if (s.inVscode) return 'No history in VS Code. Open the folder in the browser to see it.'
+  if (s.inVscode) return 'No history in VS Code. Open the folder in the browser.'
   if (s.unavailable) return 'This server keeps no history. Update Flowy.'
   if (!s.hasApi) return s.live ? 'No history on this page.' : 'This export has no files. Export it again.'
   return undefined

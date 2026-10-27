@@ -361,10 +361,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {!comparing && nodes.length === 0 && (
             <p className="empty">{editing
-              ? 'Nothing here yet. Press Add to put the first shape here.'
+              ? 'No shapes yet. Press Add to put the first one here.'
               : live
-                ? 'Nothing here yet. Ask an AI to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.'
-                : 'Nothing here yet.'}</p>
+                ? 'No shapes yet. Ask an AI to map this repo into Flowy, draw it yourself with Edit, or add YAML to the flowy/ folder.'
+                : 'No shapes yet.'}</p>
           )}
           {searching && (
             <Search model={model} onClose={() => setSearching(false)} onPick={id => {
