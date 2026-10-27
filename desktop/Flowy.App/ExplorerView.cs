@@ -209,7 +209,7 @@ internal sealed class ExplorerView : Grid
         _settingSelection = false;
         _foot.IsVisible = _rows.Any(r => r.Linked == true); // only while a flow in a pair is among the rows
         _note.IsVisible = _rows.Count == 0;
-        _note.Text = _filterNote == "" ? "Nothing here yet." : $"Nothing matches “{_filterNote}”.";
+        _note.Text = _filterNote == "" ? "No shapes yet." : $"Nothing matches “{_filterNote}”.";
     }
 
     /// <summary>Lights the row the canvas shows on the rows already drawn: the same marks <see cref="BuildRow"/> and the list's container hook give a row as they make it.</summary>
