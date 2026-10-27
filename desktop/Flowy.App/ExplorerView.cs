@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Automation;
 using Avalonia.Controls;
@@ -21,12 +22,14 @@ namespace Flowy.App;
 internal sealed class ExplorerView : Grid
 {
     private const double RowHeight = 30;
+    private const int MaxPatch = 40; // more rows than this changed, and the list starts again
 
     private readonly TextBlock _summary = new() { FontSize = 12, Classes = { "muted" }, Margin = new Thickness(2, 0, FlowsView.Inset + 2, 0) };
     private readonly TextBox _find = new() { PlaceholderText = "Filter the tree", Classes = { "bare" } };
     private readonly ListBox _list = new() { Classes = { "treelist" }, SelectionMode = SelectionMode.Single };
     private readonly TextBlock _note = new() { Margin = new Thickness(6, 8, FlowsView.Inset + 6, 8), FontSize = 13, TextWrapping = TextWrapping.Wrap, Classes = { "muted" }, IsVisible = false };
     private IReadOnlyList<OutlineRow> _rows = [];
+    private ObservableCollection<OutlineRow> _shown = [];
     private Model? _model;
     private string _current = "";
     private string? _focus;
@@ -63,13 +66,14 @@ internal sealed class ExplorerView : Grid
         Children.Add(_list);
         Children.Add(_foot);
 
+        _list.ItemsSource = _shown;
         _list.ItemTemplate = new FuncDataTemplate<OutlineRow>((row, _) => row is null ? null : BuildRow(row));
         _list.SelectionChanged += (_, _) =>
         {
             if (_settingSelection) return;
             _focus = (_list.SelectedItem as OutlineRow)?.Key;
         };
-        _list.ContainerPrepared += (_, e) => e.Container.Classes.Set("canvas", _rows[e.Index].Key == _current); // the keyboard ring skips the row the canvas shows
+        _list.ContainerPrepared += (_, e) => e.Container.Classes.Set("canvas", _shown[e.Index].Key == _current); // the keyboard ring skips the row the canvas shows
         _list.AddHandler(KeyDownEvent, OnListKey, RoutingStrategies.Tunnel);
         _list.PointerEntered += (_, _) => _using = true;
         _list.PointerExited += (_, _) => _using = false;
@@ -145,7 +149,9 @@ internal sealed class ExplorerView : Grid
         var outline = Outlines.Build(model, problems, expanded, _find.Text, editing);
         _summary.Text = $"{Plural(outline.Totals.Shapes, "shape")} · {Plural(outline.Totals.Flows, "flow")}{(outline.Totals.Problems > 0 ? $" · {Plural(outline.Totals.Problems, "problem")}" : "")}";
         var off = CompareChoices.Off(model, editing); // the buttons of the rows are drawn with it, so a row that did not change is drawn again when it does
-        var changed = current != _current || off != _compareOff || !outline.Rows.SequenceEqual(_rows);
+        var before = _compareOff;
+        var sameRows = off == before && outline.Rows.SequenceEqual(_rows);
+        var moved = current != _current;
         _compareOff = off;
         _current = current;
         _rows = outline.Rows;
@@ -153,7 +159,8 @@ internal sealed class ExplorerView : Grid
         _problems = problems;
         _editing = editing;
         _expanded = expanded;
-        if (changed) Fill();
+        if (!sameRows) Fill(rebuild: off != before);
+        if (moved) Restyle(); // a row that was kept is lit or put out here, not drawn again: drawing the rows is the slowest thing a move between views does
         if (!_using && string.IsNullOrWhiteSpace(_find.Text)) ScrollTo(current);
     }
 
@@ -174,13 +181,28 @@ internal sealed class ExplorerView : Grid
 
     private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
 
-    /// <summary>Puts the rows in the list, keeping where it was scrolled to and which row the keyboard is on.</summary>
-    private void Fill()
+    /// <summary>
+    /// Puts the rows in the list, keeping where it was scrolled to and which row the keyboard is on. Rows that did not change keep the controls they have: only the
+    /// stretch between the first and the last row that differ is taken out and put in, unless that is long (a filter) or <paramref name="rebuild"/> says every row is drawn with something new.
+    /// </summary>
+    private void Fill(bool rebuild = false)
     {
         var scroll = _list.FindDescendantOfType<ScrollViewer>();
         var offset = scroll?.Offset ?? default;
         _settingSelection = true;
-        _list.ItemsSource = _rows;
+        var (head, tail) = (0, 0);
+        while (head < _shown.Count && head < _rows.Count && _shown[head] == _rows[head]) head++;
+        while (tail < _shown.Count - head && tail < _rows.Count - head && _shown[_shown.Count - 1 - tail] == _rows[_rows.Count - 1 - tail]) tail++;
+        if (rebuild || _shown.Count - head - tail > MaxPatch || _rows.Count - head - tail > MaxPatch)
+        {
+            _shown = new ObservableCollection<OutlineRow>(_rows);
+            _list.ItemsSource = _shown;
+        }
+        else
+        {
+            for (var i = _shown.Count - tail - 1; i >= head; i--) _shown.RemoveAt(i);
+            for (var i = head; i < _rows.Count - tail; i++) _shown.Insert(i, _rows[i]);
+        }
         _list.UpdateLayout();
         if (scroll is not null) scroll.Offset = offset;
         _list.SelectedIndex = _focus is null ? -1 : IndexOf(_focus);
@@ -188,6 +210,22 @@ internal sealed class ExplorerView : Grid
         _foot.IsVisible = _rows.Any(r => r.Linked == true); // only while a flow in a pair is among the rows
         _note.IsVisible = _rows.Count == 0;
         _note.Text = _filterNote == "" ? "Nothing here yet." : $"Nothing matches “{_filterNote}”.";
+    }
+
+    /// <summary>Lights the row the canvas shows on the rows already drawn: the same marks <see cref="BuildRow"/> and the list's container hook give a row as they make it.</summary>
+    private void Restyle()
+    {
+        foreach (var container in _list.GetRealizedContainers())
+        {
+            if (container.DataContext is not OutlineRow row) continue;
+            var lit = row.Key == _current;
+            container.Classes.Set("canvas", lit);
+            foreach (var part in container.GetVisualDescendants())
+            {
+                if (part is Border b && b.Classes.Contains("treerow")) b.Classes.Set("sel", lit);
+                else if (part is TextBlock t && t.Classes.Contains("treename")) t.Classes.Set("sel", lit);
+            }
+        }
     }
 
     private int IndexOf(string key)

@@ -18,13 +18,24 @@ internal sealed class LevelMotion(Control host, CanvasView canvas, IReader reade
 
     internal bool Moving { get; private set; }
 
+    /// <summary>
+    /// True while the new level is put up between the two halves of a move. What is not on the canvas (the side panel) waits for <see cref="Landed"/>:
+    /// building it there would stop the motion for as long as it takes.
+    /// </summary>
+    internal bool Landing { get; private set; }
+
+    /// <summary>A move has ended, at its end or because it was stopped.</summary>
+    internal event Action? Landed;
+
     /// <summary>Ends a move on its way and puts the canvas back as it was.</summary>
     internal void Stop()
     {
         _motion?.Dispose();
+        var was = Moving;
         Moving = false;
         canvas.RenderTransform = null;
         canvas.Opacity = 1;
+        if (was && !Landing) Landed?.Invoke();
     }
 
     /// <summary>
@@ -49,8 +60,20 @@ internal sealed class LevelMotion(Control host, CanvasView canvas, IReader reade
         _motion = Anim.Run(host, LeaveMilliseconds, Anim.EaseIn, t => Apply(direction, true, t, slide), () =>
         {
             var wasMoving = Moving;
-            reader.GoTo(view);
-            if (!wasMoving) return;
+            Landing = true;
+            try
+            {
+                reader.GoTo(view);
+            }
+            finally
+            {
+                Landing = false;
+            }
+            if (!wasMoving)
+            {
+                Landed?.Invoke();
+                return;
+            }
             Moving = true;
             canvas.RenderTransformOrigin = new RelativePoint(origin.X, origin.Y, RelativeUnit.Absolute);
             _motion = Anim.Run(host, ArriveMilliseconds, Anim.EaseOut, t => Apply(direction, false, t, slide), () =>
@@ -58,6 +81,7 @@ internal sealed class LevelMotion(Control host, CanvasView canvas, IReader reade
                 Moving = false;
                 canvas.RenderTransform = null;
                 canvas.Opacity = 1;
+                Landed?.Invoke();
             });
         });
     }
