@@ -45,7 +45,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private readonly Border _motionHost;
     private readonly Border _compareHost = new() { ClipToBounds = true, IsVisible = false }; // the comparison, in the place of the canvas while it is open
     private readonly StackPanel _empty;
-    private readonly TextBlock _emptyTitle = new() { Text = "Nothing here yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
+    private readonly TextBlock _emptyTitle = new() { Text = "No shapes yet", FontSize = 18, FontWeight = FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center };
     private readonly TextBlock _emptyBody = new() { TextWrapping = TextWrapping.Wrap, TextAlignment = TextAlignment.Center, Classes = { "muted" } };
     private readonly SidePanel _panel = new();
     private PerfPanel _perfPanel => _nav.Perf;
@@ -395,10 +395,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private void UpdateEmpty()
     {
         _empty.IsVisible = _folder is not null && !_banner.IsVisible && !Comparing && (_view == Names.Root || Editing) && _canvas.Scene is { Boxes.Count: 0 };
-        _emptyTitle.Text = "Nothing here yet";
+        _emptyTitle.Text = "No shapes yet";
         _emptyBody.Text = Editing
-            ? "Press Add to put the first shape here."
-            : "Ask an AI to map this repo into Flowy, press E to draw it yourself, or add YAML to the flowy/ folder.";
+            ? "Press Add to put the first one here."
+            : "Ask an AI to map this repo into Flowy, draw it yourself with Edit, or add YAML to the flowy/ folder.";
     }
 
     /// <summary>The view on screen, or the flow playing, as Mermaid text in a code fence: what the browser's Mermaid button copies.</summary>

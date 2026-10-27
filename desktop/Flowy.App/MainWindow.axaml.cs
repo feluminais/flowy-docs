@@ -105,7 +105,7 @@ public partial class MainWindow : Window, IDisposable
             Children =
             {
                 new TextBlock { Text = "Flowy Docs", FontSize = 22, FontWeight = Avalonia.Media.FontWeight.SemiBold, HorizontalAlignment = HorizontalAlignment.Center },
-                new TextBlock { Text = "Open a repo, or the flowy folder inside it. You can also drop a folder here.", Classes = { "muted" }, HorizontalAlignment = HorizontalAlignment.Center },
+                new TextBlock { Text = "Open or drop a repo, or the flowy folder inside it.", Classes = { "muted" }, HorizontalAlignment = HorizontalAlignment.Center },
                 button,
                 Demo(),
             },

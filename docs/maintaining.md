@@ -245,7 +245,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       is smooth: no stutter on the way in or out, and a second double-click during the move doesn't break it.
 - [ ] Help › Open the Demo shows Plum with no problems and a Performance button with a 7 on it; T opens the panel on 900 orders/min,
       "Delivery > Dispatch > ETA at 90% of capacity" (the shapes down to ETA, as the overview draws them), with Delivery outlined red and wearing 90%. View › Copy as Mermaid, pasted into an editor, starts with `` ```mermaid ``;
-      View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "Nothing here yet".
+      View › Save Picture… writes a PNG of the diagram alone. An empty `model.yaml` says "No shapes yet".
 - [ ] Close a window after resizing it, open the app again: it opens at that size.
 - [ ] Delete the open `flowy/` folder: a banner says it is gone. Put it back and open it again: the model returns.
 - [ ] Edit on a copy of `docs/demo` (the sample inside the app can't be edited): E turns edit mode on; rename a box in its panel and click
