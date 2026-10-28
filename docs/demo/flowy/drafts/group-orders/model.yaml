@@ -1,0 +1,90 @@
+name: Group orders
+about: |-
+  Friends order from one restaurant into one basket, and each pays their share.
+
+  A sketch, not built. Open question: does the host pay the delivery fee alone, or is it split too?
+objects:
+  customer:
+    type: actor
+    name: Customer
+    description: Orders from the Plum app or the website.
+  ordering:
+    type: system
+    name: Ordering
+    description: |
+      Everything customer-facing: menus, basket, payment.
+
+      The **Order API** is the only entry point. It stores orders in Postgres and publishes each
+      new order to **Order events**, which **Delivery** consumes.
+  customer-app:
+    type: app
+    in: ordering
+    name: Customer app
+    tech: React Native
+    code:
+      - apps/customer/
+    links:
+      - url: apps/customer/README.md
+        title: Build and release notes
+    description: |
+      Mobile client. Browse, order, pay, follow the courier.
+
+      Stores only the basket and the session.
+  order-api:
+    type: app
+    in: ordering
+    name: Order API
+    tech: Node, Fastify
+    code:
+      - services/order-api/
+    description: |
+      Entry point for every client, and the only service that touches the **Orders DB**.
+
+      - `GET /menus/:restaurant` reads a menu
+      - `POST /orders` places an order
+      - `POST /orders/:id/refund` refunds one
+  basket:
+    type: component
+    in: order-api
+    name: Basket
+    description: Holds the picked items and asks **Pricing** for the running total.
+  checkout:
+    type: component
+    in: order-api
+    name: Checkout
+    code:
+      - services/order-api/src/checkout.ts
+    description: |
+      Prices the basket, authorises the card and places the order.
+
+      The card is charged only when the restaurant accepts. A rejection releases the hold.
+  friend:
+    type: actor
+    name: Friend
+    description: Joins a group order from a link the host sends.
+  group-basket:
+    type: component
+    name: Group basket
+    in: order-api
+    description: Holds what each person in a group order adds, until the host checks out.
+  split:
+    type: component
+    name: Bill split
+    in: order-api
+    description: Works out each person's share and charges them one by one.
+connections:
+  - from: customer
+    to: customer-app
+    label: orders on a phone
+  - from: customer-app
+    to: order-api
+    label: REST
+  - from: friend
+    to: customer-app
+    label: joins from a link
+  - from: basket
+    to: group-basket
+    label: shares the basket
+  - from: checkout
+    to: split
+    label: asks for the shares

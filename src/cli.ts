@@ -145,7 +145,7 @@ async function printTidy(dir: string, only: boolean): Promise<number> {
 
 if (args?.positionals[0] === 'mcp') {
   const dir = oneDir
-  await createMcpServer(dir, openHistory(dir, { app: 'mcp' })).connect(new StdioServerTransport())
+  await createMcpServer(dir, openHistory(dir, { app: 'mcp' }), d => openHistory(d, { app: 'mcp' })).connect(new StdioServerTransport())
 } else if (args?.positionals[0] === 'export' && args.positionals.length === 1 && !mermaidFlags && !failuresFlags && !tidyFlags) {
   const out = resolve(args.values.out)
   try {
@@ -201,7 +201,7 @@ if (args?.positionals[0] === 'mcp') {
     const history = (e: ModelEntry) => openHistory(e.dir, { app: 'browser' })
     const models = shown.slice(0, catalog ? 1 : undefined).map(e => ({ ...e, history: history(e) }))
     if (catalog && found.length === 0) catalog.add(shown[0])
-    const { port } = await startServer({ dir: models[0].dir, ui, port: Number(args.values.port), history: models[0].history, models, discovery: catalog && { catalog, historyFor: history } })
+    const { port } = await startServer({ dir: models[0].dir, ui, port: Number(args.values.port), history: models[0].history, models, discovery: catalog && { catalog, historyFor: history }, draftHistory: d => openHistory(d, { app: 'browser' }) })
     const url = `http://127.0.0.1:${port}/`
     const list = catalog?.list()
     const stopped = list?.stoppedBy ? ` (stopped after ${count(list.looked, 'folder')}; Scan deeper in the page looks further)` : ''

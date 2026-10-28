@@ -147,15 +147,24 @@ const dataEntry = z.object({
 /** The system's name and what it is, when the file has them, in the shape put_project takes. */
 const project = (m: Model) => ({ ...(projectName(m) ? { name: projectName(m) } : {}), ...(projectAbout(m) ? { about: projectAbout(m) } : {}) })
 
-/** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
-export function createMcpServer(modelDir: string, history?: History): McpServer {
+/**
+ * `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call.
+ * `draftHistory` opens a draft's own history, once, the first time a tool writes it; without it a draft keeps none.
+ */
+export function createMcpServer(modelDir: string, history?: History, draftHistory?: (dir: string) => History): McpServer {
   const server = new McpServer({ name: 'flowy-docs', version: '0.1.0' }, { instructions: INSTRUCTIONS })
 
   // A tool given `draft` works on that draft's folder instead of the model's (see core/drafts.ts). The folder rides with the call, so calls
-  // that inOrder queues each keep their own. A draft keeps no history: the history is the model folder's.
+  // that inOrder queues each keep their own. A draft has a history of its own, apart from the model's.
   const place = new AsyncLocalStorage<string>()
   const here = () => place.getStore() ?? modelDir
-  const hist = () => (place.getStore() === undefined ? history : undefined)
+  const draftHistories = new Map<string, History | undefined>()
+  const hist = (): History | undefined => {
+    const at = place.getStore()
+    if (at === undefined) return history
+    if (!draftHistories.has(at)) draftHistories.set(at, draftHistory?.(at))
+    return draftHistories.get(at)
+  }
   const draftArg = z.string().max(64).optional().describe('A draft id (list_drafts names them): work on that draft instead of the model. Left out, the model.')
   const tool: McpServer['registerTool'] = (name, config, cb) => {
     const call = cb as (...args: unknown[]) => unknown

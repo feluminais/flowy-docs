@@ -1,0 +1,15 @@
+name: Split the bill
+view: order-api
+steps:
+  - from: customer
+    to: checkout
+    text: Checks out for everyone
+  - from: basket
+    to: group-basket
+    text: Hands over everyone's items
+  - from: checkout
+    to: split
+    text: Asks for each share
+  - from: split
+    text: Charges each person their share
+    description: A friend whose card fails gets a reminder; the order waits ten minutes, then goes without their items.
