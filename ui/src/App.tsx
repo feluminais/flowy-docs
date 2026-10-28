@@ -59,6 +59,7 @@ import { Yaml } from './Yaml.tsx'
 import { DetailsPanels } from './DetailsPanels.tsx'
 import type { Side } from './side.ts'
 import { TopBar } from './TopBar.tsx'
+import { DraftsList } from './Drafts.tsx'
 import { useAddress } from './useAddress.ts'
 import { useCanvasEvents, useClickWait } from './useCanvasEvents.ts'
 import { useCanvasGraph } from './useCanvasGraph.ts'
@@ -89,7 +90,7 @@ export function App() {
 
 type Back = () => Promise<string | undefined>
 
-function Reader({ model, problems, codeBase, runs, runProblems, failureProblems, edit, undo, redo, restore, tag, historyApi, changes, live, readOnly, broken }: Loaded & {
+function Reader({ model, problems, codeBase, runs, runProblems, failureProblems, drafts, draft: draftOf, edit, undo, redo, restore, tag, historyApi, changes, live, readOnly, broken }: Loaded & {
   edit: Edit; undo: Back; redo: Back; restore: Restore; tag: Tag; historyApi?: HistoryClient; changes: number; live: boolean; readOnly: boolean; broken: boolean
 }) {
   const colorMode = useColorMode()
@@ -286,7 +287,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const navTabs = <NavTabs tab={nav ?? 'explorer'} onPick={setTab} />
   return (
     <>
-      <TopBar model={model} view={view} editing={editing} live={live} readOnly={readOnly} problems={problems} models={models} onModels={setModels} lines={lines} searching={searching} shortcuts={shortcuts} run={run}
+      <TopBar model={model} draft={draftOf} view={view} editing={editing} live={live} readOnly={readOnly} problems={problems} models={models} onModels={setModels} lines={lines} searching={searching} shortcuts={shortcuts} run={run}
         onJump={jumpTo} onProblem={jump} onShow={show} onUndo={() => void takeBack()} onRedo={() => void bringBack()}
         onTidy={() => {
           clearMoved()
@@ -437,6 +438,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
               <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
                 playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} compare={rowCompare} />
+              {live && !vscode && draftOf === undefined && <DraftsList drafts={drafts} off={noteOff(live, readOnly)} />}
               {rowPicker}
             </NavPanel>
           )}
