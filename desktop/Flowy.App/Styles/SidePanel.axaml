@@ -1,0 +1,76 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the side panel: SidePanel loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <Style Selector="Button.pick.typecell"><Setter Property="Width" Value="66" /></Style>
+  <Style Selector="Button.pick.swatch">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Padding" Value="3" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.pick.swatch.on /template/ ContentPresenter, Button.pick.swatch.on:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.reset">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="MinHeight" Value="22" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.reset TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Button.reset:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <!-- The sketches of how a step travels and how its request ends, drawn on a 44 by 24 grid in the colour of the text. -->
+  <Style Selector="Path.sketch">
+    <Setter Property="Stroke" Value="{DynamicResource FgBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <!-- A row of files, links or connections: plain, lit when pointed at. -->
+  <Style Selector="Border.row">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="Margin" Value="-8,0" />
+  </Style>
+  <Style Selector="Border.row:pointerover"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="Border.row.lines:pointerover"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <!-- A direction arrow is only drawn; a step's number and a panel's heading sit in a round tint. -->
+  <Style Selector="Border.dirn">
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="22" />
+  </Style>
+  <Style Selector="Path.dirnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <!-- The Data section of a store: an entry's header is a toggle that is plain until pointed at; a grid has its headings on a faint fill and a rule between rows; a note is a strip with the column or field it is about. -->
+  <Style Selector="ToggleButton.datahead">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0,3" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="ToggleButton.datahead /template/ ContentPresenter, ToggleButton.datahead:checked /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.datahead:pointerover /template/ ContentPresenter, ToggleButton.datahead:checked:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+  </Style>
+  <Style Selector="ToggleButton.datahead:focus-visible /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="BorderThickness" Value="1.5" /></Style>
+  <Style Selector="Border.datafill"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,0,0,1" /></Style>
+  <Style Selector="Border.datarule"><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,1,0,0" /><Setter Property="Opacity" Value="0.6" /></Style>
+  <Style Selector="Ellipse.datadot"><Setter Property="Fill" Value="{DynamicResource KnowBrush}" /></Style>
+  <Style Selector="Border.datacode"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Padding" Value="5,1" /></Style>
+  <Style Selector="Border.datanote">
+    <Setter Property="Background" Value="{DynamicResource KnowTintBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource KnowBrush}" />
+    <Setter Property="BorderThickness" Value="3,0,0,0" />
+    <Setter Property="CornerRadius" Value="0,6,6,0" />
+    <Setter Property="Padding" Value="10,4" />
+  </Style>
+</Styles>

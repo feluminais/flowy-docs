@@ -39,7 +39,7 @@ internal sealed class LaunchScript
         }, wait, DispatcherPriority.Render);
     }
 
-    private void Apply(LaunchOptions options)
+    internal void Apply(LaunchOptions options)
     {
         if (_reader.Folder is null) return;
         if (options.Has("--edit")) _reader.SetEditing(true);

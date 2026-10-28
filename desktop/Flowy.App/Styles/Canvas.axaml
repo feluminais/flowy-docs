@@ -1,0 +1,220 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the canvas: CanvasView loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <Style Selector=":is(Grid).box Path.fillbase">
+    <Setter Property="Fill" Value="{DynamicResource BoxBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.tint">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Grid).box.tinted Path.tint">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.colorline">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="1.5" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.colored Path.colorline">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector=":is(Grid).box.outsider Path.colorline, :is(Grid).box.selected Path.colorline, :is(Grid).box.lit Path.colorline">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Grid).box.lit">
+    <Setter Property="Opacity" Value="1" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.glow">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Stroke" Value="#402563eb" />
+    <Setter Property="StrokeThickness" Value="7" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.lit Path.glow">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.tile">
+    <Setter Property="Width" Value="34" />
+    <Setter Property="Height" Value="34" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Background" Value="{DynamicResource SystemTileBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.actor Border.tile"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.app Border.tile"><Setter Property="Background" Value="{DynamicResource AppTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.store Border.tile"><Setter Property="Background" Value="{DynamicResource StoreTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.component Border.tile"><Setter Property="Background" Value="{DynamicResource ComponentTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box.external Border.tile"><Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" /></Style>
+  <Style Selector=":is(Grid).box TextBlock.meta">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </Style>
+  <Style Selector=":is(Grid).box TextBlock.inside">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="11" />
+  </Style>
+  <!-- A load (the Performance panel): an outline from green to red over the shape's own, with a glow, and how many are waiting in the corner. -->
+  <Style Selector=":is(Grid).box Path.strain">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="3" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box Path.strainglow">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="7" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.strained Path.strain, :is(Grid).box.strained Path.strainglow">
+    <Setter Property="IsVisible" Value="True" />
+  </Style>
+  <!-- The same fact as the outline colour, as a number at the bottom left once a shape is past the struggle mark. A state beats the strain colour, and the number goes with it. -->
+  <Style Selector=":is(Grid).box Border.strainpct">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="Margin" Value="-7,0,0,-9" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+  </Style>
+  <Style Selector=":is(Grid).box.hot Border.strainpct"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box.hot.stated Border.strainpct"><Setter Property="IsVisible" Value="False" /></Style>
+  <Style Selector=":is(Grid).box.state-inside Border.strainpct"><Setter Property="Margin" Value="16,0,0,-9" /></Style> <!-- beside the glyph of a state it holds -->
+  <Style Selector=":is(Grid).box Border.strainpct TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!--
+    The Failures tab. A badge at a shape's top left (the top right holds the queue number) says how many failure modes it carries, in the colour of the worst
+    one. A picked mode outlines its part, outlines what it affects lighter and fades the rest. The same marks are in the key and the list (Border.sw.*).
+  -->
+  <Style Selector=":is(Grid).box Border.failbadge">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="MinWidth" Value="20" />
+    <Setter Property="Height" Value="20" />
+    <Setter Property="Padding" Value="6,0" />
+    <Setter Property="Margin" Value="-7,-9,0,0" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.failmarked Border.failbadge"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.high"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.medium"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.low"><Setter Property="Background" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.failbadge.unrated">
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.failbadge TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.failbadge.unrated TextBlock"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
+  <Style Selector=":is(Grid).box Path.failline">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="StrokeThickness" Value="3" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.fails Path.failline, :is(Grid).box.affected Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
+  <!-- What a picked mode fails is outlined in the colour of its band (High red, Medium orange, Low and Not rated grey), solid on every level, as the browser draws it. -->
+  <Style Selector=":is(Grid).box.band-medium Path.failline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box.band-low Path.failline, :is(Grid).box.band-unrated Path.failline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).box.outsider.fails Path.outline, :is(Grid).box.outsider.affected Path.outline"><Setter Property="StrokeDashArray" Value="" /></Style>
+  <Style Selector=":is(Grid).box.affected Path.failline">
+    <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <!-- The Used by panel: a shape about to go is outlined in red and dashed, and the one its focused row names in the accent colour. -->
+  <Style Selector=":is(Grid).box.going Path.failline, :is(Grid).box.flagged Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
+  <Style Selector=":is(Grid).box.going Path.failline"><Setter Property="StrokeDashArray" Value="6,4" /></Style>
+  <Style Selector=":is(Grid).box.flagged Path.failline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.faildim"><Setter Property="Opacity" Value="0.15" /></Style>
+  <Style Selector=":is(Grid).box Path.changering">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeThickness" Value="2.5" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-new Path.changering">
+    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-removed Path.changering">
+    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
+    <Setter Property="StrokeDashArray" Value="2.4,1.6" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-changed Path.changering">
+    <Setter Property="IsVisible" Value="True" />
+    <Setter Property="Stroke" Value="{DynamicResource WarnBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box Border.changebadge">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="MinWidth" Value="18" />
+    <Setter Property="Height" Value="18" />
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="Margin" Value="0,0,-7,-9" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+  </Style>
+  <Style Selector=":is(Grid).box.chg-new Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.chg-removed Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector=":is(Grid).box.chg-changed Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box Border.changebadge TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- A shape off the step on show is faded to a ghost; a mark on one stays readable, so every change shows at every step. A shape in a state keeps its own fading. -->
+  <Style Selector=":is(Grid).box.dim.marked:not(.stated)"><Setter Property="Opacity" Value="0.6" /></Style>
+  <!--
+    A shape in a state other than Running (StateMarks.cs, BoxControl.SetState): a second outline over its own in the state's dash (the dash and the
+    movement are in code, since a dash is counted in stroke widths), a glyph on a ring in the state's colour, and the content dimmed. The colours are
+    the tokens the browser uses, so they follow light and dark: starting and restarting are the accent, stopping and degraded the warning, stopped the muted.
+    A state beats the strain colour of the Performance panel on the same shape.
+  -->
+  <Style Selector=":is(Grid).box Path.stateline">
+    <Setter Property="IsVisible" Value="False" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <!-- What a step does not light is faded to 0.15; a shape in a state stays easier to see, since where it stands holds until a step changes it. -->
+  <Style Selector=":is(Grid).box.dim.stated">
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <Style Selector=":is(Grid).box.stated Path.strain, :is(Grid).box.stated Path.strainglow">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+  <Style Selector=":is(Grid).box.state-starting Path.stateline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-stopping Path.stateline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-stopped Path.stateline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-restarting Path.stateline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(Grid).box.state-degraded Path.stateline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <!-- Off, going off and restarting are grey as well as dim: the tile and its icon take the outside service's grey. -->
+  <Style Selector=":is(Grid).box.stated.state-stopped Border.tile, :is(Grid).box.stated.state-stopping Border.tile, :is(Grid).box.stated.state-restarting Border.tile">
+    <Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" />
+  </Style>
+  <Style Selector=":is(Grid).box.stated.state-stopped Path.icon, :is(Grid).box.stated.state-stopping Path.icon, :is(Grid).box.stated.state-restarting Path.icon">
+    <Setter Property="Stroke" Value="{DynamicResource ExternalBrush}" />
+  </Style>
+  <!-- Edit mode: the dot under a box to draw a connection from. -->
+  <Style Selector=":is(Grid).box Ellipse.handle">
+    <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Stroke" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="StrokeThickness" Value="2" />
+  </Style>
+</Styles>

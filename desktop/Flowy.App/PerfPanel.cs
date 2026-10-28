@@ -392,6 +392,7 @@ internal sealed class PerfPanel : StackPanel
 
     public PerfPanel()
     {
+        AreaStyles.Add(this, "Performance");
         Spacing = 12;
         _slider.ValueChanged += (_, e) =>
         {

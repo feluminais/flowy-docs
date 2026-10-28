@@ -35,6 +35,7 @@ internal sealed class NavRail : Border
 
     public NavRail(bool navigator)
     {
+        AreaStyles.Add(this, "Rail");
         Classes.Add("rail");
         if (navigator) Classes.Add("railleft");
         Width = 44;
@@ -198,6 +199,7 @@ internal sealed class NavigatorPanel : Border
 
     public NavigatorPanel()
     {
+        AreaStyles.Add(this, "Navigator");
         Classes.Add("panel");
         Classes.Add("navpanel");
         _failuresScroll = new ScrollViewer { HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled, Content = new Border { Padding = new Thickness(16, 6, 16, 16), Child = Failures } };

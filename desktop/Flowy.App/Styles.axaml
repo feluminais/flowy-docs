@@ -129,6 +129,7 @@
     </ResourceDictionary>
   </Styles.Resources>
 
+  <!-- The styles more than one area uses. An area's own (the canvas, a panel, the bar) are in Styles/<area>.axaml, on the control that holds it (AreaStyles.cs). -->
   <Style Selector="Window">
     <Setter Property="Background" Value="{DynamicResource BgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
@@ -265,22 +266,6 @@
   </Style>
   <Style Selector="Button.tool.danger:pointerover Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Button.tool.danger:pointerover TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector="Button.problems">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="CornerRadius" Value="6" />
-    <Setter Property="Padding" Value="10,0" />
-    <Setter Property="MinHeight" Value="30" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector="Button.problems:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource WarnTintBrush}" /></Style>
-  <Style Selector="Button.problems Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector="Button.problems TextBlock.btntext">
-    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
   <Style Selector="ComboBox">
     <Setter Property="CornerRadius" Value="8" />
     <Setter Property="Padding" Value="11,6" />
@@ -332,7 +317,6 @@
     <Setter Property="Padding" Value="6,5,10,5" />
     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
   </Style>
-  <Style Selector="Button.pick.typecell"><Setter Property="Width" Value="66" /></Style>
   <Style Selector="Button.pick.lang"><Setter Property="MinWidth" Value="84" /><Setter Property="Padding" Value="8,5" /></Style>
   <!-- A snippet's fields in the form: a card with a line round it. -->
   <Style Selector="Border.codecard">
@@ -340,12 +324,6 @@
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="10" />
     <Setter Property="Padding" Value="12" />
-  </Style>
-  <Style Selector="Button.pick.swatch">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="CornerRadius" Value="16" />
-    <Setter Property="Padding" Value="3" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
   </Style>
   <Style Selector="Button.pick.icon">
     <Setter Property="Width" Value="36" />
@@ -364,30 +342,14 @@
     <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
   </Style>
-  <Style Selector="Button.pick.swatch.on /template/ ContentPresenter, Button.pick.swatch.on:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
-  </Style>
   <Style Selector="Button.pick:focus-visible /template/ ContentPresenter">
     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
   </Style>
   <Style Selector="Border.pop"><Setter Property="Background" Value="{DynamicResource TextControlBackground}" /></Style>
   <Style Selector="Border.track"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
-  <!-- The thin rule between the Failures tab's two copy buttons. -->
-  <Style Selector="Border.copysep"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
   <Style Selector="Ellipse.thumb"><Setter Property="Fill" Value="{DynamicResource BoxBrush}" /></Style>
   <Style Selector="ToggleButton:checked Border.track"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="ToggleButton:checked Ellipse.thumb"><Setter Property="HorizontalAlignment" Value="Right" /></Style>
-  <Style Selector="Button.reset">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="CornerRadius" Value="6" />
-    <Setter Property="Padding" Value="8,0" />
-    <Setter Property="MinHeight" Value="22" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector="Button.reset TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Button.reset:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
 
   <Style Selector="Border.chip"><Setter Property="Background" Value="Transparent" /></Style>
   <Style Selector="Border.chip TextBlock">
@@ -397,20 +359,6 @@
   <Style Selector="Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Border.chip.accent TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.accent Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <!-- The progress of a flow: a segment a step, filled up to the one shown. -->
-  <Style Selector="Border.seg">
-    <Setter Property="Background" Value="{DynamicResource LineBrush}" />
-    <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Height" Value="4" />
-  </Style>
-  <Style Selector="Border.seg.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <!-- A lane the stop shown is not in: hollow, as the browser draws it. A group is a box, dashed when it may stop early. -->
-  <Style Selector="Border.seg.off">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-  </Style>
-  <Style Selector="Border.seg.off.done"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Rectangle.box">
     <Setter Property="Stroke" Value="{DynamicResource LineBrush}" />
     <Setter Property="StrokeThickness" Value="1" />
@@ -418,48 +366,17 @@
     <Setter Property="RadiusY" Value="6" />
     <Setter Property="IsHitTestVisible" Value="False" />
   </Style>
-  <Style Selector="Rectangle.box.maybe">
-    <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="StrokeDashArray" Value="3,3" />
-  </Style>
-  <Style Selector="TextBlock.barlane">
-    <Setter Property="FontSize" Value="10.5" />
-    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-  </Style>
-  <Style Selector="TextBlock.barlane.on"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
-  <!-- A branch on the bar is a fork: square-cornered lines to each lane, the way to the lane shown in the accent, and a bare line round an "only if". -->
-  <Style Selector="Path.elbow"><Setter Property="Stroke" Value="{DynamicResource LineBrush}" /><Setter Property="StrokeThickness" Value="2" /></Style>
-  <Style Selector="Path.elbow.on"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.round"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
-  <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
-  <Style Selector="Border.tab">
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="99" />
-    <Setter Property="Padding" Value="9,1" />
-  </Style>
-  <Style Selector="Border.tab TextBlock"><Setter Property="FontSize" Value="12" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Border.tab.on"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.tab.on TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.laneblock"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
   <!-- How a step's request ended (outcomeLine): text in the danger colour with a dot beside it. -->
   <Style Selector="TextBlock.outcome"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="Border.outcomedot"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
   <Style Selector="TextBlock.channelline"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.channeldot"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <!-- The sketches of how a step travels and how its request ends, drawn on a 44 by 24 grid in the colour of the text. -->
-  <Style Selector="Path.sketch">
-    <Setter Property="Stroke" Value="{DynamicResource FgBrush}" />
-    <Setter Property="StrokeThickness" Value="2" />
-    <Setter Property="StrokeLineCap" Value="Round" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
   <Style Selector="TextBlock.lane"><Setter Property="FontSize" Value="12" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Button.trail"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <!-- The legend a grouped flow's card opens: what the chips, the bar and the labels on lines mean. -->
   <Style Selector="Border.legend"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
-  <Style Selector="Button.legendbutton.on Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.chip.warn TextBlock"><Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Border.chip.warn Path.chipicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector="Border.ttile.actor"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>
@@ -499,15 +416,6 @@
     <Setter Property="BorderThickness" Value="2,0,0,0" />
     <Setter Property="Padding" Value="14,2,0,2" />
   </Style>
-  <!-- A row of files, links or connections: plain, lit when pointed at. -->
-  <Style Selector="Border.row">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="Padding" Value="8,6" />
-    <Setter Property="Margin" Value="-8,0" />
-  </Style>
-  <Style Selector="Border.row:pointerover"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
-  <Style Selector="Border.row.lines:pointerover"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <!-- A callout beside the text, like a quote: what is wrong with a box or a line. -->
   <Style Selector="Border.callout">
     <Setter Property="Background" Value="{DynamicResource WarnTintBrush}" />
@@ -516,18 +424,12 @@
     <Setter Property="CornerRadius" Value="0,8,8,0" />
     <Setter Property="Padding" Value="12,8" />
   </Style>
-  <!-- A direction arrow is only drawn; a step's number and a panel's heading sit in a round tint. -->
-  <Style Selector="Border.dirn">
-    <Setter Property="Width" Value="22" />
-    <Setter Property="Height" Value="22" />
-  </Style>
   <Style Selector="Border.badge">
     <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
     <Setter Property="CornerRadius" Value="12" />
     <Setter Property="Width" Value="24" />
     <Setter Property="Height" Value="24" />
   </Style>
-  <Style Selector="Path.dirnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.dirn TextBlock, Border.badge TextBlock">
     <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
     <Setter Property="FontSize" Value="12" />
@@ -536,35 +438,6 @@
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
   <Style Selector="Path.rowicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <!-- The Data section of a store: an entry's header is a toggle that is plain until pointed at; a grid has its headings on a faint fill and a rule between rows; a note is a strip with the column or field it is about. -->
-  <Style Selector="ToggleButton.datahead">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Padding" Value="0,3" />
-    <Setter Property="MinHeight" Value="0" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector="ToggleButton.datahead /template/ ContentPresenter, ToggleButton.datahead:checked /template/ ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
-  </Style>
-  <Style Selector="ToggleButton.datahead:pointerover /template/ ContentPresenter, ToggleButton.datahead:checked:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
-  </Style>
-  <Style Selector="ToggleButton.datahead:focus-visible /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="BorderThickness" Value="1.5" /></Style>
-  <Style Selector="Border.datafill"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,0,0,1" /></Style>
-  <Style Selector="Border.datarule"><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /><Setter Property="BorderThickness" Value="0,1,0,0" /><Setter Property="Opacity" Value="0.6" /></Style>
-  <Style Selector="Ellipse.datadot"><Setter Property="Fill" Value="{DynamicResource KnowBrush}" /></Style>
-  <Style Selector="Border.datacode"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /><Setter Property="CornerRadius" Value="4" /><Setter Property="Padding" Value="5,1" /></Style>
-  <Style Selector="Border.datanote">
-    <Setter Property="Background" Value="{DynamicResource KnowTintBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource KnowBrush}" />
-    <Setter Property="BorderThickness" Value="3,0,0,0" />
-    <Setter Property="CornerRadius" Value="0,6,6,0" />
-    <Setter Property="Padding" Value="10,4" />
-  </Style>
   <Style Selector="Path.warnicon"><Setter Property="Stroke" Value="{DynamicResource WarnFgBrush}" /></Style>
 
   <!-- A box: its shape (a fill, a tint of its own colour, an outline, and a coloured outline over it), the tile, the name, how many are inside. -->
@@ -572,27 +445,10 @@
     <Setter Property="Width" Value="200" />
     <Setter Property="Height" Value="72" />
   </Style>
-  <Style Selector=":is(Grid).box Path.fillbase">
-    <Setter Property="Fill" Value="{DynamicResource BoxBrush}" />
-  </Style>
-  <Style Selector=":is(Grid).box Path.tint">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-  <Style Selector=":is(Grid).box.tinted Path.tint">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
   <Style Selector=":is(Grid).box Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource LineBrush}" />
     <Setter Property="StrokeThickness" Value="1" />
     <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector=":is(Grid).box Path.colorline">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="StrokeThickness" Value="1.5" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector=":is(Grid).box.colored Path.colorline">
-    <Setter Property="IsVisible" Value="True" />
   </Style>
   <Style Selector=":is(Grid).box.outsider">
     <Setter Property="Opacity" Value="0.55" />
@@ -602,37 +458,16 @@
     <Setter Property="StrokeThickness" Value="1.5" />
     <Setter Property="StrokeDashArray" Value="4,3" />
   </Style>
-  <Style Selector=":is(Grid).box.outsider Path.colorline, :is(Grid).box.selected Path.colorline, :is(Grid).box.lit Path.colorline">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
   <Style Selector=":is(Grid).box.selected Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
   </Style>
   <Style Selector=":is(Grid).box.dim">
     <Setter Property="Opacity" Value="0.15" />
   </Style>
-  <Style Selector=":is(Grid).box.lit">
-    <Setter Property="Opacity" Value="1" />
-  </Style>
   <Style Selector=":is(Grid).box.lit Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="1.5" />
     <Setter Property="StrokeDashArray" Value="" />
-  </Style>
-  <Style Selector=":is(Grid).box Path.glow">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="Stroke" Value="#402563eb" />
-    <Setter Property="StrokeThickness" Value="7" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector=":is(Grid).box.lit Path.glow">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
-  <Style Selector=":is(Grid).box Border.tile">
-    <Setter Property="Width" Value="34" />
-    <Setter Property="Height" Value="34" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="Background" Value="{DynamicResource SystemTileBrush}" />
   </Style>
   <Style Selector=":is(Grid).box Path.icon">
     <Setter Property="Stroke" Value="{DynamicResource SystemBrush}" />
@@ -640,28 +475,14 @@
     <Setter Property="StrokeLineCap" Value="Round" />
     <Setter Property="StrokeJoin" Value="Round" />
   </Style>
-  <Style Selector=":is(Grid).box.actor Border.tile"><Setter Property="Background" Value="{DynamicResource ActorTileBrush}" /></Style>
   <Style Selector=":is(Grid).box.actor Path.icon"><Setter Property="Stroke" Value="{DynamicResource ActorBrush}" /></Style>
-  <Style Selector=":is(Grid).box.app Border.tile"><Setter Property="Background" Value="{DynamicResource AppTileBrush}" /></Style>
   <Style Selector=":is(Grid).box.app Path.icon"><Setter Property="Stroke" Value="{DynamicResource AppBrush}" /></Style>
-  <Style Selector=":is(Grid).box.store Border.tile"><Setter Property="Background" Value="{DynamicResource StoreTileBrush}" /></Style>
   <Style Selector=":is(Grid).box.store Path.icon"><Setter Property="Stroke" Value="{DynamicResource StoreBrush}" /></Style>
-  <Style Selector=":is(Grid).box.component Border.tile"><Setter Property="Background" Value="{DynamicResource ComponentTileBrush}" /></Style>
   <Style Selector=":is(Grid).box.component Path.icon"><Setter Property="Stroke" Value="{DynamicResource ComponentBrush}" /></Style>
-  <Style Selector=":is(Grid).box.external Border.tile"><Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" /></Style>
   <Style Selector=":is(Grid).box.external Path.icon"><Setter Property="Stroke" Value="{DynamicResource ExternalBrush}" /></Style>
   <Style Selector=":is(Grid).box TextBlock.name">
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-  </Style>
-  <Style Selector=":is(Grid).box TextBlock.meta">
-    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="FontSize" Value="12" />
-    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-  </Style>
-  <Style Selector=":is(Grid).box TextBlock.inside">
-    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="FontSize" Value="11" />
   </Style>
   <Style Selector=":is(Grid).box Path.zoom">
     <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
@@ -677,20 +498,6 @@
     <Setter Property="IsVisible" Value="True" />
   </Style>
   <Style Selector=":is(Grid).box Border.badge TextBlock"><Setter Property="Foreground" Value="{DynamicResource OnWarnBrush}" /></Style>
-  <!-- A load (the Performance panel): an outline from green to red over the shape's own, with a glow, and how many are waiting in the corner. -->
-  <Style Selector=":is(Grid).box Path.strain">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="StrokeThickness" Value="3" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector=":is(Grid).box Path.strainglow">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="StrokeThickness" Value="7" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector=":is(Grid).box.strained Path.strain, :is(Grid).box.strained Path.strainglow">
-    <Setter Property="IsVisible" Value="True" />
-  </Style>
   <Style Selector=":is(Grid).box Border.queue">
     <Setter Property="Background" Value="{DynamicResource WarnBrush}" />
     <Setter Property="CornerRadius" Value="4" />
@@ -707,83 +514,7 @@
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <!-- The same fact as the outline colour, as a number at the bottom left once a shape is past the struggle mark. A state beats the strain colour, and the number goes with it. -->
-  <Style Selector=":is(Grid).box Border.strainpct">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="9" />
-    <Setter Property="MinWidth" Value="20" />
-    <Setter Property="Height" Value="18" />
-    <Setter Property="Padding" Value="5,0" />
-    <Setter Property="Margin" Value="-7,0,0,-9" />
-    <Setter Property="HorizontalAlignment" Value="Left" />
-    <Setter Property="VerticalAlignment" Value="Bottom" />
-  </Style>
-  <Style Selector=":is(Grid).box.hot Border.strainpct"><Setter Property="IsVisible" Value="True" /></Style>
-  <Style Selector=":is(Grid).box.hot.stated Border.strainpct"><Setter Property="IsVisible" Value="False" /></Style>
-  <Style Selector=":is(Grid).box.state-inside Border.strainpct"><Setter Property="Margin" Value="16,0,0,-9" /></Style> <!-- beside the glyph of a state it holds -->
-  <Style Selector=":is(Grid).box Border.strainpct TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
-    <Setter Property="FontSize" Value="11" />
-    <Setter Property="FontWeight" Value="Bold" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
-  <!--
-    The Failures tab. A badge at a shape's top left (the top right holds the queue number) says how many failure modes it carries, in the colour of the worst
-    one. A picked mode outlines its part, outlines what it affects lighter and fades the rest. The same marks are in the key and the list (Border.sw.*).
-  -->
-  <Style Selector=":is(Grid).box Border.failbadge">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="CornerRadius" Value="10" />
-    <Setter Property="MinWidth" Value="20" />
-    <Setter Property="Height" Value="20" />
-    <Setter Property="Padding" Value="6,0" />
-    <Setter Property="Margin" Value="-7,-9,0,0" />
-    <Setter Property="HorizontalAlignment" Value="Left" />
-    <Setter Property="VerticalAlignment" Value="Top" />
-    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
-  </Style>
-  <Style Selector=":is(Grid).box.failmarked Border.failbadge"><Setter Property="IsVisible" Value="True" /></Style>
-  <Style Selector=":is(Grid).box Border.failbadge.high"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector=":is(Grid).box Border.failbadge.medium"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector=":is(Grid).box Border.failbadge.low"><Setter Property="Background" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector=":is(Grid).box Border.failbadge.unrated">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-  </Style>
-  <Style Selector=":is(Grid).box Border.failbadge TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
-    <Setter Property="FontSize" Value="11" />
-    <Setter Property="FontWeight" Value="Bold" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
-  <Style Selector=":is(Grid).box Border.failbadge.unrated TextBlock"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
-  <Style Selector=":is(Grid).box Path.failline">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
-    <Setter Property="StrokeThickness" Value="3" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector=":is(Grid).box.fails Path.failline, :is(Grid).box.affected Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
-  <!-- What a picked mode fails is outlined in the colour of its band (High red, Medium orange, Low and Not rated grey), solid on every level, as the browser draws it. -->
-  <Style Selector=":is(Grid).box.band-medium Path.failline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector=":is(Grid).box.band-low Path.failline, :is(Grid).box.band-unrated Path.failline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector=":is(Grid).box.outsider.fails Path.outline, :is(Grid).box.outsider.affected Path.outline"><Setter Property="StrokeDashArray" Value="" /></Style>
-  <Style Selector=":is(Grid).box.affected Path.failline">
-    <Setter Property="StrokeThickness" Value="2" />
-    <Setter Property="Opacity" Value="0.45" />
-  </Style>
   <Style Selector=":is(Grid).box.fails, :is(Grid).box.affected"><Setter Property="Opacity" Value="1" /></Style>
-  <!-- The Used by panel: a shape about to go is outlined in red and dashed, and the one its focused row names in the accent colour. -->
-  <Style Selector=":is(Grid).box.going Path.failline, :is(Grid).box.flagged Path.failline"><Setter Property="IsVisible" Value="True" /></Style>
-  <Style Selector=":is(Grid).box.going Path.failline"><Setter Property="StrokeDashArray" Value="6,4" /></Style>
-  <Style Selector=":is(Grid).box.flagged Path.failline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector=":is(Grid).box.faildim"><Setter Property="Opacity" Value="0.15" /></Style>
   <!-- The marks of a key (the Performance panel and the Failures tab), each drawn as it looks on the chart or the canvas. -->
   <Style Selector="Border.sw.high, Border.sw.medium, Border.sw.low, Border.sw.unrated">
     <Setter Property="Width" Value="12" />
@@ -804,32 +535,11 @@
     <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
     <Setter Property="BorderThickness" Value="3" />
   </Style>
-  <Style Selector="Border.sw.affects">
-    <Setter Property="BorderThickness" Value="2" />
-    <Setter Property="Opacity" Value="0.45" />
-  </Style>
   <Style Selector="Border.sw.fails.band-medium, Border.sw.affects.band-medium"><Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector="Border.sw.fails.band-low, Border.sw.affects.band-low, Border.sw.fails.band-unrated, Border.sw.affects.band-unrated"><Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Border.sw, Line.knee">
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Focusable" Value="False" />
-  </Style>
-  <Style Selector="Border.sw.p50, Border.sw.p95, Border.sw.busy">
-    <Setter Property="Width" Value="18" />
-    <Setter Property="Height" Value="2" />
-    <Setter Property="CornerRadius" Value="1" />
-    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-  </Style>
-  <Style Selector="Border.sw.p95"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector="Border.sw.busy">
-    <Setter Property="Height" Value="4" />
-    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
-  </Style>
-  <Style Selector="Line.knee"><Setter Property="Stroke" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector=":is(Border).sw.heat">
-    <Setter Property="Width" Value="20" />
-    <Setter Property="Height" Value="10" />
-    <Setter Property="CornerRadius" Value="5" />
   </Style>
   <Style Selector="Border.sw.none">
     <Setter Property="Width" Value="20" />
@@ -852,37 +562,6 @@
     <Setter Property="HorizontalAlignment" Value="Center" />
     <Setter Property="VerticalAlignment" Value="Center" />
   </Style>
-  <Style Selector="Border.sw.pct">
-    <Setter Property="MinWidth" Value="16" />
-    <Setter Property="Height" Value="16" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="Padding" Value="5,0" />
-    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-  </Style>
-  <Style Selector="Border.sw.pct TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
-    <Setter Property="FontSize" Value="10" />
-    <Setter Property="FontWeight" Value="Bold" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
-  <!-- A line down the chart at the load now: the foreground, faded as the chart draws it. -->
-  <Style Selector="Border.sw.now">
-    <Setter Property="Width" Value="2" />
-    <Setter Property="Height" Value="14" />
-    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
-    <Setter Property="Opacity" Value="0.6" />
-  </Style>
-  <Style Selector="Line.stripes"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Border.sw.call">
-    <Setter Property="Width" Value="11" />
-    <Setter Property="Height" Value="4" />
-    <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-  </Style>
-  <Style Selector="Border.sw.call.bad"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
   <!-- A run's source in the key: dots in its colour (a brush set on the dot; .accent when it has none), a call that pops, a call turned away. -->
   <Style Selector="Border.sw.accent"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.sw.lost">
@@ -908,146 +587,15 @@
     <Setter Property="Width" Value="24" />
     <Setter Property="Height" Value="14" />
   </Style>
-  <Style Selector="Border.sw Rectangle.chg">
-    <Setter Property="RadiusX" Value="4" />
-    <Setter Property="RadiusY" Value="4" />
-    <Setter Property="StrokeThickness" Value="2.5" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector="Border.sw.new Rectangle.chg"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.sw.removed Rectangle.chg">
-    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
-    <Setter Property="StrokeDashArray" Value="2.4,1.6" />
-  </Style>
-  <Style Selector="Border.sw.changed Rectangle.chg"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector=":is(Grid).box Path.changering">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="StrokeThickness" Value="2.5" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector=":is(Grid).box.chg-new Path.changering">
-    <Setter Property="IsVisible" Value="True" />
-    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
-  </Style>
-  <Style Selector=":is(Grid).box.chg-removed Path.changering">
-    <Setter Property="IsVisible" Value="True" />
-    <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
-    <Setter Property="StrokeDashArray" Value="2.4,1.6" />
-  </Style>
-  <Style Selector=":is(Grid).box.chg-changed Path.changering">
-    <Setter Property="IsVisible" Value="True" />
-    <Setter Property="Stroke" Value="{DynamicResource WarnBrush}" />
-  </Style>
-  <Style Selector=":is(Grid).box Border.changebadge">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="MinWidth" Value="18" />
-    <Setter Property="Height" Value="18" />
-    <Setter Property="CornerRadius" Value="9" />
-    <Setter Property="Margin" Value="0,0,-7,-9" />
-    <Setter Property="HorizontalAlignment" Value="Right" />
-    <Setter Property="VerticalAlignment" Value="Bottom" />
-  </Style>
-  <Style Selector=":is(Grid).box.chg-new Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector=":is(Grid).box.chg-removed Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector=":is(Grid).box.chg-changed Border.changebadge"><Setter Property="IsVisible" Value="True" /><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector=":is(Grid).box Border.changebadge TextBlock">
-    <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
-    <Setter Property="FontSize" Value="12" />
-    <Setter Property="FontWeight" Value="Bold" />
-    <Setter Property="HorizontalAlignment" Value="Center" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
-  <!-- A shape off the step on show is faded to a ghost; a mark on one stays readable, so every change shows at every step. A shape in a state keeps its own fading. -->
-  <Style Selector=":is(Grid).box.dim.marked:not(.stated)"><Setter Property="Opacity" Value="0.6" /></Style>
-  <!-- The cells of the player's progress bar take the colour of the change their steps carry. -->
-  <Style Selector="Border.seg.chg-new, Border.seg.chg-removed, Border.seg.chg-changed"><Setter Property="BorderThickness" Value="1" /></Style>
-  <Style Selector="Border.seg.chg-new"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.seg.chg-removed"><Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector="Border.seg.chg-changed"><Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector="Border.seg.chg-new.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.seg.chg-removed.done"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
-  <Style Selector="Border.seg.chg-changed.done"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
-  <!--
-    A run over time: its events as bars above the slider in the colour of the state they leave (a bar for a state with no colour of its own is muted, as in
-    the browser), and a list with a ring for an event the run has not got to and a dot for one it has. The row the run has just got to is lit.
-  -->
-  <Style Selector="Border.eventmark">
-    <Setter Property="CornerRadius" Value="2" />
-    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
-  </Style>
-  <Style Selector="Border.eventmark.state-starting, Border.eventmark.state-restarting"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.eventmark.state-stopping, Border.eventmark.state-degraded"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector="Border.evdot">
-    <Setter Property="Width" Value="8" />
-    <Setter Property="Height" Value="8" />
-    <Setter Property="CornerRadius" Value="4" />
-    <Setter Property="BorderThickness" Value="1.5" />
-    <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
-  <Style Selector="Border.evdot.passed">
-    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
-  </Style>
-  <!-- A run with several sources: how they were measured (a pill), and a block for each dial, the active one tinted and marked at its edge in its own colour (set in code). -->
-  <Style Selector="Border.modelabel">
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="CornerRadius" Value="12" />
-    <Setter Property="Padding" Value="10,2" />
-    <Setter Property="HorizontalAlignment" Value="Left" />
-  </Style>
-  <Style Selector="Border.dial">
-    <Setter Property="BorderThickness" Value="3,0,0,0" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="CornerRadius" Value="4" />
-    <Setter Property="Padding" Value="12,8,10,4" />
-  </Style>
-  <Style Selector="Border.dial.active">
-    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
-  </Style>
   <Style Selector="TextBlock.dangertext">
     <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
     <Setter Property="FontWeight" Value="SemiBold" />
-  </Style>
-  <Style Selector="Button.event">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-    <Setter Property="Padding" Value="6,4" />
-    <Setter Property="CornerRadius" Value="6" />
-  </Style>
-  <Style Selector="Button.event.current /template/ ContentPresenter, Button.event:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
   </Style>
   <Style Selector=":is(Grid).box:focus-visible Path.outline">
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
   </Style>
 
-  <!--
-    A shape in a state other than Running (StateMarks.cs, BoxControl.SetState): a second outline over its own in the state's dash (the dash and the
-    movement are in code, since a dash is counted in stroke widths), a glyph on a ring in the state's colour, and the content dimmed. The colours are
-    the tokens the browser uses, so they follow light and dark: starting and restarting are the accent, stopping and degraded the warning, stopped the muted.
-    A state beats the strain colour of the Performance panel on the same shape.
-  -->
-  <Style Selector=":is(Grid).box Path.stateline">
-    <Setter Property="IsVisible" Value="False" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <!-- What a step does not light is faded to 0.15; a shape in a state stays easier to see, since where it stands holds until a step changes it. -->
-  <Style Selector=":is(Grid).box.dim.stated">
-    <Setter Property="Opacity" Value="0.45" />
-  </Style>
-  <Style Selector=":is(Grid).box.stated Path.strain, :is(Grid).box.stated Path.strainglow">
-    <Setter Property="IsVisible" Value="False" />
-  </Style>
-  <Style Selector=":is(Grid).box.state-starting Path.stateline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector=":is(Grid).box.state-stopping Path.stateline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
-  <Style Selector=":is(Grid).box.state-stopped Path.stateline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector=":is(Grid).box.state-restarting Path.stateline"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector=":is(Grid).box.state-degraded Path.stateline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
   <!-- The glyph's ring and drawing, wherever the glyph sits: on a shape, in the key under the player, in Details. -->
   <Style Selector=":is(Grid).stateglyph Ellipse.ring">
     <Setter Property="Fill" Value="{DynamicResource BoxBrush}" />
@@ -1070,13 +618,6 @@
   <Style Selector=":is(Grid).stateswatch.state-degraded Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector=":is(Grid).stateswatch.plain Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector=":is(Grid).stateswatch.none Rectangle.outline"><Setter Property="Stroke" Value="{DynamicResource LineBrush}" /></Style>
-  <!-- Off, going off and restarting are grey as well as dim: the tile and its icon take the outside service's grey. -->
-  <Style Selector=":is(Grid).box.stated.state-stopped Border.tile, :is(Grid).box.stated.state-stopping Border.tile, :is(Grid).box.stated.state-restarting Border.tile">
-    <Setter Property="Background" Value="{DynamicResource ExternalTileBrush}" />
-  </Style>
-  <Style Selector=":is(Grid).box.stated.state-stopped Path.icon, :is(Grid).box.stated.state-stopping Path.icon, :is(Grid).box.stated.state-restarting Path.icon">
-    <Setter Property="Stroke" Value="{DynamicResource ExternalBrush}" />
-  </Style>
 
   <!-- The zoom buttons in the corner of the canvas: one rounded group with flat buttons in it, like the bar's. -->
   <Style Selector="Border.zoomgroup">
@@ -1105,14 +646,6 @@
   </Style>
   <Style Selector="Button.zoom:pointerover Path.zoomicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
 
-  <!-- A pane of a comparison: a rounded frame with its flow's name over it. The one with the focus is outlined in the accent, by a border laid over it so its content does not move. -->
-  <Style Selector=":is(Border).pane">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="10" />
-    <Setter Property="ClipToBounds" Value="True" />
-  </Style>
   <Style Selector="Border.panehead">
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
     <Setter Property="BorderThickness" Value="0,0,0,1" />
@@ -1127,23 +660,9 @@
     <Setter Property="FontSize" Value="13" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
-  <Style Selector=":is(Border).pane.focused TextBlock.panetitle"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.paneoutline">
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="BorderThickness" Value="2" />
-    <Setter Property="CornerRadius" Value="10" />
-  </Style>
   <!-- The Performance panel of a run in a pane of a comparison: a line between it and the canvas (its thickness is set by where the panel sits). -->
   <Style Selector="Border.runpanel"><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /></Style>
   <Style Selector="Grid.compare">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
-  </Style>
-  <Style Selector="Border.apart"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
-  <!-- The note on a pair, under the panes: its text, or the editor, and the buttons that write it. -->
-  <Style Selector=":is(Border).comparenote">
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="0,1,0,0" />
-    <Setter Property="Padding" Value="14,8" />
     <Setter Property="Background" Value="{DynamicResource BgBrush}" />
   </Style>
   <Style Selector="TextBlock.noteconfirm"><Setter Property="FontSize" Value="12.5" /></Style>
@@ -1233,40 +752,6 @@
   <Style Selector="Button.result.at /template/ ContentPresenter, Button.result:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
   </Style>
-  <!-- The Failures tab's list: a row for each mode, with the band's mark, the part and the mode, and the risk. The one picked is tinted like a pressed tool. -->
-  <Style Selector="Button.failrow">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-    <Setter Property="VerticalContentAlignment" Value="Center" />
-    <Setter Property="Padding" Value="8,4" />
-    <Setter Property="MinHeight" Value="34" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector="Button.failrow:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
-  <Style Selector="Button.failrow.current /template/ ContentPresenter, Button.failrow.current:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
-  <!-- The word over the risk numbers of a list, and the rule a band stands for beside its count. -->
-  <Style Selector="TextBlock.failhead, Button.failband TextBlock.rule">
-    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="FontSize" Value="12" />
-  </Style>
-  <Style Selector="Button.failrow TextBlock.part, Button.failrow TextBlock.risk">
-    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="FontSize" Value="12" />
-  </Style>
-  <Style Selector="Border.cell">
-    <Setter Property="Width" Value="8" />
-    <Setter Property="Height" Value="12" />
-    <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="CornerRadius" Value="2" />
-  </Style>
-  <Style Selector="Border.cell.on">
-    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
-  </Style>
   <Style Selector="TextBox">
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
   </Style>
@@ -1274,12 +759,6 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-  </Style>
-  <!-- Edit mode: the dot under a box to draw a connection from. -->
-  <Style Selector=":is(Grid).box Ellipse.handle">
-    <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="Stroke" Value="{DynamicResource BoxBrush}" />
-    <Setter Property="StrokeThickness" Value="2" />
   </Style>
   <!-- The navigator: the rail on the left edge, the strip of tabs, the Flows list and the Explorer tree (Navigator.cs, FlowsView.cs, ExplorerView.cs); the Details rail on the right edge. -->
   <Style Selector=":is(Border).rail">
@@ -1297,56 +776,6 @@
   <Style Selector=":is(Border).sash:pointerover"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector=":is(Border).sash.drag"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector=":is(Border).sash:focus-visible"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Button.railbutton">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="CornerRadius" Value="8" />
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector="Button.railbutton Path.railicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Button.railbutton:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
-  <Style Selector="Button.railbutton:pointerover Path.railicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
-  <Style Selector="Button.railbutton:disabled"><Setter Property="Opacity" Value="0.4" /></Style>
-  <Style Selector="Button.railbutton:disabled /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector="Button.railbutton:disabled Path.railicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Button.railbutton.active /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
-  <Style Selector="Button.railbutton.active Path.railicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="Border.railcount">
-    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="1" />
-  </Style>
-  <Style Selector="Border.railcount TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Border.railcount.active TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector=":is(StackPanel).navtabs Button.navtab">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0,0,0,2" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="CornerRadius" Value="0" />
-    <Setter Property="Padding" Value="7,0" />
-    <Setter Property="MinHeight" Value="34" />
-    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="FontWeight" Value="Medium" />
-    <Setter Property="Cursor" Value="Hand" />
-  </Style>
-  <Style Selector=":is(StackPanel).navtabs Button.navtab:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector=":is(StackPanel).navtabs Button.navtab:pointerover"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
-  <Style Selector=":is(StackPanel).navtabs Button.navtab.on /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector=":is(StackPanel).navtabs Button.navtab.on"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
-  <!-- The YAML tab (YamlPanel): the browser's .yreadonly, .ytabs, .ynum and .yrow.block. -->
-  <Style Selector="StackPanel.yreadonly TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Border.ytabs">
-    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
-    <Setter Property="BorderThickness" Value="0,0,0,1" />
-  </Style>
-  <Style Selector=":is(StackPanel).navtabs.yfiles Button.navtab"><Setter Property="FontWeight" Value="Normal" /></Style>
-  <Style Selector="TextBlock.ynum">
-    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
-    <Setter Property="Opacity" Value="0.75" />
-  </Style>
-  <Style Selector="Border.yblock"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
-  <Style Selector="TextBlock.ynote"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Border.navfind">
     <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
@@ -1384,29 +813,7 @@
   <Style Selector="Button.tagchip.on /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Button.tagchip.on TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Button.tagchip.on Path.tagmark"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="ListBox.treelist">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Padding" Value="0,0,12,0" /> <!-- FlowsView.Inset: inside the scroll area, so the scroll bar can sit on the panel's edge -->
-  </Style>
-  <Style Selector="ListBox.treelist ListBoxItem">
-    <Setter Property="Padding" Value="0" />
-    <Setter Property="MinHeight" Value="30" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="CornerRadius" Value="6" />
-  </Style>
   <Style Selector="ListBox.treelist ListBoxItem:pointerover /template/ ContentPresenter, ListBox.treelist ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector="ListBox.treelist:focus-within ListBoxItem:selected:not(.canvas) /template/ ContentPresenter">
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-    <Setter Property="BorderThickness" Value="2" />
-  </Style>
-  <Style Selector="Border.treerow"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector="Border.treerow:pointerover"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
-  <Style Selector="Border.treerow.sel"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
-  <Style Selector="Border.twist"><Setter Property="Background" Value="Transparent" /></Style>
-  <Style Selector="TextBlock.treename.sel"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
-  <Style Selector="TextBlock.treename.dim, TextBlock.treecount"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
-  <Style Selector="Border.treedot"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
   <!--
     Linked: the mark of a flow that is in a pair, and the foot of a list that shows one. A row's Compare button is quiet until it is pointed at; a mode that blocks it greys it out (its reason is
     the tooltip), and it stays where it is. The flow form's Compare with: the partner as a ringed tile, and a question inside it when taking the link away would lose its note.

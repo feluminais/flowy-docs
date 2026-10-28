@@ -45,6 +45,7 @@ internal sealed class SidePanel : Border
 
     public SidePanel()
     {
+        AreaStyles.Add(this, "SidePanel");
         Classes.Add("panel");
         Width = Camera.Panel;
         HorizontalAlignment = HorizontalAlignment.Right;

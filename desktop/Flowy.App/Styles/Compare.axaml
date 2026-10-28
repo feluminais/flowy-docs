@@ -1,0 +1,25 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of a comparison's panes: CompareView loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <!-- A pane of a comparison: a rounded frame with its flow's name over it. The one with the focus is outlined in the accent, by a border laid over it so its content does not move. -->
+  <Style Selector=":is(Border).pane">
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+  <Style Selector=":is(Border).pane.focused TextBlock.panetitle"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.paneoutline">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="CornerRadius" Value="10" />
+  </Style>
+  <!-- The note on a pair, under the panes: its text, or the editor, and the buttons that write it. -->
+  <Style Selector=":is(Border).comparenote">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,1,0,0" />
+    <Setter Property="Padding" Value="14,8" />
+    <Setter Property="Background" Value="{DynamicResource BgBrush}" />
+  </Style>
+</Styles>

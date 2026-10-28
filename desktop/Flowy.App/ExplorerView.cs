@@ -53,6 +53,7 @@ internal sealed class ExplorerView : Grid
 
     public ExplorerView()
     {
+        AreaStyles.Add(this, "Explorer");
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto)];
         RowSpacing = 8;
         Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the tree's scroll bar sits on the panel's edge, where the sash is

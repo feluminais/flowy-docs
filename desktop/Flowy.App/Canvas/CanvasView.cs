@@ -100,6 +100,7 @@ internal sealed class CanvasView : Border
 
     public CanvasView()
     {
+        AreaStyles.Add(this, "Canvas");
         ClipToBounds = true;
         Background = Brushes.Transparent;
         _world.Children.AddRange([_back, _stage, _traffic, _channels, _motion, _marks]);

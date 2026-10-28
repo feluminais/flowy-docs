@@ -1,0 +1,19 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the navigator, around its tabs: NavigatorPanel loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <Style Selector=":is(StackPanel).navtabs Button.navtab">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0,0,0,2" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Padding" Value="7,0" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontWeight" Value="Medium" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector=":is(StackPanel).navtabs Button.navtab:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+  <Style Selector=":is(StackPanel).navtabs Button.navtab:pointerover"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
+  <Style Selector=":is(StackPanel).navtabs Button.navtab.on /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector=":is(StackPanel).navtabs Button.navtab.on"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
+</Styles>
