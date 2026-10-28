@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 using Xunit;
@@ -19,13 +21,16 @@ public class AnimationTests
 {
     private static string Tags => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "animation", "flowy");
 
-    private static (Window Window, ReaderView Reader) Open(string motion)
+    private static string Recursion => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "recurse", "flowy");
+
+    private static (Window Window, ReaderView Reader) Open(string motion, string? folder = null)
     {
+        folder ??= Tags;
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", motion);
         var reader = new ReaderView();
         var window = new Window { Width = 1100, Height = 700, Content = reader };
         window.Show();
-        reader.Load(FolderLoader.Load(Tags), Tags);
+        reader.Load(FolderLoader.Load(folder), folder);
         reader.GoTo("shop");
         return (window, reader);
     }
@@ -101,6 +106,170 @@ public class AnimationTests
             Finish();
         }
     }
+
+    [AvaloniaFact]
+    public void A_recurse_step_moves_then_stands_still_with_its_counter_left()
+    {
+        var (window, reader) = Open("0", Recursion);
+        try
+        {
+            reader.Play("recursion"); // "Walks the category tree", a good recurse tag, depth 3
+            Assert.True(reader.StepMoving);
+            Assert.True(HasReplay(window), "a recursion can be replayed");
+            Run(() => !reader.StepMoving);
+            Assert.False(reader.StepMoving);
+            Assert.Equal(("api", 3), reader.Canvas.Resting!.Value);
+            Assert.Null(reader.Canvas.BoxControlFor("api")!.RenderTransform);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_recursion_squashes_its_own_box_in_its_first_moments()
+    {
+        var (_, reader) = Open("0", Recursion);
+        try
+        {
+            reader.Play("recursion");
+            Run(() => reader.Canvas.BoxControlFor("api")!.RenderTransform is not null, 2); // the gulp that opens the step: one box at both ends must not wipe it
+            Assert.NotNull(reader.Canvas.BoxControlFor("api")!.RenderTransform);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_counter_follows_the_step_and_goes_with_it()
+    {
+        var (window, reader) = Open("0", Recursion);
+        try
+        {
+            reader.Play("recursion");
+            Run(() => !reader.StepMoving);
+            Press(window, Key.Right, PhysicalKey.ArrowRight); // step 2, depth 4
+            Run(() => !reader.StepMoving);
+            Assert.Equal(("api", 4), reader.Canvas.Resting!.Value);
+            Press(window, Key.Right, PhysicalKey.ArrowRight); // step 3, a wrong tag
+            Assert.Null(reader.Canvas.Resting);
+            Press(window, Key.Home, PhysicalKey.Home);
+            Assert.True(reader.StepMoving);
+            Assert.NotNull(reader.Canvas.Resting);
+            Press(window, Key.Escape, PhysicalKey.Escape);
+            Assert.Null(reader.Canvas.Resting);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void With_motion_reduced_a_recursion_leaves_only_its_counter_and_Autoplay_goes_on()
+    {
+        var (window, reader) = Open("1", Recursion);
+        reader.Play("recursion");
+        Assert.False(reader.StepMoving);
+        Assert.Equal(("api", 3), reader.Canvas.Resting!.Value);
+        Press(window, Key.P, PhysicalKey.P);
+        Run(() => reader.PlayingStep >= 1);
+        Assert.True(reader.PlayingStep >= 1);
+        Assert.Equal(("api", 4), reader.Canvas.Resting!.Value);
+    }
+
+    /// <summary>A copy of the recursion folder in a temporary place, its flow file changed by <paramref name="edit"/>: what a reload finds after someone saves.</summary>
+    private static string EditedCopy(Func<string, string> edit)
+    {
+        var copy = Path.Combine(Path.GetTempPath(), "flowy-recursion-" + Guid.NewGuid().ToString("N"));
+        foreach (var file in Directory.EnumerateFiles(Recursion, "*", SearchOption.AllDirectories))
+        {
+            var target = Path.Combine(copy, Path.GetRelativePath(Recursion, file));
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            var text = File.ReadAllText(file);
+            File.WriteAllText(target, Path.GetFileName(file) == "recursion.yaml" ? edit(text) : text);
+        }
+        return copy;
+    }
+
+    [AvaloniaFact]
+    public void A_reload_that_takes_the_tag_off_the_step_takes_its_counter_away()
+    {
+        var (_, reader) = Open("0", Recursion);
+        var copy = EditedCopy(text => text.Replace("Walks the category tree, animation: recurse }", "Walks the category tree }"));
+        try
+        {
+            reader.Play("recursion");
+            Run(() => !reader.StepMoving);
+            Assert.NotNull(reader.Canvas.Resting);
+            reader.Reload(FolderLoader.Load(copy)); // the same flow and step are showing, but the step is no longer a recursion
+            Assert.Equal("recursion", reader.PlayingFlowId);
+            Assert.Equal(0, reader.PlayingStep);
+            Assert.Null(reader.Canvas.Resting);
+        }
+        finally
+        {
+            Directory.Delete(copy, true);
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_reload_that_changes_the_depth_changes_the_counter()
+    {
+        var (_, reader) = Open("0", Recursion);
+        var copy = EditedCopy(text => text.Replace("Walks the category tree, animation: recurse }", "Walks the category tree, animation: { kind: recurse, depth: 5 } }"));
+        try
+        {
+            reader.Play("recursion");
+            Run(() => !reader.StepMoving);
+            Assert.Equal(("api", 3), reader.Canvas.Resting!.Value);
+            reader.Reload(FolderLoader.Load(copy));
+            Assert.Equal(("api", 5), reader.Canvas.Resting!.Value);
+        }
+        finally
+        {
+            Directory.Delete(copy, true);
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_counter_follows_a_box_that_moves_under_it()
+    {
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        var folder = FolderLoader.Load(Recursion);
+        var canvas = new CanvasView();
+        new Window { Width = 1100, Height = 700, Content = canvas }.Show();
+        var scene = SceneBuilder.Build(folder.Model, "shop", null, folder.Problems, new Focus());
+        canvas.SetScene(scene, "straight", []);
+        canvas.PlayStep(new StepAnimation("recurse", "inside", null, Depth: 3), "api", "api", false, null);
+        var before = canvas.RestingRect!.Value;
+        canvas.SetScene(scene with { Boxes = scene.Boxes.Select(b => b.Id == "api" ? b with { Rect = b.Rect with { X = b.Rect.X + 120 } } : b).ToList() }, "straight", []);
+        Assert.Equal(("api", 3), canvas.Resting!.Value);
+        Assert.Equal(before.X + 120, canvas.RestingRect!.Value.X);
+    }
+
+    [AvaloniaFact]
+    public void A_tagged_step_offers_Replay()
+    {
+        var (window, reader) = Open("0");
+        try
+        {
+            reader.Play("tags");
+            Assert.True(HasReplay(window));
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    private static bool HasReplay(Window window) =>
+        window.GetVisualDescendants().OfType<Button>().Any(b => AutomationProperties.GetName(b) == "Replay this step");
 
     [AvaloniaFact]
     public void R_plays_the_step_again()

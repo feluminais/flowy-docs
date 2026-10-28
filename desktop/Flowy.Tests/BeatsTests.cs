@@ -9,7 +9,8 @@ public class BeatsTests
 {
     private static JsonNode Expected() => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "beats.json")))!;
 
-    private static Step Tagged(JsonNode? animation) => new("a", "x", "t", null, YamlWriterTests.Tree(animation));
+    /// <summary>A step with the tag, with a "to" or without one: recurse takes none and the other kinds need one.</summary>
+    private static Step Tagged(JsonNode? animation, bool to) => new("a", to ? "x" : null, "t", null, YamlWriterTests.Tree(animation));
 
     private static JsonObject Json(StepAnimation a)
     {
@@ -25,6 +26,8 @@ public class BeatsTests
         if (a.Name is not null) o["name"] = a.Name;
         if (a.Towards is not null) o["towards"] = a.Towards;
         if (a.Closes is not null) o["closes"] = a.Closes;
+        if (a.Depth is not null) o["depth"] = a.Depth;
+        if (a.Returns is not null) o["returns"] = a.Returns;
         return o;
     }
 
@@ -41,6 +44,7 @@ public class BeatsTests
         if (b.Ring is { } ring) o["ring"] = ring;
         if (b.Along is { } along) o["along"] = along;
         if (b.Text is not null) o["text"] = b.Text;
+        if (b.Level is not null) o["level"] = b.Level;
         return o;
     }
 
@@ -63,6 +67,8 @@ public class BeatsTests
         Assert.True(problems.Count > 150);
         foreach (var p in problems)
             Assert.Equal(p!["problem"]?.GetValue<string>(), Animations.Problem(YamlWriterTests.Tree(p["animation"]), p["to"]!.GetValue<bool>()));
+        // The checks leave this one out for a step that goes to itself, so it is compared word for word.
+        Assert.Equal(Animations.RecurseHasTo, Expected()["recurseHasTo"]!.GetValue<string>());
     }
 
     [Fact]
@@ -70,7 +76,7 @@ public class BeatsTests
     {
         foreach (var r in Expected()["reads"]!.AsArray())
         {
-            var read = Animations.Read(Tagged(r!["animation"]));
+            var read = Animations.Read(Tagged(r!["animation"], r["to"]!.GetValue<bool>()));
             Assert.Equal(JsonDump.Pretty(r["read"]), JsonDump.Pretty(read is null ? null : Json(read)));
         }
     }
@@ -82,7 +88,7 @@ public class BeatsTests
         Assert.True(all.Count > 400);
         foreach (var b in all)
         {
-            var a = Animations.Read(Tagged(b!["animation"]))!;
+            var a = Animations.Read(Tagged(b!["animation"], b["to"]!.GetValue<bool>()))!;
             var (beats, total) = Animations.BeatsFor(a, b["length"]!.GetValue<double>(), b["afterLanding"]!.GetValue<bool>());
             Assert.Equal(b["total"]!.GetValue<int>(), total);
             Assert.Equal(JsonDump.Pretty(b["beats"]), JsonDump.Pretty(new JsonArray(beats.Select(x => (JsonNode?)Json(x)).ToArray())));
@@ -96,7 +102,7 @@ public class BeatsTests
         Assert.True(all.Count >= 12);
         foreach (var b in all)
         {
-            var a = Animations.Read(Tagged(b!["animation"]))!;
+            var a = Animations.Read(Tagged(b!["animation"], true))!;
             var (beats, total) = Animations.BeatsFor(a, b["length"]!.GetValue<double>(), b["afterLanding"]!.GetValue<bool>());
             Assert.Equal(b["total"]!.GetValue<int>(), total);
             Assert.Equal(JsonDump.Pretty(b["beats"]), JsonDump.Pretty(new JsonArray(beats.Select(x => (JsonNode?)Json(x)).ToArray())));
@@ -138,7 +144,7 @@ public class BeatsTests
         Assert.True(all.Count > 20);
         foreach (var l in all)
         {
-            var a = Animations.Read(Tagged(l!["animation"]))!;
+            var a = Animations.Read(Tagged(l!["animation"], true))!;
             Assert.Equal(l["line"]!.GetValue<string>(), Animations.OutcomeLine(a));
             Assert.Equal(l["named"]!.GetValue<string>(), Animations.OutcomeLine(a, id => id == "proxy" ? "Edge proxy" : id));
         }
@@ -150,7 +156,7 @@ public class BeatsTests
         var all = Expected()["channelLines"]!.AsArray();
         Assert.True(all.Count > 50);
         Assert.True(all.Count(l => l!["line"] is not null) >= 8);
-        foreach (var l in all) Assert.Equal(l!["line"]?.GetValue<string>(), Animations.ChannelLine(Animations.Read(Tagged(l["animation"]))!));
+        foreach (var l in all) Assert.Equal(l!["line"]?.GetValue<string>(), Animations.ChannelLine(Animations.Read(Tagged(l["animation"], true))!));
     }
 
     [Fact]
@@ -158,7 +164,7 @@ public class BeatsTests
     {
         var all = Expected()["marks"]!.AsArray();
         Assert.True(all.Count > 40);
-        foreach (var m in all) Assert.Equal(m!["marks"]!.GetValue<bool>(), Animations.LeavesMarks(Animations.Read(Tagged(m["animation"]))!));
+        foreach (var m in all) Assert.Equal(m!["marks"]!.GetValue<bool>(), Animations.LeavesMarks(Animations.Read(Tagged(m["animation"], true))!));
         Assert.Contains(all, m => m!["marks"]!.GetValue<bool>());
         Assert.Contains(all, m => !m!["marks"]!.GetValue<bool>());
     }

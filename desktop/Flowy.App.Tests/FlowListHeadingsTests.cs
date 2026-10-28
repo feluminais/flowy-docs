@@ -68,7 +68,7 @@ public class FlowListHeadingsTests
         Assert.Equal(["error path:9", "happy path:7", "edge case:3", "background:2", "recovery:2"], flows.TagButtons.Select(t => $"{t.Tag}:{t.Count}"));
         var buttons = flows.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("tagchip")).ToList();
         Assert.Equal(5, buttons.Count);
-        Assert.Equal(20, flows.Listed.Count);
+        Assert.Equal(21, flows.Listed.Count);
     }
 
     [AvaloniaFact]
@@ -82,7 +82,7 @@ public class FlowListHeadingsTests
         window.UpdateLayout();
         Assert.Equal(9, flows.Listed.Count);
         Assert.All(flows.Listed, f => Assert.Contains("error path", f.Tags));
-        Assert.Contains("9 of 20 flows", Texts(window, reader));
+        Assert.Contains("9 of 21 flows", Texts(window, reader));
         var chip = flows.GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == "error path");
         Assert.Contains("on", chip.Classes);
         flows.ToggleTag("recovery"); // any of the tags: every recovery flow is an error path as well
@@ -90,7 +90,7 @@ public class FlowListHeadingsTests
         flows.ToggleTag("error path");
         Assert.Equal(2, flows.Listed.Count);
         flows.ToggleTag("recovery");
-        Assert.Equal(20, flows.Listed.Count);
+        Assert.Equal(21, flows.Listed.Count);
         Assert.Empty(flows.PickedTags);
     }
 

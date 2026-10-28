@@ -46,7 +46,8 @@ function StepAnimation({ step, takers, closable, onSet }: {
 }) {
   const { kind, outcome, share, reason, by: taken, byName: named, opens, name, towards, closes } = animationFields(step)
   const travels = typeof step.to === 'string' && step.to !== '' && step.to !== step.from
-  const kinds = KIND_CHOICES.map(c => ({ ...c, block: c.id !== '' && !travels ? 'Needs two shapes' : undefined }))
+  // Only a step between two shapes can travel, and only a step on one shape can recurse.
+  const kinds = KIND_CHOICES.map(c => ({ ...c, block: c.id === '' ? undefined : c.id === 'recurse' ? (travels ? 'Needs one shape' : undefined) : !travels ? 'Needs two shapes' : undefined }))
   const ended = outcome !== ''
   // A request that arrives is what leaves a channel open or closes one, so an outcome and a channel exclude each other, each greyed out with why.
   const channelled = opens !== '' || closes !== ''

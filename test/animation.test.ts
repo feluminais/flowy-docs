@@ -35,8 +35,9 @@ test('an outcome reads after the carried word, and a wrong one reads as nothing'
 })
 
 test('problems say what to fix', () => {
-  const kinds = 'use send, call, callback, event'
+  const kinds = 'use send, call, callback, event, recurse'
   const every = 'animation outcome must be fail, timeout, lost, rejected, intercepted, duplicated or delayed'
+  const depth = 'animation depth must be a whole number from 2 to 5'
   const cases: [unknown, boolean, string | undefined][] = [
     [undefined, true, undefined],
     ['', true, undefined],
@@ -66,8 +67,35 @@ test('problems say what to fix', () => {
     [{ kind: 'call', outcome: '' }, true, every],
     [{ kind: 'call', outcome: ['fail'] }, true, every],
     [{ kind: 'call', outcome: 'timeout' }, false, 'animation "call" needs a "to"'],
+    ['recurse', false, undefined],
+    [{ kind: 'recurse', depth: 3 }, false, undefined],
+    [{ kind: 'recurse', depth: '4', carries: 'CNAME', returns: 'A record' }, false, undefined],
+    [{ kind: 'recurse', depth: '2' }, false, undefined],
+    [{ kind: 'recurse', depth: '5' }, false, undefined],
+    ['recurse', true, 'animation "recurse" is a shape calling itself: leave out "to"'],
+    ...['1', '6', '3.5', '3x', '', 1, 6, 3.5, true, '99999999999999999999'].map((d): [unknown, boolean, string] => [{ kind: 'recurse', depth: d }, false, depth]),
+    [{ kind: 'send', depth: 3 }, true, 'animation depth only applies to recurse'],
+    [{ kind: 'send', returns: 'x' }, true, 'animation returns only applies to recurse'],
+    [{ kind: 'recurse', returns: ' ' }, false, 'animation returns must be a word'],
+    [{ kind: 'recurse', trigger: 'outside' }, false, 'animation trigger only applies to callback'],
+    [{ kind: 'recurse', speed: 'fast' }, false, 'unknown animation option "speed" (use kind, carries, depth, returns)'],
+    [{ kind: 'recurse', effect: 'bounce' }, false, undefined],
+    [{ kind: 'recurse', opens: 'stream' }, false, 'animation opens only applies to a step between two shapes'],
+    [{ kind: 'recurse', closes: 'Orders' }, false, 'animation closes only applies to a step between two shapes'],
+    [{ kind: 'recurse', outcome: 'lost' }, false, 'animation outcome lost only applies to send, call and event'],
   ]
   for (const [raw, hasTo, expected] of cases) assert.equal(animationProblem(raw, hasTo), expected, JSON.stringify(raw))
+})
+
+test('recurse reads with its depth, and only recurse has one', () => {
+  assert.deepEqual(animationOf({ animation: 'recurse' }), { kind: 'recurse', trigger: 'inside', depth: 3 })
+  assert.deepEqual(
+    animationOf({ animation: { kind: 'recurse', depth: '4', carries: 'CNAME', returns: 'A record' } }),
+    { kind: 'recurse', trigger: 'inside', carries: 'CNAME', depth: 4, returns: 'A record' },
+  )
+  assert.equal(animationOf({ to: 'b', animation: 'recurse' }), undefined)
+  assert.equal(animationOf({ animation: 'call' }), undefined)
+  assert.deepEqual(animationOf({ to: 'b', animation: 'send' }), { kind: 'send', trigger: 'inside' })
 })
 
 test('travel time follows the length of the line, between 1.2 and 2.2 seconds', () => {
@@ -354,7 +382,7 @@ const kinds = (beats: Beat[]) => beats.map(b => `${b.do}:${b.on}`)
 
 test('a plain animation keeps every beat it had before the outcomes were added', () => {
   const expected = JSON.parse(readFileSync(join(import.meta.dirname, '../desktop/fixtures/expected/beats.json'), 'utf8')) as {
-    beats: { animation: unknown; length: number; afterLanding: boolean; beats: unknown; total: number }[]
+    beats: { animation: unknown; to: boolean; length: number; afterLanding: boolean; beats: unknown; total: number }[]
   }
   const old = expected.beats.filter(b => {
     const keys = typeof b.animation === 'string' ? [] : Object.keys(b.animation as object)
@@ -362,7 +390,7 @@ test('a plain animation keeps every beat it had before the outcomes were added',
   })
   assert.ok(old.length > 100)
   for (const b of old) {
-    const a = animationOf({ to: 'x', animation: b.animation })!
+    const a = animationOf({ ...(b.to ? { to: 'x' } : {}), animation: b.animation })!
     const played = beatsFor(a, { length: b.length, afterLanding: b.afterLanding })
     assert.deepEqual({ beats: played.beats, total: played.total }, { beats: b.beats, total: b.total }, JSON.stringify(b.animation))
   }
@@ -652,7 +680,7 @@ test('an effect is what a blob does on its way: read, kept after the other keys,
     assert.equal(animationOf({ to: 'b', animation: { kind: 'send', effect } }), undefined, JSON.stringify(effect))
   }
   // It goes with every way of travelling and every outcome, and a step that has none reads as before.
-  for (const kind of ANIMATION_KINDS) assert.equal(animationProblem({ kind, effect: 'pulse' }, true), undefined, kind)
+  for (const kind of ANIMATION_KINDS) assert.equal(animationProblem({ kind, effect: 'pulse' }, kind !== 'recurse'), undefined, kind) // a recursion has no "to"
   assert.equal(animationProblem({ kind: 'send', outcome: 'lost', share: 30, effect: 'wiggle' }, true), undefined)
   assert.equal('effect' in animationOf({ to: 'b', animation: { kind: 'send' } })!, false)
   // The message for an option nobody knows is as it was: an effect is an extra key and not one of the options it lists.
@@ -660,4 +688,54 @@ test('an effect is what a blob does on its way: read, kept after the other keys,
   // The pickers of edit mode keep an effect that was written by hand.
   assert.deepEqual(animationWith({ kind: 'call', effect: 'bounce' }, 'outcome', 'timeout'), { kind: 'call', effect: 'bounce', outcome: 'timeout' })
   assert.deepEqual(animationWith({ kind: 'call', effect: 'bounce' }, 'kind', 'send'), { kind: 'send', effect: 'bounce' })
+})
+
+const recurse = (depth: number, more: Partial<Animation> = {}): Animation => ({ kind: 'recurse', trigger: 'inside', depth, ...more })
+
+test('recurse, depth 3: the stack climbs, a flag lands, the answers unwind', () => {
+  const { beats, total } = beatsFor(recurse(3), { length: 250, afterLanding: false })
+  assert.equal(total, 6030)
+  assert.deepEqual(beats, [
+    { do: 'pipe', on: 'line', at: 0, dur: 6030 },
+    { do: 'gulp', on: 'from', at: 0, dur: 120 },
+    { do: 'blob', on: 'line', at: 120, dur: 1200, dir: 'fwd', glyph: 'envelope' },
+    { do: 'stack', on: 'from', at: 1320, dur: 150, level: 1 },
+    { do: 'gulp', on: 'from', at: 1320, dur: 120 },
+    { do: 'blob', on: 'line', at: 1440, dur: 1200, dir: 'fwd', glyph: 'envelope' },
+    { do: 'stack', on: 'from', at: 2640, dur: 150, level: 2 },
+    { do: 'drop', on: 'from', at: 2640, dur: 350, glyph: 'flag' },
+    { do: 'flash', on: 'from', at: 2840, dur: 250 },
+    { do: 'blob', on: 'line', at: 3090, dur: 1200, dir: 'back', glyph: 'envelope', tone: 'reply' },
+    { do: 'gulp', on: 'from', at: 4290, dur: 120 },
+    { do: 'stack', on: 'from', at: 4290, dur: 150, level: 1 },
+    { do: 'blob', on: 'line', at: 4410, dur: 1200, dir: 'back', glyph: 'envelope', tone: 'reply' },
+    { do: 'gulp', on: 'from', at: 5610, dur: 120 },
+    { do: 'stack', on: 'from', at: 5610, dur: 150, level: 0 },
+    { do: 'ring', on: 'from', at: 5730, dur: 300 },
+  ])
+})
+
+test('recurse: the depth and the length of the pipe set how long it takes', () => {
+  assert.equal(beatsFor(recurse(2), { length: 250, afterLanding: false }).total, 3390)
+  assert.equal(beatsFor(recurse(5), { length: 250, afterLanding: false }).total, 11310)
+  assert.equal(beatsFor(recurse(3), { length: 5000, afterLanding: false }).total, 10030)
+  assert.equal(beatsFor(recurse(3), { length: 0, afterLanding: false }).total, 6030)
+})
+
+test('recurse: the stack levels climb then fall to nothing', () => {
+  const stack = beatsFor(recurse(5), { length: 250, afterLanding: false }).beats.filter(b => b.do === 'stack')
+  assert.deepEqual(stack.map(b => b.level), [1, 2, 3, 4, 3, 2, 1, 0])
+  assert.ok(stack.every(b => b.on === 'from' && b.dur === 150))
+})
+
+test('recurse: carries labels the blobs going in and returns the blobs coming back', () => {
+  const labelled = beatsFor(recurse(3, { carries: 'CNAME', returns: 'A record' }), { length: 250, afterLanding: false }).beats.filter(b => b.do === 'blob')
+  assert.deepEqual(labelled.map(b => [b.dir, b.label]), [['fwd', 'CNAME'], ['fwd', 'CNAME'], ['back', 'A record'], ['back', 'A record']])
+  const bare = beatsFor(recurse(3), { length: 250, afterLanding: false }).beats.filter(b => b.do === 'blob')
+  assert.ok(bare.every(b => !('label' in b)))
+})
+
+test('recurse: every beat is on the box or on its pipe, never on a second box', () => {
+  const { beats } = beatsFor(recurse(4, { carries: 'x', returns: 'y' }), { length: 300, afterLanding: true })
+  assert.ok(beats.every(b => b.on === 'from' || b.on === 'line'))
 })

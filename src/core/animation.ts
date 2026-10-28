@@ -6,7 +6,7 @@
  */
 import { isMap } from './text.ts'
 
-export const ANIMATION_KINDS = ['send', 'call', 'callback', 'event'] as const
+export const ANIMATION_KINDS = ['send', 'call', 'callback', 'event', 'recurse'] as const
 export type AnimationKind = (typeof ANIMATION_KINDS)[number]
 export const TRIGGERS = ['inside', 'outside'] as const
 export type Trigger = (typeof TRIGGERS)[number]
@@ -18,6 +18,16 @@ export type Trigger = (typeof TRIGGERS)[number]
 export const OUTCOMES = ['fail', 'timeout', 'lost', 'rejected', 'intercepted', 'duplicated', 'delayed'] as const
 export type Outcome = (typeof OUTCOMES)[number]
 const OPTIONS = ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at', 'opens', 'name', 'towards', 'closes'] as const
+/** The options a recursion takes: it runs on one box, so nothing about a line, an outcome or a channel applies to it. */
+const RECURSE_OPTIONS = ['kind', 'carries', 'depth', 'returns'] as const
+/** The options an error message names for a kind. */
+const optionsFor = (kind: AnimationKind): readonly string[] => (kind === 'recurse' ? RECURSE_OPTIONS : OPTIONS)
+/** Whether a kind runs between two boxes (it needs a "to") or is one box acting on itself (it takes none). */
+const ENDS: Record<AnimationKind, 'to' | 'alone'> = { send: 'to', call: 'to', callback: 'to', event: 'to', recurse: 'alone' }
+/** A recursion's depth is the height of its call stack at its deepest, the first call included. */
+const DEPTH_MIN = 2
+const DEPTH_MAX = 5
+const DEPTH_DEFAULT = 3
 /**
  * What a step can leave open once its request has arrived, so the story's later steps still show it: a `stream` (data keeps flowing along the line),
  * a `listener` (a shape keeps listening for callbacks) or a `job` (work keeps running on a shape). Drawn until a step `closes` it, or the flow ends.
@@ -97,7 +107,8 @@ export type Interceptor = { shape: string } | { name: string }
 /**
  * A step's animation, read: the kind, who sets a callback off (inside unless the file says outside), the word the blob carries, and how it ends.
  * `share` is the whole percent of the requests that meet the outcome (a burst plays when it is there), `reason` says why in a few words,
- * `by` is who takes an intercepted request and `at` how far along its line a lost one vanishes (a fraction).
+ * `by` is who takes an intercepted request and `at` how far along its line a lost one vanishes (a fraction). A recursion has its `depth`
+ * and the word that comes back (`returns`).
  */
 export type Animation = {
   kind: AnimationKind
@@ -114,20 +125,23 @@ export type Animation = {
   name?: string
   towards?: ChannelEnd
   closes?: string
+  depth?: number
+  returns?: string
 }
 
-export type Glyph = 'envelope' | 'bolt' | 'bell'
+export type Glyph = 'envelope' | 'bolt' | 'bell' | 'flag'
 
 /**
  * One thing to draw. `do` says what: the tube along the line (`pipe`), something running through it (`blob`),
  * a ring going out from a box, a flash on it, a squash as it takes something in (`gulp`), waiting dots over it,
- * a glyph falling onto it (`drop`), or the step's lit line dimming and staying dim (`fade`). `on` says where.
+ * a glyph falling onto it (`drop`), the step's lit line dimming and staying dim (`fade`), or the pile of ghost cards a recursion
+ * leaves under it (`stack`). `on` says where.
  * The outcomes add five more: a puff where a request is lost (`pop`), a bar flashing at the receiver's door (`bar`), a dashed clock turning
  * while a request waits (`clock`), a few words next to where something happens (`note`) and the dashed marker of whoever takes a request (`marker`).
  * `on` is `by` for what happens at the interceptor. Times are milliseconds from the start of the step.
  */
 export type Beat = {
-  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop' | 'fade' | 'pop' | 'bar' | 'clock' | 'note' | 'marker'
+  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop' | 'fade' | 'pop' | 'bar' | 'clock' | 'note' | 'marker' | 'stack'
   on: 'from' | 'to' | 'line' | 'by'
   at: number
   dur: number
@@ -136,7 +150,7 @@ export type Beat = {
   glyph?: Glyph
   /** blob: a reply is drawn in the answer's colour. blob and flash: `fail` is drawn in the danger colour. */
   tone?: 'reply' | 'fail'
-  /** blob only: the `carries` word or the name of a request in a burst, shown instead of the glyph. */
+  /** blob only: the `carries` word or the name of a request in a burst, shown instead of the glyph. On the way back of a recursion it is the `returns` word. */
   label?: string
   /** blob only: the fractions of the route it runs between (0 and 1 when they are left out). `back` runs from `end` to `start`. On `by` it is where it leaves the route. */
   start?: number
@@ -149,6 +163,8 @@ export type Beat = {
   along?: number
   /** note: the reason. marker: the name of a party that is not in the model. */
   text?: string
+  /** stack only: how many ghost cards show from this beat on (the stack's height minus one). The card that comes or goes slides over `dur`. */
+  level?: number
 }
 
 /** The colours a request that meets an outcome in a burst can have, as shape colour names. Blue, red and amber belong to the ordinary dot, a refusal and a warning. */
@@ -206,9 +222,18 @@ function channelProblem({ opens, name, towards, closes, outcome }: { opens: unkn
   return undefined
 }
 
+/** What check() says about a recurse step that has a "to". A step whose "to" is its own "from" already gets a message for that, so check() leaves this one out. */
+export const RECURSE_HAS_TO = 'animation "recurse" is a shape calling itself: leave out "to"'
+
+/** A `depth` as a number when it is one: a whole number from 2 to 5, or the text of one. Files hold text and MCP may give a number. */
+function depthOf(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : typeof v === 'string' && /^[0-9]+$/.test(v) ? Number(v) : NaN
+  return Number.isInteger(n) && n >= DEPTH_MIN && n <= DEPTH_MAX ? n : undefined
+}
+
 /**
  * What is wrong with a step's `animation`, worded to follow "step N: ", or undefined. A blank tag is no tag.
- * `hasTo` is whether the step has a "to": every kind so far travels between two boxes.
+ * `hasTo` is whether the step has a "to": most kinds travel between two boxes and need one, recurse is one box and takes none.
  */
 export function animationProblem(raw: unknown, hasTo: boolean): string | undefined {
   if (raw === undefined || raw === '') return undefined
@@ -218,9 +243,10 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
   if (typeof kind !== 'string') return 'animation kind must be text'
   if (!isKind(kind)) return `unknown animation "${kind}" (${KINDS_HINT})`
   if (isMap(raw)) {
-    const extra = Object.keys(raw).find(k => k !== 'effect' && !OPTIONS.some(o => o === k))
-    if (extra !== undefined) return `unknown animation option "${extra}" (use ${OPTIONS.join(', ')})`
-    const { trigger, carries, outcome, share, reason, by, at, opens, name, towards, closes } = raw
+    const allowed: readonly string[] = [...OPTIONS, 'effect', 'depth', 'returns'] // every kind knows every key; the rules below say where one is out of place
+    const extra = Object.keys(raw).find(k => !allowed.includes(k))
+    if (extra !== undefined) return `unknown animation option "${extra}" (use ${optionsFor(kind).join(', ')})`
+    const { trigger, carries, outcome, share, reason, by, at, opens, name, towards, closes, depth, returns } = raw
     if (trigger !== undefined && !TRIGGERS.some(t => t === trigger)) return `animation trigger must be ${TRIGGERS.join(' or ')}`
     let out = misplaced('trigger', trigger, kind, outcome)
     if (out) return `animation ${out}`
@@ -248,9 +274,16 @@ export function animationProblem(raw: unknown, hasTo: boolean): string | undefin
     if (at !== undefined && lostAtOf(at) === undefined) return 'animation at must be a number from 0.1 to 0.9'
     out = misplaced('at', at, kind, outcome)
     if (out) return `animation ${out}`
+    // A channel points at an end of the step's line, and a recursion has one shape and no line between two.
+    if (kind === 'recurse' && (opens !== undefined || closes !== undefined)) return `animation ${opens === undefined ? 'closes' : 'opens'} only applies to a step between two shapes`
     out = channelProblem({ opens, name, towards, closes, outcome })
     if (out) return out
+    if (depth !== undefined && kind !== 'recurse') return 'animation depth only applies to recurse'
+    if (returns !== undefined && kind !== 'recurse') return 'animation returns only applies to recurse'
+    if (depth !== undefined && depthOf(depth) === undefined) return `animation depth must be a whole number from ${DEPTH_MIN} to ${DEPTH_MAX}`
+    if (returns !== undefined && (typeof returns !== 'string' || returns.trim() === '')) return 'animation returns must be a word'
   }
+  if (ENDS[kind] === 'alone') return hasTo ? RECURSE_HAS_TO : undefined
   if (!hasTo) return `animation "${kind}" needs a "to"`
   return undefined
 }
@@ -278,8 +311,9 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
     if (typeof map.by === 'string') return { shape: map.by.trim() }
     return isMap(map.by) && typeof map.by.name === 'string' ? { name: map.by.name.trim() } : undefined
   })()
+  const kind = map.kind as AnimationKind
   return {
-    kind: map.kind as AnimationKind,
+    kind,
     trigger: map.trigger === 'outside' ? 'outside' : 'inside',
     ...(typeof map.carries === 'string' ? { carries: map.carries } : {}),
     ...(isOutcome(map.outcome) ? { outcome: map.outcome } : {}),
@@ -292,6 +326,8 @@ export function animationOf(step: { to?: string; animation?: unknown }): Animati
     ...(isChannelKind(map.opens) && typeof map.name === 'string' ? { name: map.name.trim() } : {}),
     ...(isChannelKind(map.opens) && (map.towards === 'from' || map.towards === 'to') ? { towards: map.towards } : {}),
     ...(typeof map.closes === 'string' ? { closes: map.closes.trim() } : {}),
+    ...(kind === 'recurse' ? { depth: depthOf(map.depth) ?? DEPTH_DEFAULT } : {}),
+    ...(kind === 'recurse' && typeof map.returns === 'string' ? { returns: map.returns } : {}),
   }
 }
 
@@ -393,6 +429,38 @@ const BURST_SPREAD = 4000
  * meets one. `fade` is whether a timeout dims the line after it (in a burst only the last one does).
  */
 type Req = { hit: boolean; label?: string; tint?: number; ring?: boolean; fade?: boolean }
+
+/**
+ * A recursion: the shape calls itself `depth - 1` times, each call piling a card onto the stack under it. A flag marks the
+ * base case, then the answers come back one level at a time and the cards leave. `T` is how long the loop pipe takes to run.
+ */
+function recurseBeats(a: Animation, T: number): Beat[] {
+  const n = a.depth ?? DEPTH_DEFAULT
+  const gulp = 120
+  const level = gulp + T // one call down, or one answer back
+  const stack = (at: number, cards: number): Beat => ({ do: 'stack', on: 'from', at, dur: 150, level: cards })
+  const body: Beat[] = []
+  for (let j = 1; j < n; j++) {
+    const start = (j - 1) * level
+    body.push(
+      effect('gulp', 'from', start, gulp),
+      { do: 'blob', on: 'line', at: start + gulp, dur: T, dir: 'fwd', glyph: 'envelope', ...(a.carries === undefined ? {} : { label: a.carries }) },
+      stack(start + level, j),
+    )
+  }
+  const bottom = (n - 1) * level
+  body.push({ do: 'drop', on: 'from', at: bottom, dur: 350, glyph: 'flag' }, effect('flash', 'from', bottom + 200, 250))
+  for (let k = 1; k < n; k++) {
+    const start = bottom + 450 + (k - 1) * level
+    body.push(
+      { do: 'blob', on: 'line', at: start, dur: T, dir: 'back', glyph: 'envelope', tone: 'reply', ...(a.returns === undefined ? {} : { label: a.returns }) },
+      effect('gulp', 'from', start + T, gulp),
+      stack(start + T, n - 1 - k),
+    )
+  }
+  body.push(effect('ring', 'from', bottom + 450 + (n - 1) * level, 300))
+  return body
+}
 
 /**
  * The step as beats, with the tube first and how long the whole thing lasts. They are listed request by request, and each request in the order its beats start.
@@ -542,6 +610,8 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
         if (a.trigger === 'inside') return [effect('ring', 'from', 0, 600), blob(450, 'bell'), effect('ring', 'to', 450 + T, 600)]
         if (afterLanding) return [effect('flash', 'from', 0, 450), blob(300, 'bell'), effect('ring', 'to', 300 + T, 600)]
         return [{ do: 'drop', on: 'from', at: 0, dur: 600, glyph: 'bolt' }, effect('flash', 'from', 600, 450), blob(850, 'bell'), effect('ring', 'to', 850 + T, 600)]
+      case 'recurse':
+        return recurseBeats(a, T)
     }
   }
 
@@ -577,6 +647,7 @@ export const KIND_SKETCHES: Record<'none' | AnimationKind, string> = {
   call: 'M6 8H38M32 3l6 5l-6 5M38 17H6M12 12l-6 5l6 5',
   callback: 'M22 3a5 5 0 0 0 -5 5v4l-2 4h14l-2 -4v-4a5 5 0 0 0 -5 -5zM20 19a2 2 0 0 0 4 0',
   event: 'M24 2l-9 12h7l-2 8l9 -12h-7z',
+  recurse: 'M30 12a8 8 0 1 1 -3 -6M23 6h4v-4',
 }
 export const OUTCOME_SKETCHES: Record<'none' | Outcome, string> = {
   none: 'M6 12H36M30 6l6 6l-6 6',
@@ -613,6 +684,7 @@ export function outcomeBlock(kind: string | undefined, outcome: string): string 
   if (outcome === '') return undefined
   if (kind === undefined || kind === '') return 'Pick how it travels first'
   if (kind === 'callback') return 'Not for a callback'
+  if (kind === 'recurse') return 'Not for a recursion'
   return isOutcome(outcome) && !OUTCOME_RULES[outcome].kinds.some(k => k === kind) ? OUTCOME_RULES[outcome].needs : undefined
 }
 

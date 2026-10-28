@@ -76,8 +76,8 @@ public static class FlowForm
     /// <summary>Whether the step moves a request between two shapes. A step on one shape travels nowhere.</summary>
     public static bool Travels(Step step) => !string.IsNullOrEmpty(step.To) && step.To != step.From;
 
-    /// <summary>Why a way of travelling (the "none" choice is the empty id) can't be picked, or null. Only a step between two shapes can travel.</summary>
-    public static string? KindBlock(string kind, bool travels) => kind == "" || travels ? null : "Needs two shapes";
+    /// <summary>Why a way of travelling (the "none" choice is the empty id) can't be picked, or null. Only a step between two shapes can travel, and only a step on one shape can recurse.</summary>
+    public static string? KindBlock(string kind, bool travels) => kind == "" ? null : kind == "recurse" ? (travels ? "Needs one shape" : null) : travels ? null : "Needs two shapes";
 
     /// <summary>Why the share and the reason are off, or null: they say how a request ended, so there must be an outcome first.</summary>
     public static string? OutcomeFieldsBlock(string outcome) => outcome != "" ? null : "Pick an outcome first";

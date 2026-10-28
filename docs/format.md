@@ -102,11 +102,11 @@ A line from one object to another. It has a direction, and an arrow shows it.
 A **state** is `running` (the default), `starting`, `stopping`, `stopped`, `restarting` or `degraded`. It holds from the step that sets it until another step
 changes it ([the guide](guide/flows.md#shape-states)).
 
-An **animation** is a kind, `send`, `call`, `callback` or `event`, or a mapping with a `kind` and any of these:
+An **animation** is a kind, `send`, `call`, `callback`, `event` or `recurse`, or a mapping with a `kind` and any of these:
 
 | Key | Takes |
 | --- | --- |
-| `kind` | `send`, `call`, `callback` or `event` |
+| `kind` | `send`, `call`, `callback` or `event` on a step with a `to`; `recurse` on a step with no `to`, where the shape calls itself |
 | `trigger` | `inside` (the default) or `outside`. For `callback` only |
 | `carries` | A word the moving label shows |
 | `outcome` | `fail` (`send`, `call`), `timeout` (`call`), or `lost`, `rejected`, `intercepted`, `duplicated`, `delayed` (`send`, `call`, `event`). Only where the step really ends that way |
@@ -119,6 +119,8 @@ An **animation** is a kind, `send`, `call`, `callback` or `event`, or a mapping 
 | `name` | With `opens`: a name of up to 24 characters, so a later step can close it |
 | `towards` | With `opens`: `from` or `to`, the end of the line it points at. A stream flows to `to` and a job runs on `to`; a listener sits at `from` |
 | `closes` | The `name` of a channel an earlier step opened. It goes after this step. Not with `opens` or an `outcome` |
+| `depth` | For `recurse`: how deep the picture goes, 2 to 5 levels with the first call counted (3 when left out) |
+| `returns` | For `recurse`: a word on the answers coming back |
 
 ### A group
 

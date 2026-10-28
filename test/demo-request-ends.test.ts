@@ -25,7 +25,7 @@ test('an intercepted request names who took it', () => {
 })
 
 test('Plum plays every kind of step, and a callback that something outside set off', () => {
-  assert.deepEqual([...new Set(animations.map(a => a.kind))].sort(), ['call', 'callback', 'event', 'send'])
+  assert.deepEqual([...new Set(animations.map(a => a.kind))].sort(), ['call', 'callback', 'event', 'recurse', 'send'])
   assert.ok(animations.some(a => a.kind === 'callback' && a.trigger === 'outside'), 'a callback from outside')
   assert.ok(animations.some(a => a.kind === 'callback' && a.trigger === 'inside'), 'a callback that the step before set off')
 })

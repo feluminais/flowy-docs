@@ -187,7 +187,8 @@ public static class Checks
                 else if (Missing(s.From)) Sp("\"from\" is missing");
                 else if (model.GetObject(s.From) is null) Sp($"unknown object \"{s.From}\"");
                 if (!NonEmpty(s.Text)) Sp("text is missing");
-                if ((Animations.Problem(s.Animation, !alone) ?? Animations.InterceptorProblem(s.Animation, s.From, s.To, id => model.GetObject(id) is not null)) is { } animation) Sp(animation);
+                if ((Animations.Problem(s.Animation, !alone) ?? Animations.InterceptorProblem(s.Animation, s.From, s.To, id => model.GetObject(id) is not null)) is { } animation
+                    && !(animation == Animations.RecurseHasTo && s.From == s.To)) Sp(animation); // a step to itself is reported below
                 if (alone)
                 {
                     if (viewOk && model.GetObject(s.From) is not null && Views.PlaceStep(model, f.View, s.From, s.To) is null)

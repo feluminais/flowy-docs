@@ -3,6 +3,8 @@ import { TINTS } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
 
 /** Maths for drawing a step's beats (src/core/animation.ts). No DOM in here, so the node tests can run it. */
+import type { Beat } from '../../src/core/animation.ts'
+import type { Rect } from './graph.ts'
 
 /** How long Autoplay rests after a step has finished moving, in ms. */
 export const GAP = 900
@@ -200,3 +202,29 @@ export function squashTile(el: Tile, who: symbol, amount: number): void {
   const x = by ? largest(by.values()) : 0
   el.style.transform = x > 0 ? `scale(${1 + 0.07 * x}, ${1 - 0.1 * x})` : ''
 }
+
+/**
+ * How many ghost cards show at `t`, as a fraction while one slides in or out. Each `stack` beat that has started takes the count
+ * from the level before it to its own over its `dur`; a beat that has not started yet changes nothing.
+ */
+export function cardsAt(beats: readonly Beat[], t: number): number {
+  let before = 0
+  let cards = 0
+  for (const b of beats) {
+    if (b.do !== 'stack') continue
+    if (t < b.at) break
+    cards = before + ((b.level ?? 0) - before) * ease(progress(b, t))
+    before = b.level ?? 0
+  }
+  return cards
+}
+
+/** The rect of ghost card `k` (1 is the nearest): 8 px lower and 7 px narrower on each side for every level down, scaled by how far it has slid in, 0 to 1. */
+export const cardBox = (r: Rect, k: number, amount: number): Rect => ({ x: r.x + 7 * k * amount, y: r.y + 8 * k * amount, width: r.width - 14 * k * amount, height: r.height })
+
+/** The counter on a recursing box: the height of the stack while it plays, and how deep it went once it has finished. */
+export const pillText = (playing: boolean, cards: number, depth: number): string => (playing ? `↻ ${Math.round(cards) + 1}` : `↻ ${depth} deep`)
+
+/** The squash for the `from` and `to` tiles. With one box at both ends the larger goes on it, so the empty second side never wipes the first. */
+export const tileSquash = (sameBox: boolean, squash: { from: number; to: number }): { from: number; to: number } =>
+  sameBox ? { from: Math.max(squash.from, squash.to), to: 0 } : squash

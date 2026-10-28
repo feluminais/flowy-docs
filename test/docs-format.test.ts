@@ -29,7 +29,7 @@ test('docs/format.md names every key the files read', () => {
     connection: ['from', 'to', 'label'],
     flow: ['name', 'view', 'steps', 'groups', 'states', 'compare'],
     step: ['from', 'to', 'text', 'description', 'animation', 'group', 'lane', 'flow', 'states'],
-    animation: ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at', 'effect'],
+    animation: ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at', 'effect', 'depth', 'returns'],
     group: ['kind', 'times', 'until', 'text'],
     analysis: ['name', 'about', 'scope', 'scale', 'modes'],
     mode: ['mode', 'on', 'from', 'to', 'effect', 'cause', 'severity', 'occurrence', 'detection', 'controls', 'action', 'owner', 'status', 'after', 'affects', 'flow', 'step', 'run', 'description'],

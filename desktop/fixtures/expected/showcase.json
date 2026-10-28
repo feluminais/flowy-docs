@@ -123,6 +123,14 @@
       "description": "The subscriber. A ring goes out when the bell arrives."
     },
     {
+      "id": "recurse-on",
+      "type": "app",
+      "name": "Recurse",
+      "in": "steps",
+      "tech": "recurse",
+      "description": "`animation: recurse`, on a step with no `to`. A pipe loops out of this shape and back in, cards pile up under it with a counter, and a flag lands where it stops."
+    },
+    {
       "id": "after-source",
       "type": "app",
       "name": "Flash · source",
@@ -1122,6 +1130,10 @@
       "share-to": [
         360,
         1450
+      ],
+      "recurse-on": [
+        0,
+        1700
       ]
     },
     "channels": {
@@ -2223,6 +2235,23 @@
       }
     },
     {
+      "id": "recurse",
+      "name": "Recurse",
+      "view": "steps",
+      "steps": [
+        {
+          "from": "recurse-on",
+          "text": "Calls itself on a smaller piece until it reaches one it can answer",
+          "animation": "recurse",
+          "placed": [
+            "recurse-on",
+            "recurse-on"
+          ],
+          "ends": "Recurse"
+        }
+      ]
+    },
+    {
       "id": "rejected",
       "name": "Rejected",
       "view": "steps",
@@ -2560,6 +2589,7 @@
     "lost": [],
     "open-channels": [],
     "parallel": [],
+    "recurse": [],
     "rejected": [],
     "repeat": [],
     "send-with-a-word": [],
@@ -2603,6 +2633,7 @@
         "event-to",
         "callback-from",
         "callback-to",
+        "recurse-on",
         "after-source",
         "after-from",
         "after-to",

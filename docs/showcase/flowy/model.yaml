@@ -108,6 +108,12 @@ objects:
     name: Callback · to
     tech: callback
     description: The subscriber. A ring goes out when the bell arrives.
+  recurse-on:
+    type: app
+    in: steps
+    name: Recurse
+    tech: recurse
+    description: "`animation: recurse`, on a step with no `to`. A pipe loops out of this shape and back in, cards pile up under it with a counter, and a flag lands where it stops."
   after-source:
     type: app
     in: steps

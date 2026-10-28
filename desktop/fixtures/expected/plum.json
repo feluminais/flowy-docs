@@ -587,7 +587,7 @@
       "type": "component",
       "name": "Pricing",
       "in": "order-api",
-      "description": "Computes the total: items, delivery fee and any promotion.\n\nThe fee is based on Mapbox travel distance, rounded up to the next 500 m.\n",
+      "description": "Computes the total: items, delivery fee and any promotion.\n\nThe fee is based on Mapbox travel distance, rounded up to the next 500 m.\n\nA meal deal is priced by pricing each of its parts, and a part can be a deal too.\n",
       "code": [
         "services/order-api/src/pricing.ts"
       ],
@@ -2373,6 +2373,55 @@
       ]
     },
     {
+      "id": "price-a-deal",
+      "name": "Pricing a meal deal",
+      "view": "order-api",
+      "steps": [
+        {
+          "from": "basket",
+          "to": "pricing",
+          "text": "Asks for the total of a basket that holds a meal deal",
+          "animation": "send",
+          "placed": [
+            "basket",
+            "pricing"
+          ],
+          "ends": "Basket → Pricing"
+        },
+        {
+          "from": "pricing",
+          "text": "Prices a deal by pricing each of its parts, down to plain items that have a price",
+          "description": "A plain item has a price, and that is where it stops. A deal holds items and other deals, so\nPricing asks itself about each part and adds up what comes back.\n\nThe menu editor allows deals inside deals three deep at most. The picture shows three levels\nbecause that is the limit.\n",
+          "animation": {
+            "kind": "recurse",
+            "depth": "3",
+            "carries": "deal",
+            "returns": "price"
+          },
+          "placed": [
+            "pricing",
+            "pricing"
+          ],
+          "ends": "Pricing"
+        },
+        {
+          "from": "pricing",
+          "to": "basket",
+          "text": "Hands back the total",
+          "animation": {
+            "kind": "send",
+            "carries": "total"
+          },
+          "placed": [
+            "pricing",
+            "basket"
+          ],
+          "ends": "Pricing → Basket"
+        }
+      ],
+      "folder": "ordering"
+    },
+    {
       "id": "refund-not-recorded",
       "name": "The refund is not recorded",
       "view": "ordering",
@@ -3285,6 +3334,7 @@
     "order-sent-twice": [],
     "orders-db-fails-over": [],
     "place-order": [],
+    "price-a-deal": [],
     "refund-not-recorded": [
       {
         "id": "refund",

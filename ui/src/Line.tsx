@@ -7,7 +7,7 @@ import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { ChangeMarksContext, FailBadge } from './Box.tsx'
 import { changeAt } from './compare.ts'
-import { lineEnds, ports, sizeOf } from './graph.ts'
+import { lineEnds, loopAround, ports, sizeOf } from './graph.ts'
 import { clip, placeLabels } from './labels.ts'
 import type { Spot } from './labels.ts'
 import { labelOffset } from './motion.ts'
@@ -140,6 +140,9 @@ export function labelPoint(style: LineStyle, a: InternalNode, b: InternalNode): 
 
 /** The path of the line between two boxes in the given style, for a step's pipe to follow. */
 export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode): string => draw(style, rect(a), rect(b), outline(a), outline(b))[0]
+
+/** The path of a recursion's loop pipe for one box, out of its right side and back in (the same in every line style). */
+export const loopPath = (n: InternalNode): string => loopAround(rect(n), outline(n))
 
 /**
  * A line between two boxes. Straight lines go edge to edge, whichever sides face each other: the boxes
