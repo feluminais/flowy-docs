@@ -7,9 +7,11 @@ import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
 import { promisify } from 'node:util'
 import { gzip } from 'node:zlib'
+import { draftFolder, splitDraftModelId } from '../core/drafts.ts'
 import type { ModelList } from '../core/modellist.ts'
 import type { State } from '../core/state.ts'
 import { jsonBody } from './body.ts'
+import { draftDir, hasDraft } from './drafts.ts'
 import { loadState } from './files.ts'
 import type { History } from './history.ts'
 import { createHistoryApi } from './history-api.ts'
@@ -17,7 +19,7 @@ import type { HistoryApi } from './history-api.ts'
 import { DEEP } from './models.ts'
 import type { Catalog, ModelEntry } from './models.ts'
 import { PAGE_POLICY } from './policy.ts'
-import { applyWrite } from './writes.ts'
+import { applyNewDraft, applyWrite } from './writes.ts'
 
 export type Running = { port: number; close: () => Promise<void> }
 
@@ -94,6 +96,11 @@ export function writtenPath(encoded: string): string {
 async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel: string, history?: HistoryApi) {
   const body = await jsonBody(req)
   const answer = await applyWrite(dir, req.method ?? '', rel, body, history && (() => history.beforeWrite()))
+  send(res, answer.status, answer.body)
+}
+
+async function makeDraft(dir: string, req: IncomingMessage, res: ServerResponse, model: string) {
+  const answer = await applyNewDraft(dir, model, await jsonBody(req))
   send(res, answer.status, answer.body)
 }
 
@@ -201,7 +208,17 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
     const opened = opening.get(asked)
     if (opened) return await opened // its history is made once, with the host
     const found = discovery?.catalog.get(asked)
-    return found ? await open({ ...found, history: discovery?.historyFor?.(found) }) : undefined
+    if (found) return await open({ ...found, history: discovery?.historyFor?.(found) })
+    return await draftHost(asked)
+  }
+  /** The host of a draft of a served model, when `asked` names one that is there. A draft keeps no history: the history is its model folder's. */
+  const draftHost = async (asked: string): Promise<Host | undefined> => {
+    const named = splitDraftModelId(asked)
+    if (!named) return undefined
+    const owner = await hostFor(named.model === '' ? null : named.model)
+    if (!owner || !hasDraft(owner.served.dir, named.id)) return undefined
+    const where = owner.served.where === '' ? draftFolder(named.id) : `${owner.served.where}/${draftFolder(named.id)}`
+    return await open({ id: asked, name: named.id, where, dir: draftDir(owner.served.dir, named.id) })
   }
 
   const server = createServer(async (req, res) => {
@@ -240,6 +257,10 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
           // Browsers only let a page send a custom header to its own origin, so other sites can't write.
           if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
           return await write(dir, req, res, writtenPath(url.pathname.slice('/api/file/'.length)), steps)
+        }
+        if (req.method === 'POST' && url.pathname === '/api/drafts') {
+          if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
+          return await makeDraft(dir, req, res, host.served.id)
         }
         const answer = await steps?.handle(req, url)
         if (answer) return send(res, answer.status, answer.body)

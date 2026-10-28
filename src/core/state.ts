@@ -1,3 +1,4 @@
+import type { DraftInfo } from './drafts.ts'
 import type { YamlNow } from './history.ts'
 import type { Problem } from './problem.ts'
 import type { Analysis, Flow, Layout, Model } from './model.ts'
@@ -26,6 +27,10 @@ export type State =
     failureProblems?: Problem[]
     /** The files as text, for the YAML tab of an exported page. Only an export carries it: a server answers for them in /api/yaml. */
     yaml?: YamlNow
+    /** The drafts in this model folder's drafts/, by id. Left out when it has none, and in a draft. */
+    drafts?: DraftInfo[]
+    /** Set when this folder is a draft: `of` is the name of the model it belongs to ("" when the model has none). */
+    draft?: { of: string }
   }
   | { parseError: { file: string; line?: number; message: string } }
 

@@ -1,8 +1,11 @@
 import { compareOf } from '../core/compare.ts'
 import { FILE_KINDS, idOfPath, isRunPath } from '../core/filekinds.ts'
-import { ParseError } from '../core/model.ts'
+import { draftModelId, isDraftId, newDraft } from '../core/drafts.ts'
+import { emptyModel, ParseError } from '../core/model.ts'
 import { isRemovableFile, serializeFile } from '../core/modelfiles.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
+import { hasDraft, modelOfDraft } from './drafts.ts'
+import { createDraft } from './draftwrites.ts'
 import { isAllowedPath, loadDir, loadRuns, OutsideFolder, saveFile, saveRunCompare, VersionConflict } from './files.ts'
 
 /** What to answer a write with: an HTTP status and the JSON that goes with it. */
@@ -88,4 +91,18 @@ export async function applyWrite(dir: string, method: string, rel: string, body:
     if (e instanceof OutsideFolder) return { status: 400, body: { error: e.message } }
     throw e
   }
+}
+
+/**
+ * `POST /api/drafts { id, name }` makes an empty draft of the model folder `dir` and answers with its served id, `model` being the folder's own
+ * (see draftModelId). A draft holds no drafts, so a draft folder refuses it.
+ */
+export async function applyNewDraft(dir: string, model: string, body: unknown): Promise<Answer> {
+  const { id, name } = (typeof body === 'object' && body !== null ? body : {}) as { id?: unknown; name?: unknown }
+  if (typeof name !== 'string' || name.trim() === '') return { status: 400, body: { error: 'the body needs "name": what the draft is called' } }
+  if (!isDraftId(id)) return { status: 400, body: { error: 'the body needs "id": lowercase letters, digits and dashes, not starting with a dash' } }
+  if (modelOfDraft(dir) !== undefined) return { status: 400, body: { error: "a draft can't hold drafts" } }
+  if (hasDraft(dir, id)) return { status: 409, body: { error: `there is a draft "${id}" already` } }
+  await createDraft(dir, id, newDraft(emptyModel(), { name: name.trim() }))
+  return { status: 201, body: { id: draftModelId(model, id) } }
 }
