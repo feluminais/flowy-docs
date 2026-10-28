@@ -41,6 +41,9 @@ internal sealed class ExplorerView : Grid
     /// <summary>The Compare button on a flow's row was pressed (never while a mode blocks it).</summary>
     public event Action<string>? CompareRequested;
 
+    /// <summary>The Drafts group under the tree.</summary>
+    public DraftsView Drafts { get; } = new();
+
     /// <summary>A click on a row, and Enter or a double-click on one.</summary>
     public event Action<OutlineRow>? Picked;
 
@@ -50,7 +53,7 @@ internal sealed class ExplorerView : Grid
 
     public ExplorerView()
     {
-        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)];
+        RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto)];
         RowSpacing = 8;
         Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the tree's scroll bar sits on the panel's edge, where the sash is
         var field = FlowsView.Field(_find, Icons.Search);
@@ -59,12 +62,14 @@ internal sealed class ExplorerView : Grid
         SetRow(_note, 2);
         SetRow(_list, 3);
         SetRow(_foot, 4);
+        SetRow(Drafts, 5);
         _foot.IsVisible = false;
         Children.Add(_summary);
         Children.Add(field);
         Children.Add(_note);
         Children.Add(_list);
         Children.Add(_foot);
+        Children.Add(Drafts);
 
         _list.ItemsSource = _shown;
         _list.ItemTemplate = new FuncDataTemplate<OutlineRow>((row, _) => row is null ? null : BuildRow(row));

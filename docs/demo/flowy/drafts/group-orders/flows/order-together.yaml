@@ -1,0 +1,12 @@
+name: Order together
+view: root
+steps:
+  - from: customer
+    to: customer-app
+    text: Starts a group order
+  - from: friend
+    to: customer-app
+    text: Joins from the link
+  - from: customer
+    to: customer-app
+    text: Checks out for everyone

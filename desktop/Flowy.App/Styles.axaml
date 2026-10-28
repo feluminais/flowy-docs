@@ -184,6 +184,23 @@
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
   <Style Selector="Button.crumb:disabled Path.crumbicon"><Setter Property="Stroke" Value="{DynamicResource FgBrush}" /></Style>
+  <!-- The Draft chip on the bar of a draft: dashed accent outline, accent icon and word. -->
+  <Style Selector="Rectangle.draftmark">
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="StrokeThickness" Value="1" />
+    <Setter Property="StrokeDashArray" Value="3,2" />
+  </Style>
+  <Style Selector="Path.draftmark">
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="StrokeThickness" Value="1.4" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+  </Style>
+  <Style Selector="TextBlock.draftmark">
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
   <Style Selector="Path.crumbsep"><Setter Property="Stroke" Value="{DynamicResource LineBrush}" /><Setter Property="StrokeThickness" Value="2" /><Setter Property="StrokeLineCap" Value="Round" /><Setter Property="StrokeJoin" Value="Round" /></Style>
 
   <!-- The flat button, on the bar and in the panels. The one filled button is .primary: what a form is for. -->

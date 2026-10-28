@@ -44,7 +44,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   how many shapes are inside each (the number the canvas shows as "N inside") and how many flows play in it, a dot where something is wrong, and a filter. Point at a row's number for the full count ("7 inside, 13 in all, 12 flows"), which counts every level. It sorts as
   VS Code's Explorer does: shapes that hold others first, then the rest, each by name in any case, and
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
-  or a double-click zooms into it, and the tree follows you as you zoom. Flows (L) lists every flow as the
+  or a double-click zooms into it, and the tree follows you as you zoom. Under the tree, **Drafts** lists the model's drafts
+  and has **New draft** ([Drafts](drafts.md)). Flows (L) lists every flow as the
   folders they are filed in under `flows/`, a folder before the flows beside it and the flows by file name, so `01-place-order` comes before `02-pay`.
   A click goes to the level a flow plays in and plays it. The tags in use sit above the list: press one to keep the flows that have it, or press
   several to keep those with any of them. The search matches names, file names, folders and tags. A YAML tab (Y) beside them shows the files

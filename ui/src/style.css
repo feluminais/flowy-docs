@@ -784,6 +784,22 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .panel .flow-row, .panel .group-head { width: 100%; justify-content: flex-start; min-height: 32px; text-align: left; }
 .panel .flow-row .name, .panel .group-head .name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .panel .flow-row { flex-wrap: wrap; row-gap: 0; align-content: center; }
+/* The Drafts group under the Explorer tree (Drafts.tsx), and the mark in the top bar of a draft. */
+.drafts { flex: none; max-height: 40%; overflow: auto; margin: 4px -4px 0; padding: 4px 4px 2px; border-top: 1px solid var(--line); }
+.drafts .navhead { justify-content: flex-start; gap: 6px; }
+.drafts .navhead .count { font-weight: 400; }
+.draft-row { display: flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 6px; border-radius: 6px; color: var(--fg); text-decoration: none; }
+.draft-row:hover { background: var(--hover); }
+.draft-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.draft-row .name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel .draft-add { margin-top: 4px; }
+.draft-new { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.draft-new input { flex: 1 1 120px; min-width: 0; }
+.draft-new .bad { flex-basis: 100%; margin: 0; color: var(--danger); font-size: 12px; }
+.draft-mark { display: flex; align-items: center; gap: 6px; margin-right: 4px; font-size: 13px; }
+.draft-mark a { color: var(--accent-ink); text-decoration: none; padding: 2px 4px; border-radius: 6px; }
+.draft-mark a:hover { background: var(--tint); }
+.draft-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border: 1px dashed var(--accent); border-radius: 999px; color: var(--accent-ink); font-weight: 600; }
 .panel .flow-row .muted { font-size: 12px; white-space: nowrap; }
 .panel .flow-row[aria-current='true'] { background: var(--tint); color: var(--accent); }
 .panel .flow-row[aria-current='true'] svg { color: inherit; }

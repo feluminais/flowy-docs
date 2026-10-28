@@ -195,6 +195,21 @@ test('flowy check lists every problem, a file that loads but cannot be saved inc
   assert.match(lines.at(-1)!, /^4 problems in 2 shapes, 2 flows, 1 failure analysis and 0 load-test runs in /)
 })
 
+test('flowy check checks each draft on its own, naming its files from the model folder', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-cli-drafts-'))
+  t.after(() => rm(dir, { recursive: true, force: true }))
+  await writeFile(join(dir, 'model.yaml'), 'objects:\n  s: { type: system, name: S }\n')
+  await mkdir(join(dir, 'drafts', 'good'), { recursive: true })
+  await writeFile(join(dir, 'drafts', 'good', 'model.yaml'), 'objects:\n  n: { type: system, name: N }\n')
+  await mkdir(join(dir, 'drafts', 'bad', 'flows'), { recursive: true })
+  await writeFile(join(dir, 'drafts', 'bad', 'model.yaml'), 'objects:\n  n: { type: system, name: N }\n')
+  await writeFile(join(dir, 'drafts', 'bad', 'flows', 'ghost.yaml'), 'name: Ghost\nview: root\nsteps:\n  - { from: n, to: s, text: Calls }\n')
+  const run = spawnSync(process.execPath, ['src/cli.ts', 'check', '--dir', dir], { encoding: 'utf8' })
+  assert.equal(run.status, 1)
+  assert.match(run.stdout, /^No problems in 1 shape, 0 flows, .*\nNo problems in 1 shape and 0 flows in draft good\.\n$/)
+  assert.equal(run.stderr, 'drafts/bad/flows/ghost.yaml: step 1: unknown object "s"\n1 problem in 1 shape and 1 flow in draft bad.\n') // the model's shape is not the draft's
+})
+
 test('flowy check reports a file that cannot be saved again only when nothing else says why', async t => {
   const { saveProblems } = await import('../src/node/files.ts')
   const { emptyModel } = await import('../src/core/model.ts')

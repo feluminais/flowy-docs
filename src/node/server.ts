@@ -7,9 +7,11 @@ import type { AddressInfo } from 'node:net'
 import { extname, join, resolve, sep } from 'node:path'
 import { promisify } from 'node:util'
 import { gzip } from 'node:zlib'
+import { draftFolder, splitDraftModelId } from '../core/drafts.ts'
 import type { ModelList } from '../core/modellist.ts'
 import type { State } from '../core/state.ts'
 import { jsonBody } from './body.ts'
+import { draftDir, hasDraft } from './drafts.ts'
 import { loadState } from './files.ts'
 import type { History } from './history.ts'
 import { createHistoryApi } from './history-api.ts'
@@ -17,7 +19,7 @@ import type { HistoryApi } from './history-api.ts'
 import { DEEP } from './models.ts'
 import type { Catalog, ModelEntry } from './models.ts'
 import { PAGE_POLICY } from './policy.ts'
-import { applyWrite } from './writes.ts'
+import { applyNewDraft, applyWrite } from './writes.ts'
 
 export type Running = { port: number; close: () => Promise<void> }
 
@@ -94,6 +96,11 @@ export function writtenPath(encoded: string): string {
 async function write(dir: string, req: IncomingMessage, res: ServerResponse, rel: string, history?: HistoryApi) {
   const body = await jsonBody(req)
   const answer = await applyWrite(dir, req.method ?? '', rel, body, history && (() => history.beforeWrite()))
+  send(res, answer.status, answer.body)
+}
+
+async function makeDraft(dir: string, req: IncomingMessage, res: ServerResponse, model: string) {
+  const answer = await applyNewDraft(dir, model, await jsonBody(req))
   send(res, answer.status, answer.body)
 }
 
@@ -175,8 +182,9 @@ const listOf = (models: Served[]): ModelList => ({ models: models.map(({ id, nam
  * `models` serves several folders instead: every /api route takes `?model=<id>`, and the first one is the default when it is left out.
  * `discovery` lists the folders a search finds under the folder it searches, on top of `models`: the page can start a deeper search and stop it, and a found model is opened on its first request.
  * `gateMs` is how long an edit the page never labels waits before it is recorded without one.
+ * `draftHistory` opens the history of a draft (see core/drafts.ts) the first time a page asks for it; without it a draft keeps none.
  */
-export async function startServer({ dir, ui, port, history, gateMs, models, discovery }: { dir: string; ui: string; port: number; history?: History; gateMs?: number; models?: Served[]; discovery?: Discovery }): Promise<Running> {
+export async function startServer({ dir, ui, port, history, gateMs, models, discovery, draftHistory }: { dir: string; ui: string; port: number; history?: History; gateMs?: number; models?: Served[]; discovery?: Discovery; draftHistory?: (dir: string) => History }): Promise<Running> {
   const uiDir = resolve(ui) // serveUi's containment check needs a normalized path
   const first = models ?? [{ id: '', name: '', where: '', dir, history }]
   const hosts = new Map<string, Host>()
@@ -201,7 +209,18 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
     const opened = opening.get(asked)
     if (opened) return await opened // its history is made once, with the host
     const found = discovery?.catalog.get(asked)
-    return found ? await open({ ...found, history: discovery?.historyFor?.(found) }) : undefined
+    if (found) return await open({ ...found, history: discovery?.historyFor?.(found) })
+    return await draftHost(asked)
+  }
+  /** The host of a draft of a served model, when `asked` names one that is there. It has a history of its own, apart from its model's. */
+  const draftHost = async (asked: string): Promise<Host | undefined> => {
+    const named = splitDraftModelId(asked)
+    if (!named) return undefined
+    const owner = await hostFor(named.model === '' ? null : named.model)
+    if (!owner || !hasDraft(owner.served.dir, named.id)) return undefined
+    const where = owner.served.where === '' ? draftFolder(named.id) : `${owner.served.where}/${draftFolder(named.id)}`
+    const at = draftDir(owner.served.dir, named.id)
+    return await open({ id: asked, name: named.id, where, dir: at, history: draftHistory?.(at) })
   }
 
   const server = createServer(async (req, res) => {
@@ -240,6 +259,10 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
           // Browsers only let a page send a custom header to its own origin, so other sites can't write.
           if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
           return await write(dir, req, res, writtenPath(url.pathname.slice('/api/file/'.length)), steps)
+        }
+        if (req.method === 'POST' && url.pathname === '/api/drafts') {
+          if (req.headers['x-flowy'] !== '1') return send(res, 403, { error: 'missing X-Flowy: 1 header' })
+          return await makeDraft(dir, req, res, asked ?? '') // a page that names no model is on the first, which a draft id with no model names too
         }
         const answer = await steps?.handle(req, url)
         if (answer) return send(res, answer.status, answer.body)
