@@ -22,6 +22,7 @@ internal sealed class CanvasView : Border
 
     private readonly BackLayer _back = new();
     private readonly MotionLayer _motion = new();
+    private readonly CardsLayer _cards = new(); // a recursion's pile of cards, under the boxes
     private readonly ChannelLayer _channels = new();
     private IReadOnlyList<OpenChannel> _open = []; // the channels the stop on show has left open, with the shapes they are on
     private readonly MarksLayer _marks = new();
@@ -103,7 +104,7 @@ internal sealed class CanvasView : Border
         AreaStyles.Add(this, "Canvas");
         ClipToBounds = true;
         Background = Brushes.Transparent;
-        _world.Children.AddRange([_back, _stage, _traffic, _channels, _motion, _marks]);
+        _world.Children.AddRange([_back, _cards, _stage, _traffic, _channels, _motion, _marks]);
         Child = new Grid { Children = { _world, _marquee } };
     }
 
@@ -142,6 +143,28 @@ internal sealed class CanvasView : Border
     /// <summary>Whether a step's animation is running.</summary>
     public bool StepMoving { get; private set; }
 
+    private (string Id, int Depth)? _resting;
+
+    /// <summary>
+    /// The recursion whose counter is on screen at rest: set when a recursion step starts (even when motion is reduced, which draws nothing else),
+    /// kept when its motion ends, and cleared by <see cref="StopStep"/> when the step changes or the flow stops.
+    /// </summary>
+    internal (string Id, int Depth)? Resting => _resting;
+
+    /// <summary>
+    /// Makes the resting counter match the step now showing. A reload can change the step's tag or depth without changing which step it is, and the
+    /// motion is not started again for the same step, so the reader calls this every time it refreshes.
+    /// </summary>
+    internal void SetResting((string Id, int Depth)? now)
+    {
+        if (Nullable.Equals(_resting, now)) return;
+        _resting = now;
+        _motion.SetRest(now is { } r ? RectOf(r.Id) : null, now?.Depth ?? 0);
+    }
+
+    /// <summary>Where the resting counter's box is in the scene on screen now, so a reload that moves the box moves the counter with it.</summary>
+    internal Flowy.Core.Rect? RestingRect => _resting is { } r ? RectOf(r.Id) : null;
+
     /// <summary>Every beat of the steps now playing, for the tests.</summary>
     internal IReadOnlyList<Beat> PlayingBeats => _motion.AllBeats;
 
@@ -178,6 +201,12 @@ internal sealed class CanvasView : Border
     public bool PlaySteps(IReadOnlyList<StepRun> runs, Action? done)
     {
         StopStep();
+        // A recursion's counter shows from the start and stays when its motion ends, even when motion is reduced and nothing else is drawn.
+        if (runs.FirstOrDefault(r => r.Animation.Kind == "recurse" && RectOf(r.From) is not null) is { } recursion)
+        {
+            _resting = (recursion.From, recursion.Animation.Depth ?? Animations.DepthDefault);
+            _motion.SetRest(RectOf(recursion.From), _resting.Value.Depth);
+        }
         var outline = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null; // the pipe meets each shape on its outline, as the line does
         var shape = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Path : null; // and a ring or a flash follows it
         var playing = runs.Where(r => RectOf(r.From) is not null && RectOf(r.To) is not null).ToList();
@@ -195,11 +224,14 @@ internal sealed class CanvasView : Border
         }
         var started = _motion.Start(specs);
         var total = started.Max(s => s.Total);
+        var piled = playing.FindIndex(r => r.Animation.Kind == "recurse"); // the recursion whose cards pile up under its box
+        var cardShape = piled < 0 ? null : shape(playing[piled].From);
         StepMoving = true;
         _step = Anim.Run(this, total, t => t, t =>
         {
             var now = t * total;
             _motion.Show(now);
+            if (piled >= 0 && cardShape is not null) _cards.Show(RectOf(playing[piled].From)!.Value, cardShape, MotionMath.CardsAt(started[piled].Beats, now));
             var asked = new Dictionary<string, List<double>>();
             for (var i = 0; i < playing.Count; i++)
             {
@@ -237,8 +269,13 @@ internal sealed class CanvasView : Border
         _marks.Set(at);
     }
 
-    /// <summary>Stops the step's animation where it is and puts the boxes back.</summary>
-    public void StopStep() => EndStep(keepFade: false);
+    /// <summary>Stops the step's animation where it is and puts the boxes back, and takes a recursion's counter away.</summary>
+    public void StopStep()
+    {
+        EndStep(keepFade: false);
+        _resting = null;
+        _motion.SetRest(null, 0);
+    }
 
     /// <summary>How strong the lines a step has lit are drawn: 1, or less once a step that timed out has dimmed them.</summary>
     public double LitFade => _back.LitFade;
@@ -251,6 +288,7 @@ internal sealed class CanvasView : Border
         // A step that has finished leaves its marks (the cross, the bar, the marker) until it is left; leaving it, or another step, clears them.
         if (keepFade) _motion.Settle();
         else _motion.Clear();
+        _cards.Clear(); // a finished recursion keeps its counter (the step is still showing), not its cards
         foreach (var box in _boxes.Values) box.SetSquash(0);
         if (!keepFade)
         {
@@ -290,6 +328,7 @@ internal sealed class CanvasView : Border
         ApplyUsed();
         ApplyStates();
         ApplyChannels();
+        if (_resting is { } rest) _motion.SetRest(RectOf(rest.Id), rest.Depth); // a reload may have moved the box
     }
 
     /// <summary>Puts away the boxes on show and brings up the ones for <paramref name="key"/>: the set kept from an earlier visit, or new controls for the scene.</summary>

@@ -1,7 +1,7 @@
 import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, OBJECT_TYPE_INFO, SHAPES } from './look.ts'
 import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, LINE_STYLES, MAX_TAG_LENGTH, OBJECT_TYPES, ROOT, tagKey } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
-import { animationProblem, interceptorProblem } from './animation.ts'
+import { animationProblem, interceptorProblem, RECURSE_HAS_TO } from './animation.ts'
 import { compareOf, compareProblem } from './compare.ts'
 import { dataProblems } from './data.ts'
 import { analysisProblems } from './failures.ts'
@@ -174,7 +174,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else if (!getObject(model, s.from)) sp(`unknown object "${s.from}"`)
       if (!hasText(s.text)) sp('text is missing')
       const animation = animationProblem(s.animation, !alone) ?? interceptorProblem(s.animation, s, id => getObject(model, id) !== undefined)
-      if (animation) sp(animation)
+      if (animation && !(animation === RECURSE_HAS_TO && s.from === s.to)) sp(animation) // a step to itself is reported below
       if (alone) {
         if (viewOk && getObject(model, s.from) && !placeStep(model, f.view, s)) sp(`${s.from} can't be shown in view "${f.view}"`)
         return

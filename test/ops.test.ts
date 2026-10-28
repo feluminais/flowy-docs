@@ -379,3 +379,13 @@ test('a step keeps its outcome, key for key, through putFlow and updateFlow', ()
   assert.deepEqual(edited.flows.failing.steps[0], { from: 'customer', to: 'web', text: 'Taps', animation: { kind: 'call', outcome: 'timeout' } })
   assert.deepEqual(edited.flows.failing.steps[1], steps[1])
 })
+
+test('putFlow writes a numeric depth as text, and leaves its input alone', () => {
+  const walk = { from: 'api', text: 'Walks', animation: { kind: 'recurse', depth: 4, carries: 'x' } }
+  const plain = { from: 'web', to: 'api', text: 'Posts', animation: 'call' }
+  const mapped = { from: 'web', to: 'api', text: 'Posts again', animation: { kind: 'send', carries: 'order' } }
+  const put = putFlow(shop(), { id: 'walk', name: 'Walk', view: 'shop', steps: [walk, plain, mapped] })
+  assert.deepEqual(put.flows.walk.steps[0].animation, { kind: 'recurse', depth: '4', carries: 'x' })
+  assert.equal(walk.animation.depth, 4)
+  assert.deepEqual(put.flows.walk.steps.slice(1), [plain, mapped])
+})

@@ -19,7 +19,9 @@ internal sealed class MotionLayer : Control
     /// <summary>Whoever takes an intercepted request: the box that stands for it on the canvas (with its outline), or a name for a party that is not on it.</summary>
     public sealed record Taker(CoreRect? Box = null, string? Shape = null, string? Name = null);
 
-    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo, CoreRect? TakerBox, Geometry? TakerShape, string? TakerName, string? Effect = null);
+    /// <summary><c>Depth</c> is how tall a recursion's stack gets, which its counter says; <c>Total</c> is how long the run lasts.</summary>
+    private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo, CoreRect? TakerBox, Geometry? TakerShape, string? TakerName, string? Effect = null,
+        int Depth = Animations.DepthDefault, int Total = 0);
 
     /// <summary>How strongly a shape lights up when it flashes, at the start.</summary>
     private const double Flash = 0.55;
@@ -33,6 +35,7 @@ internal sealed class MotionLayer : Control
     private IReadOnlyList<Run> _runs = [];
     private double _t;
     private bool _still;
+    private (CoreRect Rect, int Depth)? _rest; // a recursion's counter at rest: where its box is and how deep it went
 
     public MotionLayer()
     {
@@ -49,7 +52,9 @@ internal sealed class MotionLayer : Control
         var started = new List<(IReadOnlyList<Beat> Beats, int Total)>();
         foreach (var s in specs)
         {
-            var line = Geometry.Parse(LinePaths.Build(s.Style, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data);
+            // A recursion's pipe is a loop out of its one box and back in; every other kind runs along the line between two boxes.
+            var data = s.Animation.Kind == "recurse" ? BoxGeometry.LoopAround(s.From, s.OutlineFrom) : LinePaths.Build(s.Style, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data;
+            var line = Geometry.Parse(data);
             var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding);
             // Whoever takes the request: its box, or the dashed marker that hangs below the line where the request leaves it.
             var by = s.By ?? (s.Animation.By is { } given ? new Taker(Name: given.Name ?? given.Shape) : null);
@@ -62,7 +67,7 @@ internal sealed class MotionLayer : Control
                 takerBox = new CoreRect(spot.X + offset.X - size.Width / 2, spot.Y + offset.Y - size.Height / 2, size.Width, size.Height);
             }
             runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo),
-                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect));
+                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect, s.Animation.Depth ?? Animations.DepthDefault, total));
             started.Add((beats, total));
         }
         _runs = runs;
@@ -102,6 +107,13 @@ internal sealed class MotionLayer : Control
     /// <summary>The motion has finished: what stays (the cross, the bar, the marker) stays, and the rest is gone.</summary>
     public void Settle() => Show(double.MaxValue / 4);
 
+    /// <summary>Shows a recursion's counter at rest on <paramref name="rect"/> (its box), or takes it away with null. It stays while a step's motion comes and goes.</summary>
+    public void SetRest(CoreRect? rect, int depth)
+    {
+        _rest = rect is { } r ? (r, depth) : null;
+        InvalidateVisual();
+    }
+
     public void Clear()
     {
         _runs = [];
@@ -122,7 +134,7 @@ internal sealed class MotionLayer : Control
 
     private static Geometry Glyph(string? glyph)
     {
-        var data = glyph switch { "envelope" => Icons.Mail, "bolt" => Icons.Bolt, _ => Icons.Bell };
+        var data = glyph switch { "envelope" => Icons.Mail, "bolt" => Icons.Bolt, "flag" => Icons.Flag, _ => Icons.Bell };
         if (!Glyphs.TryGetValue(data, out var geometry)) Glyphs[data] = geometry = Geometry.Parse(data);
         return geometry;
     }
@@ -154,6 +166,9 @@ internal sealed class MotionLayer : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
+        // A recursion's counter at rest says how deep it went: once its motion is over, or when there is none (motion is reduced). A recursion that moves draws its own.
+        var recursing = !_still && _runs.Any(r => r.Beats.Any(b => b.Do == "stack"));
+        if (_rest is { } rest && !recursing) DrawCounter(context, rest.Rect, MotionMath.PillText(false, 0, rest.Depth));
         if (_runs.Count == 0) return;
 
         if (_still)
@@ -167,13 +182,37 @@ internal sealed class MotionLayer : Control
         }
         foreach (var run in _runs)
         {
+            // A recursion has no line in the model to light: its loop is drawn while it runs, as a step's own line is (dashed, in the accent).
+            if (_t < run.Total && run.Beats.Any(b => b.Do == "stack"))
+                context.DrawGeometry(null, new Pen(Brush("AccentBrush"), 2.5, new DashStyle([8 / 2.5, 5 / 2.5], 0), PenLineCap.Flat), run.Line);
             var now = Drawn(run).ToList();
             foreach (var beat in now.Where(b => b.Do == "marker")) DrawMark(context, run, beat);
             foreach (var beat in now.Where(b => b.Do == "blob")) DrawBlob(context, run, beat);
             foreach (var beat in now.Where(b => b.Do is "ring" or "flash" or "wait" or "drop")) DrawEffect(context, run, beat);
             foreach (var beat in now.Where(b => b.Do is "pop" or "bar" or "clock" or "note")) DrawMark(context, run, beat);
+            // The pile of cards is a layer of its own under the boxes (see CardsLayer), so the counter reads the same pile.
+            if (run.Beats.Any(b => b.Do == "stack")) DrawCounter(context, run.From, MotionMath.PillText(_t < run.Total, MotionMath.CardsAt(run.Beats, _t), run.Depth));
         }
     }
+
+    /// <summary>The counter on a recursing box's top-right corner: a small pill in the accent's tint with the words in the accent.</summary>
+    private void DrawCounter(DrawingContext context, CoreRect box, string words)
+    {
+        var accent = Brush("AccentBrush");
+        var tint = accent is ISolidColorBrush a && Brush("BgBrush") is ISolidColorBrush b ? new SolidColorBrush(Mix(a.Color, b.Color, 0.14)) : Brush("BgBrush");
+        var edge = new Pen(accent is ISolidColorBrush c ? new SolidColorBrush(c.Color, 0.55) : accent, 1);
+        var text = new FormattedText(words, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Medium), 12, accent);
+        var width = text.Width + 16;
+        var pill = new Avalonia.Rect(box.Right - 6 - width, box.Y - 11, width, 22);
+        context.DrawRectangle(tint, edge, pill, 11, 11);
+        context.DrawText(text, new Point(pill.X + 8, pill.Y + (22 - text.Height) / 2));
+    }
+
+    /// <summary><paramref name="amount"/> of <paramref name="over"/> laid over <paramref name="under"/>, opaque.</summary>
+    private static Color Mix(Color over, Color under, double amount) => Color.FromRgb(
+        (byte)Math.Round(over.R * amount + under.R * (1 - amount)),
+        (byte)Math.Round(over.G * amount + under.G * (1 - amount)),
+        (byte)Math.Round(over.B * amount + under.B * (1 - amount)));
 
     private void DrawBlob(DrawingContext context, Run run, Beat beat)
     {

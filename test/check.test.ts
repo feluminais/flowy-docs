@@ -278,7 +278,7 @@ test('animation rules', () => {
     { from: 'api', to: 'db', text: 'f', animation: '' },
   ]
   assert.deepEqual(check(m).map(p => p.message), [
-    'step 3: unknown animation "sned" (use send, call, callback, event)',
+    'step 3: unknown animation "sned" (use send, call, callback, event, recurse)',
     'step 4: animation "call" needs a "to"',
     'step 5: animation trigger only applies to callback',
   ])
@@ -385,5 +385,18 @@ test('a key with no value is reported wherever it sits: objects, connections, fl
     `flows/nested.yaml "groups → g → or gives up" has no value ${rest}`,
     `flows/nested.yaml step 2: "animation → packet dropped" has no value ${rest}`,
     `failures/f.yaml "modes → m → and cold" has no value ${rest}`,
+  ])
+})
+
+test('recurse rules', () => {
+  const m = shop()
+  m.flows.checkout.steps = [
+    { from: 'api', text: 'a', animation: 'recurse' },
+    { from: 'api', to: 'db', text: 'b', animation: 'recurse' },
+    { from: 'api', to: 'api', text: 'c', animation: 'recurse' },
+  ]
+  assert.deepEqual(check(m).map(p => p.message), [
+    'step 2: animation "recurse" is a shape calling itself: leave out "to"',
+    'step 3: goes from an object to itself (leave out "to" for a step one shape does on its own)',
   ])
 })

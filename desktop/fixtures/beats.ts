@@ -1,7 +1,7 @@
-import { ANIMATION_KINDS, animationOf, channelLine, CHANNEL_SKETCHES, END_SKETCHES, animationProblem, animationWith, beatsFor, burstOf, EFFECTS, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, outcomeLine, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
+import { ANIMATION_KINDS, animationOf, animationProblem, animationWith, beatsFor, burstOf, CHANNEL_SKETCHES, channelLine, EFFECTS, END_SKETCHES, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, outcomeBlock, outcomeLine, RECURSE_HAS_TO, OUTCOMES, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
-import { active, bump, distance, DWELL, ease, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, effectPose, progress, tubeOpacity } from '../../ui/src/motion.ts'
+import { active, bump, cardBox, cardsAt, distance, DWELL, ease, effectPose, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, tileSquash, tubeOpacity } from '../../ui/src/motion.ts'
 
 /** Tags as the files can hold them: good ones, and every kind of wrong one. */
 const RAW: unknown[] = [
@@ -56,6 +56,11 @@ const RAW: unknown[] = [
   { kind: 'call', opens: 'stream', outcome: 'fail' }, { kind: 'call', opens: 'job', outcome: 'timeout' }, { kind: 'send', opens: 'listener', outcome: 'lost', share: 30 },
   { kind: 'call', closes: 'x', outcome: 'rejected' }, { kind: 'send', closes: 'x', outcome: 'intercepted', by: 'proxy' }, { kind: 'call', opens: 'stream', closes: 'x', outcome: 'delayed' },
   { kind: 'call', opens: 'stream', outcome: 'maybe' }, { kind: 'call', opens: 'stream', speed: 'fast' },
+  // Recursion. Files hold text, so depth is text here: a C# reader never sees a number.
+  'recurse', { kind: 'recurse' }, { kind: 'recurse', depth: '2' }, { kind: 'recurse', depth: '5' }, { kind: 'recurse', depth: '4', carries: 'CNAME', returns: 'A record' },
+  { kind: 'recurse', returns: ' ' }, { kind: 'recurse', trigger: 'outside' }, { kind: 'recurse', speed: 'fast' }, { kind: 'recurse', effect: 'bounce' },
+  { kind: 'recurse', opens: 'stream' }, { kind: 'recurse', closes: 'Orders' }, { kind: 'recurse', outcome: 'lost' }, { kind: 'send', depth: '3' }, { kind: 'call', returns: 'x' },
+  ...['1', '6', '3.5', '3x', '', '99999999999999999999'].map(depth => ({ kind: 'recurse', depth })),
 ]
 /** A tag that gives a share plays a burst of 10, 20 or 100 requests, so those are dumped at two lengths only, under "bursting", and not at every length like the rest. */
 const hasShare = (animation: unknown): boolean => typeof animation === 'object' && animation !== null && 'share' in animation
@@ -91,13 +96,21 @@ const BOX = { x: 100, y: 100, width: 200, height: 72 }
 const SPAN = { at: 100, dur: 400 }
 const TUBE = { at: 0, dur: 1000 }
 
+/** The recursions whose pile of cards is dumped: depth and the length of the loop pipe. */
+const PILES: [number, number][] = [[2, 250], [3, 250], [5, 250], [3, 0]]
+const PILE_TIMES = [...Array.from({ length: 241 }, (_, i) => i * 50), 1319, 1395, 1470, 4365, 5760]
+const CARD_BOX = { x: 10, y: 20, width: 200, height: 72 }
+const SQUASHES = [{ from: 0, to: 0 }, { from: 0.6, to: 0 }, { from: 0.2, to: 0.5 }, { from: 0.5, to: 0.2 }]
+
 /** What the TypeScript says about tags: whether each is wrong, how it reads, how long a line takes, and every beat. */
 export function dumpBeats(): unknown {
-  const read = (animation: unknown) => animationOf({ to: 'x', animation })
+  const read = (animation: unknown, to: boolean) => animationOf({ ...(to ? { to: 'x' } : {}), animation })
   return {
     travel: LENGTHS.map(length => ({ length, ms: travelMs(length) })),
+    recurseHasTo: RECURSE_HAS_TO,
     problems: RAW.flatMap(animation => [true, false].map(to => ({ animation, to, problem: animationProblem(animation, to) ?? null }))),
-    reads: RAW.map(animation => ({ animation, read: read(animation) ?? null })),
+    // Each tag is read on a step with a "to" and on one without, because recurse takes none and the rest need one.
+    reads: RAW.flatMap(animation => [true, false].map(to => ({ animation, to, read: read(animation, to) ?? null }))),
     interceptors: RAW.filter(animation => typeof animation === 'object' && animation !== null && 'by' in animation).map(animation => ({
       animation,
       problem: interceptorProblem(animation, STEP, id => SHAPES.includes(id)) ?? null,
@@ -105,12 +118,12 @@ export function dumpBeats(): unknown {
     // A shape that is on the step, one that is not in the model, and one that is another step's.
     interceptorShapes: ['proxy', ' proxy ', 'web', 'api', 'ghost'].map(by => ({ by, problem: interceptorProblem({ kind: 'send', outcome: 'intercepted', by }, STEP, id => SHAPES.includes(id)) ?? null })),
     lines: RAW.flatMap(animation => {
-      const a = read(animation)
+      const a = read(animation, true)
       return a?.outcome === undefined ? [] : [{ animation, line: outcomeLine(a) ?? null, named: outcomeLine(a, id => SHAPE_NAMES[id] ?? id) ?? null }]
     }),
     // How a step that opens or closes a channel reads on its card.
     channelLines: RAW.flatMap(animation => {
-      const a = read(animation)
+      const a = read(animation, true)
       return a === undefined ? [] : [{ animation, line: channelLine(a) ?? null }]
     }),
     bursts: SHARES.map(share => ({ share, ...burstOf(share) })),
@@ -128,18 +141,18 @@ export function dumpBeats(): unknown {
       [['kind', 'send'], ['kind', 'callback'], ['outcome', 'delayed'], ['outcome', ''], ['reason', 'Why'], ['by', 'cache'], ['byName', 'Tap'], ['share', '40'], ['opens', 'stream'], ['opens', ''], ['name', 'Orders'], ['towards', 'from'], ['closes', 'Orders']] as [AnimationKey, string][]
     ).map(([key, value]) => ({ from, key, value, result: animationWith(from, key, value) ?? null }))),
     marks: RAW.flatMap(animation => {
-      const a = read(animation)
+      const a = read(animation, true)
       return a ? [{ animation, marks: leavesMarks(a) }] : []
     }),
     labels: ['order', 'a'.repeat(16), 'a'.repeat(17), 'a-very-long-word-for-a-small-dot', ''].map(label => ({ label, short: shortLabel(label) })),
     bursting: [...BURSTS, ...RAW.filter(hasShare)].flatMap(animation => {
-      const a = read(animation)
+      const a = read(animation, true)
       return a ? [250, 1000].map(length => ({ animation, length, afterLanding: false, ...beatsFor(a, { length, afterLanding: false }) })) : []
     }),
-    beats: RAW.filter(animation => !hasShare(animation)).flatMap(animation => {
-      const a = read(animation)
-      return a ? LENGTHS.flatMap(length => [false, true].map(afterLanding => ({ animation, length, afterLanding, ...beatsFor(a, { length, afterLanding }) }))) : []
-    }),
+    beats: RAW.filter(animation => !hasShare(animation)).flatMap(animation => [true, false].flatMap(to => {
+      const a = read(animation, to)
+      return a ? LENGTHS.flatMap(length => [false, true].map(afterLanding => ({ animation, to, length, afterLanding, ...beatsFor(a, { length, afterLanding }) }))) : []
+    })),
     follows: [null, ...ENDS].flatMap(previous => [null, ...ENDS].map(current => ({ previous, current, follows: followsLanding(previous, current) }))),
     // The browser's drawing maths, which the desktop app ports (Flowy.Core/MotionMath.cs).
     motion: {
@@ -164,6 +177,14 @@ export function dumpBeats(): unknown {
       markers: ['', 'Tap', 'Café wifi proxy', 'x'.repeat(24)].map(name => ({ name, size: markerSize(name) })),
       // Where a blob that is taken in by a box stops.
       entries: [[200, 0], [0, 136], [200, 400], [400, 136], [150, 120], [0, 0], [400, 400], [200, 136]].map(([x, y]) => ({ from: { x, y }, box: BOX, point: entryPoint({ x, y }, BOX) })),
+      // A recursion's pile of cards and its counter (Flowy.Core/MotionMath.cs ports them).
+      cards: PILES.flatMap(([depth, length]) => {
+        const beats = beatsFor({ kind: 'recurse', trigger: 'inside', depth }, { length, afterLanding: false }).beats
+        return PILE_TIMES.map(t => ({ depth, length, t, cards: cardsAt(beats, t) }))
+      }),
+      cardBoxes: [1, 2, 3, 4].flatMap(k => [0, 0.25, 0.5, 1].map(amount => ({ k, amount, box: cardBox(CARD_BOX, k, amount) }))),
+      pills: [false, true].flatMap(playing => [2, 3, 4, 5].flatMap(depth => [0, 0.5, 1, 1.4, 1.5, 1.6, 2.5, 3.4].map(cards => ({ playing, depth, cards, text: pillText(playing, cards, depth) })))),
+      squashes: [false, true].flatMap(sameBox => SQUASHES.map(squash => ({ sameBox, squash, result: tileSquash(sameBox, squash) }))),
     },
   }
 }

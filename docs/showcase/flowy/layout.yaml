@@ -33,6 +33,7 @@ steps:
   delayed-to: [1360, 1250]
   share-from: [0, 1450]
   share-to: [360, 1450]
+  recurse-on: [0, 1700]
 channels:
   chan-client: [0, 150]
   chan-feed: [420, 0]

@@ -366,10 +366,10 @@ function existingEntry<T>(table: Record<string, T>, id: string, noun: 'flow' | '
 const existingFlow = (model: Model, id: string): Flow => existingEntry(model.flows, id, 'flow', 'flows')
 const existingAnalysis = (model: Model, id: string): Analysis => existingEntry(model.failures, id, 'analysis', 'failures')
 
-/** An animation with its numbers (share, at) as text, which is how a file holds them: a number cannot be written. Anything else is left for the checker. */
+/** An animation with its numbers (share, at, a recursion's depth) as text, which is how a file holds them: a number cannot be written. Anything else is left for the checker. */
 function animationAsText(animation: unknown): unknown {
   if (!isMap(animation)) return animation
-  return Object.fromEntries(Object.entries(animation).map(([key, value]) => [key, (key === 'share' || key === 'at') && typeof value === 'number' ? String(value) : value]))
+  return Object.fromEntries(Object.entries(animation).map(([key, value]) => [key, (key === 'share' || key === 'at' || key === 'depth') && typeof value === 'number' ? String(value) : value]))
 }
 
 /**

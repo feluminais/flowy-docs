@@ -671,6 +671,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: 2; } /* above the lit line, which sits at 1, so the pipe covers it */
 .motion path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .motion .route { stroke: none; } /* only measured, so the blob knows where to run */
+/* A recursion has no line in the model to light: its loop is drawn as a step's own line is, dashed in the accent. */
+.motion .route.loop { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 8 5; }
 .motion .blob circle, .motion .blob rect { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
 .motion .blob.reply circle, .motion .blob.reply rect { fill: var(--app); }
 .motion .blob.fail circle, .motion .blob.fail rect { fill: var(--danger); } /* a step that fails runs red, the same red as a failing call in Performance */
@@ -711,6 +713,10 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 }
 @keyframes dial-turn { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes orbit-turn { from { transform: rotate(-60deg); } to { transform: rotate(300deg); } }
+/* A recursion: ghost cards peeking out under the box (no solid fill, so a neighbour under one stays visible), and the counter on its corner. */
+.motion .card { fill: color-mix(in srgb, var(--accent) 8%, transparent); stroke: color-mix(in srgb, var(--accent) 55%, var(--line)); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.motion .pill rect { fill: color-mix(in srgb, var(--accent) 14%, var(--bg)); stroke: color-mix(in srgb, var(--accent) 55%, var(--line)); stroke-width: 1; }
+.motion .pill text { fill: color-mix(in srgb, var(--accent) 70%, var(--fg)); font-size: 12px; font-weight: 500; }
 
 /* What a step leaves open: a stream's dots, a listener's bell and a job's arc stay drawn on the later steps (Channels.tsx). Colours are the accent's, so they follow the theme. */
 .channels { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; z-index: 2; }

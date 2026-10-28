@@ -87,16 +87,22 @@ export function flowToMermaid(model: Model, flowId: string): string {
     const line = a && (outcomeLine(a, id => String(getObject(model, id)?.name || id)) ?? channelLine(a))
     return line === undefined ? undefined : mermaidText(line)
   }
-  const steps = flow.steps.map(s => ({ ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from], text: mermaidText(String(s.text ?? '')), outcome: outcome(s) }))
+  const steps = flow.steps.map(s => ({
+    ends: placeStep(model, flow.view, s) ?? [s.from, s.to || s.from],
+    text: mermaidText(String(s.text ?? '')),
+    outcome: outcome(s),
+    recursion: animationOf(s)?.kind === 'recurse', // a good tag on a step with no "to"; anything else that looks like one is not
+  }))
   // A shape that is only named in a states is a participant too, after the ones the steps use. The checker reports one the model does not have.
   const set = (raw: unknown) => Object.entries(readStates(raw)).filter(([id]) => getObject(model, id) !== undefined)
   const n = ids([...new Set([...steps.flatMap(s => s.ends), ...set(flow.states).map(([id]) => id), ...flow.steps.flatMap(s => set(s.states).map(([id]) => id))])])
   const stateNotes = (raw: unknown, indent: string, skipRunning = false) =>
     set(raw).filter(([, state]) => !skipRunning || state !== 'running').map(([id, state]) => `${indent}Note over ${n.get(id)}: ${STATE_LABELS[state]}`)
-  // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
+  // A step one box does on its own is a note over it, unless it is a recursion: that is an arrow back to the same box.
+  // A step that continues in another flow says so in a note over its end.
   const line = (i: number, indent: string): string[] => {
-    const { ends: [a, b], text, outcome: ended } = steps[i]
-    const out = [a === b ? `${indent}Note over ${n.get(a)}: ${text}` : `${indent}${n.get(a)}->>${n.get(b)}: ${text}`]
+    const { ends: [a, b], text, outcome: ended, recursion } = steps[i]
+    const out = [a !== b || recursion ? `${indent}${n.get(a)}->>${n.get(b)}: ${text}` : `${indent}Note over ${n.get(a)}: ${text}`]
     if (ended !== undefined) out.push(`${indent}Note over ${a === b ? n.get(a) : `${n.get(a)},${n.get(b)}`}: ${ended}`)
     const link = blank(flow.steps[i].flow) ? undefined : String(flow.steps[i].flow).trim()
     if (link !== undefined && Object.hasOwn(model.flows, link))

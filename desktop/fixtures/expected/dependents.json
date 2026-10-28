@@ -5035,6 +5035,19 @@
             "described": "flow place-order, step 7"
           },
           {
+            "key": "view:price-a-deal",
+            "kind": "view",
+            "of": "order-api",
+            "flow": "price-a-deal",
+            "actions": [
+              "changeView",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "the view of flow price-a-deal"
+          },
+          {
             "key": "step:restaurant-accepts:2",
             "kind": "step",
             "of": "order-api",
@@ -6205,6 +6218,42 @@
         ],
         "rows": [
           {
+            "key": "step:price-a-deal:1",
+            "kind": "step",
+            "of": "basket",
+            "flow": "price-a-deal",
+            "step": 1,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow price-a-deal, step 1"
+          },
+          {
+            "key": "step:price-a-deal:3",
+            "kind": "step",
+            "of": "basket",
+            "flow": "price-a-deal",
+            "step": 3,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow price-a-deal, step 3"
+          },
+          {
             "key": "line:11",
             "kind": "line",
             "of": "basket",
@@ -6241,6 +6290,60 @@
           }
         ],
         "rows": [
+          {
+            "key": "step:price-a-deal:1",
+            "kind": "step",
+            "of": "pricing",
+            "flow": "price-a-deal",
+            "step": 1,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow price-a-deal, step 1"
+          },
+          {
+            "key": "step:price-a-deal:2",
+            "kind": "step",
+            "of": "pricing",
+            "flow": "price-a-deal",
+            "step": 2,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow price-a-deal, step 2"
+          },
+          {
+            "key": "step:price-a-deal:3",
+            "kind": "step",
+            "of": "pricing",
+            "flow": "price-a-deal",
+            "step": 3,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "deleteFlow",
+              "reroute",
+              "removeStep"
+            ],
+            "emptiesFlow": true,
+            "needsDecision": true,
+            "described": "flow price-a-deal, step 3"
+          },
           {
             "key": "line:12",
             "kind": "line",

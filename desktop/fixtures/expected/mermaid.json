@@ -144,6 +144,10 @@
           "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Customer app\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Order events\n  participant n6 as Delivery\n  participant n7 as Kitchen tablet\n  n0->>n1: Fills a basket and taps Place order\n  n1->>n2: POST /orders with the basket\n  n2->>n3: Holds the amount on the card\n  n2->>n4: Saves the order as placed\n  n2->>n5: Publishes the order\n  n5->>n6: Dispatch starts looking for a courier\n  Note over n6: Continues in #quot;A courier delivers it#quot;\n  n2->>n7: The restaurant's tablet rings\n"
         },
         {
+          "flow": "price-a-deal",
+          "text": "sequenceDiagram\n  participant n0 as Basket\n  participant n1 as Pricing\n  n0->>n1: Asks for the total of a basket that holds a meal deal\n  n1->>n1: Prices a deal by pricing each of its parts, down to plain items that have a price\n  n1->>n0: Hands back the total\n"
+        },
+        {
           "flow": "refund-not-recorded",
           "text": "sequenceDiagram\n  actor n0 as Support agent\n  participant n1 as Back office\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Notifications\n  n0->>n1: Asks for a refund in the support console\n  n1->>n2: Sends the refund to the Order API\n  n2->>n3: Stripe has refunded the charge\n  n2->>n4: Can't mark the order refunded, because Orders DB doesn't answer\n  Note over n2,n4: Times out\n  Note over n2: Leaves the order marked paid, though the money is back\n  n2->>n5: Still sends the customer a refund confirmation\n"
         },
@@ -359,6 +363,25 @@
         {
           "flow": "shapes",
           "text": "sequenceDiagram\n  participant n0 as Web app\n  participant n1 as API\n  n0->>n1: A list\n  n0->>n1: A blank key\n  n0->>n1: A tilde\n  n0->>n1: Empty\n  n0->>n1: Fine\n  Note over n1: Stopped\n"
+        }
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/recurse/flowy",
+      "views": [
+        {
+          "view": "root",
+          "text": "flowchart TB\n  n0([\"Customer<br/>actor\"])\n  n1[\"Shop<br/>system\"]\n  n2[\"Stripe<br/>system\"]\n  n0 -- \"browses\" --> n1\n"
+        },
+        {
+          "view": "shop",
+          "text": "flowchart TB\n  n0[\"Web app<br/>app\"]\n  n1[\"API<br/>app\"]\n  n2[(\"Orders DB<br/>store\")]\n  n3([\"Customer<br/>actor\"])\n  n3 -- \"browses\" --> n0\n  n0 -- \"REST\" --> n1\n  n1 -- \"reads and writes\" --> n2\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+        }
+      ],
+      "flows": [
+        {
+          "flow": "recursion",
+          "text": "sequenceDiagram\n  participant n0 as API\n  participant n1 as Orders DB\n  n0->>n0: Walks the category tree\n  n0->>n0: Follows the CNAME\n  Note over n0: Too shallow\n  n0->>n1: Recurse with a to\n  Note over n0: Recurse to itself\n  Note over n0: Wrong option\n"
         }
       ]
     }

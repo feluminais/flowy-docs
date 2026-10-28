@@ -12,13 +12,15 @@ public sealed record Interceptor(string? Shape = null, string? Name = null);
 /// set), <c>Reason</c> says why in a few words, <c>By</c> is who takes an intercepted request and <c>At</c> how far along its line a lost one vanishes.
 /// <c>Effect</c> is what the blob does on its way besides travelling (an entry of <see cref="Animations.Effects"/>, or null for nothing).
 /// <c>Opens</c> is the kind of channel the step leaves open (an entry of <see cref="Animations.ChannelKinds"/>), <c>Name</c> its name, <c>Towards</c> the end it points at
-/// (from or to) and <c>Closes</c> the name of a channel the step closes.
+/// (from or to) and <c>Closes</c> the name of a channel the step closes. For recurse, <c>Depth</c> is how tall the call stack gets and <c>Returns</c> the word on the
+/// answers coming back; both are null for every other kind.
 /// </summary>
 public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null, int? Share = null, string? Reason = null, Interceptor? By = null, double? At = null, string? Effect = null,
-    string? Opens = null, string? Name = null, string? Towards = null, string? Closes = null);
+    string? Opens = null, string? Name = null, string? Towards = null, string? Closes = null, int? Depth = null, string? Returns = null);
 
 /// <summary>
-/// One thing to draw, in the order beats are listed. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop or fade (the lit line dims and stays dim), or one of
+/// One thing to draw, in the order beats are listed. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop, fade (the lit line dims and stays dim) or stack
+/// (the pile of ghost cards a recursion leaves under its shape; <c>Level</c> is how many show from then on), or one of
 /// the five the outcomes added: pop (a puff where a request is lost), bar (a bar at the receiver's door), clock, note (a few words beside where something happens)
 /// and marker (the dashed marker of whoever takes a request). <c>On</c> is from, to, line or by (the one who takes a request);
 /// times are milliseconds from the start of the step. Dir, Glyph, Tone (reply, or fail for a blob or flash in the danger colour) and Label are set only where
@@ -27,7 +29,7 @@ public sealed record StepAnimation(string Kind, string Trigger, string? Carries,
 /// </summary>
 public sealed record Beat(
     string Do, string On, int At, int Dur, string? Dir = null, string? Glyph = null, string? Tone = null, string? Label = null,
-    double? Start = null, double? End = null, int? Tint = null, bool? Ring = null, double? Along = null, string? Text = null);
+    double? Start = null, double? End = null, int? Tint = null, bool? Ring = null, double? Along = null, string? Text = null, int? Level = null);
 
 /// <summary>A port of src/core/animation.ts, with the same wording and the same numbers. desktop/fixtures/beats.ts keeps the two equal.</summary>
 public static class Animations
@@ -35,7 +37,7 @@ public static class Animations
     /// <summary>What a blob can do on its way, for the fun of it, each keeping its shape whole. An extra key, so messages that list the options list only <c>Options</c>.</summary>
     public static readonly string[] Effects = ["squish", "bounce", "pulse", "wiggle"];
 
-    public static readonly string[] Kinds = ["send", "call", "callback", "event"];
+    public static readonly string[] Kinds = ["send", "call", "callback", "event", "recurse"];
 
     public static readonly string[] Triggers = ["inside", "outside"];
 
@@ -46,6 +48,12 @@ public static class Animations
     private static readonly string[] TravelOutcomes = ["lost", "rejected", "intercepted", "duplicated", "delayed"];
 
     private static readonly string[] Options = ["kind", "trigger", "carries", "outcome", "share", "reason", "by", "at", "opens", "name", "towards", "closes"];
+
+    /// <summary>The options a recursion takes: it runs on one box, so nothing about a line, an outcome or a channel applies to it.</summary>
+    private static readonly string[] RecurseOptions = ["kind", "carries", "depth", "returns"];
+
+    /// <summary>The options an error message names for a kind.</summary>
+    private static string[] OptionsFor(string kind) => kind == "recurse" ? RecurseOptions : Options;
 
     /// <summary>What a step can leave open once its request has arrived, so the story's later steps still show it: a stream, a listener or a job.</summary>
     public static readonly string[] ChannelKinds = ["stream", "listener", "job"];
@@ -160,6 +168,18 @@ public static class Animations
         return null;
     }
 
+    /// <summary>What the checks say about a recurse step that has a "to". A step whose "to" is its own "from" already gets a message for that, so the checks leave this one out.</summary>
+    public const string RecurseHasTo = "animation \"recurse\" is a shape calling itself: leave out \"to\"";
+
+    private const int DepthMin = 2;
+    private const int DepthMax = 5;
+    /// <summary>How deep a recursion goes when its tag does not say.</summary>
+    public const int DepthDefault = 3;
+
+    /// <summary>A <c>depth</c> as a number when it is the text of a whole number from 2 to 5. Files hold text, so nothing else can arrive.</summary>
+    private static int? DepthOf(object? value) =>
+        value is string text && text.Length > 0 && text.All(char.IsAsciiDigit) && int.TryParse(text, out var n) && n is >= DepthMin and <= DepthMax ? n : null;
+
     /// <summary>What is wrong with a step's <c>animation</c>, worded to follow "step N: ", or null. A blank tag is no tag; <paramref name="hasTo"/> is whether the step has a "to".</summary>
     public static string? Problem(object? raw, bool hasTo)
     {
@@ -173,11 +193,14 @@ public static class Animations
         if (!Kinds.Contains(name)) return $"unknown animation \"{name}\" ({KindsHint})";
         if (map is not null)
         {
-            var extra = map.Keys.FirstOrDefault(k => k != "effect" && !Options.Contains(k));
-            if (extra is not null) return $"unknown animation option \"{extra}\" (use {string.Join(", ", Options)})";
+            string[] allowed = [.. Options, "effect", "depth", "returns"]; // every kind knows every key; the rules below say where one is out of place
+            var extra = map.Keys.FirstOrDefault(k => !allowed.Contains(k));
+            if (extra is not null) return $"unknown animation option \"{extra}\" (use {string.Join(", ", OptionsFor(name))})";
             map.TryGetValue("trigger", out var trigger);
             map.TryGetValue("carries", out var carries);
             map.TryGetValue("outcome", out var outcome);
+            var hasDepth = map.TryGetValue("depth", out var depth); // a key that is there counts, whatever it holds
+            var hasReturns = map.TryGetValue("returns", out var returns);
             if (trigger is not null && !(trigger is string t && Triggers.Contains(t))) return $"animation trigger must be {string.Join(" or ", Triggers)}";
             if (trigger is not null && name != "callback") return "animation trigger only applies to callback";
             if (carries is not null && (carries is not string word || JsCompat.Blank(word))) return "animation carries must be a word";
@@ -185,7 +208,7 @@ public static class Animations
             if (outcome is not null && !(outcome is string given && Outcomes.Contains(given))) return $"animation outcome must be {OrList(Outcomes)}";
             if (outcome is "timeout" && name != "call") return "animation outcome timeout only applies to call";
             if (outcome is "fail" && name is not ("send" or "call")) return "animation outcome fail only applies to send and call";
-            if (outcome is string travel && TravelOutcomes.Contains(travel) && name == "callback") return $"animation outcome {travel} only applies to send, call and event";
+            if (outcome is string travel && TravelOutcomes.Contains(travel) && name is not ("send" or "call" or "event")) return $"animation outcome {travel} only applies to send, call and event";
             if (map.TryGetValue("share", out var share))
             {
                 if (ShareOf(share) is null) return "animation share must be a whole number from 1 to 100";
@@ -208,8 +231,15 @@ public static class Animations
                 if (LostAtOf(at) is null) return "animation at must be a number from 0.1 to 0.9";
                 if (outcome is not "lost") return "animation at only applies to outcome lost";
             }
+            // A channel points at an end of the step's line, and a recursion has one shape and no line between two.
+            if (name == "recurse" && (map.ContainsKey("opens") || map.ContainsKey("closes"))) return $"animation {(map.ContainsKey("opens") ? "opens" : "closes")} only applies to a step between two shapes";
             if (ChannelProblem(map, outcome) is { } channel) return channel;
+            if (hasDepth && name != "recurse") return "animation depth only applies to recurse";
+            if (hasReturns && name != "recurse") return "animation returns only applies to recurse";
+            if (hasDepth && DepthOf(depth) is null) return $"animation depth must be a whole number from {DepthMin} to {DepthMax}";
+            if (hasReturns && (returns is not string answer || JsCompat.Blank(answer))) return "animation returns must be a word";
         }
+        if (name == "recurse") return hasTo ? RecurseHasTo : null;
         return hasTo ? null : $"animation \"{name}\" needs a \"to\"";
     }
 
@@ -244,7 +274,10 @@ public static class Animations
         string? channelName = null;
         string? towards = null;
         string? closes = null;
+        string? returns = null;
         var trigger = "inside";
+        var recursion = kind == "recurse";
+        int? depth = recursion ? DepthDefault : null;
         if (map is not null)
         {
             if (map.TryGetValue("carries", out var word) && word is string text) carries = text;
@@ -266,8 +299,10 @@ public static class Animations
                 if (map.TryGetValue("towards", out var end) && end is "from" or "to") towards = (string)end!;
             }
             if (map.TryGetValue("closes", out var cl) && cl is string closed) closes = JsCompat.JsTrim(closed);
+            if (recursion && map.TryGetValue("depth", out var d)) depth = DepthOf(d) ?? DepthDefault;
+            if (recursion && map.TryGetValue("returns", out var rt) && rt is string answer) returns = answer;
         }
-        return new StepAnimation(kind, trigger, carries, outcome, share, reason, by, at, effect, opens, channelName, towards, closes);
+        return new StepAnimation(kind, trigger, carries, outcome, share, reason, by, at, effect, opens, channelName, towards, closes, depth, returns);
     }
 
     /// <summary>How long something takes to run the length of a line: at least 1.2 seconds, so the eye can follow it, and at most 2.2.</summary>
@@ -302,6 +337,7 @@ public static class Animations
         ("call", "M6 8H38M32 3l6 5l-6 5M38 17H6M12 12l-6 5l6 5"),
         ("callback", "M22 3a5 5 0 0 0 -5 5v4l-2 4h14l-2 -4v-4a5 5 0 0 0 -5 -5zM20 19a2 2 0 0 0 4 0"),
         ("event", "M24 2l-9 12h7l-2 8l9 -12h-7z"),
+        ("recurse", "M30 12a8 8 0 1 1 -3 -6M23 6h4v-4"),
     ];
 
     public static readonly (string Id, string Path)[] OutcomeSketches =
@@ -342,6 +378,7 @@ public static class Animations
         if (outcome == "") return null;
         if (string.IsNullOrEmpty(kind)) return "Pick how it travels first";
         if (kind == "callback") return "Not for a callback";
+        if (kind == "recurse") return "Not for a recursion";
         if (outcome == "timeout" && kind != "call") return "Needs a call";
         if (outcome == "fail" && kind is not ("send" or "call")) return "Needs a send or a call";
         return null;
@@ -611,6 +648,8 @@ public static class Animations
                     return [Effect("flash", "from", 0, 450), Blob(300, "bell"), Effect("ring", "to", 300 + t, 600)];
                 case "callback":
                     return [new Beat("drop", "from", 0, 600, Glyph: "bolt"), Effect("flash", "from", 600, 450), Blob(850, "bell"), Effect("ring", "to", 850 + t, 600)];
+                case "recurse":
+                    return RecurseBeats(a, t);
                 default:
                     throw new ArgumentException($"unknown animation kind \"{a.Kind}\"");
             }
@@ -643,5 +682,37 @@ public static class Animations
         List<Beat> marker = a.Outcome == "intercepted" && a.By is not null ? [new Beat("marker", "by", 0, total, Along: WaitAt, Text: a.By.Name)] : [];
         List<Beat> all = [new Beat("pipe", "line", 0, total), .. marker, .. body];
         return (all, total);
+    }
+
+    /// <summary>
+    /// A recursion: the shape calls itself <c>depth - 1</c> times, each call piling a card onto the stack under it. A flag marks the base case,
+    /// then the answers come back one level at a time and the cards leave. <paramref name="t"/> is how long the loop pipe takes to run.
+    /// </summary>
+    private static List<Beat> RecurseBeats(StepAnimation a, int t)
+    {
+        var n = a.Depth ?? DepthDefault;
+        const int gulp = 120;
+        var level = gulp + t; // one call down, or one answer back
+        Beat Stack(int at, int cards) => new("stack", "from", at, 150, Level: cards);
+        var body = new List<Beat>();
+        for (var j = 1; j < n; j++)
+        {
+            var start = (j - 1) * level;
+            body.Add(new Beat("gulp", "from", start, gulp));
+            body.Add(new Beat("blob", "line", start + gulp, t, "fwd", "envelope", Label: a.Carries));
+            body.Add(Stack(start + level, j));
+        }
+        var bottom = (n - 1) * level;
+        body.Add(new Beat("drop", "from", bottom, 350, Glyph: "flag"));
+        body.Add(new Beat("flash", "from", bottom + 200, 250));
+        for (var k = 1; k < n; k++)
+        {
+            var start = bottom + 450 + (k - 1) * level;
+            body.Add(new Beat("blob", "line", start, t, "back", "envelope", "reply", a.Returns));
+            body.Add(new Beat("gulp", "from", start + t, gulp));
+            body.Add(Stack(start + t, n - 1 - k));
+        }
+        body.Add(new Beat("ring", "from", bottom + 450 + (n - 1) * level, 300));
+        return body;
     }
 }

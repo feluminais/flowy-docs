@@ -58,7 +58,8 @@ from the command line, or for an AI through MCP (`get_mermaid`):
 node /path/to/flowy-docs/dist/cli.js mermaid --view ordering
 ```
 
-`--flow <id>` prints a flow as a sequence diagram instead. A flow's repeats, branches and parallel lanes come out as `loop`, `alt` and
+`--flow <id>` prints a flow as a sequence diagram instead. A step one shape does on its own is a note over it, except a recursion
+(`animation: recurse`), which is an arrow from the shape back to itself. A flow's repeats, branches and parallel lanes come out as `loop`, `alt` and
 `par` blocks ([above](flows.md#repeats-branches-and-parallel-steps)). This is Customer places an order, from `mermaid --flow place-order`:
 
 ```mermaid

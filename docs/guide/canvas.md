@@ -74,6 +74,16 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   R plays it again from the start, and Autoplay (P) steps through the flow on its own after the first play. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays each step once.
+- A shape that calls itself is one step with no `to`, tagged `animation: recurse`. Its pipe loops
+  out of the shape and back in. Each level adds a card to a pile under the shape, and a counter on
+  its corner reads `↻ 1`, `↻ 2` ... as the stack grows and shrinks. A flag lands on the deepest
+  level, where it stops, and then the answers run back through the pipe one level at a time, each
+  taking a card away. When it has finished the counter stays, reading `↻ 3 deep`, for as long as the
+  step is showing, and with less motion that counter is all there is. `depth` (2 to 5, 3 if you
+  leave it out, the first call counted) is how deep the picture goes, not how deep the code can go:
+  the step's More is the place for the real limit. `carries` and `returns` put a word on what goes
+  in and what comes back. Plum's Pricing a meal deal, in Order API, is one to play ([picture](../images/desktop-recursion.png)). A connection
+  from a shape to itself is still not allowed: recursion lives in flows.
 - A flow whose steps are grouped (see [Repeats, branches and parallel steps](flows.md#repeats-branches-and-parallel-steps)) is played in
   stops: a chip names the group, a branch shows its lanes as tabs, the bar boxes each group, and the lanes of a parallel
   group are one stop, lit and moving together. A step that says `flow:` has an Open flow button, and a bar to come back.
@@ -132,9 +142,9 @@ file again, so comments in it are not kept ([File format](../format.md#the-folde
   Repeat. Each step's More holds longer detail for readers who want it. ↑, ↓ and × reorder and
   delete steps. To change a flow you already have, pick it in the Flows tab: in edit mode its rows carry a pencil, and a click opens
   the flow for editing instead of playing it. A flow's form has a **Folder** (type a new one, or pick one that is there; an empty field puts the flow at the top of `flows/`), its **Tags**, and **Compare with**, which links it to an older flow ([Compare](compare.md#making-a-pair)). A move changes only where the file is, and in the Flows tab you can also drag a flow onto a folder (a Top level row appears while you drag, for the way back). A tag is a button to press on or off, and a field adds a tag of your own.
-- Each step's **Animation** is a form of drawn choices: the way it travels (None, Send, Call, Callback, Event) and the way its request ends (Arrives, Fail,
+- Each step's **Animation** is a form of drawn choices: the way it travels (None, Send, Call, Callback, Event, Recurse) and the way its request ends (Arrives, Fail,
   Timeout, Lost, Rejected, Intercepted, Duplicated, Delayed), then a share of the requests, a reason, and for an interception the shape that takes it or a name. A choice
-  the step cannot have is dimmed with the reason in its tooltip: an outcome needs a way to travel, Timeout needs a call, and a callback or a step on one shape has
+  the step cannot have is dimmed with the reason in its tooltip: an outcome needs a way to travel, Timeout needs a call, Recurse needs a step on one shape, and a callback or a step on one shape has
   none. Picking Intercepted names a placeholder ("Third party") until you pick a shape or type a name. Each pick is one edit, and a value the checks refuse (a share of 150) says why and saves nothing.
 - Each step's **Group and flow** holds the group it is in, its lane (for a branch or parallel group) and the flow it opens. Under the
   steps, **Groups** lists each group with its kind, its times or until (for a repeat) and its text, and a form puts a stretch of steps

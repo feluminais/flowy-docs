@@ -1,0 +1,4 @@
+name: Recurse
+view: steps
+steps:
+  - { from: recurse-on, text: Calls itself on a smaller piece until it reaches one it can answer, animation: recurse }

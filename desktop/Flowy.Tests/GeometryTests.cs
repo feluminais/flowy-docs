@@ -196,6 +196,23 @@ public class GeometryParityTests
         foreach (var p in paths) CheckLine(p!, LookData.Shapes[p!["shapeA"]!.GetValue<string>()].Edge, LookData.Shapes[p["shapeB"]!.GetValue<string>()].Edge);
     }
 
+    [Fact]
+    public void A_recursions_loop_pipe_leaves_and_re_enters_the_outline_as_in_the_browser()
+    {
+        var loops = Expected()["loops"]!.AsArray();
+        Assert.Equal(10, loops.Count);
+        foreach (var l in loops)
+        {
+            var shape = l!["shape"]!.GetValue<string>();
+            var path = BoxGeometry.LoopAround(R(l["box"]!), LookData.Shapes[shape].Edge);
+            var want = l["path"]!.GetValue<string>();
+            Assert.Equal(Commands(want), Commands(path));
+            var (wantNumbers, got) = (Numbers(want), Numbers(path));
+            Assert.Equal(wantNumbers.Count, got.Count);
+            for (var i = 0; i < wantNumbers.Count; i++) Same(wantNumbers[i], got[i], $"{shape} {l["box"]!.ToJsonString()}, number {i} of the loop");
+        }
+    }
+
     private static void CheckLine(JsonNode p, double[]? edgeA, double[]? edgeB)
     {
         var (a, b, style) = (R(p["a"]!), R(p["b"]!), p["style"]!.GetValue<string>());

@@ -16608,6 +16608,1222 @@
     },
     {
       "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "playing": {
+        "ends": [
+          [
+            "basket",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "basket"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "menu",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "basket",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "pricing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "checkout",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "status",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "refunds",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "menu menu-cache",
+          "source": "menu",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "menu orders-db",
+          "source": "menu",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "basket orders-db",
+          "source": "basket",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "basket pricing",
+          "source": "basket",
+          "target": "pricing",
+          "label": "asks for totals",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "mapbox pricing",
+          "source": "pricing",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout pricing",
+          "source": "checkout",
+          "target": "pricing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout stripe",
+          "source": "checkout",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout orders-db",
+          "source": "checkout",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout events",
+          "source": "checkout",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "orders-db status",
+          "source": "status",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events status",
+          "source": "status",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "notifications status",
+          "source": "status",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "refunds stripe",
+          "source": "refunds",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "orders-db refunds",
+          "source": "refunds",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "notifications refunds",
+          "source": "refunds",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery status",
+          "source": "delivery",
+          "target": "status",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice refunds",
+          "source": "backoffice",
+          "target": "refunds",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "menu",
+        "basket",
+        "pricing",
+        "checkout",
+        "status",
+        "refunds"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "playing": {
+        "ends": [
+          [
+            "basket",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "basket"
+          ]
+        ],
+        "step": 1
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "menu",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "basket",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "pricing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "checkout",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "status",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "refunds",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "menu menu-cache",
+          "source": "menu",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "menu orders-db",
+          "source": "menu",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "basket orders-db",
+          "source": "basket",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "basket pricing",
+          "source": "basket",
+          "target": "pricing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "mapbox pricing",
+          "source": "pricing",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout pricing",
+          "source": "checkout",
+          "target": "pricing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout stripe",
+          "source": "checkout",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout orders-db",
+          "source": "checkout",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout events",
+          "source": "checkout",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "orders-db status",
+          "source": "status",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events status",
+          "source": "status",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "notifications status",
+          "source": "status",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "refunds stripe",
+          "source": "refunds",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "orders-db refunds",
+          "source": "refunds",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "notifications refunds",
+          "source": "refunds",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery status",
+          "source": "delivery",
+          "target": "status",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice refunds",
+          "source": "backoffice",
+          "target": "refunds",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "menu",
+        "basket",
+        "pricing",
+        "checkout",
+        "status",
+        "refunds"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "playing": {
+        "ends": [
+          [
+            "basket",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "basket"
+          ]
+        ],
+        "step": 2
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "menu",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "basket",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "pricing",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "checkout",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "status",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "refunds",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "menu menu-cache",
+          "source": "menu",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "menu orders-db",
+          "source": "menu",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "basket orders-db",
+          "source": "basket",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "basket pricing",
+          "source": "basket",
+          "target": "pricing",
+          "label": "asks for totals",
+          "classes": [
+            "active"
+          ],
+          "selected": false
+        },
+        {
+          "id": "mapbox pricing",
+          "source": "pricing",
+          "target": "mapbox",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout pricing",
+          "source": "checkout",
+          "target": "pricing",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout stripe",
+          "source": "checkout",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout orders-db",
+          "source": "checkout",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "checkout events",
+          "source": "checkout",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "orders-db status",
+          "source": "status",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "events status",
+          "source": "status",
+          "target": "events",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "notifications status",
+          "source": "status",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "refunds stripe",
+          "source": "refunds",
+          "target": "stripe",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "orders-db refunds",
+          "source": "refunds",
+          "target": "orders-db",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "notifications refunds",
+          "source": "refunds",
+          "target": "notifications",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "delivery status",
+          "source": "delivery",
+          "target": "status",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "backoffice refunds",
+          "source": "backoffice",
+          "target": "refunds",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "menu",
+        "basket",
+        "pricing",
+        "checkout",
+        "status",
+        "refunds"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "order-api",
+      "playing": {
+        "ends": [
+          [
+            "basket",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "pricing"
+          ],
+          [
+            "pricing",
+            "basket"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "menu",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "basket",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "pricing",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "checkout",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "status",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "refunds",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "menu-cache",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "orders-db",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "mapbox",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "stripe",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "events",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "notifications",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 2
+        },
+        {
+          "id": "delivery",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 4
+        },
+        {
+          "id": "backoffice",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 3
+        },
+        {
+          "id": "customer",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "menu menu-cache",
+          "source": "menu",
+          "target": "menu-cache",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "menu orders-db",
+          "source": "menu",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "basket orders-db",
+          "source": "basket",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "basket pricing",
+          "source": "basket",
+          "target": "pricing",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "mapbox pricing",
+          "source": "pricing",
+          "target": "mapbox",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "checkout pricing",
+          "source": "checkout",
+          "target": "pricing",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "checkout stripe",
+          "source": "checkout",
+          "target": "stripe",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "checkout orders-db",
+          "source": "checkout",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "checkout events",
+          "source": "checkout",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "orders-db status",
+          "source": "status",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "events status",
+          "source": "status",
+          "target": "events",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "notifications status",
+          "source": "status",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "refunds stripe",
+          "source": "refunds",
+          "target": "stripe",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "orders-db refunds",
+          "source": "refunds",
+          "target": "orders-db",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "notifications refunds",
+          "source": "refunds",
+          "target": "notifications",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "delivery status",
+          "source": "delivery",
+          "target": "status",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "backoffice refunds",
+          "source": "backoffice",
+          "target": "refunds",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "menu",
+        "basket",
+        "pricing",
+        "checkout",
+        "status",
+        "refunds"
+      ]
+    },
+    {
+      "folder": "docs/demo/flowy",
       "view": "ordering",
       "playing": {
         "ends": [

@@ -1,0 +1,210 @@
+{
+  "lineStyle": "straight",
+  "projectName": "",
+  "projectAbout": "",
+  "objects": [
+    {
+      "id": "customer",
+      "type": "actor",
+      "name": "Customer"
+    },
+    {
+      "id": "shop",
+      "type": "system",
+      "name": "Shop"
+    },
+    {
+      "id": "web",
+      "type": "app",
+      "name": "Web app",
+      "in": "shop"
+    },
+    {
+      "id": "api",
+      "type": "app",
+      "name": "API",
+      "in": "shop"
+    },
+    {
+      "id": "db",
+      "type": "store",
+      "name": "Orders DB",
+      "in": "shop"
+    },
+    {
+      "id": "stripe",
+      "type": "system",
+      "name": "Stripe",
+      "external": "true"
+    }
+  ],
+  "connections": [
+    {
+      "from": "customer",
+      "to": "web",
+      "label": "browses"
+    },
+    {
+      "from": "web",
+      "to": "api",
+      "label": "REST"
+    },
+    {
+      "from": "api",
+      "to": "db",
+      "label": "reads and writes"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "recursion",
+      "name": "Recursion",
+      "view": "shop",
+      "steps": [
+        {
+          "from": "api",
+          "text": "Walks the category tree",
+          "animation": "recurse",
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "api",
+          "text": "Follows the CNAME",
+          "animation": {
+            "kind": "recurse",
+            "depth": "4",
+            "carries": "CNAME",
+            "returns": "A record"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "api",
+          "text": "Too shallow",
+          "animation": {
+            "kind": "recurse",
+            "depth": "1"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "text": "Recurse with a to",
+          "animation": "recurse",
+          "placed": [
+            "api",
+            "db"
+          ],
+          "ends": "API → Orders DB"
+        },
+        {
+          "from": "api",
+          "to": "api",
+          "text": "Recurse to itself",
+          "animation": "recurse",
+          "placed": null,
+          "ends": "API"
+        },
+        {
+          "from": "api",
+          "text": "Wrong option",
+          "animation": {
+            "kind": "send",
+            "depth": "3"
+          },
+          "placed": [
+            "api",
+            "api"
+          ],
+          "ends": "API"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/recursion.yaml",
+      "message": "step 3: animation depth must be a whole number from 2 to 5",
+      "step": 2
+    },
+    {
+      "file": "flows/recursion.yaml",
+      "message": "step 4: animation \"recurse\" is a shape calling itself: leave out \"to\"",
+      "step": 3
+    },
+    {
+      "file": "flows/recursion.yaml",
+      "message": "step 5: goes from an object to itself (leave out \"to\" for a step one shape does on its own)",
+      "step": 4
+    },
+    {
+      "file": "flows/recursion.yaml",
+      "message": "step 6: animation depth only applies to recurse",
+      "step": 5
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "customer",
+        "shop",
+        "stripe"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "shop",
+          "label": "browses",
+          "count": 1
+        }
+      ]
+    },
+    "shop": {
+      "id": "shop",
+      "members": [
+        "web",
+        "api",
+        "db"
+      ],
+      "outsiders": [
+        "customer"
+      ],
+      "edges": [
+        {
+          "from": "customer",
+          "to": "web",
+          "label": "browses",
+          "count": 1
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        },
+        {
+          "from": "api",
+          "to": "db",
+          "label": "reads and writes",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

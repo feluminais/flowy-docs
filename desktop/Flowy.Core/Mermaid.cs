@@ -92,7 +92,8 @@ public static partial class Mermaid
             // A step that ends in an outcome (lost, rejected, a share of the calls) says so in a note over its ends, in the words of the step card.
             var animation = Animations.Read(s);
             var ended = animation is null ? null : Animations.OutcomeLine(animation, id => NameOfRaw(model, id)) ?? Animations.ChannelLine(animation);
-            return (A: a, B: b, Text: Text(s.Text ?? ""), Ended: ended is null ? null : Text(ended));
+            // A good recursion tag on a step with no "to" is an arrow back to the same box; anything else that looks like one is not.
+            return (A: a, B: b, Text: Text(s.Text ?? ""), Ended: ended is null ? null : Text(ended), Recursion: animation is { Kind: "recurse" });
         }).ToList();
         // A shape that is only named in a states is a participant too, after the ones the steps use. The checks report one the model does not have.
         List<KeyValuePair<string, string>> Set(object? raw) => States.Read(raw).Where(kv => model.GetObject(kv.Key) is not null).ToList();
@@ -104,11 +105,12 @@ public static partial class Mermaid
         // Where shapes stand before step 1: only the ones that are not Running say anything.
         lines.AddRange(StateNotes(flow.States, "  ", true));
 
-        // A step one box does on its own is a note over it. A step that continues in another flow says so in a note over its end.
+        // A step one box does on its own is a note over it, unless it is a recursion: that is an arrow back to the same box.
+        // A step that continues in another flow says so in a note over its end.
         List<string> Line(int i, string indent)
         {
-            var (a, b, text, ended) = steps[i];
-            var step = new List<string> { a == b ? $"{indent}Note over {n[a]}: {text}" : $"{indent}{n[a]}->>{n[b]}: {text}" };
+            var (a, b, text, ended, recursion) = steps[i];
+            var step = new List<string> { a != b || recursion ? $"{indent}{n[a]}->>{n[b]}: {text}" : $"{indent}Note over {n[a]}: {text}" };
             if (ended is not null) step.Add($"{indent}Note over {(a == b ? n[a] : $"{n[a]},{n[b]}")}: {ended}");
             var link = JsCompat.Blank(flow.Steps[i].FlowId) ? null : JsCompat.JsTrim(flow.Steps[i].FlowId!);
             if (link is not null && model.Flows.TryGetValue(link, out var target))

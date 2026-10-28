@@ -1672,7 +1672,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1681,14 +1681,14 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             }
           ]
         },
@@ -1709,7 +1709,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -1777,7 +1777,7 @@
               "external": false,
               "inside": 7,
               "shapes": 13,
-              "flows": 12,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -1944,14 +1944,14 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             },
             {
               "key": "shape:backoffice",
@@ -1970,8 +1970,8 @@
             },
             {
               "key": "shape:ordering",
-              "short": "7 inside · 12 flows",
-              "words": "7 inside, 13 in all, 12 flows"
+              "short": "7 inside · 13 flows",
+              "words": "7 inside, 13 in all, 13 flows"
             },
             {
               "key": "shape:courier",
@@ -2038,7 +2038,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2106,7 +2106,7 @@
               "external": false,
               "inside": 7,
               "shapes": 13,
-              "flows": 12,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -2123,7 +2123,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -2593,14 +2593,14 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             },
             {
               "key": "shape:backoffice",
@@ -2619,13 +2619,13 @@
             },
             {
               "key": "shape:ordering",
-              "short": "7 inside · 12 flows",
-              "words": "7 inside, 13 in all, 12 flows"
+              "short": "7 inside · 13 flows",
+              "words": "7 inside, 13 in all, 13 flows"
             },
             {
               "key": "shape:order-api",
-              "short": "6 inside · 1 flow",
-              "words": "6 inside, 1 flow"
+              "short": "6 inside · 2 flows",
+              "words": "6 inside, 2 flows"
             },
             {
               "key": "shape:customer-app",
@@ -2812,7 +2812,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3192,7 +3192,7 @@
               "external": false,
               "inside": 7,
               "shapes": 13,
-              "flows": 12,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3209,7 +3209,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -3329,6 +3329,24 @@
               "shapes": 0,
               "flows": 0,
               "steps": 8,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:price-a-deal",
+              "kind": "flow",
+              "id": "price-a-deal",
+              "parent": "order-api",
+              "depth": 3,
+              "name": "Pricing a meal deal",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -3799,14 +3817,14 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             },
             {
               "key": "shape:backoffice",
@@ -3915,13 +3933,13 @@
             },
             {
               "key": "shape:ordering",
-              "short": "7 inside · 12 flows",
-              "words": "7 inside, 13 in all, 12 flows"
+              "short": "7 inside · 13 flows",
+              "words": "7 inside, 13 in all, 13 flows"
             },
             {
               "key": "shape:order-api",
-              "short": "6 inside · 1 flow",
-              "words": "6 inside, 1 flow"
+              "short": "6 inside · 2 flows",
+              "words": "6 inside, 2 flows"
             },
             {
               "key": "shape:basket",
@@ -3955,6 +3973,11 @@
             },
             {
               "key": "flow:menu-is-read",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:price-a-deal",
               "short": "",
               "words": ""
             },
@@ -4143,7 +4166,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4523,7 +4546,7 @@
               "external": false,
               "inside": 7,
               "shapes": 13,
-              "flows": 12,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4540,7 +4563,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -4660,6 +4683,24 @@
               "shapes": 0,
               "flows": 0,
               "steps": 8,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:price-a-deal",
+              "kind": "flow",
+              "id": "price-a-deal",
+              "parent": "order-api",
+              "depth": 3,
+              "name": "Pricing a meal deal",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -5130,14 +5171,14 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             },
             {
               "key": "shape:backoffice",
@@ -5246,13 +5287,13 @@
             },
             {
               "key": "shape:ordering",
-              "short": "7 inside · 12 flows",
-              "words": "7 inside, 13 in all, 12 flows"
+              "short": "7 inside · 13 flows",
+              "words": "7 inside, 13 in all, 13 flows"
             },
             {
               "key": "shape:order-api",
-              "short": "6 inside · 1 flow",
-              "words": "6 inside, 1 flow"
+              "short": "6 inside · 2 flows",
+              "words": "6 inside, 2 flows"
             },
             {
               "key": "shape:basket",
@@ -5286,6 +5327,11 @@
             },
             {
               "key": "flow:menu-is-read",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:price-a-deal",
               "short": "",
               "words": ""
             },
@@ -5436,7 +5482,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5730,7 +5776,7 @@
               "external": false,
               "inside": 7,
               "shapes": 13,
-              "flows": 12,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5747,7 +5793,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 1,
+              "flows": 2,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -5799,6 +5845,24 @@
               "shapes": 0,
               "flows": 0,
               "steps": 8,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:price-a-deal",
+              "kind": "flow",
+              "id": "price-a-deal",
+              "parent": "order-api",
+              "depth": 3,
+              "name": "Pricing a meal deal",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 3,
               "linked": false,
               "problem": false,
               "expandable": false,
@@ -6129,14 +6193,14 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             },
             {
               "key": "shape:backoffice",
@@ -6220,13 +6284,13 @@
             },
             {
               "key": "shape:ordering",
-              "short": "7 inside · 12 flows",
-              "words": "7 inside, 13 in all, 12 flows"
+              "short": "7 inside · 13 flows",
+              "words": "7 inside, 13 in all, 13 flows"
             },
             {
               "key": "shape:order-api",
-              "short": "6 inside · 1 flow",
-              "words": "6 inside, 1 flow"
+              "short": "6 inside · 2 flows",
+              "words": "6 inside, 2 flows"
             },
             {
               "key": "shape:basket",
@@ -6240,6 +6304,11 @@
             },
             {
               "key": "flow:menu-is-read",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:price-a-deal",
               "short": "",
               "words": ""
             },
@@ -6352,7 +6421,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6369,7 +6438,7 @@
               "external": false,
               "inside": 7,
               "shapes": 13,
-              "flows": 12,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6413,19 +6482,19 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             },
             {
               "key": "shape:ordering",
-              "short": "7 inside · 12 flows",
-              "words": "7 inside, 13 in all, 12 flows"
+              "short": "7 inside · 13 flows",
+              "words": "7 inside, 13 in all, 13 flows"
             },
             {
               "key": "shape:web",
@@ -6456,7 +6525,7 @@
               "external": false,
               "inside": 11,
               "shapes": 36,
-              "flows": 20,
+              "flows": 21,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -6524,7 +6593,7 @@
               "external": false,
               "inside": 7,
               "shapes": 13,
-              "flows": 12,
+              "flows": 13,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -6691,14 +6760,14 @@
           ],
           "totals": {
             "shapes": 36,
-            "flows": 20,
+            "flows": 21,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "11 inside · 20 flows",
-              "words": "11 inside, 36 in all, 20 flows"
+              "short": "11 inside · 21 flows",
+              "words": "11 inside, 36 in all, 21 flows"
             },
             {
               "key": "shape:backoffice",
@@ -6717,8 +6786,8 @@
             },
             {
               "key": "shape:ordering",
-              "short": "7 inside · 12 flows",
-              "words": "7 inside, 13 in all, 12 flows"
+              "short": "7 inside · 13 flows",
+              "words": "7 inside, 13 in all, 13 flows"
             },
             {
               "key": "shape:courier",
@@ -6908,7 +6977,7 @@
                 "path": "ordering",
                 "name": "ordering",
                 "depth": 0,
-                "flows": 7,
+                "flows": 8,
                 "open": true
               },
               {
@@ -7012,6 +7081,21 @@
                   "tags": [
                     "happy path"
                   ]
+                },
+                "depth": 1
+              },
+              {
+                "kind": "flow",
+                "key": "flow:price-a-deal",
+                "flow": {
+                  "id": "price-a-deal",
+                  "name": "Pricing a meal deal",
+                  "steps": 3,
+                  "view": "order-api",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "ordering",
+                  "tags": []
                 },
                 "depth": 1
               },
@@ -7180,8 +7264,8 @@
                 "count": 2
               }
             ],
-            "total": 20,
-            "shown": 20
+            "total": 21,
+            "shown": 21
           }
         },
         {
@@ -7324,7 +7408,7 @@
                 "path": "ordering",
                 "name": "ordering",
                 "depth": 0,
-                "flows": 7,
+                "flows": 8,
                 "open": true
               },
               {
@@ -7428,6 +7512,21 @@
                   "tags": [
                     "happy path"
                   ]
+                },
+                "depth": 1
+              },
+              {
+                "kind": "flow",
+                "key": "flow:price-a-deal",
+                "flow": {
+                  "id": "price-a-deal",
+                  "name": "Pricing a meal deal",
+                  "steps": 3,
+                  "view": "order-api",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "ordering",
+                  "tags": []
                 },
                 "depth": 1
               },
@@ -7596,8 +7695,8 @@
                 "count": 2
               }
             ],
-            "total": 20,
-            "shown": 20
+            "total": 21,
+            "shown": 21
           }
         },
         {
@@ -7740,7 +7839,7 @@
                 "path": "ordering",
                 "name": "ordering",
                 "depth": 0,
-                "flows": 7,
+                "flows": 8,
                 "open": true
               },
               {
@@ -7844,6 +7943,21 @@
                   "tags": [
                     "happy path"
                   ]
+                },
+                "depth": 1
+              },
+              {
+                "kind": "flow",
+                "key": "flow:price-a-deal",
+                "flow": {
+                  "id": "price-a-deal",
+                  "name": "Pricing a meal deal",
+                  "steps": 3,
+                  "view": "order-api",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "ordering",
+                  "tags": []
                 },
                 "depth": 1
               },
@@ -8012,8 +8126,8 @@
                 "count": 2
               }
             ],
-            "total": 20,
-            "shown": 20
+            "total": 21,
+            "shown": 21
           }
         },
         {
@@ -8170,7 +8284,7 @@
                 "count": 2
               }
             ],
-            "total": 20,
+            "total": 21,
             "shown": 6
           }
         },
@@ -8314,7 +8428,7 @@
                 "path": "ordering",
                 "name": "ordering",
                 "depth": 0,
-                "flows": 7,
+                "flows": 8,
                 "open": true
               },
               {
@@ -8418,6 +8532,21 @@
                   "tags": [
                     "happy path"
                   ]
+                },
+                "depth": 1
+              },
+              {
+                "kind": "flow",
+                "key": "flow:price-a-deal",
+                "flow": {
+                  "id": "price-a-deal",
+                  "name": "Pricing a meal deal",
+                  "steps": 3,
+                  "view": "order-api",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "ordering",
+                  "tags": []
                 },
                 "depth": 1
               },
@@ -8586,8 +8715,8 @@
                 "count": 2
               }
             ],
-            "total": 20,
-            "shown": 20
+            "total": 21,
+            "shown": 21
           }
         },
         {
@@ -8618,7 +8747,7 @@
                 "count": 2
               }
             ],
-            "total": 20,
+            "total": 21,
             "shown": 0
           }
         },
@@ -8801,7 +8930,7 @@
                 "count": 2
               }
             ],
-            "total": 20,
+            "total": 21,
             "shown": 7
           }
         },
@@ -9136,7 +9265,7 @@
                 "count": 2
               }
             ],
-            "total": 20,
+            "total": 21,
             "shown": 15
           }
         },
@@ -9170,7 +9299,7 @@
                 "count": 2
               }
             ],
-            "total": 20,
+            "total": 21,
             "shown": 0
           }
         },
@@ -9196,7 +9325,7 @@
                 "path": "ordering",
                 "name": "ordering",
                 "depth": 0,
-                "flows": 7,
+                "flows": 8,
                 "open": true
               },
               {
@@ -9300,6 +9429,21 @@
                   "tags": [
                     "happy path"
                   ]
+                },
+                "depth": 1
+              },
+              {
+                "kind": "flow",
+                "key": "flow:price-a-deal",
+                "flow": {
+                  "id": "price-a-deal",
+                  "name": "Pricing a meal deal",
+                  "steps": 3,
+                  "view": "order-api",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "ordering",
+                  "tags": []
                 },
                 "depth": 1
               },
@@ -9468,8 +9612,8 @@
                 "count": 2
               }
             ],
-            "total": 20,
-            "shown": 20
+            "total": 21,
+            "shown": 21
           }
         },
         {
@@ -9497,7 +9641,7 @@
                 "path": "ordering",
                 "name": "ordering",
                 "depth": 0,
-                "flows": 7,
+                "flows": 8,
                 "open": false
               },
               {
@@ -9532,8 +9676,8 @@
                 "count": 2
               }
             ],
-            "total": 20,
-            "shown": 20
+            "total": 21,
+            "shown": 21
           }
         },
         {
@@ -9681,7 +9825,7 @@
                 "path": "ordering",
                 "name": "ordering",
                 "depth": 0,
-                "flows": 7,
+                "flows": 8,
                 "open": true
               },
               {
@@ -9785,6 +9929,21 @@
                   "tags": [
                     "happy path"
                   ]
+                },
+                "depth": 1
+              },
+              {
+                "kind": "flow",
+                "key": "flow:price-a-deal",
+                "flow": {
+                  "id": "price-a-deal",
+                  "name": "Pricing a meal deal",
+                  "steps": 3,
+                  "view": "order-api",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "ordering",
+                  "tags": []
                 },
                 "depth": 1
               },
@@ -9953,8 +10112,8 @@
                 "count": 2
               }
             ],
-            "total": 20,
-            "shown": 20
+            "total": 21,
+            "shown": 21
           }
         }
       ],
@@ -10612,8 +10771,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -10621,15 +10780,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             }
           ]
         },
@@ -10649,8 +10808,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -10801,9 +10960,9 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "inside": 34,
-              "shapes": 34,
-              "flows": 18,
+              "inside": 35,
+              "shapes": 35,
+              "flows": 19,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -10811,15 +10970,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             },
             {
               "key": "shape:scale",
@@ -10863,8 +11022,8 @@
             },
             {
               "key": "shape:steps",
-              "short": "34 inside · 18 flows",
-              "words": "34 inside, 18 flows"
+              "short": "35 inside · 19 flows",
+              "words": "35 inside, 19 flows"
             }
           ]
         },
@@ -10885,8 +11044,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -11037,9 +11196,9 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "inside": 34,
-              "shapes": 34,
-              "flows": 18,
+              "inside": 35,
+              "shapes": 35,
+              "flows": 19,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -11488,6 +11647,23 @@
               "match": true
             },
             {
+              "key": "shape:recurse-on",
+              "kind": "shape",
+              "id": "recurse-on",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Recurse",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:rejected-from",
               "kind": "shape",
               "id": "rejected-from",
@@ -11858,6 +12034,24 @@
               "match": true
             },
             {
+              "key": "flow:recurse",
+              "kind": "flow",
+              "id": "recurse",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Recurse",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:rejected",
               "kind": "flow",
               "id": "rejected",
@@ -11949,15 +12143,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             },
             {
               "key": "shape:scale",
@@ -12001,8 +12195,8 @@
             },
             {
               "key": "shape:steps",
-              "short": "34 inside · 18 flows",
-              "words": "34 inside, 18 flows"
+              "short": "35 inside · 19 flows",
+              "words": "35 inside, 19 flows"
             },
             {
               "key": "shape:cold-from",
@@ -12135,6 +12329,11 @@
               "words": ""
             },
             {
+              "key": "shape:recurse-on",
+              "short": "",
+              "words": ""
+            },
+            {
               "key": "shape:rejected-from",
               "short": "",
               "words": ""
@@ -12240,6 +12439,11 @@
               "words": ""
             },
             {
+              "key": "flow:recurse",
+              "short": "",
+              "words": ""
+            },
+            {
               "key": "flow:rejected",
               "short": "",
               "words": ""
@@ -12286,6 +12490,7 @@
             "event-to",
             "callback-from",
             "callback-to",
+            "recurse-on",
             "after-source",
             "after-from",
             "after-to",
@@ -12376,8 +12581,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -13581,9 +13786,9 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "inside": 34,
-              "shapes": 34,
-              "flows": 18,
+              "inside": 35,
+              "shapes": 35,
+              "flows": 19,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -14032,6 +14237,23 @@
               "match": true
             },
             {
+              "key": "shape:recurse-on",
+              "kind": "shape",
+              "id": "recurse-on",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Recurse",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:rejected-from",
               "kind": "shape",
               "id": "rejected-from",
@@ -14402,6 +14624,24 @@
               "match": true
             },
             {
+              "key": "flow:recurse",
+              "kind": "flow",
+              "id": "recurse",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Recurse",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:rejected",
               "kind": "flow",
               "id": "rejected",
@@ -14493,15 +14733,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             },
             {
               "key": "shape:scale",
@@ -14850,8 +15090,8 @@
             },
             {
               "key": "shape:steps",
-              "short": "34 inside · 18 flows",
-              "words": "34 inside, 18 flows"
+              "short": "35 inside · 19 flows",
+              "words": "35 inside, 19 flows"
             },
             {
               "key": "shape:cold-from",
@@ -14984,6 +15224,11 @@
               "words": ""
             },
             {
+              "key": "shape:recurse-on",
+              "short": "",
+              "words": ""
+            },
+            {
               "key": "shape:rejected-from",
               "short": "",
               "words": ""
@@ -15089,6 +15334,11 @@
               "words": ""
             },
             {
+              "key": "flow:recurse",
+              "short": "",
+              "words": ""
+            },
+            {
               "key": "flow:rejected",
               "short": "",
               "words": ""
@@ -15135,6 +15385,7 @@
             "event-to",
             "callback-from",
             "callback-to",
+            "recurse-on",
             "after-source",
             "after-from",
             "after-to",
@@ -15225,8 +15476,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -16430,9 +16681,9 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "inside": 34,
-              "shapes": 34,
-              "flows": 18,
+              "inside": 35,
+              "shapes": 35,
+              "flows": 19,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -16881,6 +17132,23 @@
               "match": true
             },
             {
+              "key": "shape:recurse-on",
+              "kind": "shape",
+              "id": "recurse-on",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Recurse",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "shape:rejected-from",
               "kind": "shape",
               "id": "rejected-from",
@@ -17251,6 +17519,24 @@
               "match": true
             },
             {
+              "key": "flow:recurse",
+              "kind": "flow",
+              "id": "recurse",
+              "parent": "steps",
+              "depth": 2,
+              "name": "Recurse",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 1,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
               "key": "flow:rejected",
               "kind": "flow",
               "id": "rejected",
@@ -17342,15 +17628,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             },
             {
               "key": "shape:scale",
@@ -17699,8 +17985,8 @@
             },
             {
               "key": "shape:steps",
-              "short": "34 inside · 18 flows",
-              "words": "34 inside, 18 flows"
+              "short": "35 inside · 19 flows",
+              "words": "35 inside, 19 flows"
             },
             {
               "key": "shape:cold-from",
@@ -17833,6 +18119,11 @@
               "words": ""
             },
             {
+              "key": "shape:recurse-on",
+              "short": "",
+              "words": ""
+            },
+            {
               "key": "shape:rejected-from",
               "short": "",
               "words": ""
@@ -17938,6 +18229,11 @@
               "words": ""
             },
             {
+              "key": "flow:recurse",
+              "short": "",
+              "words": ""
+            },
+            {
               "key": "flow:rejected",
               "short": "",
               "words": ""
@@ -17978,8 +18274,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -19028,9 +19324,9 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "inside": 34,
-              "shapes": 34,
-              "flows": 18,
+              "inside": 35,
+              "shapes": 35,
+              "flows": 19,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -19524,15 +19820,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             },
             {
               "key": "shape:scale",
@@ -19836,8 +20132,8 @@
             },
             {
               "key": "shape:steps",
-              "short": "34 inside · 18 flows",
-              "words": "34 inside, 18 flows"
+              "short": "35 inside · 19 flows",
+              "words": "35 inside, 19 flows"
             },
             {
               "key": "shape:call-from",
@@ -19997,8 +20293,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -20040,15 +20336,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             },
             {
               "key": "shape:channels",
@@ -20078,8 +20374,8 @@
               "name": "Overview",
               "external": false,
               "inside": 9,
-              "shapes": 94,
-              "flows": 28,
+              "shapes": 95,
+              "flows": 29,
               "problem": false,
               "expandable": true,
               "expanded": true,
@@ -20230,9 +20526,9 @@
               "name": "Step animations",
               "type": "system",
               "external": false,
-              "inside": 34,
-              "shapes": 34,
-              "flows": 18,
+              "inside": 35,
+              "shapes": 35,
+              "flows": 19,
               "problem": false,
               "expandable": true,
               "expanded": false,
@@ -20240,15 +20536,15 @@
             }
           ],
           "totals": {
-            "shapes": 94,
-            "flows": 28,
+            "shapes": 95,
+            "flows": 29,
             "problems": 0
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "9 inside · 28 flows",
-              "words": "9 inside, 94 in all, 28 flows"
+              "short": "9 inside · 29 flows",
+              "words": "9 inside, 95 in all, 29 flows"
             },
             {
               "key": "shape:scale",
@@ -20292,8 +20588,8 @@
             },
             {
               "key": "shape:steps",
-              "short": "34 inside · 18 flows",
-              "words": "34 inside, 18 flows"
+              "short": "35 inside · 19 flows",
+              "words": "35 inside, 19 flows"
             }
           ]
         }
@@ -20610,6 +20906,21 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:recurse",
+                "flow": {
+                  "id": "recurse",
+                  "name": "Recurse",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:rejected",
                 "flow": {
                   "id": "rejected",
@@ -20730,8 +21041,8 @@
               }
             ],
             "tags": [],
-            "total": 28,
-            "shown": 28
+            "total": 29,
+            "shown": 29
           }
         },
         {
@@ -21046,6 +21357,21 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:recurse",
+                "flow": {
+                  "id": "recurse",
+                  "name": "Recurse",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:rejected",
                 "flow": {
                   "id": "rejected",
@@ -21166,8 +21492,8 @@
               }
             ],
             "tags": [],
-            "total": 28,
-            "shown": 28
+            "total": 29,
+            "shown": 29
           }
         },
         {
@@ -21452,7 +21778,7 @@
               }
             ],
             "tags": [],
-            "total": 28,
+            "total": 29,
             "shown": 18
           }
         },
@@ -21463,7 +21789,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 28,
+            "total": 29,
             "shown": 0
           }
         },
@@ -21779,6 +22105,21 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:recurse",
+                "flow": {
+                  "id": "recurse",
+                  "name": "Recurse",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:rejected",
                 "flow": {
                   "id": "rejected",
@@ -21899,8 +22240,8 @@
               }
             ],
             "tags": [],
-            "total": 28,
-            "shown": 28
+            "total": 29,
+            "shown": 29
           }
         },
         {
@@ -21910,7 +22251,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 28,
+            "total": 29,
             "shown": 0
           }
         },
@@ -21923,7 +22264,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 28,
+            "total": 29,
             "shown": 0
           }
         },
@@ -21938,7 +22279,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 28,
+            "total": 29,
             "shown": 0
           }
         },
@@ -21951,7 +22292,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 28,
+            "total": 29,
             "shown": 0
           }
         },
@@ -22266,6 +22607,21 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:recurse",
+                "flow": {
+                  "id": "recurse",
+                  "name": "Recurse",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:rejected",
                 "flow": {
                   "id": "rejected",
@@ -22386,8 +22742,8 @@
               }
             ],
             "tags": [],
-            "total": 28,
-            "shown": 28
+            "total": 29,
+            "shown": 29
           }
         },
         {
@@ -22701,6 +23057,21 @@
               },
               {
                 "kind": "flow",
+                "key": "flow:recurse",
+                "flow": {
+                  "id": "recurse",
+                  "name": "Recurse",
+                  "steps": 1,
+                  "view": "steps",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
                 "key": "flow:rejected",
                 "flow": {
                   "id": "rejected",
@@ -22821,8 +23192,8 @@
               }
             ],
             "tags": [],
-            "total": 28,
-            "shown": 28
+            "total": 29,
+            "shown": 29
           }
         },
         {
@@ -23107,7 +23478,7 @@
               }
             ],
             "tags": [],
-            "total": 28,
+            "total": 29,
             "shown": 18
           }
         }
@@ -23381,6 +23752,23 @@
           "self": true,
           "opened": [
             "callback-to",
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "recurse-on",
+          "self": false,
+          "opened": [
+            "root",
+            "steps"
+          ]
+        },
+        {
+          "id": "recurse-on",
+          "self": true,
+          "opened": [
+            "recurse-on",
             "root",
             "steps"
           ]
@@ -63077,6 +63465,1366 @@
           "opened": [
             "api",
             "auth",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "db",
+          "self": true,
+          "opened": [
+            "db",
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "stripe",
+          "self": true,
+          "opened": [
+            "root",
+            "stripe"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
+    "recurse": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            }
+          ]
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "inside": 3,
+              "shapes": 3,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            },
+            {
+              "key": "shape:shop",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 1 flow"
+            },
+            {
+              "key": "shape:customer",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:stripe",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "shop"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "inside": 3,
+              "shapes": 3,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:recursion",
+              "kind": "flow",
+              "id": "recursion",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Recursion",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            },
+            {
+              "key": "shape:shop",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 1 flow"
+            },
+            {
+              "key": "shape:api",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:db",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:web",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:recursion",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:customer",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:stripe",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "inside": 3,
+              "shapes": 3,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:recursion",
+              "kind": "flow",
+              "id": "recursion",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Recursion",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            },
+            {
+              "key": "shape:shop",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 1 flow"
+            },
+            {
+              "key": "shape:api",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:db",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:web",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:recursion",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:customer",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:stripe",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "customer",
+            "shop",
+            "web",
+            "api",
+            "db",
+            "stripe"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "inside": 3,
+              "shapes": 3,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:db",
+              "kind": "shape",
+              "id": "db",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Orders DB",
+              "type": "store",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:recursion",
+              "kind": "flow",
+              "id": "recursion",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Recursion",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 6,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            },
+            {
+              "key": "shape:shop",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 1 flow"
+            },
+            {
+              "key": "shape:api",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:db",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:web",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:recursion",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:customer",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:stripe",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "inside": 3,
+              "shapes": 3,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:api",
+              "kind": "shape",
+              "id": "api",
+              "parent": "shop",
+              "depth": 2,
+              "name": "API",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            },
+            {
+              "key": "shape:shop",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 1 flow"
+            },
+            {
+              "key": "shape:api",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:web",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "inside": 3,
+              "shapes": 3,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:web",
+              "kind": "shape",
+              "id": "web",
+              "parent": "shop",
+              "depth": 2,
+              "name": "Web app",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            },
+            {
+              "key": "shape:shop",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 1 flow"
+            },
+            {
+              "key": "shape:web",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 3,
+              "shapes": 6,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:shop",
+              "kind": "shape",
+              "id": "shop",
+              "parent": "root",
+              "depth": 1,
+              "name": "Shop",
+              "type": "system",
+              "external": false,
+              "inside": 3,
+              "shapes": 3,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:customer",
+              "kind": "shape",
+              "id": "customer",
+              "parent": "root",
+              "depth": 1,
+              "name": "Customer",
+              "type": "actor",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:stripe",
+              "kind": "shape",
+              "id": "stripe",
+              "parent": "root",
+              "depth": 1,
+              "name": "Stripe",
+              "type": "system",
+              "external": true,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 6,
+            "flows": 1,
+            "problems": 4
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 6 in all, 1 flow"
+            },
+            {
+              "key": "shape:shop",
+              "short": "3 inside · 1 flow",
+              "words": "3 inside, 1 flow"
+            },
+            {
+              "key": "shape:customer",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:stripe",
+              "short": "",
+              "words": ""
+            }
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "name": "plain",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:recursion",
+                "flow": {
+                  "id": "recursion",
+                  "name": "Recursion",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "editing",
+          "editing": true,
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:recursion",
+                "flow": {
+                  "id": "recursion",
+                  "name": "Recursion",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "query-a",
+          "query": "a",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "query-pay",
+          "query": "PAY",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "query-blank",
+          "query": "   ",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:recursion",
+                "flow": {
+                  "id": "recursion",
+                  "name": "Recursion",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "query-nothing",
+          "query": "zzzz no flow has this",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag",
+          "tags": [
+            "HAPPY PATH"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tags-and-query",
+          "tags": [
+            "happy path",
+            "error path"
+          ],
+          "query": "er",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag-nobody-has",
+          "tags": [
+            "no such tag"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "first-folder-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:recursion",
+                "flow": {
+                  "id": "recursion",
+                  "name": "Recursion",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "all-folders-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:recursion",
+                "flow": {
+                  "id": "recursion",
+                  "name": "Recursion",
+                  "steps": 6,
+                  "view": "shop",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "closed-and-filtered",
+          "closed": [],
+          "query": "a",
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "customer",
+          "self": true,
+          "opened": [
+            "customer",
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "shop",
+          "self": true,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "web",
+          "self": true,
+          "opened": [
+            "root",
+            "shop",
+            "web"
+          ]
+        },
+        {
+          "id": "api",
+          "self": false,
+          "opened": [
+            "root",
+            "shop"
+          ]
+        },
+        {
+          "id": "api",
+          "self": true,
+          "opened": [
+            "api",
             "root",
             "shop"
           ]

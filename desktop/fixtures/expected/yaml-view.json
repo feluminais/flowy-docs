@@ -214,6 +214,7 @@
     "flows/ordering/order-sent-twice.yaml",
     "flows/ordering/orders-db-fails-over.yaml",
     "flows/ordering/place-order.yaml",
+    "flows/ordering/price-a-deal.yaml",
     "flows/ordering/restaurant-accepts.yaml",
     "flows/payments/announce-order.yaml",
     "flows/payments/capture-payment.yaml",

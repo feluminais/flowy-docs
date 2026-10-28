@@ -217,8 +217,10 @@ objects:
       step, and edit mode on E.
 
       A step with an `animation:` plays as a pipe with a blob running through it, and Autoplay steps
-      through a flow unattended. A step's `states` dim a shape and add a second outline and a glyph
-      until another step changes them. A Performance tab plays a load-test run back over the diagram.
+      through a flow unattended. A shape that calls itself plays as a pipe looping out of it and back
+      in, with a pile of cards growing under it and a counter on its corner. A step's `states` dim a
+      shape and add a second outline and a glyph until another step changes them. A Performance tab
+      plays a load-test run back over the diagram.
 
       A rail of icons on the left edge opens a panel: the whole documentation as a tree, every flow,
       the Performance panel of a load-test run, how things fail, or the files as YAML. Performance
@@ -454,6 +456,8 @@ objects:
     description: |
       What a flow step's `animation:` may say and what each kind does, as a timed list of beats: a
       tube along the line, a blob running through it, a ring, flash or gulp on a shape.
+      A shape that calls itself (`recurse`, a step with no `to`) is the one kind that runs on a single
+      shape: a loop pipe, a pile of cards that grows and shrinks, a counter, and a flag where it stops.
 
       A step's request can end in seven ways (fail, timeout, lost, rejected, intercepted, duplicated,
       delayed), with a reason, a share of the requests and, for an interception, who takes it. A share
@@ -597,7 +601,7 @@ objects:
     in: core
     name: Mermaid
     code: [src/core/mermaid.ts]
-    description: A view as a flowchart, a flow as a sequence diagram (a group of steps becomes a loop, alt or par block), fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line.
+    description: A view as a flowchart, a flow as a sequence diagram (a group of steps becomes a loop, alt or par block), fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line. A step one shape does on its own is a note over it, and a recursion is an arrow from the shape back to itself.
 connections:
   - { from: reader, to: cli, label: node dist/cli.js }
   - { from: reader, to: desktop, label: opens folders in a window }
