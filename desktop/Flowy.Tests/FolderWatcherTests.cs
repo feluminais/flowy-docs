@@ -66,6 +66,14 @@ public class FolderWatcherTests
     }
 
     [Fact]
+    public void A_draft_made_in_drafts_is_noticed_too()
+    {
+        using var temp = new TempDir();
+        Directory.CreateDirectory(Path.Combine(temp.Dir, "drafts", "group-orders"));
+        Assert.True(NoticedWhenSaved(temp, "drafts/group-orders/model.yaml"));
+    }
+
+    [Fact]
     public void Several_saves_in_a_burst_wake_it_once()
     {
         using var temp = new TempDir();

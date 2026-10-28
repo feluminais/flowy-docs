@@ -10,7 +10,9 @@ import { Dropdown } from './Dropdown.tsx'
 import type { SaveEdit } from './forms.tsx'
 import { Alert, ChevronRight, Copy, Grid, Home, Keyboard, Pencil, Plus, Redo, Route, Search as SearchIcon, Undo } from './icons.tsx'
 import { LINE_NAMES } from './lines.ts'
+import { DraftMark } from './Drafts.tsx'
 import { ModelPicker } from './ModelPicker.tsx'
+import { ownerAddress } from './models.ts'
 import type { ModelList } from './models.ts'
 import type { Side } from './side.ts'
 
@@ -35,8 +37,8 @@ function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Probl
 }
 
 /** The bar over the canvas: the models, the breadcrumb of levels, the edit buttons, the problems, the line style, search, Mermaid, shortcuts and the Edit switch. */
-export function TopBar({ model, view, editing, live, readOnly, problems, models, onModels, lines, searching, shortcuts, onJump, onProblem, onShow, onUndo, onRedo, onTidy, onLines, onSearching, onMermaid, onShortcuts, onEdit, run }: {
-  model: Model; view: string; editing: boolean; live: boolean; readOnly: boolean; problems: Problem[]; models: ModelList | undefined; onModels: Dispatch<SetStateAction<ModelList | undefined>>
+export function TopBar({ model, draft, view, editing, live, readOnly, problems, models, onModels, lines, searching, shortcuts, onJump, onProblem, onShow, onUndo, onRedo, onTidy, onLines, onSearching, onMermaid, onShortcuts, onEdit, run }: {
+  model: Model; draft?: { of: string }; view: string; editing: boolean; live: boolean; readOnly: boolean; problems: Problem[]; models: ModelList | undefined; onModels: Dispatch<SetStateAction<ModelList | undefined>>
   lines: LineStyle; searching: boolean; shortcuts: boolean; onJump: (id: string) => void; onProblem: (p: Problem) => void; onShow: (s: Side) => void
   onUndo: () => void; onRedo: () => void; onTidy: () => void; onLines: (value: string) => void; onSearching: (searching: boolean) => void; onMermaid: () => void
   onShortcuts: (open: boolean) => void; onEdit: () => void; run: SaveEdit
@@ -44,6 +46,7 @@ export function TopBar({ model, view, editing, live, readOnly, problems, models,
   return (
     <header className="bar">
       {models && <ModelPicker list={models} onList={onModels} />}
+      {draft && <DraftMark of={draft.of} back={ownerAddress()} />}
       <nav className="crumbs" aria-label="Zoom level">
         {chain(model, view).reverse().map((id, i) => (
           <Fragment key={id}>

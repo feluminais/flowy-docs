@@ -15,6 +15,7 @@ A model is a folder, `flowy/` by default, next to the code it describes.
 | `failures/<id>.yaml` | One failure analysis | You, an AI, the canvas |
 | `perf/<id>.yaml` | One load-test run | A tool. Flowy reads it, and writes only its `compare` |
 | `layout.yaml` | Where shapes were dragged | The canvas. Don't write it |
+| `drafts/<id>/` | A draft: a model of its own with the same files, which the model never reads ([Drafts](guide/drafts.md)) | You, an AI, the canvas |
 
 A flow's file can sit in folders inside `flows/` (`flows/payments/refund.yaml`), and the folders are yours to arrange. The id is the file name alone, so no two flows share one whatever their folders, and a flow moved to another folder keeps its id. A folder name may hold letters, digits, spaces and most marks, but not `\ / : * ? " < > | # %`; it can't start with a dot (such a folder is left alone), end in a dot or a space, or be longer than 64 characters, and folders nest six deep at most. `flowy check` lists a folder it skips and a name that two files share.
 

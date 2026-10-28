@@ -34,6 +34,14 @@
     "MIN_SCORE",
     "YAML_BUT_CODE"
   ],
+  "drafts": [
+    "DRAFTS_FOLDER",
+    "draftFolder",
+    "draftModelId",
+    "isDraftId",
+    "newDraft",
+    "splitDraftModelId"
+  ],
   "failures": [
     "BAND_NAMES",
     "RATING_KEYS",

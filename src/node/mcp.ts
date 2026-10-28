@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
@@ -17,6 +18,7 @@ import { folderOf, getObject, MAX_TAG_LENGTH, OBJECT_TYPES, projectAbout, projec
 import { changedFiles, changedLayout } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { describeDependent } from '../core/dependents.ts'
+import { newDraft } from '../core/drafts.ts'
 import type { Dependent } from '../core/dependents.ts'
 import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare, setFlowTags, setProject, tidyViews } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
@@ -28,6 +30,8 @@ import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
 import { hashBytes, loadDir, loadReport, loadRuns, missingPaths, saveFiles, saveRunCompare, VersionConflict } from './files.ts'
 import type { Report } from './files.ts'
+import { draftDir, hasDraft, listDrafts } from './drafts.ts'
+import { createDraft, deleteDraft } from './draftwrites.ts'
 import { registerGuidance } from './guidance.ts'
 import type { History } from './history.ts'
 
@@ -35,7 +39,7 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, move_flow (the folder a flow's file is in) and tag_flow (the words that label a flow, such as happy path), put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, move_flow (the folder a flow's file is in) and tag_flow (the words that label a flow, such as happy path), put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. To sketch something apart from the model ("draft me ..."), make a draft with new_draft (copy the shapes it starts from), then give draft: <id> to the other tools; get_drafts and delete_draft do the rest. Never write a draft's shapes into the model. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
 - A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the system's name and a short about (put_project), the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
@@ -143,9 +147,35 @@ const dataEntry = z.object({
 /** The system's name and what it is, when the file has them, in the shape put_project takes. */
 const project = (m: Model) => ({ ...(projectName(m) ? { name: projectName(m) } : {}), ...(projectAbout(m) ? { about: projectAbout(m) } : {}) })
 
-/** `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call. */
-export function createMcpServer(dir: string, history?: History): McpServer {
+/**
+ * `history`: when given, every write is also a step in the folder's history. A history that can't be written never fails a tool call.
+ * `draftHistory` opens a draft's own history, once, the first time a tool writes it; without it a draft keeps none.
+ */
+export function createMcpServer(modelDir: string, history?: History, draftHistory?: (dir: string) => History): McpServer {
   const server = new McpServer({ name: 'flowy-docs', version: '0.1.0' }, { instructions: INSTRUCTIONS })
+
+  // A tool given `draft` works on that draft's folder instead of the model's (see core/drafts.ts). The folder rides with the call, so calls
+  // that inOrder queues each keep their own. A draft has a history of its own, apart from the model's.
+  const place = new AsyncLocalStorage<string>()
+  const here = () => place.getStore() ?? modelDir
+  const draftHistories = new Map<string, History | undefined>()
+  const hist = (): History | undefined => {
+    const at = place.getStore()
+    if (at === undefined) return history
+    if (!draftHistories.has(at)) draftHistories.set(at, draftHistory?.(at))
+    return draftHistories.get(at)
+  }
+  const draftArg = z.string().max(64).optional().describe('A draft id (get_drafts names them): work on that draft instead of the model. Left out, the model.')
+  const tool: McpServer['registerTool'] = (name, config, cb) => {
+    const call = cb as (...args: unknown[]) => unknown
+    const bare = config.inputSchema === undefined // a tool with no input is called with `extra` alone
+    const run = (input: unknown, extra: unknown) => (bare ? call(extra) : call(input, extra))
+    return server.registerTool(name, { ...config, inputSchema: { ...(config.inputSchema as z.ZodRawShape | undefined), draft: draftArg } }, (async ({ draft, ...input }: { draft?: string }, extra: unknown) => {
+      if (draft === undefined) return await run(input, extra)
+      if (!hasDraft(modelDir, draft)) return fail(`There is no draft "${draft}". get_drafts names the drafts there are; new_draft makes one.`)
+      return await place.run(draftDir(modelDir, draft), () => run(input, extra))
+    }) as never)
+  }
 
   // AI clients often send several tool calls at once. Run them one at a time, in arrival
   // order, so each call sees what the calls sent before it wrote.
@@ -158,7 +188,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
 
   const read = (fn: (model: Model) => unknown) => inOrder(async () => {
     try {
-      return ok(fn((await loadDir(dir)).model))
+      return ok(fn((await loadDir(here())).model))
     } catch (e) {
       return fail(e)
     }
@@ -167,7 +197,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   /** Like read, but with the whole report: the load-test runs and every problem in the folder, not only the model. */
   const reading = (fn: (report: Report) => unknown) => inOrder(async () => {
     try {
-      return ok(fn(await loadReport(dir)))
+      return ok(fn(await loadReport(here())))
     } catch (e) {
       return fail(e)
     }
@@ -180,12 +210,12 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   const write = (op: (model: Model) => Model, done: string | ((before: Model) => string), label: string, withLayout = false) => inOrder(async () => {
     for (let attempt = 1; ; attempt++) {
       try {
-        const loaded = await loadDir(dir)
+        const loaded = await loadDir(here())
         const { model, versions } = loaded
         const next = op(model)
         // A run is a file in perf/, which the model doesn't hold: it can name a shape or a line the edit takes away, or be named by a failure mode.
-        const { runs } = await loadRuns(dir, model)
-        refuseNewProblems(model, next, missingPaths(dir, model, next), runs) // the canvas refuses the same edits, except missing code paths, which only Node can see
+        const { runs } = await loadRuns(here(), model)
+        refuseNewProblems(model, next, missingPaths(here(), model, next), runs) // the canvas refuses the same edits, except missing code paths, which only Node can see
         if (next.failures !== model.failures) {
           const links = (m: Model) => Object.entries(m.failures).flatMap(([aid, a]) => runLinkProblems(aid, a, runs))
           const added = newProblems(links(model), links(next))
@@ -201,9 +231,9 @@ export function createMcpServer(dir: string, history?: History): McpServer {
         // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.
         const unreadable = firstUnreadable(changes)
         if (unreadable) return fail(`Refused, nothing saved. The result couldn't be read back: ${unreadable.error instanceof Error ? unreadable.error.message : String(unreadable.error)}`)
-        await history?.ensureCurrent('write')
-        await saveFiles(dir, changes.map(([rel, text]) => ({ rel, text, expected: versions[rel] ?? null }))) // all or none
-        await history?.record(label, 'ai')
+        await hist()?.ensureCurrent('write')
+        await saveFiles(here(), changes.map(([rel, text]) => ({ rel, text, expected: versions[rel] ?? null }))) // all or none
+        await hist()?.record(label, 'ai')
         return ok(typeof done === 'function' ? done(model) : done)
       } catch (e) {
         if (!(e instanceof VersionConflict)) return fail(e)
@@ -222,7 +252,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   /** A flow as get_model shows it: its keys, and the folder its file is in, which put_flow takes back as `folder`. */
   const flowShown = (m: Model, fid: string) => ({ ...m.flows[fid], ...(folderOf(m, fid) === '' ? {} : { folder: folderOf(m, fid) }) })
 
-  server.registerTool('get_model', {
+  tool('get_model', {
     description: 'The model: objects, connections, flows, failure analyses, the custom icons put_icon defined (name → SVG path data), the load-test runs (id and name; a failure mode\'s run is one of these ids) and current problems. Everything it shows can be sent back to put_object, put_flow and the failure tools as it is. A big model is a lot to read, so ask for less: summary gives one short line for each thing, and object, flow or analysis gives that one thing in full (an object with its connections, the flows that use it and the failure modes that name it). Give at most one of the four.',
     inputSchema: {
       summary: z.boolean().optional().describe('true: only ids, names, types, parents and tech of the objects, each connection as one line, and each flow, analysis and run with its name and size. Read this first, then ask for what you need.'),
@@ -270,13 +300,13 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     return { ...project(m), objects: m.objects, connections: m.connections, flows: Object.fromEntries(Object.keys(m.flows).map(fid => [fid, flowShown(m, fid)])), failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
   }))
 
-  server.registerTool('get_problems', {
+  tool('get_problems', {
     description: 'Everything wrong with the folder right now, one line each, the same list `flowy check` prints: model, flows, failure analyses and load-test runs, a failure mode whose run does not exist, a file Flowy skips, and a file that loads but could not be saved again. "No problems." means it is sound. Cheaper than get_model, so use it to check your work after a run of writes, and after changing a file by hand.',
     inputSchema: {},
     annotations: readOnly,
   }, () => reading(({ problems }) => (problems.length === 0 ? 'No problems.' : problems.map(p => `${p.file}: ${p.message}`).join('\n'))))
 
-  server.registerTool('get_view', {
+  tool('get_view', {
     description: 'What one diagram shows: members (its shapes), outsiders (faded shapes from elsewhere that connect in, and people its flows name) and edges (connections merged to that zoom level: one per pair of shapes, with both: true when they run both ways).',
     inputSchema: { view: z.string().max(64).describe('"root" for the top level, or the id of an object with children') },
     annotations: readOnly,
@@ -287,7 +317,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     return { view, members: v.members.map(box), outsiders: v.outsiders.map(box), edges: v.edges }
   }))
 
-  server.registerTool('get_mermaid', {
+  tool('get_mermaid', {
     description: 'One view as a Mermaid flowchart, or one flow as a Mermaid sequence diagram, for a README or PR (GitHub draws Mermaid). Give view or flow, not both.',
     inputSchema: {
       view: z.string().max(64).optional().describe('"root" for the top level, or the id of an object with children'),
@@ -299,7 +329,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     return flow === undefined ? viewToMermaid(m, view!) : flowToMermaid(m, flow)
   }))
 
-  server.registerTool('put_object', {
+  tool('put_object', {
     description: 'Create or update an object. On update, omitted fields stay as they are, "" removes in, shape, color, opacity, icon, tech or description, [] removes code, links, snippets or data, and external: false removes external.',
     inputSchema: {
       id: id('Object id'),
@@ -331,7 +361,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => putObject(m, input), before => `${getObject(before, input.id) ? 'Updated' : 'Created'} ${input.id}.`, mcpLabel('put_object', input)))
 
-  server.registerTool('put_project', {
+  tool('put_project', {
     description: 'Set the name of the system and what it is: the first thing a reader sees when nothing is selected. Omitted fields stay as they are, "" removes one.',
     inputSchema: {
       name: z.string().max(200).optional().describe('What the system is called, e.g. "Plum".'),
@@ -339,7 +369,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => setProject(m, input), 'Saved the project details.', mcpLabel('put_project', input)))
 
-  server.registerTool('put_icon', {
+  tool('put_icon', {
     description: `Define a custom icon for objects to use with put_object's icon. It is SVG path data on a 24x24 grid, drawn as a 2px round line like the built-in ones (copy the "d" of a Tabler or Lucide icon, joining several paths). Built-in names, which can't be reused: ${ICON_GROUPS.map(g => `${g.group}: ${g.names.join(', ')}`).join('. ')}.`,
     inputSchema: {
       name: z.string().max(64).describe('Lowercase letters, digits and dashes, e.g. "stripe"'),
@@ -347,30 +377,30 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => putIcon(m, input.name, input.path), `Saved icon ${input.name}.`, mcpLabel('put_icon', input)))
 
-  server.registerTool('delete_icon', {
+  tool('delete_icon', {
     description: 'Delete a custom icon. Refused while an object uses it.',
     inputSchema: { name: z.string().max(64).describe('The icon\'s name') },
     annotations: destructive,
   }, input => write(m => deleteIcon(m, input.name), `Deleted icon ${input.name}.`, mcpLabel('delete_icon', input)))
 
-  server.registerTool('delete_object', {
+  tool('delete_object', {
     description: 'Delete an object, its connections, and the flow states and failure-mode affects entries that name it. Refused while it has children, a flow step or flow view uses it, or a failure mode names it: the refusal lists each of those as a row with the actions that settle it (also as structured content), and the same call with `resolve` settles them and deletes in one edit, or saves nothing.',
     inputSchema: { id: id('Object id'), resolve },
     annotations: destructive,
   }, input => write(m => (input.resolve === undefined ? deleteObject(m, input.id) : deleteWith(m, [{ object: input.id }], input.resolve)), `Deleted ${input.id}.`, mcpLabel('delete_object', input)))
 
-  server.registerTool('connect', {
+  tool('connect', {
     description: 'Add a connection. Direction matters: from → to. Duplicates and connecting an object to itself are refused.',
     inputSchema: { ...ends, label: z.string().optional().describe('What goes along it, e.g. "REST" or "reads/writes"') },
   }, input => write(m => connect(m, input), `Connected ${input.from} → ${input.to}.`, mcpLabel('connect', input)))
 
-  server.registerTool('disconnect', {
+  tool('disconnect', {
     description: 'Remove connections from → to. Refused while a failure mode is on that line and no other from → to line is left: the refusal lists the mode as a row, and the same call with `resolve` removes the mode and the line in one edit.',
     inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.'), resolve },
     annotations: destructive,
   }, input => write(m => (input.resolve === undefined ? disconnect(m, input) : deleteWith(m, [{ line: { from: input.from, to: input.to, ...(input.label === undefined ? {} : { label: input.label }), all: true } }], input.resolve)), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
 
-  server.registerTool('tidy_layout', {
+  tool('tidy_layout', {
     description: 'Put the shapes of a view where they read the same from every side. A view shows the shapes around it too, and each one belongs on the side it has in the view above: if Back office is right of Ordering at the top level, Ordering shows it on the right and Back office shows Ordering on the left. Views that already agree are left as they are, and the rest are laid out again (layout.yaml, which replaces any positions dragged by hand there). Call it once when the shapes and connections are in. check: true only lists what is on the wrong side and saves nothing.',
     inputSchema: {
       view: z.string().max(64).optional().describe('"root" for the top level, or the id of an object with children. Leave it out for every view.'),
@@ -386,7 +416,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     }, before => sideReport(before, found, true), mcpLabel('tidy_layout', { id: view ?? 'all views' }), true)
   })
 
-  server.registerTool('put_flow', {
+  tool('put_flow', {
     description: 'Create or replace a flow: a step-by-step walkthrough played on one view. Answers with how each step reads there.',
     inputSchema: {
       id: id('Flow id, also its file name. No two flows share one, whatever folder they are in'),
@@ -427,7 +457,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => putFlow(m, input), before => readout(before, input), mcpLabel('put_flow', input))) // a flow changes no box, so `before` places it right
 
-  server.registerTool('move_flow', {
+  tool('move_flow', {
     description: 'Move a flow into a folder under flows/ (or back to the top), which only changes where its file is: the flow keeps its id, so nothing that names it needs to change. Folders are made as needed and are the reader\'s own way of sorting flows, apart from the views they play on.',
     inputSchema: {
       id: id('Flow id'),
@@ -435,7 +465,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => moveFlow(m, input.id, input.folder), `Moved flow ${input.id} ${input.folder.trim() === '' ? 'to the top of flows/' : `into ${input.folder}`}.`, mcpLabel('move_flow', input)))
 
-  server.registerTool('tag_flow', {
+  tool('tag_flow', {
     description: 'Set the tags of a flow to exactly these words, or take them all out with []. Tags label what kind of walkthrough it is, such as "happy path" (everything works), "error path" (something fails and the flow shows it), "edge case" (an unusual input or timing) or "recovery" (the system heals itself); any word is allowed. The reader filters flows by them.',
     inputSchema: {
       id: id('Flow id'),
@@ -443,7 +473,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => setFlowTags(m, input.id, input.tags), input.tags.length === 0 ? `Took the tags off flow ${input.id}.` : `Tagged flow ${input.id}: ${input.tags.join(', ')}.`, mcpLabel('tag_flow', input)))
 
-  server.registerTool('delete_flow', {
+  tool('delete_flow', {
     description: 'Delete a flow.',
     inputSchema: { id: id('Flow id (its file name without .yaml)') },
     annotations: destructive,
@@ -453,17 +483,17 @@ export function createMcpServer(dir: string, history?: History): McpServer {
   const setRunTag = (runId: string, tag: CompareTag | undefined, done: string, label: string) => inOrder(async () => {
     for (let attempt = 1; ; attempt++) {
       try {
-        const loaded = await loadDir(dir)
-        const { runs } = await loadRuns(dir, loaded.model)
+        const loaded = await loadDir(here())
+        const { runs } = await loadRuns(here(), loaded.model)
         if (!Object.hasOwn(runs, runId)) return fail(`unknown run "${runId}"`)
         if (tag?.with === runId) return fail(`run "${runId}" cannot compare with itself`)
         if (tag !== undefined && !Object.hasOwn(runs, tag.with)) return fail(`unknown run "${tag.with}"`)
         const rel = pathOf(FILE_KINDS.run, runId)
         const blocked = firstBlocked(loaded, [rel])
         if (blocked) return fail(`Refused, nothing saved. ${blockedMessage(blocked.blocking, rel)}`)
-        const version = hashBytes(await readFile(join(dir, rel)))
-        await saveRunCompare(dir, rel, tag, version, async () => { await history?.ensureCurrent('write') })
-        await history?.record(label, 'ai')
+        const version = hashBytes(await readFile(join(here(), rel)))
+        await saveRunCompare(here(), rel, tag, version, async () => { await hist()?.ensureCurrent('write') })
+        await hist()?.record(label, 'ai')
         return ok(done)
       } catch (e) {
         if (!(e instanceof VersionConflict)) return fail(e)
@@ -472,7 +502,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     }
   })
 
-  server.registerTool('set_compare', {
+  tool('set_compare', {
     description: 'Say which flow or load-test run this one compares with, or take that out. The one you tag is the newer one, the id you give in "with" the older one, and the reader opens the pair side by side. The tag only helps people find a pair; it limits nothing. A flow is changed like any write (an id that is not a flow is refused). A run is a file in perf/ that is otherwise read only: only its compare line is written, and the rest of the file stays as it is. Leave "with" out to remove the tag.',
     inputSchema: {
       kind: z.enum(['flow', 'run']).describe('What is tagged: a flow or a load-test run.'),
@@ -524,7 +554,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     return `Saved ${mid} in ${aid}: ${n === undefined ? band : `Risk ${n}, ${band}`}.`
   }
 
-  server.registerTool('get_failures', {
+  tool('get_failures', {
     description: 'The failure analyses, worst mode first, each as a table with its coverage (which shapes have no analysis yet), then the problems their files have. Give an analysis id for one, and format csv for a table to paste into a spreadsheet.',
     inputSchema: {
       analysis: z.string().max(64).optional().describe('An analysis id. Leave out for all of them'),
@@ -533,11 +563,11 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     annotations: readOnly,
   }, ({ analysis, format }) => inOrder(async () => {
     try {
-      const loaded = await loadDir(dir)
+      const loaded = await loadDir(here())
       const { model } = loaded
       if (analysis !== undefined && !Object.hasOwn(model.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
       const ids = analysis === undefined ? Object.keys(model.failures) : [analysis]
-      const problems = [...check(model, missingPaths(dir, model)).filter(p => kindOfPath(p.file) === FILE_KINDS.failure), ...loaded.failureProblems]
+      const problems = [...check(model, missingPaths(here(), model)).filter(p => kindOfPath(p.file) === FILE_KINDS.failure), ...loaded.failureProblems]
         .filter(p => analysis === undefined || p.file === pathOf(FILE_KINDS.failure, analysis))
       const parts = ids.map(aid => analysisText(model, aid, model.failures[aid], format ?? 'markdown'))
       if (problems.length > 0) parts.push(`Problems:\n${problems.map(p => `- ${p.file}: ${p.message}`).join('\n')}`)
@@ -547,7 +577,7 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     }
   }))
 
-  server.registerTool('put_failures', {
+  tool('put_failures', {
     description: 'Create or replace a failure analysis (FMEA): a file of failure modes, one per way a part fails. Replacing drops everything the old one had. Answers with how many modes are High, Medium, Low and Not rated.',
     inputSchema: {
       id: id('Analysis id, also its file name'),
@@ -560,13 +590,13 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     },
   }, input => write(m => putAnalysis(m, input), before => analysisSaved(putAnalysis(before, input), input.id), mcpLabel('put_failures', input)))
 
-  server.registerTool('delete_failures', {
+  tool('delete_failures', {
     description: 'Delete a failure analysis and all its modes.',
     inputSchema: { id: id('Analysis id (its file name without .yaml)') },
     annotations: destructive,
   }, input => write(m => deleteAnalysis(m, input.id), `Deleted failure analysis ${input.id}.`, mcpLabel('delete_failures', input)))
 
-  server.registerTool('put_failure', {
+  tool('put_failure', {
     description: 'Create or replace one failure mode of an analysis that exists (put_failures makes one). Replacing drops everything the old mode had, so read it with get_model first (get_failures is only the table) and send every field to keep. Answers with its risk and band.',
     inputSchema: { analysis: id('Analysis id'), id: id('Mode id'), ...modeFields },
   }, input => write(
@@ -575,11 +605,49 @@ export function createMcpServer(dir: string, history?: History): McpServer {
     mcpLabel('put_failure', input),
   ))
 
-  server.registerTool('delete_failure', {
+  tool('delete_failure', {
     description: 'Delete one failure mode from an analysis.',
     inputSchema: { analysis: id('Analysis id'), id: id('Mode id') },
     annotations: destructive,
   }, input => write(m => deleteMode(m, input.analysis, input.id), `Deleted ${input.id} from ${input.analysis}.`, mcpLabel('delete_failure', input)))
+
+  server.registerTool('get_drafts', {
+    description: 'The drafts of this model: id and name. A draft is a model of its own in flowy/drafts/<id>/, for sketching a system or a flow apart from the model.',
+    inputSchema: {},
+    annotations: readOnly,
+  }, () => inOrder(async () => ok({ drafts: await listDrafts(modelDir) })))
+
+  server.registerTool('new_draft', {
+    description: 'Make a draft: a model of its own in flowy/drafts/<id>/, for sketching a system or a flow without touching the model. It starts with copies of the shapes copy names, the shapes they sit in and the lines between them; later changes to the model never reach the copies. Then give draft: <id> to any other tool to read or write the draft.',
+    inputSchema: {
+      id: id('Draft id, also its folder name'),
+      name: z.string().min(1).max(200).describe('What the draft is called, e.g. "LAN transfer"'),
+      about: z.string().optional().describe('Markdown: what the draft tries out. Its first paragraph is what a reader sees first.'),
+      copy: z.array(z.string().max(64)).max(500).optional().describe('Ids of shapes of the model to start with. Left out, the draft starts empty.'),
+    },
+  }, input => inOrder(async () => {
+    try {
+      const { model } = await loadDir(modelDir)
+      await createDraft(modelDir, input.id, newDraft(model, input))
+      const draft = (await loadDir(draftDir(modelDir, input.id))).model
+      return ok(`Made draft ${input.id} with ${Object.keys(draft.objects).length} shapes and ${draft.connections.length} lines. Give draft: "${input.id}" to the other tools to work on it.`)
+    } catch (e) {
+      return fail(e)
+    }
+  }))
+
+  server.registerTool('delete_draft', {
+    description: 'Delete a draft and every file in it. The model is not touched.',
+    inputSchema: { id: id('Draft id') },
+    annotations: destructive,
+  }, input => inOrder(async () => {
+    try {
+      await deleteDraft(modelDir, input.id)
+      return ok(`Deleted draft ${input.id}.`)
+    } catch (e) {
+      return fail(e)
+    }
+  }))
 
   registerGuidance(server)
   return server

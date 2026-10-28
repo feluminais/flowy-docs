@@ -107,7 +107,11 @@ internal sealed partial class ReaderView
         else _nav.Hide();
         ApplyWidths();
         if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
-        else if (tab == PanelTab.Explorer) _nav.Explorer.Update(model, _folder!.Problems, Editing, _panels.Expanded, view, SelectedBox, flow?.Id);
+        else if (tab == PanelTab.Explorer)
+        {
+            _nav.Explorer.Update(model, _folder!.Problems, Editing, _panels.Expanded, view, SelectedBox, flow?.Id);
+            ShowDrafts();
+        }
         else if (tab == PanelTab.Failures) _failures.Show(model, view);
         else if (tab == PanelTab.Yaml && _dir is not null) _nav.Yaml.Show(_dir, _folder!, Recording?.Id ?? flow?.Id, SelectedBox);
         else if (RunsOpen) _nav.RunLinks.Show(model, _folder!.Runs ?? new IdMap<LoadRun>(), _edit.SaveOff);
