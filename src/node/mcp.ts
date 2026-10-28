@@ -39,7 +39,7 @@ const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML fil
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, move_flow (the folder a flow's file is in) and tag_flow (the words that label a flow, such as happy path), put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. To sketch something apart from the model ("draft me ..."), make a draft with new_draft (copy the shapes it starts from), then give draft: <id> to the other tools; list_drafts and delete_draft do the rest. Never write a draft's shapes into the model. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, move_flow (the folder a flow's file is in) and tag_flow (the words that label a flow, such as happy path), put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. To sketch something apart from the model ("draft me ..."), make a draft with new_draft (copy the shapes it starts from), then give draft: <id> to the other tools; get_drafts and delete_draft do the rest. Never write a draft's shapes into the model. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
 - A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the system's name and a short about (put_project), the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
@@ -165,14 +165,14 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     if (!draftHistories.has(at)) draftHistories.set(at, draftHistory?.(at))
     return draftHistories.get(at)
   }
-  const draftArg = z.string().max(64).optional().describe('A draft id (list_drafts names them): work on that draft instead of the model. Left out, the model.')
+  const draftArg = z.string().max(64).optional().describe('A draft id (get_drafts names them): work on that draft instead of the model. Left out, the model.')
   const tool: McpServer['registerTool'] = (name, config, cb) => {
     const call = cb as (...args: unknown[]) => unknown
     const bare = config.inputSchema === undefined // a tool with no input is called with `extra` alone
     const run = (input: unknown, extra: unknown) => (bare ? call(extra) : call(input, extra))
     return server.registerTool(name, { ...config, inputSchema: { ...(config.inputSchema as z.ZodRawShape | undefined), draft: draftArg } }, (async ({ draft, ...input }: { draft?: string }, extra: unknown) => {
       if (draft === undefined) return await run(input, extra)
-      if (!hasDraft(modelDir, draft)) return fail(`There is no draft "${draft}". list_drafts names the drafts there are; new_draft makes one.`)
+      if (!hasDraft(modelDir, draft)) return fail(`There is no draft "${draft}". get_drafts names the drafts there are; new_draft makes one.`)
       return await place.run(draftDir(modelDir, draft), () => run(input, extra))
     }) as never)
   }
@@ -611,7 +611,7 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     annotations: destructive,
   }, input => write(m => deleteMode(m, input.analysis, input.id), `Deleted ${input.id} from ${input.analysis}.`, mcpLabel('delete_failure', input)))
 
-  server.registerTool('list_drafts', {
+  server.registerTool('get_drafts', {
     description: 'The drafts of this model: id and name. A draft is a model of its own in flowy/drafts/<id>/, for sketching a system or a flow apart from the model.',
     inputSchema: {},
     annotations: readOnly,

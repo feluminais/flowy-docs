@@ -72,12 +72,8 @@ public static class FolderLoader
         return value;
     }
 
-    /// <summary>The folder that holds <paramref name="dir"/>: <c>code</c> paths are relative to it.</summary>
-    public static string RepoRoot(string dir)
-    {
-        var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(dir));
-        return Path.GetDirectoryName(full) ?? full;
-    }
+    /// <summary>The folder that holds <paramref name="dir"/>: <c>code</c> paths are relative to it. For a draft it is the one that holds the draft's model folder (see <see cref="Drafts.RepoOf"/>).</summary>
+    public static string RepoRoot(string dir) => Drafts.RepoOf(dir);
 
     /// <summary>The <c>code</c> and <c>links</c> paths in this model that don't exist. A missing folder or file counts as empty.</summary>
     public static HashSet<string> MissingPaths(string dir, Model model)

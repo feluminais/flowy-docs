@@ -27,6 +27,9 @@ export function splitDraftModelId(served: string): { model: string; id: string }
   return m && isDraftId(m[2]) ? { model: m[1] ?? '', id: m[2] } : undefined
 }
 
+/** A deep copy of plain file data (text, lists and mappings), so a draft's copy and the model share nothing. */
+const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
+
 /**
  * A new draft's model: `name` and `about`, and a copy of the shapes `copy` names with the shapes they sit in (so each keeps its place)
  * and the lines between any two of them. The model's own icons and line style come along, since the copies may use them. Throws when
@@ -44,9 +47,9 @@ export function newDraft(model: Model, { name, about, copy = [] }: { name: strin
     for (let at: string | undefined = id; at !== undefined && !kept.has(at) && getObject(model, at) !== undefined; at = model.objects[at].in) kept.add(at)
   }
   // In the model's order, so the copy reads like the model.
-  for (const [id, o] of Object.entries(model.objects)) if (kept.has(id)) draft.objects[id] = structuredClone(o)
-  draft.connections = model.connections.filter(c => kept.has(c.from) && kept.has(c.to)).map(c => structuredClone(c))
-  if (isMap(model.meta.icons)) draft.meta.icons = structuredClone(model.meta.icons)
+  for (const [id, o] of Object.entries(model.objects)) if (kept.has(id)) draft.objects[id] = deepCopy(o)
+  draft.connections = model.connections.filter(c => kept.has(c.from) && kept.has(c.to)).map(c => deepCopy(c))
+  if (isMap(model.meta.icons)) draft.meta.icons = deepCopy(model.meta.icons)
   if (model.meta.lines !== undefined) draft.meta.lines = model.meta.lines
   return draft
 }

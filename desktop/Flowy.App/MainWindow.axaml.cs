@@ -148,7 +148,9 @@ public partial class MainWindow : Window, IDisposable
         }
         // The sample that ships with the app sits in the install folder, which is not for writing.
         var demo = Shell.DemoDir;
-        _reader.CanEdit = demo is null || !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(dir)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(demo)), StringComparison.OrdinalIgnoreCase);
+        // A draft of the sample is in the install folder too.
+        var own = Drafts.ModelOf(dir) ?? dir;
+        _reader.CanEdit = demo is null || !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(own)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(demo)), StringComparison.OrdinalIgnoreCase);
         _reader.Load(folder, dir);
         _reader.RestoreNavigator(_shell.NavigatorFor(dir));
         _menu.ModelOpened();

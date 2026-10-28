@@ -18,6 +18,7 @@ const DOCS = [
   { file: 'guide/failures.md', title: 'Guide: failure modes', description: 'Rating how each part fails, and reading the ranked list.' },
   { file: 'guide/performance.md', title: 'Guide: performance', description: 'Replaying a load test on the diagram.' },
   { file: 'guide/compare.md', title: 'Guide: compare', description: 'Two flows or two runs side by side, the marks of what changed, a note, and the compare tag that makes a pair.' },
+  { file: 'guide/drafts.md', title: 'Guide: drafts', description: 'A sketch of a system or a flow in drafts/<id>/, kept apart from the model: making one, copying shapes into it, and the draft argument of every tool.' },
   { file: 'guide/ai.md', title: 'Guide: AI and MCP', description: 'Setup, the tools, the prompts and what to ask for.' },
   { file: 'guide/share.md', title: 'Guide: check it and share it', description: 'The check command and exporting a read-only site.' },
   { file: 'guide/desktop.md', title: 'Guide: the desktop app', description: 'What the desktop app does and where it differs from the browser.' },

@@ -277,7 +277,7 @@ public class NavigatorTests
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.Equal(PanelTab.Explorer, reader.ShownTabNow); // worked in the diagram: Esc is for the diagram
 
-        Click(window, At(reader.Navigator, window, 0.5, 0.95)); // even a click that lands on nothing in particular
+        Click(window, At(reader.Navigator, window, 0.5, 0.09)); // even a click that lands on nothing in particular
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.Null(reader.ShownTabNow);
     }
@@ -309,7 +309,7 @@ public class NavigatorTests
         Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.Equal(PanelTab.Explorer, reader.ShownTabNow);
-        Click(window, At(reader.Navigator, window, 0.5, 0.95));
+        Click(window, At(reader.Navigator, window, 0.5, 0.09));
         Press(window, Key.Escape, PhysicalKey.Escape);
         Assert.Null(reader.ShownTabNow);
     }
