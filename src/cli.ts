@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
+import { draftFolder } from './core/drafts.ts'
 import { sideReport } from './core/layout.ts'
 import { flowToMermaid, viewToMermaid } from './core/mermaid.ts'
 import { changedLayout } from './core/modelfiles.ts'
@@ -11,6 +12,7 @@ import { tidyViews } from './core/ops.ts'
 import { analysisText } from './core/failures.ts'
 import { FILE_KINDS, kindOfPath, pathOf } from './core/filekinds.ts'
 import { modelOf } from './core/state.ts'
+import { draftDir, listDrafts } from './node/drafts.ts'
 import { exportSite } from './node/export.ts'
 import { loadDir, loadReport, loadState, saveFiles } from './node/files.ts'
 import { openHistory } from './node/history.ts'
@@ -106,7 +108,23 @@ async function printCheck(dir: string): Promise<number> {
   const what = `${count(Object.keys(model.objects).length, 'shape')}, ${count(Object.keys(model.flows).length, 'flow')}, ${count(Object.keys(model.failures).length, 'failure analysis', 'failure analyses')} and ${count(Object.keys(runs).length, 'load-test run')} in ${dir}`
   if (problems.length === 0) console.log(`No problems in ${what}.`)
   else console.error(`${count(problems.length, 'problem')} in ${what}.`)
-  return problems.length > 0 ? 1 : 0
+  // Each draft is a model of its own, checked on its own; its files are named from the model folder.
+  let found = problems.length
+  for (const { id } of await listDrafts(dir)) {
+    const at = draftFolder(id)
+    try {
+      const draft = await loadReport(draftDir(dir, id))
+      for (const p of draft.problems) console.error(`${at}/${p.file}: ${p.message}`)
+      const shapes = `${count(Object.keys(draft.model.objects).length, 'shape')} and ${count(Object.keys(draft.model.flows).length, 'flow')} in draft ${id}`
+      if (draft.problems.length === 0) console.log(`No problems in ${shapes}.`)
+      else console.error(`${count(draft.problems.length, 'problem')} in ${shapes}.`)
+      found += draft.problems.length
+    } catch (e) {
+      console.error(`${at}/${e instanceof Error ? e.message : String(e)}`)
+      found++
+    }
+  }
+  return found > 0 ? 1 : 0
 }
 
 /**
