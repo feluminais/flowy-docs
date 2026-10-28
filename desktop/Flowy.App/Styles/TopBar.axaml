@@ -1,0 +1,20 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the bar: TopBar loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <Style Selector="Button.problems">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.problems:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource WarnTintBrush}" /></Style>
+  <Style Selector="Button.problems Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Button.problems TextBlock.btntext">
+    <Setter Property="Foreground" Value="{DynamicResource WarnFgBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+</Styles>

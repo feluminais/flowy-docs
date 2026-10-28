@@ -51,6 +51,7 @@ internal sealed class PlayerCard : Border
     /// </summary>
     public PlayerCard(bool inPane = false)
     {
+        AreaStyles.Add(this, "Player");
         _inPane = inPane;
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;

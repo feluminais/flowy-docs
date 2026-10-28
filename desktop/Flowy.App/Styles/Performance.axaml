@@ -1,0 +1,102 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the Performance panel: PerfPanel loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <Style Selector="Border.sw.p50, Border.sw.p95, Border.sw.busy">
+    <Setter Property="Width" Value="18" />
+    <Setter Property="Height" Value="2" />
+    <Setter Property="CornerRadius" Value="1" />
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Border.sw.p95"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.sw.busy">
+    <Setter Property="Height" Value="4" />
+    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="Line.knee"><Setter Property="Stroke" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector=":is(Border).sw.heat">
+    <Setter Property="Width" Value="20" />
+    <Setter Property="Height" Value="10" />
+    <Setter Property="CornerRadius" Value="5" />
+  </Style>
+  <Style Selector="Border.sw.pct">
+    <Setter Property="MinWidth" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.sw.pct TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="FontSize" Value="10" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <!-- A line down the chart at the load now: the foreground, faded as the chart draws it. -->
+  <Style Selector="Border.sw.now">
+    <Setter Property="Width" Value="2" />
+    <Setter Property="Height" Value="14" />
+    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
+    <Setter Property="Opacity" Value="0.6" />
+  </Style>
+  <Style Selector="Line.stripes"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Border.sw.call">
+    <Setter Property="Width" Value="11" />
+    <Setter Property="Height" Value="4" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+  </Style>
+  <Style Selector="Border.sw.call.bad"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <!--
+    A run over time: its events as bars above the slider in the colour of the state they leave (a bar for a state with no colour of its own is muted, as in
+    the browser), and a list with a ring for an event the run has not got to and a dot for one it has. The row the run has just got to is lit.
+  -->
+  <Style Selector="Border.eventmark">
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="Border.eventmark.state-starting, Border.eventmark.state-restarting"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.eventmark.state-stopping, Border.eventmark.state-degraded"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.evdot">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="8" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="BorderThickness" Value="1.5" />
+    <Setter Property="BorderBrush" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.evdot.passed">
+    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
+  </Style>
+  <!-- A run with several sources: how they were measured (a pill), and a block for each dial, the active one tinted and marked at its edge in its own colour (set in code). -->
+  <Style Selector="Border.modelabel">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Padding" Value="10,2" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="Border.dial">
+    <Setter Property="BorderThickness" Value="3,0,0,0" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Padding" Value="12,8,10,4" />
+  </Style>
+  <Style Selector="Border.dial.active">
+    <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+  </Style>
+  <Style Selector="Button.event">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="6,4" />
+    <Setter Property="CornerRadius" Value="6" />
+  </Style>
+  <Style Selector="Button.event.current /template/ ContentPresenter, Button.event:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+  </Style>
+</Styles>

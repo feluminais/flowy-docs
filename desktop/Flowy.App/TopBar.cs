@@ -36,6 +36,7 @@ internal sealed class TopBar : Border
 
     public TopBar()
     {
+        AreaStyles.Add(this, "TopBar");
         Classes.Add("bar");
         Child = Build();
     }

@@ -41,6 +41,7 @@ internal sealed class CompareBar : Border
 
     public CompareBar()
     {
+        AreaStyles.Add(this, "CompareBar");
         Classes.Add("bar");
         Classes.Add("comparebar");
         Make(_side, null, "Side by side", "Side by side", "Two flows next to each other", () => ModePicked?.Invoke("side"));

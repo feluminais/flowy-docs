@@ -1,0 +1,50 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the player card: PlayerCard loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <!-- The progress of a flow: a segment a step, filled up to the one shown. -->
+  <Style Selector="Border.seg">
+    <Setter Property="Background" Value="{DynamicResource LineBrush}" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Height" Value="4" />
+  </Style>
+  <Style Selector="Border.seg.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <!-- A lane the stop shown is not in: hollow, as the browser draws it. A group is a box, dashed when it may stop early. -->
+  <Style Selector="Border.seg.off">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+  <Style Selector="Border.seg.off.done"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Rectangle.box.maybe">
+    <Setter Property="Stroke" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="StrokeDashArray" Value="3,3" />
+  </Style>
+  <Style Selector="TextBlock.barlane">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+  </Style>
+  <Style Selector="TextBlock.barlane.on"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <!-- A branch on the bar is a fork: square-cornered lines to each lane, the way to the lane shown in the accent, and a bare line round an "only if". -->
+  <Style Selector="Path.elbow"><Setter Property="Stroke" Value="{DynamicResource LineBrush}" /><Setter Property="StrokeThickness" Value="2" /></Style>
+  <Style Selector="Path.elbow.on"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <!-- A group on the card: the bracket under the progress bar, a branch's lanes as tabs, a parallel stop's lane blocks, and the way back to the flow it was opened from. -->
+  <Style Selector="Border.tab">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="99" />
+    <Setter Property="Padding" Value="9,1" />
+  </Style>
+  <Style Selector="Border.tab TextBlock"><Setter Property="FontSize" Value="12" /><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Border.tab.on"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.tab.on TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <Style Selector="Button.legendbutton.on Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
+  <!-- The cells of the player's progress bar take the colour of the change their steps carry. -->
+  <Style Selector="Border.seg.chg-new, Border.seg.chg-removed, Border.seg.chg-changed"><Setter Property="BorderThickness" Value="1" /></Style>
+  <Style Selector="Border.seg.chg-new"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.seg.chg-removed"><Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="Border.seg.chg-changed"><Setter Property="BorderBrush" Value="{DynamicResource WarnBrush}" /></Style>
+  <Style Selector="Border.seg.chg-new.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <Style Selector="Border.seg.chg-removed.done"><Setter Property="Background" Value="{DynamicResource DangerBrush}" /></Style>
+  <Style Selector="Border.seg.chg-changed.done"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+</Styles>

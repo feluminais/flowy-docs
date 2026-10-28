@@ -1,0 +1,17 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the YAML tab: YamlPanel loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <!-- The YAML tab (YamlPanel): the browser's .yreadonly, .ytabs, .ynum and .yrow.block. -->
+  <Style Selector="StackPanel.yreadonly TextBlock"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
+  <Style Selector="Border.ytabs">
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="0,0,0,1" />
+  </Style>
+  <Style Selector=":is(StackPanel).navtabs.yfiles Button.navtab"><Setter Property="FontWeight" Value="Normal" /></Style>
+  <Style Selector="TextBlock.ynum">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="Opacity" Value="0.75" />
+  </Style>
+  <Style Selector="Border.yblock"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="TextBlock.ynote"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
+</Styles>

@@ -73,7 +73,11 @@ internal sealed class FailuresPanel : StackPanel
     private FailuresShown? _last;
     private string? _shownMode; // the mode the last build showed a card for, so a new pick brings its card into view
 
-    public FailuresPanel() => Spacing = 12;
+    public FailuresPanel()
+    {
+        AreaStyles.Add(this, "Failures");
+        Spacing = 12;
+    }
 
     // What a test can look at.
     internal ModeForm? ModeFormNow => _modeForm;

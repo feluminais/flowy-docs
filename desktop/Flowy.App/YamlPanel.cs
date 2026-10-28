@@ -34,6 +34,7 @@ internal sealed class YamlPanel : Grid
 
     public YamlPanel()
     {
+        AreaStyles.Add(this, "Yaml");
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)];
         Margin = new Thickness(16, 8, 16, 12);
 

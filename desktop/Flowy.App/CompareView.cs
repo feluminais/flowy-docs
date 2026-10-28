@@ -48,6 +48,7 @@ internal sealed class CompareView : Grid
 
     public CompareView()
     {
+        AreaStyles.Add(this, "Compare");
         RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star), new RowDefinition(GridLength.Auto)];
         Bar = new CompareBar();
         Note = new CompareNote();

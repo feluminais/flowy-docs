@@ -1,0 +1,44 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- The styles of the Failures tab: FailuresPanel loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <!-- The thin rule between the Failures tab's two copy buttons. -->
+  <Style Selector="Border.copysep"><Setter Property="Background" Value="{DynamicResource LineBrush}" /></Style>
+  <Style Selector="Border.sw.affects">
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="Opacity" Value="0.45" />
+  </Style>
+  <!-- The Failures tab's list: a row for each mode, with the band's mark, the part and the mode, and the risk. The one picked is tinted like a pressed tool. -->
+  <Style Selector="Button.failrow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="MinHeight" Value="34" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+  <Style Selector="Button.failrow:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="Button.failrow.current /template/ ContentPresenter, Button.failrow.current:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <!-- The word over the risk numbers of a list, and the rule a band stands for beside its count. -->
+  <Style Selector="TextBlock.failhead, Button.failband TextBlock.rule">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Button.failrow TextBlock.part, Button.failrow TextBlock.risk">
+    <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Border.cell">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="12" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="CornerRadius" Value="2" />
+  </Style>
+  <Style Selector="Border.cell.on">
+    <Setter Property="Background" Value="{DynamicResource FgBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource FgBrush}" />
+  </Style>
+</Styles>
