@@ -29,10 +29,11 @@ public static class ModelFolders
         return disk.HasFile(Path.Combine(folder, FolderLayout.ModelFile)) ? folder : null;
     }
 
-    /// <summary>The name a window shows: the repo for <c>&lt;repo&gt;/flowy</c>, else the model folder's own name.</summary>
+    /// <summary>The name a window shows: the repo for <c>&lt;repo&gt;/flowy</c>, else the model folder's own name. A draft is its folder's name and the model's: "group-orders (draft of Plum)".</summary>
     public static string Title(string dir)
     {
         var full = Path.TrimEndingDirectorySeparator(Path.GetFullPath(dir));
+        if (Drafts.ModelOf(full) is { } model) return $"{Path.GetFileName(full)} (draft of {Title(model)})";
         var name = Path.GetFileName(full);
         return name == "flowy" ? Path.GetFileName(Path.GetDirectoryName(full)) is { Length: > 0 } parent ? parent : name : name;
     }

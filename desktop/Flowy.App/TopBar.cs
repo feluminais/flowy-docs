@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -13,6 +14,9 @@ namespace Flowy.App;
 /// </summary>
 internal sealed class TopBar : Border
 {
+    private readonly StackPanel _draftMark = new() { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center }; // inside a draft: the model it belongs to, and Draft; in the bar only there
+    private StackPanel? _left;
+    private readonly Button _ownerButton = new() { Classes = { "crumb" } };
     private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private readonly ComboBox _linePicker = new();
     private readonly ComboBox _modelPicker = new() { IsVisible = false }; // the repo's other models; only there when it has several
@@ -38,6 +42,9 @@ internal sealed class TopBar : Border
 
     /// <summary>Another model of the repo was picked, by its folder.</summary>
     public event Action<string>? ModelPicked;
+
+    /// <summary>The name of the model a draft belongs to was pressed: back to the model.</summary>
+    public event Action? OwnerClicked;
 
     /// <summary>A line style was picked: "straight", "curved" or "angled".</summary>
     public event Action<string>? LinesChosen;
@@ -65,6 +72,11 @@ internal sealed class TopBar : Border
     public event Action<Problem>? ProblemClicked;
 
     internal ComboBox ModelPicker => _modelPicker;
+
+    /// <summary>The model's name in the draft mark, or null when this is no draft. For a test.</summary>
+    internal string? DraftOf => _draftMark.Parent is not null ? AutomationProperties.GetName(_ownerButton) : null;
+
+    internal Button OwnerButton => _ownerButton;
 
     internal ComboBox LinePicker => _linePicker;
 
@@ -120,13 +132,41 @@ internal sealed class TopBar : Border
             if (_dir is not null && ModelFolders.Key(picked.Dir) != ModelFolders.Key(_dir)) ModelPicked?.Invoke(picked.Dir);
             ShowModels(_models, _dir); // this window stays on its own model; the picked one opens in its own window
         };
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
+        _ownerButton.Click += (_, _) => OwnerClicked?.Invoke();
+        ToolTip.SetTip(_ownerButton, "Back to the model");
+        _draftMark.Children.Add(_ownerButton);
+        _draftMark.Children.Add(DraftChip());
+        var left = _left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
         var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _problemsButton, _linePicker, _searchButton, _helpButton, _editButton } };
         var dock = new DockPanel { LastChildFill = false };
         DockPanel.SetDock(right, Dock.Right);
         dock.Children.Add(right);
         dock.Children.Add(left);
         return dock;
+    }
+
+    /// <summary>The chip that says this is a draft: its icon and the word Draft, in the accent, inside a dashed outline.</summary>
+    private static Control DraftChip()
+    {
+        var icon = Icons.Make(Icons.Draft, "draftmark", 14);
+        icon.VerticalAlignment = VerticalAlignment.Center;
+        var word = new TextBlock { Text = "Draft", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 1), Classes = { "draftmark" } };
+        var outline = new Avalonia.Controls.Shapes.Rectangle { RadiusX = 11, RadiusY = 11 };
+        outline.Classes.Add("draftmark");
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Margin = new Thickness(9, 3), Children = { icon, word } };
+        var chip = new Grid { VerticalAlignment = VerticalAlignment.Center, Children = { outline, row } };
+        AutomationProperties.SetName(chip, "Draft");
+        return chip;
+    }
+
+    /// <summary>Inside a draft: the name of the model it belongs to, which leads back, and the Draft chip. Null outside one.</summary>
+    internal void ShowDraft(string? modelName)
+    {
+        _left!.Children.Remove(_draftMark);
+        if (modelName is null) return;
+        _left.Children.Insert(_left.Children.IndexOf(_crumbs), _draftMark);
+        _ownerButton.Content = new TextBlock { Text = modelName, VerticalAlignment = VerticalAlignment.Center };
+        AutomationProperties.SetName(_ownerButton, modelName);
     }
 
     /// <summary>The picker's items and the one selected: this window's model. A name another model shares shows its folder too.</summary>

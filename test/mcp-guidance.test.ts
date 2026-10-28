@@ -77,7 +77,7 @@ test('the guide lists every tool, and SECURITY.md and the guide count them as th
   const security = await readFile('SECURITY.md', 'utf8')
   const table = guide.slice(guide.indexOf('**The tools.**'), guide.indexOf('Not over MCP:'))
   assert.deepEqual(tools.filter(name => !table.includes(`\`${name}\``)), [], 'tools missing from the guide table')
-  const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four']
+  const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty']
   assert.match(guide, new RegExp(`The server has ${words[tools.length]}\\.`))
   const reads = tools.filter(name => name.startsWith('get_')).length
   assert.match(security, new RegExp(`an AI client gets ${words[tools.length]} tools: ${words[reads]} read the model and ${words[tools.length - reads]} change`))

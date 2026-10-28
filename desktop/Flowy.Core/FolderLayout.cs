@@ -70,8 +70,15 @@ public static class FolderLayout
     /// <summary>The name a <c>.yml</c> file should have: <c>order.yml</c> becomes <c>order.yaml</c>.</summary>
     public static string RenamedFromIgnored(string name) => name[..^IgnoredExtension.Length] + Extension;
 
-    /// <summary>Whether a change at this path (relative to the folder) can alter the model: the two files, or anything inside the three folders.</summary>
-    public static bool IsPartOfModel(string rel) => rel.Split('\\', '/')[0] is ModelFile or LayoutFile or FlowsDir or PerfDir or FailuresDir;
+    /// <summary>
+    /// Whether a change at this path (relative to the folder) can alter the model: the two files, or anything inside the three folders. A draft's folder, and the model.yaml in it, change the list of
+    /// drafts but not the model, so they count as well; what else is in a draft does not.
+    /// </summary>
+    public static bool IsPartOfModel(string rel)
+    {
+        var parts = rel.Split('\\', '/');
+        return parts[0] is ModelFile or LayoutFile or FlowsDir or PerfDir or FailuresDir || (parts[0] == Drafts.Folder && (parts.Length == 2 || (parts.Length == 3 && parts[2] == ModelFile)));
+    }
 
     private static string? IdIn(string dir, string rel)
     {

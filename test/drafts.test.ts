@@ -163,7 +163,7 @@ test('mcp: an AI drafts a flow between real shapes without touching the model', 
   assert.deepEqual(Object.keys(model.objects).sort(), ['house', 'router'])
   assert.deepEqual(Object.keys(model.flows), [])
   assert.ok(existsSync(join(dir, 'drafts', 'wlan', 'flows', 'send.yaml')))
-  assert.deepEqual(JSON.parse((await call('list_drafts')).text), { drafts: [{ id: 'wlan', name: 'WLAN transfer' }] })
+  assert.deepEqual(JSON.parse((await call('get_drafts')).text), { drafts: [{ id: 'wlan', name: 'WLAN transfer' }] })
 })
 
 test('mcp: a draft that is not there is refused, and delete_draft removes one', async t => {

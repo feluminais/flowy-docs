@@ -12,6 +12,7 @@ What every part of Flowy does, one page for each part. Read the page for the par
 | [Failure modes](guide/failures.md) | Rating how each part fails | Writing or reading a failure analysis |
 | [Performance](guide/performance.md) | Replaying a load test | Working with runs in `perf/` |
 | [Compare](guide/compare.md) | Two flows or two runs side by side | Showing a change, a fix or a speed-up |
+| [Drafts](guide/drafts.md) | A sketch of a system or a flow kept apart from the model | Trying out something not built or not decided |
 | [AI and MCP](guide/ai.md) | Setup, the tools, the prompts, what to ask for | Letting an AI build or update the model |
 | [Check it and share it](guide/share.md) | `check`, `export`, Mermaid | Gating a build or publishing the model |
 | [The desktop app](guide/desktop.md) | What the app does and where it differs | Using the app |
@@ -35,5 +36,6 @@ Anything else is asked for by name. Each part below has its own page, and it is 
 | How it breaks, risk, FMEA, "what if X is down" | [Failure modes](guide/failures.md) |
 | Load, capacity, "where does it struggle" | [Performance](guide/performance.md) |
 | A fix, a before and after, "what changed", two runs next to each other | [Compare](guide/compare.md) |
+| A draft, a sketch, "try out", something not built yet | [Drafts](guide/drafts.md) |
 | Colour, shape, icon | [Shapes, colour and icons](guide/shapes.md) |
 | Every key of a file, writing YAML by hand | [The file format](format.md) |
