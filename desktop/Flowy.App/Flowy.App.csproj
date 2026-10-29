@@ -24,7 +24,7 @@
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
     <PackageReference Include="Jint" Version="4.17.0" />
-    <PackageReference Include="Markdig" Version="1.4.1" />
+    <PackageReference Include="Markdig" Version="1.4.2" />
     <PackageReference Include="Velopack" Version="1.2.161" />
     <ProjectReference Include="../Flowy.Core/Flowy.Core.csproj" />
     <AvaloniaResource Include="Assets/icon.png" />
