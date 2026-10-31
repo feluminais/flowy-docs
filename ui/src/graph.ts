@@ -59,7 +59,7 @@ const classes = (...names: (string | false | undefined)[]) => names.filter(Boole
  * The React Flow nodes and edges for one view. A box keeps its layout.yaml position; the rest are
  * placed by `place` (dagre, then untangled), moved down past any saved box they would
  * cover. While a flow plays, the current step's two boxes and its line stay lit and everything else
- * is dimmed. A step with no line of its own gets a dashed one. Boxes only the flow uses join for the
+ * is dimmed. A step with no line that runs its way gets a dashed one. Boxes only the flow uses join for the
  * whole flow, as outsiders, so nothing moves between steps. Boxes and lines with problems get the
  * class "problem". Boxes in `states` (the marks of the stop on show, see marksOf) carry their state. Lines keep their labels here; focusEdges decides which to show.
  */
@@ -84,16 +84,17 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const ends = c && placeEnds(model, view, c.from, c.to)
     return ends ? [lineKey(...ends)] : []
   }))
-  // A step lights the line between its two shapes whichever way the step goes: there is one line for both ways.
-  const litLines = new Set(litEnds.map(e => lineKey(...e)))
+  // A step rides a line that runs its way, or one with connections both ways. Against a one-way line it gets a dashed one, so no arrow points against it.
+  const runs = new Set(edges.flatMap(e => (e.both ? [`${e.from}>${e.to}`, `${e.to}>${e.from}`] : [`${e.from}>${e.to}`])))
+  const rides = ([from, to]: [string, string]) => runs.has(`${from}>${to}`)
+  const litLines = new Set(litEnds.filter(rides).map(e => lineKey(...e)))
   const isLit = (from: string, to: string) => litLines.has(lineKey(from, to))
   const faintSteps = (playing?.faint ?? []).flatMap(i => {
     const e = placedAt(i)
     return e ? [{ i, e }] : []
   })
-  const faintLines = new Set(faintSteps.map(f => lineKey(...f.e)))
+  const faintLines = new Set(faintSteps.filter(f => rides(f.e)).map(f => lineKey(...f.e)))
   const isFaint = (from: string, to: string) => faintLines.has(lineKey(from, to))
-  const hasLine = new Set(edges.map(e => lineKey(e.from, e.to)))
   const inView = new Set(members)
   const nodes = boxes.map((id): BoxNode => ({
     id,
@@ -122,17 +123,17 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
       ...(lit ? litLine : {}),
     }
   })
-  // A one-box step lights its box, no line. A step with no connection of its own gets a dashed line, and so does a faint one.
+  // A one-box step lights its box, no line. A step with no line it can ride gets a dashed line, and so does a faint one.
   const drawn = new Set<string>()
   litEnds.forEach((e, n) => {
     const id = lineKey(e[0], e[1])
-    if (e[0] === e[1] || hasLine.has(id) || drawn.has(id)) return
+    if (e[0] === e[1] || rides(e) || drawn.has(id)) return
     drawn.add(id)
     lines.push({ id: n === 0 ? 'step' : `step-${n}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'step', ...litLine })
   })
   for (const { i, e } of faintSteps) {
     const id = lineKey(e[0], e[1])
-    if (e[0] === e[1] || hasLine.has(id) || drawn.has(id)) continue
+    if (e[0] === e[1] || rides(e) || drawn.has(id)) continue
     drawn.add(id)
     lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'lane', markerEnd: { type: 'arrowclosed' } })
   }
