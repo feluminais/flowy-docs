@@ -22,7 +22,7 @@ steps:
   - from: order-api
     to: kitchen-tablet
     text: The restaurant's tablet rings
-    animation: { kind: event, carries: new order, effect: wiggle }
+    animation: { kind: event, carries: new order }
     description: |
       The kitchen has two minutes to accept. Then the order is cancelled, the hold released and
       the customer notified.

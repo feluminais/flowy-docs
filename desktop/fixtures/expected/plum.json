@@ -2357,8 +2357,7 @@
           "description": "The kitchen has two minutes to accept. Then the order is cancelled, the hold released and\nthe customer notified.\n",
           "animation": {
             "kind": "event",
-            "carries": "new order",
-            "effect": "wiggle"
+            "carries": "new order"
           },
           "placed": [
             "order-api",
