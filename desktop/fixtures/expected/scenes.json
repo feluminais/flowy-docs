@@ -1344,9 +1344,9 @@
           "id": "order-api stripe",
           "source": "order-api",
           "target": "stripe",
-          "label": "2 connections",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -1427,6 +1427,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -1706,9 +1716,9 @@
           "id": "delivery events",
           "source": "delivery",
           "target": "events",
-          "label": "reads placed orders",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -1759,6 +1769,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "events",
+          "target": "delivery",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -2985,9 +3005,9 @@
           "id": "order-api stripe",
           "source": "order-api",
           "target": "stripe",
-          "label": "2 connections",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -3068,6 +3088,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -3247,9 +3277,9 @@
           "id": "customer customer-app",
           "source": "customer",
           "target": "customer-app",
-          "label": "orders on a phone",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -3420,6 +3450,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "customer-app",
+          "target": "customer",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -5909,9 +5949,9 @@
           "id": "dispatch ordering",
           "source": "dispatch",
           "target": "ordering",
-          "label": "reads placed orders",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -6002,6 +6042,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "ordering",
+          "target": "dispatch",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -7110,9 +7160,19 @@
           "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
-          "label": "2 connections",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "ordering",
+          "target": "tracking",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -12297,9 +12357,9 @@
           "id": "customer-app order-api",
           "source": "customer-app",
           "target": "order-api",
-          "label": "REST",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -12440,6 +12500,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "order-api",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -14511,9 +14581,9 @@
           "id": "customer-app order-api",
           "source": "customer-app",
           "target": "order-api",
-          "label": "REST",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -14654,6 +14724,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "order-api",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -16184,9 +16264,9 @@
           "id": "kitchen-tablet order-api",
           "source": "kitchen-tablet",
           "target": "order-api",
-          "label": "accepts, marks ready",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -16307,6 +16387,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "order-api",
+          "target": "kitchen-tablet",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -17414,9 +17504,9 @@
           "id": "basket pricing",
           "source": "basket",
           "target": "pricing",
-          "label": "asks for totals",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -17547,6 +17637,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "pricing",
+          "target": "basket",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -20949,9 +21049,9 @@
           "id": "customer customer-app",
           "source": "customer",
           "target": "customer-app",
-          "label": "orders on a phone",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -21122,6 +21222,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "customer-app",
+          "target": "customer",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -23922,9 +24032,9 @@
           "id": "order-api stripe",
           "source": "order-api",
           "target": "stripe",
-          "label": "2 connections",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -24005,6 +24115,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "order-api",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -27080,9 +27200,9 @@
           "id": "api stripe",
           "source": "api",
           "target": "stripe",
-          "label": "charges with",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -27113,6 +27233,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -27227,9 +27357,9 @@
           "id": "api stripe",
           "source": "api",
           "target": "stripe",
-          "label": "charges with",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -27260,6 +27390,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -27376,7 +27516,7 @@
           "target": "stripe",
           "label": null,
           "classes": [
-            "lane"
+            "dim"
           ],
           "selected": false
         },
@@ -27407,6 +27547,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "lane-4",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "lane"
           ],
           "selected": false
         }
@@ -27522,9 +27672,9 @@
           "id": "api stripe",
           "source": "api",
           "target": "stripe",
-          "label": "charges with",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -27555,6 +27705,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "stripe",
+          "target": "api",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -28374,9 +28534,9 @@
           "id": "api db",
           "source": "api",
           "target": "db",
-          "label": "reads and writes",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -28404,6 +28564,16 @@
           "id": "step",
           "source": "billing",
           "target": "db",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step-1",
+          "source": "db",
+          "target": "api",
           "label": null,
           "classes": [
             "step"
