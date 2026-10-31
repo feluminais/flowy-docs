@@ -69,9 +69,12 @@ test('an outsider in a playing step is lit like the rest of the step', () => {
   assert.equal(byId(nodes).mail.className, 'outsider lit')
 })
 
-test('a step against the way a line runs lights that line, one with no line of its own gets a dashed one, and an unshowable step dims everything', () => {
+test('a step against the way a one-way line runs gets a dashed line and leaves that line dim, so do steps with no line, and an unshowable step dims everything', () => {
   const back = toGraph(shop(), 'shop', { ends: [['api', 'web']], step: 0 }).edges
-  assert.deepEqual(back.map(e => [e.id, e.className]), [['customer web', 'dim'], ['api web', 'active'], ['api db', 'dim'], ['api mail', 'dim']])
+  assert.deepEqual(back.map(e => [e.id, e.className]), [['customer web', 'dim'], ['api web', 'dim'], ['api db', 'dim'], ['api mail', 'dim'], ['step', 'step']])
+  assert.deepEqual([back.at(-1)?.source, back.at(-1)?.target], ['api', 'web'])
+  const faint = toGraph(shop(), 'shop', { ends: [['web', 'api'], ['api', 'web']], steps: [0], faint: [1] }).edges
+  assert.deepEqual(faint.filter(e => e.id.startsWith('lane')).map(e => [e.id, e.source, e.target]), [['lane-1', 'api', 'web']])
   const none = toGraph(shop(), 'shop', { ends: [['web', 'db']], step: 0 }).edges.at(-1)
   assert.deepEqual([none?.id, none?.source, none?.target, none?.className], ['step', 'web', 'db', 'step'])
   const { nodes, edges } = toGraph(shop(), 'shop', { ends: [null], step: 0 })

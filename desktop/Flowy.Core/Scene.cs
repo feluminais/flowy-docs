@@ -134,10 +134,11 @@ public static class SceneBuilder
         }).Where(id => id is not null).ToHashSet();
 
         var inside = Views.ChildCounts(model);
-        // A step lights the line between its two shapes whichever way the step goes: there is one line for both ways.
-        var litLines = litEnds.Select(e => LineId(e.From, e.To)).ToHashSet();
-        var faintLines = faintSteps.Select(f => LineId(f.E.From, f.E.To)).ToHashSet();
-        var hasLine = computed.Edges.Select(e => LineId(e.From, e.To)).ToHashSet();
+        // A step rides a line that runs its way, or one with connections both ways. Against a one-way line it gets a dashed one, so no arrow points against it.
+        var runs = computed.Edges.SelectMany(e => e.Both ? new[] { (e.From, e.To), (e.To, e.From) } : new[] { (e.From, e.To) }).ToHashSet();
+        bool Rides((string From, string To) e) => runs.Contains((e.From, e.To));
+        var litLines = litEnds.Where(Rides).Select(e => LineId(e.From, e.To)).ToHashSet();
+        var faintLines = faintSteps.Where(f => Rides(f.E)).Select(f => LineId(f.E.From, f.E.To)).ToHashSet();
         bool IsLit(string from, string to) => litLines.Contains(LineId(from, to));
         bool IsFaint(string from, string to) => faintLines.Contains(LineId(from, to));
         var sceneBoxes = boxes.Select(id => new SceneBox(
@@ -154,17 +155,17 @@ public static class SceneBuilder
             if (badLines.Contains(LineId(e.From, e.To))) flags |= EdgeFlags.Problem;
             lines.Add((LineId(e.From, e.To), e.From, e.To, e.Label == "" ? null : e.Label, flags, e.Both));
         }
-        // A one-box step lights its box, no line. A step with no connection of its own gets a dashed line, and so does a faint one.
+        // A one-box step lights its box, no line. A step with no line it can ride gets a dashed line, and so does a faint one.
         var drawn = new HashSet<string>();
         for (var n = 0; n < litEnds.Count; n++)
         {
             var e = litEnds[n];
-            if (e.From == e.To || hasLine.Contains(LineId(e.From, e.To)) || !drawn.Add(LineId(e.From, e.To))) continue;
+            if (e.From == e.To || Rides(e) || !drawn.Add(LineId(e.From, e.To))) continue;
             lines.Add((n == 0 ? "step" : $"step-{n}", e.From, e.To, null, EdgeFlags.Step, false));
         }
         foreach (var (i, e) in faintSteps)
         {
-            if (e.From == e.To || hasLine.Contains(LineId(e.From, e.To)) || !drawn.Add(LineId(e.From, e.To))) continue;
+            if (e.From == e.To || Rides(e) || !drawn.Add(LineId(e.From, e.To))) continue;
             lines.Add(($"lane-{i}", e.From, e.To, null, EdgeFlags.Lane, false));
         }
 
