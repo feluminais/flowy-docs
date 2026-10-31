@@ -19,7 +19,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
 - Two shapes have one line between them, whichever way their connections run. When they run both ways the line
   has an arrowhead at each end, and its panel lists each way under its own heading: in Plum, the line between
   Ordering and Back office lists "streams every event" under Ordering → Back office and three connections under
-  Back office → Ordering.
+  Back office → Ordering. A flow step that goes against a one-way line plays on a dashed line of its own, so no
+  arrowhead points against it.
 - Lines have no labels until you point at one. Click a shape and its lines show theirs while the
   others fade.
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.

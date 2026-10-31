@@ -109,6 +109,16 @@ public class SceneTests
     }
 
     [Fact]
+    public void A_step_against_the_way_a_one_way_line_runs_gets_a_dashed_line_and_leaves_that_line_dim()
+    {
+        var scene = SceneBuilder.Build(TestModels.Shop(), "shop", new Playing(new (string, string)?[] { ("api", "web") }, 0));
+        Assert.True(Edge(scene, "api web").Flags.HasFlag(EdgeFlags.Dim));
+        var step = Edge(scene, "step");
+        Assert.Equal(("api", "web"), (step.From, step.To));
+        Assert.True(step.Flags.HasFlag(EdgeFlags.Step));
+    }
+
+    [Fact]
     public void The_steps_of_other_lanes_are_drawn_faint_and_dashed_and_their_boxes_stay_dim()
     {
         var ends = new (string, string)?[] { ("web", "api"), ("api", "mail"), ("web", "db") };
