@@ -466,7 +466,7 @@ internal static class Expected
         "flow: right | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/2 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: left | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: home | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
-        "flow: end | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/7 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
+        "flow: end | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/10 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: p | taken | same",
         "flow: shift+p | left | same",
         "flow: r | taken | same",
