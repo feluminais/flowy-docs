@@ -16,6 +16,9 @@ const CARD_SPOTS: [Box, Box, Box[], { width: number; height: number }?][] = [
   [dotAt(900, 300), CANVAS, [], { width: 200, height: 100 }],
   [dotAt(400, 300), CANVAS, [{ x: 440, y: 0, width: 560, height: 700 }, { x: 0, y: 0, width: 390, height: 700 }]],
   [dotAt(485, 335), CANVAS, [{ x: 0, y: 0, width: 500, height: 700 }, { x: 500, y: 0, width: 500, height: 700 }]],
+  // A side blocked and the dot by the bottom: above it. And the player card's corner just under the right-hand spot: it rises beside the dot.
+  [dotAt(400, 560), CANVAS, [{ x: 0, y: 620, width: 1000, height: 80 }, { x: 430, y: 0, width: 570, height: 700 }, { x: 0, y: 0, width: 400, height: 700 }], { width: 20, height: 100 }],
+  [{ x: 675, y: 215, width: 107, height: 33 }, { x: 0, y: 0, width: 1192, height: 679 }, [{ x: 366, y: 380, width: 460, height: 275 }]],
 ]
 
 /** Tags as the files can hold them: good ones, and every kind of wrong one. */

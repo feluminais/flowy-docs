@@ -268,10 +268,10 @@ test('near the right edge it goes left', () => {
   assert.equal(cardSpot(at(900, 300), card, canvas, []).x, 508)
 })
 
-test('it never covers what is kept clear', () => {
+test('it never covers what is kept clear: beside the dot it rises until it is', () => {
   const player = { x: 0, y: 620, width: 1000, height: 80 }
   const spot = cardSpot(at(400, 560), card, canvas, [player])
-  assert.deepEqual(spot, { x: 225, y: 228 })
+  assert.deepEqual(spot, { x: 442, y: 270 }) // right of the dot, its bottom level with the dot's (590 - 320)
   assert.equal(meets({ ...spot, ...card }, player), false)
 })
 
@@ -282,6 +282,11 @@ test('it stays inside the canvas', () => {
 
 test('with nowhere clear it takes the spot that covers least, the first of equals', () => {
   assert.deepEqual(cardSpot(at(100, 300), card, canvas, [canvas]), { x: 142, y: 155 })
+})
+
+test('with a side blocked and the dot by the bottom it goes above it', () => {
+  const blocked = [{ x: 0, y: 620, width: 1000, height: 80 }, { x: 430, y: 0, width: 570, height: 700 }, { x: 0, y: 0, width: 400, height: 700 }]
+  assert.deepEqual(cardSpot(at(400, 560), { width: 20, height: 100 }, canvas, blocked), { x: 405, y: 448 })
 })
 
 test('a card bigger than the canvas starts at its top left corner', () => {
