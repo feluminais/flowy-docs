@@ -1,3 +1,4 @@
+using Flowy.App.Canvas;
 using Flowy.Core;
 
 namespace Flowy.App;
@@ -7,17 +8,19 @@ internal sealed record Playhead(string Flow, int Step, IReadOnlyList<FlowPlace> 
 
 /// <summary>
 /// What a <see cref="Playback"/> asks of the screen: where the flow on show stands (its stop and how many it has; null when none plays), whether the step's
-/// motion is still going, drawing again, and a wait on animation frames (disposing what it returns cancels it).
+/// motion is still going, drawing again, a wait in player time (disposing what it returns cancels it), and the player's clock, which Pause stops.
 /// </summary>
 internal sealed record PlaybackHooks(
     Func<(int Index, int Count)?> Where,
     Func<bool> StepMoving,
     Action Redraw,
-    Func<double, Action, IDisposable> Wait);
+    Func<double, Action, IDisposable> Wait,
+    PlayerClock Clock);
 
 /// <summary>
-/// The playhead and Autoplay: the flow and stop playing, the step (and replay) whose motion has started, the step whose motion has finished, and the wait that
-/// takes Autoplay on to the next stop. It holds no controls; the reader draws, and tells it when a step's motion ends.
+/// The playhead, Play and Pause: the flow and stop playing, the step (and replay) whose motion has started, the step whose motion has finished, and the wait that
+/// takes Play on to the next stop. Pause stops the player's clock where it is, so a step's motion and the waits stand still. It holds no controls; the reader
+/// draws, and tells it when a step's motion ends.
 /// </summary>
 internal sealed class Playback
 {
@@ -25,6 +28,10 @@ internal sealed class Playback
     private string _stepKey = ""; // the step (and replay) now showing; empty when no flow plays
     private string _settledKey = ""; // the step whose motion has finished
     private int _replays;
+    private string? _flow; // the flow the clock last began a step of
+
+    /// <summary>How far a nudge moves a paused step, in ms of player time.</summary>
+    private const double NudgeMs = 100;
     private IDisposable? _wait; // what Autoplay is waiting for, run on animation frames like everything that moves here
 
     public Playback(PlaybackHooks hooks) => _hooks = hooks;
@@ -32,9 +39,15 @@ internal sealed class Playback
     /// <summary>The flow playing and its stop, or null.</summary>
     public Playhead? Head { get; set; }
 
+    /// <summary>Play is on: each finished step is followed by the next.</summary>
     public bool Auto { get; private set; }
 
-    /// <summary>Taking a step yourself, leaving the flow or changing view ends Autoplay. The caller draws.</summary>
+    public bool Paused => _hooks.Clock.Paused;
+
+    /// <summary>Whether the button says Pause: Play is on, or the step you took is still moving.</summary>
+    public bool ShowsPause => !Paused && (Auto || (_hooks.StepMoving() && _settledKey != _stepKey));
+
+    /// <summary>Taking a step yourself, leaving the flow or changing view ends Play. The caller draws.</summary>
     public void StopAuto()
     {
         Auto = false;
@@ -51,6 +64,10 @@ internal sealed class Playback
         key = flowId is null ? "" : $"{flowId}:{index}:{_replays}";
         if (key == _stepKey) return false;
         _stepKey = key;
+        // Another flow, or none: the player runs again, so a flow is never opened frozen.
+        if (flowId != _flow) _hooks.Clock.Play();
+        _flow = flowId;
+        _hooks.Clock.Begin(key);
         return true;
     }
 
@@ -59,6 +76,7 @@ internal sealed class Playback
     {
         if (key != _stepKey) return;
         _settledKey = key;
+        if (!Auto) _hooks.Redraw(); // a step you took has stopped moving: the button says Play now
         ArmAuto();
     }
 
@@ -95,19 +113,29 @@ internal sealed class Playback
         // Otherwise the motion's end settles it (see Settled).
     }
 
-    public void ToggleAuto()
+    /// <summary>Pause when the button says so, else Play: on through the flow from where it stands, or from the start once the last step is over.</summary>
+    public void TogglePlay()
     {
         if (_hooks.Where() is not { } at) return;
-        if (Auto)
+        if (ShowsPause)
         {
+            _hooks.Clock.Pause();
             StopAuto();
             _hooks.Redraw();
             return;
         }
+        var over = at.Index == at.Count - 1 && (!_hooks.StepMoving() || _settledKey == _stepKey);
+        _hooks.Clock.Play();
         Auto = true;
-        if (at.Index == at.Count - 1) Head = Head! with { Step = 0 }; // from the start
+        if (over) Head = Head! with { Step = 0 };
         _hooks.Redraw();
         ArmAuto();
+    }
+
+    /// <summary>A moment back or on, while paused.</summary>
+    public void Nudge(int by)
+    {
+        if (Paused) _hooks.Clock.Seek(_hooks.Clock.Elapsed + by * NudgeMs);
     }
 
     public void Replay()
