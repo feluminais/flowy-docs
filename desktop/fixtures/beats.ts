@@ -8,10 +8,14 @@ const SPOT_CARD = { width: 380, height: 320 }
 const CANVAS: Box = { x: 0, y: 0, width: 1000, height: 700 }
 const dotAt = (x: number, y: number): Box => ({ x, y, width: 30, height: 30 })
 /** Each a dot, the canvas and what is kept clear. */
-const CARD_SPOTS: [Box, Box, Box[]][] = [
+const CARD_SPOTS: [Box, Box, Box[], { width: number; height: number }?][] = [
   [dotAt(100, 300), CANVAS, []], [dotAt(900, 300), CANVAS, []], [dotAt(400, 560), CANVAS, [{ x: 0, y: 620, width: 1000, height: 80 }]],
   [dotAt(100, 20), CANVAS, []], [dotAt(100, 680), CANVAS, []], [dotAt(100, 300), CANVAS, [CANVAS]],
   [dotAt(100, 100), { x: 0, y: 0, width: 300, height: 200 }, []], [dotAt(400, 300), { x: 50, y: 40, width: 0, height: 0 }, [{ x: 390, y: 290, width: 50, height: 50 }]],
+  // A card smaller than the largest; two boxes kept clear on either side, so it takes the spot that covers least; and two halves covering every spot alike, the first of equals.
+  [dotAt(900, 300), CANVAS, [], { width: 200, height: 100 }],
+  [dotAt(400, 300), CANVAS, [{ x: 440, y: 0, width: 560, height: 700 }, { x: 0, y: 0, width: 390, height: 700 }]],
+  [dotAt(485, 335), CANVAS, [{ x: 0, y: 0, width: 500, height: 700 }, { x: 500, y: 0, width: 500, height: 700 }]],
 ]
 
 /** Tags as the files can hold them: good ones, and every kind of wrong one. */
@@ -197,7 +201,7 @@ export function dumpBeats(): unknown {
       pills: [false, true].flatMap(playing => [2, 3, 4, 5].flatMap(depth => [0, 0.5, 1, 1.4, 1.5, 1.6, 2.5, 3.4].map(cards => ({ playing, depth, cards, text: pillText(playing, cards, depth) })))),
       squashes: [false, true].flatMap(sameBox => SQUASHES.map(squash => ({ sameBox, squash, result: tileSquash(sameBox, squash) }))),
       // Where the payload card of a paused dot goes (test/motion.test.ts has the first six).
-      cardSpots: CARD_SPOTS.map(([dot, bounds, avoid]) => ({ dot, card: SPOT_CARD, bounds, avoid, spot: cardSpot(dot, SPOT_CARD, bounds, avoid) })),
+      cardSpots: CARD_SPOTS.map(([dot, bounds, avoid, card = SPOT_CARD]) => ({ dot, card, bounds, avoid, spot: cardSpot(dot, card, bounds, avoid) })),
     },
   }
 }

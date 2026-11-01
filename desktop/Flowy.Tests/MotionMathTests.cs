@@ -268,7 +268,7 @@ public class MotionMathTests
     {
         Assert.Equal((380.0, 320.0, 12.0, 8.0), (MotionMath.Card.Width, MotionMath.Card.Height, MotionMath.Card.Gap, MotionMath.Card.Margin));
         var all = Motion()["cardSpots"]!.AsArray();
-        Assert.Equal(8, all.Count);
+        Assert.Equal(11, all.Count);
         static Rect Box(JsonNode n) => new(n["x"]!.GetValue<double>(), n["y"]!.GetValue<double>(), n["width"]!.GetValue<double>(), n["height"]!.GetValue<double>());
         foreach (var e in all)
         {
@@ -278,4 +278,9 @@ public class MotionMathTests
             Assert.Equal(e["spot"]!["y"]!.GetValue<double>(), spot.Y, 9);
         }
     }
+
+    [Fact]
+    public void With_nothing_it_can_measure_a_card_takes_the_first_spot_as_the_browser_does() =>
+        // An overlap that is not a number makes every spot as bad as the next: cardSpot in ui/src/motion.ts then keeps the right-hand one.
+        Assert.Equal((142.0, 155.0), MotionMath.CardSpot(new Rect(100, 300, 30, 30), (380, 320), new Rect(0, 0, 1000, 700), [new Rect(0, 0, double.NaN, 10)]));
 }
