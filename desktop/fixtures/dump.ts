@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compareOf, compareProblem, linkedIds, partnersOf } from '../../src/core/compare.ts'
 import { dataShown } from '../../src/core/data.ts'
-import { connectionPayloads, stepPayload, stepReply } from '../../src/core/payloads.ts'
+import { connectionPayloads, lineCarries, stepPayload, stepReply } from '../../src/core/payloads.ts'
 import { folderOf, lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Analysis, Model } from '../../src/core/model.ts'
@@ -17,6 +17,18 @@ export const fixtureDirs = (): Record<string, string> =>
   Object.fromEntries(
     Object.entries(JSON.parse(readFileSync(join(root, 'desktop/fixtures/fixtures.json'), 'utf8')) as Record<string, string>).map(([name, dir]) => [name, join(root, dir)]),
   )
+
+/** A view, with what each of its lines carries (left out of a line that carries nothing, so every older fixture is unchanged). */
+const viewDump = (model: Model, id: string) => {
+  const v = computeView(model, id)
+  return {
+    ...v,
+    edges: v.edges.map(e => {
+      const carries = lineCarries(model, id, e.from, e.to).map(c => ({ name: c.payload.name, back: c.back, own: c.own, steps: c.steps }))
+      return carries.length === 0 ? e : { ...e, carries }
+    }),
+  }
+}
 
 /** A connection's payloads as held and the names of the ones that resolve, each left out when there is none. */
 const payloadsDump = (model: Model, c: Model['connections'][number]) => {
@@ -97,6 +109,6 @@ export async function dumpFolder(dir: string): Promise<unknown> {
     // The load-test runs are not dumped here (perf-runs does), except in a folder where one of them holds a compare tag.
     ...(Object.values(state.runs ?? {}).some(r => r.compare !== undefined) ? { runs: Object.entries(state.runs ?? {}).map(([id, r]) => ({ id, name: r.name, compare: r.compare ?? null })), runProblems: state.runProblems ?? [] } : {}),
     // A view's `actors` (the ones its flows add, see flowActors) is left out when there are none, so older fixtures are unchanged.
-    views: Object.fromEntries([ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id)).map(id => [id, { ...computeView(model, id), ...(flowActors(model, id).length === 0 ? {} : { actors: flowActors(model, id) }) }])),
+    views: Object.fromEntries([ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id)).map(id => [id, { ...viewDump(model, id), ...(flowActors(model, id).length === 0 ? {} : { actors: flowActors(model, id) }) }])),
   }
 }

@@ -28,6 +28,8 @@ objects:
   shop: { type: system, name: Shop }
   web: { type: app, in: shop, name: Web }
   api: { type: app, in: shop, name: API }
+  orders: { type: component, in: api, name: Orders }
 connections:
   - { from: web, to: api, label: REST, payloads: [order, nope, { name: Cart, about: The basket. }, { about: No name. }] }
   - { from: api, to: web, label: pushes, payloads: order }
+  - { from: orders, to: web, label: notifies, payloads: [receipt] }
