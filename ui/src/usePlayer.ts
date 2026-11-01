@@ -13,6 +13,12 @@ import type { Spot } from './trail.ts'
 /** The step (and replay) on show, as the player's clock and the step's motions know it: a new key is a new step to play. */
 export const stepKeyOf = (flow: string, stop: number, replays: number): string => `${flow}:${stop}:${replays}`
 
+/** A step key without its stop: the same for every stop of a flow until it is replayed or another flow plays. */
+export const runKeyOf = (stepKey: string): string => {
+  const replays = stepKey.lastIndexOf(':')
+  return `${stepKey.slice(0, stepKey.lastIndexOf(':', replays - 1))}${stepKey.slice(replays)}`
+}
+
 /** The speed kept from last time, or normal speed. */
 const savedSpeed = (): Speed => SPEEDS.find(s => String(s) === readPref('flowy.speed')) ?? 1
 

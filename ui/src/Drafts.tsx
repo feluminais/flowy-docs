@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { DraftInfo } from '../../src/core/drafts.ts'
 import { newId } from './edit.ts'
+import { focusIfLost } from './focusback.ts'
 import { Draft, Plus } from './icons.tsx'
 import { draftAddress, makeDraft } from './models.ts'
 
@@ -14,6 +15,13 @@ export function DraftsList({ drafts, off }: { drafts: DraftInfo[]; off: string |
   const [name, setName] = useState('')
   const [error, setError] = useState<string>()
   const [busy, setBusy] = useState(false)
+  // The name field and its buttons go when it is cancelled, and the focus goes back to the button that opened them.
+  const add = useRef<HTMLButtonElement>(null)
+  const was = useRef(false)
+  useEffect(() => {
+    if (was.current && !naming) focusIfLost(add.current)
+    was.current = naming
+  }, [naming])
   const close = () => {
     setNaming(false)
     setName('')
@@ -52,7 +60,7 @@ export function DraftsList({ drafts, off }: { drafts: DraftInfo[]; off: string |
             {error && <p className="bad" role="alert">{error}</p>}
           </form>
         )
-        : <button className="draft-add" disabled={off !== undefined} title={off} onClick={() => setNaming(true)}><Plus size={16} />New draft</button>}
+        : <button ref={add} className="draft-add" disabled={off !== undefined} title={off} onClick={() => setNaming(true)}><Plus size={16} />New draft</button>}
     </section>
   )
 }

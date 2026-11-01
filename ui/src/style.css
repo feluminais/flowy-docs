@@ -91,7 +91,18 @@ a { color: var(--accent); }
 svg { flex: none; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-.banner { padding: 8px 16px; background: var(--warn-bg); color: var(--warn-fg); }
+.banner { display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--warn-bg); color: var(--warn-fg); overflow-wrap: anywhere; }
+.loading { margin: 0; padding: 16px; }
+/* A part of the page that failed to draw: what stopped it and the way out. */
+.crashed { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; padding: 12px; color: var(--danger); overflow-wrap: anywhere; }
+/* The canvas and the panels take the focus the page puts there (a prompt or a field closing), and show nothing for it. */
+.canvas:focus, .panel:focus { outline: none; }
+/* Show more under a page of rows. */
+.showmore { all: unset; display: block; box-sizing: border-box; padding: 6px 8px; cursor: pointer; color: var(--accent); font-weight: 600; }
+.showmore:hover { text-decoration: underline; }
+.showmore:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 4px; }
+/* Taken by, while the step is not taken by a shape: the heading stays, greyed. */
+.pick-field.off { opacity: 0.55; }
 
 /* The colour of a type, for whatever is tinted with it: a tile, a panel's header, a chip. */
 .t-actor { --c: var(--actor); }
@@ -107,7 +118,9 @@ svg { flex: none; }
  */
 /* In a narrow window (VS Code beside the code) the bar wraps to a second row instead of pushing Edit off the right edge. */
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 5px 12px; border-bottom: 1px solid var(--line); background: var(--bg); }
-.crumbs { display: flex; align-items: center; gap: 2px; margin-right: 6px; }
+.crumbs { display: flex; align-items: center; gap: 2px; margin-right: 6px; min-width: 0; max-width: 100%; }
+.crumbs button { min-width: 0; max-width: 28ch; }
+.crumbs .crumb { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .crumbs > svg { color: var(--line); }
 .crumbs button { color: var(--accent); }
 .crumbs button:hover:not([aria-current='page']) { background: var(--tint); }
@@ -147,7 +160,7 @@ svg { flex: none; }
   position: fixed; z-index: 50; max-height: 260px; overflow: auto; margin: 0; padding: 4px; list-style: none; box-sizing: border-box;
   border: 1px solid var(--line); border-radius: 10px; background: var(--box); color: var(--fg); font-size: 14px; box-shadow: 0 6px 20px #0003;
 }
-.dd-list li { padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+.dd-list li { max-width: 48ch; padding: 6px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dd-list li.at { background: var(--hover); }
 .dd-list li[aria-selected='true'] { color: var(--accent-ink); font-weight: 600; }
 
@@ -378,7 +391,7 @@ svg { flex: none; }
 /* The card never grows past the canvas: its name and its buttons stay, and what is between them scrolls. */
 .player > * { flex: none; }
 .player > .player-body { flex: 0 1 auto; min-height: 0; overflow-y: auto; margin: 0 -16px; padding: 0 16px; }
-.player p { margin: 0 0 6px; }
+.player p { margin: 0 0 6px; overflow-wrap: anywhere; }
 .player-ends { font-weight: 600; }
 /* How the step's request ended, in the words every other place uses (outcomeLine): a fact the picture can't give, so it is text, with a mark beside it. */
 .player .player-outcome { display: flex; align-items: center; gap: 6px; color: var(--danger); font-weight: 600; }
@@ -454,7 +467,7 @@ svg { flex: none; }
   position: absolute; top: calc(100% + 6px); left: 0; z-index: 10; width: min(380px, 90vw); max-height: 60vh; overflow: auto;
   margin: 0; padding: 4px; list-style: none; border: 1px solid var(--line); border-radius: 8px; background: var(--box); box-shadow: 0 4px 16px #0003;
 }
-.problems li button { all: unset; display: block; padding: 6px 8px; border-radius: 4px; cursor: pointer; }
+.problems li button { all: unset; display: block; padding: 6px 8px; border-radius: 4px; cursor: pointer; overflow-wrap: anywhere; }
 .problems li button:hover, .problems li button:focus-visible { background: var(--bg); }
 .react-flow__node.problem .box::after {
   content: '!'; position: absolute; top: -9px; right: -9px; width: 18px; height: 18px; border-radius: 50%;
@@ -466,7 +479,7 @@ svg { flex: none; }
 .notice {
   position: absolute; top: 12px; left: 16px; z-index: 6;
   display: flex; gap: 12px; align-items: flex-start; width: max-content; max-width: min(520px, calc(100% - 32px)); box-sizing: border-box;
-  padding: 8px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-fg); box-shadow: 0 2px 8px #0003; white-space: pre-line;
+  padding: 8px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-fg); box-shadow: 0 2px 8px #0003; white-space: pre-line; overflow-wrap: anywhere;
 }
 .notice button { color: inherit; }
 
@@ -860,6 +873,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .tree-row.sel { background: var(--tint); }
 .tree-row.sel .name { color: var(--accent); }
 .tree:focus-visible .tree-row.focus:not(.sel) { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* The row that is selected and has the keyboard focus keeps its tint and gets the ring too, in the text colour: the tint is the accent's, so an accent ring would vanish into it. */
+.tree:focus-visible .tree-row.focus.sel { outline: 2px solid var(--fg); outline-offset: -2px; }
 .tree-row.dim .name { color: var(--muted); }
 .tree-row .twist { flex: none; display: grid; place-items: center; width: 20px; height: 20px; color: var(--muted); border-radius: 4px; }
 .tree-row .twist:hover { background: var(--hover); }
@@ -908,7 +923,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .event-mark::before { content: ''; position: absolute; left: 50%; top: 0; width: 4px; height: 12px; margin-left: -2px; border-radius: 2px; background: var(--sc, var(--muted)); opacity: 0.45; }
 .event-mark.passed::before { opacity: 1; }
 .events { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
-.event { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 70px 40px 1fr; align-items: center; gap: 4px; width: 100%; padding: 4px 6px; border-radius: 6px; color: var(--muted); cursor: pointer; }
+.event { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 70px 40px minmax(0, 1fr); align-items: center; gap: 4px; width: 100%; padding: 4px 6px; border-radius: 6px; color: var(--muted); cursor: pointer; }
 .event:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
 .event:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .event.passed { color: var(--fg); }
@@ -1421,3 +1436,4 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .run-actions button:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
 .run-actions .linked { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; color: var(--accent); font-size: 12.5px; }
 .cpick.down { top: calc(100% + 6px); bottom: auto; z-index: 6; }
+.event .what { overflow-wrap: anywhere; }

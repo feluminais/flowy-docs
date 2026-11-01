@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { folderOf, FOLDER_RULE, folderPaths, getObject, isValidFolder, tagsOf } from '../../src/core/model.ts'
 import type { Group, Model, Step } from '../../src/core/model.ts'
@@ -17,6 +17,8 @@ import { Dropdown } from './Dropdown.tsx'
 import { Field, Panel } from './forms.tsx'
 import type { Common, SaveEdit } from './forms.tsx'
 import { Section, TypeTile } from './Chrome.tsx'
+import { focusIfLost } from './focusback.ts'
+import { Paged } from './Paging.tsx'
 import { KindPicker, PartnerPicker, SketchPicker, StatePicker, TagPicker } from './Pickers.tsx'
 import type { PartnerTile, Sketch } from './Pickers.tsx'
 import { ArrowDown, ArrowUp, ArrowsSplit, Check, Columns, GitFork, Play, Plus, Repeat, Route, Text, Trash } from './icons.tsx'
@@ -41,8 +43,8 @@ const OUTCOME_CHOICES: Sketch[] = [{ id: '', name: 'Arrives', sketch: OUTCOME_SK
  * How a step plays: the way it travels, the way its request ends, and what goes with an outcome (a share of the requests, a reason, and for an interception
  * who takes it). Each pick or field is one edit. What the step cannot have is greyed out with the reason in its tooltip, so the form never changes shape.
  */
-function StepAnimation({ step, takers, closable, onSet }: {
-  step: Step; takers: { id: string; type: string; name: string; end: boolean }[]; closable: { name: string; kind: ChannelKind }[]; onSet: (key: AnimationKey, value: string) => Promise<boolean>
+function StepAnimation({ step, shapes, closable, onSet }: {
+  step: Step; shapes: { id: string; type: string; name: string }[]; closable: { name: string; kind: ChannelKind }[]; onSet: (key: AnimationKey, value: string) => Promise<boolean>
 }) {
   const { kind, outcome, share, reason, by: taken, byName: named, opens, name, towards, closes } = animationFields(step)
   const travels = typeof step.to === 'string' && step.to !== '' && step.to !== step.from
@@ -61,6 +63,8 @@ function StepAnimation({ step, takers, closable, onSet }: {
   ]
   const intercepted = outcome === 'intercepted'
   const off = (why: string, on: boolean) => (on ? undefined : why)
+  // Every shape is a button, so they are drawn only when the step is taken by one, a page at a time.
+  const takers = intercepted ? shapes.map(t => ({ ...t, end: t.id === step.from || t.id === step.to })) : []
   return (
     <details className="more" open={kind !== '' || undefined}>
       <summary>Animation</summary>
@@ -69,16 +73,18 @@ function StepAnimation({ step, takers, closable, onSet }: {
         <SketchPicker label="Ends as" choices={outcomes} value={outcome} onPick={id => void onSet('outcome', id)} />
         <Field label="Share of requests (1 to 100)" value={share} placeholder="e.g. 30" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('share', v)} />
         <Field label={`Reason (${REASON_MAX} characters)`} value={reason} placeholder="e.g. Rate limit" disabled={!ended} title={off('Pick an outcome first', ended)} onSave={v => onSet('reason', v)} />
-        <div className="pick-field" title={off('Only for Intercepted', intercepted)}>
-          <div className="pick-head"><span>Taken by</span><span className="pick-value">{named !== '' ? named : takers.find(t => t.id === taken)?.name ?? (taken !== '' ? `${taken} · no such shape` : '')}</span></div>
-          <div className="pick-grid shapes-list" role="radiogroup" aria-label="Taken by a shape">
-            {takers.map(t => (
-              <button key={t.id} type="button" role="radio" aria-checked={t.id === taken} disabled={!intercepted || t.end} className="pick taker" title={!intercepted ? 'Only for Intercepted' : t.end ? 'An end of the step' : t.name} onClick={() => t.id !== taken && void onSet('by', t.id)}>
-                <TypeTile type={t.type} size={22} />
-                <span>{t.name}</span>
-              </button>
-            ))}
-          </div>
+        <div className={intercepted ? 'pick-field' : 'pick-field off'} title={off('Only for Intercepted', intercepted)}>
+          <div className="pick-head"><span>Taken by</span><span className="pick-value">{named !== '' ? named : shapes.find(t => t.id === taken)?.name ?? (taken !== '' ? `${taken} · no such shape` : '')}</span></div>
+          <Paged items={takers} floor={takers.findIndex(t => t.id === taken) + 1}>{shown => shown.length > 0 && (
+            <div className="pick-grid shapes-list" role="radiogroup" aria-label="Taken by a shape">
+              {shown.map(t => (
+                <button key={t.id} type="button" role="radio" aria-checked={t.id === taken} disabled={t.end} className="pick taker" title={t.end ? 'An end of the step' : t.name} onClick={() => t.id !== taken && void onSet('by', t.id)}>
+                  <TypeTile type={t.type} size={22} />
+                  <span>{t.name}</span>
+                </button>
+              ))}
+            </div>
+          )}</Paged>
         </div>
         <Field label={`Or a name (${NAME_MAX} characters)`} value={named} placeholder="e.g. Café wifi proxy" disabled={!intercepted} title={off('Only for Intercepted', intercepted)} onSave={v => onSet('byName', v)} />
         <SketchPicker label="Leaves open" choices={leaves} value={opens} onPick={id => void onSet('opens', id)} />
@@ -164,7 +170,7 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
     }
   }
   const range = (name: string) => (
-    <Dropdown name={name} defaultValue={String(steps.length - 1)} options={steps.map((_, i) => [String(i), String(i + 1)])} />
+    <Dropdown key={steps.length} name={name} defaultValue={String(steps.length - 1)} options={steps.map((_, i) => [String(i), String(i + 1)])} />
   )
   return (
     <>
@@ -197,7 +203,7 @@ function GroupsSection({ flowId, steps, groups, edit }: { flowId: string; steps:
         </ul>
       )}
       {steps.length > 0 && (
-        <form className="form" key={steps.length} onSubmit={add}>
+        <form className="form" onSubmit={add}>
           <label>Put steps in a new group<input name="text" placeholder="What it is, e.g. Retry the charge" /></label>
           <KindPicker kinds={KINDS} value={kind} onPick={setKind} />
           <div className="pair"><label>From step{range('first')}</label><label>To step{range('last')}</label></div>
@@ -233,6 +239,19 @@ function FolderList({ model }: { model: Model }) {
 
 /** The step list beside the canvas while recording a flow: click two boxes, type what happens, press Enter. */
 export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose }: Common & { view: string; rec: Recording; onChange: (rec: Recording) => void; onOpenFlow: (id: string) => void }) {
+  // The shapes a step can be taken by, listed once for all its steps, not once for each.
+  const shapes = useMemo(() => Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name || id })), [model.objects])
+  // A deleted step takes the focus with it: it goes to the delete button of the step that took its place (the last, when it was the last), else to the panel.
+  const stepList = useRef<HTMLOListElement>(null)
+  const deleted = useRef<number>(undefined)
+  const count = Object.hasOwn(model.flows, rec.id) ? model.flows[rec.id].steps.length : 0
+  useEffect(() => {
+    const i = deleted.current
+    if (i === undefined) return
+    deleted.current = undefined
+    const buttons = stepList.current?.querySelectorAll<HTMLElement>('button.danger')
+    if (!focusIfLost(buttons?.[Math.min(i, buttons.length - 1)])) focusIfLost(stepList.current?.closest('aside.panel'))
+  }, [count])
   if (!rec.id) return (
     <Panel onClose={onClose}>
       <h2 className="iconhead"><span className="badge"><Route size={14} /></span>New flow</h2>
@@ -299,7 +318,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
           </form>
         )
         : <h2 className="iconhead"><span className="badge"><Route size={14} /></span>{rec.name}</h2>}
-      <ol className="steps form">
+      <ol className="steps form" ref={stepList}>
         {steps.map((s, i) => (
           <li key={i}>
             <Field label={ends(s.from, s.to)} value={s.text} onSave={text => change(all => all.with(i, { ...all[i], text }))} />
@@ -309,7 +328,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
               <Field label="More (Markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
             </details>
             <StepAnimation
-              step={s} takers={Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name || id, end: id === s.from || id === s.to }))}
+              step={s} shapes={shapes}
               closable={flow ? closableAt(flow, stopsOf(flow), i) : []}
               onSet={(key, value) => run(m => {
                 const now = stepsIn(m)[i]
@@ -327,7 +346,10 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
             <div className="step-buttons">
               <button aria-label="Move up" disabled={i === 0} onClick={() => void edit(m => swapSteps(m, rec.id, i, i - 1))}><ArrowUp size={16} /></button>
               <button aria-label="Move down" disabled={i === steps.length - 1} onClick={() => void edit(m => swapSteps(m, rec.id, i, i + 1))}><ArrowDown size={16} /></button>
-              <button className="danger" aria-label="Delete step" onClick={() => void edit(m => removeStep(m, rec.id, i))}><Trash size={16} /></button>
+              <button className="danger" aria-label="Delete step" onClick={() => {
+                deleted.current = i
+                void edit(m => removeStep(m, rec.id, i)).then(saved => { if (!saved) deleted.current = undefined })
+              }}><Trash size={16} /></button>
             </div>
           </li>
         ))}

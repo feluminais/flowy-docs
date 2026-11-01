@@ -15,7 +15,7 @@ import { apiUrl } from './apiurl.ts'
 import { modelOfPage } from './models.ts'
 import { hostTransport, httpTransport } from './transport.ts'
 import type { Transport } from './transport.ts'
-import { entryAfterRestore, replay } from './undo.ts'
+import { entryAfterRestore, pushCapped, replay } from './undo.ts'
 import type { Entry } from './undo.ts'
 
 /** Saves one edit and resolves to what to tell the user, or undefined once it's saved. */
@@ -81,7 +81,7 @@ function watch(onChange: () => void, onLost: () => void): () => void {
  */
 export function useModel(): {
   loaded?: Loaded; banner?: string; edit: Edit; undo: () => Promise<string | undefined>; redo: () => Promise<string | undefined>
-  restore: Restore; tag: Tag; history?: HistoryClient; changes: number; live: boolean
+  restore: Restore; tag: Tag; history?: HistoryClient; changes: number; live: boolean; reload: () => void
 } {
   const [loaded, setLoaded] = useState<Loaded>()
   const [banner, setBanner] = useState<string>()
@@ -113,7 +113,7 @@ export function useModel(): {
   const edit = useCallback<Edit>(op => {
     const run = queue.current.then(async () => {
       const message = await saveEdit(op, transport, (undo, label) => {
-        undos.current.push({ kind: 'edit', undo, label })
+        pushCapped(undos.current, { kind: 'edit', undo, label })
         redos.current = []
       })
       await load()
@@ -140,7 +140,7 @@ export function useModel(): {
       const done = await restoreVersion(id, label, transport, seen)
       const entry = entryAfterRestore(done, seen, label)
       if (entry) {
-        undos.current.push(entry)
+        pushCapped(undos.current, entry)
         redos.current = []
       }
       await load()
@@ -156,10 +156,10 @@ export function useModel(): {
       const last = from.current.pop()
       if (!last) return `Nothing to ${word}.`
       const { message, reverse, stale } = await replay(last, word, transport)
-      if (reverse) to.current.push(reverse)
+      if (reverse) pushCapped(to.current, reverse)
       // Once a file moved on (or the step a restore goes back to is gone), older entries would go back past it. Anything else (a broken file, no server) can be tried again.
       if (stale) from.current = []
-      else if (message) from.current.push(last)
+      else if (message) pushCapped(from.current, last)
       await load()
       return message
     })
@@ -170,6 +170,6 @@ export function useModel(): {
   const redo = useCallback(() => step(redos, undos, 'redo'), [step])
 
   return exported
-    ? { ...exported, edit, undo, redo, restore, tag, changes: 0, live: false }
-    : { loaded, banner, edit, undo, redo, restore, tag, history: transport.history, changes, live: true }
+    ? { ...exported, edit, undo, redo, restore, tag, changes: 0, live: false, reload: () => location.reload() }
+    : { loaded, banner, edit, undo, redo, restore, tag, history: transport.history, changes, live: true, reload: () => void load() }
 }
