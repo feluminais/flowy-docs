@@ -6,9 +6,9 @@ import { colorPair } from '../../src/core/look.ts'
 import type { Beat } from '../../src/core/animation.ts'
 import type { Rect } from './graph.ts'
 
-/** How long Autoplay rests after a step has finished moving, in ms. */
+/** How long Play rests after a step has finished moving, in ms. */
 export const GAP = 900
-/** How long Autoplay stays on a step that doesn't move, or when motion is reduced, in ms. */
+/** How long Play stays on a step that doesn't move, or when motion is reduced, in ms. */
 export const DWELL = 2200
 
 /** How long a step that moves rests between plays while you stay on it, in ms. */

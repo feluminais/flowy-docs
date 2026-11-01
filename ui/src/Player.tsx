@@ -39,7 +39,8 @@ type Props = {
   marks: Record<string, StateMark>
   /** The kinds of channel open at this stop (see channelsAt), for the key. */
   channels: ChannelKind[]
-  auto: boolean
+  /** Whether the button says Pause (Play is on, or the step you took still moves) or Play. */
+  showsPause: boolean
   moving: boolean
   /** Whether a step that moves plays again after a rest. */
   repeat: boolean
@@ -48,7 +49,7 @@ type Props = {
   /** What differs from the other flow of a comparison, by file step number: the bar's cell for a step takes the mark's colour. */
   changes?: Record<number, Change>
   onStep: (stop: number) => void
-  onAuto: () => void
+  onPlay: () => void
   onReplay: () => void
   onRepeat: () => void
   /** Compare with another flow: `off` is why the button is greyed out, `picker` the popover `open` shows above the card. Without it there is no Compare button (a pane of a comparison has none). */
@@ -181,7 +182,7 @@ function inView(box: HTMLElement, item: HTMLElement, below = 0) {
 }
 
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
-export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, auto, moving, repeat, trail, changes, compare, onStep, onAuto, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, showsPause, moving, repeat, trail, changes, compare, onStep, onPlay, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
@@ -262,7 +263,9 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
       <div className="player-buttons">
         <button disabled={stop === 0} onClick={() => onStep(stop - 1)}><StepBack size={16} />Back</button>
         <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
-        <button onClick={onAuto} title="Step through the flow on its own (P)">{auto ? <><Pause size={16} />Pause</> : <><Play size={16} />Autoplay</>}</button>
+        {showsPause
+          ? <button onClick={onPlay} title="Pause (P)"><Pause size={16} />Pause</button>
+          : <button onClick={onPlay} title="Play (P)"><Play size={16} />Play</button>}
         {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={onReplay}><Reload size={16} /></button>}
         {moving && <button aria-label="Repeat" aria-pressed={repeat} title={repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>}
         <button disabled={onStop === undefined} title={onStop === undefined ? 'Close the comparison to stop' : undefined} onClick={onStop}><Close size={16} />Stop</button>

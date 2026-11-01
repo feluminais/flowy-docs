@@ -179,10 +179,10 @@ export function PaneMotions({ p }: { p: PaneFlow }) {
 
 /** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. With marks, its progress bar marks the steps that differ. */
 export function PanePlayer({ model, p, marks }: { model: Model; p: PaneFlow; marks?: SideMarks }) {
-  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
+  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, showsPause, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
   if (!(flow && stop && caption && progress)) return null
   return (
-    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} auto={playing?.auto === true} moving={moving}
-      changes={marks?.steps} repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
+    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} showsPause={showsPause} moving={moving}
+      changes={marks?.steps} repeat={repeat} onStep={stepTo} onPlay={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
   )
 }
