@@ -30,5 +30,6 @@
   "folders": "desktop/fixtures/cases/folders/flowy",
   "bad-tags": "desktop/fixtures/cases/bad-tags/flowy",
   "channels": "desktop/fixtures/cases/channels/flowy",
-  "recurse": "desktop/fixtures/cases/recurse/flowy"
+  "recurse": "desktop/fixtures/cases/recurse/flowy",
+  "payloads": "desktop/fixtures/cases/payloads/flowy"
 }

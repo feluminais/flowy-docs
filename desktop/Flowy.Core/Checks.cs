@@ -76,6 +76,7 @@ public static class Checks
                 foreach (var name in JsCompat.OrderKeys(iconMap.Keys))
                     if (Look.IconProblem(name, iconMap[name]) is { } why) Add(FolderLayout.ModelFile, null, $"icon {name}: {why}");
         }
+        foreach (var message in Payloads.ModelProblems(model.Meta)) Add(FolderLayout.ModelFile, null, message);
 
         foreach (var (id, o) in model.Objects)
         {
@@ -148,6 +149,7 @@ public static class Checks
             foreach (var path in c.NoValue) P(EmptyKeys.Message(path));
             if (!Missing(c.From) && c.From == c.To) P("connects an object to itself");
             if (!seen.Add((c.From, c.To, c.Label ?? ""))) P($"duplicate{(string.IsNullOrEmpty(c.Label) ? "" : $" \"{c.Label}\"")}");
+            foreach (var message in Payloads.ConnectionProblems(model, c)) P(message);
         }
 
         foreach (var (fid, f) in model.Flows)
@@ -187,6 +189,7 @@ public static class Checks
                 else if (Missing(s.From)) Sp("\"from\" is missing");
                 else if (model.GetObject(s.From) is null) Sp($"unknown object \"{s.From}\"");
                 if (!NonEmpty(s.Text)) Sp("text is missing");
+                foreach (var message in Payloads.StepProblems(model, s)) Sp(message);
                 if ((Animations.Problem(s.Animation, !alone) ?? Animations.InterceptorProblem(s.Animation, s.From, s.To, id => model.GetObject(id) is not null)) is { } animation
                     && !(animation == Animations.RecurseHasTo && s.From == s.To)) Sp(animation); // a step to itself is reported below
                 if (alone)

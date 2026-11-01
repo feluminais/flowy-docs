@@ -1,0 +1,8 @@
+name: Checkout
+view: shop
+steps:
+  - { from: web, to: api, text: Places the order, animation: call, payload: order, reply: receipt }
+  - { from: web, to: api, text: Sends a note, animation: send, reply: order }
+  - { from: api, text: Thinks it over, payload: order }
+  - { from: web, to: api, text: Asks for something odd, payload: toString }
+  - { from: web, to: api, text: Names an odd id, payload: constructor, reply: { name: Ack, about: It arrived. }, animation: call }

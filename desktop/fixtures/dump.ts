@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compareOf, compareProblem, linkedIds, partnersOf } from '../../src/core/compare.ts'
 import { dataShown } from '../../src/core/data.ts'
+import { connectionPayloads, stepPayload, stepReply } from '../../src/core/payloads.ts'
 import { folderOf, lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Analysis, Model } from '../../src/core/model.ts'
@@ -16,6 +17,24 @@ export const fixtureDirs = (): Record<string, string> =>
   Object.fromEntries(
     Object.entries(JSON.parse(readFileSync(join(root, 'desktop/fixtures/fixtures.json'), 'utf8')) as Record<string, string>).map(([name, dir]) => [name, join(root, dir)]),
   )
+
+/** A connection's payloads as held and the names of the ones that resolve, each left out when there is none. */
+const payloadsDump = (model: Model, c: Model['connections'][number]) => {
+  const carries = connectionPayloads(model, c).map(p => p.name)
+  return { ...(c.payloads === undefined ? {} : { payloads: c.payloads }), ...(carries.length === 0 ? {} : { carries }) }
+}
+
+/** A step's payload and reply as held, and the names they resolve to, each left out when there is none. */
+const stepPayloadsDump = (model: Model, s: Model['flows'][string]['steps'][number]) => {
+  const sends = stepPayload(model, s)?.name
+  const returns = stepReply(model, s)?.name
+  return {
+    ...(s.payload === undefined ? {} : { payload: s.payload }),
+    ...(s.reply === undefined ? {} : { reply: s.reply }),
+    ...(sends === undefined ? {} : { sends }),
+    ...(returns === undefined ? {} : { returns }),
+  }
+}
 
 /** What a store's data shows, left out (so every older fixture is unchanged) when it shows nothing. */
 const shownOf = (o: Model['objects'][string]) => {
@@ -49,7 +68,9 @@ export async function dumpFolder(dir: string): Promise<unknown> {
     projectAbout: projectAbout(model),
     objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links, snippets: o.snippets, data: o.data, shown: shownOf(o) })),
     icons: model.meta.icons,
-    connections: model.connections.map(c => ({ from: c.from, to: c.to, label: c.label })),
+    // Left out when the file has none, so every older fixture is unchanged: what is held, and the names of what resolves.
+    ...(model.meta.payloads === undefined ? {} : { payloads: model.meta.payloads }),
+    connections: model.connections.map(c => ({ from: c.from, to: c.to, label: c.label, ...payloadsDump(model, c) })),
     layout: model.layout,
     flows: Object.entries(model.flows).map(([id, f]) => ({
       id,
@@ -57,7 +78,7 @@ export async function dumpFolder(dir: string): Promise<unknown> {
       view: f.view,
       steps: f.steps.map(s => {
         const placed = placeStep(model, f.view, s)
-        return { from: s.from, to: s.to, text: s.text, description: s.description, animation: s.animation, group: s.group, lane: s.lane, flow: s.flow, states: s.states, placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null }
+        return { from: s.from, to: s.to, text: s.text, description: s.description, animation: s.animation, group: s.group, lane: s.lane, flow: s.flow, states: s.states, placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null, ...stepPayloadsDump(model, s) }
       }),
       groups: f.groups,
       states: f.states,
