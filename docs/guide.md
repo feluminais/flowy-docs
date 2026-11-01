@@ -6,7 +6,7 @@ What every part of Flowy does, one page for each part. Read the page for the par
 | --- | --- | --- |
 | [The canvas](guide/canvas.md) | Zooming, panels, search, editing, the YAML tab and history | Using or changing how the canvas reads or edits |
 | [Shapes, colour and icons](guide/shapes.md) | Which shape, colour, opacity and icon a box takes | Choosing a look other than the type's default |
-| [Flows](guide/flows.md) | How a request ends, repeats, branches, parallel steps, shape states | Writing a flow beyond plain steps |
+| [Flows](guide/flows.md) | What a step sends, how a request ends, repeats, branches, parallel steps, shape states | Writing a flow beyond plain steps |
 | [Data](guide/data.md) | What a store holds | Showing tables, key sets, topics or collections |
 | [Code](guide/code.md) | A few lines of code on a shape | Showing a formula, a query or a request |
 | [Failure modes](guide/failures.md) | Rating how each part fails | Writing or reading a failure analysis |

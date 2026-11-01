@@ -1,6 +1,21 @@
 # Flows
 
-How a request ends, streams and listeners that stay open, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
+What a step sends, how a request ends, streams and listeners that stay open, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
+
+## What a step sends
+
+A step can say what data it sends with `payload`, and a step that gets something back can say what comes back with `reply`. Each names a
+payload described once under `payloads:` in model.yaml ([the file format](../format.md#payloads)), or writes one out in place with a `name`.
+
+```yaml
+- { from: customer-app, to: order-api, text: POST /orders with the basket, animation: call, payload: order, reply: receipt }
+```
+
+A `reply` goes on a `call`, a `callback` or a `recurse`, the steps where something comes back. A `payload` needs a `to`, except on a
+`recurse`, where the shape sends to itself. A line can list what it carries too, with `payloads:` on the connection.
+
+Keep a payload high level. An `Order` that holds dishes can name `Dish` and leave it at that. A long JSON schema or API shape is fine,
+up to 400 lines.
 
 ## How a request ends
 
