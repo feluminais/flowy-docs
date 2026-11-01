@@ -300,5 +300,23 @@ public class PlaybackTests
         Assert.Equal((0, 1.0), PlayerCard.CellAt(cells, 101, 6)); // between two cells and a little below them: the nearer
         Assert.Equal((2, 0.5), PlayerCard.CellAt(cells, 153, 27)); // the lane below: its cell
     }
+
+    [Fact]
+    public void Dragging_back_into_a_step_that_has_played_waits_for_its_motion_before_the_rest()
+    {
+        var rig = new Rig { Moving = true };
+        rig.Playback.Begin("order", 0, out var key);
+        rig.Clock.Declare(1000);
+        rig.Playback.TogglePlay(); // pause
+        rig.Playback.TogglePlay(); // Play on
+        rig.Wall += 1000;
+        rig.Moving = false;
+        rig.Playback.Settled(key);
+        Assert.Equal(MotionMath.Gap, rig.Waits[^1].Milliseconds);
+        rig.Playback.ScrubStart();
+        rig.Playback.ScrubTo(0, 0.5); // back to the middle of its motion
+        rig.Playback.ScrubEnd();
+        Assert.Equal(500 + MotionMath.Gap, rig.Waits[^1].Milliseconds); // the rest of the motion, then the rest before the next
+    }
 }
 

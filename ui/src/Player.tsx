@@ -97,7 +97,7 @@ function useFill(bar: React.RefObject<HTMLDivElement | null>, clock: PlayerClock
       const cell = bar.current?.querySelector<HTMLElement>('.cell.now')
       const length = clock.length
       cell?.style.setProperty('--fill', String(length > 0 ? Math.min(1, clock.elapsed() / length) : 1))
-      frame = !clock.paused && (length === 0 || clock.elapsed() < length) ? requestAnimationFrame(draw) : 0
+      frame = !clock.paused && length > 0 && clock.elapsed() < length ? requestAnimationFrame(draw) : 0 // a motion that says how long it is wakes it
     }
     draw()
     const heard = clock.subscribe(() => {

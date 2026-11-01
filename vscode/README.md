@@ -10,7 +10,7 @@ is plain YAML that sits in git next to the code it describes.
 
 - **Read it.** Run **Flowy: Open Docs**. Double-click a shape to zoom in, point at a line to read its label, click a shape
   for its description, the files it lives in and everything it connects to. The **Flows** tab plays a flow one step at a
-  time, with **Autoplay**.
+  time, with **Play** and **Pause**, a speed and a bar you can drag.
 - **See more than the structure.** The tabs on the left list every shape, flow, load-test run and failure mode. **Compare** puts
   two flows, or two runs, side by side.
 - **Edit it.** Press **E** in the panel to add shapes, rename them, drag them, connect them, write flows, and undo or redo.

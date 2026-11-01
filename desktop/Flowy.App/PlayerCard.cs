@@ -474,7 +474,12 @@ internal sealed class PlayerCard : Border
         var play = v.ShowsPause ? Tool(Icons.Pause, "Pause", () => Play?.Invoke()) : Tool(Icons.Play, "Play", () => Play?.Invoke());
         ToolTip.SetTip(play, v.ShowsPause ? "Pause (P)" : "Play (P)");
         left.Children.Add(play);
-        if (v.Moving) left.Children.Add(Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step"));
+        if (v.Moving)
+        {
+            var replay = Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step");
+            ToolTip.SetTip(replay, "Replay this step (R)");
+            left.Children.Add(replay);
+        }
         var speeds = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(8, 0, 0, 0) };
         speeds.Classes.Add("speed");
         ToolTip.SetTip(speeds, "Speed (S)");
@@ -487,7 +492,11 @@ internal sealed class PlayerCard : Border
             button.Classes.Add("speed");
             AutomationProperties.SetName(button, words);
             button.Click += (_, _) => Speed?.Invoke(speed);
-            if (Clock?.Rate == speed) button.Classes.Add("on");
+            if (Clock?.Rate == speed)
+            {
+                button.Classes.Add("on");
+                AutomationProperties.SetItemStatus(button, "Chosen"); // the tint is not the only copy of which speed it is
+            }
             speeds.Children.Add(button);
         }
         DockPanel.SetDock(speeds, Dock.Right);

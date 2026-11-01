@@ -159,7 +159,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
   const stateMarks = flow ? flowMarks : runMarks
   const detailsOpen = details || (side !== undefined && !manyPicked) // the right-hand side holds Details and nothing else
-  useCssClock(canvas, clock, stepKey)
+  useCssClock(canvas, clock, stepKey, !comparing)
   const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays })
   const left = cameFrom(model.flows, playing?.trail ?? [])
   const trail = flow ? left : undefined

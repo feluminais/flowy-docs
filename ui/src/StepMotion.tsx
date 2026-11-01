@@ -415,9 +415,9 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
     const unheard = clock.subscribe(() => {
       if (frameId === 0) frameId = requestAnimationFrame(loop)
     })
-    // Repeat turned on after the motion is over plays it again from the start.
+    // Repeat turned on after the motion is over plays it again from the start. Paused, it waits: the frozen moment stays.
     wake.current = () => {
-      if (frameId === 0) clock.restart()
+      if (frameId === 0 && !clock.paused) clock.restart()
     }
     return () => {
       wake.current = undefined
