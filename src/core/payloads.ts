@@ -3,6 +3,7 @@ import { ID_RULE, isValidId } from './model.ts'
 import type { Connection, Model, Step } from './model.ts'
 import { codeLines, isBlankCode, LANGUAGES, languageOf } from './snippets.ts'
 import { hasText, isMap } from './text.ts'
+import { lineKey, placeEnds, placeStep } from './views.ts'
 
 /**
  * The data a line carries and a flow step sends: a name, and any mix of a few words about it, its whole shape (a type, a JSON schema, a CSV header) and a filled-in
@@ -187,4 +188,47 @@ export function payloadUsers(model: Model, id: string): string[] {
   const lines = model.connections.filter(c => Array.isArray(c.payloads) && c.payloads.includes(id)).map(c => `connection ${c.from} → ${c.to}`)
   const steps = Object.entries(model.flows).flatMap(([fid, f]) => f.steps.flatMap((s, i) => (s.payload === id || s.reply === id ? [`flow ${fid} step ${i + 1}`] : [])))
   return [...lines, ...steps]
+}
+
+/**
+ * One payload a drawn line carries: `back` when it runs from the line's `to` to its `from`, `own` when a connection the line draws lists it, and the flow steps that send it
+ * (`step` counts from 0; `reply` when it is what comes back).
+ */
+export type Carried = { payload: Shown; back: boolean; own: boolean; steps: { flow: string; step: number; reply: boolean }[] }
+
+/**
+ * What the line from `from` to `to` in `view` carries: the payloads of every connection it draws (a zoomed-out line may draw several, either way), then what every flow
+ * step that lands on it sends and gets back. One with an id is one row however many name it; one written in place is always a row of its own.
+ */
+export function lineCarries(model: Model, view: string, from: string, to: string): Carried[] {
+  const line = lineKey(from, to)
+  const rows: Carried[] = []
+  const byId = new Map<string, Carried>()
+  const add = (ref: unknown, back: boolean, own: boolean): Carried | undefined => {
+    const id = typeof ref === 'string' ? ref : undefined
+    const known = id === undefined ? undefined : byId.get(id)
+    if (known) return known
+    const payload = resolvePayload(model, ref)
+    if (!payload) return undefined
+    const row: Carried = { payload, back, own, steps: [] }
+    rows.push(row)
+    if (id !== undefined) byId.set(id, row)
+    return row
+  }
+  for (const c of model.connections) {
+    const ends = placeEnds(model, view, c.from, c.to)
+    if (!ends || lineKey(...ends) !== line || !Array.isArray(c.payloads)) continue
+    for (const ref of c.payloads) add(ref, ends[0] !== from, true)
+  }
+  for (const [flow, f] of Object.entries(model.flows)) {
+    f.steps.forEach((s, step) => {
+      if (s.to === undefined || typeof s.from !== 'string') return
+      const ends = placeStep(model, view, s)
+      if (!ends || ends[0] === ends[1] || lineKey(...ends) !== line) return
+      const back = ends[0] !== from
+      if (s.payload !== undefined) add(s.payload, back, false)?.steps.push({ flow, step, reply: false })
+      if (s.reply !== undefined) add(s.reply, !back, false)?.steps.push({ flow, step, reply: true })
+    })
+  }
+  return rows
 }

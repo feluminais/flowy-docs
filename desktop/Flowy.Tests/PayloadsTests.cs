@@ -64,4 +64,40 @@ public class PayloadsTests
         Assert.Equal("Order", Payloads.OfStep(Model(), s)?.Name);
         Assert.Equal("Receipt", Payloads.ReplyOf(Model(), s)?.Name);
     }
+
+    /// <summary>A shop of web → api and a component inside api; the line web–api draws web → api (carrying the order) and orders → web (the receipt).</summary>
+    private static Model Shop()
+    {
+        var steps = new List<Step>
+        {
+            new("web", "api", "POST /orders", null, "call") { Payload = "order", Reply = "refund" },
+            new("api", "web", "Pushes an update", null) { Payload = Map(("name", "Update"), ("about", "Inline.")) },
+        };
+        var objects = new IdMap<FlowyObject>();
+        objects.Add("shop", new FlowyObject("system", "Shop", null, null, null, null, null));
+        objects.Add("web", new FlowyObject("app", "Web", "shop", null, null, null, null));
+        objects.Add("api", new FlowyObject("app", "API", "shop", null, null, null, null));
+        objects.Add("orders", new FlowyObject("component", "Orders", "api", null, null, null, null));
+        var flows = new IdMap<Flow>();
+        flows.Add("checkout", new Flow("Checkout", "shop", steps));
+        return new Model
+        {
+            Objects = objects,
+            Connections = [new Connection("web", "api", "REST") { Payloads = new List<object?> { "order" } }, new Connection("orders", "web", "notifies") { Payloads = new List<object?> { "refund" } }],
+            Flows = flows,
+            Meta = Model().Meta,
+        };
+    }
+
+    [Fact]
+    public void A_line_lists_its_connections_payloads_then_what_steps_send_along_it_once_each_by_id()
+    {
+        var rows = Payloads.OnLine(Shop(), "shop", "web", "api").Select(c => (c.Payload.Name, c.Back, c.Own, c.Steps.Count)).ToList();
+        Assert.Equal([("Order", false, true, 1), ("refund", true, true, 1), ("Update", true, false, 1)], rows);
+    }
+
+    [Fact]
+    public void A_payload_a_step_sends_the_other_way_and_a_reply_run_back() =>
+        Assert.Equal([true, false, false], Payloads.OnLine(Shop(), "shop", "api", "web").Select(c => c.Back));
 }
+
