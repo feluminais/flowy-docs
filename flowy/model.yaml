@@ -424,7 +424,7 @@ objects:
     name: Side panel
     code: [ui/src/Panel.tsx, ui/src/Chrome.tsx, ui/src/icons.tsx, ui/src/Search.tsx, ui/src/Code.tsx, ui/src/highlight.ts, ui/src/hljs.ts]
     description: |
-      A shape's description, a store's data, its code snippets, links, source files and connections (out and in) while reading; the fields, the flow recorder and Add while editing. Search finds a shape anywhere in the model.
+      A shape's description, a store's data, its code snippets, links, source files and connections (out and in), with the payloads each line carries, while reading; the fields, the flow recorder and Add while editing. Search finds a shape anywhere in the model.
 
       It matches the desktop app: a header in the shape's colour with its tile and chips, then
       section headings and cards, and icons on the bar's buttons.
@@ -522,7 +522,9 @@ objects:
       id nobody defined, a payload that says nothing, a schema of more than 400 lines, a reply on a step that gets no answer) and writes
       their keys in order.
 
-      Nothing here draws yet. The desktop app's port (`Payloads.cs`) is kept equal by fixtures.
+      It also says what a drawn line carries (its connections' payloads and what flow steps send along it, each with the way it goes) and
+      the words a step's moving dot says. Nothing here draws: the panels and the player card in both readers do. The desktop app's port
+      (`Payloads.cs`) is kept equal by fixtures.
   perf:
     type: component
     in: core

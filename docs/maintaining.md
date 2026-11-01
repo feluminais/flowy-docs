@@ -356,6 +356,10 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       left when it ends. R plays it again from a clean start, and ← → in a hurry leave no card or counter on any box. With the system's
       animation effects off only `↻ 3 deep` shows, and Play (P) still moves on. The browser (`npx flowy-docs --dir docs/demo`, then
       `#order-api/price-a-deal`) does the same. Light and dark both read.
+- [ ] Open Ordering and click the line from Customer app to Order API: the line panel has Payloads 2, Basket open with its TypeScript shape and
+      JSON example, then Receipt, whose tooltip names "Customer places an order, step 2 reply". Click Customer app: Basket sits closed under REST.
+      Play "Customer places an order" to step 2: the card lists Basket (out) and Receipt (back), and the answer's dot says Receipt. Both readers
+      show the same, light and dark.
 - [ ] Play "Customer places an order" and press P while a dot is on its way: it stops where it is, and P again carries it on from there.
       Pause on "The customer follows the courier" while the live map comes in: it stays half drawn, and its dots stand still. Drag the bar
       to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Pick 2×:
