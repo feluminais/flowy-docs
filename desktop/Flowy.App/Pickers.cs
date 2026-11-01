@@ -192,6 +192,7 @@ internal sealed class FadeBar : Control
     private const double Pad = 9;
     private int _value;
     private bool _dragging;
+    private bool _keyFocus;
     private (string Light, string Dark) _color = ("#378add", "#85b7eb");
 
     public FadeBar()
@@ -200,9 +201,21 @@ internal sealed class FadeBar : Control
         Focusable = true;
         Cursor = new Cursor(StandardCursorType.Hand);
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
-        GotFocus += (_, _) => InvalidateVisual();
-        LostFocus += (_, _) => InvalidateVisual();
+        // The halo is the focus cue: it shows when Tab or the arrows bring the keyboard here, never after a click.
+        GotFocus += (_, e) =>
+        {
+            _keyFocus = e.NavigationMethod is NavigationMethod.Tab or NavigationMethod.Directional;
+            InvalidateVisual();
+        };
+        LostFocus += (_, _) =>
+        {
+            _keyFocus = false;
+            InvalidateVisual();
+        };
     }
+
+    /// <summary>Whether the focus halo is drawn, for tests.</summary>
+    internal bool Halo => _keyFocus;
 
     /// <summary>The value moved, to show it while it is being dragged.</summary>
     public event Action<int>? Moved;
@@ -253,7 +266,7 @@ internal sealed class FadeBar : Control
         }
         context.DrawRectangle(null, new Pen(Brush("LineBrush"), 1), round);
         var x = Pad + _value / 100.0 * track.Width;
-        if (IsKeyboardFocusWithin) context.DrawEllipse(Brush("AccentTintBrush"), null, new Point(x, 12), 12, 12);
+        if (_keyFocus) context.DrawEllipse(Brush("AccentTintBrush"), null, new Point(x, 12), 12, 12);
         context.DrawEllipse(Brush("BoxBrush"), new Pen(Brush("AccentBrush"), 2), new Point(x, 12), 8, 8);
     }
 
@@ -380,8 +393,12 @@ internal sealed class IconPicker : StackPanel
         {
             if (e.Key != Key.Escape) return;
             e.Handled = true;
-            Open(false);
-            _row.Focus();
+            if (!string.IsNullOrEmpty(_filter.Text)) _filter.Text = ""; // the first Esc empties the filter, the next closes the grid
+            else
+            {
+                Open(false);
+                _row.Focus();
+            }
         };
 
         Children.Add(Pick.Head("Icon", out _));
@@ -408,7 +425,11 @@ internal sealed class IconPicker : StackPanel
     {
         _pop.IsVisible = open;
         _chevron.RenderTransform = new RotateTransform(open ? 90 : 0);
-        if (!open) return;
+        if (!open)
+        {
+            _filter.Text = ""; // the grid opens again on every icon
+            return;
+        }
         Build();
         Dispatcher.UIThread.Post(() => _filter.Focus());
     }
@@ -416,7 +437,6 @@ internal sealed class IconPicker : StackPanel
     private async Task Select(string icon)
     {
         Open(false);
-        _filter.Text = "";
         _hint.Text = Shown();
         if (icon != _current) await _picked(icon);
     }
