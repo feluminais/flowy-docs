@@ -75,6 +75,9 @@ internal sealed class LaunchScript
         if (options.Has("--remove-link")) _reader.AskToRemoveFlowLink(); // the flow form's Remove, which asks "Remove the link and its note" when the link holds a note
         if (options.Value("--line") is { } line && line.Split(' ') is [var from, var to]) _reader.OpenLine(from, to);
         if (options.Value("--hover") is { } hover) _reader.SetHover(hover);
+        // --pause-at pauses the step on show that many ms into its motion, and --hover-dot then shows the payload card of its first dot that carries one.
+        if (options.Value("--pause-at") is { } pause && double.TryParse(pause, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var ms))
+            _reader.PauseAt(ms, options.Has("--hover-dot"));
         if (options.Value("--search") is { } search) _reader.OpenSearch(search);
         if (options.Has("--shortcuts")) _reader.ShowShortcuts();
         if (options.Value("--zoom") is { } zoom) _reader.OpenBox(zoom);
