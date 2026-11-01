@@ -239,16 +239,18 @@ const overlap = (a: Box, b: Box): number =>
   Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y))
 
 /**
- * Where the payload card of a dot goes: right of it, else left, below or above, each kept inside `bounds`. The first that covers neither the dot nor anything in
+ * Where the payload card of a dot goes: right of it, else left (level with the dot's middle, then with its bottom, then with its top), else below or above, each kept
+ * inside `bounds`. The first that covers neither the dot nor anything in
  * `avoid` (the player card, the side panel) wins; with none clear, the one that covers least, the first of equals. A card too big for the canvas starts at its corner.
  */
 export function cardSpot(dot: Box, card: { width: number; height: number }, bounds: Box, avoid: readonly Box[]): { x: number; y: number } {
   const { gap, margin } = CARD
   const clamp = (v: number, low: number, size: number, room: number) => Math.max(low + margin, Math.min(v, low + room - margin - size))
   const middle = { x: dot.x + dot.width / 2, y: dot.y + dot.height / 2 }
+  const [right, left] = [dot.x + dot.width + gap, dot.x - gap - card.width]
+  const [level, raised, lowered] = [middle.y - card.height / 2, dot.y + dot.height - card.height, dot.y]
   const spots = [
-    { x: dot.x + dot.width + gap, y: middle.y - card.height / 2 },
-    { x: dot.x - gap - card.width, y: middle.y - card.height / 2 },
+    { x: right, y: level }, { x: left, y: level }, { x: right, y: raised }, { x: left, y: raised }, { x: right, y: lowered }, { x: left, y: lowered },
     { x: middle.x - card.width / 2, y: dot.y + dot.height + gap },
     { x: middle.x - card.width / 2, y: dot.y - gap - card.height },
   ].map(s => ({ x: clamp(s.x, bounds.x, card.width, bounds.width), y: clamp(s.y, bounds.y, card.height, bounds.height) }))

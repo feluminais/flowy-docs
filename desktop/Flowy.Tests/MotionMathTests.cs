@@ -268,7 +268,7 @@ public class MotionMathTests
     {
         Assert.Equal((380.0, 320.0, 12.0, 8.0), (MotionMath.Card.Width, MotionMath.Card.Height, MotionMath.Card.Gap, MotionMath.Card.Margin));
         var all = Motion()["cardSpots"]!.AsArray();
-        Assert.Equal(11, all.Count);
+        Assert.Equal(13, all.Count);
         static Rect Box(JsonNode n) => new(n["x"]!.GetValue<double>(), n["y"]!.GetValue<double>(), n["width"]!.GetValue<double>(), n["height"]!.GetValue<double>());
         foreach (var e in all)
         {
