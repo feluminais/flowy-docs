@@ -14,8 +14,10 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   one you're in, not inside it, so opening it slides across instead of zooming in.
 - Hover a shape for its short description. Click it for the full text and its connections: every
   line out and in, with its label. A line that stands for several connections opens to list them.
-  Pointing at a row lights its line on the canvas, and the shape's name opens that shape. Click a line
-  to see the connections it stands for.
+  Pointing at a row lights its line on the canvas, and the shape's name opens that shape. Under a line's label
+  are the payloads it carries, each a row with an arrow for the way it goes that opens to what it is about, its
+  shape and an example; a payload only a flow step sends sits under the line once, and its tooltip names the step.
+  Click a line to see the connections it stands for, with a Payloads section under them and the first one open.
 - Two shapes have one line between them, whichever way their connections run. When they run both ways the line
   has an arrowhead at each end, and its panel lists each way under its own heading: in Plum, the line between
   Ordering and Back office lists "streams every event" under Ordering → Back office and three connections under

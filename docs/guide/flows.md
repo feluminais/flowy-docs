@@ -17,6 +17,11 @@ A `reply` goes on a `call`, a `callback` or a `recurse`, the steps where somethi
 Keep a payload high level. An `Order` that holds dishes can name `Dish` and leave it at that. A long JSON schema or API shape is fine,
 up to 400 lines.
 
+When the step plays, the moving dot says the payload's name, unless its `animation` gives a word of its own (`carries`), and a call's
+answer says the reply's name. The player card lists the step's payload and its reply under its text, each a row that opens. The panel
+of a shape lists them under the lines they travel, and a line's panel has them all under Payloads. A payload's code shows at most
+240 pixels of itself and scrolls past that.
+
 ## How a request ends
 
 A step's `animation` can say how its request ends. With no `outcome` the request arrives, and a `call` is answered.
