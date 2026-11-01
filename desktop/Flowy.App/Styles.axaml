@@ -140,6 +140,7 @@
   </Style>
   <Style Selector="SelectableTextBlock">
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+    <Setter Property="IsTabStop" Value="False" />
   </Style>
   <Style Selector="TextBlock.muted">
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
@@ -591,9 +592,14 @@
     <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
     <Setter Property="FontWeight" Value="SemiBold" />
   </Style>
+  <!-- Tab on a box: a dashed outline in the text colour, so it is not read as the box picked (a solid accent outline). Picked and tabbed to: accent, dashed. -->
   <Style Selector=":is(Grid).box:focus-visible Path.outline">
-    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Stroke" Value="{DynamicResource FgBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
+    <Setter Property="StrokeDashArray" Value="3,2" />
+  </Style>
+  <Style Selector=":is(Grid).box.selected:focus-visible Path.outline">
+    <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
   </Style>
 
   <!-- The glyph's ring and drawing, wherever the glyph sits: on a shape, in the key under the player, in Details. -->

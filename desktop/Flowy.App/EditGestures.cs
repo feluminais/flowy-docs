@@ -12,12 +12,14 @@ internal sealed class EditGestures
     private readonly IReader _reader;
     private readonly EditMode _edit;
     private readonly CanvasView _canvas;
+    private readonly PickedBar _bar;
 
     public EditGestures(IReader reader, EditMode edit, CanvasView canvas, PickedBar pickedBar)
     {
         _reader = reader;
         _edit = edit;
         _canvas = canvas;
+        _bar = pickedBar;
         pickedBar.DeleteRequested += () => _ = DeleteSelectedAsync();
         pickedBar.ClearRequested += ClearPicked;
         _canvas.BoxToggled += ToggleBox;
@@ -135,8 +137,10 @@ internal sealed class EditGestures
     /// <summary>Lets the boxes picked go: Esc, or the bar's clear button.</summary>
     internal void ClearPicked()
     {
+        var held = KeyboardFocus.Within(_bar); // its Clear button had the keyboard, and the bar goes with the pick
         _reader.Pick = null;
         _reader.Refresh();
+        if (held) _reader.TakeFocus();
     }
 
     /// <summary>A box drawn round boxes (Shift and drag): they are the boxes picked.</summary>
