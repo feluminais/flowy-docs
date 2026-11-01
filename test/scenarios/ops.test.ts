@@ -15,7 +15,7 @@ import { fixtures, ONLY_FIXTURE, ONLY_SEED, report, seedsOf, signature } from '.
  * mcp.test.ts does the same through the MCP tools.
  */
 const SCENARIOS = Number(process.env.FLOWY_SCENARIOS ?? 20)
-const STEPS = Number(process.env.FLOWY_SCENARIO_STEPS ?? 25)
+const STEPS = Number(process.env.FLOWY_SCENARIO_STEPS ?? 28)
 
 /**
  * Violations that are real and known, by "rule:op". Each line is a bug somebody is to fix; when it is fixed the test fails until its line is

@@ -20,9 +20,10 @@ import type { Model } from '../core/model.ts'
 import { describeDependent } from '../core/dependents.ts'
 import { newDraft } from '../core/drafts.ts'
 import type { Dependent } from '../core/dependents.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, refuseNewProblems, setCompare, setFlowTags, setProject, tidyViews } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deletePayload, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, putPayload, refuseNewProblems, setCompare, setFlowTags, setLinePayloads, setProject, tidyViews } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
+import { PAYLOAD_MAX, payloadsOf } from '../core/payloads.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
@@ -35,14 +36,21 @@ import { createDraft, deleteDraft } from './draftwrites.ts'
 import { registerGuidance } from './guidance.ts'
 import type { History } from './history.ts'
 
+/** The payloads under `payloads:` in model.yaml, as get_model shows them: left out when there are none. */
+const payloadsShown = (m: Parameters<typeof payloadsOf>[0]) => {
+  const all = payloadsOf(m)
+  return Object.keys(all).length === 0 ? {} : { payloads: all }
+}
+
 const INSTRUCTIONS = `Flowy Docs keeps a C4-style architecture model as YAML files in the repo.
 Objects nest: actor and system at the top level, app and store inside a system, component inside an app or store.
 Connect the most specific objects you know (e.g. component → store); zoomed-out views merge lines automatically.
 A flow is a step-by-step walkthrough played on one view: "root" (the top level) or an object with children.
-Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_flow, move_flow (the folder a flow's file is in) and tag_flow (the words that label a flow, such as happy path), put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. To sketch something apart from the model ("draft me ..."), make a draft with new_draft (copy the shapes it starts from), then give draft: <id> to the other tools; get_drafts and delete_draft do the rest. Never write a draft's shapes into the model. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
+Tools: read with get_model (give summary: true first, then object, flow or analysis for what you need: the whole model is large), get_problems (everything wrong right now, cheap), get_view, get_mermaid and get_failures. Write with put_object, connect and disconnect, put_payload and set_payloads (the data a line carries or a step sends), put_flow, move_flow (the folder a flow's file is in) and tag_flow (the words that label a flow, such as happy path), put_failures and put_failure, put_project (the system's name and what it is), put_icon, tidy_layout (where shapes sit on the canvas), set_compare (the flow or run an older one is compared with) and the delete_ tools. Everything get_model shows can be sent back to a put_ tool as it is. To sketch something apart from the model ("draft me ..."), make a draft with new_draft (copy the shapes it starts from), then give draft: <id> to the other tools; get_drafts and delete_draft do the rest. Never write a draft's shapes into the model. The prompts map-repo, update-after-change, write-flow, failure-analysis and review-model hold the usual jobs. The guides are resources: flowy://docs/guide.md says which page holds what, flowy://docs/format.md lists every key and flowy://docs/writing.md says how to word things.
 What to document, and what to read for it:
 - A request that only says to document, map or describe the repo ("make Flowy docs") gets the default and nothing else: the system's name and a short about (put_project), the people, apps, stores, components and outside services you can point to, how they connect, and three to five plain flows (no animation, no looks). Don't read the topic rules below, and don't write failure modes, data, snippets, animation or performance.
 - Everything beyond that is the user's to ask for by name. If they ask for more without saying what ("everything", "in detail", "make it complete"), ask which parts, listing these: flows with motion, repeats, branches or failed requests; what the stores hold; code on shapes; a failure analysis; looks. Performance runs are files a load test makes, which you can't write.
+- A payload says what data moves where: write one with put_payload only when the user asks what lines or steps carry, or names a request or message a reader would ask about. Write it once and name it by id from every line and step that carries it; stay high level (name the types inside, don't spell every field out), and copy a schema or type from the repo rather than invent one.
 - When they name a part, read its rules first and only those. They are resources: flowy://rules/flows (animation, outcomes, groups, states), flowy://rules/data, flowy://rules/code and flowy://rules/failures.
 - The last thing you say is the account in "After writing" and then what Flowy could add, from what you saw while reading and never as a general list: one line for each of data (a store with a schema or migration), code (a formula, a query or a payload that explains a shape), failures (outside services, retries, timeouts), motion in flows (call, send and event steps), performance (load-test results or a load-test tool in the repo) and more flows (name the ones you left out). Leave a part out when you saw nothing for it, and say that you did not write any of them.
 Before you write:
@@ -125,6 +133,16 @@ const asFlag = (v: unknown) => (v === 'true' ? true : v === 'false' ? false : v)
 
 /** A state is checked by the checker, not here, so a wrong word is refused in the checker's words. */
 const stateMap = z.record(z.string().max(64), z.string())
+// A payload's shape or example, and a payload written in place on a line or a step (it has no id, so it needs a name).
+const codeBlock = z.object({ text: z.string(), language: z.string().optional() })
+const payloadFields = {
+  name: z.string().max(200).optional().describe('What a developer calls it, e.g. "Order". Left out, the id stands in.'),
+  about: z.string().max(4000).optional().describe('Markdown: what it is and what it is for, often a sentence.'),
+  shape: codeBlock.nullable().optional().describe('The whole thing: a type, a JSON schema, a CSV header. null removes it.'),
+  example: codeBlock.nullable().optional().describe('A filled-in instance, with invented values. null removes it.'),
+}
+const inlinePayload = z.object({ ...payloadFields, name: z.string().max(200).describe('What a developer calls it. A payload written in place has no id, so it needs a name.') })
+const payloadRef = z.union([z.string().max(64), inlinePayload])
 const dataText = z.union([z.string(), z.number(), z.boolean()])
 const sampleValue: z.ZodType<unknown> = z.lazy(() => z.union([dataText, z.array(sampleValue), z.record(z.string(), sampleValue)]))
 const dataEntry = z.object({
@@ -297,7 +315,7 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
       if (!Object.hasOwn(m.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
       return { id: analysis, analysis: m.failures[analysis], problems: about(p => p.file === `failures/${analysis}.yaml`) }
     }
-    return { ...project(m), objects: m.objects, connections: m.connections, flows: Object.fromEntries(Object.keys(m.flows).map(fid => [fid, flowShown(m, fid)])), failures: m.failures, icons: customIcons(m.meta), runs: runList, problems }
+    return { ...project(m), objects: m.objects, connections: m.connections, flows: Object.fromEntries(Object.keys(m.flows).map(fid => [fid, flowShown(m, fid)])), failures: m.failures, icons: customIcons(m.meta), ...payloadsShown(m), runs: runList, problems }
   }))
 
   tool('get_problems', {
@@ -377,6 +395,17 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     },
   }, input => write(m => putIcon(m, input.name, input.path), `Saved icon ${input.name}.`, mcpLabel('put_icon', input)))
 
+  tool('put_payload', {
+    description: `Create or update a payload: the data a line carries or a flow step sends, described once and named by id from connections (connect, set_payloads) and steps (put_flow). Any mix of about (Markdown, a sentence is often enough), shape (the whole thing: a type, a JSON schema, a CSV header) and example (a filled-in instance); stay high level and name the types inside rather than spell them out. Code blocks are at most ${PAYLOAD_MAX.lines} lines and ${PAYLOAD_MAX.chars} characters; language is one of ${LANGUAGES.map(l => l.id).join(', ')}, or left out to be worked out. Omitted fields stay, "" removes name or about, null removes shape or example.`,
+    inputSchema: { id: id('Payload id'), ...payloadFields },
+  }, input => write(m => putPayload(m, input), before => `${Object.hasOwn(payloadsOf(before), input.id) ? 'Updated' : 'Saved'} payload ${input.id}.`, mcpLabel('put_payload', input)))
+
+  tool('delete_payload', {
+    description: 'Delete a payload. Refused while a connection or a flow step names it: the refusal lists them.',
+    inputSchema: { id: id('Payload id') },
+    annotations: destructive,
+  }, input => write(m => deletePayload(m, input.id), `Deleted payload ${input.id}.`, mcpLabel('delete_payload', input)))
+
   tool('delete_icon', {
     description: 'Delete a custom icon. Refused while an object uses it.',
     inputSchema: { name: z.string().max(64).describe('The icon\'s name') },
@@ -391,8 +420,21 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
 
   tool('connect', {
     description: 'Add a connection. Direction matters: from → to. Duplicates and connecting an object to itself are refused.',
-    inputSchema: { ...ends, label: z.string().optional().describe('What goes along it, e.g. "REST" or "reads/writes"') },
+    inputSchema: {
+      ...ends,
+      label: z.string().optional().describe('What goes along it, e.g. "REST" or "reads/writes"'),
+      payloads: z.array(payloadRef).max(PAYLOAD_MAX.perLine).optional().describe('The data it carries: ids from put_payload, or payloads written in place with a name. Only where a reader would ask what is sent.'),
+    },
   }, input => write(m => connect(m, input), `Connected ${input.from} → ${input.to}.`, mcpLabel('connect', input)))
+
+  tool('set_payloads', {
+    description: 'Set the payloads one connection carries (the first from → to with that label): ids from put_payload, or inline payloads with a name. Replaces the list; [] removes it.',
+    inputSchema: {
+      ...ends,
+      label: z.string().optional().describe('The label of the connection; "" or left out means the one without a label.'),
+      payloads: z.array(payloadRef).max(PAYLOAD_MAX.perLine),
+    },
+  }, input => write(m => setLinePayloads(m, input, input.payloads), `Set what ${input.from} → ${input.to} carries.`, mcpLabel('set_payloads', input)))
 
   tool('disconnect', {
     description: 'Remove connections from → to. Refused while a failure mode is on that line and no other from → to line is left: the refusal lists the mode as a row, and the same call with `resolve` removes the mode and the line in one edit.',
@@ -454,6 +496,8 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
         group: z.string().max(64).optional().describe('The id of the group (under groups) this step belongs to. The steps of a group sit next to each other.'),
         lane: z.string().optional().describe('Branch and parallel groups only: starts a lane at this step, named in plain words (for a branch, the condition). The steps after it in the group belong to it until the next lane. The first step of a branch or parallel group needs one.'),
         flow: z.string().max(64).optional().describe('The id of another flow that tells what happens next. It must exist.'),
+        payload: payloadRef.optional().describe('What this step sends: a payload id from put_payload, or a payload written in place with a name. put_flow replaces the flow, so send it again with every step that has it.'),
+        reply: payloadRef.optional().describe('What comes back, only on a call, a callback or a recurse: an id or a payload written in place with a name. Send it again with the step, as payload.'),
         states: stateMap.optional().describe(`The shapes this step changes: shape id to ${STATE_NAMES.join(', ')}. The change holds from this step until another step changes it, so set a shape back to running when it recovers. Only where the step really takes a shape down, brings it up or hurts it.`),
       })).min(1),
     },
