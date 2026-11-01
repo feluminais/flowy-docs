@@ -92,6 +92,12 @@ function ObjectHeader({ model, id, object, problems, state }: { model: Model; id
 /** The payloads written in place on a connection, kept as they are when the picker changes the ones it names. */
 const inlineOf = (c: Connection): PayloadInputInline[] => (Array.isArray(c.payloads) ? c.payloads.filter((r): r is PayloadInputInline => typeof r !== 'string') : [])
 
+/** The model with one connection no longer naming a payload, read from that model so a change made since is kept. */
+function withoutPayload(m: Model, which: { from: string; to: string; label: string }, id: string): Model {
+  const c = m.connections.find(k => k.from === which.from && k.to === which.to && (k.label ?? '') === which.label)
+  return c ? setLinePayloads(m, which, [...idsOf(c.payloads).filter(x => x !== id), ...inlineOf(c)]) : m
+}
+
 /** A connection's ends, when they're boxes inside the line's ends rather than the ends themselves. */
 const inside = (model: Model, c: Connection, line: BoxLine) =>
   c.from === line.from && c.to === line.to ? undefined : `${nameOf(model, c.from)} → ${nameOf(model, c.to)}`
@@ -253,7 +259,7 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
                 return done
               }} />
             )}
-            {idsOf(c.payloads).map(id => <PayloadForm key={id} model={model} id={id} run={run} />)}
+            {idsOf(c.payloads).map(id => <PayloadForm key={id} model={model} id={id} run={run} offLine={m => withoutPayload(m, which, id)} />)}
             <button type="button" className="danger" onClick={() => onDelete([{ line: which }])}><Trash size={16} />Delete</button>
           </form>
         ) : <p>{c.label || <span className="muted">No label</span>}</p>}

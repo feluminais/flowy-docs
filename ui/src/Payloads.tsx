@@ -90,10 +90,10 @@ function BlockField({ title, block, onSave }: { title: 'Shape' | 'Example'; bloc
 }
 
 /**
- * The edit form of one payload, folded away under its name: Name, About, Shape and Example, each saved when you leave it, and Delete. A delete that is refused
- * (a line or a step still names it) says who uses it, and nothing is written.
+ * The edit form of one payload, folded away under its name: Name, About, Shape and Example, each saved when you leave it, and Delete. Delete takes it off the line
+ * the form is under (`offLine`) and then out of the model; when another line or a step still names it, the refusal says which, and nothing is written.
  */
-export function PayloadForm({ model, id, run }: { model: Model; id: string; run: SaveEdit }) {
+export function PayloadForm({ model, id, run, offLine }: { model: Model; id: string; run: SaveEdit; offLine: (m: Model) => Model }) {
   const [refused, setRefused] = useState<string>()
   const p = payloadsOf(model)[id]
   if (!p) return null
@@ -101,12 +101,12 @@ export function PayloadForm({ model, id, run }: { model: Model; id: string; run:
   const block = (v: unknown): Block | undefined => (isMap(v) && typeof v.text === 'string' ? { text: v.text, ...(typeof v.language === 'string' ? { language: v.language } : {}) } : undefined)
   const remove = () => {
     try {
-      deletePayload(model, id)
+      deletePayload(offLine(model), id)
     } catch (e) {
       setRefused(e instanceof Error ? e.message : String(e))
       return
     }
-    void run(m => deletePayload(m, id))
+    void run(m => deletePayload(offLine(m), id))
   }
   return (
     <details className="payload payload-form">
