@@ -149,7 +149,7 @@ export function Dropdown({ options, value, defaultValue, onChange, label, title,
         <ul ref={list} id={id} className="dd-list" role="listbox" aria-label={label} onPointerDown={e => e.preventDefault()}
           style={place ?? { left: 0, top: 0, visibility: 'hidden' }}>
           {options.map(([v, text], i) => (
-            <li key={v} id={rowId(i)} role="option" aria-selected={v === chosen} className={i === at ? 'at' : undefined}
+            <li key={v} id={rowId(i)} role="option" aria-selected={v === chosen} className={i === at ? 'at' : undefined} title={text}
               onPointerEnter={() => setAt(i)} onClick={() => pick(i, true)}>
               {text}
             </li>

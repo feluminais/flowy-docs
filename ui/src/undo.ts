@@ -8,6 +8,15 @@ import type { RestoreDone, Undo, Via } from './save.ts'
  */
 export type Entry = { kind: 'edit'; undo: Undo; label: string } | { kind: 'restore'; to: string; label: string; seen: Record<string, string | null> }
 
+/** How many entries each stack holds: the oldest goes when a new one comes, so a long session does not keep every edit's undo (each holds the files it took back) for good. */
+export const MAX_ENTRIES = 100
+
+/** Puts `entry` on top of `stack`, and drops the oldest ones past the limit. */
+export function pushCapped(stack: Entry[], entry: Entry, limit = MAX_ENTRIES): void {
+  stack.push(entry)
+  if (stack.length > limit) stack.splice(0, stack.length - limit)
+}
+
 /**
  * The entry for a restore that was just done, or none when there is nothing to take back: it failed, it had no step before it to go back to,
  * or it changed no file. `seen` is what the files were when it was asked for.
