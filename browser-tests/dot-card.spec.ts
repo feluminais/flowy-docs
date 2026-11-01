@@ -166,3 +166,54 @@ test('a long payload keeps the card at most 380 by 320, and its code scrolls ins
     await rm(dir, { recursive: true, force: true })
   }
 })
+
+/** Serves the small shop with step 2 sent as a burst of ten (three lost), carrying a payload long enough to scroll. */
+async function burst() {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-dot-burst-'))
+  const model = shop()
+  const shape = Array.from({ length: 120 }, (_, i) => `  field${i}: string`).join('\n')
+  model.meta.payloads = { order: { name: 'Order', about: 'What the web app sends.', shape: { language: 'typescript', text: `type Order = {\n${shape}\n}` } } }
+  model.flows.checkout.steps[1] = { ...model.flows.checkout.steps[1], animation: { kind: 'send', outcome: 'lost', share: '30' } as never, payload: 'order' }
+  for (const [file, text] of Object.entries(modelFiles(model))) {
+    const path = join(dir, file)
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, text)
+  }
+  const server = await startServer({ dir, ui: resolve('dist/ui'), port: 0 })
+  return { url: `http://127.0.0.1:${server.port}/#shop/checkout`, close: async () => { await server.close(); await rm(dir, { recursive: true, force: true }) } }
+}
+
+test('moved to another dot of a burst, the card goes beside it and starts at its top', async ({ page }) => {
+  const s = await burst()
+  try {
+    // A burst's dots leave one after another: pause once three are on their way.
+    await page.goto(s.url)
+    await button(page, 'Play').click()
+    await expect(player(page)).toContainText('Step 2 of')
+    await dots(page).nth(2).waitFor()
+    await button(page, 'Pause').click()
+    await page.waitForTimeout(100)
+    expect(await hit(page).count()).toBeGreaterThan(1)
+    await hover(page, hit(page).first())
+    await expect(card(page)).toBeVisible()
+    await card(page).evaluate(el => { el.scrollTop = 200 })
+    const first = (await card(page).boundingBox())!
+    await hover(page, hit(page).last())
+    await expect.poll(async () => (await card(page).boundingBox())?.y).not.toBe(first.y) // the line runs down here, so the dots differ in height
+    expect(await card(page).evaluate(el => el.scrollTop)).toBe(0)
+  } finally {
+    await s.close()
+  }
+})
+
+test('dragging the canvas closes the card, and it stays closed while the drag goes on', async ({ page }) => {
+  await pauseMidSend(page)
+  await hover(page, hit(page).first())
+  await expect(card(page)).toBeVisible()
+  const box = (await hit(page).first().boundingBox())!
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width / 2 + 60, box.y + box.height / 2 + 20, { steps: 6 })
+  await page.waitForTimeout(100)
+  await expect(card(page)).toHaveCount(0)
+  await page.mouse.up()
+})

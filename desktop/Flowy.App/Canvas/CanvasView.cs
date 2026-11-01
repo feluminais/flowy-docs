@@ -204,7 +204,7 @@ internal sealed class CanvasView : Border
     private readonly Avalonia.Controls.Canvas _dotHost = new();
     private IReadOnlyList<StepRun> _playingRuns = [];
     private DotCard? _dotCard;
-    private (int Run, string? Tone)? _dotOpen;
+    private (int Run, string? Tone, int Dot)? _dotOpen; // which dot the card is beside: a burst's dots are all of one run
     private IDisposable? _dotLeaving;
 
     /// <summary>What the payload card keeps clear of, in this canvas's own coordinates: the player card and the side panel.</summary>
@@ -234,20 +234,24 @@ internal sealed class CanvasView : Border
             return true;
         }
         if (Clock.Paused)
-            foreach (var d in _motion.Dots)
+        {
+            var dots = _motion.Dots;
+            for (var i = 0; i < dots.Count; i++)
             {
+                var d = dots[i];
                 var box = DotBox(d.X, d.Y, d.HalfWidth, d.HalfHeight);
                 if (!box.Inflate(DotSlack).Contains(at) || d.Run >= _playingRuns.Count) continue;
                 var back = d.Tone == "reply";
                 if ((back ? _playingRuns[d.Run].Reply : _playingRuns[d.Run].Sends) is not { } shown) continue;
-                ShowDot(box, shown, back, (d.Run, d.Tone));
+                ShowDot(box, shown, back, (d.Run, d.Tone, i));
                 return false;
             }
+        }
         LeaveDot();
         return false;
     }
 
-    private void ShowDot(Avalonia.Rect dot, Payloads.Shown shown, bool back, (int Run, string? Tone) which)
+    private void ShowDot(Avalonia.Rect dot, Payloads.Shown shown, bool back, (int Run, string? Tone, int Dot) which)
     {
         StayDot();
         if (_dotCard is not null && _dotOpen == which) return;

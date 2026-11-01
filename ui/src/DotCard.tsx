@@ -78,7 +78,8 @@ export function DotCard({ dots, clock, stepKey }: { dots: CarryingDot[]; clock: 
   useEffect(() => {
     if (!wrapper) return
     const onMove = (e: PointerEvent) => {
-      if (card.current?.contains(e.target as Node)) return stay()
+      if (card.current?.contains(e.target as Node)) return stay() // selecting or copying its code
+      if (e.buttons !== 0) return close() // a drag over the canvas: the card goes, and stays gone until the drag is over
       const frame = wrapper.getBoundingClientRect()
       const [x, y] = [e.clientX - frame.x, e.clientY - frame.y]
       const i = boxes.current.findIndex(b => x >= b.x - SLACK && x <= b.x + b.width + SLACK && y >= b.y - SLACK && y <= b.y + b.height + SLACK)
@@ -120,7 +121,8 @@ export function DotCard({ dots, clock, stepKey }: { dots: CarryingDot[]; clock: 
         )
       })}
       {shown && (
-        <aside ref={card} className="dot-card" aria-label={shown.shown.name} style={{ visibility: 'hidden' }}>
+        // A card of its own for each dot, measured where nothing has placed it yet and starting at its top.
+        <aside key={open} ref={card} className="dot-card" aria-label={shown.shown.name} style={{ visibility: 'hidden' }}>
           <h3><span className="dirn" aria-hidden="true"><Arrow size={14} /></span>{shown.shown.name}{shown.back && <span className="visually-hidden">, comes back</span>}</h3>
           <PayloadBody shown={shown.shown} />
         </aside>
