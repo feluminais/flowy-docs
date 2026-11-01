@@ -47,6 +47,14 @@ internal static class PayloadView
     /// <summary>The name and the mark that says it folds out, as More's does.</summary>
     private static string Label(string name, bool open) => $"{name} {(open ? "▾" : "▸")}";
 
+    /// <summary>What a payload is, under its name: what it is about, then its shape and its example. The rows show it open, and so does the card on a paused dot.</summary>
+    public static Control Body(Payloads.Shown shown, Func<string, IBrush> resource)
+    {
+        var body = new StackPanel { Spacing = 8 };
+        Fill(body, shown, resource);
+        return body;
+    }
+
     private static void Fill(StackPanel body, Payloads.Shown shown, Func<string, IBrush> resource)
     {
         if (shown.About is { } about) body.Children.Add(new MarkdownView(about, 13));

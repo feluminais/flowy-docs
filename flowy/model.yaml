@@ -149,7 +149,8 @@ objects:
       and shapes ringing, flashing or squashing. The player's clock runs it, the waits between steps,
       a channel coming in and a shape's state, so Pause holds all of them part way through a step, the
       bar on the card drags them to any moment and the speed (0.5×, 1×, 2×) changes them together.
-      Nothing moves when the system asks for less motion.
+      Nothing moves when the system asks for less motion. Paused, the dot under the pointer shows its
+      payload on a card beside it, clear of the player card and the panels.
 
       A shape in a state (Starting, Stopped, Degraded and the rest) dims, gets a second outline in
       the state's dash and a glyph on a ring. The Starting, Restarting and Degraded loops run on the
@@ -219,7 +220,8 @@ objects:
       step, and edit mode on E.
 
       A step with an `animation:` plays as a pipe with a blob running through it, and Play steps
-      through a flow unattended; Pause holds it part way through a step. A shape that calls itself plays as a pipe looping out of it and back
+      through a flow unattended; Pause holds it part way through a step, and the dot under the pointer then shows its payload on a
+      card beside it. A shape that calls itself plays as a pipe looping out of it and back
       in, with a pile of cards growing under it and a counter on its corner. A step's `states` dim a
       shape and add a second outline and a glyph until another step changes them. A Performance tab
       plays a load-test run back over the diagram.
@@ -523,7 +525,7 @@ objects:
       their keys in order.
 
       It also says what a drawn line carries (its connections' payloads and what flow steps send along it, each with the way it goes) and
-      the words a step's moving dot says. Nothing here draws: the panels and the player card in both readers do. The desktop app's port
+      the words a step's moving dot says, and which payload each dot carries (a reply on the answer's way back). Nothing here draws: the panels and the player card in both readers do. The desktop app's port
       (`Payloads.cs`) is kept equal by fixtures.
   perf:
     type: component

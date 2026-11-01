@@ -9,6 +9,34 @@ internal sealed partial class ReaderView
     private readonly Playback _playback;
 
     internal bool StepMoving => _canvas.StepMoving;
+
+    /// <summary>
+    /// For <c>--pause-at</c>: once the step on show moves, pauses it <paramref name="ms"/> into its motion; with <paramref name="hover"/> (<c>--hover-dot</c>) the first dot
+    /// that carries a payload then shows its card, as the pointer on it would.
+    /// </summary>
+    internal void PauseAt(double ms, bool hover)
+    {
+        var tries = 0;
+        void Try()
+        {
+            if (!_canvas.StepMoving && tries++ < 80)
+            {
+                Avalonia.Threading.DispatcherTimer.RunOnce(Try, TimeSpan.FromMilliseconds(25));
+                return;
+            }
+            _canvas.Clock.Pause();
+            _canvas.Clock.Seek(ms);
+            _canvas.ShowMotionAt(ms);
+            if (!hover) return;
+            UpdateLayout(); // the player card has grown to the step's rows, so the card keeps clear of where it is now
+            foreach (var dot in _canvas.DotsOnScreen)
+            {
+                _canvas.HoverDotAt(new Avalonia.Point(dot.X + dot.Width / 2, dot.Y + dot.Height / 2));
+                if (_canvas.DotCardNow is not null) break;
+            }
+        }
+        Try();
+    }
     internal bool Autoplaying => _playback.Auto && PlayingFlow() is not null;
 
     /// <summary>Where the flow on show stands, for <see cref="Playback"/>: its stop and how many it has, or null when none plays.</summary>

@@ -1,7 +1,25 @@
 import { ANIMATION_KINDS, animationOf, animationProblem, animationWith, beatsFor, burstOf, CHANNEL_SKETCHES, channelLine, EFFECTS, END_SKETCHES, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, outcomeBlock, outcomeLine, RECURSE_HAS_TO, OUTCOMES, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
-import { active, bump, cardBox, cardsAt, distance, DWELL, ease, effectPose, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, tileSquash, tubeOpacity } from '../../ui/src/motion.ts'
+import { active, bump, cardBox, cardSpot, cardsAt, distance, DWELL, ease, effectPose, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, tileSquash, tubeOpacity } from '../../ui/src/motion.ts'
+
+type Box = { x: number; y: number; width: number; height: number }
+const SPOT_CARD = { width: 380, height: 320 }
+const CANVAS: Box = { x: 0, y: 0, width: 1000, height: 700 }
+const dotAt = (x: number, y: number): Box => ({ x, y, width: 30, height: 30 })
+/** Each a dot, the canvas and what is kept clear. */
+const CARD_SPOTS: [Box, Box, Box[], { width: number; height: number }?][] = [
+  [dotAt(100, 300), CANVAS, []], [dotAt(900, 300), CANVAS, []], [dotAt(400, 560), CANVAS, [{ x: 0, y: 620, width: 1000, height: 80 }]],
+  [dotAt(100, 20), CANVAS, []], [dotAt(100, 680), CANVAS, []], [dotAt(100, 300), CANVAS, [CANVAS]],
+  [dotAt(100, 100), { x: 0, y: 0, width: 300, height: 200 }, []], [dotAt(400, 300), { x: 50, y: 40, width: 0, height: 0 }, [{ x: 390, y: 290, width: 50, height: 50 }]],
+  // A card smaller than the largest; two boxes kept clear on either side, so it takes the spot that covers least; and two halves covering every spot alike, the first of equals.
+  [dotAt(900, 300), CANVAS, [], { width: 200, height: 100 }],
+  [dotAt(400, 300), CANVAS, [{ x: 440, y: 0, width: 560, height: 700 }, { x: 0, y: 0, width: 390, height: 700 }]],
+  [dotAt(485, 335), CANVAS, [{ x: 0, y: 0, width: 500, height: 700 }, { x: 500, y: 0, width: 500, height: 700 }]],
+  // A side blocked and the dot by the bottom: above it. And the player card's corner just under the right-hand spot: it rises beside the dot.
+  [dotAt(400, 560), CANVAS, [{ x: 0, y: 620, width: 1000, height: 80 }, { x: 430, y: 0, width: 570, height: 700 }, { x: 0, y: 0, width: 400, height: 700 }], { width: 20, height: 100 }],
+  [{ x: 675, y: 215, width: 107, height: 33 }, { x: 0, y: 0, width: 1192, height: 679 }, [{ x: 366, y: 380, width: 460, height: 275 }]],
+]
 
 /** Tags as the files can hold them: good ones, and every kind of wrong one. */
 const RAW: unknown[] = [
@@ -185,6 +203,8 @@ export function dumpBeats(): unknown {
       cardBoxes: [1, 2, 3, 4].flatMap(k => [0, 0.25, 0.5, 1].map(amount => ({ k, amount, box: cardBox(CARD_BOX, k, amount) }))),
       pills: [false, true].flatMap(playing => [2, 3, 4, 5].flatMap(depth => [0, 0.5, 1, 1.4, 1.5, 1.6, 2.5, 3.4].map(cards => ({ playing, depth, cards, text: pillText(playing, cards, depth) })))),
       squashes: [false, true].flatMap(sameBox => SQUASHES.map(squash => ({ sameBox, squash, result: tileSquash(sameBox, squash) }))),
+      // Where the payload card of a paused dot goes (test/motion.test.ts has the first six).
+      cardSpots: CARD_SPOTS.map(([dot, bounds, avoid, card = SPOT_CARD]) => ({ dot, card, bounds, avoid, spot: cardSpot(dot, card, bounds, avoid) })),
     },
   }
 }

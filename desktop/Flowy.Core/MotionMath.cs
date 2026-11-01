@@ -210,6 +210,43 @@ public static class MotionMath
         }
         return (from, to);
     }
+
+    /// <summary>The payload card on a paused dot: its largest size, how far it stands off the dot, and how far it keeps inside the canvas.</summary>
+    public static readonly (double Width, double Height, double Gap, double Margin) Card = (380, 320, 12, 8);
+
+    private static double Overlap(Rect a, Rect b) =>
+        Math.Max(0, Math.Min(a.X + a.Width, b.X + b.Width) - Math.Max(a.X, b.X)) * Math.Max(0, Math.Min(a.Y + a.Height, b.Y + b.Height) - Math.Max(a.Y, b.Y));
+
+    /// <summary>
+    /// Where the payload card of a dot goes: right of it, else left (level with the dot's middle, then with its bottom, then with its top), else below or above, each kept
+    /// inside <paramref name="bounds"/>. The first that covers neither the dot nor
+    /// anything in <paramref name="avoid"/> (the player card, the side panel) wins; with none clear, the one that covers least, the first of equals. A card too big for the
+    /// canvas starts at its corner. A port of cardSpot in ui/src/motion.ts.
+    /// </summary>
+    public static (double X, double Y) CardSpot(Rect dot, (double Width, double Height) card, Rect bounds, IReadOnlyList<Rect> avoid)
+    {
+        double Clamp(double v, double low, double size, double room) => Math.Max(low + Card.Margin, Math.Min(v, low + room - Card.Margin - size));
+        var (mx, my) = (dot.X + dot.Width / 2, dot.Y + dot.Height / 2);
+        var (right, left) = (dot.X + dot.Width + Card.Gap, dot.X - Card.Gap - card.Width);
+        var (level, raised, lowered) = (my - card.Height / 2, dot.Y + dot.Height - card.Height, dot.Y);
+        (double X, double Y)[] spots =
+        [
+            (right, level), (left, level), (right, raised), (left, raised), (right, lowered), (left, lowered),
+            (mx - card.Width / 2, dot.Y + dot.Height + Card.Gap),
+            (mx - card.Width / 2, dot.Y - Card.Gap - card.Height),
+        ];
+        var placed = spots.Select(s => (X: Clamp(s.X, bounds.X, card.Width, bounds.Width), Y: Clamp(s.Y, bounds.Y, card.Height, bounds.Height))).ToList();
+        var best = placed[0]; // what is left when no overlap can be measured, as in the browser
+        var least = double.PositiveInfinity;
+        foreach (var spot in placed)
+        {
+            var box = new Rect(spot.X, spot.Y, card.Width, card.Height);
+            var covered = Overlap(box, dot) + avoid.Sum(a => Overlap(box, a));
+            if (covered == 0) return spot;
+            if (covered < least) (best, least) = (spot, covered);
+        }
+        return best;
+    }
 }
 
 /// <summary>How a blob is placed and drawn at a moment of its run. See <see cref="MotionMath.PoseOf"/>.</summary>

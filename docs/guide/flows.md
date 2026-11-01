@@ -23,6 +23,12 @@ answer says the reply's name. The player card lists the step's payload and its r
 of a shape lists them under the lines they travel, and a line's panel has them all under Payloads. A payload's code shows at most
 240 pixels of itself and scrolls past that.
 
+Pause while a dot is on its way and put the pointer on it: a card beside it shows the payload, and on the answer's way back, the reply.
+The card stays while the pointer is on it, so its code can be scrolled and copied. It goes a moment after the pointer leaves it, and on
+Play, a move along the bar, another step, Esc, a pan or a zoom.
+
+![Customer places an order paused on step 2, with the pointer on the moving dot: a card beside it shows Basket, with what it is about, its TypeScript shape and its JSON example, above the player card](../images/desktop-payload-card.png)
+
 ## How a request ends
 
 A step's `animation` can say how its request ends. With no `outcome` the request arrives, and a `call` is answered.

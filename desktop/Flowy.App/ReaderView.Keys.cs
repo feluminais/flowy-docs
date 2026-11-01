@@ -50,6 +50,11 @@ internal sealed partial class ReaderView
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
         if (_folder is null) return;
+        if (e.Key == Key.Escape && _canvas.CloseDotCard())
+        {
+            e.Handled = true; // the payload card on a paused dot is the innermost layer: Esc takes it away and nothing else
+            return;
+        }
         if (e.Key == Key.Escape && _compareMode.AnswerEscape())
         {
             e.Handled = true; // the question is the innermost layer, and Esc answers it with Keep

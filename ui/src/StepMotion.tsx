@@ -211,7 +211,16 @@ type Props = {
   stepKey: string
   /** Called once when the motion has finished, or after a moment when motion is reduced. */
   onDone: () => void
+  /** Told where the dots are drawn while the clock is paused, and an empty list once it plays again or the motion goes. */
+  onDots?: (dots: DotAt[]) => void
 }
+
+/** A dot of a step's motion as drawn: its middle and half its size, in the canvas's own coordinates, and its tone (a reply is the answer coming back). */
+export type DotAt = { x: number; y: number; halfWidth: number; halfHeight: number; tone?: Beat['tone'] }
+
+/** Half the size a blob is drawn at: a glyph's circle, or the pill its words sit in (see shape). */
+const halfOf = (b: Beat): { halfWidth: number; halfHeight: number } =>
+  b.label === undefined ? { halfWidth: 15, halfHeight: 15 } : { halfWidth: shortLabel(b.label).length * 4 + 10, halfHeight: 13 }
 
 /**
  * Plays one step's animation over the canvas: a blob running along the step's line, and rings, flashes
@@ -220,7 +229,7 @@ type Props = {
  * When the system asks for less motion nothing moves: it draws only where the outcome happened (a cross, a bar, a marker, a clock, the reason)
  * or how deep a recursion went, and reports that it is done after a moment.
  */
-export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, stepKey, onDone }: Props) {
+export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, stepKey, onDone, onDots }: Props) {
   const style = useContext(LineStyleContext)
   const from = useInternalNode(ends[0])
   const to = useInternalNode(ends[1])
@@ -228,6 +237,8 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
   const [svg, setSvg] = useState<SVGSVGElement | null>(null)
   const done = useRef(onDone)
   done.current = onDone
+  const told = useRef(onDots)
+  told.current = onDots
   const again = useRef(repeat)
   again.current = repeat
   const wake = useRef<(() => void) | undefined>(undefined)
@@ -332,8 +343,9 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
     const who = { from: Symbol('from'), to: Symbol('to') } // two asks, so a step that is both its ends squashes by the larger
     let frameId = 0
 
-    const frame = (t: number) => {
+    const frame = (t: number): DotAt[] => {
       const squash = { from: 0, to: 0 }
+      const drawn: DotAt[] = []
       beats.forEach((beat, i) => {
         const node = nodes[i]
         const on = stays(beat) ? t >= beat.at : active(beat, t)
@@ -361,6 +373,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
           const waiting = beat.start !== undefined && beat.start === beat.end
           const pose = animation.effect === undefined || waiting ? undefined : effectPose(animation.effect, beat.label !== undefined, angle, p)
           node.setAttribute('transform', pose ? `translate(${here.x} ${here.y + pose.dy}) rotate(${pose.turn})` : `translate(${here.x} ${here.y})`)
+          drawn.push({ x: here.x, y: here.y + (pose?.dy ?? 0), ...halfOf(beat), ...(beat.tone === undefined ? {} : { tone: beat.tone }) })
           stretches[i]?.setAttribute('transform', pose ? `rotate(${pose.rotate}) scale(${pose.x * pose.grow} ${pose.y * pose.grow}) rotate(${-pose.rotate})` : '')
         } else if (beat.do === 'ring') {
           const r = beat.on === 'to' ? b : a
@@ -397,6 +410,16 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
         if (el) squashTile(el, who[side], squash[side])
       }
       canvas?.style.setProperty('--lit', String(litOpacity(beats, t)))
+      return drawn
+    }
+
+    // Where the dots are, told only when it changes: those of the paused moment, and none while it plays.
+    let said = '[]'
+    const tell = (dots: DotAt[]) => {
+      const now = JSON.stringify(dots)
+      if (now === said) return
+      said = now
+      told.current?.(dots)
     }
 
     // Plays, and with Repeat on rests and plays again until the step is left. Play hears about the first play only. Paused, it asks for no frames: the
@@ -404,7 +427,8 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
     let finished = false
     const loop = () => {
       const since = clock.elapsed()
-      frame(momentOf(since, total, again.current, cyclePeriod([clock.length])))
+      const drawn = frame(momentOf(since, total, again.current, cyclePeriod([clock.length])))
+      tell(clock.paused ? drawn : [])
       if (!finished && since >= total) {
         finished = true
         done.current()
@@ -420,6 +444,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
       if (frameId === 0 && !clock.paused) clock.restart()
     }
     return () => {
+      tell([])
       wake.current = undefined
       unheard()
       undeclare()

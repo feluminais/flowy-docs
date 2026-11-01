@@ -137,6 +137,15 @@ internal static class JsonDump
                     if (s.Reply is not null) step["reply"] = Raw(s.Reply);
                     if (Payloads.OfStep(m, s) is { } sends) step["sends"] = sends.Name;
                     if (Payloads.ReplyOf(m, s) is { } returns) step["returns"] = returns.Name;
+                    // What a dot of the step's motion carries, going and coming back (Payloads.OfDot).
+                    var (dotOut, dotBack) = (Payloads.OfDot(m, s, null)?.Shown.Name, Payloads.OfDot(m, s, "reply")?.Shown.Name);
+                    if (dotOut is not null || dotBack is not null)
+                    {
+                        var dots = new JsonObject();
+                        if (dotOut is not null) dots["out"] = dotOut;
+                        if (dotBack is not null) dots["back"] = dotBack;
+                        step["dots"] = dots;
+                    }
                     return step;
                 }))));
         if (flow.CompareRaw is not null)
