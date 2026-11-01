@@ -20,6 +20,9 @@ export type Payload = { name?: string; about?: string; shape?: CodeBlock; exampl
 /** A payload as a reader shows it: `id` only for one described under `payloads:`, `name` always filled in (the id when it has none), and only the code blocks that hold code. */
 export type Shown = { id?: string; name: string; about?: string; shape?: CodeBlock; example?: CodeBlock }
 
+/** Whether a payload says something: a few words about it, a shape or an example. */
+export const saysSomething = (p: Record<string, unknown>): boolean => hasText(p.about) || p.shape !== undefined || p.example !== undefined
+
 /** The animation kinds that send something back, so a step of one of them may say what its reply carries. */
 export const REPLY_KINDS = ['call', 'callback', 'recurse'] as const
 
@@ -100,7 +103,7 @@ function entryProblems(at: string, p: unknown, inline: boolean): string[] {
   if (p.name !== undefined && typeof p.name !== 'string') out.push(`${at}: name must be plain text`)
   else if (inline && !hasText(p.name)) out.push(`${at} has no name`)
   if (p.about !== undefined && typeof p.about !== 'string') out.push(`${at}: about must be plain text`)
-  if (!hasText(p.about) && p.shape === undefined && p.example === undefined) out.push(`${at} says nothing: give it an about, a shape or an example`)
+  if (!saysSomething(p)) out.push(`${at} says nothing: give it an about, a shape or an example`)
   return [...out, ...blockProblems(at, 'shape', p.shape), ...blockProblems(at, 'example', p.example)]
 }
 
@@ -151,4 +154,37 @@ export function stepPayloadProblems(model: Pick<Model, 'meta'>, s: Step): string
     if (!REPLY_KINDS.some(k => k === kind)) out.push('a reply needs a call, a callback or a recurse animation')
   }
   return out
+}
+
+/** A shape or an example as text to put in a file: the language as its id (one that isn't known stays, for check() to report), the code as clean lines, then any extra keys. */
+function tidyBlock(v: unknown): unknown {
+  if (!isMap(v)) return v
+  const { language, text, ...extra } = v
+  const out: Record<string, unknown> = {}
+  if (typeof language === 'string' && language.trim() !== '') out.language = languageOf(language)?.id ?? language.trim()
+  else if (language !== undefined && typeof language !== 'string') out.language = language
+  if (text !== undefined) out.text = typeof text === 'string' ? codeLines(text).join('\n') : text
+  return Object.assign(out, extra)
+}
+
+/** A blank name or about is left out, and text is trimmed; anything that isn't text stays, for check() to report. */
+const tidyText = (v: unknown): unknown => (typeof v === 'string' ? (v.trim() === '' ? undefined : v.trim()) : v)
+
+/** A payload as text to put in a file: the keys in the order name, about, shape, example, then the extra ones; a blank name or about left out. Anything not a mapping stays as it is. */
+export function tidyPayload(p: unknown): unknown {
+  if (!isMap(p)) return p
+  const { name, about, shape, example, ...extra } = p
+  const out: Record<string, unknown> = {}
+  if (tidyText(name) !== undefined) out.name = tidyText(name)
+  if (tidyText(about) !== undefined) out.about = tidyText(about)
+  if (shape !== undefined) out.shape = tidyBlock(shape)
+  if (example !== undefined) out.example = tidyBlock(example)
+  return Object.assign(out, extra)
+}
+
+/** Who names the payload `id`: each connection whose list holds it, then each flow step whose payload or reply is it. One written in place never counts, whatever its name. */
+export function payloadUsers(model: Model, id: string): string[] {
+  const lines = model.connections.filter(c => Array.isArray(c.payloads) && c.payloads.includes(id)).map(c => `connection ${c.from} → ${c.to}`)
+  const steps = Object.entries(model.flows).flatMap(([fid, f]) => f.steps.flatMap((s, i) => (s.payload === id || s.reply === id ? [`flow ${fid} step ${i + 1}`] : [])))
+  return [...lines, ...steps]
 }
