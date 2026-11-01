@@ -10,15 +10,16 @@ import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } fr
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, relabel, removeGroup, removeStep, setGroupKind, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
-import type { ObjectInput } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, setGroupKind, setLinePayloads, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import type { ObjectInput, PayloadInputInline } from '../../src/core/ops.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
 import { nameOf, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
-import { CarriedRows, PayloadRow } from './Payloads.tsx'
-import { connectionPayloads, lineCarries } from '../../src/core/payloads.ts'
+import { CarriedRows, idsOf, NewPayload, PayloadForm, payloadChoices, PayloadRow } from './Payloads.tsx'
+import { PayloadPicker } from './Pickers.tsx'
+import { connectionPayloads, lineCarries, payloadsOf } from '../../src/core/payloads.ts'
 import { CodeFields, CodeSection } from './Code.tsx'
 import { DataField, DataSection } from './Data.tsx'
 import { carriedOn, connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
@@ -87,6 +88,9 @@ function ObjectHeader({ model, id, object, problems, state }: { model: Model; id
   )
 }
 
+
+/** The payloads written in place on a connection, kept as they are when the picker changes the ones it names. */
+const inlineOf = (c: Connection): PayloadInputInline[] => (Array.isArray(c.payloads) ? c.payloads.filter((r): r is PayloadInputInline => typeof r !== 'string') : [])
 
 /** A connection's ends, when they're boxes inside the line's ends rather than the ends themselves. */
 const inside = (model: Model, c: Connection, line: BoxLine) =>
@@ -223,6 +227,8 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
  * so when connections run both ways they are listed under one heading per way.
  */
 export function LinePanel({ model, view, from, to, editing, problems, run, onClose, onDelete }: Common & { onDelete: Delete; view: string; from: string; to: string; editing: boolean; problems: Problem[] }) {
+  // A payload made from a name in the picker, until its first About saves it (see NewPayload): which connection, and its name.
+  const [fresh, setFresh] = useState<{ index: number; name: string }>()
   const lines = connectionsOf(model, view, from, to)
   if (lines.length === 0) return null
   const ahead = lines.filter(l => !l.back)
@@ -236,6 +242,18 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
         {editing ? (
           <form className="form" onSubmit={e => e.preventDefault()}>
             <Field label="Label" value={c.label ?? ''} onSave={label => run(m => relabel(m, which, label))} />
+            {/* What it carries: the payloads written in place stay as they are, after the ones picked. */}
+            <PayloadPicker label="Payloads" all={payloadChoices(model)} chosen={idsOf(c.payloads)} many
+              onSet={next => void run(m => setLinePayloads(m, which, [...next, ...inlineOf(c)]))} onNew={name => setFresh({ index, name })} />
+            {fresh?.index === index && (
+              <NewPayload name={fresh.name} onSave={async about => {
+                const id = newId(fresh.name, Object.keys(payloadsOf(model)), 'payload')
+                const done = await run(m => setLinePayloads(putPayload(m, { id, name: fresh.name, about }), which, [...idsOf(c.payloads), id, ...inlineOf(c)]))
+                if (done) setFresh(undefined)
+                return done
+              }} />
+            )}
+            {idsOf(c.payloads).map(id => <PayloadForm key={id} model={model} id={id} run={run} />)}
             <button type="button" className="danger" onClick={() => onDelete([{ line: which }])}><Trash size={16} />Delete</button>
           </form>
         ) : <p>{c.label || <span className="muted">No label</span>}</p>}
