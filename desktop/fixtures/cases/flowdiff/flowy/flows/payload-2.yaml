@@ -1,0 +1,4 @@
+name: payload-2
+view: root
+steps:
+  - { from: a, to: b, text: First, animation: call, payload: refund }

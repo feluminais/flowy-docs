@@ -1,0 +1,4 @@
+name: inline-1
+view: root
+steps:
+  - { from: a, to: b, text: First, animation: call, payload: { name: Cart, about: The basket. } }

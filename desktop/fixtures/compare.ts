@@ -21,7 +21,7 @@ const FLOWDIFF = 'desktop/fixtures/cases/flowdiff/flowy'
 /** The pairs of flows (older, newer) of the flowdiff case that are diffed. Each name is a file in its flows folder. */
 const PAIRS: [string, string][] = [
   ['base', 'same'], ['base', 'base'], ['base', 'appended'], ['base', 'inserted'], ['base', 'removed'], ['base', 'retexted'], ['appended', 'base'],
-  ['anim-pulse', 'anim-flash'], ['anim-pulse', 'anim-kind-pulse'], ['anim-order-1', 'anim-order-2'], ['desc-1', 'desc-2'],
+  ['anim-pulse', 'anim-flash'], ['anim-pulse', 'anim-kind-pulse'], ['anim-order-1', 'anim-order-2'], ['desc-1', 'desc-2'], ['payload-1', 'payload-2'], ['payload-1', 'reply-2'], ['inline-1', 'inline-2'],
   ['cross-old', 'cross-new'], ['base', 'apart'], ['alone-old', 'alone-new'], ['proto-old', 'proto-new'], ['dup-old', 'dup-new'],
 ]
 

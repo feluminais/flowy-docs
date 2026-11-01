@@ -1,3 +1,7 @@
+payloads:
+  order: { about: An order. }
+  refund: { about: A refund. }
+  receipt: { about: A receipt. }
 objects:
   a: { type: system, name: A }
   b: { type: system, name: B }
