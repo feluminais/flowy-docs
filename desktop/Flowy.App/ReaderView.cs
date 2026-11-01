@@ -207,6 +207,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.BackToFlow += GoBack;
 
         Focusable = true;
+        IsTabStop = false; // a click on the diagram, or code, gives it the keyboard; Tab goes to the controls inside it
         // Every press, handled or not (the canvas handles its own): it says which half the reader is working in.
         AddHandler(PointerPressedEvent, OnPointerDown, RoutingStrategies.Tunnel, handledEventsToo: true);
         // On the whole window, so keys work wherever the focus happens to be: a click on a button must not switch the shortcuts off.

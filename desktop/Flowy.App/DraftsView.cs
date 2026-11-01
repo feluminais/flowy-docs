@@ -133,6 +133,8 @@ internal sealed class DraftsView : Border
 
     private void StopNaming()
     {
+        // The keyboard was in the form: it goes back to New, not with the form out of sight.
+        if (_form.IsKeyboardFocusWithin) Dispatcher.UIThread.Post(() => _new.Focus());
         _form.IsVisible = false;
         _new.IsVisible = true;
         _none.IsVisible = _drafts.Count == 0;

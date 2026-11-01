@@ -17,7 +17,7 @@ namespace Flowy.App;
 internal delegate Task<bool> EditRun(Func<EditDoc, EditDoc> op);
 
 /// <summary>
-/// A text field that saves when you leave it (or press Enter, in a single line) and shows the saved text again if the edit is refused. After a
+/// A text field that saves when you leave it (or press Enter, in a single line), takes back what was typed on Esc, and shows the saved text again if the edit is refused. After a
 /// save the panel is updated from the reloaded model with <see cref="Sync"/>, which leaves a field alone while it has the focus: the reader may be
 /// half way through typing in the next one.
 /// </summary>
@@ -55,14 +55,25 @@ internal sealed class FieldBox : StackPanel
             ScrollViewer.SetHorizontalScrollBarVisibility(_box, ScrollBarVisibility.Auto);
         }
         Avalonia.Automation.AutomationProperties.SetName(_box, label);
-        _box.LostFocus += async (_, _) => await Commit();
-        if (!multiline)
-            _box.KeyDown += async (_, e) =>
+        // Saved when the reader moves on (Tab, a click elsewhere), not when code moves the focus or the panel is drawn again under the field.
+        _box.LostFocus += async (_, e) =>
+        {
+            if (e.NavigationMethod is NavigationMethod.Unspecified) return;
+            await Commit();
+        };
+        _box.KeyDown += async (_, e) =>
+        {
+            if (e.Key == Key.Escape && Plain(Text) != _saved)
             {
-                if (e.Key != Key.Enter) return;
+                e.Handled = true; // the first Esc takes back what was typed; the next one is the reader's, and leaves the field
+                Text = _saved;
+            }
+            else if (e.Key == Key.Enter && !multiline)
+            {
                 e.Handled = true;
                 await Commit();
-            };
+            }
+        };
         Children.Add(caption);
         Children.Add(_box);
     }
