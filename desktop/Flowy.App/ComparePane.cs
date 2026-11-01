@@ -79,6 +79,8 @@ internal sealed class ComparePane : Border, IFlowKeys
         // The card leaves most of a short pane to the diagram, and a fit keeps that much of the bottom clear for it.
         stage.SizeChanged += (_, e) => _player.MaxHeight = Math.Max(150, e.NewSize.Height * 0.5);
         _canvas.PlayerRoom = () => Math.Min(200, Math.Max(80, _canvas.Bounds.Height * 0.4));
+        // The payload card on a paused dot keeps clear of the pane's player card (the shared panel lies beside the panes, not over them).
+        _canvas.Avoid = () => _player.IsEffectivelyVisible && Avalonia.VisualExtensions.TranslatePoint(_player, new Avalonia.Point(0, 0), _canvas) is { } at ? [new Avalonia.Rect(at, _player.Bounds.Size)] : [];
         Grid.SetRow(_crumbs, 1);
         Grid.SetRow(stage, 2);
         var content = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { head, _crumbs, stage } };

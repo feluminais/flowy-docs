@@ -319,4 +319,41 @@ public class DotCardTests
         Assert.Empty(reader.Canvas.DotsOnScreen);
         Assert.Null(reader.Canvas.DotCardNow);
     }
+
+    [AvaloniaFact]
+    public void In_a_comparison_a_pane_paused_mid_send_shows_its_dots_payload_off_its_player_card_and_Esc_closes_only_the_card()
+    {
+        var (temp, window, reader) = Open();
+        using var _t = temp;
+        try
+        {
+            File.WriteAllText(Path.Combine(temp.Path, "flowy", "flows", "again.yaml"), Flow.Replace("name: Checkout", "name: Checkout again\ncompare: checkout"));
+            reader.Load(FolderLoader.Load(Path.Combine(temp.Path, "flowy")), Path.Combine(temp.Path, "flowy"));
+            reader.OpenCompareById("checkout", "again");
+            Run(() => false, 0.2);
+            var pane = reader.CompareShown!.Panes[0];
+            var beat = pane.Canvas.PlayingBeats.First(b => b.Do == "blob" && b.Tone != "reply");
+            Run(() => pane.Canvas.Clock.Elapsed > beat.At + beat.Dur / 3.0);
+            pane.Canvas.Clock.Pause();
+            pane.Canvas.Clock.Seek(beat.At + beat.Dur / 2.0);
+            Run(() => pane.Canvas.DotsOnScreen.Count > 0, 2);
+            pane.Canvas.HoverDotAt(Middle(pane.Canvas.DotsOnScreen[0]));
+            Run(() => false, 0.2);
+            var card = pane.Canvas.DotCardNow;
+            Assert.NotNull(card);
+            Assert.Equal("Order", Heading(card));
+            var shown = new Rect(card.TranslatePoint(new Point(0, 0), pane.Canvas)!.Value, card.Bounds.Size);
+            var bar = new Rect(pane.Card.TranslatePoint(new Point(0, 0), pane.Canvas)!.Value, pane.Card.Bounds.Size);
+            Assert.False(shown.Intersects(bar), $"{shown} off {bar}");
+            var stop = pane.StopNow;
+            window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+            Assert.Null(pane.Canvas.DotCardNow);
+            Assert.NotNull(reader.CompareShown); // Esc went to the card, not to the comparison
+            Assert.Equal(stop, pane.StopNow);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
 }

@@ -369,7 +369,8 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
 - [ ] Play "Customer places an order" to step 2 and press P while the dot is on its way to Order API. Put the pointer on the dot: a card beside
       it shows Basket, with its About, Shape and Example, clear of the player card. Move onto the card: it stays, and its code scrolls. Wait for
       the answer's dot (or drag the bar to it) and pause: its card shows Receipt with the back arrow. Leaving it, Esc, Play, a move along the
-      bar, a pan or a zoom close it, and while the dot moves, nothing opens. Both readers, light and dark.
+      bar, a pan or a zoom close it, and while the dot moves, nothing opens. In a comparison, pause one pane mid-send: its dot shows its card
+      inside that pane, clear of its player card, and Esc closes the card and leaves the comparison open. Both readers, light and dark.
 - [ ] Play "Customer places an order" and press P while a dot is on its way: it stops where it is, and P again carries it on from there.
       Pause on "The customer follows the courier" while the live map comes in: it stays half drawn, and its dots stand still. Drag the bar
       to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Pick 2×:
