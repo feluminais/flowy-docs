@@ -38,12 +38,19 @@ export function PayloadRow({ shown, back, open, title }: { shown: Shown; back?: 
   return (
     <details className="payload" open={open} title={title}>
       <summary><span className="dirn" aria-hidden="true"><Arrow size={14} /></span>{shown.name}{back && <span className="visually-hidden">, comes back</span>}</summary>
-      <div className="payload-body">
-        {shown.about && <Description text={shown.about} />}
-        {shown.shape && <BlockView title="Shape" block={shown.shape} />}
-        {shown.example && <BlockView title="Example" block={shown.example} />}
-      </div>
+      <PayloadBody shown={shown} />
     </details>
+  )
+}
+
+/** What a payload is, under its name: what it is about, then its shape and its example. The rows show it open, and so does the card on a paused dot. */
+export function PayloadBody({ shown }: { shown: Shown }) {
+  return (
+    <div className="payload-body">
+      {shown.about && <Description text={shown.about} />}
+      {shown.shape && <BlockView title="Shape" block={shown.shape} />}
+      {shown.example && <BlockView title="Example" block={shown.example} />}
+    </div>
   )
 }
 

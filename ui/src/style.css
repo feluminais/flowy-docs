@@ -1450,3 +1450,12 @@ details.payload .code-block { max-height: 240px; overflow: auto; }
 .run-actions .linked { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; color: var(--accent); font-size: 12.5px; }
 .cpick.down { top: calc(100% + 6px); bottom: auto; z-index: 6; }
 .event .what { overflow-wrap: anywhere; }
+
+/* The payload card on a paused dot (DotCard.tsx): each dot that carries one takes the pointer, and the card sits beside it, scrolling inside past its size. */
+.dot-hit { position: absolute; z-index: 4; pointer-events: none; }
+.dot-card {
+  position: absolute; z-index: 6; box-sizing: border-box; max-width: 380px; max-height: 320px; overflow: auto; padding: 12px 14px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003;
+}
+.dot-card h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 14px; }
+.dot-card .payload-body { margin-left: 0; }
