@@ -53,6 +53,7 @@ internal sealed class UsedByPanel : StackPanel
         _run = run;
         Spacing = 14;
         Focusable = true;
+        IsTabStop = false; // focused when it opens, so its keys work; Tab goes to its buttons
         AutomationProperties.SetName(this, "Used by");
         _names.Classes.Add("muted");
 
@@ -327,7 +328,12 @@ internal sealed class UsedByPanel : StackPanel
         };
         find.KeyDown += (_, e) =>
         {
-            if (e.Key == Key.Escape)
+            if (e.Key == Key.Escape && !string.IsNullOrEmpty(find.Text))
+            {
+                e.Handled = true;
+                find.Text = ""; // the first Esc empties the field, the next closes the list
+            }
+            else if (e.Key == Key.Escape)
             {
                 e.Handled = true;
                 _picking = null;

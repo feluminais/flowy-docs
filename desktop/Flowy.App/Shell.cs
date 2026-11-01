@@ -174,8 +174,8 @@ internal sealed class Shell
 /// <summary>A small window with a message and an OK button: Avalonia has no message box of its own.</summary>
 internal static class MessageDialog
 {
-    /// <summary>A question with two answers; true for the first.</summary>
-    public static async Task<bool> AskAsync(Window? owner, string title, string message, string yes, string no)
+    /// <summary>A question with two answers; true for the first. <paramref name="activate"/> false: nobody asked for it, so it opens behind whatever has the keyboard.</summary>
+    public static async Task<bool> AskAsync(Window? owner, string title, string message, string yes, string no, bool activate = true)
     {
         if (owner is { IsVisible: false }) owner = null; // closed while the update check ran: ShowDialog on it would throw
         var answer = false;
@@ -191,6 +191,7 @@ internal static class MessageDialog
             SizeToContent = SizeToContent.Height,
             WindowStartupLocation = owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
             CanResize = false,
+            ShowActivated = activate,
             Content = new StackPanel
             {
                 Margin = new Thickness(20),

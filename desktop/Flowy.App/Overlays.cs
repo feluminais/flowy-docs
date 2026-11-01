@@ -3,12 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>A field over the canvas that finds a box anywhere in the model by name. ↑ and ↓ move, Enter picks, Esc or leaving the field closes it.</summary>
+/// <summary>A field over the canvas that finds a box anywhere in the model by name. ↑ and ↓ move, Enter picks, Esc empties the field, then closes it; a press outside closes it too.</summary>
 internal sealed class SearchBox : Border
 {
     private readonly Model _model;
@@ -42,7 +43,8 @@ internal sealed class SearchBox : Border
             Rebuild();
         };
         _input.KeyDown += OnKey;
-        _input.LostFocus += (_, _) => _close();
+        // A press outside closes it (ReaderView); a press on the card itself, between the rows, keeps the keyboard in the field.
+        PointerPressed += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => _input.Focus());
         _input.Text = query;
         // Once it is on screen: a control can't take the focus before it has been laid out.
         AttachedToVisualTree += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => _input.Focus(), Avalonia.Threading.DispatcherPriority.Loaded);
@@ -101,6 +103,9 @@ internal sealed class SearchBox : Border
             case Key.Enter when _found.Count > 0:
                 _pick(_found[_at]);
                 break;
+            case Key.Escape when !string.IsNullOrEmpty(_input.Text):
+                _input.Text = ""; // the first Esc empties the field, the next closes the box
+                break;
             case Key.Escape:
                 _close();
                 break;
@@ -109,6 +114,9 @@ internal sealed class SearchBox : Border
         }
         e.Handled = true;
     }
+
+    /// <summary>Whether a press landed on the box.</summary>
+    internal bool Holds(object? source) => source is Visual v && (ReferenceEquals(v, this) || v.GetVisualAncestors().Contains(this));
 }
 
 /// <summary>What ? opens: the keyboard shortcuts, read from the same <see cref="KeyMap"/> entries the reader answers keys with.</summary>
