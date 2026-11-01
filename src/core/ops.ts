@@ -14,6 +14,7 @@ import type { Run } from './perf/types.ts'
 import type { Shape } from './look.ts'
 import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, MAX_TAG_LENGTH, ROOT, tagKey, tagsOf } from './model.ts'
 import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
+import { payloadUsers, saysSomething, tidyPayload } from './payloads.ts'
 import { tidySnippets } from './snippets.ts'
 import type { SnippetInput } from './snippets.ts'
 import { changeKind, dropGroup, groupRange, joinGroup, leaveGroup, newGroup, stepGroupId, withGroups } from './groups.ts'
@@ -43,7 +44,12 @@ export type ObjectInput = {
   /** What a store holds (see data.ts). Replaces the whole list; [] removes it. */
   data?: DataInput[]
 }
-export type ConnectionInput = { from: string; to: string; label?: string }
+/** A payload as put_payload gives it: omitted keys stay, "" removes the name or the about, null removes the shape or the example (see payloads.ts). */
+export type PayloadInput = { id: string; name?: string; about?: string; shape?: { text: string; language?: string } | null; example?: { text: string; language?: string } | null }
+/** A payload written in place on a line or a step: it has no id, so it needs a name. */
+export type PayloadInputInline = { name: string; about?: string; shape?: { text: string; language?: string }; example?: { text: string; language?: string } }
+/** `payloads` are what the line carries: ids from putPayload, or payloads written in place. */
+export type ConnectionInput = { from: string; to: string; label?: string; payloads?: (string | PayloadInputInline)[] }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
 export type GroupInput = { kind?: string; text?: string; times?: string | number; until?: string; [extra: string]: unknown }
 /** `states` is where shapes stand before step 1 (shape id to state word); a step's `states` are the shapes it changes. Left out or empty writes no `states:`. */
@@ -96,6 +102,37 @@ export function putIcon(model: Model, name: string, path: string): Model {
   if (why) throw new OpError(`icon ${name} ${why}`)
   const icons = isMap(model.meta.icons) ? model.meta.icons : {}
   return { ...model, meta: { ...model.meta, icons: { ...icons, [name]: path.trim() } } }
+}
+
+/**
+ * Create or update a payload under `payloads:` in model.yaml. Omitted keys stay as they are, "" removes the name or the about, null removes the shape or the
+ * example. Refused when the payload would say nothing (no about, shape or example).
+ */
+export function putPayload(model: Model, { id, ...fields }: PayloadInput): Model {
+  if (!isValidId(id)) throw new OpError(`"${id}" is not a valid id: ${ID_RULE}`)
+  const held = model.meta.payloads
+  if (held !== undefined && held !== '' && !isMap(held)) throw new OpError('payloads in model.yaml is not a mapping of ids to payloads: fix it in the file first')
+  const all = isMap(held) ? held : {}
+  const next: Record<string, unknown> = Object.hasOwn(all, id) && isMap(all[id]) ? { ...all[id] } : {}
+  for (const k of ['name', 'about'] as const) if (fields[k] !== undefined) next[k] = fields[k]
+  for (const k of ['shape', 'example'] as const) {
+    if (fields[k] === null) delete next[k]
+    else if (fields[k] !== undefined) next[k] = fields[k]
+  }
+  const tidy = tidyPayload(next) as Record<string, unknown>
+  if (!saysSomething(tidy)) throw new OpError(`payload ${id} says nothing: give it an about, a shape or an example`)
+  return { ...model, meta: { ...model.meta, payloads: { ...all, [id]: tidy } } }
+}
+
+/** Remove a payload. Refused while a connection or a flow step names it. */
+export function deletePayload(model: Model, id: string): Model {
+  const all = model.meta.payloads
+  if (!isMap(all) || !Object.hasOwn(all, id)) throw new OpError(`unknown payload "${id}"`)
+  const users = payloadUsers(model, id)
+  if (users.length) throw new OpError(`payload "${id}" is used by ${users.join(', ')}. Change those first.`)
+  const { [id]: _, ...rest } = all
+  const { payloads: __, ...meta } = model.meta
+  return { ...model, meta: Object.keys(rest).length ? { ...model.meta, payloads: rest } : meta }
 }
 
 /** Remove a custom icon. Refused while an object uses it. */
@@ -289,11 +326,29 @@ export function deleteWith(model: Model, targets: Target[], resolutions: Resolut
   return { ...m, objects, connections }
 }
 
-/** Add a connection. An empty label means no label. */
-export function connect(model: Model, { from, to, label }: ConnectionInput): Model {
+/** Add a connection. An empty label means no label, and no payloads means none. */
+export function connect(model: Model, { from, to, label, payloads }: ConnectionInput): Model {
   for (const end of [from, to]) if (!getObject(model, end)) throw new OpError(`unknown object "${end}"`)
   const c: Connection = label ? { from, to, label } : { from, to }
+  if (payloads?.length) c.payloads = lineList(model, payloads)
   return { ...model, connections: [...model.connections, c] }
+}
+
+/** What a line's `payloads:` holds: each id as it is (it must be under `payloads:`), each payload written in place tidied. */
+function lineList(model: Model, list: (string | PayloadInputInline)[]): unknown[] {
+  const all = isMap(model.meta.payloads) ? model.meta.payloads : {}
+  return list.map(ref => {
+    if (typeof ref !== 'string') return tidyPayload(ref)
+    if (!Object.hasOwn(all, ref) || !isMap(all[ref])) throw new OpError(`unknown payload "${ref}"`)
+    return ref
+  })
+}
+
+/** Set what one connection (the first that matches) carries. Replaces the list; [] removes it. */
+export function setLinePayloads(model: Model, which: ConnectionInput, payloads: (string | PayloadInputInline)[]): Model {
+  const i = findConnection(model, which)
+  const { payloads: _, ...rest } = model.connections[i]
+  return { ...model, connections: model.connections.with(i, payloads.length ? { ...rest, payloads: lineList(model, payloads) } : rest) }
 }
 
 /** Remove from → to connections. With a label, only the ones carrying it; "" means the unlabelled ones. */

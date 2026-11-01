@@ -14,7 +14,7 @@ public sealed record FlowDiff(bool Related, SideMarks Older, SideMarks Newer);
 /// <summary>
 /// What changed between two flows: an older one and a newer one. A port of src/core/flowdiff.ts, which says every choice in its header; this follows it word for word
 /// and desktop/fixtures/compare.ts keeps the two equal. In short: steps are matched in order by their <c>from</c>, <c>to</c> and <c>text</c> with a longest common
-/// subsequence (a tie skips the older step); a matched pair is changed when its animation or description differ, compared in a canonical form (a bare text animation is
+/// subsequence (a tie skips the older step); a matched pair is changed when its animation, description, payload or reply differ, compared in a canonical form (a bare text animation is
 /// <c>{kind: text}</c>, keys sorted at every level); leftover steps with the same ends pair up as changed, the rest are removed or new; a shape or line only one flow uses
 /// is removed or new, and one both use is changed when a step on it is marked.
 /// </summary>
@@ -35,7 +35,7 @@ public static class FlowDiffs
             matchedNewer.Add(j);
             var o = older.Steps[i];
             var n = newer.Steps[j];
-            if (AnimationText(o.Animation) != AnimationText(n.Animation) || Canon(o.Description) != Canon(n.Description))
+            if (AnimationText(o.Animation) != AnimationText(n.Animation) || Canon(o.Description) != Canon(n.Description) || Canon(o.Payload) != Canon(n.Payload) || Canon(o.Reply) != Canon(n.Reply))
             {
                 result.Older.Steps[i] = Change.Changed;
                 result.Newer.Steps[j] = Change.Changed;

@@ -52,7 +52,7 @@ reads the way the code works.
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 
-**The tools.** The server has twenty-five. What `get_model` shows can be sent straight back to the tool that writes it. Every tool but the three draft tools also takes `draft`, a draft's id, and then reads or writes that draft instead of the model ([Drafts](drafts.md)).
+**The tools.** The server has twenty-eight. What `get_model` shows can be sent straight back to the tool that writes it. Every tool but the three draft tools also takes `draft`, a draft's id, and then reads or writes that draft instead of the model ([Drafts](drafts.md)).
 
 | Tool | Does |
 | --- | --- |
@@ -62,8 +62,10 @@ notes in an object's `description` instead.
 | `get_mermaid` | One view as a flowchart, or one flow as a sequence diagram |
 | `get_failures` | The failure analyses as tables, worst first, with coverage; `format: csv` for a spreadsheet |
 | `put_object`, `delete_object` | A shape and everything on it ([the file format](../format.md#an-object)), or removes one, with its lines. A shape with shapes inside it, or one a flow step, a flow view or a failure mode names, is refused with a row for each of those and the actions that settle it. Called again with `resolve`, one entry for each row, it settles them and deletes in one edit, or saves nothing |
-| `connect`, `disconnect` | Adds a line from one shape to another, or removes it. A line a failure mode is on is refused the same way, and `resolve` removes the mode with it |
-| `put_flow`, `delete_flow` | A flow with its groups, states and animations, and answers with how each step reads on its view, or removes it. `folder` and `tags` file and label it; left out, a replaced flow keeps both |
+| `connect`, `disconnect` | Adds a line from one shape to another, or removes it. A line a failure mode is on is refused the same way, and `resolve` removes the mode with it. `connect` also takes the `payloads` the line carries |
+| `put_payload`, `delete_payload` | A payload: the data a line carries or a step sends, with an about, a shape and an example ([the file format](../format.md#payloads)), or removes one. A payload a line or a step names is refused, and the refusal lists them |
+| `set_payloads` | Sets the payloads one line carries, by id or written in place; `[]` takes them all off |
+| `put_flow`, `delete_flow` | A flow with its groups, states, animations and the payload and reply of each step, and answers with how each step reads on its view, or removes it. `folder` and `tags` file and label it; left out, a replaced flow keeps both |
 | `move_flow` | Moves a flow's file into a folder under `flows/`, or back to the top with `""`. The flow keeps its id |
 | `tag_flow` | Sets a flow's tags to exactly the words given, such as `happy path`, `error path`, `edge case` or `recovery`; `[]` takes them all out |
 | `put_failures`, `delete_failures` | A whole failure analysis, or removes it |

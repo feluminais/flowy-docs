@@ -246,6 +246,79 @@
       }
     },
     {
+      "older": "payload-1",
+      "newer": "payload-2",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      }
+    },
+    {
+      "older": "payload-1",
+      "newer": "reply-2",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      }
+    },
+    {
+      "older": "inline-1",
+      "newer": "inline-2",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      }
+    },
+    {
       "older": "cross-old",
       "newer": "cross-new",
       "related": true,

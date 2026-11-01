@@ -942,6 +942,181 @@
       ]
     },
     {
+      "name": "payload-1 to payload-2",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "payload-1 to reply-2",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        },
+        "newer": {
+          "steps": {
+            "0": "changed"
+          },
+          "shapes": {
+            "a": "changed",
+            "b": "changed"
+          },
+          "lines": {
+            "a b": "changed"
+          }
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [
+            "changed"
+          ],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
+      "name": "inline-1 to inline-2",
+      "diff": {
+        "related": true,
+        "older": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        },
+        "newer": {
+          "steps": {},
+          "shapes": {},
+          "lines": {}
+        }
+      },
+      "results": [
+        {
+          "sides": [
+            "older",
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "newer"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [
+            "older"
+          ],
+          "items": [],
+          "related": true
+        },
+        {
+          "sides": [],
+          "items": [],
+          "related": true
+        }
+      ]
+    },
+    {
       "name": "cross-old to cross-new",
       "diff": {
         "related": true,
