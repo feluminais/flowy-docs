@@ -32,7 +32,10 @@ internal static class FlowStage
             var outcome = animation is null ? null : Animations.OutcomeLine(animation, shape => Views.NameOf(model, shape));
             // What a step leaves open or closes is not a failure, so it is told in the card's own colour, not the outcome's.
             var channel = outcome is null && animation is not null ? Animations.ChannelLine(animation) : null;
-            return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome ?? channel, channel is not null);
+            return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome ?? channel, channel is not null)
+            {
+                Sends = Payloads.OfStep(model, step), Reply = Payloads.ReplyOf(model, step),
+            };
         }).ToList();
         var moves = stop.Steps.Any(i => Animations.Read(flow.Steps[i]) is not null && shown?.Ends[i] is not null);
         var progress = Captions.ProgressOf(flow, stops);

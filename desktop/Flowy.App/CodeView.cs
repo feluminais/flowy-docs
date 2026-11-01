@@ -32,12 +32,18 @@ internal static class CodeView
         return section;
     }
 
-    private static Control One(Snippet snippet, Func<string, IBrush> resource)
+    private static Control One(Snippet snippet, Func<string, IBrush> resource) => Titled(snippet.Title ?? "", snippet.Text, snippet.Language, resource);
+
+    /// <summary>
+    /// Some code with a title over it, the language it is shown in and a button that copies it. With <paramref name="maxHeight"/> the code scrolls past that height
+    /// (a payload's schema can run to hundreds of lines).
+    /// </summary>
+    public static Control Titled(string title, string code, string? named, Func<string, IBrush> resource, double? maxHeight = null)
     {
-        var (language, _) = CodeInk.LanguageFor(snippet.Text, snippet.Language);
-        var text = string.Join('\n', Snippets.CodeLines(snippet.Text));
+        var (language, _) = CodeInk.LanguageFor(code, named);
+        var text = string.Join('\n', Snippets.CodeLines(code));
         var header = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 8 };
-        header.Children.Add(new TextBlock { Text = snippet.Title ?? "", FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center });
+        header.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center });
         if (language is not null)
         {
             var chip = new TextBlock { Text = language.Name, FontSize = 12, Foreground = resource("MutedBrush"), VerticalAlignment = VerticalAlignment.Center };
@@ -47,7 +53,7 @@ internal static class CodeView
         var copy = CopyButton(text);
         Grid.SetColumn(copy, 2);
         header.Children.Add(copy);
-        return new StackPanel { Spacing = 4, Children = { header, Block(text, language?.Id, resource) } };
+        return new StackPanel { Spacing = 4, Children = { header, Block(text, language?.Id, resource, maxHeight: maxHeight) } };
     }
 
     private static Button CopyButton(string text)
@@ -77,7 +83,7 @@ internal static class CodeView
     private static string BrushName(TokenKind kind) => $"Tok{kind}Brush";
 
     /// <summary>Code as a box of coloured text, with a bar to scroll along when a line is long. <paramref name="language"/> is one of our ids, or null for plain text.</summary>
-    public static Control Block(string text, string? language, Func<string, IBrush> resource, double size = 12.5)
+    public static Control Block(string text, string? language, Func<string, IBrush> resource, double size = 12.5, double? maxHeight = null)
     {
         var block = new SelectableTextBlock { FontFamily = Fonts.Mono, FontSize = size, TextWrapping = TextWrapping.NoWrap };
         foreach (var run in CodeInk.Runs(text, language))
@@ -92,7 +98,9 @@ internal static class CodeView
         return new Border
         {
             Background = resource("BoxBrush"), BorderBrush = resource("LineBrush"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 8, 10, 0),
-            Child = new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, Content = block },
+            Child = maxHeight is { } most
+                ? new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = most, Content = block, Classes = { "payloadcode" } }
+                : new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, Content = block },
         };
     }
 
