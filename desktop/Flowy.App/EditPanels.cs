@@ -353,7 +353,12 @@ internal sealed class LineEditor : StackPanel
         public required FieldBox Label;
         public required StackPanel Problems;
         public required Control Inside;
+        public required StackPanel Payloads;
+        public string PayloadSignature = "\u0000";
     }
+
+    // A payload made from a name in a row's picker, until its first About saves it: which connection, and its name.
+    private (int Index, string Name)? _fresh;
 
     private readonly SidePanel _owner;
     private readonly string _from;
@@ -402,7 +407,40 @@ internal sealed class LineEditor : StackPanel
             if (row.Inside is TextBlock t) t.Text = SidePanel.Describe(model, c);
             row.Problems.Children.Clear();
             row.Problems.Children.Add(_owner.Problems(problems.Where(p => p.Connection == index).Select(p => p.Message)));
+            var signature = PayloadEdit.Signature(model, c.Payloads) + (_fresh is { } f && f.Index == index ? f.Name : "");
+            if (signature != row.PayloadSignature)
+            {
+                row.PayloadSignature = signature;
+                FillPayloads(model, row, c);
+            }
         }
+    }
+
+    /// <summary>What a connection carries, as its row edits it: the picker, a new payload being made, and the form of each one it names.</summary>
+    private void FillPayloads(Model model, Row row, Connection c)
+    {
+        var which = row.Which;
+        var index = row.Index;
+        row.Payloads.Children.Clear();
+        var ids = PayloadEdit.IdsOf(c.Payloads);
+        var inline = PayloadEdit.InlineOf(c.Payloads);
+        row.Payloads.Children.Add(new PayloadPicker("Payloads", PayloadEdit.Choices(model), ids, true, null,
+            next => _run(d => EditOps.SetLinePayloads(d, which, [.. next.Cast<object?>(), .. inline])),
+            name =>
+            {
+                _fresh = (index, name);
+                row.PayloadSignature = "\u0000";
+                FillPayloads(model, row, c);
+            }));
+        if (_fresh is { } fresh && fresh.Index == index)
+            row.Payloads.Children.Add(PayloadEdit.New(fresh.Name, async about =>
+            {
+                var id = Navigation.NewId(fresh.Name, [.. Payloads.Of(model).Keys], "payload");
+                var done = await _run(d => EditOps.SetLinePayloads(EditOps.PutPayload(d, id, new Dictionary<string, object?> { ["name"] = fresh.Name, ["about"] = about }), which, [.. ids.Cast<object?>(), id, .. inline]));
+                if (done) _fresh = null;
+                return done;
+            }));
+        foreach (var id in ids) row.Payloads.Children.Add(PayloadEdit.Form(model, id, _run));
     }
 
     private Control Build(int index)
@@ -411,14 +449,15 @@ internal sealed class LineEditor : StackPanel
         var label = new FieldBox("Label", "", false, v => _run(d => EditOps.Relabel(d, row!.Which, v)));
         var inside = _owner.Muted("");
         var problems = new StackPanel();
-        row = new Row { Index = index, Label = label, Problems = problems, Inside = inside };
+        var payloads = new StackPanel { Spacing = 8 };
+        row = new Row { Index = index, Label = label, Problems = problems, Inside = inside, Payloads = payloads };
         var delete = new Button { HorizontalAlignment = HorizontalAlignment.Left };
         delete.Classes.Add("tool");
         delete.Classes.Add("danger");
         Chrome.Fill(delete, Icons.Trash, "Delete");
         delete.Click += (_, _) => _askDelete([new Target(Line: new LineTarget(row.Which.From, row.Which.To, row.Which.Label ?? ""))], _live.Count <= 1 ? _closed : null);
         _live.Add(row);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, label, problems, delete } });
+        return Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, label, payloads, problems, delete } });
     }
 }
 
