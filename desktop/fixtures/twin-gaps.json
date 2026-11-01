@@ -112,6 +112,7 @@
     "REPLY_KINDS",
     "connectionPayloadProblems",
     "modelPayloadProblems",
+    "motionOf",
     "payloadUsers",
     "payloadsOf",
     "resolvePayload",

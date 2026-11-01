@@ -7,17 +7,20 @@ steps:
     to: order-api
     text: POST /orders with the basket
     animation: { kind: call, carries: POST /orders }
+    payload: basket
+    reply: receipt
     description: |
       The app sends an idempotency key, so a double tap or a retry places one order.
   - from: order-api
     to: stripe
     text: Holds the amount on the card
     animation: { kind: call, carries: hold }
+    payload: hold
     description: |
       **Checkout** asks Stripe to authorise the total. The charge happens on acceptance; a refusal
       releases the hold.
-  - { from: order-api, to: orders-db, text: Saves the order as placed, animation: { kind: call, carries: order } }
-  - { from: order-api, to: events, text: Publishes the order, animation: { kind: event, carries: placed } }
+  - { from: order-api, to: orders-db, text: Saves the order as placed, animation: { kind: call, carries: order }, payload: order }
+  - { from: order-api, to: events, text: Publishes the order, animation: { kind: event, carries: placed }, payload: placed }
   - { from: events, to: dispatch, text: Dispatch starts looking for a courier, animation: { kind: callback, trigger: outside }, flow: deliver-order }
   - from: order-api
     to: kitchen-tablet

@@ -73,8 +73,8 @@ internal static class JsonDump
                 ("members", Arr(v.Members)),
                 ("outsiders", Arr(v.Outsiders)),
                 ("edges", Arr(v.Edges.Select(e => e.Both
-                    ? Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("both", true))
-                    : Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count))))));
+                    ? Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("both", true), ("carries", Carries(m, id, e.From, e.To)))
+                    : Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("carries", Carries(m, id, e.From, e.To)))))));
             if (Views.FlowActors(m, id) is { Count: > 0 } actors) view["actors"] = Arr(actors); // left out when there are none, as the TypeScript dump does
             return KeyValuePair.Create(id, (JsonNode?)view);
         });
@@ -110,6 +110,12 @@ internal static class JsonDump
             ("views", new JsonObject(views)));
         return result;
     }
+
+    /// <summary>What a line carries, as dump.ts writes it; null (left out) when it carries nothing.</summary>
+    private static JsonNode? Carries(Model m, string view, string from, string to) =>
+        Payloads.OnLine(m, view, from, to) is { Count: > 0 } carried
+            ? Arr(carried.Select(c => Obj(("name", c.Payload.Name), ("back", c.Back), ("own", c.Own), ("steps", Arr(c.Steps.Select(s => Obj(("flow", s.Flow), ("step", s.Step), ("reply", s.Reply))))))))
+            : null;
 
     private static JsonNode TagNode(CompareTag tag) => Obj(("with", tag.With), ("note", tag.Note));
 

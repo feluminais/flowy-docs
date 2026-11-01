@@ -16,7 +16,7 @@ public sealed record Interceptor(string? Shape = null, string? Name = null);
 /// answers coming back; both are null for every other kind.
 /// </summary>
 public sealed record StepAnimation(string Kind, string Trigger, string? Carries, string? Outcome = null, int? Share = null, string? Reason = null, Interceptor? By = null, double? At = null, string? Effect = null,
-    string? Opens = null, string? Name = null, string? Towards = null, string? Closes = null, int? Depth = null, string? Returns = null);
+    string? Opens = null, string? Name = null, string? Towards = null, string? Closes = null, int? Depth = null, string? Returns = null, string? Replies = null);
 
 /// <summary>
 /// One thing to draw, in the order beats are listed. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop, fade (the lit line dims and stays dim) or stack
@@ -526,7 +526,7 @@ public static class Animations
             List<Beat> Taken(int at) => a.Kind == "event" ? [Effect("flash", "to", at, 450)] : [Effect("gulp", "to", at, 300)];
             // A call still gets its answer once the request has landed.
             List<Beat> Reply(int landed) => call
-                ? [Effect("wait", "from", landed, 600), new Beat("blob", "line", landed + 600, t, "back", "envelope", "reply"), Effect("gulp", "from", landed + 600 + t, 300)]
+                ? [Effect("wait", "from", landed, 600), new Beat("blob", "line", landed + 600, t, "back", "envelope", "reply", a.Replies), Effect("gulp", "from", landed + 600 + t, 300)]
                 : [];
             switch (outcome)
             {
@@ -635,7 +635,7 @@ public static class Animations
                     return
                     [
                         Effect("gulp", "from", o, 250), Blob(o + 250, "envelope"), Effect("gulp", "to", landed, 300), .. Refused(landed), Effect("wait", "from", landed, 600),
-                        new Beat("blob", "line", back, t, "back", "envelope", failed ? "fail" : "reply"),
+                        new Beat("blob", "line", back, t, "back", "envelope", failed ? "fail" : "reply", failed ? null : a.Replies),
                         Effect("gulp", "from", back + t, 300),
                         .. failed ? Note(landed, NoteMs, along: LandingNoteAt) : [],
                     ];
