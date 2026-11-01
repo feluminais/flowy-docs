@@ -469,12 +469,13 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public void Y_opens_the_files_as_text_read_only_with_a_tab_for_each_in_the_browser_s_order()
+    public async Task Y_opens_the_files_as_text_read_only_with_a_tab_for_each_in_the_browser_s_order()
     {
         var (window, reader) = Open();
         Press(window, Key.Y, PhysicalKey.Y);
         Assert.Equal(PanelTab.Yaml, reader.ShownTabNow);
         var yaml = reader.Navigator.Yaml;
+        await EditModeTests.Until(() => !yaml.Reading); // the files are read off the UI thread
         Assert.Equal(YamlFiles.Read(Plum).Select(f => f.Path), yaml.Tabs);
         Assert.Equal("model.yaml", yaml.Open);
         Assert.Equal(string.Join('\n', YamlFiles.LinesOf(File.ReadAllText(Path.Combine(Plum, "model.yaml")))), yaml.Text);
@@ -485,12 +486,74 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public void The_selected_shape_s_lines_are_tinted_in_the_model_and_a_playing_flow_shows_its_own_file()
+    public async Task The_tabs_are_made_once_so_the_one_the_keyboard_is_on_survives_a_pick_and_a_step()
+    {
+        var (window, reader) = Open();
+        reader.OpenTab("yaml");
+        var yaml = reader.Navigator.Yaml;
+        await EditModeTests.Until(() => !yaml.Reading);
+        var tab = yaml.TabButton("failures/ordering.yaml")!;
+        Assert.True(tab.Focus(NavigationMethod.Tab));
+        yaml.PickFile("failures/ordering.yaml");
+        reader.OpenFlowById("deliver-order"); // a step on the flow: the panel is shown again
+        Dispatcher.UIThread.RunJobs();
+        Assert.Same(tab, yaml.TabButton("failures/ordering.yaml"));
+        Assert.Same(tab, window.FocusManager!.GetFocusedElement());
+        yaml.PickFile("model.yaml");
+        Assert.Contains("on", yaml.TabButton("model.yaml")!.Classes);
+        Assert.DoesNotContain("on", tab.Classes);
+    }
+
+    [AvaloniaFact]
+    public async Task A_long_file_shows_a_page_of_lines_and_a_button_for_the_next()
+    {
+        var dir = Directory.CreateTempSubdirectory("flowy-yaml-long-").FullName;
+        try
+        {
+            File.WriteAllText(Path.Combine(dir, "model.yaml"), "title: Long\nobjects:\n  shop:\n    type: system\n" + string.Concat(Enumerable.Repeat("# filler\n", 4996))); // 5000 lines
+            var (_, reader) = Open(dir);
+            reader.OpenTab("yaml");
+            var yaml = reader.Navigator.Yaml;
+            await EditModeTests.Until(() => !yaml.Reading);
+            Assert.Equal(YamlPanel.LinesPage, yaml.Text.Split('\n').Length);
+            Assert.Equal("Show 2000 more", yaml.MoreButton!.Content);
+            yaml.MoreButton!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.Equal(2 * YamlPanel.LinesPage, yaml.Text.Split('\n').Length);
+            yaml.MoreButton!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+            Assert.Equal(5000, yaml.Text.Split('\n').Length);
+            Assert.Null(yaml.MoreButton);
+        }
+        finally
+        {
+            Directory.Delete(dir, true);
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_Explorer_is_not_built_again_for_a_step_but_is_for_a_change()
+    {
+        var folder = FolderLoader.Load(Plum);
+        var explorer = new ExplorerView();
+        var expanded = new HashSet<string>();
+        explorer.Update(folder.Model, folder.Problems, false, expanded, Names.Root, null, null);
+        var rows = explorer.Rows;
+        Assert.NotEmpty(rows);
+        explorer.Update(folder.Model, folder.Problems, false, expanded, Names.Root, null, null);
+        Assert.Same(rows, explorer.Rows);
+        expanded.Add(rows.First(r => r.Expandable).Id); // the set is the panels' own and changes in place
+        explorer.Update(folder.Model, folder.Problems, false, expanded, Names.Root, null, null);
+        Assert.NotSame(rows, explorer.Rows);
+        Assert.True(explorer.Rows.Count > rows.Count);
+    }
+
+    [AvaloniaFact]
+    public async Task The_selected_shape_s_lines_are_tinted_in_the_model_and_a_playing_flow_shows_its_own_file()
     {
         var (_, reader) = Open();
         reader.OpenTab("yaml");
-        Dispatcher.UIThread.RunJobs();
         var yaml = reader.Navigator.Yaml;
+        await EditModeTests.Until(() => !yaml.Reading);
+        Dispatcher.UIThread.RunJobs();
         yaml.PickFile("layout.yaml"); // Plum has none: the pick is ignored
         Assert.Equal("model.yaml", yaml.Open);
         yaml.PickFile("failures/ordering.yaml");
@@ -508,7 +571,7 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public void A_new_load_of_the_folder_shows_the_files_as_they_are_now_and_the_tab_is_remembered()
+    public async Task A_new_load_of_the_folder_shows_the_files_as_they_are_now_and_the_tab_is_remembered()
     {
         var dir = Directory.CreateTempSubdirectory("flowy-yaml-tab-").FullName;
         try
@@ -518,13 +581,13 @@ public class NavigatorTests
             NavigatorState? last = null;
             reader.NavigatorChanged += s => last = s;
             reader.OpenTab("yaml");
-            Dispatcher.UIThread.RunJobs();
+            await EditModeTests.Until(() => !reader.Navigator.Yaml.Reading);
             Assert.StartsWith("title: First", reader.Navigator.Yaml.Text);
             Assert.Equal("yaml", last!.Tab);
 
             File.WriteAllText(Path.Combine(dir, "model.yaml"), "title: Second\nobjects:\n  shop:\n    type: system\n");
             reader.Load(FolderLoader.Load(dir), dir);
-            Dispatcher.UIThread.RunJobs();
+            await EditModeTests.Until(() => !reader.Navigator.Yaml.Reading && reader.Navigator.Yaml.Text.StartsWith("title: Second", StringComparison.Ordinal));
             Assert.StartsWith("title: Second", reader.Navigator.Yaml.Text);
 
             reader.RestoreNavigator(new NavigatorState("yaml", [], null, null));

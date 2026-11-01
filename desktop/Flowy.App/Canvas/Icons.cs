@@ -105,9 +105,13 @@ internal static class Icons
     /// <summary>An icon at <paramref name="size"/>; <paramref name="cssClass"/> picks its stroke colour in Styles.axaml.</summary>
     public static Control Make(string data, string cssClass, double size) => Make(data, cssClass, size, out _);
 
-    /// <summary>The same, with the path it draws, for a caller that colours it itself (an object that names a colour).</summary>
-    public static Control Make(string data, string cssClass, double size, out Path path)
+    // Each icon's path data is parsed once: a list of hundreds of rows draws the same few icons over and over, and a Geometry can be shared by every path that draws it.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Geometry> s_geometries = new();
+    private const int MaxCached = 4096; // a model's own icons are many only in a hostile file
+
+    private static Geometry GeometryOf(string data)
     {
+        if (s_geometries.TryGetValue(data, out var known)) return known;
         // A model's own icons are checked to be path data, but not to parse; one that doesn't draws nothing.
         Geometry geometry;
         try
@@ -118,7 +122,15 @@ internal static class Icons
         {
             geometry = new StreamGeometry();
         }
-        path = new Path { Data = geometry };
+        if (s_geometries.Count >= MaxCached) s_geometries.Clear();
+        s_geometries[data] = geometry;
+        return geometry;
+    }
+
+    /// <summary>The same, with the path it draws, for a caller that colours it itself (an object that names a colour).</summary>
+    public static Control Make(string data, string cssClass, double size, out Path path)
+    {
+        path = new Path { Data = GeometryOf(data) };
         path.Classes.Add(cssClass);
         // A Viewbox scales the 24-unit grid, stroke included, so the line stays as thick as in the browser's SVG.
         return new Viewbox { Width = size, Height = size, Child = new Avalonia.Controls.Canvas { Width = 24, Height = 24, Children = { path } } };

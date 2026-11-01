@@ -45,6 +45,21 @@ public class MultiSelectTests
     }
 
     [AvaloniaFact]
+    public void Clear_in_the_selection_bar_gives_the_keyboard_to_the_reader_as_the_bar_goes()
+    {
+        var (temp, _, window, reader) = OpenView("shop");
+        using var _ = temp;
+        Press(window, Key.A, PhysicalKey.A, RawInputModifiers.Control);
+        Assert.True(reader.Picked.IsVisible);
+        var clear = reader.Picked.GetVisualDescendants().OfType<Button>().Last();
+        Assert.True(clear.Focus(NavigationMethod.Tab));
+        clear.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Settle(window);
+        Assert.False(reader.Picked.IsVisible);
+        Assert.Same(reader, window.FocusManager!.GetFocusedElement());
+    }
+
+    [AvaloniaFact]
     public async Task Ctrl_click_adds_a_box_to_the_boxes_picked_and_takes_it_out_again()
     {
         var (temp, _, window, reader) = OpenView("shop");
