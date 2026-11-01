@@ -80,7 +80,8 @@ public static class ModelFiles
         var list = connectionList.Select(c =>
         {
             var m = (OrderedDictionary<string, object?>)c!;
-            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label")) { NoValue = EmptyKeys.Of(m) };
+            m.TryGetValue("payloads", out var payloads);
+            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label")) { Payloads = payloads, NoValue = EmptyKeys.Of(m) };
         }).ToList();
         var meta = top.Where(kv => kv.Key is not ("objects" or "connections")).ToDictionary(kv => kv.Key, kv => kv.Value);
         return new ParsedModel(map, list, meta);
@@ -113,7 +114,12 @@ public static class ModelFiles
             var m = (OrderedDictionary<string, object?>)s!;
             m.TryGetValue("animation", out var animation);
             m.TryGetValue("states", out var states);
-            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"), states) { NoValue = EmptyKeys.Of(m) };
+            m.TryGetValue("payload", out var payload);
+            m.TryGetValue("reply", out var reply);
+            return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"), states)
+            {
+                Payload = payload, Reply = reply, NoValue = EmptyKeys.Of(m),
+            };
         }).ToList();
         doc.TryGetValue("states", out var flowStates);
         // The steps say their own; so does compare, whose shape problem (a bare "compare:" included) is for Checks, never a parse error or an empty key.

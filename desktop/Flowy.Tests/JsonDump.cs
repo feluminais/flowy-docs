@@ -92,7 +92,10 @@ internal static class JsonDump
                 ("tech", kv.Value.Tech), ("description", kv.Value.Description), ("code", Raw(kv.Value.Code)), ("links", Raw(kv.Value.Links)), ("snippets", Raw(kv.Value.Snippets)),
                 ("data", Raw(kv.Value.Data)), ("shown", Shown(kv.Value)))))),
             ("icons", m.Meta.TryGetValue("icons", out var icons) ? Raw(icons) : null),
-            ("connections", Arr(m.Connections.Select(c => Obj(("from", c.From), ("to", c.To), ("label", c.Label))))),
+            // Left out when the file has none, as in dump.ts: what is held, and the names of what resolves.
+            ("payloads", m.Meta.TryGetValue("payloads", out var payloads) ? Raw(payloads) : null),
+            ("connections", Arr(m.Connections.Select(c => Obj(("from", c.From), ("to", c.To), ("label", c.Label), ("payloads", Raw(c.Payloads)),
+                ("carries", Payloads.OfConnection(m, c) is { Count: > 0 } carried ? Arr(carried.Select(p => p.Name)) : null))))),
             ("layout", new JsonObject(m.Layout.Select(view => KeyValuePair.Create(view.Key, (JsonNode?)new JsonObject(
                 view.Value.Select(box => KeyValuePair.Create(box.Key, (JsonNode?)Arr([box.Value.X, box.Value.Y])))))))),
             ("flows", Arr(m.Flows.Select(kv => FlowNode(kv.Key, kv.Value, m)))),
@@ -123,6 +126,11 @@ internal static class JsonDump
                     var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)), ("group", s.Group), ("lane", s.Lane), ("flow", s.FlowId), ("states", Raw(s.States)));
                     step["placed"] = Pair(placed); // null stays in the JSON here, as it does in dump.ts
                     step["ends"] = s.From is null ? null : JsonValue.Create(Views.StepEnds(m, s.From, s.To, placed));
+                    // Left out when the step has none, as in dump.ts.
+                    if (s.Payload is not null) step["payload"] = Raw(s.Payload);
+                    if (s.Reply is not null) step["reply"] = Raw(s.Reply);
+                    if (Payloads.OfStep(m, s) is { } sends) step["sends"] = sends.Name;
+                    if (Payloads.ReplyOf(m, s) is { } returns) step["returns"] = returns.Name;
                     return step;
                 }))));
         if (flow.CompareRaw is not null)
