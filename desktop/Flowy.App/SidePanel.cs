@@ -317,20 +317,21 @@ internal sealed class SidePanel : Border
     {
         var column = new StackPanel { Spacing = 14 };
         var (outgoing, incoming) = Navigation.LinesOf(model, id);
-        if (outgoing.Count > 0) column.Children.Add(Lines(model, "Out", Icons.ArrowRight, outgoing, pick, hover));
-        if (incoming.Count > 0) column.Children.Add(Lines(model, "In", Icons.ArrowLeft, incoming, pick, hover));
+        var carried = new HashSet<string>(); // a line that runs both ways has two rows, out and in: what only steps send goes under the first
+        if (outgoing.Count > 0) column.Children.Add(Lines(model, "Out", Icons.ArrowRight, outgoing, pick, hover, carried));
+        if (incoming.Count > 0) column.Children.Add(Lines(model, "In", Icons.ArrowLeft, incoming, pick, hover, carried));
         return column;
     }
 
-    private Control Lines(Model model, string title, string arrow, List<BoxLine> lines, Action<string> pick, Action<string?> hover)
+    private Control Lines(Model model, string title, string arrow, List<BoxLine> lines, Action<string> pick, Action<string?> hover, HashSet<string> carried)
     {
         var section = new StackPanel { Spacing = 2 };
         section.Children.Add(Chrome.Section(arrow, title, lines.Count));
-        foreach (var line in lines) section.Children.Add(Row(model, line, arrow, pick, hover));
+        foreach (var line in lines) section.Children.Add(Row(model, line, arrow, pick, hover, carried));
         return section;
     }
 
-    private Control Row(Model model, BoxLine line, string arrow, Action<string> pick, Action<string?> hover)
+    private Control Row(Model model, BoxLine line, string arrow, Action<string> pick, Action<string?> hover, HashSet<string> carried)
     {
         var lineId = SceneBuilder.LineId(line.From, line.To);
         var other = model.GetObject(line.Other);
@@ -351,7 +352,8 @@ internal sealed class SidePanel : Border
         }
         else body.Children.Add(Disclosure($"{line.Connections.Count} connections", model, line.Connections, c => Carried(model, view, c, line)));
         // What only flow steps send along the line, once for the line, each saying where it comes from.
-        if (PayloadView.Rows(model, [.. Payloads.OnLine(model, view, line.From, line.To).Where(c => !c.Own)], false, Resource) is { } sent) body.Children.Add(sent);
+        if (carried.Add(Views.LineKey(line.From, line.To)) && PayloadView.Rows(model, [.. Payloads.OnLine(model, view, line.From, line.To).Where(c => !c.Own)], false, Resource) is { } sent)
+            body.Children.Add(sent);
         var direction = new Border { Child = Icons.Make(arrow, "dirnicon", 14), VerticalAlignment = VerticalAlignment.Top };
         direction.Classes.Add("dirn");
         direction.Child!.HorizontalAlignment = HorizontalAlignment.Center;

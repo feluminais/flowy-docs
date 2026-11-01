@@ -96,3 +96,13 @@ test('an unknown payload id leaves the dot as it was', async () => {
   assert.equal(a?.carries, undefined)
   assert.equal(motionOf(model(), { from: 'web', to: 'api', text: 'x' }), undefined)
 })
+
+test('a shape whose line to another runs both ways lists the step-only payloads once, on the first of its two rows', async () => {
+  const { linesOf, carriedOn } = await import('../ui/src/edit.ts')
+  const m = model()
+  const both = { ...m, connections: [...m.connections, { from: 'api', to: 'web', label: 'pushes' }] }
+  const { out, in: incoming } = linesOf(both, 'web')
+  const extras = carriedOn(both, 'web', [...out, ...incoming])
+  const shown = [...out, ...incoming].flatMap(line => (extras.get(line) ?? []).map(c => c.payload.name))
+  assert.deepEqual(shown, ['Receipt', 'Update'])
+})

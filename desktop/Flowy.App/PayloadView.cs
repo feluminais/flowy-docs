@@ -25,6 +25,7 @@ internal static class PayloadView
         header.Classes.Add("disclosure");
         header.Classes.Add("payload");
         AutomationProperties.SetName(header, shown.Name);
+        if (back) AutomationProperties.SetHelpText(header, "Comes back"); // the arrow says so to the eye
         void Toggle()
         {
             // Built on the first open: a line can carry a dozen payloads, each with a long schema.

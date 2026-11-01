@@ -193,7 +193,8 @@ export function payloadUsers(model: Model, id: string): string[] {
 
 /**
  * One payload a drawn line carries: `back` when it runs from the line's `to` to its `from`, `own` when a connection the line draws lists it, and the flow steps that send it
- * (`step` counts from 0; `reply` when it is what comes back).
+ * (`step` counts from 0; `reply` when it is what comes back). One id is one row, so its way is the way of the first that names it: a connection before a step, then the
+ * steps in flow order.
  */
 export type Carried = { payload: Shown; back: boolean; own: boolean; steps: { flow: string; step: number; reply: boolean }[] }
 

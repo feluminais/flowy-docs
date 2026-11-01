@@ -7,6 +7,8 @@ import type { Connection, Model, Step } from '../../src/core/model.ts'
 import { setStepStates } from '../../src/core/ops.ts'
 import { isStateName } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
+import { lineCarries } from '../../src/core/payloads.ts'
+import type { Carried } from '../../src/core/payloads.ts'
 import { isMap, own } from '../../src/core/text.ts'
 import { chain, isView, lineKey, parentOf, placeEnds } from '../../src/core/views.ts'
 
@@ -85,6 +87,24 @@ export function moveBetween(model: Model, from: string, to: string): Move {
 
 /** A line touching a box, as the canvas draws it where the box sits: the box at its other end, and the connections it stands for. */
 export type BoxLine = { from: string; to: string; other: string; connections: Connection[] }
+
+/**
+ * The payloads only flow steps send along the lines of box `id` (see lineCarries), worked out once for its panel: a shape whose line to another runs both ways has
+ * two rows for it, out and in, and the payloads go under the first of them only.
+ */
+export function carriedOn(model: Model, id: string, lines: readonly BoxLine[]): Map<BoxLine, Carried[]> {
+  const view = parentOf(model, id)
+  const seen = new Set<string>()
+  const shown = new Map<BoxLine, Carried[]>()
+  for (const line of lines) {
+    const key = lineKey(line.from, line.to)
+    if (seen.has(key)) continue
+    seen.add(key)
+    const rows = lineCarries(model, view, line.from, line.to).filter(c => !c.own)
+    if (rows.length > 0) shown.set(line, rows)
+  }
+  return shown
+}
 
 /**
  * The lines touching box `id` in the view it sits in, going out and coming in. A line between two

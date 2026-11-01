@@ -45,12 +45,12 @@ public class PayloadPanelTests
           - { from: app, to: api, text: Asks for something odd, payload: nope }
         """;
 
-    private static (TempFolder Temp, Window Window, ReaderView Reader) Open()
+    private static (TempFolder Temp, Window Window, ReaderView Reader) Open(string extraConnection = "")
     {
         var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
         Directory.CreateDirectory(Path.Combine(dir, "flows"));
-        File.WriteAllText(Path.Combine(dir, "model.yaml"), Source);
+        File.WriteAllText(Path.Combine(dir, "model.yaml"), Source + extraConnection);
         File.WriteAllText(Path.Combine(dir, "flows", "checkout.yaml"), Flow);
         var reader = new ReaderView();
         var window = new Window { Width = 1200, Height = 900, Content = reader };
@@ -110,6 +110,17 @@ public class PayloadPanelTests
         Assert.Equal(240, scroller.MaxHeight);
         Assert.True(scroller.Bounds.Height <= 240.5);
         Assert.True(reader.Panel.Bounds.Width <= 420, $"the panel is {reader.Panel.Bounds.Width} wide");
+    }
+
+    [AvaloniaFact]
+    public void A_line_that_runs_both_ways_lists_what_only_steps_send_once()
+    {
+        var (temp, window, reader) = Open("\n  - { from: api, to: app, label: pushes }\n");
+        using var _ = temp;
+        reader.OpenObject("app");
+        Settle(window);
+        Assert.Equal(["Basket", "Receipt"], Rows(reader.Panel).Select(AutomationProperties.GetName)); // Receipt once, not under both the Out and the In row
+        Assert.Equal("Comes back", AutomationProperties.GetHelpText(Rows(reader.Panel)[1]));
     }
 
     [AvaloniaFact]
