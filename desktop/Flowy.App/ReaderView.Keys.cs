@@ -195,7 +195,7 @@ internal sealed partial class ReaderView
         public void FlowPlay()
         {
             if (r._compareMode.View is { } view && r.Comparing) view.Target.TogglePlay();
-            else r._playback.ToggleAuto();
+            else r._playback.TogglePlay();
         }
 
         public void FlowReplay()

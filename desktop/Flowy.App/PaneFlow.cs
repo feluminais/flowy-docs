@@ -33,10 +33,10 @@ internal sealed class PaneFlow
         _flowId = flowId;
         _canvas = canvas;
         _player = player;
-        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Draw, (ms, then) => Anim.Run(host, ms, t => t, _ => host.InvalidateVisual(), then)));
+        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Draw, _canvas.Clock.After, _canvas.Clock));
         _player.Back += () => Step(-1);
         _player.Next += () => Step(1);
-        _player.Auto += _playback.ToggleAuto;
+        _player.Play += _playback.TogglePlay;
         _player.Replay += _playback.Replay;
     }
 
@@ -152,7 +152,7 @@ internal sealed class PaneFlow
             _fitted = true;
             _canvas.Fit(0, true, 0, 0, refit: false); // once, when the pane first has a size; after that the reader's zoom stays through a resize
         }
-        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.Auto, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps, _canvas.ChannelKindsShown);
+        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.ShowsPause, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps, _canvas.ChannelKindsShown);
         _player.Show(card);
         _canvas.SetMarks(marks);
 
@@ -226,7 +226,7 @@ internal sealed class PaneFlow
         Draw();
     }
 
-    public void TogglePlay() => _playback.ToggleAuto();
+    public void TogglePlay() => _playback.TogglePlay();
 
     public void Replay() => _playback.Replay();
 }

@@ -20,7 +20,7 @@ internal sealed record PlayerStep(string Ends, string Text, string? Description,
 /// <c>Changes</c> is the kind of change each cell of the progress bar carries (one for each of its cells, null for none), while a comparison has Show changes on.
 /// </summary>
 internal sealed record PlayerView(
-    string FlowName, int Stop, int Count, string? Kind, Caption Caption, Progress Progress, bool Auto, bool Moving, (string Name, int Step)? Trail, IReadOnlyList<PlayerStep> Steps,
+    string FlowName, int Stop, int Count, string? Kind, Caption Caption, Progress Progress, bool ShowsPause, bool Moving, (string Name, int Step)? Trail, IReadOnlyList<PlayerStep> Steps,
     IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null, IReadOnlyList<string>? ChannelKinds = null);
 
 /// <summary>The card at the bottom while a flow plays: which stop, the group it is in, who talks to whom, what happens, and Back, Next and Stop.</summary>
@@ -29,7 +29,7 @@ internal sealed class PlayerCard : Border
     public event Action? Back;
     public event Action? Next;
     public event Action? Stop;
-    public event Action? Auto;
+    public event Action? Play;
     public event Action? Replay;
     /// <summary>The reader chose to open the flow a step continues in.</summary>
     public event Action<string>? OpenFlow;
@@ -412,7 +412,9 @@ internal sealed class PlayerCard : Border
         DockPanel.SetDock(stop, Dock.Right);
         buttons.Children.Add(stop);
         var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Tool(Icons.StepBack, "Back", () => Back?.Invoke(), v.Stop > 0), Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true) } };
-        left.Children.Add(v.Auto ? Tool(Icons.Pause, "Pause", () => Auto?.Invoke()) : Tool(Icons.Play, "Autoplay", () => Auto?.Invoke()));
+        var play = v.ShowsPause ? Tool(Icons.Pause, "Pause", () => Play?.Invoke()) : Tool(Icons.Play, "Play", () => Play?.Invoke());
+        ToolTip.SetTip(play, v.ShowsPause ? "Pause (P)" : "Play (P)");
+        left.Children.Add(play);
         if (v.Moving) left.Children.Add(Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step"));
         buttons.Children.Add(left);
         // The flyout from the Compare button sits above the card's content. The last rebuild still holds it, so it is let go of before it is given a new place.

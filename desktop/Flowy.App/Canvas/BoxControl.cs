@@ -221,6 +221,9 @@ internal sealed class BoxControl : Grid
         return geometry;
     }
 
+    /// <summary>The flow player's clock its state's motion keeps time by, so it stands still while paused and follows the speed (null: the wall clock).</summary>
+    internal ITimeSource? Time { get; set; }
+
     public BoxControl(SceneBox box)
     {
         Id = box.Id;
@@ -681,7 +684,7 @@ internal sealed class BoxControl : Grid
         foreach (var name in States.Names) Classes.Set("state-" + name, was.State == name);
         Classes.Set("state-inside", was.Inside);
         Classes.Set("state-leaving", true);
-        _fade = Anim.Run(this, 600, Anim.EaseOut, t =>
+        _fade = Anim.Run(this, 600, Time, Anim.EaseOut, t =>
         {
             _enter = 1 - t;
             Paint();
@@ -716,7 +719,7 @@ internal sealed class BoxControl : Grid
         {
             _enter = 0;
             Paint();
-            _fade = Anim.Run(this, 600, Anim.EaseOut, t =>
+            _fade = Anim.Run(this, 600, Time, Anim.EaseOut, t =>
             {
                 _enter = t;
                 Paint();
@@ -724,11 +727,11 @@ internal sealed class BoxControl : Grid
             if (look.Dash == Dash.Drained && !mark.Inside)
             {
                 DashFor(mark, 0);
-                _drain = Anim.Run(this, 900, Anim.EaseOut, t => DashFor(mark, t), () => _drain = null);
+                _drain = Anim.Run(this, 900, Time, Anim.EaseOut, t => DashFor(mark, t), () => _drain = null);
             }
         }
         if (look.LoopMs <= 0) return;
-        void Round() => _loop = Anim.Run(this, look.LoopMs, t => t, t =>
+        void Round() => _loop = Anim.Run(this, look.LoopMs, Time, t => t, t =>
         {
             if (mark.State == "degraded") _pulse = 0.675 + 0.325 * Math.Cos(2 * Math.PI * t);
             else

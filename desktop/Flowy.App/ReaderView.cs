@@ -187,7 +187,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         };
         _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
-        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, (ms, then) => Anim.Wait(this, ms, then)));
+        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, _canvas.Clock.After, _canvas.Clock));
         WirePerformance();
         _panels = new Panels(_nav, _rail, _detailsRail, _navSash, _detailsSash, _panel, _canvas, _perf, _host);
         _panels.Changed += state => NavigatorChanged?.Invoke(state);
@@ -201,7 +201,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Back += () => StepTo(StopIndex() - 1);
         _player.Next += () => StepTo(StopIndex() + 1);
         _player.Stop += Stop;
-        _player.Auto += _playback.ToggleAuto;
+        _player.Play += _playback.TogglePlay;
         _player.Replay += _playback.Replay;
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;
@@ -707,7 +707,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         }
         _player.CompareOff = CompareChoices.Off(model, Editing);
         (string Name, int Step)? trail = _playback.Head is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
-        var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.Auto, trail, _canvas.StatesShown.Values.ToList(), null, _canvas.ChannelKindsShown);
+        var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.ShowsPause, trail, _canvas.StatesShown.Values.ToList(), null, _canvas.ChannelKindsShown);
         _player.Show(card);
         _canvas.SetMarks(marks);
     }

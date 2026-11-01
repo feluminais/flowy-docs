@@ -1,9 +1,10 @@
+using Flowy.App.Canvas;
 using Flowy.Core;
 using Xunit;
 
 namespace Flowy.App.Tests;
 
-/// <summary>The playhead and Autoplay with no window: a flow of five stops, and waits the test lets go by hand.</summary>
+/// <summary>The playhead, Play and Pause with no window: a flow of five stops, a player clock on a wall the test moves, and waits the test lets go by hand.</summary>
 public class PlaybackTests
 {
     private sealed class Rig
@@ -12,8 +13,10 @@ public class PlaybackTests
         public bool Moving;
         public bool Playing = true;
         public int Redraws;
+        public double Wall;
         public readonly List<(double Milliseconds, Action Then, Wait Handle)> Waits = [];
         public Playback Playback = null!;
+        public PlayerClock Clock = null!;
 
         public sealed class Wait : IDisposable
         {
@@ -24,16 +27,18 @@ public class PlaybackTests
 
         public Rig()
         {
+            Clock = new PlayerClock(() => Wall, (ms, then) =>
+            {
+                var handle = new Wait();
+                Waits.Add((ms, then, handle));
+                return handle;
+            });
             Playback = new Playback(new PlaybackHooks(
                 () => Playing && Playback.Head is { } head ? (head.Step, Stops) : null,
                 () => Moving,
                 () => Redraws++,
-                (ms, then) =>
-                {
-                    var handle = new Wait();
-                    Waits.Add((ms, then, handle));
-                    return handle;
-                }));
+                Clock.After,
+                Clock));
             Playback.Head = new Playhead("order", 0, []);
         }
 
@@ -70,11 +75,13 @@ public class PlaybackTests
     }
 
     [Fact]
-    public void Autoplay_waits_for_the_motion_then_rests_and_goes_on()
+    public void Play_waits_for_the_motion_then_rests_and_goes_on()
     {
         var rig = new Rig { Moving = true };
         rig.Playback.Begin("order", 0, out var key);
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay(); // the step you took is moving: the button says Pause
+        Assert.True(rig.Playback.Paused);
+        rig.Playback.TogglePlay();
         Assert.True(rig.Playback.Auto);
         Assert.Empty(rig.Waits); // the step is moving: its end settles it
         rig.Playback.Settled(key);
@@ -89,19 +96,19 @@ public class PlaybackTests
     {
         var rig = new Rig();
         rig.Playback.Begin("order", 0, out _);
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay();
         Assert.Equal(MotionMath.Dwell, rig.Waits[^1].Milliseconds);
         rig.Elapse();
         Assert.Equal(MotionMath.Gap, rig.Waits[^1].Milliseconds);
     }
 
     [Fact]
-    public void Autoplay_stops_after_the_last_stop()
+    public void Play_stops_after_the_last_stop()
     {
         var rig = new Rig();
         rig.Playback.Head = new Playhead("order", Rig.Stops - 2, []);
         rig.Playback.Begin("order", Rig.Stops - 2, out var key);
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay();
         rig.Playback.Settled(key);
         rig.Elapse();
         Assert.Equal(Rig.Stops - 1, rig.Playback.Head!.Step);
@@ -114,11 +121,11 @@ public class PlaybackTests
     }
 
     [Fact]
-    public void Autoplay_started_on_the_last_stop_begins_again_from_the_first()
+    public void Play_started_on_the_last_stop_begins_again_from_the_first()
     {
         var rig = new Rig();
         rig.Playback.Head = new Playhead("order", Rig.Stops - 1, []);
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay();
         Assert.True(rig.Playback.Auto);
         Assert.Equal(0, rig.Playback.Head!.Step);
     }
@@ -128,7 +135,7 @@ public class PlaybackTests
     {
         var rig = new Rig();
         rig.Playback.Begin("order", 0, out var key);
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay();
         rig.Playback.Settled(key);
         var waiting = rig.Waits[^1];
         rig.Playback.Begin("order", 1, out _); // the reader stepped on by hand
@@ -137,28 +144,117 @@ public class PlaybackTests
     }
 
     [Fact]
-    public void Stopping_cancels_the_wait_and_Toggling_again_ends_Autoplay()
+    public void Stopping_cancels_the_wait_and_Pause_ends_Play()
     {
         var rig = new Rig();
         rig.Playback.Begin("order", 0, out _);
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay();
         var waiting = rig.Waits[^1];
         rig.Playback.StopAuto();
         Assert.True(waiting.Handle.Cancelled);
         Assert.False(rig.Playback.Auto);
 
-        rig.Playback.ToggleAuto();
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay();
+        rig.Playback.TogglePlay();
         Assert.False(rig.Playback.Auto);
     }
 
     [Fact]
-    public void Nothing_playing_ignores_Autoplay_and_Replay()
+    public void Nothing_playing_ignores_Play_and_Replay()
     {
         var rig = new Rig { Playing = false };
-        rig.Playback.ToggleAuto();
+        rig.Playback.TogglePlay();
         rig.Playback.Replay();
         Assert.False(rig.Playback.Auto);
         Assert.Equal(0, rig.Redraws);
+    }
+
+    [Fact]
+    public void Pause_holds_a_moving_step_and_Play_carries_on_through_the_flow()
+    {
+        var rig = new Rig { Moving = true };
+        rig.Playback.Begin("order", 0, out _);
+        Assert.True(rig.Playback.ShowsPause);
+        rig.Wall += 300;
+        rig.Playback.TogglePlay();
+        Assert.True(rig.Playback.Paused);
+        Assert.False(rig.Playback.Auto);
+        Assert.False(rig.Playback.ShowsPause);
+        rig.Wall += 1000;
+        Assert.Equal(300, rig.Clock.Elapsed);
+        rig.Playback.TogglePlay();
+        Assert.False(rig.Playback.Paused);
+        Assert.True(rig.Playback.Auto);
+        Assert.Equal(0, rig.Playback.Head!.Step); // it carries on where it was, not from the start
+    }
+
+    [Fact]
+    public void Pausing_in_the_rest_does_not_move_on()
+    {
+        var rig = new Rig();
+        rig.Playback.Begin("order", 0, out _);
+        rig.Playback.TogglePlay();
+        rig.Elapse(); // the still step's moment is over: the rest before the next
+        var resting = rig.Waits[^1];
+        Assert.Equal(MotionMath.Gap, resting.Milliseconds);
+        rig.Playback.TogglePlay();
+        Assert.True(resting.Handle.Cancelled);
+        Assert.Equal(0, rig.Playback.Head!.Step);
+        rig.Playback.TogglePlay();
+        rig.Elapse();
+        Assert.Equal(1, rig.Playback.Head.Step);
+    }
+
+    [Fact]
+    public void Next_while_paused_stays_paused_on_the_first_moment_of_the_next_step()
+    {
+        var rig = new Rig { Moving = true };
+        rig.Playback.Begin("order", 0, out _);
+        rig.Wall += 300;
+        rig.Playback.TogglePlay();
+        rig.Playback.StopAuto(); // what Next does
+        rig.Playback.Head = rig.Playback.Head! with { Step = 1 };
+        rig.Playback.Begin("order", 1, out _);
+        Assert.True(rig.Playback.Paused);
+        Assert.Equal(0, rig.Clock.Elapsed);
+    }
+
+    [Fact]
+    public void Another_flow_plays_again()
+    {
+        var rig = new Rig { Moving = true };
+        rig.Playback.Begin("order", 0, out _);
+        rig.Playback.TogglePlay();
+        Assert.True(rig.Playback.Paused);
+        rig.Playback.Begin("refund", 0, out _);
+        Assert.False(rig.Playback.Paused);
+    }
+
+    [Fact]
+    public void A_step_you_took_that_stops_moving_redraws_so_the_button_says_Play()
+    {
+        var rig = new Rig { Moving = true };
+        rig.Playback.Begin("order", 0, out var key);
+        Assert.True(rig.Playback.ShowsPause);
+        rig.Moving = false;
+        rig.Playback.Settled(key);
+        Assert.Equal(1, rig.Redraws);
+        Assert.False(rig.Playback.ShowsPause);
+    }
+
+    [Fact]
+    public void Nudge_moves_a_paused_step_a_moment_back_or_on()
+    {
+        var rig = new Rig { Moving = true };
+        rig.Playback.Begin("order", 0, out _);
+        rig.Clock.Declare(1000);
+        rig.Playback.Nudge(1);
+        Assert.Equal(0, rig.Clock.Elapsed); // not while it plays
+        rig.Playback.TogglePlay();
+        rig.Playback.Nudge(1);
+        Assert.Equal(100, rig.Clock.Elapsed);
+        rig.Playback.Nudge(-1);
+        rig.Playback.Nudge(-1);
+        Assert.Equal(0, rig.Clock.Elapsed);
     }
 }

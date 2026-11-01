@@ -295,6 +295,7 @@ public class AnimationTests
         try
         {
             reader.Play("tags");
+            Run(() => !reader.StepMoving); // while the step moves, P would pause it
             Press(window, Key.P, PhysicalKey.P);
             Assert.True(reader.Autoplaying);
             Run(() => reader.PlayingStep >= 1);
@@ -391,5 +392,34 @@ public class AnimationTests
         Assert.True(reader.Autoplaying);
         Press(window, Key.P, PhysicalKey.P);
         Assert.False(reader.Autoplaying);
+    }
+
+    [AvaloniaFact]
+    public void Pause_holds_a_moving_step_through_a_reload_and_Play_carries_on_from_there()
+    {
+        var (window, reader) = Open("0");
+        try
+        {
+            reader.Play("tags");
+            Run(() => reader.Canvas.Clock.Elapsed > 200);
+            Assert.True(reader.StepMoving);
+            Press(window, Key.P, PhysicalKey.P); // the step is moving: P pauses it
+            Assert.True(reader.Canvas.Clock.Paused);
+            var held = reader.Canvas.Clock.Elapsed;
+            var drawn = reader.Canvas.DrawnBeats.Count;
+            Run(() => false, 0.4);
+            reader.Reload(FolderLoader.Load(Tags)); // the files change on disk: the reader draws again
+            Run(() => false, 0.2);
+            Assert.Equal(held, reader.Canvas.Clock.Elapsed);
+            Assert.True(reader.StepMoving, "the paused step is still part way through");
+            Assert.Equal(drawn, reader.Canvas.DrawnBeats.Count);
+            Press(window, Key.P, PhysicalKey.P);
+            Run(() => reader.Canvas.Clock.Elapsed > held + 100);
+            Assert.True(reader.Canvas.Clock.Elapsed > held + 100, "Play carries on from the moment it was paused at");
+        }
+        finally
+        {
+            Finish();
+        }
     }
 }
