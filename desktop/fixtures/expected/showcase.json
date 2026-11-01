@@ -1406,7 +1406,11 @@
           "payload": "question",
           "reply": "answer",
           "sends": "Question",
-          "returns": "Answer"
+          "returns": "Answer",
+          "dots": {
+            "out": "Question",
+            "back": "Answer"
+          }
         }
       ]
     },

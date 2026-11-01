@@ -1,5 +1,5 @@
 import { animationOf } from './animation.ts'
-import type { Animation } from './animation.ts'
+import type { Animation, Beat } from './animation.ts'
 import { ID_RULE, isValidId } from './model.ts'
 import type { Connection, Model, Step } from './model.ts'
 import { codeLines, isBlankCode, LANGUAGES, languageOf } from './snippets.ts'
@@ -77,6 +77,13 @@ export const stepPayload = (model: Pick<Model, 'meta'>, s: Step): Shown | undefi
 
 /** What comes back to a step: the answer to a call, the call back, what each level of a recursion hands back. */
 export const stepReply = (model: Pick<Model, 'meta'>, s: Step): Shown | undefined => resolvePayload(model, s.reply)
+
+/** What one dot of a step's motion carries: an answering dot (`tone` reply) the step's reply, coming back; any other dot, a burst's or a refused one too, its payload. */
+export function dotPayload(model: Pick<Model, 'meta'>, step: Step, tone?: Beat['tone']): { shown: Shown; back: boolean } | undefined {
+  const back = tone === 'reply'
+  const shown = back ? stepReply(model, step) : stepPayload(model, step)
+  return shown && { shown, back }
+}
 
 /** What is wrong with a shape or an example, each message after `at` (`payload order: shape ...`). */
 function blockProblems(at: string, key: 'shape' | 'example', v: unknown): string[] {

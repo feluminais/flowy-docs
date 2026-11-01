@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { compareOf, compareProblem, linkedIds, partnersOf } from '../../src/core/compare.ts'
 import { dataShown } from '../../src/core/data.ts'
-import { connectionPayloads, lineCarries, stepPayload, stepReply } from '../../src/core/payloads.ts'
+import { connectionPayloads, dotPayload, lineCarries, stepPayload, stepReply } from '../../src/core/payloads.ts'
 import { folderOf, lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Analysis, Model } from '../../src/core/model.ts'
@@ -40,11 +40,15 @@ const payloadsDump = (model: Model, c: Model['connections'][number]) => {
 const stepPayloadsDump = (model: Model, s: Model['flows'][string]['steps'][number]) => {
   const sends = stepPayload(model, s)?.name
   const returns = stepReply(model, s)?.name
+  // What a dot of the step's motion carries, going and coming back (dotPayload).
+  const out = dotPayload(model, s)?.shown.name
+  const back = dotPayload(model, s, 'reply')?.shown.name
   return {
     ...(s.payload === undefined ? {} : { payload: s.payload }),
     ...(s.reply === undefined ? {} : { reply: s.reply }),
     ...(sends === undefined ? {} : { sends }),
     ...(returns === undefined ? {} : { returns }),
+    ...(out === undefined && back === undefined ? {} : { dots: { ...(out === undefined ? {} : { out }), ...(back === undefined ? {} : { back }) } }),
   }
 }
 

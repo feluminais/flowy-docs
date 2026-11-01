@@ -21,7 +21,7 @@ internal sealed class MotionLayer : Control
 
     /// <summary><c>Depth</c> is how tall a recursion's stack gets, which its counter says; <c>Total</c> is how long the run lasts.</summary>
     private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo, CoreRect? TakerBox, Geometry? TakerShape, string? TakerName, string? Effect = null,
-        int Depth = Animations.DepthDefault, int Total = 0);
+        int Depth = Animations.DepthDefault, int Total = 0, FlatLine? Flat = null);
 
     /// <summary>How strongly a shape lights up when it flashes, at the start.</summary>
     private const double Flash = 0.55;
@@ -67,7 +67,7 @@ internal sealed class MotionLayer : Control
                 takerBox = new CoreRect(spot.X + offset.X - size.Width / 2, spot.Y + offset.Y - size.Height / 2, size.Width, size.Height);
             }
             runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo),
-                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect, s.Animation.Depth ?? Animations.DepthDefault, total));
+                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect, s.Animation.Depth ?? Animations.DepthDefault, total, PathPoints.Flatten(data)));
             started.Add((beats, total));
         }
         _runs = runs;
@@ -214,10 +214,32 @@ internal sealed class MotionLayer : Control
         (byte)Math.Round(over.G * amount + under.G * (1 - amount)),
         (byte)Math.Round(over.B * amount + under.B * (1 - amount)));
 
-    private void DrawBlob(DrawingContext context, Run run, Beat beat)
+    /// <summary>The blobs drawn now, for the payload card on a paused dot: which step's run each is in, its middle and half its size (as drawn), and its tone. None with motion reduced.</summary>
+    public IReadOnlyList<(int Run, double X, double Y, double HalfWidth, double HalfHeight, string? Tone)> Dots
+    {
+        get
+        {
+            var dots = new List<(int, double, double, double, double, string?)>();
+            if (_still) return dots;
+            for (var i = 0; i < _runs.Count; i++)
+                foreach (var beat in _runs[i].Beats.Where(b => b.Do == "blob" && Shown(b)))
+                {
+                    if (Spot(_runs[i], beat) is not { } spot) continue;
+                    var (halfWidth, halfHeight) = beat.Label is { } word ? (LabelText(word, Brushes.Black).Width / 2 + 10, 13.0) : (15.0, 15.0);
+                    dots.Add((i, spot.Point.X, spot.Point.Y + spot.Pose.Dy, halfWidth, halfHeight, beat.Tone));
+                }
+            return dots;
+        }
+    }
+
+    /// <summary>The words on a blob, as they are drawn.</summary>
+    private static FormattedText LabelText(string word, IBrush brush) =>
+        new(Animations.ShortLabel(word), CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, brush);
+
+    /// <summary>Where a blob is at the time shown, which way it heads and how its effect poses it; null when its line has no point there.</summary>
+    private (Point Point, double Angle, Pose Pose)? Spot(Run run, Beat beat)
     {
         var p = MotionMath.Progress(beat, _t);
-        var bg = Brush("BgBrush");
         Point point;
         double angle;
         if (beat.On == "by")
@@ -232,13 +254,30 @@ internal sealed class MotionLayer : Control
         else
         {
             var at = MotionMath.Distance(beat.Dir, p, run.Length, beat.Start, beat.End);
-            if (!run.Line.TryGetPointAndTangentAtDistance(at, out point, out var tangent)) return;
-            angle = Math.Atan2(tangent.Y, tangent.X);
+            if (run.Line.TryGetPointAndTangentAtDistance(at, out point, out var tangent)) angle = Math.Atan2(tangent.Y, tangent.X);
+            else if (run.Flat is { } flat)
+            {
+                // A platform that cannot measure a geometry (a headless test draws none) walks the line's own points: the same path, as a polyline.
+                var along = MotionMath.Distance(beat.Dir, p, 1, beat.Start, beat.End);
+                var (x, y) = PathPoints.PointAt(flat, along);
+                var (bx, by) = PathPoints.PointAt(flat, Math.Max(0, along - 0.01));
+                var (ax, ay) = PathPoints.PointAt(flat, Math.Min(1, along + 0.01));
+                point = new Point(x, y);
+                angle = Math.Atan2(ay - by, ax - bx);
+            }
+            else return null;
         }
         // A blob keeps its shape unless the step asks for an effect (Animations.Effects), and one that waits where it is never moves for it.
         // The glyph or the words in it are never stretched, only its shape: see MotionMath.PoseOf.
         var waiting = beat.Start is not null && beat.Start == beat.End;
-        var pose = run.Effect is null || waiting ? MotionMath.Still : MotionMath.PoseOf(run.Effect, beat.Label is not null, angle, p);
+        return (point, angle, run.Effect is null || waiting ? MotionMath.Still : MotionMath.PoseOf(run.Effect, beat.Label is not null, angle, p));
+    }
+
+    private void DrawBlob(DrawingContext context, Run run, Beat beat)
+    {
+        if (Spot(run, beat) is not { } spot) return;
+        var (point, _, pose) = spot;
+        var bg = Brush("BgBrush");
         var place = Matrix.CreateRotation(pose.Turn) * Matrix.CreateTranslation(point.X, point.Y + pose.Dy);
         var stretch = Matrix.CreateRotation(-pose.Rotation) * Matrix.CreateScale(pose.Sx * pose.Grow, pose.Sy * pose.Grow) * Matrix.CreateRotation(pose.Rotation) * place;
         // A refusal is the danger colour, then a colour of its own for a request in a burst, then the answer's colour.
@@ -249,8 +288,7 @@ internal sealed class MotionLayer : Control
         var rim = new Pen(bg, 2);
         if (beat.Label is { } word)
         {
-            var label = Animations.ShortLabel(word);
-            var text = new FormattedText(label, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, bg);
+            var text = LabelText(word, bg);
             using (context.PushTransform(stretch))
             {
                 context.DrawRectangle(fill, rim, new Avalonia.Rect(-text.Width / 2 - 10, -13, text.Width + 20, 26), 13, 13);
