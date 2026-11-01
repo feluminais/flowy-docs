@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cardBox, cardsAt, cyclePeriod, distance, ease, EFFECT, effectPose, entryPoint, keepsPlaying, momentOf, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, REST, squish, STILL, tileSquash, tintColor, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, CARD, cardBox, cardSpot, cardsAt, cyclePeriod, distance, ease, EFFECT, effectPose, entryPoint, keepsPlaying, momentOf, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, REST, squish, STILL, tileSquash, tintColor, tubeOpacity } from '../ui/src/motion.ts'
 import { beatsFor, EFFECTS, TINTS } from '../src/core/animation.ts'
 import { COLORS } from '../src/core/look.ts'
 
@@ -249,4 +249,41 @@ test('momentOf holds the end without Repeat and loops with it', () => {
   assert.equal(momentOf(2500, 2000, false, 4500), 2000)
   assert.equal(momentOf(1200, 2000, false, 4500), 1200)
   assert.equal(momentOf(5000, 2000, true, 4500), 500)
+})
+
+const canvas = { x: 0, y: 0, width: 1000, height: 700 }
+const card = { width: 380, height: 320 }
+const at = (x: number, y: number) => ({ x, y, width: 30, height: 30 })
+const meets = (a: { x: number; y: number; width: number; height: number }, b: typeof a) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+
+test('a payload card is at most 380 by 320, 12 from its dot and 8 inside the canvas', () => {
+  assert.deepEqual(CARD, { width: 380, height: 320, gap: 12, margin: 8 })
+})
+
+test('a card sits right of its dot when there is room', () => {
+  assert.deepEqual(cardSpot(at(100, 300), card, canvas, []), { x: 142, y: 155 })
+})
+
+test('near the right edge it goes left', () => {
+  assert.equal(cardSpot(at(900, 300), card, canvas, []).x, 508)
+})
+
+test('it never covers what is kept clear', () => {
+  const player = { x: 0, y: 620, width: 1000, height: 80 }
+  const spot = cardSpot(at(400, 560), card, canvas, [player])
+  assert.deepEqual(spot, { x: 225, y: 228 })
+  assert.equal(meets({ ...spot, ...card }, player), false)
+})
+
+test('it stays inside the canvas', () => {
+  assert.ok(cardSpot(at(100, 20), card, canvas, []).y >= 8)
+  assert.ok(cardSpot(at(100, 680), card, canvas, []).y + 320 <= 692)
+})
+
+test('with nowhere clear it takes the spot that covers least, the first of equals', () => {
+  assert.deepEqual(cardSpot(at(100, 300), card, canvas, [canvas]), { x: 142, y: 155 })
+})
+
+test('a card bigger than the canvas starts at its top left corner', () => {
+  assert.deepEqual(cardSpot(at(100, 100), card, { x: 0, y: 0, width: 300, height: 200 }, []), { x: 8, y: 8 })
 })

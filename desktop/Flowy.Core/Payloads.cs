@@ -64,6 +64,13 @@ public static class Payloads
     /// <summary>What comes back to a step.</summary>
     public static Shown? ReplyOf(Model m, Step s) => Resolve(m, s.Reply);
 
+    /// <summary>What one dot of a step's motion carries: an answering dot (tone reply) the step's reply, coming back; any other dot, a burst's or a refused one too, its payload.</summary>
+    public static (Shown Shown, bool Back)? OfDot(Model m, Step s, string? tone)
+    {
+        var back = tone == "reply";
+        return (back ? ReplyOf(m, s) : OfStep(m, s)) is { } shown ? (shown, back) : null;
+    }
+
     /// <summary>Whether a payload says something: a few words about it, a shape or an example.</summary>
     public static bool SaysSomething(OrderedDictionary<string, object?> p) =>
         HasText(p.GetValueOrDefault("about")) || p.GetValueOrDefault("shape") is not null || p.GetValueOrDefault("example") is not null;

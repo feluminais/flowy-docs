@@ -231,3 +231,34 @@ export const pillText = (playing: boolean, cards: number, depth: number): string
 /** The squash for the `from` and `to` tiles. With one box at both ends the larger goes on it, so the empty second side never wipes the first. */
 export const tileSquash = (sameBox: boolean, squash: { from: number; to: number }): { from: number; to: number } =>
   sameBox ? { from: Math.max(squash.from, squash.to), to: 0 } : squash
+
+/** The payload card on a paused dot: its largest size, how far it stands off the dot, and how far it keeps inside the canvas. */
+export const CARD = { width: 380, height: 320, gap: 12, margin: 8 } as const
+
+const overlap = (a: Box, b: Box): number =>
+  Math.max(0, Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y))
+
+/**
+ * Where the payload card of a dot goes: right of it, else left, below or above, each kept inside `bounds`. The first that covers neither the dot nor anything in
+ * `avoid` (the player card, the side panel) wins; with none clear, the one that covers least, the first of equals. A card too big for the canvas starts at its corner.
+ */
+export function cardSpot(dot: Box, card: { width: number; height: number }, bounds: Box, avoid: readonly Box[]): { x: number; y: number } {
+  const { gap, margin } = CARD
+  const clamp = (v: number, low: number, size: number, room: number) => Math.max(low + margin, Math.min(v, low + room - margin - size))
+  const middle = { x: dot.x + dot.width / 2, y: dot.y + dot.height / 2 }
+  const spots = [
+    { x: dot.x + dot.width + gap, y: middle.y - card.height / 2 },
+    { x: dot.x - gap - card.width, y: middle.y - card.height / 2 },
+    { x: middle.x - card.width / 2, y: dot.y + dot.height + gap },
+    { x: middle.x - card.width / 2, y: dot.y - gap - card.height },
+  ].map(s => ({ x: clamp(s.x, bounds.x, card.width, bounds.width), y: clamp(s.y, bounds.y, card.height, bounds.height) }))
+  let best = spots[0]
+  let least = Infinity
+  for (const spot of spots) {
+    const box = { ...spot, ...card }
+    const covered = overlap(box, dot) + avoid.reduce((sum, a) => sum + overlap(box, a), 0)
+    if (covered === 0) return spot
+    if (covered < least) [best, least] = [spot, covered]
+  }
+  return best
+}
