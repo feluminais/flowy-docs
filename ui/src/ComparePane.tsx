@@ -22,6 +22,7 @@ import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
 import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
+import { useCssClock } from './cssClock.ts'
 import { usePaneFlow } from './usePaneFlow.ts'
 import type { PaneFlow } from './usePaneFlow.ts'
 
@@ -85,6 +86,8 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
   const [zoomed, setZoomed] = useState<string>() // the level the reader zoomed this pane to; none, and it draws its flow's own view
   const level = paneLevel(model, flowView, zoomed)
   const p = usePaneFlow({ model, flowId, level, startAt, problems, selectedBox, selectedLine, lines, still })
+  const pane = useRef<HTMLElement>(null)
+  useCssClock(pane, p.clock, p.stepKey)
   const { flow, view, nodes, frame, edges, spots } = p
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a shape that opens, waiting out the double-click window
   const cancelOpen = () => clearTimeout(opening.current)
@@ -94,7 +97,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
   useImperativeHandle(ref, () => ({ ...p.keys, fit, inside: () => paneInside(level, flowView), up: () => setZoomed(paneUp(model, level)) }))
 
   return (
-    <section className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={label ?? title} onFocus={onFocus} onPointerDownCapture={onFocus}>
+    <section ref={pane} className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={label ?? title} onFocus={onFocus} onPointerDownCapture={onFocus}>
       <h2 className="pane-title" title={title}>{title}</h2>
       {level !== flowView && (
         <nav className="crumbs pane-crumbs" aria-label={`Zoom level of ${title}`}>

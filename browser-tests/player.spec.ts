@@ -49,3 +49,46 @@ test('Next while paused stays paused on the first frame of the next step', async
   await page.waitForTimeout(600)
   expect(await page.locator('.motion g[data-beat]').first().getAttribute('style')).toBe(first)
 })
+
+// "The customer follows the courier": its second step opens the live map, a stream drawn as dots running along the line.
+async function openLiveMap(page: Page) {
+  await page.goto('/#delivery/follow-the-courier')
+  await page.locator('.player').waitFor()
+  await player(page).getByRole('button', { name: 'Next' }).click()
+  await expect(player(page)).toContainText('Step 2 of')
+}
+const channel = (page: Page) => page.locator('svg.channels').first()
+const opacity = (page: Page) => channel(page).evaluate(el => getComputedStyle(el).opacity)
+
+test('Pause holds a channel that is opening', async ({ page }) => {
+  await openLiveMap(page)
+  await button(page, 'Pause').click() // the step's call has not landed yet, so the live map has not appeared
+  await expect(button(page, 'Play')).toBeVisible()
+  const held = await opacity(page)
+  await page.waitForTimeout(4000) // longer than the call and the fade
+  expect(await opacity(page)).toBe(held)
+  await button(page, 'Play').click()
+  await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
+})
+
+test('Pause stops the dots of an open stream', async ({ page }) => {
+  await openLiveMap(page)
+  await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
+  await page.keyboard.press('p')
+  await page.keyboard.press('p')
+  const dots = page.locator('svg.channels .stream-dots').first()
+  const offset = () => dots.evaluate(el => getComputedStyle(el).strokeDashoffset)
+  const held = await offset()
+  await page.waitForTimeout(500)
+  expect(await offset()).toBe(held)
+})
+
+test('Play does not bring an open channel in again', async ({ page }) => {
+  await openLiveMap(page)
+  await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
+  await page.keyboard.press('p')
+  await page.keyboard.press('p')
+  await page.keyboard.press('p')
+  await page.waitForTimeout(100)
+  expect(await opacity(page)).toBe('1')
+})
