@@ -70,7 +70,8 @@ export function usePaneRun({ model, runs, runId, view, problems, selectedBox, se
     selected: n.id === selectedBox,
     measured: sizes.current.get(n.id),
   }))
-  const inner = view === ROOT ? [] : nodes.filter(n => graph.members.includes(n.id))
+  const members = useMemo(() => new Set(graph.members), [graph])
+  const inner = view === ROOT ? [] : nodes.filter(n => members.has(n.id))
   const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
   const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')

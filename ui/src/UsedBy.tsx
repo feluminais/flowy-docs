@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { needsDecision } from '../../src/core/dependents.ts'
 import type { Action, Dependent, Target } from '../../src/core/dependents.ts'
@@ -10,6 +10,7 @@ import { Chip, ObjectTile } from './Chrome.tsx'
 import { Panel } from './forms.tsx'
 import type { SaveEdit } from './forms.tsx'
 import { Alert, Close, Route, Trash } from './icons.tsx'
+import { Paged } from './Paging.tsx'
 import { letter, takesEnter } from './keys.ts'
 import { ACTION_LABELS, alongText, defaultChoice, doneText, planOf, removeAll, rerouteAll, resolutionsOf, rowText, settles, shapesLeft } from './usedby.ts'
 import type { Choice, Choices, Plan } from './usedby.ts'
@@ -72,8 +73,9 @@ export function UsedBy({ model, targets, run, onFlag, onDone, onCancel }: {
   const [active, setActive] = useState<string>()
   const [picking, setPicking] = useState<Picking>()
   const root = useRef<HTMLDivElement>(null)
-  const plan: Plan = planOf(model, targets, choices)
-  const rows = plan.rows.filter(needsDecision)
+  // Worked out again only when the model, the targets or a choice changes, not for every key that moves along the rows.
+  const plan: Plan = useMemo(() => planOf(model, targets, choices), [model, targets, choices])
+  const rows = useMemo(() => plan.rows.filter(needsDecision), [plan])
   const withFlow = (r: Dependent) => r.flow !== undefined && plan.flows.has(r.flow) && choices[r.key]?.action !== 'deleteFlow'
   const going = plan.targets.flatMap(t => ('object' in t ? [t.object] : []))
   const reason = plan.open.length === 0 ? undefined : `Choose for ${plan.open.length} more`
@@ -174,35 +176,37 @@ export function UsedBy({ model, targets, run, onFlag, onDone, onCancel }: {
       <div className="usedby" ref={root} tabIndex={-1} onKeyDown={keys} aria-label="Used by">
         <h2>Used by</h2>
         <p className="muted">{names}</p>
-        <ul className="usedby-rows">
-          {rows.map(row => {
-            const text = rowText(model, row)
-            const choice = choices[row.key]
-            const joined = withFlow(row)
-            const done = joined || settles(row, choice)
-            const chooser = choosing && picking !== 'all' && picking?.key === row.key ? choosing : undefined
-            return (
-              <li key={row.key} className={['usedby-row', done ? 'done' : 'open', row.key === active ? 'active' : ''].filter(Boolean).join(' ')} aria-current={row.key === active}>
-                <button type="button" className="usedby-main" onClick={() => setActive(row.key)}>
-                  <RowMark model={model} row={row} />
-                  <span className="usedby-text"><strong>{text.title}</strong><span className="muted">{text.where}</span></span>
-                </button>
-                {row.emptiesFlow && <Chip kind="warn">Last steps</Chip>}
-                {joined ? <span className="muted usedby-with">With the flow</span> : (
-                  <div className="usedby-actions" role="radiogroup" aria-label={`${text.title}, ${text.where}`}>
-                    {row.actions.map(a => (
-                      <button key={a} type="button" role="radio" aria-checked={choice?.action === a} className={['pick', a === 'deleteFlow' || a === 'removeStep' || a === 'removeMode' || a === 'deleteWith' ? 'remove' : ''].filter(Boolean).join(' ')} onClick={() => pick(row, a)}>
-                        {ACTION_LABELS[a]}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {!joined && choice?.to !== undefined && <span className="usedby-to"><ObjectTile model={model} object={getObject(model, choice.to)} size={20} />{nameOf(model, choice.to)}</span>}
-                {chooser && <ShapeChooser model={model} ids={chooser.ids} top={chooser.top} onPick={onChosen} onClose={() => setPicking(undefined)} />}
-              </li>
-            )
-          })}
-        </ul>
+        <Paged items={rows} reset={targets.length.toString()} floor={rows.findIndex(r => r.key === active) + 1}>{shown => (
+          <ul className="usedby-rows">
+            {shown.map(row => {
+              const text = rowText(model, row)
+              const choice = choices[row.key]
+              const joined = withFlow(row)
+              const done = joined || settles(row, choice)
+              const chooser = choosing && picking !== 'all' && picking?.key === row.key ? choosing : undefined
+              return (
+                <li key={row.key} className={['usedby-row', done ? 'done' : 'open', row.key === active ? 'active' : ''].filter(Boolean).join(' ')} aria-current={row.key === active}>
+                  <button type="button" className="usedby-main" onClick={() => setActive(row.key)}>
+                    <RowMark model={model} row={row} />
+                    <span className="usedby-text"><strong>{text.title}</strong><span className="muted">{text.where}</span></span>
+                  </button>
+                  {row.emptiesFlow && <Chip kind="warn">Last steps</Chip>}
+                  {joined ? <span className="muted usedby-with">With the flow</span> : (
+                    <div className="usedby-actions" role="radiogroup" aria-label={`${text.title}, ${text.where}`}>
+                      {row.actions.map(a => (
+                        <button key={a} type="button" role="radio" aria-checked={choice?.action === a} className={['pick', a === 'deleteFlow' || a === 'removeStep' || a === 'removeMode' || a === 'deleteWith' ? 'remove' : ''].filter(Boolean).join(' ')} onClick={() => pick(row, a)}>
+                          {ACTION_LABELS[a]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {!joined && choice?.to !== undefined && <span className="usedby-to"><ObjectTile model={model} object={getObject(model, choice.to)} size={20} />{nameOf(model, choice.to)}</span>}
+                  {chooser && <ShapeChooser model={model} ids={chooser.ids} top={chooser.top} onPick={onChosen} onClose={() => setPicking(undefined)} />}
+                </li>
+              )
+            })}
+          </ul>
+        )}</Paged>
         {along !== '' && <p className="usedby-along"><span className="muted">Goes too</span> {along}</p>}
         {picking === 'all' && choosing && <ShapeChooser model={model} ids={choosing.ids} top={false} onPick={onChosen} onClose={() => setPicking(undefined)} />}
         <div className="usedby-foot">

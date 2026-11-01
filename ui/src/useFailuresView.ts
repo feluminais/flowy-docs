@@ -31,7 +31,9 @@ export function useFailuresView({ model, view, open, part, drawing, go }: { mode
     () => (open && analysis ? rowsFor(model, analysis, view, { band: filter.band, part }) : { here: [], elsewhere: [] }),
     [open, model, analysis, view, filter.band, partKey], // `part` is `partKey` in words
   )
-  const litClass = (id: string) => (lit === undefined ? undefined : lit.fails.includes(id) ? `fails band-${lit.band}` : lit.affects.includes(id) ? `affected band-${lit.band}` : 'dim')
+  // Asked of every shape on the canvas, so the lists are sets.
+  const reach = useMemo(() => (lit === undefined ? undefined : { fails: new Set(lit.fails), affects: new Set(lit.affects) }), [lit])
+  const litClass = (id: string) => (lit === undefined || reach === undefined ? undefined : reach.fails.has(id) ? `fails band-${lit.band}` : reach.affects.has(id) ? `affected band-${lit.band}` : 'dim')
   /** Pick a mode in the Failures list; when its part is outside this view, the canvas goes to the view that draws it. */
   const selectMode = (id: string | undefined) => {
     setModeId(id)

@@ -7,6 +7,7 @@ import { CHANNEL_LABELS } from '../../src/core/channels.ts'
 import type { Channel } from '../../src/core/channels.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
 import { KeyItem, KeyRow } from './legend.tsx'
+import { runKeyOf } from './usePlayer.ts'
 
 /** A channel open at the stop on show, with the boxes its ends are in this view, and the motion of the step that opens or closes it (the mark waits for it to land). */
 export type OpenChannel = { channel: Channel; placed: [string, string]; motion?: Animation }
@@ -87,8 +88,12 @@ function OneChannel({ open, slot }: { open: OpenChannel; slot: number }) {
   )
 }
 
-/** Every channel open at the stop on show. Mount it before the step's motion, so a blob runs over a stream and not under it. */
+/**
+ * Every channel open at the stop on show. Mount it before the step's motion, so a blob runs over a stream and not under it. A channel keeps its mark from stop to stop (its
+ * dots and ripples run on, not start over at every step); a replay or another flow starts them afresh.
+ */
 export function ChannelMarks({ open, stepKey }: { open: OpenChannel[]; stepKey: string }) {
+  const run = runKeyOf(stepKey)
   // A box's discs stand side by side along its top edge, in the order they were opened, so none hides another.
   const used = new Map<string, number>()
   return (
@@ -97,7 +102,7 @@ export function ChannelMarks({ open, stepKey }: { open: OpenChannel[]; stepKey: 
         const box = o.placed[o.channel.end === 'to' ? 1 : 0]
         const slot = o.channel.kind === 'stream' ? 0 : (used.get(box) ?? 0)
         if (o.channel.kind !== 'stream') used.set(box, slot + 1)
-        return <OneChannel key={`${stepKey}:${o.channel.step}`} open={o} slot={slot} />
+        return <OneChannel key={`${run}:${o.channel.step}`} open={o} slot={slot} />
       })}
     </>
   )
