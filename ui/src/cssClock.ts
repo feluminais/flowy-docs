@@ -13,14 +13,15 @@ const finite = (a: Animation) => Number.isFinite(a.effect?.getTiming().iteration
 /**
  * Makes the flow's CSS animations under `root` keep the player's time, as the step motion does: a channel opening or closing, the dots of a stream, a clock turning,
  * a state's outline. Paused, they stand still; at another speed they run at it; and a seek sets the ones the stop on show began (its channel coming in, say) to the
- * clock's moment. Animations that began at an earlier stop are only paused and played, so a channel that has opened never comes in again.
+ * clock's moment. Animations that began at an earlier stop are only paused and played, so a channel that has opened never comes in again. Off (`on` false), it
+ * leaves them all alone: the reader's canvas holds the panes of a comparison, which keep their own time.
  */
-export function useCssClock(root: RefObject<HTMLElement | null>, clock: PlayerClock, stepKey: string): void {
+export function useCssClock(root: RefObject<HTMLElement | null>, clock: PlayerClock, stepKey: string, on = true): void {
   const seen = useRef(new WeakSet<Animation>())
   const ours = useRef(new WeakSet<Animation>()) // what the stop on show began
   const apply = (seek: boolean) => {
     const el = root.current
-    if (!el) return
+    if (!el || !on) return
     const at = clock.elapsed()
     for (const a of flowAnimations(el)) {
       seen.current.add(a)
@@ -34,19 +35,19 @@ export function useCssClock(root: RefObject<HTMLElement | null>, clock: PlayerCl
   // A new stop: what is running now and wasn't before, it began.
   useLayoutEffect(() => {
     const el = root.current
-    if (!el) return
+    if (!el || !on) return
     ours.current = new WeakSet()
     for (const a of flowAnimations(el)) if (!seen.current.has(a)) ours.current.add(a)
     apply(false)
   }, [stepKey])
   useEffect(() => {
     const el = root.current
+    if (!on) return
     // A seek or a restart moves time; a pause, a play or a speed don't, so those leave each animation's place alone.
-    let last = clock.elapsed()
+    let jumps = clock.jumps
     const heard = clock.subscribe(() => {
-      const now = clock.elapsed()
-      apply(clock.paused && now !== last)
-      last = now
+      apply(clock.jumps !== jumps)
+      jumps = clock.jumps
     })
     // An animation that starts while paused (a state that changes on a step taken while paused) is held at once.
     const started = (e: AnimationEvent) => {
@@ -57,5 +58,5 @@ export function useCssClock(root: RefObject<HTMLElement | null>, clock: PlayerCl
       heard()
       el?.removeEventListener('animationstart', started, true)
     }
-  }, [clock])
+  }, [clock, on])
 }

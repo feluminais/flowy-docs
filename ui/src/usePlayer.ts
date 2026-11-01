@@ -110,9 +110,8 @@ export function usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepK
   const nudge = (by: -1 | 1) => {
     if (paused) clock.seek(clock.elapsed() + by * NUDGE)
   }
-  useEffect(() => {
-    if (stepKey !== '') clock.begin(stepKey)
-  }, [stepKey])
+  // No flow ('') is a step of its own too, so the same step opened again starts from its first moment.
+  useEffect(() => clock.begin(stepKey), [stepKey])
   // Another flow, or none: the player starts running again, so a flow is never opened frozen.
   useEffect(() => {
     clock.play()
@@ -123,7 +122,8 @@ export function usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepK
   }, [playing?.auto, moving, stepKey])
   useEffect(() => {
     if (!playing?.auto || !flow || settledKey !== stepKey) return
-    return clock.after(GAP, () => setPlaying(stopIndex < stops.length - 1 ? { ...playing, step: stopIndex + 1 } : { ...playing, auto: false }))
+    // A stop dragged (or nudged) back into its motion first plays the rest of it.
+    return clock.after(GAP + Math.max(0, clock.length - clock.elapsed()), () => setPlaying(stopIndex < stops.length - 1 ? { ...playing, step: stopIndex + 1 } : { ...playing, auto: false }))
   }, [playing?.auto, settledKey, stepKey])
   return { finished, stepTo, togglePlay, showsPause, nudge, scrub }
 }

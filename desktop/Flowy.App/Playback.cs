@@ -92,7 +92,8 @@ internal sealed class Playback
         var key = _stepKey;
         if (_settledKey == key)
         {
-            After(MotionMath.Gap, () =>
+            // A stop dragged (or nudged) back into its motion first plays the rest of it.
+            After(MotionMath.Gap + Math.Max(0, _hooks.Clock.Length - _hooks.Clock.Elapsed), () =>
             {
                 // The flow may have been reloaded while this waited: ask which one is playing now, not the one it was armed on.
                 if (key != _stepKey || !Auto || _hooks.Where() is not { } now) return;

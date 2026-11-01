@@ -135,3 +135,30 @@ test('2× plays a step in about half the time, and the speed is kept', async ({ 
   await expect(player(page).getByRole('button', { name: '2×' })).toHaveAttribute('aria-pressed', 'true')
   expect(fast).toBeLessThan(normal * 0.75)
 })
+
+test('A flow stopped and opened again plays its first step from the start', async ({ page }) => {
+  await openFlow(page)
+  await player(page).getByRole('button', { name: 'Repeat' }).click() // off: a step that has played holds its end
+  await expect(page.locator('.motion g[data-beat]:has(> .blob):visible')).toHaveCount(0, { timeout: 8000 }) // step 1 has played
+  await player(page).getByRole('button', { name: 'Stop', exact: true }).click()
+  await expect(player(page)).toHaveCount(0)
+  await page.evaluate(() => (location.hash = '#ordering/place-order'))
+  await page.locator('.player').waitFor()
+  await expect(dot(page)).toBeVisible({ timeout: 1500 }) // its dot runs again
+})
+
+test('Turning Repeat off and on while paused keeps the frozen moment', async ({ page }) => {
+  await openFlow(page)
+  await button(page, 'Play').click()
+  await expect(player(page)).toContainText('Step 2 of')
+  await dot(page).waitFor()
+  await page.waitForTimeout(200)
+  await button(page, 'Pause').click()
+  await page.waitForTimeout(100)
+  const frozen = await dot(page).getAttribute('transform')
+  const repeat = player(page).getByRole('button', { name: 'Repeat' })
+  await repeat.click()
+  await repeat.click()
+  await page.waitForTimeout(200)
+  expect(await dot(page).getAttribute('transform', { timeout: 1000 })).toBe(frozen)
+})

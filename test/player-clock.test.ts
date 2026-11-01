@@ -173,3 +173,30 @@ test('a seek meant for another step is dropped by a step that is not it', () => 
   clock.declare(800)
   assert.equal(clock.elapsed(), 0)
 })
+
+test('a seek waiting for its step lands on the longest of the step motions that say how long they are', () => {
+  const { clock } = handClock()
+  clock.begin('a')
+  clock.pause()
+  clock.seekFraction(0.5, 'b')
+  clock.begin('b')
+  clock.declare(400)
+  assert.equal(clock.elapsed(), 200)
+  clock.declare(1000) // a fan-out: the other step of the stop is longer
+  assert.equal(clock.elapsed(), 500)
+  clock.seek(100) // a seek of its own: later motions leave it be
+  clock.declare(2000)
+  assert.equal(clock.elapsed(), 100)
+})
+
+test('jumps counts the seeks and restarts, not a pause, a play or a speed', () => {
+  const { clock, move } = handClock()
+  move(100)
+  clock.pause()
+  clock.play()
+  clock.setRate(2)
+  assert.equal(clock.jumps, 0)
+  clock.seek(50)
+  clock.restart()
+  assert.equal(clock.jumps, 2)
+})

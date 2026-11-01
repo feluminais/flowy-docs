@@ -22,8 +22,10 @@ export class PlayerClock {
   #totals = new Map<symbol, number>()
   #key = '' // the step (and replay) the clock is timing
   #pending: { fraction: number; key: string } | undefined // a seek waiting for its step to begin and say how long it is
+  #landed: number | undefined // the fraction a waiting seek landed at: a longer motion of the same stop that says so later moves it
   #waits = new Set<Wait>()
   #heard = new Set<() => void>()
+  #jumps = 0
 
   constructor(now: () => number = () => performance.now()) {
     this.#now = now
@@ -45,6 +47,11 @@ export class PlayerClock {
     return longest
   }
 
+  /** How many times the clock has jumped (a seek, a restart): a listener that compares it knows a jump from a pause, a play or a speed. */
+  get jumps(): number {
+    return this.#jumps
+  }
+
   elapsed(): number {
     return this.#paused ? this.#base : this.#base + (this.#now() - this.#since) * this.#rate
   }
@@ -64,6 +71,7 @@ export class PlayerClock {
   /** A new stop, or the same one again: it begins now. Paused stays paused, at its first moment. */
   restart(): void {
     this.#pending = undefined
+    this.#landed = undefined
     this.#set(0)
   }
 
@@ -94,6 +102,7 @@ export class PlayerClock {
   /** Goes to a moment of the stop, kept inside its motion once its length is known. */
   seek(ms: number): void {
     this.#pending = undefined
+    this.#landed = undefined
     const length = this.length
     this.#set(Math.max(0, length > 0 ? Math.min(ms, length) : ms))
   }
@@ -111,8 +120,11 @@ export class PlayerClock {
   declare(total: number): () => void {
     const key = Symbol('motion')
     this.#totals.set(key, total)
-    if (this.#pending?.key === this.#key && this.length > 0) this.seek(this.#pending.fraction * this.length)
-    else this.#tell()
+    const fraction = this.#pending?.key === this.#key ? this.#pending.fraction : this.#landed
+    if (fraction !== undefined && this.length > 0) {
+      this.seek(fraction * this.length)
+      this.#landed = fraction // the motions of a fan-out say how long they are one by one: the moment follows the longest
+    } else this.#tell()
     return () => {
       this.#totals.delete(key)
     }
@@ -137,8 +149,10 @@ export class PlayerClock {
     }
   }
 
+  /** A jump to a moment: the only change that moves the stop's time. */
   #set(at: number): void {
     this.#mark(at)
+    this.#jumps++
     this.#tell()
   }
 
