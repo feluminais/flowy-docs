@@ -1,6 +1,9 @@
+using System.Globalization;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
@@ -31,6 +34,40 @@ internal sealed class PlayerCard : Border
     public event Action? Stop;
     public event Action? Play;
     public event Action? Replay;
+    /// <summary>The bar is taken hold of, dragged to a stop and a fraction of the way through it, and let go of (see <see cref="Playback.ScrubStart"/>).</summary>
+    public event Action? ScrubStart;
+    public event Action<int, double>? ScrubTo;
+    public event Action? ScrubEnd;
+    /// <summary>A speed was chosen (one of <see cref="PlayerClock.Speeds"/>).</summary>
+    public event Action<double>? Speed;
+
+    /// <summary>The player's time: the cell of the stop on show fills as far as its motion has got, and the speed buttons show its speed.</summary>
+    public PlayerClock? Clock { get; set; }
+
+    /// <summary>A cell of the bar as the pointer finds it: its place on the card and the stop it stands for.</summary>
+    internal readonly record struct CellBox(double X, double Y, double Width, double Height, int Stop);
+
+    /// <summary>
+    /// The cell under the pointer at (<paramref name="x"/>, <paramref name="y"/>), or the nearest one (a cell is four pixels high, so a drag strays off it), and how far
+    /// along it the pointer is. Cells of another lane of a branch count too: a drag can go into any of them. The browser's bar (ui/src/Player.tsx) finds it the same way.
+    /// </summary>
+    internal static (int Stop, double Fraction)? CellAt(IReadOnlyList<CellBox> cells, double x, double y)
+    {
+        (int Stop, double Fraction, double Score)? best = null;
+        foreach (var c in cells)
+        {
+            var dx = Math.Max(Math.Max(c.X - x, 0), x - (c.X + c.Width));
+            var dy = Math.Max(Math.Max(c.Y - y, 0), y - (c.Y + c.Height));
+            var score = dx * 4 + dy;
+            if (best is null || score < best.Value.Score) best = (c.Stop, c.Width > 0 ? Math.Clamp((x - c.X) / c.Width, 0, 1) : 0, score);
+        }
+        return best is { } b ? (b.Stop, b.Fraction) : null;
+    }
+
+    private readonly List<(Control Hit, int Stop)> _cells = []; // the bar's cells as last built, for the pointer
+    private Border? _fill; // the part of the stop on show's cell its motion has got through
+    private IDisposable? _filling;
+    private bool _dragging;
     /// <summary>The reader chose to open the flow a step continues in.</summary>
     public event Action<string>? OpenFlow;
     /// <summary>The reader chose to go back to the flow this one was opened from.</summary>
@@ -127,8 +164,10 @@ internal sealed class PlayerCard : Border
     /// each named, and meets again when steps follow; an "only if" has an empty way round. The lanes the stop shown is not in are hollow. A cell says its lane
     /// and a group says what it means when you point at it.
     /// </summary>
-    private static Control Bar(Progress progress, int now, IReadOnlyList<Change?>? changes)
+    private Control Bar(Progress progress, int now, IReadOnlyList<Change?>? changes)
     {
+        _cells.Clear();
+        _fill = null;
         var here = progress.Cells.FirstOrDefault(c => c.Stop == now);
         // The cells by where they go, read once: looking each column up in every cell would cost the square of the steps, at every step of a long flow.
         var index = new Dictionary<Cell, int>(ReferenceEqualityComparer.Instance);
@@ -153,12 +192,20 @@ internal sealed class PlayerCard : Border
         {
             var segment = new Border();
             segment.Classes.Add("seg");
-            if (cell.Stop <= now) segment.Classes.Add("done");
+            if (cell.Stop < now) segment.Classes.Add("done");
+            if (cell.Stop == now)
+            {
+                // The stop on show fills from the left as far as its motion has got (see FollowFill).
+                _fill = new Border { RenderTransformOrigin = new RelativePoint(0, 0.5, RelativeUnit.Relative), RenderTransform = new ScaleTransform(1, 1) };
+                _fill.Classes.Add("fill");
+                segment.Child = _fill;
+            }
             if (here is not null && cell.Group >= 0 && cell.Group == here.Group && progress.Brackets[cell.Group].Kind == "branch" && cell.Row != here.Row) segment.Classes.Add("off");
             var change = ChangeAt(cell);
             if (change is { } kind) segment.Classes.Add("chg-" + BoxControl.Word(kind));
             // A strip four pixels high is hard to point at, so each sits in a taller one that takes the pointer.
             var hit = new Border { Background = Brushes.Transparent, Padding = new Thickness(0, 2), Child = segment };
+            _cells.Add((hit, cell.Stop));
             var title = string.Join(", ", new[] { cell.Title, change is { } named ? CompareUi.Name(named) : "" }.Where(t => t != ""));
             if (title != "") ToolTip.SetTip(hit, title);
             return hit;
@@ -400,7 +447,19 @@ internal sealed class PlayerCard : Border
             column.Children.Add(Scrolled(tabs, 84, "tab")); // three rows and half of a fourth (24 each), then they scroll
         }
         if (v.Caption.Text != "") column.Children.Add(new SelectableTextBlock { Text = v.Caption.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
-        column.Children.Add(Bar(v.Progress, v.Stop, v.Changes));
+        var bar = new Border { Background = Brushes.Transparent, Child = Bar(v.Progress, v.Stop, v.Changes), Cursor = new Cursor(StandardCursorType.Hand) };
+        AutomationProperties.SetName(bar, "Step");
+        AutomationProperties.SetHelpText(bar, $"Step {v.Stop + 1} of {v.Count}");
+        bar.PointerPressed += (_, e) =>
+        {
+            if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+            e.Pointer.Capture(this); // the card is rebuilt as the drag goes through the stops: the card, not the bar, keeps the pointer
+            _dragging = true;
+            ScrubStart?.Invoke();
+            DragTo(e.GetPosition(this));
+            e.Handled = true;
+        };
+        column.Children.Add(bar);
         // The key: one mark for each state that is on the canvas now, drawn as it looks there.
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
         if (v.ChannelKinds is { Count: > 0 } kinds) column.Children.Add(ChannelKey.Of(kinds));
@@ -416,6 +475,23 @@ internal sealed class PlayerCard : Border
         ToolTip.SetTip(play, v.ShowsPause ? "Pause (P)" : "Play (P)");
         left.Children.Add(play);
         if (v.Moving) left.Children.Add(Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step"));
+        var speeds = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(8, 0, 0, 0) };
+        speeds.Classes.Add("speed");
+        ToolTip.SetTip(speeds, "Speed (S)");
+        AutomationProperties.SetName(speeds, "Speed");
+        foreach (var speed in PlayerClock.Speeds)
+        {
+            var words = speed.ToString("0.#", CultureInfo.InvariantCulture) + "×";
+            var button = new Button { Content = new TextBlock { Text = words, VerticalAlignment = VerticalAlignment.Center, Classes = { "btntext" } } };
+            button.Classes.Add("tool");
+            button.Classes.Add("speed");
+            AutomationProperties.SetName(button, words);
+            button.Click += (_, _) => Speed?.Invoke(speed);
+            if (Clock?.Rate == speed) button.Classes.Add("on");
+            speeds.Children.Add(button);
+        }
+        DockPanel.SetDock(speeds, Dock.Right);
+        buttons.Children.Add(speeds);
         buttons.Children.Add(left);
         // The flyout from the Compare button sits above the card's content. The last rebuild still holds it, so it is let go of before it is given a new place.
         Detach(_picker);
@@ -426,6 +502,60 @@ internal sealed class PlayerCard : Border
         Control body = new DockPanel { Children = { top, buttons, middle } };
         Child = _picker is null ? body : new StackPanel { Spacing = 10, Children = { _picker, body } };
         IsVisible = true;
+        FollowFill();
+    }
+
+    /// <summary>Keeps the cell of the stop on show filled as far as the clock has got through its motion, on the clock's frames.</summary>
+    private void FollowFill()
+    {
+        _filling?.Dispose();
+        _filling = null;
+        if (Clock is not { } clock || _fill is not { } fill) return;
+        _filling = Anim.Follow(this, clock, () =>
+        {
+            var length = clock.Length;
+            fill.RenderTransform = new ScaleTransform(length > 0 ? Math.Min(1, clock.Elapsed / length) : 1, 1);
+            return length > 0 && clock.Elapsed < length;
+        });
+    }
+
+    /// <summary>The cells of the bar where they are on the card now; ones not laid out yet (the card was just rebuilt) are left out.</summary>
+    private List<CellBox> CellBoxes()
+    {
+        var boxes = new List<CellBox>();
+        foreach (var (hit, stop) in _cells)
+            if (hit.Bounds.Width > 0 && hit.TranslatePoint(default, this) is { } at) boxes.Add(new CellBox(at.X, at.Y, hit.Bounds.Width, hit.Bounds.Height, stop));
+        return boxes;
+    }
+
+    private void DragTo(Point p)
+    {
+        if (CellAt(CellBoxes(), p.X, p.Y) is { } hit) ScrubTo?.Invoke(hit.Stop, hit.Fraction);
+    }
+
+    private void EndDrag()
+    {
+        if (!_dragging) return;
+        _dragging = false;
+        ScrubEnd?.Invoke();
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (_dragging) DragTo(e.GetPosition(this));
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        EndDrag();
+    }
+
+    protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+    {
+        base.OnPointerCaptureLost(e);
+        EndDrag();
     }
 
     /// <summary>Lets go of a control the last build of the card put in a panel of its own, so the next build can give it a place.</summary>
@@ -436,6 +566,8 @@ internal sealed class PlayerCard : Border
 
     public void Clear()
     {
+        _filling?.Dispose();
+        _filling = null;
         Detach(_picker);
         IsVisible = false;
         Child = null;

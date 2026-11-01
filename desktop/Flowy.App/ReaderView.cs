@@ -202,6 +202,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Next += () => StepTo(StopIndex() + 1);
         _player.Stop += Stop;
         _player.Play += _playback.TogglePlay;
+        _player.Clock = _canvas.Clock;
+        _player.Speed += _playback.SetSpeed;
+        _player.ScrubStart += _playback.ScrubStart;
+        _player.ScrubTo += _playback.ScrubTo;
+        _player.ScrubEnd += _playback.ScrubEnd;
         _player.Replay += _playback.Replay;
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;

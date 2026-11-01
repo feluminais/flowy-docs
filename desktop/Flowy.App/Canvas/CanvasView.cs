@@ -105,6 +105,7 @@ internal sealed class CanvasView : Border
     public CanvasView()
     {
         Clock = new PlayerClock(timer: (ms, then) => Anim.Wait(this, ms, then));
+        Clock.SetRate(PlayerClock.Kept);
         _channels.Clock = Clock;
         AreaStyles.Add(this, "Canvas");
         ClipToBounds = true;

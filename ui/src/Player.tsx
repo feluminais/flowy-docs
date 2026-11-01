@@ -10,7 +10,10 @@ import { CHANGE_NAMES, changeOfStop } from './compare.ts'
 import type { ChannelKind } from '../../src/core/animation.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { Chip } from './Chrome.tsx'
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
+import type { PointerEvent as ReactPointerEvent } from 'react'
+import { SPEEDS } from './clock.ts'
+import type { PlayerClock, Speed } from './clock.ts'
 import type { ReactNode } from 'react'
 import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
 import { ChannelKey } from './Channels.tsx'
@@ -48,6 +51,12 @@ type Props = {
   trail?: { name: string; step: number }
   /** What differs from the other flow of a comparison, by file step number: the bar's cell for a step takes the mark's colour. */
   changes?: Record<number, Change>
+  /** The player's time: the cell of the stop on show fills as far as its motion has got. */
+  clock: PlayerClock
+  speed: Speed
+  onSpeed: (speed: Speed) => void
+  /** Dragging the bar (see usePlayback): hold the player, go to a stop and a fraction of the way through it, let go. */
+  scrub: Scrub
   onStep: (stop: number) => void
   onPlay: () => void
   onReplay: () => void
@@ -60,7 +69,46 @@ type Props = {
   onBack?: () => void
 }
 
+type Scrub = { start: () => void; to: (stop: number, fraction: number) => void; end: () => void }
+
 const IN_A_PANE = 'Not while comparing'
+
+/**
+ * The cell under the pointer, or the nearest one (a cell is four pixels high, so a drag strays off it), and how far along it the pointer is. Cells of another lane
+ * of a branch count too: a drag can go into any of them.
+ */
+function cellAt(bar: HTMLElement, x: number, y: number): { stop: number; fraction: number } | undefined {
+  let best: { stop: number; fraction: number; score: number } | undefined
+  for (const cell of bar.querySelectorAll<HTMLElement>('.cell[data-stop]')) {
+    const r = cell.getBoundingClientRect()
+    const dx = Math.max(r.left - x, 0, x - r.right)
+    const dy = Math.max(r.top - y, 0, y - r.bottom)
+    const score = dx * 4 + dy
+    if (best === undefined || score < best.score) best = { stop: Number(cell.dataset.stop), fraction: r.width > 0 ? Math.min(1, Math.max(0, (x - r.left) / r.width)) : 0, score }
+  }
+  return best && { stop: best.stop, fraction: best.fraction }
+}
+
+/** Keeps the cell of the stop on show filled as far as the clock has got through its motion: written straight to the cell on each frame, not through React. */
+function useFill(bar: React.RefObject<HTMLDivElement | null>, clock: PlayerClock, stop: number) {
+  useEffect(() => {
+    let frame = 0
+    const draw = () => {
+      const cell = bar.current?.querySelector<HTMLElement>('.cell.now')
+      const length = clock.length
+      cell?.style.setProperty('--fill', String(length > 0 ? Math.min(1, clock.elapsed() / length) : 1))
+      frame = !clock.paused && (length === 0 || clock.elapsed() < length) ? requestAnimationFrame(draw) : 0
+    }
+    draw()
+    const heard = clock.subscribe(() => {
+      if (frame === 0) frame = requestAnimationFrame(draw)
+    })
+    return () => {
+      heard()
+      cancelAnimationFrame(frame)
+    }
+  }, [clock, stop])
+}
 
 /** A branch's lanes on the bar, in pixels: a lane is a name 14 high over a strip 4 high, 4 apart, so a strip's middle is 16 down its lane. style.css keeps the same numbers. */
 const LANE = 22
@@ -88,7 +136,29 @@ function Elbow({ rows, on, join }: { rows: number; on: number; join?: boolean })
  * splits into a row for each lane, each named, and meets again when steps follow; an "only if" has an empty way round. The lanes the stop
  * shown is not in are hollow. In a comparison, a cell takes the colour of what differs at its stop (`changes`, by file step number).
  */
-function Bar({ progress, now, stops, changes }: { progress: Progress; now: number; stops: Stop[]; changes?: Record<number, Change> }) {
+function Bar({ progress, now, stops, changes, clock, scrub }: { progress: Progress; now: number; stops: Stop[]; changes?: Record<number, Change>; clock: PlayerClock; scrub: Scrub }) {
+  const bar = useRef<HTMLDivElement>(null)
+  useFill(bar, clock, now)
+  const dragging = useRef(false)
+  const seekTo = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const at = cellAt(e.currentTarget, e.clientX, e.clientY)
+    if (at) scrub.to(at.stop, at.fraction)
+  }
+  const press = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragging.current = true
+    scrub.start()
+    seekTo(e)
+  }
+  const move = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragging.current) seekTo(e)
+  }
+  const release = () => {
+    if (!dragging.current) return
+    dragging.current = false
+    scrub.end()
+  }
   const here = progress.cells.find(c => c.stop === now)
   // The cells by where they go, read once: looking each column up in every cell would cost the square of the steps, at every step of a long flow.
   const groupAt = new Map<number, number>()
@@ -119,17 +189,18 @@ function Bar({ progress, now, stops, changes }: { progress: Progress; now: numbe
   }
   const cell = (c: Progress['cells'][number], row: number) => {
     const off = here !== undefined && c.group >= 0 && c.group === here.group && progress.brackets[c.group].kind === 'branch' && c.row !== here.row
-    const className = ['cell', c.stop <= now ? 'done' : '', off ? 'off' : ''].filter(Boolean).join(' ')
+    const className = ['cell', c.stop < now ? 'done' : '', c.stop === now ? 'now' : '', off ? 'off' : ''].filter(Boolean).join(' ')
     const change = changes && changeOfStop(stops[c.stop]?.steps ?? [], changes)
     const title = [c.title, change && CHANGE_NAMES[change]].filter(Boolean).join(', ')
-    return <span key={c.stop} title={title || undefined} data-change={change} className={className} style={{ gridColumn: c.col - (c.group >= 0 ? progress.brackets[c.group].from : c.col) + 1, gridRow: row }} />
+    return <span key={c.stop} data-stop={c.stop} title={title || undefined} data-change={change} className={className} style={{ gridColumn: c.col - (c.group >= 0 ? progress.brackets[c.group].from : c.col) + 1, gridRow: row }} />
   }
   const forked = progress.brackets.some(b => b.kind === 'branch')
   // How far a fork reaches over the gap to its neighbour, so its line runs on from it: the bar's gap, and a box's margin too. None at an end.
   const boxed = (p: (typeof parts)[number] | undefined) => p !== undefined && !p.plain && progress.brackets[p.group].kind !== 'branch'
   const reach = (p: (typeof parts)[number] | undefined) => (p === undefined ? 0 : boxed(p) ? -8 : -3)
   return (
-    <div className={forked ? 'progress forked' : 'progress'}>
+    <div ref={bar} className={forked ? 'progress forked' : 'progress'} role="slider" tabIndex={0} aria-label="Step" aria-valuemin={1} aria-valuemax={stops.length} aria-valuenow={now + 1}
+      aria-valuetext={`Step ${now + 1} of ${stops.length}`} onPointerDown={press} onPointerMove={move} onPointerUp={release} onPointerCancel={release} onLostPointerCapture={release}>
       {parts.map((part, i) => {
         if (part.plain) return <div key={part.at} className="stretch" style={{ flex: 1 }}>{(plainAt.get(part.at) ?? []).map(c => cell(c, 1))}</div>
         const b = progress.brackets[part.group]
@@ -182,7 +253,7 @@ function inView(box: HTMLElement, item: HTMLElement, below = 0) {
 }
 
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
-export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, showsPause, moving, repeat, trail, changes, compare, onStep, onPlay, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, showsPause, moving, repeat, trail, changes, compare, clock, speed, onSpeed, scrub, onStep, onPlay, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
@@ -227,7 +298,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
           <div className="tabs">{caption.tabs.map((t, i) => <span key={i} className={i === caption.tab ? 'tab on' : 'tab'}>{t}</span>)}</div>
         )}
         {caption.text !== '' && <p className="group-text">{caption.text}</p>}
-        <Bar progress={progress} now={stop} stops={stops} changes={changes} />
+        <Bar progress={progress} now={stop} stops={stops} changes={changes} clock={clock} scrub={scrub} />
         <StateKey marks={marks} />
         <ChannelKey kinds={channels} />
         {here.steps.map((i, n) => {
@@ -268,6 +339,9 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
           : <button onClick={onPlay} title="Play (P)"><Play size={16} />Play</button>}
         {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={onReplay}><Reload size={16} /></button>}
         {moving && <button aria-label="Repeat" aria-pressed={repeat} title={repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>}
+        <div className="speed" role="group" aria-label="Speed" title="Speed (S)">
+          {SPEEDS.map(s => <button key={s} aria-pressed={speed === s} onClick={() => onSpeed(s)}>{s}×</button>)}
+        </div>
         <button disabled={onStop === undefined} title={onStop === undefined ? 'Close the comparison to stop' : undefined} onClick={onStop}><Close size={16} />Stop</button>
       </div>
       {compare?.open && compare.picker}

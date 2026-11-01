@@ -8,6 +8,12 @@
     <Setter Property="Height" Value="4" />
   </Style>
   <Style Selector="Border.seg.done"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /></Style>
+  <!-- The stop on show: the part its motion has got through, scaled from the left (PlayerCard.FollowFill). -->
+  <Style Selector="Border.fill"><Setter Property="Background" Value="{DynamicResource AccentBrush}" /><Setter Property="CornerRadius" Value="2" /></Style>
+  <!-- The speed buttons: the one chosen stands on the tint, its words in the text colour and bold (the accent on the tint is too faint for words). -->
+  <Style Selector="Button.tool.speed"><Setter Property="Padding" Value="7,0" /><Setter Property="MinWidth" Value="0" /></Style>
+  <Style Selector="Button.tool.speed.on /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="Button.tool.speed.on TextBlock.btntext"><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <!-- A lane the stop shown is not in: hollow, as the browser draws it. A group is a box, dashed when it may stop early. -->
   <Style Selector="Border.seg.off">
     <Setter Property="Background" Value="Transparent" />

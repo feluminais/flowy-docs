@@ -20,6 +20,7 @@ test('Pause freezes the dot and Play carries on from there', async ({ page }) =>
   await dot(page).waitFor() // the step's motion has begun
   await page.waitForTimeout(200)
   await button(page, 'Pause').click()
+  await page.waitForTimeout(100) // the frame of the paused moment
   const frozen = await dot(page).getAttribute('transform')
   await page.waitForTimeout(600)
   expect(await dot(page).getAttribute('transform')).toBe(frozen)
@@ -91,4 +92,46 @@ test('Play does not bring an open channel in again', async ({ page }) => {
   await page.keyboard.press('p')
   await page.waitForTimeout(100)
   expect(await opacity(page)).toBe('1')
+})
+
+test('Dragging the bar goes to the step and the moment under the pointer, and holds there', async ({ page }) => {
+  await openFlow(page)
+  const cells = page.locator('.player .progress .cell')
+  const first = (await cells.nth(0).boundingBox())!
+  const third = (await cells.nth(2).boundingBox())!
+  await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(third.x + third.width / 5, third.y + third.height / 2, { steps: 8 })
+  await page.mouse.up()
+  await expect(player(page)).toContainText('Step 3 of')
+  await expect(button(page, 'Play')).toBeVisible()
+  const fill = await page.locator('.player .progress .cell.now').evaluate(el => Number(getComputedStyle(el).getPropertyValue('--fill')))
+  expect(fill).toBeGreaterThan(0.1)
+  expect(fill).toBeLessThan(0.3)
+  await expect(dot(page)).toBeVisible() // a fifth of the way through the call: its dot is on the way there
+  const held = await dot(page).getAttribute('transform')
+  await page.waitForTimeout(500)
+  expect(await dot(page).getAttribute('transform')).toBe(held)
+  await expect(player(page).getByRole('slider', { name: 'Step' })).toHaveAttribute('aria-valuetext', /^Step 3 of \d+$/)
+})
+
+/** How long the motion of step 2 takes, from Next until its dot has gone. */
+async function stepTwoTakes(page: Page): Promise<number> {
+  await page.goto('/#ordering/place-order')
+  await page.locator('.player').waitFor()
+  await expect(page.locator('.motion g[data-beat]:has(> .blob):visible')).toHaveCount(0, { timeout: 8000 })
+  const started = Date.now()
+  await player(page).getByRole('button', { name: 'Next' }).click()
+  await dot(page).waitFor()
+  await expect(page.locator('.motion g[data-beat]:has(> .blob):visible')).toHaveCount(0, { timeout: 8000 })
+  return Date.now() - started
+}
+
+test('2× plays a step in about half the time, and the speed is kept', async ({ page }) => {
+  const normal = await stepTwoTakes(page)
+  await player(page).getByRole('button', { name: '2×' }).click()
+  await expect(player(page).getByRole('button', { name: '2×' })).toHaveAttribute('aria-pressed', 'true')
+  const fast = await stepTwoTakes(page) // a new page load: the speed comes back
+  await expect(player(page).getByRole('button', { name: '2×' })).toHaveAttribute('aria-pressed', 'true')
+  expect(fast).toBeLessThan(normal * 0.75)
 })

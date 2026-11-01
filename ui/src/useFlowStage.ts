@@ -11,6 +11,7 @@ import type { Playing } from './graph.ts'
 import type { Recording } from './Recorder.tsx'
 import type { OpenChannel } from './Channels.tsx'
 import { takenBy } from './StepMotion.tsx'
+import { stepKeyOf } from './usePlayer.ts'
 import type { Play } from './usePlayer.ts'
 
 export const NO_MARKS: Record<string, StateMark> = {} // the same object every time, so a flow with no states never rebuilds the graph for them
@@ -67,7 +68,7 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
     return [{ channel, placed, ...(motion === undefined ? {} : { motion }) }]
   }) : []
   const channelKinds = kindsOf(open.map(o => o.channel))
-  const stepKey = flow && playing ? `${playing.flow}:${stopIndex}:${replays}` : ''
+  const stepKey = flow && playing ? stepKeyOf(playing.flow, stopIndex, replays) : ''
   const caption = flow && stop ? captionOf(flow, stop) : undefined
   const progress = useMemo(() => (flow ? progressOf(flow, stops) : undefined), [flow, stops])
   const marks = flow && stop && caption ? stop.steps.flatMap((i, n) => {

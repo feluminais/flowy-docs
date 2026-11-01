@@ -113,7 +113,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const perfRun = usePerfRun({ runs, named: () => readHash(location.hash).perf, still })
   const { runKey, loadTest, activeDial, here, ramping, scrubbing } = perfRun
   // The flow playing, and the player's small settings (see usePlayer.ts).
-  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock, paused } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
+  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock, paused, speed, setSpeed } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
   // Edit mode, the notice, the boxes being dragged and the runner every edit goes through (see useEditSession.ts).
   const session = useEditSession({ edit, undo, redo, restore, readOnly })
   const { editing, notice, setNotice, announce, undoable, moved, run, takeBack, bringBack, restoreVersion, clearMoved, didSomethingElse } = session
@@ -160,7 +160,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const stateMarks = flow ? flowMarks : runMarks
   const detailsOpen = details || (side !== undefined && !manyPicked) // the right-hand side holds Details and nothing else
   useCssClock(canvas, clock, stepKey)
-  const { finished, stepTo, togglePlay, showsPause, nudge } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused })
+  const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays })
   const left = cameFrom(model.flows, playing?.trail ?? [])
   const trail = flow ? left : undefined
   const { picking, setPicking, rowPicking, setRowPicking, pickingRun, setPickingRun, linkingRun, setLinkingRun, dropping, setDropping, openCompare, openRunCompare, writeLink, linkRun, closeCompare, toggleCompare, compareRow } =
@@ -469,7 +469,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} showsPause={showsPause} moving={moving}
-              trail={trail} onStep={stepTo} onPlay={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
+              trail={trail} clock={clock} speed={speed} onSpeed={setSpeed} scrub={scrub} onStep={stepTo} onPlay={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
               compare={{ off: compareOff(model, editing), open: picking, onToggle: () => setPicking(open => !open),
                 picker: playing ? <ComparePicker model={model} id={playing.flow} onPick={id => openCompare(playing.flow, id)} onClose={() => setPicking(false)} /> : null }} />
           )}
