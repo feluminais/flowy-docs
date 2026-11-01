@@ -15,8 +15,10 @@ import type { ObjectInput } from '../../src/core/ops.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
-import { nameOf, parentOf } from '../../src/core/views.ts'
+import { nameOf, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
+import { CarriedRows, PayloadRow } from './Payloads.tsx'
+import { connectionPayloads, lineCarries } from '../../src/core/payloads.ts'
 import { CodeFields, CodeSection } from './Code.tsx'
 import { DataField, DataSection } from './Data.tsx'
 import { connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
@@ -98,7 +100,13 @@ const inside = (model: Model, c: Connection, line: BoxLine) =>
 function LineList({ model, id, onPick, onHover }: { model: Model; id: string; onPick: (id: string) => void; onHover: (line?: string) => void }) {
   const { out, in: incoming } = linesOf(model, id)
   if (out.length + incoming.length === 0) return null
+  const view = parentOf(model, id)
   const label = (c: Connection) => c.label || <span className="muted">no label</span>
+  // What a connection carries, under its label: the way each goes is the way the connection runs on this line.
+  const carried = (c: Connection, line: BoxLine) => {
+    const back = placeEnds(model, view, c.from, c.to)?.[0] !== line.from
+    return connectionPayloads(model, c).map((p, i) => <PayloadRow key={i} shown={p} back={back} />)
+  }
   const row = (line: BoxLine, Arrow: typeof ArrowRight) => {
     const other = getObject(model, line.other)
     return (
@@ -113,15 +121,18 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
           <>
             <div>{label(line.connections[0])}</div>
             {inside(model, line.connections[0], line) && <div className="muted">{inside(model, line.connections[0], line)}</div>}
+            {carried(line.connections[0], line)}
           </>
         ) : (
           <details>
             <summary>{line.connections.length} connections</summary>
             <ul>
-              {line.connections.map((c, i) => <li key={i}><div>{label(c)}</div><div className="muted">{inside(model, c, line)}</div></li>)}
+              {line.connections.map((c, i) => <li key={i}><div>{label(c)}</div><div className="muted">{inside(model, c, line)}</div>{carried(c, line)}</li>)}
             </ul>
           </details>
         )}
+        {/* What only flow steps send along the line, once for the line, each saying where it comes from. */}
+        <CarriedRows model={model} carried={lineCarries(model, view, line.from, line.to).filter(c => !c.own)} />
       </div>
     </li>
     )
@@ -232,6 +243,7 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
   }
   // A line whose connections all run against the way it was given reads the way they run.
   const [a, b] = ahead.length === 0 ? [to, from] : [from, to]
+  const carries = lineCarries(model, view, a, b)
   return (
     <Panel onClose={onClose}>
       <header className="hero ends">
@@ -259,6 +271,12 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
           <Section icon={Route} title={lines.length === 1 ? 'Connection' : 'Connections'} count={lines.length} />
           {lines.map(l => card(l, a, b))}
         </>
+      )}
+      {carries.length > 0 && (
+        <section aria-label="Payloads">
+          <Section icon={Code} title="Payloads" count={carries.length} />
+          <CarriedRows model={model} carried={carries} firstOpen />
+        </section>
       )}
     </Panel>
   )

@@ -730,6 +730,60 @@
       "description": "Every order event, kept for reporting. Only the **Admin dashboard** reads it."
     }
   ],
+  "payloads": {
+    "basket": {
+      "name": "Basket",
+      "about": "What the app sends to place an order. The idempotency key makes a double tap one order.",
+      "shape": {
+        "language": "typescript",
+        "text": "type PlaceOrder = {\n  idempotencyKey: string\n  restaurantId: string\n  lines: { dishId: string; count: number; notes?: string }[]\n  deliverTo: Address\n}\n"
+      },
+      "example": {
+        "language": "json",
+        "text": "{\n  \"idempotencyKey\": \"6f1c2b\",\n  \"restaurantId\": \"noodle-bar\",\n  \"lines\": [{ \"dishId\": \"ramen\", \"count\": 2 }],\n  \"deliverTo\": { \"street\": \"Kloosterstraat 12\", \"city\": \"Utrecht\" }\n}\n"
+      }
+    },
+    "receipt": {
+      "name": "Receipt",
+      "about": "What the app gets back once the order is placed. The total is in cents.",
+      "example": {
+        "language": "json",
+        "text": "{ \"orderId\": \"o-1042\", \"status\": \"placed\", \"total\": 2490, \"etaMinutes\": 35 }\n"
+      }
+    },
+    "hold": {
+      "name": "Card hold",
+      "about": "Asks Stripe to hold the total on the card. Nothing is charged until the restaurant accepts.",
+      "example": {
+        "language": "json",
+        "text": "{ \"amount\": 2490, \"currency\": \"eur\", \"capture_method\": \"manual\", \"customer\": \"cus_9a1\" }\n"
+      }
+    },
+    "order": {
+      "name": "Order",
+      "about": "The order as it is saved, with its status. Each line keeps the price it was ordered at.",
+      "shape": {
+        "language": "sql",
+        "text": "orders (id, customer_id, restaurant_id, status, total, placed_at)\norder_lines (order_id, dish_id, count, price)\n"
+      }
+    },
+    "placed": {
+      "name": "Order placed",
+      "about": "The event every listener hears when an order is placed. It names the order, not its contents.",
+      "example": {
+        "language": "json",
+        "text": "{ \"type\": \"order.placed\", \"orderId\": \"o-1042\", \"restaurantId\": \"noodle-bar\", \"at\": \"2026-11-01T19:02:11Z\" }\n"
+      }
+    },
+    "position": {
+      "name": "Courier position",
+      "about": "Where the courier is, every 5 s while a job is open.",
+      "example": {
+        "language": "json",
+        "text": "{ \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\n"
+      }
+    }
+  },
   "connections": [
     {
       "from": "customer",
@@ -764,7 +818,13 @@
     {
       "from": "customer-app",
       "to": "order-api",
-      "label": "REST"
+      "label": "REST",
+      "payloads": [
+        "basket"
+      ],
+      "carries": [
+        "Basket"
+      ]
     },
     {
       "from": "web",
@@ -809,17 +869,35 @@
     {
       "from": "checkout",
       "to": "stripe",
-      "label": "holds the card"
+      "label": "holds the card",
+      "payloads": [
+        "hold"
+      ],
+      "carries": [
+        "Card hold"
+      ]
     },
     {
       "from": "checkout",
       "to": "orders-db",
-      "label": "writes the order"
+      "label": "writes the order",
+      "payloads": [
+        "order"
+      ],
+      "carries": [
+        "Order"
+      ]
     },
     {
       "from": "checkout",
       "to": "events",
-      "label": "announces placed"
+      "label": "announces placed",
+      "payloads": [
+        "placed"
+      ],
+      "carries": [
+        "Order placed"
+      ]
     },
     {
       "from": "status",
@@ -889,7 +967,13 @@
     {
       "from": "courier-app",
       "to": "tracking",
-      "label": "position every 5 s"
+      "label": "position every 5 s",
+      "payloads": [
+        "position"
+      ],
+      "carries": [
+        "Courier position"
+      ]
     },
     {
       "from": "courier-app",
@@ -1534,7 +1618,9 @@
             "courier-app",
             "tracking"
           ],
-          "ends": "Courier app → Live tracking"
+          "ends": "Courier app → Live tracking",
+          "payload": "position",
+          "sends": "Courier position"
         },
         {
           "from": "tracking",
@@ -2290,7 +2376,11 @@
             "customer-app",
             "order-api"
           ],
-          "ends": "Customer app → Order API"
+          "ends": "Customer app → Order API",
+          "payload": "basket",
+          "reply": "receipt",
+          "sends": "Basket",
+          "returns": "Receipt"
         },
         {
           "from": "order-api",
@@ -2305,7 +2395,9 @@
             "order-api",
             "stripe"
           ],
-          "ends": "Order API → Stripe"
+          "ends": "Order API → Stripe",
+          "payload": "hold",
+          "sends": "Card hold"
         },
         {
           "from": "order-api",
@@ -2319,7 +2411,9 @@
             "order-api",
             "orders-db"
           ],
-          "ends": "Order API → Orders DB"
+          "ends": "Order API → Orders DB",
+          "payload": "order",
+          "sends": "Order"
         },
         {
           "from": "order-api",
@@ -2333,7 +2427,9 @@
             "order-api",
             "events"
           ],
-          "ends": "Order API → Order events"
+          "ends": "Order API → Order events",
+          "payload": "placed",
+          "sends": "Order placed"
         },
         {
           "from": "events",
@@ -3450,7 +3546,21 @@
           "from": "ordering",
           "to": "stripe",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Card hold",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "place-order",
+                  "step": 2,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "ordering",
@@ -3535,7 +3645,33 @@
           "from": "customer-app",
           "to": "order-api",
           "label": "REST",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Basket",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "place-order",
+                  "step": 1,
+                  "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Receipt",
+              "back": true,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "place-order",
+                  "step": 1,
+                  "reply": true
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "web",
@@ -3559,7 +3695,21 @@
           "from": "order-api",
           "to": "orders-db",
           "label": "5 connections",
-          "count": 5
+          "count": 5,
+          "carries": [
+            {
+              "name": "Order",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "place-order",
+                  "step": 3,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "order-api",
@@ -3571,13 +3721,41 @@
           "from": "order-api",
           "to": "stripe",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Card hold",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "place-order",
+                  "step": 2,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "order-api",
           "to": "events",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Order placed",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "place-order",
+                  "step": 4,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "order-api",
@@ -3685,7 +3863,21 @@
           "from": "courier-app",
           "to": "tracking",
           "label": "position every 5 s",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Courier position",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "follow-the-courier",
+                  "step": 2,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "courier-app",
@@ -3868,19 +4060,43 @@
           "from": "checkout",
           "to": "stripe",
           "label": "holds the card",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Card hold",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "checkout",
           "to": "orders-db",
           "label": "writes the order",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Order",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "checkout",
           "to": "events",
           "label": "announces placed",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Order placed",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "status",
