@@ -45,6 +45,9 @@ export const cyclePeriod = (totals: Iterable<number>): number => Math.max(0, ...
 /** Whether a motion still needs a frame: until it has played through, and for as long as it repeats. A motion that is over holds its last frame. */
 export const keepsPlaying = (since: number, total: number, repeating: boolean): boolean => repeating || since < total
 
+/** The moment of a motion to draw, `elapsed` ms into its stop: with Repeat on it goes round every `period`, else it holds its last frame. */
+export const momentOf = (elapsed: number, total: number, repeating: boolean, period: number): number => (repeating ? elapsed % period : Math.min(elapsed, total))
+
 /** How far through a beat the moment `t` is: 0 before it, 1 after it. */
 export const progress = (b: Span, t: number): number => Math.min(1, Math.max(0, (t - b.at) / b.dur))
 

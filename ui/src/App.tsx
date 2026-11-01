@@ -112,7 +112,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const perfRun = usePerfRun({ runs, named: () => readHash(location.hash).perf, still })
   const { runKey, loadTest, activeDial, here, ramping, scrubbing } = perfRun
   // The flow playing, and the player's small settings (see usePlayer.ts).
-  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
+  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
   // Edit mode, the notice, the boxes being dragged and the runner every edit goes through (see useEditSession.ts).
   const session = useEditSession({ edit, undo, redo, restore, readOnly })
   const { editing, notice, setNotice, announce, undoable, moved, run, takeBack, bringBack, restoreVersion, clearMoved, didSomethingElse } = session
@@ -350,7 +350,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
                 {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
                 {flow && stop && animated.map(m => (
-                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
+                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)} />
                 ))}
                 {flow && <GroupMarks marks={marks} />}
               </ReactFlow>

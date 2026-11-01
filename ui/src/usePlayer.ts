@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { PlayerClock } from './clock.ts'
 import type { Flow } from '../../src/core/model.ts'
 import type { Stop } from '../../src/core/structure.ts'
 import { DWELL, GAP } from './motion.ts'
@@ -25,7 +26,8 @@ export function usePlayer({ initialFlow, initialStep = 0 }: { initialFlow: () =>
   }
   const [settledKey, setSettledKey] = useState('')
   const replay = () => setReplays(n => n + 1)
-  return { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey }
+  const [clock] = useState(() => new PlayerClock())
+  return { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock }
 }
 
 /**

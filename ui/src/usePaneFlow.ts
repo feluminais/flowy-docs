@@ -33,7 +33,7 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   const view = level ?? flow?.view ?? ROOT
   const player = usePlayer({ initialFlow: () => flowId, initialStep: startAt })
-  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey } = player
+  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock } = player
   const stage = useFlowStage({ model, view, flow, playing, replays })
   const { stops, stopIndex, flowMarks, shown, animated, moving, stepKey } = stage
   const { finished, stepTo, togglePlay } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey })
@@ -63,7 +63,7 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
     play: togglePlay,
     replay,
   }
-  return { ...stage, flow, view, playing, setPlaying, replay, repeat, toggleRepeat, finished, stepTo, togglePlay, graph, marksHere, nodes, frame, edges, spots, setHovered, onNodesChange, keys }
+  return { ...stage, flow, view, playing, setPlaying, replay, clock, repeat, toggleRepeat, finished, stepTo, togglePlay, graph, marksHere, nodes, frame, edges, spots, setHovered, onNodesChange, keys }
 }
 
 export type PaneFlow = ReturnType<typeof usePaneFlow>
