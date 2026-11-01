@@ -141,7 +141,13 @@ const payloadFields = {
   shape: codeBlock.nullable().optional().describe('The whole thing: a type, a JSON schema, a CSV header. null removes it.'),
   example: codeBlock.nullable().optional().describe('A filled-in instance, with invented values. null removes it.'),
 }
-const inlinePayload = z.object({ ...payloadFields, name: z.string().max(200).describe('What a developer calls it. A payload written in place has no id, so it needs a name.') })
+// Written in place, a payload has nothing to remove a block from, so it takes no null.
+const inlinePayload = z.object({
+  ...payloadFields,
+  name: z.string().max(200).describe('What a developer calls it. A payload written in place has no id, so it needs a name.'),
+  shape: codeBlock.optional().describe('The whole thing: a type, a JSON schema, a CSV header.'),
+  example: codeBlock.optional().describe('A filled-in instance, with invented values.'),
+})
 const payloadRef = z.union([z.string().max(64), inlinePayload])
 const dataText = z.union([z.string(), z.number(), z.boolean()])
 const sampleValue: z.ZodType<unknown> = z.lazy(() => z.union([dataText, z.array(sampleValue), z.record(z.string(), sampleValue)]))

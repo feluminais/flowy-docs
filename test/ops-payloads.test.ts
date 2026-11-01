@@ -72,3 +72,8 @@ test('tidyPayload leaves what is not a mapping as it is', () => {
   assert.equal(tidyPayload('order'), 'order')
   assert.deepEqual(tidyPayload({ about: '  ', name: ' Order ', shape: { text: 'x', language: 'cobol' } }), { name: 'Order', shape: { language: 'cobol', text: 'x' } })
 })
+
+test('putPayload refuses to write over a payloads: that is not a mapping, rather than throw it away', () => {
+  const m: Model = { ...shop(), meta: { payloads: ['order', 'refund'] } }
+  assert.throws(() => putPayload(m, order), /^OpError: payloads in model\.yaml is not a mapping of ids to payloads: fix it in the file first$/)
+})

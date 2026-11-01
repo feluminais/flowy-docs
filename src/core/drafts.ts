@@ -32,7 +32,7 @@ const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
 /**
  * A new draft's model: `name` and `about`, and a copy of the shapes `copy` names with the shapes they sit in (so each keeps its place)
- * and the lines between any two of them. The model's own icons and line style come along, since the copies may use them. Throws when
+ * and the lines between any two of them. The model's own icons, payloads and line style come along, since the copies may use them. Throws when
  * `copy` names a shape the model doesn't have.
  */
 export function newDraft(model: Model, { name, about, copy = [] }: { name: string; about?: string; copy?: readonly string[] }): Model {
@@ -50,6 +50,7 @@ export function newDraft(model: Model, { name, about, copy = [] }: { name: strin
   for (const [id, o] of Object.entries(model.objects)) if (kept.has(id)) draft.objects[id] = deepCopy(o)
   draft.connections = model.connections.filter(c => kept.has(c.from) && kept.has(c.to)).map(c => deepCopy(c))
   if (isMap(model.meta.icons)) draft.meta.icons = deepCopy(model.meta.icons)
+  if (isMap(model.meta.payloads)) draft.meta.payloads = deepCopy(model.meta.payloads) // the copied lines may name them
   if (model.meta.lines !== undefined) draft.meta.lines = model.meta.lines
   return draft
 }

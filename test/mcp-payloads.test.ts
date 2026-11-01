@@ -87,3 +87,10 @@ test('the agent instructions say when to write a payload', async t => {
   const { client } = await setup(t)
   assert.match(client.getInstructions() ?? '', /put_payload/)
 })
+
+test('an inline payload takes no null: null only removes a block from a payload put_payload already holds', async t => {
+  const { call } = await setup(t)
+  const sent = await call('connect', { from: 'web', to: 'api', payloads: [{ name: 'Cart', about: 'x', shape: null }] })
+  assert.equal(sent.error, true)
+  assert.match(sent.text, /Input validation|invalid/i)
+})
