@@ -155,7 +155,7 @@ public static class Payloads
         return found;
     }
 
-    /// <summary>One payload a drawn line carries: <c>Back</c> when it runs from the line's <c>to</c> to its <c>from</c>, <c>Own</c> when a connection the line draws lists it, and the flow steps that send it (<c>Step</c> from 0; <c>Reply</c> when it is what comes back).</summary>
+    /// <summary>One payload a drawn line carries: <c>Back</c> when it runs from the line's <c>to</c> to its <c>from</c>, <c>Own</c> when a connection the line draws lists it, and the flow steps that send it (<c>Step</c> from 0; <c>Reply</c> when it is what comes back). One id is one row, so its way is the way of the first that names it.</summary>
     public sealed record Carried(Shown Payload, bool Back, bool Own, List<(string Flow, int Step, bool Reply)> Steps);
 
     /// <summary>What the line from <paramref name="from"/> to <paramref name="to"/> in <paramref name="view"/> carries, as lineCarries in src/core/payloads.ts says it.</summary>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
@@ -21,7 +21,7 @@ import { CarriedRows, PayloadRow } from './Payloads.tsx'
 import { connectionPayloads, lineCarries } from '../../src/core/payloads.ts'
 import { CodeFields, CodeSection } from './Code.tsx'
 import { DataField, DataSection } from './Data.tsx'
-import { connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
+import { carriedOn, connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
 import { StateGlyph, stateClasses, stateWord } from './states.tsx'
 import { Field, Panel } from './forms.tsx'
@@ -98,7 +98,9 @@ const inside = (model: Model, c: Connection, line: BoxLine) =>
  * panel, and pointing at a row lights its line on the canvas.
  */
 function LineList({ model, id, onPick, onHover }: { model: Model; id: string; onPick: (id: string) => void; onHover: (line?: string) => void }) {
-  const { out, in: incoming } = linesOf(model, id)
+  // Read once for the shape: the panel draws again on every change elsewhere, and what steps send scans every flow.
+  const { out, in: incoming } = useMemo(() => linesOf(model, id), [model, id])
+  const extras = useMemo(() => carriedOn(model, id, [...out, ...incoming]), [model, id, out, incoming])
   if (out.length + incoming.length === 0) return null
   const view = parentOf(model, id)
   const label = (c: Connection) => c.label || <span className="muted">no label</span>
@@ -132,7 +134,7 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
           </details>
         )}
         {/* What only flow steps send along the line, once for the line, each saying where it comes from. */}
-        <CarriedRows model={model} carried={lineCarries(model, view, line.from, line.to).filter(c => !c.own)} />
+        <CarriedRows model={model} carried={extras.get(line) ?? []} />
       </div>
     </li>
     )

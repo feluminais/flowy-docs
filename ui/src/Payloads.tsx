@@ -27,7 +27,7 @@ export function PayloadRow({ shown, back, open, title }: { shown: Shown; back?: 
   const Arrow = back ? ArrowLeft : ArrowRight
   return (
     <details className="payload" open={open} title={title}>
-      <summary><span className="dirn" aria-hidden="true"><Arrow size={14} /></span>{shown.name}</summary>
+      <summary><span className="dirn" aria-hidden="true"><Arrow size={14} /></span>{shown.name}{back && <span className="visually-hidden">, comes back</span>}</summary>
       <div className="payload-body">
         {shown.about && <Description text={shown.about} />}
         {shown.shape && <BlockView title="Shape" block={shown.shape} />}
