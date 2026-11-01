@@ -97672,6 +97672,213 @@
           "to": 0
         }
       }
+    ],
+    "cardSpots": [
+      {
+        "dot": {
+          "x": 100,
+          "y": 300,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        "avoid": [],
+        "spot": {
+          "x": 142,
+          "y": 155
+        }
+      },
+      {
+        "dot": {
+          "x": 900,
+          "y": 300,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        "avoid": [],
+        "spot": {
+          "x": 508,
+          "y": 155
+        }
+      },
+      {
+        "dot": {
+          "x": 400,
+          "y": 560,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        "avoid": [
+          {
+            "x": 0,
+            "y": 620,
+            "width": 1000,
+            "height": 80
+          }
+        ],
+        "spot": {
+          "x": 225,
+          "y": 228
+        }
+      },
+      {
+        "dot": {
+          "x": 100,
+          "y": 20,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        "avoid": [],
+        "spot": {
+          "x": 142,
+          "y": 8
+        }
+      },
+      {
+        "dot": {
+          "x": 100,
+          "y": 680,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        "avoid": [],
+        "spot": {
+          "x": 142,
+          "y": 372
+        }
+      },
+      {
+        "dot": {
+          "x": 100,
+          "y": 300,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 1000,
+          "height": 700
+        },
+        "avoid": [
+          {
+            "x": 0,
+            "y": 0,
+            "width": 1000,
+            "height": 700
+          }
+        ],
+        "spot": {
+          "x": 142,
+          "y": 155
+        }
+      },
+      {
+        "dot": {
+          "x": 100,
+          "y": 100,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 300,
+          "height": 200
+        },
+        "avoid": [],
+        "spot": {
+          "x": 8,
+          "y": 8
+        }
+      },
+      {
+        "dot": {
+          "x": 400,
+          "y": 300,
+          "width": 30,
+          "height": 30
+        },
+        "card": {
+          "width": 380,
+          "height": 320
+        },
+        "bounds": {
+          "x": 50,
+          "y": 40,
+          "width": 0,
+          "height": 0
+        },
+        "avoid": [
+          {
+            "x": 390,
+            "y": 290,
+            "width": 50,
+            "height": 50
+          }
+        ],
+        "spot": {
+          "x": 58,
+          "y": 48
+        }
+      }
     ]
   }
 }

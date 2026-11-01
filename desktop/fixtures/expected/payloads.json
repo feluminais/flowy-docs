@@ -121,7 +121,11 @@
           "payload": "order",
           "reply": "receipt",
           "sends": "Order",
-          "returns": "receipt"
+          "returns": "receipt",
+          "dots": {
+            "out": "Order",
+            "back": "receipt"
+          }
         },
         {
           "from": "web",
@@ -134,7 +138,10 @@
           ],
           "ends": "Web → API",
           "reply": "order",
-          "returns": "Order"
+          "returns": "Order",
+          "dots": {
+            "back": "Order"
+          }
         },
         {
           "from": "api",
@@ -145,7 +152,10 @@
           ],
           "ends": "API",
           "payload": "order",
-          "sends": "Order"
+          "sends": "Order",
+          "dots": {
+            "out": "Order"
+          }
         },
         {
           "from": "web",
@@ -174,7 +184,11 @@
             "about": "It arrived."
           },
           "sends": "constructor",
-          "returns": "Ack"
+          "returns": "Ack",
+          "dots": {
+            "out": "constructor",
+            "back": "Ack"
+          }
         }
       ]
     }

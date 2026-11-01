@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { emptyModel } from '../src/core/model.ts'
 import type { Connection, Step } from '../src/core/model.ts'
-import { connectionPayloads, payloadsOf, resolvePayload, stepPayload, stepReply } from '../src/core/payloads.ts'
+import { connectionPayloads, dotPayload, payloadsOf, resolvePayload, stepPayload, stepReply } from '../src/core/payloads.ts'
 
 const order = { name: 'Order', about: 'What the app sends at checkout.', shape: { language: 'typescript', text: 'type Order = { id: string }' } }
 const model = () => ({ ...emptyModel(), meta: { payloads: { order, bad: 'x', refund: { about: 'Money going back.' } } } })
@@ -52,4 +52,23 @@ test('a draft that copies a line takes the payloads its lines and the model name
   const draft = newDraft(m, { name: 'Sketch', copy: ['a', 'b'] })
   assert.deepEqual(check(draft), [])
   assert.deepEqual(Object.keys(payloadsOf(draft)), ['order', 'refund'])
+})
+
+const withReply = () => ({ ...emptyModel(), meta: { payloads: { order: { name: 'Order' }, receipt: { name: 'Receipt' } } } })
+const asks: Step = { from: 'web', to: 'api', text: 'Places the order', animation: 'call', payload: 'order', reply: 'receipt' }
+
+test('a dot that answers carries the reply, and every other dot the payload', () => {
+  assert.deepEqual(dotPayload(withReply(), asks), { shown: { id: 'order', name: 'Order' }, back: false })
+  assert.deepEqual(dotPayload(withReply(), asks, 'reply'), { shown: { id: 'receipt', name: 'Receipt' }, back: true })
+  assert.deepEqual(dotPayload(withReply(), asks, 'fail'), { shown: { id: 'order', name: 'Order' }, back: false })
+})
+
+test('a dot whose step names nothing, or an id that is not there, carries nothing', () => {
+  assert.equal(dotPayload(withReply(), { from: 'a', to: 'b', text: 'x' }), undefined)
+  assert.equal(dotPayload(withReply(), { from: 'a', to: 'b', text: 'x', payload: 'gone' }), undefined)
+  assert.equal(dotPayload(withReply(), { from: 'a', to: 'b', text: 'x', payload: 'order' }, 'reply'), undefined)
+})
+
+test('a payload written in place is what its dot carries', () => {
+  assert.deepEqual(dotPayload(withReply(), { from: 'a', to: 'b', text: 'x', payload: { name: 'Ping', about: 'A heartbeat.' } }), { shown: { name: 'Ping', about: 'A heartbeat.' }, back: false })
 })

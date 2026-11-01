@@ -1620,7 +1620,10 @@
           ],
           "ends": "Courier app → Live tracking",
           "payload": "position",
-          "sends": "Courier position"
+          "sends": "Courier position",
+          "dots": {
+            "out": "Courier position"
+          }
         },
         {
           "from": "tracking",
@@ -2380,7 +2383,11 @@
           "payload": "basket",
           "reply": "receipt",
           "sends": "Basket",
-          "returns": "Receipt"
+          "returns": "Receipt",
+          "dots": {
+            "out": "Basket",
+            "back": "Receipt"
+          }
         },
         {
           "from": "order-api",
@@ -2397,7 +2404,10 @@
           ],
           "ends": "Order API → Stripe",
           "payload": "hold",
-          "sends": "Card hold"
+          "sends": "Card hold",
+          "dots": {
+            "out": "Card hold"
+          }
         },
         {
           "from": "order-api",
@@ -2413,7 +2423,10 @@
           ],
           "ends": "Order API → Orders DB",
           "payload": "order",
-          "sends": "Order"
+          "sends": "Order",
+          "dots": {
+            "out": "Order"
+          }
         },
         {
           "from": "order-api",
@@ -2429,7 +2442,10 @@
           ],
           "ends": "Order API → Order events",
           "payload": "placed",
-          "sends": "Order placed"
+          "sends": "Order placed",
+          "dots": {
+            "out": "Order placed"
+          }
         },
         {
           "from": "events",

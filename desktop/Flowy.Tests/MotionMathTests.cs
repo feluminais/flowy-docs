@@ -262,4 +262,20 @@ public class MotionMathTests
         Assert.Equal(0, MotionMath.Largest([]));
         Assert.Equal(0.5, MotionMath.Largest([0.2, 0.5, 0.1]));
     }
+
+    [Fact]
+    public void A_payload_card_goes_where_the_browsers_does()
+    {
+        Assert.Equal((380.0, 320.0, 12.0, 8.0), (MotionMath.Card.Width, MotionMath.Card.Height, MotionMath.Card.Gap, MotionMath.Card.Margin));
+        var all = Motion()["cardSpots"]!.AsArray();
+        Assert.Equal(8, all.Count);
+        static Rect Box(JsonNode n) => new(n["x"]!.GetValue<double>(), n["y"]!.GetValue<double>(), n["width"]!.GetValue<double>(), n["height"]!.GetValue<double>());
+        foreach (var e in all)
+        {
+            var card = e!["card"]!;
+            var spot = MotionMath.CardSpot(Box(e["dot"]!), (card["width"]!.GetValue<double>(), card["height"]!.GetValue<double>()), Box(e["bounds"]!), [.. e["avoid"]!.AsArray().Select(a => Box(a!))]);
+            Assert.Equal(e["spot"]!["x"]!.GetValue<double>(), spot.X, 9);
+            Assert.Equal(e["spot"]!["y"]!.GetValue<double>(), spot.Y, 9);
+        }
+    }
 }

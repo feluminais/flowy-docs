@@ -120,5 +120,30 @@ public class PayloadsTests
         Assert.Null(Payloads.MotionOf(m, new Step("web", "api", "x", null, Map(("kind", "send"), ("outcome", "lost"), ("share", "30"))) { Payload = "order" })!.Carries);
         Assert.Null(Payloads.MotionOf(m, new Step("web", "api", "x", null, "call") { Payload = "nope" })!.Carries);
     }
-}
 
+    private static Model WithReply() => new()
+    {
+        Meta = new Dictionary<string, object?> { ["payloads"] = Map(("order", Map(("name", "Order"))), ("receipt", Map(("name", "Receipt")))) },
+    };
+
+    [Fact]
+    public void A_dot_that_answers_carries_the_reply_and_every_other_dot_the_payload()
+    {
+        var asks = new Step("web", "api", "Places the order", null, "call") { Payload = "order", Reply = "receipt" };
+        Assert.Equal((new Payloads.Shown("order", "Order", null, null, null), false), Payloads.OfDot(WithReply(), asks, null));
+        Assert.Equal((new Payloads.Shown("receipt", "Receipt", null, null, null), true), Payloads.OfDot(WithReply(), asks, "reply"));
+        Assert.Equal((new Payloads.Shown("order", "Order", null, null, null), false), Payloads.OfDot(WithReply(), asks, "fail"));
+    }
+
+    [Fact]
+    public void A_dot_whose_step_names_nothing_or_an_id_that_is_not_there_carries_nothing()
+    {
+        Assert.Null(Payloads.OfDot(WithReply(), new Step("a", "b", "x", null), null));
+        Assert.Null(Payloads.OfDot(WithReply(), new Step("a", "b", "x", null) { Payload = "gone" }, null));
+        Assert.Null(Payloads.OfDot(WithReply(), new Step("a", "b", "x", null) { Payload = "order" }, "reply"));
+    }
+
+    [Fact]
+    public void A_payload_written_in_place_is_what_its_dot_carries() =>
+        Assert.Equal((new Payloads.Shown(null, "Ping", "A heartbeat.", null, null), false), Payloads.OfDot(WithReply(), new Step("a", "b", "x", null) { Payload = Map(("name", "Ping"), ("about", "A heartbeat.")) }, null));
+}
