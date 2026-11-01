@@ -341,13 +341,17 @@ internal sealed class SidePanel : Border
             Children = { Chrome.ObjectTile(model, other, 22), Link(Views.NameOf(model, line.Other), () => pick(line.Other)) },
         };
         var body = new StackPanel { Spacing = 4, Children = { head } };
+        var view = Views.ParentOf(model, line.Other == line.From ? line.To : line.From);
         if (line.Connections.Count == 1)
         {
             var c = line.Connections[0];
             body.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "no label", FontStyle = FontStyle.Italic, FontSize = 13, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, TextWrapping = TextWrapping.Wrap });
             if (c.From != line.From || c.To != line.To) body.Children.Add(Muted(Describe(model, c), 12));
+            foreach (var payload in Carried(model, view, c, line)) body.Children.Add(payload);
         }
-        else body.Children.Add(Disclosure($"{line.Connections.Count} connections", model, line.Connections));
+        else body.Children.Add(Disclosure($"{line.Connections.Count} connections", model, line.Connections, c => Carried(model, view, c, line)));
+        // What only flow steps send along the line, once for the line, each saying where it comes from.
+        if (PayloadView.Rows(model, [.. Payloads.OnLine(model, view, line.From, line.To).Where(c => !c.Own)], false, Resource) is { } sent) body.Children.Add(sent);
         var direction = new Border { Child = Icons.Make(arrow, "dirnicon", 14), VerticalAlignment = VerticalAlignment.Top };
         direction.Classes.Add("dirn");
         direction.Child!.HorizontalAlignment = HorizontalAlignment.Center;
@@ -362,8 +366,15 @@ internal sealed class SidePanel : Border
         return row;
     }
 
-    /// <summary>"N connections", opening to list each with its label and the boxes inside it that it joins.</summary>
-    private Control Disclosure(string title, Model model, IReadOnlyList<Connection> connections)
+    /// <summary>What a connection carries, a row each, the way each goes being the way the connection runs on this line.</summary>
+    private List<Control> Carried(Model model, string view, Connection c, BoxLine line)
+    {
+        var back = Views.PlaceEnds(model, view, c.From, c.To) is not { } ends || ends.From != line.From;
+        return [.. Payloads.OfConnection(model, c).Select(p => PayloadView.Row(p, back, false, Resource))];
+    }
+
+    /// <summary>"N connections", opening to list each with its label, the boxes inside it that it joins and what it carries.</summary>
+    private Control Disclosure(string title, Model model, IReadOnlyList<Connection> connections, Func<Connection, List<Control>>? carried = null)
     {
         var items = new StackPanel { Spacing = 8, Margin = new Thickness(0, 6, 0, 0), IsVisible = false };
         var header = new Button { Content = $"▸ {title}" };
@@ -377,6 +388,7 @@ internal sealed class SidePanel : Border
                     var item = new StackPanel { Spacing = 0 };
                     item.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "no label", FontStyle = FontStyle.Italic, FontSize = 13, Foreground = Resource("MutedBrush") } : new TextBlock { Text = c.Label, TextWrapping = TextWrapping.Wrap });
                     item.Children.Add(Muted(Describe(model, c), 12));
+                    foreach (var payload in carried?.Invoke(c) ?? []) item.Children.Add(payload);
                     items.Children.Add(item);
                 }
             items.IsVisible = !items.IsVisible;
@@ -434,6 +446,12 @@ internal sealed class SidePanel : Border
                 if (mine.Count > 0) section.Children.Add(Problems(mine));
                 column.Children.Add(Chrome.Card(section));
             }
+        }
+        var carries = Payloads.OnLine(model, view, ways.From, ways.To);
+        if (PayloadView.Rows(model, carries, true, Resource) is { } rows)
+        {
+            column.Children.Add(Chrome.Section(Icons.Code, "Payloads", carries.Count));
+            column.Children.Add(rows);
         }
         Show(column, $"line:{from}>{to}");
     }
