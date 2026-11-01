@@ -30,6 +30,8 @@ internal sealed class ComparePicker : Border
     private readonly TextBlock _nothing = new() { Text = "Nothing called that", Classes = { "muted" }, Margin = new Thickness(8, 4), IsVisible = false };
     private List<CompareChoice> _rows = []; // the choices on show, linked first
     private int _at = -1; // the one the arrow keys are on, or -1
+    private readonly Dictionary<int, Button> _buttons = []; // the rows drawn, by their place in _rows: the arrow keys only move the mark between them
+    private int _othersShown; // how many of the other rows are drawn, kept while the arrow keys step through them
 
     /// <param name="kind"><c>flow</c> (the player's Compare) or <c>run</c> (the Performance panel's Compare and Link with; <paramref name="runs"/> are the runs to pick from).</param>
     /// <param name="label">What the flyout is called, for a screen reader: <c>Compare with</c> or <c>Link with</c>.</param>
@@ -76,10 +78,14 @@ internal sealed class ComparePicker : Border
         var found = query == "" ? _others : _others.Where(c => c.Name.ToLowerInvariant().Contains(query) || c.Id.Contains(query, StringComparison.Ordinal)).ToList();
         _rows = [.. _linked, .. found];
         _at = typed || _at >= _rows.Count ? _rows.FindIndex(Can) : _at;
+        if (typed) _othersShown = 0;
+        _buttons.Clear();
         _linkedRows.Children.Clear();
         _otherRows.Children.Clear();
-        for (var i = 0; i < _rows.Count; i++)
-            (i < _linked.Count ? _linkedRows : _otherRows).Children.Add(Row(_rows[i], i, i < _linked.Count));
+        for (var i = 0; i < _linked.Count; i++) _linkedRows.Children.Add(Row(_rows[i], i, true));
+        // A page at a time: a long list of flows is a control for each, drawn again at every keystroke. The row the arrows are on is always drawn.
+        var others = Enumerable.Range(_linked.Count, _rows.Count - _linked.Count).ToList();
+        Paging.Fill(_otherRows, others, i => Row(_rows[i], i, false), kept: Math.Max(_othersShown, _at - _linked.Count + 1), remember: n => _othersShown = n);
         _nothing.IsVisible = query != "" && found.Count == 0;
     }
 
@@ -98,6 +104,7 @@ internal sealed class ComparePicker : Border
         var button = new Button { Content = grid, Focusable = false, IsEnabled = off is null };
         button.Classes.Add("result");
         if (index == _at) button.Classes.Add("at");
+        _buttons[index] = button;
         AutomationProperties.SetName(button, c.Name);
         if (off is not null && !c.Missing)
         {
@@ -138,7 +145,8 @@ internal sealed class ComparePicker : Border
         {
             if (!Can(_rows[next])) continue;
             _at = next;
-            Rebuild(false);
+            if (_buttons.ContainsKey(next)) foreach (var (index, button) in _buttons) button.Classes.Set("at", index == next); // only the mark moves
+            else Rebuild(false); // the row is past the page drawn: the page grows to hold it
             break;
         }
     }

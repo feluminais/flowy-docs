@@ -22,6 +22,20 @@ public class OutlineTests
     [InlineData("a2b", "a10a", -1)]
     public void NamesSortAsInTheExplorerDoes(string a, string b, int expected) => Assert.Equal(expected, Outlines.ByName(a, b));
 
+    private static OutlineRow Row(IReadOnlyList<string>? partners) =>
+        new("flow:a", "flow", "a", "shop", 1, "A", null, false, 0, 0, 3, false, false, false, true, true, partners);
+
+    [Fact]
+    public void RowsWithTheSamePartnersAreEqualWhateverListHoldsThem()
+    {
+        Assert.Equal(Row(["Refund", "Order"]), Row(new List<string> { "Refund", "Order" })); // built afresh at every update: by reference they never matched
+        Assert.Equal(Row(["Refund"]).GetHashCode(), Row(new List<string> { "Refund" }).GetHashCode());
+        Assert.NotEqual(Row(["Refund"]), Row(["Order"]));
+        Assert.NotEqual(Row(["Refund"]), Row(null));
+        Assert.Equal(Row(null), Row(null));
+        Assert.NotEqual(Row(["Refund"]), Row(["Refund"]) with { Depth = 2 });
+    }
+
     private static JsonObject Folders() => Expected()["folders"]!.AsObject();
 
     public static IEnumerable<object[]> Names() => Folders().Where(kv => kv.Value!["parseError"] is null).Select(kv => new object[] { kv.Key });

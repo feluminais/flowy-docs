@@ -26,6 +26,7 @@ internal sealed class SidePanel : Border
     private AddForm? _addForm;
     private Recorder? _recorder;
     private UsedByPanel? _usedBy;
+    private (Model Model, string Id, IReadOnlyList<Problem> Problems, string? CodeBase, string Root, string? App, StateMark? State, Avalonia.Styling.ThemeVariant Theme)? _objectFor; // what the box on show was drawn from
 
     // What a test can look at.
 
@@ -212,6 +213,11 @@ internal sealed class SidePanel : Border
             Clear();
             return;
         }
+        // Every step of a flow refreshes the reader, and the panel is the same box on the same model: drawing its Markdown, tables and code again for nothing
+        // would also take a selection in the text away. It is drawn again when anything it is drawn from changes (the colours are the theme's).
+        var app = links.CustomApp();
+        var key = $"object:{id}";
+        if (_shown == key && _objectFor is { } was && ReferenceEquals(was.Model, model) && ReferenceEquals(was.Problems, problems) && was.CodeBase == codeBase && was.Root == links.RepoRoot && was.App == app && Equals(was.State, state) && was.Theme == ActualThemeVariant) return;
         var mine = Navigation.ProblemsOf(model, problems, id);
         var column = new StackPanel { Spacing = 14 };
         column.Children.Add(Header(model, id, o, mine.Count));
@@ -236,7 +242,8 @@ internal sealed class SidePanel : Border
             column.Children.Add(CodeList(paths, codeBase));
         }
         column.Children.Add(LinesOf(model, id, pick, hover));
-        Show(column, $"object:{id}");
+        Show(column, key);
+        _objectFor = (model, id, problems, codeBase, links.RepoRoot, app, state, ActualThemeVariant);
     }
 
     /// <summary>
