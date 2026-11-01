@@ -47,7 +47,7 @@ export type ObjectInput = {
 /** A payload as put_payload gives it: omitted keys stay, "" removes the name or the about, null removes the shape or the example (see payloads.ts). */
 export type PayloadInput = { id: string; name?: string; about?: string; shape?: { text: string; language?: string } | null; example?: { text: string; language?: string } | null }
 /** A payload written in place on a line or a step: it has no id, so it needs a name. */
-export type PayloadInputInline = Omit<PayloadInput, 'id'> & { name: string }
+export type PayloadInputInline = { name: string; about?: string; shape?: { text: string; language?: string }; example?: { text: string; language?: string } }
 /** `payloads` are what the line carries: ids from putPayload, or payloads written in place. */
 export type ConnectionInput = { from: string; to: string; label?: string; payloads?: (string | PayloadInputInline)[] }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
@@ -110,7 +110,9 @@ export function putIcon(model: Model, name: string, path: string): Model {
  */
 export function putPayload(model: Model, { id, ...fields }: PayloadInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid id: ${ID_RULE}`)
-  const all = isMap(model.meta.payloads) ? model.meta.payloads : {}
+  const held = model.meta.payloads
+  if (held !== undefined && held !== '' && !isMap(held)) throw new OpError('payloads in model.yaml is not a mapping of ids to payloads: fix it in the file first')
+  const all = isMap(held) ? held : {}
   const next: Record<string, unknown> = Object.hasOwn(all, id) && isMap(all[id]) ? { ...all[id] } : {}
   for (const k of ['name', 'about'] as const) if (fields[k] !== undefined) next[k] = fields[k]
   for (const k of ['shape', 'example'] as const) {
