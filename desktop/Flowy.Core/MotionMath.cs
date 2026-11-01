@@ -233,11 +233,11 @@ public static class MotionMath
             (mx - card.Width / 2, dot.Y + dot.Height + Card.Gap),
             (mx - card.Width / 2, dot.Y - Card.Gap - card.Height),
         ];
-        var best = (X: 0.0, Y: 0.0);
+        var placed = spots.Select(s => (X: Clamp(s.X, bounds.X, card.Width, bounds.Width), Y: Clamp(s.Y, bounds.Y, card.Height, bounds.Height))).ToList();
+        var best = placed[0]; // what is left when no overlap can be measured, as in the browser
         var least = double.PositiveInfinity;
-        foreach (var (x, y) in spots)
+        foreach (var spot in placed)
         {
-            var spot = (X: Clamp(x, bounds.X, card.Width, bounds.Width), Y: Clamp(y, bounds.Y, card.Height, bounds.Height));
             var box = new Rect(spot.X, spot.Y, card.Width, card.Height);
             var covered = Overlap(box, dot) + avoid.Sum(a => Overlap(box, a));
             if (covered == 0) return spot;
