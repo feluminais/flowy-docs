@@ -277,6 +277,27 @@ export const MAKERS: Record<string, Maker> = {
     const name = fresh(rng, 'icon')
     return { op: 'putIcon', label: `putIcon ${name}`, call: { tool: 'put_icon', args: { name, path: 'M0 0h10v10z' } }, run: model => ops.putIcon(model, name, 'M0 0h10v10z') }
   },
+  putPayload: (_, rng) => {
+    const id = rng.chance(0.08) ? rng.pick(HOSTILE) : fresh(rng, 'payload')
+    const input = { id, about: rng.chance(0.9) ? 'What moves.' : '', example: rng.chance(0.5) ? { text: '{ "id": 1 }' } : undefined }
+    return { op: 'putPayload', label: `putPayload ${id}`, call: { tool: 'put_payload', args: input }, run: model => ops.putPayload(model, input) }
+  },
+  deletePayload: (m, rng) => {
+    const id = among(rng, Object.keys((m.meta.payloads as Record<string, unknown> | undefined) ?? {}), 'nope')
+    return { op: 'deletePayload', label: `deletePayload ${id}`, call: { tool: 'delete_payload', args: { id } }, run: model => ops.deletePayload(model, id) }
+  },
+  setLinePayloads: (m, rng) => {
+    const c = m.connections.length === 0 || rng.chance(0.08) ? { from: 'ghost', to: 'ghost' } : rng.pick(m.connections)
+    const which = { from: String(c.from), to: String(c.to), ...(typeof c.label === 'string' ? { label: c.label } : {}) }
+    const ids = Object.keys((m.meta.payloads as Record<string, unknown> | undefined) ?? {})
+    // Mostly a list that always holds (none, or one written in place), so the line itself is tried; now and then an id, which may not be there.
+    const inline = { name: 'Inline', about: 'Written in place.' }
+    const payloads = rng.pick<(string | typeof inline)[]>([[], [inline], [inline], [among(rng, ids, 'nope')], [among(rng, ids, 'nope'), inline]])
+    return {
+      op: 'setLinePayloads', label: `setLinePayloads ${which.from} → ${which.to}`, call: { tool: 'set_payloads', args: { ...which, payloads } },
+      run: model => ops.setLinePayloads(model, which, payloads),
+    }
+  },
   deleteIcon: (m, rng) => {
     const names = Object.keys((m.meta.icons as Record<string, unknown> | undefined) ?? {})
     const name = among(rng, names, 'nope')
