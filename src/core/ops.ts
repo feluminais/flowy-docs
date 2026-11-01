@@ -1,3 +1,4 @@
+import { animationOf } from './animation.ts'
 import { check, newProblems } from './check.ts'
 import { compareOf, withCompare } from './compare.ts'
 import type { CompareTag } from './compare.ts'
@@ -14,7 +15,7 @@ import type { Run } from './perf/types.ts'
 import type { Shape } from './look.ts'
 import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, MAX_TAG_LENGTH, ROOT, tagKey, tagsOf } from './model.ts'
 import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
-import { payloadUsers, saysSomething, tidyPayload } from './payloads.ts'
+import { payloadUsers, REPLY_KINDS, saysSomething, tidyPayload } from './payloads.ts'
 import { tidySnippets } from './snippets.ts'
 import type { SnippetInput } from './snippets.ts'
 import { changeKind, dropGroup, groupRange, joinGroup, leaveGroup, newGroup, stepGroupId, withGroups } from './groups.ts'
@@ -496,6 +497,8 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states, f
     if (isMap(s.states) && Object.keys(s.states).length === 0) delete out.states
     // A number in an animation (share, at) is written as text, as a file holds it.
     if ('animation' in out) out.animation = animationAsText(out.animation)
+    // A payload written in place is tidied as one on a line is.
+    for (const key of ['payload', 'reply'] as const) if (isMap(out[key])) out[key] = tidyPayload(out[key])
     return out as Step
   }
   // On disk a number is text, like every value: `times: 3` reads back as "3". No groups, or an empty set, writes no `groups:`.
@@ -640,6 +643,25 @@ export function setStepAnimation(model: Model, id: string, index: number, animat
       const { animation: _, ...rest } = step
       steps[index] = rest as Step
     } else steps[index] = { ...step, animation: animationAsText(animation) }
+    return { ...flow, steps }
+  })
+}
+
+/**
+ * Set what step `index` sends (`payload`) or gets back (`reply`): a payload's id, or a payload written in place (tidied); undefined removes it. An unknown id is
+ * refused, and so is a reply on a step that gets no answer (see REPLY_KINDS).
+ */
+export function setStepPayload(model: Model, id: string, index: number, key: 'payload' | 'reply', value: string | PayloadInputInline | undefined): Model {
+  return withFlow(model, id, flow => {
+    const step = existingStep(flow, id, index)
+    const steps = [...flow.steps]
+    if (value === undefined) {
+      const { [key]: _, ...rest } = step
+      steps[index] = rest as Step
+      return { ...flow, steps }
+    }
+    if (key === 'reply' && !REPLY_KINDS.some(k => k === animationOf(step)?.kind)) throw new OpError('a reply needs a call, a callback or a recurse animation')
+    steps[index] = { ...step, [key]: lineList(model, [value])[0] }
     return { ...flow, steps }
   })
 }

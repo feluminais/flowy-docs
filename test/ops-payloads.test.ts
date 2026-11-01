@@ -77,3 +77,34 @@ test('putPayload refuses to write over a payloads: that is not a mapping, rather
   const m: Model = { ...shop(), meta: { payloads: ['order', 'refund'] } }
   assert.throws(() => putPayload(m, order), /^OpError: payloads in model\.yaml is not a mapping of ids to payloads: fix it in the file first$/)
 })
+
+test('setStepPayload sets a step\'s payload or reply by id or written in place, and removes it', async () => {
+  const { setStepPayload } = await import('../src/core/ops.ts')
+  let m = withOrder()
+  m = setStepPayload(m, 'checkout', 1, 'payload', 'order')
+  assert.equal(m.flows.checkout.steps[1].payload, 'order')
+  m = setStepPayload(m, 'checkout', 1, 'payload', { name: ' Cart ', example: { language: 'TS', text: '\r\nx\r\n' } })
+  assert.deepEqual(m.flows.checkout.steps[1].payload, { name: 'Cart', example: { language: 'typescript', text: 'x' } })
+  m = setStepPayload(m, 'checkout', 1, 'payload', undefined)
+  assert.equal(Object.hasOwn(m.flows.checkout.steps[1], 'payload'), false)
+})
+
+test('setStepPayload refuses an unknown id, and a reply on a step that gets no answer', async () => {
+  const { setStepPayload } = await import('../src/core/ops.ts')
+  assert.throws(() => setStepPayload(withOrder(), 'checkout', 1, 'payload', 'nope'), /^OpError: unknown payload "nope"$/)
+  assert.throws(() => setStepPayload(withOrder(), 'checkout', 1, 'reply', 'order'), /^OpError: a reply needs a call, a callback or a recurse animation$/)
+})
+
+test('put_flow writes an inline payload on a step tidied', async () => {
+  const { putFlow } = await import('../src/core/ops.ts')
+  const m = putFlow(withOrder(), { id: 'quick', name: 'Quick', view: 'shop', steps: [{ from: 'web', to: 'api', text: 'x', animation: 'call', payload: { name: 'Cart ', about: '  ', shape: { language: 'TS', text: 'a\r\n' } }, reply: 'order' }] })
+  assert.deepEqual(m.flows.quick.steps[0].payload, { name: 'Cart', shape: { language: 'typescript', text: 'a' } })
+})
+
+test('an edit to the payloads is named in the history', async () => {
+  const { describeEdit } = await import('../src/core/editlabel.ts')
+  const added = withOrder()
+  assert.equal(describeEdit(shop(), added), 'Added payload Order')
+  assert.equal(describeEdit(added, putPayload(added, { id: 'order', about: 'Changed.' })), 'Edited payload Order')
+  assert.equal(describeEdit(added, deletePayload(added, 'order')), 'Removed payload Order')
+})
