@@ -31,6 +31,8 @@ internal sealed class Recorder : StackPanel
         public required Choice<string> Flow;
         public required List<(string Shape, Chooser Tiles)> States;
         public required AnimationRow Animation;
+        public required StackPanel Payloads;
+        public string PayloadSignature = "\u0000";
     }
 
     /// <summary>
@@ -276,6 +278,16 @@ internal sealed class Recorder : StackPanel
             _rows[i].Lane.IsVisible = group != "" && FlowForm.HasLanes(FlowForm.KindOf(declared, group));
             _rows[i].Animation.Sync(steps[i], flow is null ? [] : Channels.ClosableAt(flow, stops, i));
             foreach (var (shape, tiles) in _rows[i].States) tiles.Show(FlowForm.StateWord(steps[i].States, shape));
+            // What the step sends and gets back: built again only when the payloads or the step's choice of them change.
+            var payloadSignature = PayloadEdit.Signature(model, steps[i].Payload) + '\u0004' + PayloadEdit.Signature(model, steps[i].Reply) + '\u0004' + Animations.Read(steps[i])?.Kind;
+            if (payloadSignature != _rows[i].PayloadSignature)
+            {
+                _rows[i].PayloadSignature = payloadSignature;
+                var at = i;
+                _rows[i].Payloads.Children.Clear();
+                if (PayloadEdit.StepPickers(model, steps[i], (key, value) => Edit(rec.Id, d => EditOps.SetStepPayload(d, rec.Id, at, key, value))) is { } pickers)
+                    _rows[i].Payloads.Children.Add(pickers);
+            }
         }
         if (flow is not null) ShowGroups(rec.Id, steps.Count, declared);
         else
@@ -657,13 +669,14 @@ internal sealed class Recorder : StackPanel
             states.IsVisible = !states.IsVisible;
             statesToggle.Content = states.IsVisible ? "▾ State" : "▸ State";
         };
-        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice, States = tiles, Animation = animation });
+        var payloads = new StackPanel();
+        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice, States = tiles, Animation = animation, Payloads = payloads });
         // A number before each step, so the order reads at a glance.
         var number = new Border { Child = new TextBlock { Text = (i + 1).ToString() }, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 22, 0, 0) };
         number.Classes.Add("badge");
         var top = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { number, text } };
         Grid.SetColumn(text, 1);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, animationToggle, animation.Panel, structureToggle, structure, statesToggle, states, buttons } });
+        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, payloads, animationToggle, animation.Panel, structureToggle, structure, statesToggle, states, buttons } });
     }
 
     private static string Title(string word) => word == "" ? word : char.ToUpperInvariant(word[0]) + word[1..];

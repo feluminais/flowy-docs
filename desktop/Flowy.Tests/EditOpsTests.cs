@@ -56,7 +56,17 @@ public class EditOpsTests
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "deleteObjects": return EditOps.DeleteObjects(doc, s["ids"]!.AsArray().Select(i => i!.GetValue<string>()).ToList());
             case "deleteWith": return EditOps.DeleteWith(doc, Targets(s["targets"]), Resolutions(s["resolutions"]));
-            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label")));
+            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label"), s["payloads"] is { } carried ? carried.AsArray().Select(YamlWriterTests.Tree).ToList() : null));
+            case "putPayload":
+            {
+                var fields = new Dictionary<string, object?>();
+                foreach (var key in new[] { "name", "about", "shape", "example" })
+                    if (s.AsObject().TryGetPropertyValue(key, out var value)) fields[key] = value is null ? null : YamlWriterTests.Tree(value);
+                return EditOps.PutPayload(doc, Str(s, "id")!, fields);
+            }
+            case "deletePayload": return EditOps.DeletePayload(doc, Str(s, "id")!);
+            case "setLinePayloads": return EditOps.SetLinePayloads(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), s["payloads"]!.AsArray().Select(YamlWriterTests.Tree).ToList());
+            case "setStepPayload": return EditOps.SetStepPayload(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), Str(s, "key")!, s["value"] is { } v ? YamlWriterTests.Tree(v) : null);
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
             case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]), Groups(s["states"]), Str(s, "folder"), Tags(s["tags"]));

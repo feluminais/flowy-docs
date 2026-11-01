@@ -6,7 +6,7 @@ import { ANIMATION_KINDS, animationFields, animationWith, CHANNEL_KINDS, CHANNEL
 import type { AnimationKey, ChannelKind } from '../../src/core/animation.ts'
 import { CHANNEL_LABELS, closableAt } from '../../src/core/channels.ts'
 import { compareOf } from '../../src/core/compare.ts'
-import { deleteFlow, groupSteps, moveFlow, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setStepAnimation, setStepGroup, swapSteps, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, moveFlow, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setStepAnimation, setStepGroup, setStepPayload, swapSteps, updateFlow } from '../../src/core/ops.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, stopsOf, takesOption } from '../../src/core/structure.ts'
 import { flowList } from '../../src/core/outline.ts'
@@ -18,6 +18,7 @@ import { Field, Panel } from './forms.tsx'
 import type { Common, SaveEdit } from './forms.tsx'
 import { Section, TypeTile } from './Chrome.tsx'
 import { focusIfLost } from './focusback.ts'
+import { StepPayloads } from './Payloads.tsx'
 import { Paged } from './Paging.tsx'
 import { KindPicker, PartnerPicker, SketchPicker, StatePicker, TagPicker } from './Pickers.tsx'
 import type { PartnerTile, Sketch } from './Pickers.tsx'
@@ -327,6 +328,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
               {/* An empty field removes the detail, so the step's file stays as short as it can be. */}
               <Field label="More (Markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
             </details>
+            <StepPayloads model={model} step={s} onSet={(key, value) => void run(m => setStepPayload(m, rec.id, i, key, value))} />
             <StepAnimation
               step={s} shapes={shapes}
               closable={flow ? closableAt(flow, stopsOf(flow), i) : []}

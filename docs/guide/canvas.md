@@ -122,6 +122,11 @@ file again, so comments in it are not kept ([File format](../format.md#the-folde
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
   is refused.
 - "Outside service" in a shape's panel marks it `external: true`, for things you use but don't own.
+- Click a line, and each connection's card has **Payloads**: a button for each payload in the model, pressed for the ones it carries.
+  Type a name in New payload and press Enter to make one. It is saved, and put on the line, once its About is. Under the buttons, each
+  payload the line carries has a form folded under its name: Name, About, and a Shape and an Example, each a language and the code, as
+  in a snippet. Delete payload takes it off this line and out of the model. While another line or a step still names it, the delete
+  is refused and says which, and nothing changes.
 - Delete (the key, or the button in the panel) removes the selected shape or line, with its lines. When nothing else depends on it, it goes at
   once, and the notice says what went with it and has an Undo button. When something does (shapes inside it, flow steps, a flow's view, a failure
   mode), the Used by panel opens with a row for each. Pick what to do with a row: remove the step, reroute it to another shape, delete the flow,
@@ -152,6 +157,9 @@ file again, so comments in it are not kept ([File format](../format.md#the-folde
   Timeout, Lost, Rejected, Intercepted, Duplicated, Delayed), then a share of the requests, a reason, and for an interception the shape that takes it or a name. A choice
   the step cannot have is dimmed with the reason in its tooltip: an outcome needs a way to travel, Timeout needs a call, Recurse needs a step on one shape, and a callback or a step on one shape has
   none. Picking Intercepted names a placeholder ("Third party") until you pick a shape or type a name. Each pick is one edit, and a value the checks refuse (a share of 150) says why and saves nothing.
+- Each step has **Payload** and **Reply**, a button for each payload with the ones its line carries first. Press one to pick it and
+  press it again to take it off. Reply is greyed out on a step that gets nothing back, with the reason in its tooltip: a reply needs a
+  call, a callback or a recurse.
 - Each step's **Group and flow** holds the group it is in, its lane (for a branch or parallel group) and the flow it opens. Under the
   steps, **Groups** lists each group with its kind, its times or until (for a repeat) and its text, and a form puts a stretch of steps
   in a new group: a repeat is written with `times: 3`, and in a branch or parallel group every step starts a lane of its own

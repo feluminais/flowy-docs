@@ -99,11 +99,8 @@
   ],
   "ops": [
     "deleteIcon",
-    "deletePayload",
     "disconnect",
     "putIcon",
-    "putPayload",
-    "setLinePayloads",
     "tidyLayout",
     "tidyViews"
   ],

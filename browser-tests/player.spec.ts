@@ -79,6 +79,8 @@ test('Pause stops the dots of an open stream', async ({ page }) => {
   await page.keyboard.press('p')
   const dots = page.locator('svg.channels .stream-dots').first()
   const offset = () => dots.evaluate(el => getComputedStyle(el).strokeDashoffset)
+  await expect(button(page, 'Play')).toBeVisible()
+  await page.waitForTimeout(150) // the frame of the paused moment, under load too
   const held = await offset()
   await page.waitForTimeout(500)
   expect(await offset()).toBe(held)

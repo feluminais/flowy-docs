@@ -65,6 +65,42 @@ export function TagPicker({ tags, used, onSet }: { tags: readonly string[]; used
   )
 }
 
+/**
+ * The payloads of the model as chips to press, in the order the model lists them: on a line any number (`many`), on a step one or none. `off` greys every chip out
+ * with the reason in its tooltip. A field makes a new one from a name (`onNew`), on a line only.
+ */
+export function PayloadPicker({ label, all, chosen, many, off, onSet, onNew }: {
+  label: string; all: readonly { id: string; name: string }[]; chosen: readonly string[]; many: boolean; off?: string
+  onSet: (next: string[]) => void; onNew?: (name: string) => void
+}) {
+  const [draft, setDraft] = useState('')
+  const on = new Set(chosen)
+  const toggle = (id: string) => onSet(on.has(id) ? chosen.filter(c => c !== id) : many ? [...chosen, id] : [id])
+  return (
+    <div className="pick-field">
+      <Head label={label} value={chosen.length === 0 ? undefined : all.filter(p => on.has(p.id)).map(p => p.name).join(', ')} />
+      <div className="tagbar" role="group" aria-label={label}>
+        {all.map(p => (
+          <button key={p.id} type="button" className="tagchip" aria-pressed={on.has(p.id)} disabled={off !== undefined} title={off} onClick={() => toggle(p.id)}>{p.name}</button>
+        ))}
+      </div>
+      {onNew && (
+        <label className="tagadd">
+          <input value={draft} placeholder="New payload" aria-label="New payload" onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => {
+              if (e.key !== 'Enter') return
+              e.preventDefault()
+              const name = draft.trim()
+              if (name === '') return
+              setDraft('')
+              onNew(name)
+            }} />
+        </label>
+      )}
+    </div>
+  )
+}
+
 /** Object types as their tiles, in the colours the canvas gives them. */
 export function TypePicker({ types, value, onPick }: { types: string[]; value: string; onPick: (type: ObjectType) => void }) {
   return (
