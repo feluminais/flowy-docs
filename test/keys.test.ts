@@ -10,12 +10,17 @@ test('shortcuts follow the Latin letter typed, or the key on a US keyboard', () 
   assert.equal(letter({ key: 'Escape', code: 'Escape' }), 'Escape')
 })
 
-test('Enter stays with a focused button, link or disclosure summary, and goes to the canvas elsewhere', () => {
+test('Enter stays with a focused button, link, summary, list, slider or scrolling text, and goes to the canvas elsewhere', () => {
   // A stand-in element that answers closest() the way the DOM does: itself or an ancestor with one of the tags.
   const element = (...tags: string[]) => ({ closest: (selector: string) => (selector.split(', ').some(tag => tags.includes(tag)) ? {} : null) })
   assert.equal(takesEnter(element('summary')), true)
   assert.equal(takesEnter(element('span', 'button')), true, 'inside a button')
   assert.equal(takesEnter(element('a')), true)
+  assert.equal(takesEnter(element('[role=listbox]')), true, 'the YAML history')
+  assert.equal(takesEnter(element('[role=slider]')), true, 'the step bar of the player')
+  assert.equal(takesEnter(element('input[type=range]')), true, 'the load of a run')
+  assert.equal(takesEnter(element('[role=tablist]')), true)
+  assert.equal(takesEnter(element('[role=region][tabindex]')), true, 'a text that scrolls')
   assert.equal(takesEnter(element('div')), false, 'a box on the canvas')
   assert.equal(takesEnter({}), false, 'the document has no closest()')
   assert.equal(takesEnter(null), false)

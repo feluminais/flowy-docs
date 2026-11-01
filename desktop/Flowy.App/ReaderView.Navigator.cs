@@ -106,7 +106,7 @@ internal sealed partial class ReaderView
         if (tab is { } open) _nav.Show(open, Editing);
         else _nav.Hide();
         ApplyWidths();
-        if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id);
+        if (tab == PanelTab.Flows) _nav.Flows.Update(model, view, Editing, Recording?.Id ?? flow?.Id, CanEdit);
         else if (tab == PanelTab.Explorer)
         {
             _nav.Explorer.Update(model, _folder!.Problems, Editing, _panels.Expanded, view, SelectedBox, flow?.Id);

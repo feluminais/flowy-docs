@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
@@ -32,7 +33,9 @@ internal sealed class FlowsView : Grid
     /// <summary>How far each level of folders is moved in, and the room a flow keeps before its mark, which lines it up with the mark of its folder.</summary>
     private const double Indent = 16, Twist = 22;
     private Model? _model;
-    private bool _editing;
+    private bool _editing, _canEdit = true;
+    /// <summary>How many rows of the list are drawn (a page, or more once the reader has asked for them), kept while the list is drawn again.</summary>
+    private int _rowsShown;
     private string? _current;
     private readonly Border _foot = LinkedKey();
 
@@ -61,6 +64,7 @@ internal sealed class FlowsView : Grid
     {
         var key = Names.TagKey(tag);
         if (!_picked.Remove(key)) _picked.Add(key);
+        _rowsShown = 0;
         Rebuild();
     }
 
@@ -86,7 +90,11 @@ internal sealed class FlowsView : Grid
         Margin = new Thickness(12, 12, 0, 12); // no margin on the right: the list's scroll bar sits on the panel's edge, where the sash is
         var field = Field(_find, Icons.Search);
         field.Margin = new Thickness(0, 0, Inset, 0);
-        _find.TextChanged += (_, _) => Rebuild();
+        _find.TextChanged += (_, _) =>
+        {
+            _rowsShown = 0;
+            Rebuild();
+        };
         _find.KeyDown += (_, e) =>
         {
             // Esc empties the filter first, as in Explorer; a second press goes on to close the layers behind it.
@@ -165,13 +173,14 @@ internal sealed class FlowsView : Grid
         return field;
     }
 
-    public void Update(Model model, string view, bool editing, string? current)
+    public void Update(Model model, string view, bool editing, string? current, bool canEdit = true)
     {
         // Every step of a flow refreshes the reader; the list only changes with the model, edit mode or the flow open, and a long list is slow to build.
-        if (ReferenceEquals(model, _model) && editing == _editing && current == _current) return;
+        if (ReferenceEquals(model, _model) && editing == _editing && current == _current && canEdit == _canEdit) return;
         CompareOff = CompareChoices.Off(model, editing);
         _model = model;
         _editing = editing;
+        _canEdit = canEdit;
         _current = current;
         Rebuild();
     }
@@ -206,11 +215,13 @@ internal sealed class FlowsView : Grid
         var button = new Button { Content = grid, MinHeight = 32 };
         button.Classes.Add("flowrow");
         button.Classes.Set("current", f.Id == _current);
+        button.Tag = "flow:" + f.Id;
         ToolTip.SetTip(button, Views.NameOf(_model!, f.View ?? Names.Root));
         AutomationProperties.SetName(button, f.Name);
         button.Click += (_, _) => Opened?.Invoke(f);
         // The row opens the flow; the Compare button beside it is a control of its own, so neither takes the other's click.
         var compare = CompareButton(f.Id, f.Name, CompareOff, id => CompareRequested?.Invoke(id));
+        compare.Tag = "compare:" + f.Id;
         SetColumn(compare, 1);
         return new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 2, Children = { button, compare } };
     }
@@ -240,6 +251,7 @@ internal sealed class FlowsView : Grid
             var button = new Button { Content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Children = { mark, text, number } } };
             button.Classes.Add("tagchip");
             button.Classes.Set("on", _picked.Contains(key));
+            button.Tag = "tag:" + key;
             AutomationProperties.SetName(button, t.Tag);
             button.Click += (_, _) => ToggleTag(t.Tag);
             _tagBar.Children.Add(button);
@@ -257,29 +269,43 @@ internal sealed class FlowsView : Grid
         var filtering = needle != "" || _picked.Count > 0;
         var shown = new List<FlowRef>();
         var folders = new List<FolderRow>();
+        var kept = _rowsShown;
+        for (var i = 0; i < list.Rows.Count; i++)
+        {
+            if (list.Rows[i] is FolderRow folder) folders.Add(folder);
+            else if (list.Rows[i] is FlowItemRow item)
+            {
+                shown.Add(item.Flow);
+                if (item.Flow.Id == _current) kept = Math.Max(kept, i + 1); // the flow that is open stays on the page
+            }
+        }
 
+        // The list is drawn again by a click on one of its own buttons (a folder, a tag): the keyboard stays on the same one.
+        var keyboard = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is Button { Tag: string tag } focused && this.IsVisualAncestorOf(focused) ? tag : null;
         ShowTags(list.Tags);
         _list.Children.Clear();
         if (filtering && list.Shown > 0) _list.Children.Add(Note($"{list.Shown} of {Plural(list.Total, "flow")}"));
-        foreach (var row in list.Rows)
+        Paging.Fill(_list, list.Rows, row =>
         {
-            if (row is FolderRow folder)
-            {
-                _list.Children.Add(FolderHead(folder));
-                folders.Add(folder);
-                continue;
-            }
+            if (row is FolderRow folder) return FolderHead(folder);
             var item = (FlowItemRow)row;
             var control = Row(item.Flow);
             control.Margin = new Thickness(Indent * item.Depth + Twist, 0, 0, 0);
-            _list.Children.Add(control);
-            shown.Add(item.Flow);
-        }
+            return control;
+        }, kept: kept, remember: n => _rowsShown = n);
         if (filtering && list.Shown == 0 && list.Total > 0) _list.Children.Add(Note(needle != "" ? $"No flow matches “{needle}”." : "No flow has these tags."));
-        if (list.Total == 0) _list.Children.Add(Note("No flows yet. New flow in the bar starts one."));
+        if (list.Total == 0) _list.Children.Add(Note(_editing ? "No flows yet. New flow in the bar starts one." : _canEdit ? "No flows yet. Edit to add one." : "No flows yet."));
         Folders = folders;
         Listed = shown;
         _foot.IsVisible = shown.Any(f => f.Linked); // only while a flow in a pair is on the list: one in a folder that is folded away is not
+        if (keyboard is not null) Dispatcher.UIThread.Post(() => KeepKeyboard(keyboard));
+    }
+
+    /// <summary>The list was drawn again under the keyboard: the button that has the same tag now gets it, silently. Nothing happens if the keyboard went somewhere else meanwhile.</summary>
+    private void KeepKeyboard(string tag)
+    {
+        if (TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is not null) return;
+        this.GetVisualDescendants().OfType<Button>().FirstOrDefault(b => b.Tag as string == tag && b.IsEffectivelyEnabled)?.Focus();
     }
 
     private static Control Note(string text) => new TextBlock { Text = text, FontSize = 13, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(6, 8), Classes = { "muted" } };
@@ -300,6 +326,7 @@ internal sealed class FlowsView : Grid
         var button = new Button { Content = grid, MinHeight = 32, Margin = new Thickness(Indent * folder.Depth, 0, 0, 0) };
         button.Classes.Add("flowrow");
         button.Classes.Add("folderrow"); // a folder, not a flow: it folds
+        button.Tag = "folder:" + folder.Path;
         AutomationProperties.SetName(button, folder.Path);
         button.Click += (_, _) =>
         {

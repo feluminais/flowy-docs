@@ -50,6 +50,16 @@ internal sealed class SearchBox : Border
         AttachedToVisualTree += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(() => _input.Focus(), Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
+    /// <summary>Ctrl+F while it is open: the keyboard goes back to the field and the query is selected, to be typed over. The box is not made again.</summary>
+    /// <summary>What is typed in the field. For a test.</summary>
+    internal string Query => _input.Text ?? "";
+
+    internal void FocusField()
+    {
+        _input.Focus();
+        _input.SelectAll();
+    }
+
     private void Rebuild()
     {
         var query = _input.Text ?? "";
@@ -68,19 +78,16 @@ internal sealed class SearchBox : Border
             var parent = Views.ParentOf(_model, id);
             var o = _model.Objects[id];
             var where = $"{o.Type}{(parent == Names.Root ? "" : $" in {Views.NameOf(_model, parent)}")}";
-            var row = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                Spacing = 10,
-                Children =
-                {
-                    Chrome.ObjectTile(_model, o, 26),
-                    new TextBlock { Text = Views.NameOf(_model, id), FontWeight = FontWeight.SemiBold, VerticalAlignment = VerticalAlignment.Center },
-                    new TextBlock { Text = where, Classes = { "muted" }, VerticalAlignment = VerticalAlignment.Center },
-                },
-            };
+            // A long name or place is cut with an ellipsis at the card's edge (the whole of it is in the tooltip) and does not push the row wider.
+            var name = new TextBlock { Text = Views.NameOf(_model, id), FontWeight = FontWeight.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
+            var place = new TextBlock { Text = where, Classes = { "muted" }, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 170, VerticalAlignment = VerticalAlignment.Center };
+            var tile = Chrome.ObjectTile(_model, o, 26);
+            var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { tile, name, place } };
+            Grid.SetColumn(name, 1);
+            Grid.SetColumn(place, 2);
             // Not focusable, so a click doesn't take the focus from the field (which would close the box before the click lands).
-            var button = new Button { Content = row, Focusable = false };
+            var button = new Button { Content = row, Focusable = false, HorizontalContentAlignment = HorizontalAlignment.Stretch };
+            ToolTip.SetTip(button, $"{name.Text}, {where}");
             button.Classes.Add("result");
             if (i == _at) button.Classes.Add("at");
             button.Click += (_, _) => _pick(id);

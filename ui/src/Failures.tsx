@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
 import { analysedText, bandLabel, bandOf, bandReason, BAND_NAMES, BAND_RULES, coverage, partName, lightFor, ratingsOf, riskOf, riskProduct } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
@@ -16,6 +16,7 @@ import { Activity, Alert, ChevronRight, Close, Copy, Info, Plus, Route } from '.
 import { ABOUT_FOLDS_OVER } from './perfview.ts'
 import type { SaveEdit as Edit } from './forms.tsx'
 import { KeyItem, KeyRow } from './legend.tsx'
+import { Paged } from './Paging.tsx'
 
 /** What the Failures tab's body is told: the folder, the analysis on show and the mode picked in it, the rows to list, and what to do about a click. */
 export type FailuresProps = {
@@ -63,6 +64,17 @@ export function FailuresBody(p: FailuresProps) {
   const analysis = analysisId !== undefined && Object.hasOwn(model.failures, analysisId) ? model.failures[analysisId] : undefined
   const ids = Object.keys(model.failures)
   const mode = analysis && modeId !== undefined && Object.hasOwn(analysis.modes, modeId) ? analysis.modes[modeId] : undefined
+  const coverOf = useMemo(() => (analysis ? coverage(model, analysis) : undefined), [model, analysis]) // worked out over every shape, so not again for every key press and click in the list
+  // The card sits above the list, so a mode picked after the panel was scrolled down to its row brings the card's top back into view.
+  const card = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = card.current
+    const box = el?.closest('.perf')
+    if (!el || !box) return
+    const [at, around] = [el.getBoundingClientRect(), box.getBoundingClientRect()]
+    if (at.top < around.top || at.top > around.bottom) el.scrollIntoView({ block: 'start' })
+  }, [modeId])
+
   const problems = [...p.failureProblems, ...p.problems.filter(x => analysisId !== undefined && x.file === `failures/${analysisId}.yaml`)]
   const problemList = problems.length > 0 && (
     <>
@@ -82,7 +94,7 @@ export function FailuresBody(p: FailuresProps) {
   }
 
   const counts = bandCounts(analysis)
-  const covered = coverage(model, analysis)
+  const covered = coverOf! // there is an analysis here, so there is coverage
   const total = covered.analysed.length + covered.left.length
   const listed = rows.here.length + rows.elsewhere.length
   const picked = part === undefined ? undefined : partName(model, 'box' in part ? { on: part.box } : { from: part.line[0], to: part.line[1] })
@@ -92,36 +104,28 @@ export function FailuresBody(p: FailuresProps) {
   const showIt = flowShown && mode?.flow !== undefined ? showItName(model.flows[mode.flow].name || mode.flow) : undefined
   const seen = mode && run ? firstErrorAt(model, run, mode) !== undefined : false
 
-  // The card sits above the list, so a mode picked after the panel was scrolled down to its row brings the card's top back into view.
-  const card = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const el = card.current
-    const box = el?.closest('.perf')
-    if (!el || !box) return
-    const [at, around] = [el.getBoundingClientRect(), box.getBoundingClientRect()]
-    if (at.top < around.top || at.top > around.bottom) el.scrollIntoView({ block: 'start' })
-  }, [modeId])
-
   const list = (title: string, group: Ranked[]) => group.length > 0 && (
     <Fragment key={title}>
       <Section icon={Info} title={title} count={group.length} />
       <div className="failhead" aria-hidden="true"><span>Risk</span></div>
-      <ul className="failrows">
-        {group.map(r => (
-          <li key={r.id}>
-            {/* Named by what it shows, in the order it shows it (a name that reorders the words fails "label in name"); the hidden words add the band and what the number is. */}
-            <button className="failrow" aria-pressed={r.id === modeId} onClick={() => p.onMode(r.id === modeId ? undefined : r.id)}>
-              <span className={`sw ${r.band}`} aria-hidden="true" />
-              <span className="visually-hidden">{BAND_NAMES[r.band]}. </span>
-              <span className="what"><span className="part">{partName(model, r.mode)}</span><span className="visually-hidden">: </span><span>{r.mode.mode}</span></span>
-              <span className="risk">
-                {r.risk === undefined ? '' : <><span className="visually-hidden">. Risk </span>{r.risk}</>}
-                {bandReason(r.mode) !== undefined && <span className="reason"><span className="visually-hidden">, </span>{bandReason(r.mode)}</span>}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <Paged items={group} reset={`${analysisId} ${title} ${filter.band}`} floor={group.findIndex(r => r.id === modeId) + 1}>{shown => (
+        <ul className="failrows">
+          {shown.map(r => (
+            <li key={r.id}>
+              {/* Named by what it shows, in the order it shows it (a name that reorders the words fails "label in name"); the hidden words add the band and what the number is. */}
+              <button className="failrow" aria-pressed={r.id === modeId} onClick={() => p.onMode(r.id === modeId ? undefined : r.id)}>
+                <span className={`sw ${r.band}`} aria-hidden="true" />
+                <span className="visually-hidden">{BAND_NAMES[r.band]}. </span>
+                <span className="what"><span className="part">{partName(model, r.mode)}</span><span className="visually-hidden">: </span><span>{r.mode.mode}</span></span>
+                <span className="risk">
+                  {r.risk === undefined ? '' : <><span className="visually-hidden">. Risk </span>{r.risk}</>}
+                  {bandReason(r.mode) !== undefined && <span className="reason"><span className="visually-hidden">, </span>{bandReason(r.mode)}</span>}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}</Paged>
     </Fragment>
   )
 
@@ -215,14 +219,16 @@ export function FailuresBody(p: FailuresProps) {
         ? (
           <>
             <Section icon={Info} title="Not analysed" count={covered.left.length} />
-            <ul className="failrows">
-              {covered.left.map(id => (
-                <li key={id}>
-                  <button className="failrow" onClick={() => p.onPickShape(id)}><span className="what"><span>{partName(model, { on: id })}</span></span></button>
-                  {p.editing && <button className="link" onClick={() => setAdding({ on: id })}>Add failure mode</button>}
-                </li>
-              ))}
-            </ul>
+            <Paged items={covered.left} reset={analysisId}>{shown => (
+              <ul className="failrows">
+                {shown.map(id => (
+                  <li key={id}>
+                    <button className="failrow" onClick={() => p.onPickShape(id)}><span className="what"><span>{partName(model, { on: id })}</span></span></button>
+                    {p.editing && <button className="link" onClick={() => setAdding({ on: id })}>Add failure mode</button>}
+                  </li>
+                ))}
+              </ul>
+            )}</Paged>
           </>
         )
         : (

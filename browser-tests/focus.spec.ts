@@ -9,7 +9,8 @@ const RUN = '/#delivery/perf/dinner-rush/3'
 
 const level = (page: Page) => Number(new URL(page.url()).hash.split('/').at(-1))
 const dropdown = (page: Page) => page.getByRole('combobox', { name: 'Run' })
-const onPage = (page: Page) => page.evaluate(() => document.activeElement === document.body)
+// Let go: the focus is on the page, or on the canvas a click landed on (it takes the focus so a field gives it up, and is no tab stop).
+const onPage = (page: Page) => page.evaluate(() => document.activeElement === document.body || document.activeElement?.matches('main.canvas') === true)
 
 async function openRun(page: Page) {
   await page.goto(RUN)

@@ -436,7 +436,9 @@ internal sealed class IconPicker : StackPanel
 
     private async Task Select(string icon)
     {
+        var held = KeyboardFocus.Within(_pop); // the cell that was clicked goes with the grid
         Open(false);
+        if (held) _row.Focus();
         _hint.Text = Shown();
         if (icon != _current) await _picked(icon);
     }
@@ -578,7 +580,8 @@ internal sealed class TagPicker : StackPanel
             await AddTypedAsync();
         };
         Children.Add(head);
-        Children.Add(_chips);
+        // Three rows and half of a fourth, then they scroll, as the Flows tab's tags do: a model with many tags must not push the rest of the form away.
+        Children.Add(new ScrollViewer { Content = _chips, MaxHeight = 102, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled });
         Children.Add(_add);
         Build();
     }
@@ -770,7 +773,8 @@ internal sealed class PartnerPicker : StackPanel
         var found = needle == "" ? _choices : [.. _choices.Where(c => c.Name.ToLowerInvariant().Contains(needle) || c.Id.Contains(needle, StringComparison.Ordinal) || c.View.ToLowerInvariant().Contains(needle))];
         _tiles.Children.Clear();
         _cells.Clear();
-        foreach (var c in found)
+        // A page at a time: a model with hundreds of flows made a tile for each at every keystroke.
+        Paging.Fill(_tiles, found, c =>
         {
             var cell = Cell(c.Name, c.View, c.Id == _partner?.Id);
             if (_off is not null)
@@ -784,9 +788,9 @@ internal sealed class PartnerPicker : StackPanel
             {
                 if (c.Id != _partner?.Id) await _pick(c.Id);
             };
-            _tiles.Children.Add(cell);
             _cells.Add((c.Id, cell));
-        }
+            return cell;
+        });
         _nothing.IsVisible = needle != "" && found.Count == 0;
     }
 
