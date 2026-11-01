@@ -10,7 +10,8 @@ public sealed record ObjectInput(string Id, string? Type = null, string? Name = 
     string? Shape = null, string? Color = null, string? Opacity = null, string? Icon = null, object? Data = null,
     IReadOnlyList<OrderedDictionary<string, object?>>? Snippets = null);
 
-public sealed record ConnectionInput(string From, string To, string? Label = null);
+/// <summary>A connection to add or find. <c>Payloads</c> are what <see cref="EditOps.Connect"/> writes on it: ids, or payloads written in place.</summary>
+public sealed record ConnectionInput(string From, string To, string? Label = null, IReadOnlyList<object?>? Payloads = null);
 
 /// <summary>
 /// The edits, as functions from a <see cref="EditDoc"/> to a changed copy: a C# twin of src/core/ops.ts with the same rules, the same order of
@@ -131,6 +132,7 @@ public static partial class EditOps
         var d = doc.Clone();
         var c = new OrderedDictionary<string, object?> { ["from"] = input.From, ["to"] = input.To };
         if (!string.IsNullOrEmpty(input.Label)) c["label"] = input.Label;
+        if (input.Payloads is { Count: > 0 } payloads) c["payloads"] = LineList(doc, payloads);
         d.Connections.Add(c);
         return d;
     }
@@ -289,6 +291,9 @@ public static partial class EditOps
             // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
             if (copy.TryGetValue("description", out var detail) && detail is string text && JsCompat.Blank(text)) copy.Remove("description");
             if (copy.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> { Count: 0 }) copy.Remove("states");
+            // A payload written in place is tidied as one on a line is.
+            foreach (var key in new[] { "payload", "reply" })
+                if (copy.TryGetValue(key, out var inline) && inline is OrderedDictionary<string, object?>) copy[key] = Payloads.Tidy(inline);
             copies.Add(copy);
         }
         var flow = new OrderedDictionary<string, object?> { ["name"] = name, ["view"] = view };

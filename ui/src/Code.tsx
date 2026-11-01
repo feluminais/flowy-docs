@@ -86,7 +86,7 @@ export function CodeSection({ object }: { object: FlowyObject }) {
  * The language of one snippet as a drawn choice: Auto (the one worked out, named beside the label) and every language by name, the chosen one
  * ringed. A closed row shows what is chosen; it opens to the grid, and a pick closes it.
  */
-function LanguagePicker({ snippet, onPick }: { snippet: Snippet; onPick: (language: string) => void }) {
+export function LanguagePicker({ snippet, onPick }: { snippet: Snippet; onPick: (language: string) => void }) {
   const [open, setOpen] = useState(false)
   const chosen = languageOf(snippet.language)
   const guess = chosen ? undefined : languageFor(snippet).language

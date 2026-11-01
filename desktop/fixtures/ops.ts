@@ -5,8 +5,8 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLines, setProject, setStepAnimation, setStepGroup, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
-import type { ObjectInput } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLinePayloads, setLines, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import type { ObjectInput, PayloadInput } from '../../src/core/ops.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
 
@@ -58,6 +58,19 @@ export const STEPS: Spec[] = [
   { op: 'connect', from: 'api', to: 'nowhere' },
   { op: 'connect', from: 'web', to: 'web' },
   { op: 'relabel', from: 'web', to: 'api', which: 'REST', label: 'HTTP' },
+  { op: 'putPayload', id: 'order', name: ' Order ', about: 'What the web app sends.', example: { language: 'JSON', text: '\r\n{ "id": 1 }\r\n\r\n' } },
+  { op: 'putPayload', id: 'empty', name: 'Empty' },
+  { op: 'putPayload', id: 'Bad Id', about: 'x' },
+  { op: 'putPayload', id: 'order', shape: { text: 'type Order = { id: string }', language: 'ts' }, example: null, about: '' },
+  { op: 'putPayload', id: 'receipt', about: 'What comes back.', note: 'kept' },
+  { op: 'connect', from: 'web', to: 'db', label: 'reads', payloads: ['order', { name: ' Key ', about: 'A key.', shape: { text: 'k\r\n' } }] },
+  { op: 'connect', from: 'web', to: 'db', payloads: ['nope'] },
+  { op: 'setLinePayloads', from: 'web', to: 'api', which: 'HTTP', payloads: ['order', 'receipt'] },
+  { op: 'setLinePayloads', from: 'web', to: 'api', which: 'HTTP', payloads: ['nope'] },
+  { op: 'setLinePayloads', from: 'web', to: 'api', which: 'nope', payloads: ['order'] },
+  { op: 'deletePayload', id: 'order' },
+  { op: 'deletePayload', id: 'nope' },
+  { op: 'setLinePayloads', from: 'web', to: 'api', which: 'HTTP', payloads: [] },
   { op: 'relabel', from: 'customer', to: 'web', which: 'browses', label: '' },
   { op: 'relabel', from: 'web', to: 'api', which: 'missing', label: 'x' },
   { op: 'removeConnection', from: 'api', to: 'db', which: '' },
@@ -145,6 +158,14 @@ export const STEPS: Spec[] = [
   { op: 'setGroupKind', id: 'nope', group: 'ending', kind: 'repeat' },
   { op: 'deleteFlow', id: 'plan' },
   { op: 'putFlow', id: 'play', name: 'Customer plays', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Asks', description: 'More', note: 'x' }, { from: 'shop', to: 'customer', text: 'Answers', animation: { kind: 'call', outcome: 'timeout' } }, { from: 'shop', text: 'Thinks' }] },
+  { op: 'setStepPayload', id: 'play', index: 0, key: 'payload', value: 'receipt' },
+  { op: 'setStepPayload', id: 'play', index: 1, key: 'reply', value: { name: 'Answer ', example: { language: 'JSON', text: '{}\r\n' } } },
+  { op: 'setStepPayload', id: 'play', index: 0, key: 'reply', value: 'receipt' },
+  { op: 'setStepPayload', id: 'play', index: 0, key: 'payload', value: 'nope' },
+  { op: 'setStepPayload', id: 'play', index: 9, key: 'payload', value: 'receipt' },
+  { op: 'deletePayload', id: 'receipt' },
+  { op: 'setStepPayload', id: 'play', index: 0, key: 'payload' },
+  { op: 'putFlow', id: 'sends', name: 'Sends', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Asks', animation: 'call', payload: { name: 'Q ', about: '  ', shape: { language: 'TS', text: 'q\r\n' } }, reply: 'receipt' }] },
   { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'send', outcome: 'lost', share: '30', reason: 'Packet dropped' } },
   { op: 'setStepAnimation', id: 'play', index: 1, animation: 'send' },
   { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'call', outcome: 'intercepted', by: { name: 'Café wifi proxy' }, share: '50' } },
@@ -332,7 +353,14 @@ function apply(model: Model, s: Spec): Model {
     case 'deleteObject': return deleteObject(model, s.id)
     case 'deleteObjects': return deleteObjects(model, s.ids)
     case 'deleteWith': return deleteWith(model, s.targets, s.resolutions)
-    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label })
+    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label, ...(s.payloads === undefined ? {} : { payloads: s.payloads }) })
+    case 'putPayload': {
+      const { op: _, ...input } = s
+      return putPayload(model, input as PayloadInput)
+    }
+    case 'deletePayload': return deletePayload(model, s.id)
+    case 'setLinePayloads': return setLinePayloads(model, { from: s.from, to: s.to, label: s.which }, s.payloads)
+    case 'setStepPayload': return setStepPayload(model, s.id, s.index, s.key, s.value)
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
     case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }), ...(s.states === undefined ? {} : { states: s.states }), ...(s.folder === undefined ? {} : { folder: s.folder }), ...(s.tags === undefined ? {} : { tags: s.tags }) })

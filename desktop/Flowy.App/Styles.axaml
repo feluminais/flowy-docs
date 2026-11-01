@@ -711,6 +711,8 @@
   <!-- A payload's row (PayloadView), in the side panel and on the player card: its name in the text colour and bold, the way it goes muted. -->
   <Style Selector="Button.disclosure.payload"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
   <Style Selector="Path.payloadicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <!-- A refused payload delete says who still names it, next to the button. -->
+  <Style Selector="TextBlock.refused"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
   <Style Selector="Button.link:pointerover /template/ ContentPresenter, Button.disclosure:pointerover /template/ ContentPresenter, Button.link:pressed /template/ ContentPresenter, Button.disclosure:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="Transparent" />
   </Style>

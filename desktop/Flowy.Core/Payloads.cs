@@ -65,8 +65,39 @@ public static class Payloads
     public static Shown? ReplyOf(Model m, Step s) => Resolve(m, s.Reply);
 
     /// <summary>Whether a payload says something: a few words about it, a shape or an example.</summary>
-    private static bool SaysSomething(OrderedDictionary<string, object?> p) =>
+    public static bool SaysSomething(OrderedDictionary<string, object?> p) =>
         HasText(p.GetValueOrDefault("about")) || p.GetValueOrDefault("shape") is not null || p.GetValueOrDefault("example") is not null;
+
+    /// <summary>A shape or an example as a file holds it: the language as its id (one that isn't known stays), the code as clean lines, then any extra keys.</summary>
+    private static object? TidyBlock(object? v)
+    {
+        if (v is not OrderedDictionary<string, object?> map) return v;
+        var result = new OrderedDictionary<string, object?>();
+        map.TryGetValue("language", out var language);
+        if (language is string l && JsCompat.JsTrim(l) != "") result["language"] = Snippets.LanguageOf(l)?.Id ?? JsCompat.JsTrim(l);
+        else if (language is not null and not string) result["language"] = language;
+        if (map.TryGetValue("text", out var text)) result["text"] = text is string code ? string.Join('\n', Snippets.CodeLines(code)) : text;
+        foreach (var (key, value) in map)
+            if (key is not ("language" or "text")) result[key] = value;
+        return result;
+    }
+
+    /// <summary>A blank name or about is left out, and text is trimmed; anything that isn't text stays, for the checks to report.</summary>
+    private static object? TidyText(object? v) => v is string s ? (JsCompat.JsTrim(s) == "" ? null : JsCompat.JsTrim(s)) : v;
+
+    /// <summary>A payload as a file holds it: name, about, shape, example, then the extra keys; a blank name or about left out. The twin of tidyPayload.</summary>
+    public static object? Tidy(object? p)
+    {
+        if (p is not OrderedDictionary<string, object?> map) return p;
+        var result = new OrderedDictionary<string, object?>();
+        if (TidyText(map.GetValueOrDefault("name")) is { } name) result["name"] = name;
+        if (TidyText(map.GetValueOrDefault("about")) is { } about) result["about"] = about;
+        if (map.TryGetValue("shape", out var shape) && shape is not null) result["shape"] = TidyBlock(shape);
+        if (map.TryGetValue("example", out var example) && example is not null) result["example"] = TidyBlock(example);
+        foreach (var (key, value) in map)
+            if (key is not ("name" or "about" or "shape" or "example")) result[key] = value;
+        return result;
+    }
 
     private static IEnumerable<string> BlockProblems(string at, string key, object? v)
     {
