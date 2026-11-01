@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CompareTag } from '../../src/core/compare.ts'
 import { Description } from './Box.tsx'
+import { focusIfLost } from './focusback.ts'
 import { compareOf } from '../../src/core/compare.ts'
 import { noteOf, orderPair, pairKey, pairOff, saveTarget, unsaved } from './compare.ts'
 import { ArrowsLeftRight } from './icons.tsx'
@@ -45,6 +46,15 @@ export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, on
     el.focus()
     el.setSelectionRange(el.value.length, el.value.length) // to write on from the end of what is there
   }, [editing])
+  // Save and Cancel go with the editor (and the confirmation with its buttons), and the focus goes to the button that opened them.
+  const note = useRef<HTMLButtonElement>(null)
+  const asPair = useRef<HTMLButtonElement>(null)
+  const was = useRef({ editing, confirming })
+  useEffect(() => {
+    const confirmed = was.current.confirming && !confirming
+    if ((confirmed || (was.current.editing && !editing)) && !(confirmed && focusIfLost(asPair.current))) focusIfLost(note.current)
+    was.current = { editing, confirming }
+  }, [editing, confirming])
   const pair = pairKey(a, b)
   useEffect(() => setConfirming(false), [pair]) // another pair asks again from the start; the same pair with its sides swapped keeps asking
 
@@ -97,11 +107,11 @@ export function CompareNote({ kind, a, b, items, off, draft, onDraft, onSave, on
           </>
         ) : (
           <>
-            {!editing && <button disabled={off !== undefined} title={off ?? (saved.text === '' ? 'Write a note' : 'Change the note')} onClick={() => onDraft(saved.text)}>Note</button>}
+            {!editing && <button ref={note} disabled={off !== undefined} title={off ?? (saved.text === '' ? 'Write a note' : 'Change the note')} onClick={() => onDraft(saved.text)}>Note</button>}
             {editing && tagged && <button className="primary" disabled={off !== undefined || busy || !unsaved(draft, saved.text)} onClick={() => void save(target.id, target.tag)}>Save</button>}
             {editing && <button disabled={busy} onClick={() => onDraft(undefined)}>Cancel</button>}
             {!tagged && (
-              <button disabled={off !== undefined || sameOff !== undefined} title={off ?? sameOff ?? `Link these ${kind}s`} onClick={() => setConfirming(true)}>Save as pair</button>
+              <button ref={asPair} disabled={off !== undefined || sameOff !== undefined} title={off ?? sameOff ?? `Link these ${kind}s`} onClick={() => setConfirming(true)}>Save as pair</button>
             )}
           </>
         )}

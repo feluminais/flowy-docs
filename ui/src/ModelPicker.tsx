@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { folderTree } from '../../src/core/modellist.ts'
 import type { FolderNode, ModelInfo, ModelList } from '../../src/core/modellist.ts'
+import { trapTab } from './focusback.ts'
 import { Alert, ChevronDown, ChevronRight, Cube, Folder, Search as SearchIcon } from './icons.tsx'
 import { addressOf, fetchModels, modelOfPage, scanDeeper, stopScan } from './models.ts'
 
@@ -20,14 +21,37 @@ export function ModelPicker({ list, onList }: { list: ModelList; onList: (list: 
   const tree = useMemo(() => folderTree(list.models, query), [list.models, query])
   const searching = query.trim() !== ''
 
-  // While a search runs the page asks how far it has got; what it has found so far is listed as it goes.
+  // While a search runs and the list is open, the page asks how far it has got; what it has found so far is listed as it goes. One question is out at a time, and an
+  // answer that a Stop or Scan deeper (or a newer answer) overtook is dropped, so it can't start the asking again after "done".
+  const epoch = useRef(0)
   useEffect(() => {
-    if (list.state !== 'scanning') return
-    const timer = setInterval(() => void fetchModels().then(next => next && onList(next)), POLL_MS)
-    return () => clearInterval(timer)
-  }, [list.state, onList])
+    if (!open || list.state !== 'scanning') return
+    let busy = false
+    let gone = false
+    const timer = setInterval(() => {
+      if (busy) return
+      busy = true
+      const sent = epoch.current
+      void fetchModels().then(next => {
+        if (next && !gone && sent === epoch.current) {
+          epoch.current++
+          onList(next)
+        }
+      }).finally(() => { busy = false })
+    }, POLL_MS)
+    return () => {
+      gone = true
+      clearInterval(timer)
+    }
+  }, [open, list.state, onList])
+  const answered = useCallback((next: ModelList) => {
+    epoch.current++
+    onList(next)
+  }, [onList])
 
-  // Esc is this popover's while it is open, ahead of the keys of the page; a press outside it closes it (the button toggles it itself).
+  // Esc is this popover's while it is open, ahead of the keys of the page: it clears what was typed, then closes. A press outside it closes it (the button toggles it itself).
+  const typed = useRef('')
+  typed.current = query
   useEffect(() => {
     if (!open) return
     const onDown = (e: PointerEvent) => {
@@ -36,6 +60,7 @@ export function ModelPicker({ list, onList }: { list: ModelList; onList: (list: 
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       e.stopPropagation()
+      if (typed.current !== '') return setQuery('')
       setOpen(false)
       button.current?.focus()
     }
@@ -49,10 +74,12 @@ export function ModelPicker({ list, onList }: { list: ModelList; onList: (list: 
 
   const fold = (path: string) => setClosed(c => (c.has(path) ? new Set([...c].filter(p => p !== path)) : new Set([...c, path])))
   const go = (id: string) => location.assign(addressOf(id))
-  // Up and Down walk the field and then the rows; Enter on a row opens it (a button does that itself).
+  // Up and Down walk the field and then the rows; Enter on a row opens it (a button does that itself). A greyed-out row can't take the focus, so it is not a stop.
+  // Tab goes round inside the list while it is open.
   const walk = (e: React.KeyboardEvent) => {
+    trapTab(e, box.current)
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-    const stops = [...(box.current?.querySelectorAll<HTMLElement>('input, [data-row]') ?? [])]
+    const stops = [...(box.current?.querySelectorAll<HTMLElement>('input, [data-row]') ?? [])].filter(el => !(el as HTMLButtonElement).disabled)
     const at = stops.indexOf(document.activeElement as HTMLElement)
     const next = stops[Math.max(0, Math.min(stops.length - 1, at + (e.key === 'ArrowDown' ? 1 : -1)))]
     next?.focus()
@@ -99,7 +126,7 @@ export function ModelPicker({ list, onList }: { list: ModelList; onList: (list: 
       </label>
       <ul className="mpick-tree" role="tree" aria-label="Models">{tree.map(n => row(n, 0))}</ul>
       {tree.length === 0 && <p className="muted mpick-empty">{searching ? 'Nothing called that' : 'No models in this folder'}</p>}
-      <Footer list={list} onList={onList} />
+      <Footer list={list} onList={answered} />
     </div>
   )
 
