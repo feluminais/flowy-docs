@@ -89,6 +89,9 @@ internal sealed class Recorder : StackPanel
     private string? _headFor;
     private Recording _rec = new("", "");
     private TextBox? _stepBox;
+    private TextBlock? _stepCaption;
+    private (string Flow, string From, string To)? _stepFor; // the pair of shapes the box on show is for: while it holds, the box is kept and so is what was typed in it
+    private Recording? _stepRec; // the recording as it is now, for Esc to start the pick over
     private FieldBox? _flowName;
     private List<string> _shownSigs = []; // the steps as the list shows them now: an edit is refused if the files no longer say the same
     private Func<Task> _submitStep = () => Task.CompletedTask;
@@ -283,11 +286,19 @@ internal sealed class Recorder : StackPanel
         }
 
         // The step being picked.
-        _pick.Children.Clear();
-        _stepBox = null;
-        if (rec.From is not null && rec.To is not null)
+        if (rec.From is not null && rec.To is not null && _stepBox is { } kept && _stepFor == (rec.Id, rec.From, rec.To))
         {
-            var caption = new TextBlock { Text = Ends(model, rec.From, rec.To), FontWeight = Avalonia.Media.FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
+            // The same pair as before: a refresh (a rename, a saved step) must not take what was typed out from under the reader.
+            _stepRec = rec;
+            _stepCaption!.Text = Ends(model, rec.From, rec.To);
+            _submitStep = () => AddStepAsync(model, view, rec, steps, kept.Text ?? "");
+        }
+        else if (rec.From is not null && rec.To is not null)
+        {
+            _pick.Children.Clear();
+            _stepFor = (rec.Id, rec.From, rec.To);
+            _stepRec = rec;
+            var caption = _stepCaption = new TextBlock { Text = Ends(model, rec.From, rec.To), FontWeight = Avalonia.Media.FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
             var pickCard = new StackPanel { Spacing = 8 };
             _stepBox = new TextBox { PlaceholderText = "What happens? Press Enter" };
             Avalonia.Automation.AutomationProperties.SetName(_stepBox, "What happens");
@@ -295,10 +306,10 @@ internal sealed class Recorder : StackPanel
             _submitStep = () => AddStepAsync(model, view, rec, steps, box.Text ?? "");
             box.KeyDown += async (_, e) =>
             {
-                if (e.Key == Key.Escape)
+                if (e.Key == Key.Escape && _stepRec is { } now)
                 {
                     e.Handled = true;
-                    _change(new Recording(rec.Id, rec.Name, Folder: rec.Folder));
+                    _change(new Recording(now.Id, now.Name, Folder: now.Folder));
                 }
                 else if (e.Key == Key.Enter)
                 {
@@ -314,6 +325,9 @@ internal sealed class Recorder : StackPanel
         }
         else
         {
+            _pick.Children.Clear();
+            _stepBox = null;
+            _stepFor = null;
             _pick.Children.Add(Chrome.Section(Icons.Plus, "Next step"));
             _pick.Children.Add(Chrome.Card(_owner.Muted(rec.From is not null
                 ? $"From {Views.NameOf(model, rec.From)}. Click where it goes, or the same shape if it acts alone."
@@ -393,6 +407,8 @@ internal sealed class Recorder : StackPanel
         _rows.Clear();
         _steps.Children.Clear();
         _pick.Children.Clear();
+        _stepBox = null;
+        _stepFor = null;
         _groups.Children.Clear();
         _cards.Clear();
         _groupSignature = "";

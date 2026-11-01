@@ -53,7 +53,7 @@ internal sealed class UsedByPanel : StackPanel
         _run = run;
         Spacing = 14;
         Focusable = true;
-        IsTabStop = false; // focused when it opens, so its keys work; Tab goes to its buttons
+        IsTabStop = false; // focused when it opens (and when a row is clicked), so its keys work; Tab goes to its buttons: Remove all, Reroute all, Cancel and Delete
         AutomationProperties.SetName(this, "Used by");
         _names.Classes.Add("muted");
 
@@ -79,7 +79,6 @@ internal sealed class UsedByPanel : StackPanel
     private static void Configure(Button button, string icon, string text, string? tip, Action click)
     {
         button.Classes.Add("tool");
-        button.Focusable = false;
         Chrome.Fill(button, icon, text);
         if (tip is not null) ToolTip.SetTip(button, tip);
         button.Click += (_, _) => click();
@@ -296,7 +295,11 @@ internal sealed class UsedByPanel : StackPanel
         card.Classes.Set("active", row.Key == _active);
         card.Classes.Set("done", done);
         card.BorderBrush = Brush(done ? "AccentBrush" : "WarnBrush");
-        card.PointerPressed += (_, _) => Activate(row.Key);
+        card.PointerPressed += (_, _) =>
+        {
+            Activate(row.Key);
+            Focus(); // a click on a row puts the keyboard back on the panel, so the arrows and X move through the rows
+        };
         AutomationProperties.SetName(card, $"{text.Title}, {text.Where}");
         return card;
     }

@@ -13,6 +13,7 @@ import { LINE_NAMES } from './lines.ts'
 import { DraftMark } from './Drafts.tsx'
 import { ModelPicker } from './ModelPicker.tsx'
 import { ownerAddress } from './models.ts'
+import { SEARCH_TOGGLE } from './Search.tsx'
 import type { ModelList } from './models.ts'
 import type { Side } from './side.ts'
 
@@ -20,13 +21,21 @@ import type { Side } from './side.ts'
 function Problems({ problems, onPick }: { problems: Problem[]; onPick: (p: Problem) => void }) {
   if (problems.length === 0) return null
   return (
-    <details className="problems">
+    <details className="problems" onKeyDown={e => {
+      // Esc shuts the list and leaves the focus on the word that opened it
+      if (e.key !== 'Escape' || !e.currentTarget.open) return
+      e.stopPropagation()
+      e.currentTarget.open = false
+      e.currentTarget.querySelector('summary')?.focus()
+    }}>
       <summary><Alert size={14} />{problems.length} problem{problems.length === 1 ? '' : 's'}</summary>
       <ul>
         {problems.map((p, i) => (
           <li key={i}>
             <button onClick={e => {
-              e.currentTarget.closest('details')!.open = false
+              const list = e.currentTarget.closest('details')!
+              list.open = false
+              list.querySelector('summary')?.focus() // the row that had the focus is hidden now
               onPick(p)
             }}><span className="muted">{p.file}</span> {p.message}</button>
           </li>
@@ -51,7 +60,7 @@ export function TopBar({ model, draft, view, editing, live, readOnly, problems, 
         {chain(model, view).reverse().map((id, i) => (
           <Fragment key={id}>
             {i > 0 && <ChevronRight size={14} />}
-            <button aria-current={id === view ? 'page' : undefined} onClick={id === view ? undefined : () => onJump(id)}>{i === 0 && <Home size={16} />}{nameOf(model, id)}</button>
+            <button aria-current={id === view ? 'page' : undefined} title={nameOf(model, id)} onClick={id === view ? undefined : () => onJump(id)}>{i === 0 && <Home size={16} />}<span className="crumb">{nameOf(model, id)}</span></button>
           </Fragment>
         ))}
       </nav>
@@ -73,9 +82,9 @@ export function TopBar({ model, draft, view, editing, live, readOnly, problems, 
       <Dropdown label="Line style" value={lines} options={LINE_STYLES.map(s => [s, `Lines: ${LINE_NAMES[s]}`])} onChange={onLines}
         title={editing ? 'How lines look for everyone (saved in model.yaml)' : 'How lines look on this screen'} />
       {/* mousedown would blur the open field, closing it, and the click would open it again */}
-      <button title="Find a shape (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => onSearching(!searching)}><SearchIcon size={16} />Search</button>
+      <button {...{ [SEARCH_TOGGLE]: '' }} title="Find a shape (Ctrl+K or /)" aria-pressed={searching} onMouseDown={e => searching && e.preventDefault()} onClick={() => onSearching(!searching)}><SearchIcon size={16} />Search</button>
       <button title="Copy this view, or the flow playing, as a Mermaid diagram" onClick={onMermaid}><Copy size={16} />Mermaid</button>
-      <button className="icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => onShortcuts(!shortcuts)}><Keyboard size={16} /></button>
+      <button className="icon" data-shortcuts-toggle title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-pressed={shortcuts} onClick={() => onShortcuts(!shortcuts)}><Keyboard size={16} /></button>
       {live && <button className="toggle" aria-pressed={editing} disabled={readOnly} title="Edit mode (E)" onClick={onEdit}><Pencil size={16} />Edit</button>}
     </header>
   )

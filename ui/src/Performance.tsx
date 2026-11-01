@@ -285,7 +285,10 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       : { title: `${nameOf(model, from)} → ${nameOf(model, to)}`, keys: LINE_KEYS, at: lineAt(model, run, view, from, to, load), series: key => lineSeries(model, run, view, from, to, key) }
   }
   const chosen = selection?.kind === 'object' && Object.hasOwn(states, selection.id) && !states[selection.id].inside ? states[selection.id] : undefined
-  const shown = selected?.keys.filter(key => selected.series(key).some(v => v !== undefined)) ?? []
+  // Each reading's series is worked out over every level of the run; once per selection and set of levels, not twice for every render.
+  const sel = selected
+  const serieses = useMemo(() => new Map(sel?.keys.map(key => [key, sel.series(key)])), [selection, model, view, run, along, multi])
+  const shown = selected?.keys.filter(key => serieses.get(key)?.some(v => v !== undefined)) ?? []
   const keyed = sourceKeyAt(runs, runId, lines, measure)
   const marks = failureMarks(lines)
   // The shapes the canvas draws, which the key's marks for a load are asked of: it says Busy, Struggling and Waiting only when a shape shows one.
@@ -440,7 +443,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
       {selected && shown.length === 0 && <p className="muted">Nothing measured here{selection?.kind === 'object' ? ' or inside it' : ''}.</p>}
       {selected && shown.length > 0 && multi && <Along dials={dials} positions={positions} active={dial} />}
       {selected && shown.map(key => (
-        <Reading key={key} run={multi ? undefined : run} count={multi ? dials[dial].values.length : run.levels.length} metric={key} at={selected.at?.[key]} series={selected.series(key)} pos={multi ? positions[dial] ?? 0 : pos} />
+        <Reading key={key} run={multi ? undefined : run} count={multi ? dials[dial].values.length : run.levels.length} metric={key} at={selected.at?.[key]} series={serieses.get(key) ?? []} pos={multi ? positions[dial] ?? 0 : pos} />
       ))}
       {over && <p className="over">{over}</p>}
       {chosen && <p className="stateline"><StateGlyph mark={chosen} />{STATE_LABELS[chosen.state]}</p>}

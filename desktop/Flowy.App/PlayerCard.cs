@@ -6,6 +6,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
@@ -390,8 +391,25 @@ internal sealed class PlayerCard : Border
         return framed;
     }
 
+    /// <summary>The button on the card that has the keyboard, by its name (Play and Pause are one button that changes), or null when it is elsewhere.</summary>
+    private string? KeyboardOnButton()
+    {
+        if (!IsVisible || TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is not Button button || !this.IsVisualAncestorOf(button)) return null;
+        var name = AutomationProperties.GetName(button);
+        return name is "Pause" ? "Play" : name;
+    }
+
+    /// <summary>The card was built again, so the button that had the keyboard is gone: the same one on the new card gets it, or the first that can be used. Silent, as code focus is.</summary>
+    private void RestoreKeyboard(string name)
+    {
+        var buttons = this.GetVisualDescendants().OfType<Button>().Where(b => b.IsEffectivelyEnabled && b.IsEffectivelyVisible).ToList();
+        var same = buttons.FirstOrDefault(b => AutomationProperties.GetName(b) is var n && (n == name || (name == "Play" && n == "Pause")));
+        (same ?? buttons.FirstOrDefault())?.Focus();
+    }
+
     public void Show(PlayerView v)
     {
+        var keyboard = KeyboardOnButton();
         _shown = v;
         var grouped = v.Progress.Brackets.Count > 0; // the legend explains groups, so a flow with none has no button
         var top = new StackPanel { Spacing = 8, Margin = new Thickness(0, 0, 0, 8) };
@@ -512,6 +530,7 @@ internal sealed class PlayerCard : Border
         Child = _picker is null ? body : new StackPanel { Spacing = 10, Children = { _picker, body } };
         IsVisible = true;
         FollowFill();
+        if (keyboard is not null) Dispatcher.UIThread.Post(() => RestoreKeyboard(keyboard));
     }
 
     /// <summary>Keeps the cell of the stop on show filled as far as the clock has got through its motion, on the clock's frames.</summary>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { KeyboardEvent } from 'react'
 import type { HistoryStore } from './historystore.ts'
+import { focusIfLost } from './focusback.ts'
 import { Lock } from './icons.tsx'
 import { scrollToRow, visibleRows } from './window.ts'
 import { blockOf, canRestore, defaultFile, fileOrder, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, tabName, timeLabel } from './yamlview.ts'
@@ -38,6 +39,9 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
   const [height, setHeight] = useState(300)
   const text = useRef<HTMLDivElement>(null)
   const steps = useRef<HTMLUListElement>(null)
+  const tabs = useRef<HTMLDivElement>(null)
+  const clear = useRef<HTMLButtonElement>(null)
+  const keep = useRef<HTMLButtonElement>(null)
 
   // The version shown, or the files as they are while there is no history to show. Marks are against the step before it, or against the files now.
   const shownFiles = view.shown?.files ?? view.now?.files
@@ -90,6 +94,18 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
     if (el && to !== undefined) el.scrollTop = to
   }, [view.shownId])
 
+  // The file shown stays in view in a strip of tabs that scrolls, however it was picked (a click, a new context, a version that has fewer files).
+  useEffect(() => {
+    tabs.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }, [file])
+  // Clear history? takes the button's place and gives it back: the focus goes to the safe answer, and back to the button (or the text, once the history is gone).
+  const wasAsking = useRef(false)
+  useEffect(() => {
+    if (asking) focusIfLost(keep.current)
+    else if (wasAsking.current && !focusIfLost(clear.current)) focusIfLost(text.current)
+    wasAsking.current = asking
+  }, [asking])
+
   const today = useMemo(() => new Date(), [view.steps])
   const newest = view.steps[0]?.id
   const pickStep = (id: string | undefined) => void store.pick(id === newest ? undefined : id) // the newest is not a choice: the tab follows it
@@ -127,7 +143,7 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
     <>
       {readOnly && <p className="yreadonly"><Lock size={14} />Read only</p>}
       <div className="yfiles">
-        <div className="ytabs" role="tablist" aria-label="Files">
+        <div className="ytabs" role="tablist" aria-label="Files" ref={tabs}>
           {paths.map(p => (
             <button key={p} role="tab" aria-selected={p === file} aria-label={changed.has(p) ? `${p}, changed` : p} title={p} onClick={() => setChosen(p)}>
               {tabName(p)}{changed.has(p) && <i className="ydot" aria-hidden="true" />}
@@ -171,10 +187,14 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
       {!readOnly && view.ready && view.steps.length === 0 && view.saving && <p className="muted ynote">No changes yet</p>}
       {!readOnly && <ul ref={steps} className="ysteps" role="listbox" aria-label="History" tabIndex={0} onKeyDown={onStepKeys}>{stepRows}</ul>}
       {!readOnly && view.steps.length > 0 && (
-        <div className="yclear">
+        <div className="yclear" onKeyDown={e => {
+          if (e.key !== 'Escape' || !asking) return
+          e.stopPropagation()
+          setAsking(false)
+        }}>
           {asking
-            ? <><span>Clear history?</span><button className="danger" onClick={() => void onClear().then(() => setAsking(false))}>Clear</button><button onClick={() => setAsking(false)}>Keep</button></>
-            : <button onClick={() => setAsking(true)}>Clear history</button>}
+            ? <><span>Clear history?</span><button className="danger" onClick={() => void onClear().then(() => setAsking(false))}>Clear</button><button ref={keep} onClick={() => setAsking(false)}>Keep</button></>
+            : <button ref={clear} onClick={() => setAsking(true)}>Clear history</button>}
         </div>
       )}
     </>

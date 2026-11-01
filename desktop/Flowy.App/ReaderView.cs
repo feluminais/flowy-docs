@@ -238,6 +238,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     internal bool ShortcutsOpen => _shortcuts is not null;
     internal bool SearchOpen => _search is not null;
 
+    internal SearchBox? SearchNow => _search;
+
     /// <summary>Sets this reader's own line style: "straight", "curved" or "angled" (anything else goes back to the project's).</summary>
     public void PickLines(string? style)
     {
@@ -352,11 +354,22 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>Looks for the repo's other models away from the UI thread, since a big repo takes a moment to walk. The picker shows only when there are several.</summary>
     private async Task LoadModels(string dir)
     {
-        var models = await Task.Run(() => RepoModels.InRepoOf(dir));
-        if (_dir != dir) return; // another folder was loaded while this one was being read
-        _models = models;
-        ShowCurrentModel();
+        var ticket = ++_modelsAsked;
+        try
+        {
+            var models = await Task.Run(() => RepoModels.InRepoOf(dir));
+            if (_dir != dir || ticket != _modelsAsked) return; // another folder was loaded while this one was being read
+            _models = models;
+            ShowCurrentModel();
+        }
+        catch (Exception e)
+        {
+            if (_dir == dir && ticket == _modelsAsked) ShowNotice($"Couldn't look for other models: {e.Message}", 6);
+        }
     }
+
+    // How many lookups of each kind were started: only the latest one that finishes is shown, so a slow one can't put back what a newer one replaced.
+    private int _modelsAsked, _draftsAsked, _codeBaseAsked;
 
     private void ShowCurrentModel() => _bar.ShowModels(_models, _dir);
 
@@ -364,10 +377,18 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private async Task LoadDrafts(string dir)
     {
         if (_draftOf is not null) return;
-        var drafts = await Task.Run(() => Drafts.List(dir));
-        if (_dir != dir || drafts.SequenceEqual(_drafts)) return; // another folder was loaded while this one was being read, or nothing changed
-        _drafts = drafts;
-        ShowDrafts();
+        var ticket = ++_draftsAsked;
+        try
+        {
+            var drafts = await Task.Run(() => Drafts.List(dir));
+            if (_dir != dir || ticket != _draftsAsked || drafts.SequenceEqual(_drafts)) return; // another folder was loaded, or a newer read began, while this one was being read; or nothing changed
+            _drafts = drafts;
+            ShowDrafts();
+        }
+        catch (Exception e)
+        {
+            if (_dir == dir && ticket == _draftsAsked) ShowNotice($"Couldn't list the drafts: {e.Message}", 6);
+        }
     }
 
     private void ShowDrafts() => _nav.Explorer.Drafts.Update(_dir, _drafts, _edit.SaveOff, _draftOf is not null);
@@ -390,10 +411,19 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
     private async Task LoadCodeBase(string dir)
     {
-        var codeBase = await CodeLinks.BaseFor(FolderLoader.RepoRoot(dir));
-        if (_folder is null) return;
-        _codeBase = codeBase;
-        Refresh();
+        var ticket = ++_codeBaseAsked;
+        try
+        {
+            // Asking git starts a process, and the start itself waits for the system: off the UI thread.
+            var codeBase = await Task.Run(() => CodeLinks.BaseFor(FolderLoader.RepoRoot(dir)));
+            if (_folder is null || _dir != dir || ticket != _codeBaseAsked) return;
+            _codeBase = codeBase;
+            Refresh();
+        }
+        catch (Exception e)
+        {
+            if (_dir == dir && ticket == _codeBaseAsked) ShowNotice($"Couldn't work out where the code links go: {e.Message}", 6);
+        }
     }
 
     /// <summary>A model that holds code gets the colouring engine started in the background, so the first panel that shows code does not wait for it.</summary>
@@ -491,8 +521,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private void DismissNotice()
     {
         if (_notice is null) return;
+        var held = KeyboardFocus.Within(_notice); // Dismiss or Undo had the keyboard
         _overlay.Children.Remove(_notice);
         _notice = null;
+        if (held) KeyboardFocus.HandBack(this);
     }
 
     // ---- derived state -----------------------------------------------------------------------------------------
@@ -919,9 +951,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
     private void Stop()
     {
+        var held = KeyboardFocus.Within(_player);
         _playback.Head = null;
         _playback.StopAuto();
         Refresh();
+        if (held) KeyboardFocus.HandBack(this); // Stop was the button that had the keyboard, and the card is gone
     }
 
     /// <summary>A step's story continues in another flow: opens it (on its own view), leaving the place to come back to.</summary>
@@ -956,6 +990,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public void OpenSearch(string query = "")
     {
         if (_folder is null) return;
+        if (_search is not null && query == "")
+        {
+            _search.FocusField(); // already open: the query stays and is selected
+            return;
+        }
         CloseSearch(false);
         _search = new SearchBox(_folder.Model, id =>
         {
@@ -986,8 +1025,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
         if (show == (_shortcuts is not null)) return;
         if (!show)
         {
+            var held = KeyboardFocus.Within(_shortcuts!);
             _overlay.Children.Remove(_shortcuts!);
             _shortcuts = null;
+            if (held) KeyboardFocus.HandBack(this);
             return;
         }
         _shortcuts = new ShortcutsCard(() => ShowShortcuts(false), KeyStateNow(false));
