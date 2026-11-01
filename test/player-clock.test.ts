@@ -142,3 +142,34 @@ test('subscribe hears every change', () => {
   clock.pause()
   assert.equal(heard, 6)
 })
+
+test('begin restarts only for a new step', () => {
+  const { clock, move } = handClock()
+  clock.begin('a')
+  move(300)
+  clock.begin('a')
+  assert.equal(clock.elapsed(), 300)
+  clock.begin('b')
+  assert.equal(clock.elapsed(), 0)
+})
+
+test('a seek meant for a step lands when that step begins and says how long it is', () => {
+  const { clock } = handClock()
+  clock.begin('a')
+  clock.pause()
+  clock.seekFraction(0.25, 'b')
+  clock.begin('b')
+  assert.equal(clock.elapsed(), 0)
+  clock.declare(800)
+  assert.equal(clock.elapsed(), 200)
+})
+
+test('a seek meant for another step is dropped by a step that is not it', () => {
+  const { clock } = handClock()
+  clock.begin('a')
+  clock.pause()
+  clock.seekFraction(0.25, 'b')
+  clock.begin('c')
+  clock.declare(800)
+  assert.equal(clock.elapsed(), 0)
+})

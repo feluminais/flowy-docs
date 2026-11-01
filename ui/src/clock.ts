@@ -17,7 +17,8 @@ export class PlayerClock {
   #paused = false
   #rate: Speed = 1
   #totals = new Map<symbol, number>()
-  #pending: number | undefined // a seek, as a fraction, waiting for the stop's length
+  #key = '' // the step (and replay) the clock is timing
+  #pending: { fraction: number; key: string } | undefined // a seek waiting for its step to begin and say how long it is
   #waits = new Set<Wait>()
   #heard = new Set<() => void>()
 
@@ -43,6 +44,18 @@ export class PlayerClock {
 
   elapsed(): number {
     return this.#paused ? this.#base : this.#base + (this.#now() - this.#since) * this.#rate
+  }
+
+  /**
+   * The step (and replay) now on show, by its key: a new one restarts the clock, the same one again does nothing. The step's motions and the player both say it,
+   * whichever comes first, so the clock is right before anything is drawn from it. A seek meant for this step stays to land on it.
+   */
+  begin(key: string): void {
+    if (key === this.#key) return
+    this.#key = key
+    const kept = this.#pending?.key === key ? this.#pending : undefined
+    this.restart()
+    this.#pending = kept
   }
 
   /** A new stop, or the same one again: it begins now. Paused stays paused, at its first moment. */
@@ -82,20 +95,20 @@ export class PlayerClock {
     this.#set(Math.max(0, length > 0 ? Math.min(ms, length) : ms))
   }
 
-  /** Goes to a fraction of the way through the stop, now if its length is known, or as soon as a motion says how long it is. */
-  seekFraction(fraction: number): void {
-    if (this.length > 0) this.seek(fraction * this.length)
-    else {
-      this.#pending = fraction
-      this.#set(0)
-    }
+  /**
+   * Goes to a fraction of the way through the stop: now if it is the step on show and its length is known, else as soon as `key`'s step has begun and a motion
+   * of it says how long it is (a drag onto a step that has not been drawn yet).
+   */
+  seekFraction(fraction: number, key = this.#key): void {
+    if (key === this.#key && this.length > 0) this.seek(fraction * this.length)
+    else this.#pending = { fraction, key }
   }
 
   /** A motion of this stop lasts `total`; the result takes it back (the motion is gone). */
   declare(total: number): () => void {
     const key = Symbol('motion')
     this.#totals.set(key, total)
-    if (this.#pending !== undefined && this.length > 0) this.seek(this.#pending * this.length)
+    if (this.#pending?.key === this.#key && this.length > 0) this.seek(this.#pending.fraction * this.length)
     else this.#tell()
     return () => {
       this.#totals.delete(key)

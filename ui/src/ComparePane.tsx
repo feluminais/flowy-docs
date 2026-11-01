@@ -165,12 +165,12 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
 
 /** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), and the marks of the stop's group. */
 export function PaneMotions({ p }: { p: PaneFlow }) {
-  const { flow, stop, animated, stepKey, shown, repeat, finished, open } = p
+  const { flow, stop, animated, stepKey, shown, repeat, clock, finished, open } = p
   return (
     <>
       {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
       {flow && stop && animated.map(m => (
-        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
+        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)} />
       ))}
       <GroupMarks marks={p.marks} />
     </>
