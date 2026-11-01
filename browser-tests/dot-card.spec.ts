@@ -206,6 +206,45 @@ test('moved to another dot of a burst, the card goes beside it and starts at its
   }
 })
 
+test('in a comparison, a pane paused mid-send shows its dot\'s payload, inside the pane and off its player card', async ({ page }) => {
+  const dir = await mkdtemp(join(tmpdir(), 'flowy-dot-compare-'))
+  const model = shop()
+  model.meta.payloads = { order: { name: 'Order', about: 'What the web app sends.', shape: { language: 'typescript', text: 'type Order = { id: string }' } } }
+  model.flows.checkout.steps[1] = { ...model.flows.checkout.steps[1], animation: 'send', payload: 'order' }
+  model.flows.again = { ...model.flows.checkout, name: 'Customer checks out again', compare: 'checkout' }
+  for (const [file, text] of Object.entries(modelFiles(model))) {
+    const path = join(dir, file)
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, text)
+  }
+  const server = await startServer({ dir, ui: resolve('dist/ui'), port: 0 })
+  try {
+    await page.setViewportSize({ width: 1280, height: 1100 }) // panes tall enough to show the whole flow
+    await page.goto(`http://127.0.0.1:${server.port}/#shop`)
+    await page.getByRole('button', { name: /^Flows/ }).click()
+    await page.getByRole('group', { name: 'Customer checks out', exact: true }).getByRole('button', { name: 'Compare', exact: true }).click()
+    const pane = page.locator('.pane').first()
+    await pane.locator('.player').waitFor()
+    await pane.locator('.player').getByRole('button', { name: 'Play', exact: true }).click()
+    await expect(pane.locator('.player')).toContainText('Step 2 of')
+    await pane.locator('.motion g[data-beat]:has(> .blob):visible').first().waitFor()
+    await page.waitForTimeout(150)
+    await pane.locator('.player').getByRole('button', { name: 'Pause', exact: true }).click()
+    await page.waitForTimeout(100)
+    await hover(page, pane.locator('.dot-hit').first())
+    await expect(card(page)).toHaveCount(1)
+    await expect(pane.locator('.dot-card').getByRole('heading')).toHaveText('Order')
+    const shown = (await card(page).boundingBox())!
+    const canvas = (await pane.locator('.pane-canvas').boundingBox())!
+    expect(shown.x).toBeGreaterThanOrEqual(canvas.x)
+    expect(shown.x + shown.width).toBeLessThanOrEqual(canvas.x + canvas.width)
+    expect(meets(shown, (await pane.locator('.player').boundingBox())!)).toBe(false)
+  } finally {
+    await server.close()
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
 test('dragging the canvas closes the card, and it stays closed while the drag goes on', async ({ page }) => {
   await pauseMidSend(page)
   await hover(page, hit(page).first())

@@ -22,6 +22,8 @@ import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
 import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
+import type { DotAt } from './StepMotion.tsx'
+import { carriedBy, DotCard } from './DotCard.tsx'
 import { useCssClock } from './cssClock.ts'
 import { usePaneFlow } from './usePaneFlow.ts'
 import type { PaneFlow } from './usePaneFlow.ts'
@@ -168,15 +170,19 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
   )
 }
 
-/** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), and the marks of the stop's group. */
+/** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), the payload card on a paused dot, and the marks of the stop's group. */
 export function PaneMotions({ p }: { p: PaneFlow }) {
   const { flow, stop, animated, stepKey, shown, repeat, clock, finished, open } = p
+  const [dotsBy, setDotsBy] = useState<Record<number, DotAt[]>>({})
+  const carrying = carriedBy(animated, dotsBy)
   return (
     <>
       {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
       {flow && stop && animated.map(m => (
-        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)} />
+        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
+          onDots={d => setDotsBy(by => ({ ...by, [m.i]: d }))} />
       ))}
+      {flow && stop && <DotCard dots={carrying} clock={clock} stepKey={stepKey} />}
       <GroupMarks marks={p.marks} />
     </>
   )

@@ -5,7 +5,7 @@ import { join } from 'node:path'
 
 /**
  * Code is coloured by kind of stretch (the tok colours in ui/src/style.css, the Tok brushes in desktop/Flowy.App/Styles.axaml).
- * Each colour reads at 4.5 to 1 on what code sits on: the page, a card, and a row under the pointer. The desktop's brushes are the browser's.
+ * Each colour reads at 4.5 to 1 on what code sits on: the page, a card, and a code block (whose fill is the hover tint). The desktop's brushes are the browser's.
  */
 const css = readFileSync(join(import.meta.dirname, '../ui/src/style.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 const axaml = readFileSync(join(import.meta.dirname, '../desktop/Flowy.App/Styles.axaml'), 'utf8')
@@ -36,8 +36,9 @@ const ratio = (a: string, b: string) => {
 }
 
 for (const [name, theme] of [['light', light], ['dark', dark]] as const) {
-  test(`code in the ${name} theme reads at 4.5 to 1 on the page, a card and a row under the pointer`, () => {
-    const grounds = { 'the page': theme.bg, 'a card': theme.box, 'a hovered row': over(theme.fg, theme.bg, 0.1) }
+  test(`code in the ${name} theme reads at 4.5 to 1 on the page, a card and a code block`, () => {
+    // A code block's fill is the hover tint: 8 to 10 percent of the text colour.
+    const grounds = { 'the page': theme.bg, 'a card': theme.box, 'a code block': over(theme.fg, theme.bg, 0.1) }
     const colours = toks(theme)
     assert.equal(Object.keys(colours).length, 9)
     const faint = Object.entries(colours).flatMap(([kind, colour]) =>
