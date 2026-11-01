@@ -24,7 +24,8 @@ of a shape lists them under the lines they travel, and a line's panel has them a
 240 pixels of itself and scrolls past that.
 
 Pause while a dot is on its way and put the pointer on it: a card beside it shows the payload, and on the answer's way back, the reply.
-The card stays while the pointer is on it, so its code can be scrolled and copied, and it goes on Play, Esc, a pan or a zoom.
+The card stays while the pointer is on it, so its code can be scrolled and copied. It goes a moment after the pointer leaves it, and on
+Play, a move along the bar, another step, Esc, a pan or a zoom.
 
 ![Customer places an order paused on step 2, with the pointer on the moving dot: a card beside it shows Basket, with what it is about, its TypeScript shape and its JSON example, above the player card](../images/desktop-payload-card.png)
 

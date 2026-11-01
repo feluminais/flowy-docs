@@ -1162,7 +1162,7 @@ details.payload > summary::after { content: '▸'; color: var(--muted); font-wei
 details.payload[open] > summary::after { content: '▾'; }
 details.payload .payload-body { display: grid; gap: 8px; margin: 6px 0 4px 20px; min-width: 0; }
 details.payload .code-snippet { min-width: 0; }
-details.payload .code-block { max-height: 240px; overflow: auto; }
+details.payload .code-block, .dot-card .code-block { max-height: 240px; overflow: auto; }
 .payload-form .payload-body { margin-left: 0; }
 .panel .refused { color: var(--warn); margin: 0; }
 .player details.payload { margin-top: 4px; }

@@ -157,6 +157,8 @@ test('a long payload keeps the card at most 380 by 320, and its code scrolls ins
     const box = (await card(page).boundingBox())!
     expect(box.width).toBeLessThanOrEqual(380)
     expect(box.height).toBeLessThanOrEqual(320)
+    const code = (await card(page).locator('.code-block').first().boundingBox())!
+    expect(code.height).toBeLessThanOrEqual(241) // as in the rows: a code block shows at most 240 pixels of itself
     const scrolls = await card(page).evaluate(el => [...el.querySelectorAll<HTMLElement>('*'), el as HTMLElement].some(e => e.scrollHeight > e.clientHeight + 1 && getComputedStyle(e).overflowY !== 'visible'))
     expect(scrolls).toBe(true)
   } finally {
