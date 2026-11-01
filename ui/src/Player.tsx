@@ -6,6 +6,8 @@ import type { Flow, Model } from '../../src/core/model.ts'
 import type { GroupKind, Stop } from '../../src/core/structure.ts'
 import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
+import { PayloadRow } from './Payloads.tsx'
+import { stepPayload, stepReply } from '../../src/core/payloads.ts'
 import { CHANGE_NAMES, changeOfStop } from './compare.ts'
 import type { ChannelKind } from '../../src/core/animation.ts'
 import type { StateMark } from '../../src/core/states.ts'
@@ -255,6 +257,8 @@ function inView(box: HTMLElement, item: HTMLElement, below = 0) {
 /** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
 export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, showsPause, moving, repeat, trail, changes, compare, clock, speed, onSpeed, scrub, onStep, onPlay, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
+  const sends = (s: Flow['steps'][number]) => stepPayload(model, s)
+  const answer = (s: Flow['steps'][number]) => stepReply(model, s)
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
   const grouped = progress.brackets.length > 0 // the legend explains groups, so a flow with none has no button
@@ -316,6 +320,9 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
               <p className="player-ends">{stepEnds(model, step, ends[i])}</p>
               <p>{step.text}</p>
               {outcome !== undefined && <p className={channel === undefined ? 'player-outcome' : 'player-outcome channel'}>{outcome}</p>}
+              {/* What the step sends and what comes back, folded away. */}
+              {sends(step) && <PayloadRow key={`${stop}-${i}-sends`} shown={sends(step)!} />}
+              {answer(step) && <PayloadRow key={`${stop}-${i}-reply`} shown={answer(step)!} back />}
               {step.description && (
                 <details key={`${stop}-${i}`} className="more">
                   <summary>More</summary>

@@ -17,7 +17,13 @@ namespace Flowy.App;
 internal sealed record LinkedFlow(string Id, string Name, bool Playable);
 
 /// <summary>One step of the stop on show, as the card tells it. <c>Lane</c> is "" unless the stop is in a parallel group; <c>Outcome</c> is how its request ended, in the words of <see cref="Animations.OutcomeLine"/>.</summary>
-internal sealed record PlayerStep(string Ends, string Text, string? Description, string Lane, LinkedFlow? Link, string? Outcome = null, bool IsChannel = false);
+internal sealed record PlayerStep(string Ends, string Text, string? Description, string Lane, LinkedFlow? Link, string? Outcome = null, bool IsChannel = false)
+{
+    /// <summary>What the step sends and what comes back (see <see cref="Payloads"/>), each a row that folds out; null when it names none, or one that is not there.</summary>
+    public Payloads.Shown? Sends { get; init; }
+
+    public Payloads.Shown? Reply { get; init; }
+}
 
 /// <summary>
 /// Everything the card shows: where the flow is (a stop of <c>Count</c>), the group the stop is in, the progress bar, the steps, the trail back, and the states on the canvas now (for the key), and <c>ChannelKinds</c> the kinds of channel open now (for the key below it).
@@ -366,6 +372,9 @@ internal sealed class PlayerCard : Border
             words.Classes.Add(step.IsChannel ? "channelline" : "outcome");
             block.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Children = { dot, words } });
         }
+        // What the step sends and what comes back, folded away.
+        if (step.Sends is { } sends) block.Children.Add(PayloadView.Row(sends, false, false, key => AppTheme.Brush(this, key)));
+        if (step.Reply is { } reply) block.Children.Add(PayloadView.Row(reply, true, false, key => AppTheme.Brush(this, key)));
         if (!string.IsNullOrEmpty(step.Description))
         {
             var more = new MarkdownView(step.Description) { IsVisible = false, Margin = new Thickness(0, 4, 0, 0) };

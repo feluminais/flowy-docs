@@ -19,6 +19,12 @@
       "type": "app",
       "name": "API",
       "in": "shop"
+    },
+    {
+      "id": "orders",
+      "type": "component",
+      "name": "Orders",
+      "in": "api"
     }
   ],
   "payloads": {
@@ -82,6 +88,17 @@
       "to": "web",
       "label": "pushes",
       "payloads": "order"
+    },
+    {
+      "from": "orders",
+      "to": "web",
+      "label": "notifies",
+      "payloads": [
+        "receipt"
+      ],
+      "carries": [
+        "receipt"
+      ]
     }
   ],
   "layout": {},
@@ -230,9 +247,95 @@
         {
           "from": "web",
           "to": "api",
-          "label": "2 connections",
-          "count": 2,
-          "both": true
+          "label": "3 connections",
+          "count": 3,
+          "both": true,
+          "carries": [
+            {
+              "name": "Order",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "checkout",
+                  "step": 0,
+                  "reply": false
+                },
+                {
+                  "flow": "checkout",
+                  "step": 1,
+                  "reply": true
+                }
+              ]
+            },
+            {
+              "name": "Cart",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "receipt",
+              "back": true,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "checkout",
+                  "step": 0,
+                  "reply": true
+                }
+              ]
+            },
+            {
+              "name": "constructor",
+              "back": false,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "checkout",
+                  "step": 4,
+                  "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Ack",
+              "back": true,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "checkout",
+                  "step": 4,
+                  "reply": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "api": {
+      "id": "api",
+      "members": [
+        "orders"
+      ],
+      "outsiders": [
+        "web"
+      ],
+      "edges": [
+        {
+          "from": "orders",
+          "to": "web",
+          "label": "notifies",
+          "count": 1,
+          "carries": [
+            {
+              "name": "receipt",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         }
       ]
     }

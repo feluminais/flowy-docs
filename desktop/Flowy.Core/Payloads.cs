@@ -154,4 +154,58 @@ public static class Payloads
         }
         return found;
     }
+
+    /// <summary>One payload a drawn line carries: <c>Back</c> when it runs from the line's <c>to</c> to its <c>from</c>, <c>Own</c> when a connection the line draws lists it, and the flow steps that send it (<c>Step</c> from 0; <c>Reply</c> when it is what comes back). One id is one row, so its way is the way of the first that names it.</summary>
+    public sealed record Carried(Shown Payload, bool Back, bool Own, List<(string Flow, int Step, bool Reply)> Steps);
+
+    /// <summary>What the line from <paramref name="from"/> to <paramref name="to"/> in <paramref name="view"/> carries, as lineCarries in src/core/payloads.ts says it.</summary>
+    public static List<Carried> OnLine(Model m, string view, string from, string to)
+    {
+        var line = Views.LineKey(from, to);
+        var rows = new List<Carried>();
+        var byId = new Dictionary<string, Carried>();
+        Carried? Add(object? reference, bool back, bool own)
+        {
+            var id = reference as string;
+            if (id is not null && byId.TryGetValue(id, out var known)) return known;
+            if (Resolve(m, reference) is not { } payload) return null;
+            var row = new Carried(payload, back, own, []);
+            rows.Add(row);
+            if (id is not null) byId[id] = row;
+            return row;
+        }
+        foreach (var c in m.Connections)
+        {
+            if (Views.PlaceEnds(m, view, c.From, c.To) is not { } ends || Views.LineKey(ends.From, ends.To) != line || c.Payloads is not List<object?> list) continue;
+            foreach (var reference in list) Add(reference, ends.From != from, true);
+        }
+        foreach (var (flow, f) in m.Flows)
+        {
+            for (var i = 0; i < f.Steps.Count; i++)
+            {
+                var s = f.Steps[i];
+                if (s.To is null || s.From is null) continue;
+                if (Views.PlaceStep(m, view, s.From, s.To) is not { } ends || ends.From == ends.To || Views.LineKey(ends.From, ends.To) != line) continue;
+                var back = ends.From != from;
+                if (s.Payload is not null) Add(s.Payload, back, false)?.Steps.Add((flow, i, false));
+                if (s.Reply is not null) Add(s.Reply, !back, false)?.Steps.Add((flow, i, true));
+            }
+        }
+        return rows;
+    }
+
+    /// <summary>How a step's motion plays, with the words its payloads give it, as motionOf in src/core/payloads.ts says.</summary>
+    public static StepAnimation? MotionOf(Model m, Step s)
+    {
+        if (Animations.Read(s) is not { } a) return null;
+        var sends = OfStep(m, s)?.Name;
+        var answer = ReplyOf(m, s)?.Name;
+        return a with
+        {
+            Carries = a.Carries is null && a.Share is null && sends is not null ? sends : a.Carries,
+            Replies = a.Kind == "call" && answer is not null ? answer : a.Replies,
+            Returns = a.Kind == "recurse" && a.Returns is null && answer is not null ? answer : a.Returns,
+        };
+    }
 }
+

@@ -704,6 +704,24 @@
       "description": "`opens: job`. An arc keeps turning on the worker while the job runs."
     }
   ],
+  "payloads": {
+    "question": {
+      "name": "Question",
+      "about": "What the call asks.",
+      "example": {
+        "language": "json",
+        "text": "{ \"ask\": \"total\" }"
+      }
+    },
+    "answer": {
+      "name": "Answer",
+      "about": "What comes back.",
+      "example": {
+        "language": "json",
+        "text": "{ \"total\": 2490 }"
+      }
+    }
+  },
   "connections": [
     {
       "from": "send-from",
@@ -1384,7 +1402,11 @@
             "call-from",
             "call-to"
           ],
-          "ends": "Call · from → Call · to"
+          "ends": "Call · from → Call · to",
+          "payload": "question",
+          "reply": "answer",
+          "sends": "Question",
+          "returns": "Answer"
         }
       ]
     },
@@ -2677,7 +2699,33 @@
           "from": "call-from",
           "to": "call-to",
           "label": "call",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Question",
+              "back": false,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "call",
+                  "step": 0,
+                  "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Answer",
+              "back": true,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "call",
+                  "step": 0,
+                  "reply": true
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "event-from",

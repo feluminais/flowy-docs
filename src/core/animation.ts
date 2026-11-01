@@ -127,6 +127,8 @@ export type Animation = {
   closes?: string
   depth?: number
   returns?: string
+  /** The word on the answer of a call that is answered: the name of the step's reply payload (see motionOf in payloads.ts). Never read from a file. */
+  replies?: string
 }
 
 export type Glyph = 'envelope' | 'bolt' | 'bell' | 'flag'
@@ -498,7 +500,7 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
       call
         ? [
             effect('wait', 'from', landed, 600),
-            { do: 'blob', on: 'line', at: landed + 600, dur: T, dir: 'back', glyph: 'envelope', tone: 'reply' },
+            { do: 'blob', on: 'line', at: landed + 600, dur: T, dir: 'back', glyph: 'envelope', tone: 'reply', ...(a.replies === undefined ? {} : { label: a.replies }) },
             effect('gulp', 'from', landed + 600 + T, 300),
           ]
         : []
@@ -599,7 +601,7 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
         const back = landed + 600
         return [
           effect('gulp', 'from', o, 250), blob(o + 250, 'envelope'), effect('gulp', 'to', landed, 300), ...refused(landed), effect('wait', 'from', landed, 600),
-          { do: 'blob', on: 'line', at: back, dur: T, dir: 'back', glyph: 'envelope', tone: failed ? 'fail' : 'reply' },
+          { do: 'blob', on: 'line', at: back, dur: T, dir: 'back', glyph: 'envelope', tone: failed ? 'fail' : 'reply', ...(failed || a.replies === undefined ? {} : { label: a.replies }) },
           effect('gulp', 'from', back + T, 300),
           ...(failed ? note(landed, NOTE_MS, { along: LANDING_NOTE_AT }) : []),
         ]

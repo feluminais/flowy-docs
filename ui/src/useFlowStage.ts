@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { Flow, Model, Step } from '../../src/core/model.ts'
 import { animationOf } from '../../src/core/animation.ts'
+import { motionOf } from '../../src/core/payloads.ts'
 import { channelsAt, kindsOf } from '../../src/core/channels.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { marksOf, statesAt } from '../../src/core/states.ts'
@@ -50,9 +51,9 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
       ? { ends: [...done, placeStep(model, view, { from: recording.from, to: recording.to === recording.from ? undefined : recording.to })], step: done.length }
       : { ends: done }
   }, [model, view, flow, stops, stopIndex, recording])
-  // Every step of the stop that moves, with where it lands in this view. A step the view can't show doesn't move.
+  // Every step of the stop that moves, with where it lands in this view. A step the view can't show doesn't move. Its dots say what its payloads are called.
   const animated = flow && stop ? stop.steps.flatMap(i => {
-    const a = animationOf(flow.steps[i])
+    const a = motionOf(model, flow.steps[i])
     const p = shown?.ends[i]
     return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p) }] : []
   }) : []
