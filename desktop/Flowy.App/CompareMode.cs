@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.Core;
 
@@ -542,12 +543,21 @@ internal sealed class CompareMode
         _nav.Picker = _picker;
     }
 
-    /// <summary>Takes the flyout away and gives the keys back to the reader.</summary>
+    /// <summary>Takes the flyout away and gives the keys back to the Compare button that opened it, or to the reader when that button is gone or greyed out.</summary>
     internal void ClosePicker()
     {
         if (_picker is null) return;
+        var (onRow, flow) = (_pickerOnRow, _pickerFlow);
         DropPicker();
-        _reader.TakeFocus();
+        // Looked for once the card (or the list) is drawn without the flyout: the button that opened it is a new one by then.
+        Button? Opener() => onRow && flow is not null ? _nav.Flows.CompareButtonOf(flow) ?? _nav.Explorer.CompareButtonOf(flow) : _player.CompareButton;
+        if (Opener() is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true, Focusable: true })
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (Opener() is { IsEffectivelyVisible: true, IsEffectivelyEnabled: true } opener) opener.Focus();
+                else _reader.TakeFocus();
+            });
+        else _reader.TakeFocus();
     }
 
     /// <summary>Takes the flyout away, wherever the keyboard focus is going next.</summary>
