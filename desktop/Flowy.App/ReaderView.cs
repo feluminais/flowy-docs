@@ -203,6 +203,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Stop += Stop;
         _player.Play += _playback.TogglePlay;
         _player.Clock = _canvas.Clock;
+        // The payload card on a paused dot keeps clear of the player card and the panels that lie over the canvas.
+        _canvas.Avoid = () => [.. new Control[] { _player, _panel, _nav }
+            .Where(c => c.IsEffectivelyVisible && c.Bounds.Width > 0 && c.Bounds.Height > 0)
+            .Select(c => c.TranslatePoint(new Point(0, 0), _canvas) is { } at ? new Avalonia.Rect(at, c.Bounds.Size) : default)
+            .Where(r => r.Width > 0)];
         _player.Speed += _playback.SetSpeed;
         _player.ScrubStart += _playback.ScrubStart;
         _player.ScrubTo += _playback.ScrubTo;

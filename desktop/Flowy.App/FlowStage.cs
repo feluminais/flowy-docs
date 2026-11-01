@@ -80,7 +80,9 @@ internal static class FlowStage
         {
             // The dots say what the step's payloads are called (see Payloads.MotionOf).
             if (Payloads.MotionOf(model, flow.Steps[i]) is not { } animation || shown.Ends[i] is not { } placed) continue;
-            runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), TakenBy(model, view, animation, placed)));
+            // What its dots carry: the reply on the answer's way back, the payload on every other dot (see DotCard).
+            runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), TakenBy(model, view, animation, placed),
+                Payloads.OfDot(model, flow.Steps[i], null)?.Shown, Payloads.OfDot(model, flow.Steps[i], "reply")?.Shown));
         }
         return runs;
     }

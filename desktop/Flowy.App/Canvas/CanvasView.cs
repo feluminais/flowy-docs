@@ -111,7 +111,8 @@ internal sealed class CanvasView : Border
         ClipToBounds = true;
         Background = Brushes.Transparent;
         _world.Children.AddRange([_back, _cards, _stage, _traffic, _channels, _motion, _marks]);
-        Child = new Grid { Children = { _world, _marquee } };
+        Child = new Grid { Children = { _world, _marquee, _dotHost } };
+        Clock.Changed += () => CloseDotCard();
     }
 
     public Scene? Scene => _scene;
@@ -195,7 +196,93 @@ internal sealed class CanvasView : Border
     public sealed record TakenBy(string? Node = null, string? Name = null);
 
     /// <summary>One step of a stop to play: its animation, its two boxes, whether the stop before it ended at its source, and who takes it if it is intercepted.</summary>
-    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null);
+    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null, Payloads.Shown? Sends = null, Payloads.Shown? Reply = null);
+
+    // The payload card on a paused dot (see DotCard): the steps playing, whose dots the pointer can find, the card, and the moment before it goes once the pointer has left.
+    private const double DotSlack = 6;
+    private const int DotGrace = 200;
+    private readonly Avalonia.Controls.Canvas _dotHost = new();
+    private IReadOnlyList<StepRun> _playingRuns = [];
+    private DotCard? _dotCard;
+    private (int Run, string? Tone)? _dotOpen;
+    private IDisposable? _dotLeaving;
+
+    /// <summary>What the payload card keeps clear of, in this canvas's own coordinates: the player card and the side panel.</summary>
+    public Func<IReadOnlyList<Avalonia.Rect>>? Avoid { get; set; }
+
+    /// <summary>The payload card on show, if any.</summary>
+    internal DotCard? DotCardNow => _dotCard;
+
+    /// <summary>Where the dots are on screen while the player is paused, every dot of the steps playing; none while it plays.</summary>
+    internal IReadOnlyList<Avalonia.Rect> DotsOnScreen => Clock.Paused ? [.. _motion.Dots.Select(d => DotBox(d.X, d.Y, d.HalfWidth, d.HalfHeight))] : [];
+
+    private Avalonia.Rect DotBox(double x, double y, double halfWidth, double halfHeight)
+    {
+        var middle = _viewport.ToScreen(new CorePt(x, y));
+        return new Avalonia.Rect(middle.X - halfWidth * _viewport.Zoom, middle.Y - halfHeight * _viewport.Zoom, 2 * halfWidth * _viewport.Zoom, 2 * halfHeight * _viewport.Zoom);
+    }
+
+    /// <summary>
+    /// What the pointer at <paramref name="at"/> does to the payload card: on the card it stays; on a dot that carries a payload, while paused, that dot's card shows
+    /// beside it; anywhere else the card goes after a moment. Returns whether the pointer is on the card.
+    /// </summary>
+    internal bool HoverDotAt(Point at)
+    {
+        if (_dotCard is { } open && new Avalonia.Rect(Avalonia.Controls.Canvas.GetLeft(open), Avalonia.Controls.Canvas.GetTop(open), open.Bounds.Width, open.Bounds.Height).Contains(at))
+        {
+            StayDot();
+            return true;
+        }
+        if (Clock.Paused)
+            foreach (var d in _motion.Dots)
+            {
+                var box = DotBox(d.X, d.Y, d.HalfWidth, d.HalfHeight);
+                if (!box.Inflate(DotSlack).Contains(at) || d.Run >= _playingRuns.Count) continue;
+                var back = d.Tone == "reply";
+                if ((back ? _playingRuns[d.Run].Reply : _playingRuns[d.Run].Sends) is not { } shown) continue;
+                ShowDot(box, shown, back, (d.Run, d.Tone));
+                return false;
+            }
+        LeaveDot();
+        return false;
+    }
+
+    private void ShowDot(Avalonia.Rect dot, Payloads.Shown shown, bool back, (int Run, string? Tone) which)
+    {
+        StayDot();
+        if (_dotCard is not null && _dotOpen == which) return;
+        CloseDotCard();
+        var card = new DotCard(shown, back, key => AppTheme.Brush(this, key));
+        _dotHost.Children.Add(card);
+        card.Measure(new Size(MotionMath.Card.Width, MotionMath.Card.Height));
+        static Flowy.Core.Rect Core(Avalonia.Rect r) => new(r.X, r.Y, r.Width, r.Height);
+        var spot = MotionMath.CardSpot(Core(dot), (card.DesiredSize.Width, card.DesiredSize.Height), new Flowy.Core.Rect(0, 0, Bounds.Width, Bounds.Height), [.. (Avoid?.Invoke() ?? []).Select(Core)]);
+        Avalonia.Controls.Canvas.SetLeft(card, spot.X);
+        Avalonia.Controls.Canvas.SetTop(card, spot.Y);
+        (_dotCard, _dotOpen) = (card, which);
+    }
+
+    private void StayDot()
+    {
+        _dotLeaving?.Dispose();
+        _dotLeaving = null;
+    }
+
+    private void LeaveDot()
+    {
+        if (_dotCard is null || _dotLeaving is not null) return;
+        _dotLeaving = Anim.Wait(this, DotGrace, () => CloseDotCard());
+    }
+
+    /// <summary>Takes the payload card away; false when there was none. Play, a jump, a new step, a pan or a zoom and Esc all do.</summary>
+    public bool CloseDotCard()
+    {
+        StayDot();
+        if (_dotCard is null) return false;
+        _dotHost.Children.Remove(_dotCard);
+        (_dotCard, _dotOpen) = (null, null);
+        return true;
+    }
 
     /// <summary>
     /// Plays the steps of a stop together on one clock, each as a pipe between its boxes with something running through it and the boxes
@@ -216,6 +303,7 @@ internal sealed class CanvasView : Border
         var outline = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Edge : null; // the pipe meets each shape on its outline, as the line does
         var shape = (string id) => _scene!.Boxes.First(x => x.Id == id) is { } box ? Look.DefOf(box.Object).Path : null; // and a ring or a flash follows it
         var playing = runs.Where(r => RectOf(r.From) is not null && RectOf(r.To) is not null).ToList();
+        _playingRuns = playing; // in the order the motion layer runs them, so a dot finds its step
         if (playing.Count == 0) return false;
         MotionLayer.Taker? Taker(TakenBy? by) =>
             by is null ? null
@@ -317,6 +405,8 @@ internal sealed class CanvasView : Border
     /// <summary>Stops the step's animation where it is and puts the boxes back, and takes a recursion's counter away.</summary>
     public void StopStep()
     {
+        CloseDotCard();
+        _playingRuns = [];
         EndStep(keepFade: false);
         _resting = null;
         _motion.SetRest(null, 0);
@@ -795,6 +885,7 @@ internal sealed class CanvasView : Border
 
     private void SetViewport(Viewport viewport)
     {
+        if (viewport != _viewport) CloseDotCard(); // a pan or a zoom: the card would point at where the dot was
         _viewport = viewport;
         _world.RenderTransform = new MatrixTransform(Matrix.CreateScale(viewport.Zoom, viewport.Zoom) * Matrix.CreateTranslation(viewport.X, viewport.Y));
         _back.Viewport = viewport;
@@ -955,6 +1046,7 @@ internal sealed class CanvasView : Border
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
+        if (_dotCard is { } card && e.Source is Visual v && (ReferenceEquals(v, card) || card.IsVisualAncestorOf(v))) return; // a press on the card is the card's (copy, scroll)
         _dragged = false;
         if (_editable && e.GetCurrentPoint(this).Properties.IsLeftButtonPressed && BoxUnder(e) is { } box && RectOf(box.Id) is { } rect)
         {
@@ -1030,6 +1122,7 @@ internal sealed class CanvasView : Border
             SetViewport(_pressedViewport with { X = _pressedViewport.X + dx, Y = _pressedViewport.Y + dy });
             return;
         }
+        if (HoverDotAt(p)) return; // on the payload card: its own scroll and copy, not the canvas's
         var overBox = OverBox(e);
         var edge = overBox ? null : _back.EdgeAt(p);
         Cursor = !overBox && edge is null && _back.OnFrame(p) ? HandCursor : null;
@@ -1041,6 +1134,7 @@ internal sealed class CanvasView : Border
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
+        LeaveDot();
         if (_hoveredEdge is null) return;
         _hoveredEdge = null;
         EdgeHovered?.Invoke(null);
