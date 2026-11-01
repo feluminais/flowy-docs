@@ -399,7 +399,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
       canvas?.style.setProperty('--lit', String(litOpacity(beats, t)))
     }
 
-    // Plays, and with Repeat on rests and plays again until the step is left. Autoplay hears about the first play only. Paused, it asks for no frames: the
+    // Plays, and with Repeat on rests and plays again until the step is left. Play hears about the first play only. Paused, it asks for no frames: the
     // clock wakes it to draw the moment it is set to, and to go on.
     let finished = false
     const loop = () => {
