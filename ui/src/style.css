@@ -1137,17 +1137,17 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 
 /* Code: a snippet in a panel, and a fenced block in a description that names its language. Each kind of stretch has a colour for the light theme and one for the dark. */
 :root {
-  --tok-comment: #6e7781; --tok-keyword: #cf222e; --tok-string: #0a3069; --tok-number: #0550ae; --tok-type: #953800;
-  --tok-function: #8250df; --tok-property: #0e7490; --tok-tag: #116329; --tok-meta: #9a6700;
+  --tok-comment: #57606a; --tok-keyword: #a40e26; --tok-string: #0a3069; --tok-number: #0550ae; --tok-type: #953800;
+  --tok-function: #6639ba; --tok-property: #0b6178; --tok-tag: #116329; --tok-meta: #7d4e00;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --tok-comment: #8b949e; --tok-keyword: #ff7b72; --tok-string: #a5d6ff; --tok-number: #79c0ff; --tok-type: #ffa657;
+    --tok-comment: #959da5; --tok-keyword: #ff7b72; --tok-string: #a5d6ff; --tok-number: #79c0ff; --tok-type: #ffa657;
     --tok-function: #d2a8ff; --tok-property: #56d4dd; --tok-tag: #7ee787; --tok-meta: #e3b341;
   }
 }
 :root[data-theme='dark'] {
-  --tok-comment: #8b949e; --tok-keyword: #ff7b72; --tok-string: #a5d6ff; --tok-number: #79c0ff; --tok-type: #ffa657;
+  --tok-comment: #959da5; --tok-keyword: #ff7b72; --tok-string: #a5d6ff; --tok-number: #79c0ff; --tok-type: #ffa657;
   --tok-function: #d2a8ff; --tok-property: #56d4dd; --tok-tag: #7ee787; --tok-meta: #e3b341;
 }
 .tok-comment { color: var(--tok-comment); } .tok-keyword { color: var(--tok-keyword); } .tok-string { color: var(--tok-string); }
