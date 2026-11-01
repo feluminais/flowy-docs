@@ -193,5 +193,19 @@ public static class Payloads
         }
         return rows;
     }
+
+    /// <summary>How a step's motion plays, with the words its payloads give it, as motionOf in src/core/payloads.ts says.</summary>
+    public static StepAnimation? MotionOf(Model m, Step s)
+    {
+        if (Animations.Read(s) is not { } a) return null;
+        var sends = OfStep(m, s)?.Name;
+        var answer = ReplyOf(m, s)?.Name;
+        return a with
+        {
+            Carries = a.Carries is null && a.Share is null && sends is not null ? sends : a.Carries,
+            Replies = a.Kind == "call" && answer is not null ? answer : a.Replies,
+            Returns = a.Kind == "recurse" && a.Returns is null && answer is not null ? answer : a.Returns,
+        };
+    }
 }
 

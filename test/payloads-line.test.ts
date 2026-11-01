@@ -57,3 +57,42 @@ test('an inline payload is a row of its own even when a listed one has its name'
 test('a line nothing is carried on lists nothing', () => {
   assert.deepEqual(rows(model(), 'customer', 'web'), [])
 })
+
+test('motionOf names the dot after the payload when the animation gives no word, and the answer after the reply', async () => {
+  const { motionOf } = await import('../src/core/payloads.ts')
+  const { beatsFor } = await import('../src/core/animation.ts')
+  const m = model()
+  const a = motionOf(m, { from: 'web', to: 'api', text: 'x', animation: 'call', payload: 'order', reply: 'receipt' })!
+  assert.equal(a.carries, 'Order')
+  assert.equal(a.replies, 'Receipt')
+  const labels = beatsFor(a, { length: 300, afterLanding: false }).beats.filter(b => b.do === 'blob').map(b => [b.dir, b.label])
+  assert.deepEqual(labels, [['fwd', 'Order'], ['back', 'Receipt']])
+})
+
+test('a word in the animation wins over the payload\'s name, and a burst keeps its request names', async () => {
+  const { motionOf } = await import('../src/core/payloads.ts')
+  const m = model()
+  assert.equal(motionOf(m, { from: 'web', to: 'api', text: 'x', animation: { kind: 'call', carries: 'POST' }, payload: 'order' })?.carries, 'POST')
+  assert.equal(motionOf(m, { from: 'web', to: 'api', text: 'x', animation: { kind: 'send', outcome: 'lost', share: '30' }, payload: 'order' })?.carries, undefined)
+})
+
+test('a failed call has no answer, so its way back says no reply', async () => {
+  const { motionOf } = await import('../src/core/payloads.ts')
+  const { beatsFor } = await import('../src/core/animation.ts')
+  const a = motionOf(model(), { from: 'web', to: 'api', text: 'x', animation: { kind: 'call', outcome: 'fail' }, payload: 'order', reply: 'receipt' })!
+  const back = beatsFor(a, { length: 300, afterLanding: false }).beats.find(b => b.do === 'blob' && b.dir === 'back')
+  assert.equal(back?.label, undefined)
+})
+
+test('a recursion\'s way back says the reply\'s name when returns is left out', async () => {
+  const { motionOf } = await import('../src/core/payloads.ts')
+  assert.equal(motionOf(model(), { from: 'api', text: 'x', animation: 'recurse', reply: 'receipt' })?.returns, 'Receipt')
+  assert.equal(motionOf(model(), { from: 'api', text: 'x', animation: { kind: 'recurse', returns: 'price' }, reply: 'receipt' })?.returns, 'price')
+})
+
+test('an unknown payload id leaves the dot as it was', async () => {
+  const { motionOf } = await import('../src/core/payloads.ts')
+  const a = motionOf(model(), { from: 'web', to: 'api', text: 'x', animation: 'call', payload: 'nope' })
+  assert.equal(a?.carries, undefined)
+  assert.equal(motionOf(model(), { from: 'web', to: 'api', text: 'x' }), undefined)
+})

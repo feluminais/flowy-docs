@@ -75,7 +75,8 @@ internal static class FlowStage
         var runs = new List<CanvasView.StepRun>();
         foreach (var i in stop.Steps)
         {
-            if (Animations.Read(flow.Steps[i]) is not { } animation || shown.Ends[i] is not { } placed) continue;
+            // The dots say what the step's payloads are called (see Payloads.MotionOf).
+            if (Payloads.MotionOf(model, flow.Steps[i]) is not { } animation || shown.Ends[i] is not { } placed) continue;
             runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), TakenBy(model, view, animation, placed)));
         }
         return runs;

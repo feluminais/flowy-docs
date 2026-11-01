@@ -99,5 +99,26 @@ public class PayloadsTests
     [Fact]
     public void A_payload_a_step_sends_the_other_way_and_a_reply_run_back() =>
         Assert.Equal([true, false, false], Payloads.OnLine(Shop(), "shop", "api", "web").Select(c => c.Back));
+
+    [Fact]
+    public void MotionOf_names_the_dot_after_the_payload_and_the_answer_after_the_reply()
+    {
+        var m = new Model { Meta = new Dictionary<string, object?> { ["payloads"] = Map(("order", Order), ("receipt", Map(("name", "Receipt"), ("about", "y")))) } };
+        var a = Payloads.MotionOf(m, new Step("web", "api", "x", null, "call") { Payload = "order", Reply = "receipt" })!;
+        Assert.Equal(("Order", "Receipt"), (a.Carries, a.Replies));
+        var labels = Animations.BeatsFor(a, 300, false).Beats.Where(b => b.Do == "blob").Select(b => (b.Dir, b.Label));
+        Assert.Equal([("fwd", "Order"), ("back", "Receipt")], labels);
+        var failed = Payloads.MotionOf(m, new Step("web", "api", "x", null, Map(("kind", "call"), ("outcome", "fail"))) { Payload = "order", Reply = "receipt" })!;
+        Assert.Null(Animations.BeatsFor(failed, 300, false).Beats.First(b => b.Do == "blob" && b.Dir == "back").Label);
+    }
+
+    [Fact]
+    public void A_word_in_the_animation_wins_and_a_burst_keeps_its_request_names()
+    {
+        var m = new Model { Meta = new Dictionary<string, object?> { ["payloads"] = Map(("order", Order)) } };
+        Assert.Equal("POST", Payloads.MotionOf(m, new Step("web", "api", "x", null, Map(("kind", "call"), ("carries", "POST"))) { Payload = "order" })!.Carries);
+        Assert.Null(Payloads.MotionOf(m, new Step("web", "api", "x", null, Map(("kind", "send"), ("outcome", "lost"), ("share", "30"))) { Payload = "order" })!.Carries);
+        Assert.Null(Payloads.MotionOf(m, new Step("web", "api", "x", null, "call") { Payload = "nope" })!.Carries);
+    }
 }
 
