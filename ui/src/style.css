@@ -1163,6 +1163,8 @@ details.payload[open] > summary::after { content: '▾'; }
 details.payload .payload-body { display: grid; gap: 8px; margin: 6px 0 4px 20px; min-width: 0; }
 details.payload .code-snippet { min-width: 0; }
 details.payload .code-block { max-height: 240px; overflow: auto; }
+.payload-form .payload-body { margin-left: 0; }
+.panel .refused { color: var(--warn); margin: 0; }
 .player details.payload { margin-top: 4px; }
 .code-block, .panel pre.code-block { margin: 0; font: 12.5px/1.55 ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace; tab-size: 4; white-space: pre; overflow-wrap: normal; }
 .code-block code, .panel .code-block code { padding: 0; background: none; font: inherit; }
