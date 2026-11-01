@@ -81,6 +81,12 @@ internal sealed class ExplorerView : Grid
         };
         _list.ContainerPrepared += (_, e) => e.Container.Classes.Set("canvas", _shown[e.Index].Key == _current); // the keyboard ring skips the row the canvas shows
         _list.AddHandler(KeyDownEvent, OnListKey, RoutingStrategies.Tunnel);
+        // The keyboard ring shows while keys drive the tree, and a click takes it away (a row clicked is picked, not stepped to).
+        _list.AddHandler(PointerPressedEvent, (_, _) => _list.Classes.Set("keys", false), RoutingStrategies.Tunnel, handledEventsToo: true);
+        _list.GotFocus += (_, e) =>
+        {
+            if (e.NavigationMethod is NavigationMethod.Tab or NavigationMethod.Directional) _list.Classes.Set("keys", true);
+        };
         _list.PointerEntered += (_, _) => _using = true;
         _list.PointerExited += (_, _) => _using = false;
         _list.LostFocus += (_, _) => _using = false;
@@ -95,6 +101,7 @@ internal sealed class ExplorerView : Grid
             else if (e.Key == Key.Down && _rows.Count > 0)
             {
                 _list.SelectedIndex = 0;
+                _list.Classes.Set("keys", true);
                 _list.Focus();
                 e.Handled = true;
             }
@@ -106,6 +113,11 @@ internal sealed class ExplorerView : Grid
     internal IReadOnlyList<OutlineRow> Rows => _rows;
 
     internal string? FocusKey => _focus;
+
+    internal ListBox List => _list;
+
+    /// <summary>Whether the keyboard ring may show: keys drive the tree, and no click has come since.</summary>
+    internal bool KeyRing => _list.Classes.Contains("keys");
 
     /// <summary>The rows the keyboard ring leaves alone because the canvas already shows them.</summary>
     internal IEnumerable<string> CanvasKeys => _list.GetRealizedContainers().Where(c => c.Classes.Contains("canvas")).Select(c => ((OutlineRow)c.DataContext!).Key);
@@ -195,6 +207,7 @@ internal sealed class ExplorerView : Grid
     {
         var scroll = _list.FindDescendantOfType<ScrollViewer>();
         var offset = scroll?.Offset ?? default;
+        var hadKeyboard = _list.IsKeyboardFocusWithin; // a row drawn again takes the focus with it: give it to the row that stands in for it
         _settingSelection = true;
         var (head, tail) = (0, 0);
         while (head < _shown.Count && head < _rows.Count && _shown[head] == _rows[head]) head++;
@@ -213,6 +226,12 @@ internal sealed class ExplorerView : Grid
         if (scroll is not null) scroll.Offset = offset;
         _list.SelectedIndex = _focus is null ? -1 : IndexOf(_focus);
         _settingSelection = false;
+        if (hadKeyboard && !_list.IsKeyboardFocusWithin)
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (TopLevel.GetTopLevel(_list)?.FocusManager?.GetFocusedElement() is not null) return; // something else took it meanwhile
+                (_list.ContainerFromIndex(Math.Max(0, _list.SelectedIndex)) ?? (Control)_list).Focus();
+            });
         _foot.IsVisible = _rows.Any(r => r.Linked == true); // only while a flow in a pair is among the rows
         _note.IsVisible = _rows.Count == 0;
         _note.Text = _filterNote == "" ? "No shapes yet." : $"Nothing matches “{_filterNote}”.";
@@ -266,6 +285,7 @@ internal sealed class ExplorerView : Grid
         if (e.Key == Key.Enter && e.Source is Button) return; // a Compare button on a row takes its own Enter
         if (Keys.TryGetValue(e.Key, out var key))
         {
+            _list.Classes.Set("keys", true);
             Press(key);
             e.Handled = true; // the canvas's own keys (E, the arrows of a flow) are not meant for the tree
         }

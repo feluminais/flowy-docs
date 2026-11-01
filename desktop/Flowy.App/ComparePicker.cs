@@ -119,6 +119,9 @@ internal sealed class ComparePicker : Border
             case Key.Enter when _at >= 0 && _at < _rows.Count && Can(_rows[_at]):
                 _pick(_rows[_at].Id);
                 break;
+            case Key.Escape when !string.IsNullOrEmpty(_input.Text):
+                _input.Text = ""; // the first Esc empties the field, the next closes the picker
+                break;
             case Key.Escape:
                 _close();
                 break;
