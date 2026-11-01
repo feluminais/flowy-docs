@@ -362,7 +362,8 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       show the same, light and dark.
 - [ ] In edit mode, click the line from Customer app to Order API: Payloads has a button for each of the six, Basket pressed. Press Order:
       it is pressed, and its form sits under Basket's. Type Coupon in New payload, press Enter, write its About and leave the field: Coupon is
-      made and pressed. Open Basket's form and press Delete payload: it is refused, and the message names what still uses it. Open "Customer
+      made and pressed. Open Basket's form and press Delete payload: it is refused, the message names the step of "Customer places an
+      order" that still sends it, and Basket stays on the line. Open "Customer
       places an order" for editing: step 2's Payload and Reply list Basket and Receipt first, and on step 1, a Send, Reply is greyed out with
       its reason in the tooltip. Ctrl+Z takes each change back. Both readers do the same.
 - [ ] Play "Customer places an order" and press P while a dot is on its way: it stops where it is, and P again carries it on from there.

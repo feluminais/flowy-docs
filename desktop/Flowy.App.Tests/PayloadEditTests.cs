@@ -34,13 +34,13 @@ public class PayloadEditTests
           - { from: api, to: db, text: Saves it, animation: send }
         """;
 
-    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open(string carried = "")
+    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open(string carried = "", string firstStep = "")
     {
         var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
         Directory.CreateDirectory(Path.Combine(dir, "flows"));
         File.WriteAllText(Path.Combine(dir, "model.yaml"), carried == "" ? Source : Source.Replace("label: REST }", $"label: REST, payloads: [{carried}] }}"));
-        File.WriteAllText(Path.Combine(dir, "flows", "checkout.yaml"), Flow);
+        File.WriteAllText(Path.Combine(dir, "flows", "checkout.yaml"), firstStep == "" ? Flow : Flow.Replace("Places the order, animation: call", firstStep));
         var reader = new ReaderView();
         var window = new Window { Width = 1200, Height = 1000, Content = reader };
         window.Show();
@@ -110,7 +110,22 @@ public class PayloadEditTests
     }
 
     [AvaloniaFact]
-    public async Task Deleting_a_payload_in_use_is_refused_and_says_who_uses_it()
+    public async Task Deleting_a_payload_a_step_still_sends_is_refused_names_only_the_step_and_writes_nothing()
+    {
+        var (temp, dir, window, reader) = Open("order", "Places the order, animation: call, payload: order");
+        using var _ = temp;
+        reader.OpenLine("web", "api");
+        Settle(window);
+        var form = reader.Panel.GetVisualDescendants().OfType<StackPanel>().First(s => s.Classes.Contains("payloadform"));
+        Click(Named(form, "Delete payload"));
+        await Until(() => form.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Classes.Contains("refused") && t.IsVisible));
+        Assert.Equal("payload \"order\" is used by flow checkout step 1. Change those first.", form.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("refused")).Text);
+        Assert.True(Payloads.Of(Saved(dir)).ContainsKey("order"));
+        Assert.Equal(["order"], PayloadEdit.IdsOf(Saved(dir).Connections[0].Payloads));
+    }
+
+    [AvaloniaFact]
+    public async Task Deleting_a_payload_only_this_line_carries_takes_it_off_the_line_and_out_of_the_model()
     {
         var (temp, dir, window, reader) = Open("order");
         using var _ = temp;
@@ -118,10 +133,48 @@ public class PayloadEditTests
         Settle(window);
         var form = reader.Panel.GetVisualDescendants().OfType<StackPanel>().First(s => s.Classes.Contains("payloadform"));
         Click(Named(form, "Delete payload"));
+        await Until(() => !Payloads.Of(Saved(dir)).ContainsKey("order"));
+        Assert.Null(Saved(dir).Connections[0].Payloads);
+    }
+
+    [AvaloniaFact]
+    public async Task A_save_in_a_payload_form_keeps_it_open_and_keeps_what_is_being_typed_in_the_next_field()
+    {
+        var (temp, dir, window, reader) = Open("order");
+        using var _ = temp;
+        reader.OpenLine("web", "api");
         Settle(window);
-        await Until(() => form.GetVisualDescendants().OfType<TextBlock>().Any(t => t.Classes.Contains("refused") && t.IsVisible));
-        Assert.Equal("payload \"order\" is used by connection web → api. Change those first.", form.GetVisualDescendants().OfType<TextBlock>().First(t => t.Classes.Contains("refused")).Text);
-        Assert.True(Payloads.Of(Saved(dir)).ContainsKey("order"));
+        StackPanel Form() => reader.Panel.GetVisualDescendants().OfType<StackPanel>().First(s => s.Classes.Contains("payloadform"));
+        Click(Form().GetVisualDescendants().OfType<Button>().First(b => b.Classes.Contains("disclosure")));
+        Settle(window);
+        var fields = Form().GetVisualDescendants().OfType<FieldBox>().ToList();
+        fields[0].Box.Text = "Order request";
+        fields[1].Box.Focus();
+        fields[1].Box.Text = "Half way";
+        await fields[0].Commit();
+        await Until(() => Payloads.Resolve(Saved(dir), "order")!.Name == "Order request");
+        Settle(window);
+        var about = Form().GetVisualDescendants().OfType<FieldBox>().ElementAt(1);
+        Assert.True(about.IsEffectivelyVisible);
+        Assert.True(about.Box.IsFocused);
+        Assert.Equal("Half way", about.Box.Text);
+    }
+
+    [AvaloniaFact]
+    public void A_new_payload_card_stays_with_its_line()
+    {
+        var (temp, _, window, reader) = Open();
+        using var __ = temp;
+        reader.OpenLine("web", "api");
+        Settle(window);
+        var picker = Picker(reader.Panel, "Payloads");
+        picker.AddBox!.Text = "Shipping label";
+        picker.AddTyped(picker.AddBox);
+        Settle(window);
+        Assert.Single(reader.Panel.GetVisualDescendants().OfType<StackPanel>(), s => s.Classes.Contains("payloadnew"));
+        reader.OpenLine("api", "db");
+        Settle(window);
+        Assert.DoesNotContain(reader.Panel.GetVisualDescendants().OfType<StackPanel>(), s => s.Classes.Contains("payloadnew"));
     }
 
     [AvaloniaFact]

@@ -88,15 +88,49 @@ test('the form edits a payload\'s name, about, shape and example', async ({ page
   }
 })
 
-test('deleting a payload in use is refused and says who uses it', async ({ page }) => {
+test('deleting a payload a step still sends is refused, names only the step, and writes nothing', async ({ page }) => {
+  const s = await serve({ model: m => {
+    m.connections[1] = { ...m.connections[1], payloads: ['order'] }
+    m.flows.checkout.steps[1] = { ...m.flows.checkout.steps[1], payload: 'order' }
+  } })
+  try {
+    await editLine(page, s.server.port)
+    const form = page.locator('.panel .payload-form').first()
+    await form.locator('summary').click()
+    await form.getByRole('button', { name: 'Delete payload' }).click()
+    await expect(form.getByRole('alert')).toHaveText('payload "order" is used by flow checkout step 2. Change those first.')
+    const saved = await s.saved()
+    expect(Object.keys(saved.meta.payloads as object)).toEqual(['order', 'receipt'])
+    expect(saved.connections[1].payloads).toEqual(['order'])
+  } finally {
+    await s.close()
+  }
+})
+
+test('deleting a payload only this line carries takes it off the line and out of the model', async ({ page }) => {
   const s = await serve({ model: m => { m.connections[1] = { ...m.connections[1], payloads: ['order'] } } })
   try {
     await editLine(page, s.server.port)
     const form = page.locator('.panel .payload-form').first()
     await form.locator('summary').click()
     await form.getByRole('button', { name: 'Delete payload' }).click()
-    await expect(form.getByRole('alert')).toHaveText('payload "order" is used by connection web → api. Change those first.')
-    expect(Object.keys((await s.saved()).meta.payloads as object)).toEqual(['order', 'receipt'])
+    await expect.poll(async () => Object.keys((await s.saved()).meta.payloads as object)).toEqual(['receipt'])
+    expect((await s.saved()).connections[1].payloads).toBeUndefined()
+  } finally {
+    await s.close()
+  }
+})
+
+test('a new payload card stays with its line', async ({ page }) => {
+  const s = await serve()
+  try {
+    await editLine(page, s.server.port)
+    await page.locator('.panel').getByRole('textbox', { name: 'New payload' }).fill('Shipping label')
+    await page.locator('.panel').getByRole('textbox', { name: 'New payload' }).press('Enter')
+    await expect(page.locator('.panel .payload-new')).toHaveCount(1)
+    await page.locator('.react-flow__edge[data-id="customer web"]').click({ force: true })
+    await expect(page.locator('.panel').getByRole('group', { name: 'Payloads' })).toBeVisible()
+    await expect(page.locator('.panel .payload-new')).toHaveCount(0)
   } finally {
     await s.close()
   }

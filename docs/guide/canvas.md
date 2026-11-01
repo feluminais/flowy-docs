@@ -125,7 +125,8 @@ file again, so comments in it are not kept ([File format](../format.md#the-folde
 - Click a line, and each connection's card has **Payloads**: a button for each payload in the model, pressed for the ones it carries.
   Type a name in New payload and press Enter to make one. It is saved, and put on the line, once its About is. Under the buttons, each
   payload the line carries has a form folded under its name: Name, About, and a Shape and an Example, each a language and the code, as
-  in a snippet. Delete payload is refused while a line or a step still names it, and says which.
+  in a snippet. Delete payload takes it off this line and out of the model. While another line or a step still names it, the delete
+  is refused and says which, and nothing changes.
 - Delete (the key, or the button in the panel) removes the selected shape or line, with its lines. When nothing else depends on it, it goes at
   once, and the notice says what went with it and has an Undo button. When something does (shapes inside it, flow steps, a flow's view, a failure
   mode), the Used by panel opens with a row for each. Pick what to do with a row: remove the step, reroute it to another shape, delete the flow,

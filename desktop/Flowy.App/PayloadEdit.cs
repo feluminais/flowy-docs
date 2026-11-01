@@ -115,13 +115,17 @@ internal static class PayloadEdit
         _ => v.ToString() ?? "",
     };
 
-    /// <summary>One payload's form, folded away under its name: Name, About, Shape and Example, each saved when you leave it, and Delete, whose refusal says who uses it.</summary>
-    public static Control Form(Model model, string id, EditRun run)
+    /// <summary>
+    /// One payload's form, folded away under its name: Name, About, Shape and Example, each saved when you leave it, and Delete. Delete takes it off the line the form is
+    /// under (<paramref name="offLine"/>) and then out of the model; when another line or a step still names it, the refusal says which. <paramref name="open"/> and
+    /// <paramref name="toggled"/> keep it open across a rebuild. Each field's <see cref="Control.Tag"/> names it, so the focus can be put back (see <see cref="FieldKey"/>).
+    /// </summary>
+    public static Control Form(Model model, string id, EditRun run, Func<EditDoc, EditDoc> offLine, bool open = false, Action<bool>? toggled = null)
     {
         var p = Payloads.Of(model).GetValueOrDefault(id) ?? [];
         var name = p.GetValueOrDefault("name") as string;
-        var body = new StackPanel { Spacing = 8, Margin = new Thickness(0, 6, 0, 0), IsVisible = false };
-        var header = new Button { Content = $"{(string.IsNullOrEmpty(name) ? id : name)} ▸", HorizontalAlignment = HorizontalAlignment.Left };
+        var body = new StackPanel { Spacing = 8, Margin = new Thickness(0, 6, 0, 0), IsVisible = open };
+        var header = new Button { Content = $"{(string.IsNullOrEmpty(name) ? id : name)} {(open ? "▾" : "▸")}", HorizontalAlignment = HorizontalAlignment.Left };
         header.Classes.Add("disclosure");
         header.Classes.Add("payload");
         AutomationProperties.SetName(header, string.IsNullOrEmpty(name) ? id : name);
@@ -129,12 +133,13 @@ internal static class PayloadEdit
         {
             body.IsVisible = !body.IsVisible;
             header.Content = $"{(string.IsNullOrEmpty(name) ? id : name)} {(body.IsVisible ? "▾" : "▸")}";
+            toggled?.Invoke(body.IsVisible);
         };
         Task<bool> Put(string key, object? value) => run(d => EditOps.PutPayload(d, id, Field(key, value)));
-        body.Children.Add(new FieldBox("Name", name ?? "", false, v => Put("name", v)));
-        body.Children.Add(new FieldBox("About (Markdown)", p.GetValueOrDefault("about") as string ?? "", true, v => Put("about", v)));
-        body.Children.Add(Block("Shape", p.GetValueOrDefault("shape"), v => Put("shape", v)));
-        body.Children.Add(Block("Example", p.GetValueOrDefault("example"), v => Put("example", v)));
+        body.Children.Add(new FieldBox("Name", name ?? "", false, v => Put("name", v)) { Tag = FieldKey(id, "Name") });
+        body.Children.Add(new FieldBox("About (Markdown)", p.GetValueOrDefault("about") as string ?? "", true, v => Put("about", v)) { Tag = FieldKey(id, "About") });
+        body.Children.Add(Block("Shape", FieldKey(id, "Shape"), p.GetValueOrDefault("shape"), v => Put("shape", v)));
+        body.Children.Add(Block("Example", FieldKey(id, "Example"), p.GetValueOrDefault("example"), v => Put("example", v)));
         var refused = new TextBlock { TextWrapping = TextWrapping.Wrap, IsVisible = false };
         refused.Classes.Add("refused");
         AutomationProperties.SetLiveSetting(refused, Avalonia.Automation.AutomationLiveSetting.Assertive);
@@ -150,7 +155,7 @@ internal static class PayloadEdit
             {
                 try
                 {
-                    return EditOps.DeletePayload(d, id);
+                    return EditOps.DeletePayload(offLine(d), id);
                 }
                 catch (OpError e)
                 {
@@ -169,7 +174,20 @@ internal static class PayloadEdit
     }
 
     /// <summary>A shape or an example as a card: its language and its code, saved when you leave the box; Remove takes it off. Without one, a button adds it.</summary>
-    private static Control Block(string title, object? held, Func<object?, Task<bool>> save)
+    /// <summary>What names one field of one payload's form, in its <see cref="Control.Tag"/>.</summary>
+    public static string FieldKey(string id, string field) => id + '' + field;
+
+    /// <summary>The model with one connection no longer naming a payload, read from that model so a change made since is kept.</summary>
+    public static EditDoc WithoutPayload(EditDoc doc, ConnectionInput which, string id)
+    {
+        var c = doc.Connections.OfType<OrderedDictionary<string, object?>>().FirstOrDefault(k =>
+            k.GetValueOrDefault("from") as string == which.From && k.GetValueOrDefault("to") as string == which.To && (k.GetValueOrDefault("label") as string ?? "") == (which.Label ?? ""));
+        if (c is null) return doc;
+        var list = c.GetValueOrDefault("payloads");
+        return EditOps.SetLinePayloads(doc, which, [.. IdsOf(list).Where(x => x != id).Cast<object?>(), .. InlineOf(list)]);
+    }
+
+    private static Control Block(string title, string key, object? held, Func<object?, Task<bool>> save)
     {
         var map = held as OrderedDictionary<string, object?>;
         var text = map?.GetValueOrDefault("text") as string ?? "";
@@ -188,7 +206,7 @@ internal static class PayloadEdit
         }
         var picker = new LanguagePicker(id => save(With(text, id)));
         picker.Show(language, CodeInk.LanguageFor(text, null).Language);
-        var code = new FieldBox(title, text, true, v => Snippets.IsBlank(v) ? Task.FromResult(false) : save(With(v, language)), keepOnRefusal: true, mono: true);
+        var code = new FieldBox(title, text, true, v => Snippets.IsBlank(v) ? Task.FromResult(false) : save(With(v, language)), keepOnRefusal: true, mono: true) { Tag = key };
         var remove = new Button { HorizontalAlignment = HorizontalAlignment.Left };
         remove.Classes.Add("tool");
         remove.Classes.Add("danger");

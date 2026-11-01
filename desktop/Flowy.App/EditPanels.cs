@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using Flowy.App.Canvas;
 using Flowy.Core;
 using Path = Avalonia.Controls.Shapes.Path;
@@ -360,6 +361,9 @@ internal sealed class LineEditor : StackPanel
     // A payload made from a name in a row's picker, until its first About saves it: which connection, and its name.
     private (int Index, string Name)? _fresh;
 
+    // The payload forms left open, as "connection index:payload id", so a rebuild after a save brings them back open.
+    private readonly HashSet<string> _open = [];
+
     private readonly SidePanel _owner;
     private readonly string _from;
     private readonly string _to;
@@ -421,6 +425,11 @@ internal sealed class LineEditor : StackPanel
     {
         var which = row.Which;
         var index = row.Index;
+        // A field being typed in when a save elsewhere rebuilds the forms gets its text, its caret and the focus back.
+        var focused = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() as TextBox;
+        var typing = focused?.FindAncestorOfType<FieldBox>() is { Tag: string key } field && row.Payloads.IsVisualAncestorOf(field)
+            ? (Key: key, Text: focused.Text, Caret: focused.CaretIndex)
+            : default((string Key, string? Text, int Caret)?);
         row.Payloads.Children.Clear();
         var ids = PayloadEdit.IdsOf(c.Payloads);
         var inline = PayloadEdit.InlineOf(c.Payloads);
@@ -440,7 +449,21 @@ internal sealed class LineEditor : StackPanel
                 if (done) _fresh = null;
                 return done;
             }));
-        foreach (var id in ids) row.Payloads.Children.Add(PayloadEdit.Form(model, id, _run));
+        foreach (var id in ids)
+        {
+            var open = $"{index}:{id}";
+            row.Payloads.Children.Add(PayloadEdit.Form(model, id, _run, d => PayloadEdit.WithoutPayload(d, which, id), _open.Contains(open), on =>
+            {
+                if (on) _open.Add(open);
+                else _open.Remove(open);
+            }));
+        }
+        if (typing is { } t && row.Payloads.GetVisualDescendants().OfType<FieldBox>().FirstOrDefault(f => Equals(f.Tag, t.Key)) is { } again)
+        {
+            again.Box.Text = t.Text;
+            again.Box.CaretIndex = t.Caret;
+            again.Box.Focus();
+        }
     }
 
     private Control Build(int index)
