@@ -146,8 +146,10 @@ objects:
       less motion.
 
       An animated flow step plays over the shapes: a pipe along its line, a blob running through it,
-      and shapes ringing, flashing or squashing. The same frame-driven clock runs it and Autoplay's
-      waits, and nothing moves when the system asks for less motion.
+      and shapes ringing, flashing or squashing. The player's clock runs it, the waits between steps,
+      a channel coming in and a shape's state, so Pause holds all of them part way through a step, the
+      bar on the card drags them to any moment and the speed (0.5×, 1×, 2×) changes them together.
+      Nothing moves when the system asks for less motion.
 
       A shape in a state (Starting, Stopped, Degraded and the rest) dims, gets a second outline in
       the state's dash and a glyph on a ring. The Starting, Restarting and Degraded loops run on the
@@ -216,8 +218,8 @@ objects:
       The page: zoomable shapes, lines that stay quiet until pointed at, flows that play step by
       step, and edit mode on E.
 
-      A step with an `animation:` plays as a pipe with a blob running through it, and Autoplay steps
-      through a flow unattended. A shape that calls itself plays as a pipe looping out of it and back
+      A step with an `animation:` plays as a pipe with a blob running through it, and Play steps
+      through a flow unattended; Pause holds it part way through a step. A shape that calls itself plays as a pipe looping out of it and back
       in, with a pile of cards growing under it and a counter on its corner. A step's `states` dim a
       shape and add a second outline and a glyph until another step changes them. A Performance tab
       plays a load-test run back over the diagram.
@@ -361,7 +363,7 @@ objects:
       marker. The cross, the bar and the marker stay once they have appeared.
 
       Nothing moves when the system asks for less motion; those marks are then drawn still, and
-      Autoplay waits a few seconds on each step.
+      Play waits a few seconds on each step.
   perf-tab:
     type: component
     in: canvas

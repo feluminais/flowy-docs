@@ -17,6 +17,7 @@ import { PaneMotions, PanePlayer } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
 import { FADE_MS, planSwap, SWAP_MS, swapDuration } from './swap.ts'
 import { usePaneFlow } from './usePaneFlow.ts'
+import { useCssClock } from './cssClock.ts'
 
 const nodeTypes = { box: Box, frame: Frame }
 const edgeTypes = { line: Line }
@@ -79,6 +80,9 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
   const b = usePaneFlow({ model, flowId: flows[1], startAt: startAt(1), problems, selectedBox: own(1) ? selectedBox : undefined, selectedLine: own(1) ? selectedLine : undefined, lines, still })
   const both = [a, b]
   const target = both[index]
+  // The one canvas keeps the time of the flow on show.
+  const root = useRef<HTMLElement>(null)
+  useCssClock(root, target.clock, target.stepKey)
 
   // The swap in progress, worked out while rendering so the first frame already has the swap in it. A press that comes while one runs starts the glide at once (the lines are
   // gone already) and goes back from where the boxes are.
@@ -141,7 +145,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
   const settled = now.phase === 'settled'
 
   return (
-    <section className={classes('pane', 'swap-canvas', !settled && 'swapping', target.flow && usesStates(target.flow) && 'states')} aria-label={name}
+    <section ref={root} className={classes('pane', 'swap-canvas', !settled && 'swapping', target.flow && usesStates(target.flow) && 'states')} aria-label={name}
       style={{ '--swap-ms': `${SWAP_MS}ms`, '--fade-ms': `${FADE_MS}ms` } as CSSProperties}>
       <h2 className="pane-title" title={name}>{name}</h2>
       <div className="pane-canvas">

@@ -206,7 +206,19 @@ internal sealed partial class ReaderView
         public void FlowPlay()
         {
             if (r._compareMode.View is { } view && r.Comparing) view.Target.TogglePlay();
-            else r._playback.ToggleAuto();
+            else r._playback.TogglePlay();
+        }
+
+        public void FlowSpeed()
+        {
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.NextSpeed();
+            else r._playback.NextSpeed();
+        }
+
+        public void FlowNudge(int by)
+        {
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.Nudge(by);
+            else r._playback.Nudge(by);
         }
 
         public void FlowReplay()

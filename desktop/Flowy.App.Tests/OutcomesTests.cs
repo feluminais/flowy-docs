@@ -391,16 +391,17 @@ public class OutcomesTests
     }
 
     [AvaloniaFact]
-    public void A_step_that_ends_in_an_outcome_still_settles_for_Autoplay()
+    public void A_step_that_ends_in_an_outcome_still_settles_for_Play()
     {
         var (window, reader) = Open("0");
         try
         {
             reader.Play("ends", 4);
             Assert.True(reader.StepMoving);
-            window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, null);
+            window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, null); // the step is moving: P pauses it
+            window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, null); // and Play carries on through the flow
             Run(() => reader.PlayingStep >= 5);
-            Assert.True(reader.PlayingStep >= 5, "Autoplay went on to the next step by itself");
+            Assert.True(reader.PlayingStep >= 5, "Play went on to the next step by itself");
         }
         finally
         {

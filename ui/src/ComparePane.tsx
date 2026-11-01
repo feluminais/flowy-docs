@@ -22,6 +22,7 @@ import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
 import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
+import { useCssClock } from './cssClock.ts'
 import { usePaneFlow } from './usePaneFlow.ts'
 import type { PaneFlow } from './usePaneFlow.ts'
 
@@ -33,6 +34,8 @@ export type PaneHandle = {
   step(by: 1 | -1): void
   end(which: 'first' | 'last'): void
   play(): void
+  nextSpeed(): void
+  nudge(by: 1 | -1): void
   replay(): void
   fit(): void
   /** Whether Esc, Backspace and Z take the pane up a level: it is zoomed into a shape, and not at the top. */
@@ -85,6 +88,8 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
   const [zoomed, setZoomed] = useState<string>() // the level the reader zoomed this pane to; none, and it draws its flow's own view
   const level = paneLevel(model, flowView, zoomed)
   const p = usePaneFlow({ model, flowId, level, startAt, problems, selectedBox, selectedLine, lines, still })
+  const pane = useRef<HTMLElement>(null)
+  useCssClock(pane, p.clock, p.stepKey)
   const { flow, view, nodes, frame, edges, spots } = p
   const opening = useRef<ReturnType<typeof setTimeout>>(undefined) // a click on a shape that opens, waiting out the double-click window
   const cancelOpen = () => clearTimeout(opening.current)
@@ -94,7 +99,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
   useImperativeHandle(ref, () => ({ ...p.keys, fit, inside: () => paneInside(level, flowView), up: () => setZoomed(paneUp(model, level)) }))
 
   return (
-    <section className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={label ?? title} onFocus={onFocus} onPointerDownCapture={onFocus}>
+    <section ref={pane} className={['pane', focused && 'focused', flow && usesStates(flow) && 'states'].filter(Boolean).join(' ')} tabIndex={0} aria-label={label ?? title} onFocus={onFocus} onPointerDownCapture={onFocus}>
       <h2 className="pane-title" title={title}>{title}</h2>
       {level !== flowView && (
         <nav className="crumbs pane-crumbs" aria-label={`Zoom level of ${title}`}>
@@ -165,12 +170,12 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
 
 /** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), and the marks of the stop's group. */
 export function PaneMotions({ p }: { p: PaneFlow }) {
-  const { flow, stop, animated, stepKey, shown, repeat, finished, open } = p
+  const { flow, stop, animated, stepKey, shown, repeat, clock, finished, open } = p
   return (
     <>
       {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
       {flow && stop && animated.map(m => (
-        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} onDone={() => finished(m.i)} />
+        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)} />
       ))}
       <GroupMarks marks={p.marks} />
     </>
@@ -179,10 +184,10 @@ export function PaneMotions({ p }: { p: PaneFlow }) {
 
 /** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. With marks, its progress bar marks the steps that differ. */
 export function PanePlayer({ model, p, marks }: { model: Model; p: PaneFlow; marks?: SideMarks }) {
-  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, playing, moving, repeat, stepTo, togglePlay, replay, toggleRepeat } = p
+  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, showsPause, moving, repeat, stepTo, togglePlay, replay, toggleRepeat, clock, speed, setSpeed, scrub } = p
   if (!(flow && stop && caption && progress)) return null
   return (
-    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} auto={playing?.auto === true} moving={moving}
-      changes={marks?.steps} repeat={repeat} onStep={stepTo} onAuto={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
+    <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} showsPause={showsPause} moving={moving}
+      changes={marks?.steps} repeat={repeat} clock={clock} speed={speed} onSpeed={setSpeed} scrub={scrub} onStep={stepTo} onPlay={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
   )
 }

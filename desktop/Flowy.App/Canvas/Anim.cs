@@ -51,21 +51,86 @@ internal static class Anim
     }
 
     /// <summary>Starts it. Disposing the result stops it where it is, without calling <c>done</c>.</summary>
-    public static IDisposable Run(Control host, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done = null)
+    public static IDisposable Run(Control host, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done = null) =>
+        Run(host, milliseconds, null, ease, frame, done);
+
+    /// <summary>
+    /// Like <see cref="Run(Control, double, Func{double, double}, Action{double}, Action?)"/>, measured on <paramref name="time"/> (a flow player's clock) instead of the
+    /// wall: while it is paused the animation stands where it is and asks for no frames, and at another speed it runs at it. Null is the wall clock.
+    /// </summary>
+    public static IDisposable Run(Control host, double milliseconds, ITimeSource? time, Func<double, double> ease, Action<double> frame, Action? done = null)
     {
-        var run = new Runner(TopLevel.GetTopLevel(host), milliseconds, ease, frame, done);
+        var run = new Runner(TopLevel.GetTopLevel(host), milliseconds, ease, frame, done, time);
         run.Start();
         return run;
     }
 
-    private sealed class Runner(TopLevel? top, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done) : IDisposable
+    /// <summary>
+    /// Draws from a flow player's clock: <paramref name="frame"/> on every animation frame while the clock runs and the frame asks for another (it returns true), and
+    /// once more whenever the clock changes (a pause, a play, a seek, a speed), so a paused step is drawn at the moment it is set to. Disposing the result stops it.
+    /// </summary>
+    public static IDisposable Follow(Control host, PlayerClock clock, Func<bool> frame)
+    {
+        var follow = new Follower(TopLevel.GetTopLevel(host), clock, frame);
+        follow.Ask();
+        return follow;
+    }
+
+    /// <summary>Asks for one frame: the window's next, or a timer's for a control that isn't in a window.</summary>
+    private static void NextFrame(TopLevel? top, Action step)
+    {
+        if (top is not null) top.RequestAnimationFrame(_ => step());
+        else DispatcherTimer.RunOnce(step, TimeSpan.FromMilliseconds(15), DispatcherPriority.Render);
+    }
+
+    private sealed class Follower : IDisposable
+    {
+        private readonly TopLevel? _top;
+        private readonly PlayerClock _clock;
+        private readonly Func<bool> _frame;
+        private bool _asked;
+        private bool _stopped;
+
+        public Follower(TopLevel? top, PlayerClock clock, Func<bool> frame)
+        {
+            (_top, _clock, _frame) = (top, clock, frame);
+            _clock.Changed += Ask;
+        }
+
+        public void Ask()
+        {
+            if (_asked || _stopped) return;
+            _asked = true;
+            NextFrame(_top, Step);
+        }
+
+        private void Step()
+        {
+            _asked = false;
+            if (_stopped) return;
+            var more = _frame();
+            if (more && !_clock.Paused) Ask();
+        }
+
+        public void Dispose()
+        {
+            _stopped = true;
+            _clock.Changed -= Ask;
+        }
+    }
+
+    private sealed class Runner(TopLevel? top, double milliseconds, Func<double, double> ease, Action<double> frame, Action? done, ITimeSource? time = null) : IDisposable
     {
         private double? _started;
         private DispatcherTimer? _timer;
         private bool _stopped;
+        private bool _held; // paused: no frames asked for until the time goes on
+
+        private double Clock() => time?.Now() ?? Now();
 
         public void Start()
         {
+            if (time is not null) time.Changed += Resume;
             if (top is not null) top.RequestAnimationFrame(_ => Step());
             else
             {
@@ -74,17 +139,25 @@ internal static class Anim
             }
         }
 
+        private void Resume()
+        {
+            if (!_held || _stopped || time is { Paused: true }) return;
+            _held = false;
+            top?.RequestAnimationFrame(_ => Step());
+        }
+
         private void Step()
         {
-            if (_stopped) return;
+            if (_stopped || _held) return;
             // The clock starts with the first frame, so work done before it (a view laid out for the new level) isn't taken out of the motion.
-            _started ??= Now();
-            var t = milliseconds <= 0 ? 1 : Math.Min(1, (Now() - _started.Value) / milliseconds);
+            _started ??= Clock();
+            var t = milliseconds <= 0 ? 1 : Math.Min(1, (Clock() - _started.Value) / milliseconds);
             frame(ease(t));
             if (_stopped) return; // the frame itself may have stopped it
             if (t < 1)
             {
-                top?.RequestAnimationFrame(_ => Step());
+                if (time is { Paused: true } && top is not null) _held = true;
+                else top?.RequestAnimationFrame(_ => Step());
                 return;
             }
             Dispose();
@@ -95,6 +168,7 @@ internal static class Anim
         {
             _stopped = true;
             _timer?.Stop();
+            if (time is not null) time.Changed -= Resume;
         }
     }
 }

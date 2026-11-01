@@ -10,7 +10,8 @@ import { nameOf, placeStep } from '../../src/core/views.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, loopPath, pathBetween, rect } from './Line.tsx'
-import { active, bump, cardBox, cardsAt, cyclePeriod, distance, DWELL, ease, effectPose, entryPoint, keepsPlaying, litOpacity, markerSize, markerSpot, noteSpot, pillText, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
+import type { PlayerClock } from './clock.ts'
+import { active, bump, cardBox, cardsAt, cyclePeriod, distance, DWELL, ease, effectPose, entryPoint, keepsPlaying, litOpacity, markerSize, markerSpot, momentOf, noteSpot, pillText, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
 
 // The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs): Tabler's mail, bolt and bell on a 24-unit grid.
 const GLYPHS: Record<Glyph, string> = {
@@ -26,8 +27,6 @@ const FLASH = 0.55
 const TICKS = 6
 /** How far the dashed outline around a box that takes a request stands off it. */
 const HALO = 6
-/** Every motion on screen and how long it takes, so the ones of a stop (a fan-out plays several) start again together. */
-const running = new Map<symbol, number>()
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 /** The drawn tile of a box on the canvas, which a gulp squashes. Looked for in this canvas: two flows side by side can hold a box of the same name. */
@@ -206,6 +205,10 @@ type Props = {
   repeat: boolean
   /** Who takes an intercepted request, as this view can draw it. Left out, the name or id the step gives is drawn as a marker. */
   by?: TakenBy
+  /** The player's time, which this draws from: it pauses, scrubs and sets the speed. The motions of a stop share it, so a fan-out plays and repeats together. */
+  clock: PlayerClock
+  /** The step (and replay) this plays, so the clock starts with it (see PlayerClock.begin). */
+  stepKey: string
   /** Called once when the motion has finished, or after a moment when motion is reduced. */
   onDone: () => void
 }
@@ -217,7 +220,7 @@ type Props = {
  * When the system asks for less motion nothing moves: it draws only where the outcome happened (a cross, a bar, a marker, a clock, the reason)
  * or how deep a recursion went, and reports that it is done after a moment.
  */
-export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }: Props) {
+export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, stepKey, onDone }: Props) {
   const style = useContext(LineStyleContext)
   const from = useInternalNode(ends[0])
   const to = useInternalNode(ends[1])
@@ -242,8 +245,8 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
 
   useEffect(() => {
     if (!still) return
-    const wait = setTimeout(() => done.current(), DWELL)
-    return () => clearTimeout(wait)
+    clock.begin(stepKey)
+    return clock.after(DWELL, () => done.current())
   }, [still])
 
   useEffect(() => {
@@ -324,11 +327,10 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
     // A timeout dims the lit lines through `--lit` on the canvas (see style.css). Only a motion that has a fade writes it, so the other steps of a stop never undo it.
     const fades = beats.some(b => b.do === 'fade')
     const canvas = fades ? svg.closest<HTMLElement>('.react-flow') : null
-    const me = Symbol('motion')
-    running.set(me, total)
+    clock.begin(stepKey)
+    const undeclare = clock.declare(total)
     const who = { from: Symbol('from'), to: Symbol('to') } // two asks, so a step that is both its ends squashes by the larger
     let frameId = 0
-    let start: number | undefined
 
     const frame = (t: number) => {
       const squash = { from: 0, to: 0 }
@@ -397,28 +399,30 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, onDone }
       canvas?.style.setProperty('--lit', String(litOpacity(beats, t)))
     }
 
-    // Plays, and with Repeat on rests and plays again until the step is left. Autoplay hears about the first play only.
+    // Plays, and with Repeat on rests and plays again until the step is left. Play hears about the first play only. Paused, it asks for no frames: the
+    // clock wakes it to draw the moment it is set to, and to go on.
     let finished = false
-    const loop = (now: number) => {
-      start ??= now
-      const since = now - start
-      frame(again.current ? since % cyclePeriod(running.values()) : Math.min(since, total))
+    const loop = () => {
+      const since = clock.elapsed()
+      frame(momentOf(since, total, again.current, cyclePeriod([clock.length])))
       if (!finished && since >= total) {
         finished = true
         done.current()
       }
-      frameId = keepsPlaying(since, total, again.current) ? requestAnimationFrame(loop) : 0
+      frameId = !clock.paused && keepsPlaying(since, total, again.current) ? requestAnimationFrame(loop) : 0
     }
     frameId = requestAnimationFrame(loop)
-    // Repeat turned on after the motion is over plays it again from the start.
+    const unheard = clock.subscribe(() => {
+      if (frameId === 0) frameId = requestAnimationFrame(loop)
+    })
+    // Repeat turned on after the motion is over plays it again from the start. Paused, it waits: the frozen moment stays.
     wake.current = () => {
-      if (frameId !== 0) return
-      start = undefined
-      frameId = requestAnimationFrame(loop)
+      if (frameId === 0 && !clock.paused) clock.restart()
     }
     return () => {
       wake.current = undefined
-      running.delete(me)
+      unheard()
+      undeclare()
       cancelAnimationFrame(frameId)
       canvas?.style.removeProperty('--lit')
       for (const side of ['from', 'to'] as const) {

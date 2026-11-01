@@ -99,8 +99,14 @@ internal sealed class CanvasView : Border
     /// <summary>A click on the outline round the level you are inside (or its name): a click on that system itself.</summary>
     public event Action? FrameClicked;
 
+    /// <summary>The flow player's time on this canvas (see <see cref="PlayerClock"/>): a step's motion, its channels and the shapes' states are drawn from it.</summary>
+    public PlayerClock Clock { get; }
+
     public CanvasView()
     {
+        Clock = new PlayerClock(timer: (ms, then) => Anim.Wait(this, ms, then));
+        Clock.SetRate(PlayerClock.Kept);
+        _channels.Clock = Clock;
         AreaStyles.Add(this, "Canvas");
         ClipToBounds = true;
         Background = Brushes.Transparent;
@@ -227,9 +233,8 @@ internal sealed class CanvasView : Border
         var piled = playing.FindIndex(r => r.Animation.Kind == "recurse"); // the recursion whose cards pile up under its box
         var cardShape = piled < 0 ? null : shape(playing[piled].From);
         StepMoving = true;
-        _step = Anim.Run(this, total, t => t, t =>
+        void Draw(double now)
         {
-            var now = t * total;
             _motion.Show(now);
             if (piled >= 0 && cardShape is not null) _cards.Show(RectOf(playing[piled].From)!.Value, cardShape, MotionMath.CardsAt(started[piled].Beats, now));
             var asked = new Dictionary<string, List<double>>();
@@ -244,12 +249,52 @@ internal sealed class CanvasView : Border
             }
             foreach (var (id, amounts) in asked) Squash(id, MotionMath.Largest(amounts));
             _back.LitFade = started.Min(s => MotionMath.LitOpacity(s.Beats, now));
-        }, () =>
+        }
+        // The motion is drawn from the player's clock, so it pauses, scrubs and runs at its speed. Once it is over it rests (a line that timed out stays dim until the step
+        // is left), and a seek back into it draws it again; `done` is called the first time it ends.
+        var declared = Clock.Declare(total);
+        var finished = false;
+        var follow = Anim.Follow(this, Clock, () =>
         {
-            EndStep(keepFade: true); // a line that timed out stays dim until the step is left
-            done?.Invoke();
+            var at = Clock.Elapsed;
+            if (at < total)
+            {
+                StepMoving = true;
+                Draw(at);
+                return true;
+            }
+            Draw(total);
+            Rest();
+            StepMoving = false;
+            if (!finished)
+            {
+                finished = true;
+                done?.Invoke();
+            }
+            return false;
         });
+        _step = Both(follow, declared);
         return true;
+    }
+
+    /// <summary>One handle that lets go of two: the motion's frames and its length on the clock.</summary>
+    private static IDisposable Both(IDisposable a, IDisposable b) => new Pair(a, b);
+
+    private sealed class Pair(IDisposable a, IDisposable b) : IDisposable
+    {
+        public void Dispose()
+        {
+            a.Dispose();
+            b.Dispose();
+        }
+    }
+
+    /// <summary>A step's motion is over: what stays (the cross, the bar, the marker) stays, a recursion's cards go and the boxes stand straight.</summary>
+    private void Rest()
+    {
+        _motion.Settle();
+        _cards.Clear();
+        foreach (var box in _boxes.Values) box.SetSquash(0);
     }
 
     /// <summary>What a group says about a lit step, to draw on its line (above the box's corner for a step on one box).</summary>
@@ -286,10 +331,13 @@ internal sealed class CanvasView : Border
         _step = null;
         StepMoving = false;
         // A step that has finished leaves its marks (the cross, the bar, the marker) until it is left; leaving it, or another step, clears them.
-        if (keepFade) _motion.Settle();
-        else _motion.Clear();
-        _cards.Clear(); // a finished recursion keeps its counter (the step is still showing), not its cards
-        foreach (var box in _boxes.Values) box.SetSquash(0);
+        if (keepFade) Rest(); // a finished recursion keeps its counter (the step is still showing), not its cards
+        else
+        {
+            _motion.Clear();
+            _cards.Clear();
+            foreach (var box in _boxes.Values) box.SetSquash(0);
+        }
         if (!keepFade)
         {
             _back.LitFade = 1;
@@ -375,7 +423,7 @@ internal sealed class CanvasView : Border
     /// <summary>A new control for a box, on the stage.</summary>
     private BoxControl AddBox(SceneBox box)
     {
-        var control = new BoxControl(box);
+        var control = new BoxControl(box) { Time = Clock };
         control.PointerReleased += (_, e) => OnBoxReleased(box.Id, e);
         control.DoubleTapped += (_, e) =>
         {
