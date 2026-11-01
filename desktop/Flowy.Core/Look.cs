@@ -77,12 +77,18 @@ public static partial class Look
     /// <summary>The model's own icons: the well-formed entries of <c>icons:</c> in model.yaml. The checks report the rest.</summary>
     public static Dictionary<string, string> CustomIcons(IReadOnlyDictionary<string, object?> meta)
     {
-        var result = new Dictionary<string, string>();
-        if (meta.TryGetValue("icons", out var icons) && icons is OrderedDictionary<string, object?> map)
-            foreach (var (name, d) in map)
+        if (!meta.TryGetValue("icons", out var icons) || icons is not OrderedDictionary<string, object?> map) return [];
+        // Checked once for as long as the model holds this map: every tile on the canvas asks, and each check includes a regular expression.
+        return s_customIcons.GetValue(map, m =>
+        {
+            var result = new Dictionary<string, string>();
+            foreach (var (name, d) in m)
                 if (IconProblem(name, d) is null) result[name] = (string)d!;
-        return result;
+            return result;
+        });
     }
+
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<OrderedDictionary<string, object?>, Dictionary<string, string>> s_customIcons = new();
 
     /// <summary>Whether an icon name is a built-in or one the model defines.</summary>
     public static bool IsKnownIcon(IReadOnlyDictionary<string, object?> meta, string? name) =>

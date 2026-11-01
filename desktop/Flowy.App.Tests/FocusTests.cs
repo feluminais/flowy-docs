@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
+using Avalonia.Interactivity;
 using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Threading;
@@ -99,6 +100,77 @@ public class FocusTests
         name.Text = "Orders";
         reader.Focus(NavigationMethod.Pointer); // a click on the diagram
         await EditModeTests.Until(() => FileText(dir).Contains("name: Orders"));
+    }
+
+    [AvaloniaFact]
+    public async Task A_press_on_the_diagram_saves_a_field_with_the_caret_in_it_and_takes_the_keyboard_out()
+    {
+        var (temp, dir, window, reader) = OpenEditing("api");
+        using var _ = temp;
+        var name = reader.Panel.CurrentObjectEditor!.NameField;
+        name.Box.Focus(NavigationMethod.Pointer);
+        name.Text = "Orders";
+        var blank = new Point(120, 700); // the diagram, away from every shape and from the panel
+        window.MouseDown(blank, MouseButton.Left);
+        window.MouseUp(blank, MouseButton.Left);
+        Assert.False(name.Box.IsFocused);
+        await EditModeTests.Until(() => FileText(dir).Contains("name: Orders", StringComparison.Ordinal));
+    }
+
+    [AvaloniaFact]
+    public void The_keyboard_stays_on_the_player_button_it_was_on_when_the_card_is_built_again()
+    {
+        var (window, reader) = OpenPlum();
+        reader.OpenFlowById("deliver-order");
+        EditModeTests.Settle(window);
+        Button Next() => reader.Card.Laid().GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == "Next");
+        var before = Next();
+        Assert.True(before.Focus(NavigationMethod.Tab));
+        before.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent)); // a step: the card is made again
+        EditModeTests.Settle(window);
+        var after = Next();
+        Assert.NotSame(before, after);
+        Assert.Same(after, Focused(window));
+    }
+
+    [AvaloniaFact]
+    public void The_keyboard_stays_on_a_folder_of_the_flows_list_when_it_folds()
+    {
+        var (window, reader) = OpenPlum();
+        reader.ClickRail(PanelTab.Flows);
+        EditModeTests.Settle(window);
+        var flows = reader.Navigator.Flows;
+        Button Folder() => flows.GetVisualDescendants().OfType<Button>().First(b => b.Tag is string tag && tag.StartsWith("folder:", StringComparison.Ordinal));
+        var folder = Folder();
+        var tag = (string)folder.Tag!;
+        Assert.True(folder.Focus(NavigationMethod.Tab));
+        folder.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        EditModeTests.Settle(window);
+        Assert.Same(flows.GetVisualDescendants().OfType<Button>().First(b => b.Tag as string == tag), Focused(window));
+    }
+
+    [AvaloniaFact]
+    public void Ctrl_K_with_search_open_keeps_the_query_and_selects_it()
+    {
+        var (window, reader) = OpenPlum();
+        reader.OpenSearch("refund");
+        var box = reader.SearchNow;
+        EditModeTests.Settle(window);
+        reader.OpenSearch();
+        Assert.Same(box, reader.SearchNow);
+        Assert.Equal("refund", box!.Query);
+    }
+
+    [AvaloniaFact]
+    public void The_tab_cue_of_a_box_is_not_the_selected_look()
+    {
+        var (window, reader) = OpenPlum();
+        EditModeTests.Settle(window);
+        var box = reader.Canvas.GetVisualDescendants().OfType<Flowy.App.Canvas.BoxControl>().First(b => b.IsVisible);
+        Assert.True(box.Focus(NavigationMethod.Tab));
+        var outline = box.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Path>().First(p => p.Classes.Contains("outline"));
+        Assert.NotNull(outline.StrokeDashArray); // dashed, where a picked box is solid
+        Assert.NotEmpty(outline.StrokeDashArray!);
     }
 
     [AvaloniaFact]

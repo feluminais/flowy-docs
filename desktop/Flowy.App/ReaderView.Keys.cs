@@ -26,8 +26,20 @@ internal sealed partial class ReaderView
         _perfPanel.PressedOutside(e.Source);
         _nav.RunLinks.PressedOutside(e.Source);
         _panels.NavUsed = inside;
-        if (!inside && InNavigator(TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement())) Focus();
+        var focused = TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement();
+        if (!inside && FieldLeft(focused, e.Source))
+        {
+            // A caret left in a field would survive a click on the diagram, and the next pick would swap the form under the typing. The press
+            // saves the field first: Focus() below is code, and a field saves only when the reader moves on.
+            if (focused is Visual typing && typing.FindAncestorOfType<FieldBox>() is { } box) _ = box.Commit();
+            Focus();
+        }
+        else if (!inside && InNavigator(focused)) Focus();
     }
+
+    /// <summary>The press landed outside <paramref name="focused"/>, a text box, and not in another text box (which takes the keyboard itself).</summary>
+    private static bool FieldLeft(IInputElement? focused, object? source) =>
+        focused is TextBox field && source is Visual v && !ReferenceEquals(v, field) && !v.GetVisualAncestors().Contains(field) && v.FindAncestorOfType<TextBox>(true) is null;
 
     /// <summary>What the keys' conditions ask about, as the reader is now. <paramref name="inNavigator"/>: the press came from inside the navigator.</summary>
     private KeyState KeyStateNow(bool inNavigator) => new(

@@ -15,7 +15,7 @@ namespace Flowy.App;
 internal sealed class TopBar : Border
 {
     private readonly StackPanel _draftMark = new() { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center }; // inside a draft: the model it belongs to, and Draft; in the bar only there
-    private StackPanel? _left;
+    private Grid? _left;
     private readonly Button _ownerButton = new() { Classes = { "crumb" } };
     private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
     private readonly ComboBox _linePicker = new();
@@ -137,13 +137,18 @@ internal sealed class TopBar : Border
         ToolTip.SetTip(_ownerButton, "Back to the model");
         _draftMark.Children.Add(_ownerButton);
         _draftMark.Children.Add(DraftChip());
-        var left = _left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { _modelPicker, _crumbs, _editTools } };
+        // The left side gets the room the buttons on the right leave, and the crumbs are cut at its edge: a deep or long-named level must not run under Search and Edit.
+        _modelPicker.MaxWidth = 220;
+        _modelPicker.Margin = new Thickness(0, 0, 2, 0);
+        _draftMark.Margin = new Thickness(0, 0, 2, 0);
+        Grid.SetColumn(_draftMark, 1);
+        var crumbs = new Border { Child = _crumbs, ClipToBounds = true, Margin = new Thickness(0, 0, 2, 0) };
+        Grid.SetColumn(crumbs, 2);
+        Grid.SetColumn(_editTools, 3);
+        var left = _left = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], VerticalAlignment = VerticalAlignment.Center, ClipToBounds = true, Children = { _modelPicker, crumbs, _editTools } };
         var right = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, HorizontalAlignment = HorizontalAlignment.Right, Children = { _problemsButton, _linePicker, _searchButton, _helpButton, _editButton } };
-        var dock = new DockPanel { LastChildFill = false };
-        DockPanel.SetDock(right, Dock.Right);
-        dock.Children.Add(right);
-        dock.Children.Add(left);
-        return dock;
+        Grid.SetColumn(right, 1);
+        return new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { left, right } };
     }
 
     /// <summary>The chip that says this is a draft: its icon and the word Draft, in the accent, inside a dashed outline.</summary>
@@ -165,8 +170,8 @@ internal sealed class TopBar : Border
     {
         _left!.Children.Remove(_draftMark);
         if (modelName is null) return;
-        _left.Children.Insert(_left.Children.IndexOf(_crumbs), _draftMark);
-        _ownerButton.Content = new TextBlock { Text = modelName, VerticalAlignment = VerticalAlignment.Center };
+        _left.Children.Add(_draftMark);
+        _ownerButton.Content = new TextBlock { Text = modelName, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 200 };
         AutomationProperties.SetName(_ownerButton, modelName);
     }
 
@@ -199,9 +204,10 @@ internal sealed class TopBar : Border
             // The overview, where it all starts, is a house; the boxes zoomed into after it are only their names.
             var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 7 };
             if (first) label.Children.Add(Pushed(Icons.Make(Icons.Home, "crumbicon", 16)));
-            label.Children.Add(new TextBlock { Text = Views.NameOf(model, id), VerticalAlignment = VerticalAlignment.Center });
+            label.Children.Add(new TextBlock { Text = Views.NameOf(model, id), VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 240 });
             var crumb = new Button { Content = label, IsEnabled = id != view };
             Avalonia.Automation.AutomationProperties.SetName(crumb, Views.NameOf(model, id));
+            ToolTip.SetTip(crumb, Views.NameOf(model, id)); // a long name is cut in the bar
             crumb.Classes.Add("crumb");
             var target = id;
             crumb.Click += (_, _) => CrumbClicked?.Invoke(target);

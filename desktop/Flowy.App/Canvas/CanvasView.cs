@@ -384,7 +384,10 @@ internal sealed class CanvasView : Border
     {
         if (_boxes.Count > 0)
         {
+            // A box that has the keyboard is about to be hidden: the reader gets it, so the keys still work on the level that opens.
+            var held = KeyboardFocus.Held(this) is Visual focused && _boxes.Values.Any(box => ReferenceEquals(box, focused) || box.IsVisualAncestorOf(focused));
             foreach (var box in _boxes.Values) Park(box);
+            if (held && this.FindAncestorOfType<ReaderView>() is { } reader) KeyboardFocus.HandBack(reader);
             _kept.RemoveAll(k => k.Key == _boxesKey);
             _kept.Insert(0, (_boxesKey, _boxes));
         }
