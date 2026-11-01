@@ -155,7 +155,7 @@ const scenes = {
         await s.key('l'); await s.wait(500)
         await s.click(`::-p-text(${name})`, 700); await s.park(); await s.wait(300)
         await s.key('l'); await s.wait(1200)
-        await s.click('::-p-text(Autoplay)', 700); await s.park() // the flow steps itself from here
+        await s.click('::-p-text(Play)', 700); await s.park() // the flow steps itself from here
         await s.page.waitForFunction(t => document.body.innerText.includes(t), { timeout: 90000 }, `Step ${last} of ${last}`)
         await s.wait(2200)
       }

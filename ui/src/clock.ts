@@ -2,6 +2,9 @@
 export const SPEEDS = [0.5, 1, 2] as const
 export type Speed = (typeof SPEEDS)[number]
 
+/** The speed after `speed`, round to the first after the last (the S key). */
+export const nextOf = (speed: Speed): Speed => SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length]
+
 /** A wait of `after`: how much running time it still needs, and the timer standing in for it while the clock runs. */
 type Wait = { left: number; fn: () => void; timer?: ReturnType<typeof setTimeout>; armed: number }
 

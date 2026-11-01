@@ -19,6 +19,10 @@ internal interface IFlowKeys
 
     void TogglePlay();
 
+    void NextSpeed();
+
+    void Nudge(int by);
+
     void Replay();
 
     /// <summary>Fits the whole flow's view in the canvas, as F does.</summary>
@@ -184,6 +188,10 @@ internal sealed class ComparePane : Border, IFlowKeys
     public void Last() => _flow.Last();
 
     public void TogglePlay() => _flow.TogglePlay();
+
+    public void NextSpeed() => _flow.NextSpeed();
+
+    public void Nudge(int by) => _flow.Nudge(by);
 
     public void Replay() => _flow.Replay();
 

@@ -363,6 +363,18 @@ internal sealed class SwapStage : Border, IFlowKeys
         Current.TogglePlay();
     }
 
+    public void NextSpeed()
+    {
+        Settle();
+        Current.NextSpeed();
+    }
+
+    public void Nudge(int by)
+    {
+        Settle();
+        Current.Nudge(by);
+    }
+
     public void Replay()
     {
         Settle();

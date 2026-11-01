@@ -107,6 +107,8 @@ internal interface IKeyActions
     void FlowFirst();
     void FlowLast();
     void FlowPlay();
+    void FlowSpeed();
+    void FlowNudge(int by);
     void FlowReplay();
 
     /// <summary>Opens the box in focus (or the one whose panel is open). False when there is none.</summary>
@@ -181,7 +183,11 @@ internal static class KeyMap
         // The keys of a flow apply while one is playing, and while two are compared (they act on the pane last clicked). Two runs have no steps: their comparison takes the keys of the Performance panel.
         Do("flow-step", "→  ←", (p, s) => FlowKeys(s) && p.Arrow, (p, _, a) => a.FlowStep(p.By), Flows("Next and previous step")),
         Do("flow-ends", "Home  End", (p, s) => FlowKeys(s) && p.Key is Key.Home or Key.End, (p, _, a) => { if (p.Key == Key.Home) a.FlowFirst(); else a.FlowLast(); }, Flows("First and last step")),
-        Do("flow-play", "P", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Step through the flow on its own, or pause")),
+        Do("flow-play", "P", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Play or pause")),
+        Do("flow-speed", "S", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.S), (_, _, a) => a.FlowSpeed(), Flows("Speed")),
+        // Comma is a moment back and full stop a moment on, by where the key is (any layout). Held down, it goes on.
+        Do("flow-nudge", ",  .", (p, s) => FlowKeys(s) && p.Plain && p.Physical is PhysicalKey.Comma or PhysicalKey.Period, (p, _, a) => a.FlowNudge(p.Physical == PhysicalKey.Comma ? -1 : 1),
+            Flows("A moment back or on, while paused")),
         Do("flow-replay", "R", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.R), (_, _, a) => a.FlowReplay(), Flows("Replay the step")),
         // In edit mode the key is still taken, to say why it does nothing there. With the Performance panel open it is for the run on show.
         Do("compare", "C", (p, s) => p.Tap(PhysicalKey.C) && (s.Flow || s.Compare || s.Editing || s.PerfOpen), (_, _, a) => a.ToggleCompare(), Flows("Compare with another flow, or close the comparison")),
@@ -277,7 +283,7 @@ internal static class KeyMap
     private static readonly IReadOnlyDictionary<HelpGroup, (string Id, string Keys, string What)[]> Order = new Dictionary<HelpGroup, (string, string, string)[]>
     {
         [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("yaml"), R("perf"), R("failures"), R("shortcuts")],
-        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
+        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-speed"), R("flow-nudge"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
         [HelpGroup.Performance] = [R("perf-step"), R("perf-ends"), R("perf-ramp"), R("escape")],
         [HelpGroup.Failures] = [R("failure-step")],
         [HelpGroup.Editing] =

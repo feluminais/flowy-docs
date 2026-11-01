@@ -59,6 +59,10 @@ export type KeyActions = {
   stepFlow(by: 1 | -1): void
   flowEnd(end: 'first' | 'last'): void
   play(): void
+  /** The next speed, round to the first after the last. */
+  nextSpeed(): void
+  /** A moment back (-1) or on (1), while paused. */
+  nudge(by: 1 | -1): void
   replay(): void
   /** Opens the box in focus (or the one whose panel is open). False when there is none. */
   enter(): boolean
@@ -91,7 +95,7 @@ export type HelpGroupId = 'reading' | 'flows' | 'performance' | 'failures' | 'ed
 type Help = { keys?: string; text: string } // `keys` is the entry's own when left out
 
 export type KeyId =
-  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-replay' | 'compare' | 'swap'
+  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-speed' | 'flow-nudge' | 'flow-replay' | 'compare' | 'swap'
   | 'enter' | 'shortcuts' | 'search' | 'fit' | 'flows' | 'explorer' | 'yaml' | 'perf' | 'failures' | 'edit' | 'add' | 'delete' | 'select-all' | 'redo' | 'undo' | 'up'
 
 export type Entry = {
@@ -112,6 +116,8 @@ const home = (c: KeyContext) => c.e.key === 'Home' || c.e.key === 'End'
 const end = (c: KeyContext): 'first' | 'last' => (c.e.key === 'Home' ? 'first' : 'last')
 /** The keys of a flow apply: one is playing, or two are compared. Two runs have no steps: their comparison takes the keys of the Performance tab. */
 const flowKeys = (c: KeyContext) => c.s.flow || (c.s.compare && !c.s.runCompare)
+/** Comma is a moment back and full stop a moment on, by where the key is (any layout). */
+const nudgeBy = (c: KeyContext): 1 | -1 | undefined => (c.e.code === 'Comma' ? -1 : c.e.code === 'Period' ? 1 : undefined)
 /** A plain press of the letter that is not a key held down. */
 const tap = (c: KeyContext, l: string) => c.key === l && c.plain && !c.e.repeat
 
@@ -185,7 +191,19 @@ export const KEYMAP: readonly Entry[] = [
     id: 'flow-play', keys: 'P',
     when: c => flowKeys(c) && tap(c, 'p'),
     run: c => c.act.play(),
-    help: { flows: { text: 'Step through the flow on its own, or pause' } },
+    help: { flows: { text: 'Play or pause' } },
+  },
+  {
+    id: 'flow-speed', keys: 'S',
+    when: c => flowKeys(c) && tap(c, 's'),
+    run: c => c.act.nextSpeed(),
+    help: { flows: { text: 'Speed' } },
+  },
+  {
+    id: 'flow-nudge', keys: ',  .',
+    when: c => flowKeys(c) && c.plain && (nudgeBy(c) !== undefined),
+    run: c => c.act.nudge(nudgeBy(c)!),
+    help: { flows: { text: 'A moment back or on, while paused' } },
   },
   {
     id: 'flow-replay', keys: 'R',
@@ -331,7 +349,7 @@ export const HELP_GROUPS: { id: HelpGroupId; title: string }[] = [
 /** The order of each group's rows. A row that is not a key (a click, a drag) is written out here. */
 const HELP_ORDER: Record<HelpGroupId, (KeyId | [string, string])[]> = {
   reading: ['enter', 'escape', 'up', 'search', 'fit', 'flows', 'explorer', 'yaml', 'perf', 'failures', ['↑  ↓  Enter', 'In the model picker: move, then open'], 'shortcuts'],
-  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-replay', 'compare', 'swap', 'escape'],
+  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-speed', 'flow-nudge', 'flow-replay', 'compare', 'swap', 'escape'],
   performance: ['perf-step', 'perf-ends', 'perf-ramp', 'escape'],
   failures: ['failure-step'],
   editing: [

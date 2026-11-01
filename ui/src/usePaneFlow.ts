@@ -8,6 +8,7 @@ import { nameOf } from '../../src/core/views.ts'
 import { focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { labelSpots } from './Line.tsx'
+import { nextOf } from './clock.ts'
 import { usePlayback, usePlayer } from './usePlayer.ts'
 import { useFlowStage } from './useFlowStage.ts'
 
@@ -61,6 +62,8 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
     step: (by: 1 | -1) => stepTo(stopIndex + by),
     end: (which: 'first' | 'last') => stepTo(which === 'first' ? 0 : stops.length - 1),
     play: togglePlay,
+    nextSpeed: () => setSpeed(nextOf(speed)),
+    nudge,
     replay,
   }
   return { ...stage, flow, view, playing, setPlaying, replay, clock, repeat, toggleRepeat, finished, stepTo, togglePlay, showsPause, nudge, scrub, speed, setSpeed, graph, marksHere, nodes, frame, edges, spots, setHovered, onNodesChange, keys }
