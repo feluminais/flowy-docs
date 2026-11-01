@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { ReactFlow } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
@@ -39,6 +39,8 @@ import { Shortcuts } from './Shortcuts.tsx'
 import { useLatest } from './stable.ts'
 import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
+import { ErrorBoundary } from './ErrorBoundary.tsx'
+import { FocusBack } from './focusback.ts'
 import { useCssClock } from './cssClock.ts'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
@@ -80,13 +82,27 @@ const NO_LINES: LineTraffic[] = [] // and no traffic, so the Performance panel's
 const edgeTypes = { line: Line }
 
 export function App() {
-  const { loaded, banner, edit, undo, redo, restore, tag, history, changes, live } = useModel()
+  const { loaded, banner, edit, undo, redo, restore, tag, history, changes, live, reload } = useModel()
   return (
     <div className="app">
-      {banner && <div className="banner" role="alert">{banner}</div>}
-      {loaded && <Reader {...loaded} edit={edit} undo={undo} redo={redo} restore={restore} tag={tag} historyApi={history} changes={changes} live={live} readOnly={!live || banner !== undefined} broken={banner !== undefined} />}
+      {banner && (
+        <div className="banner" role="alert">
+          {banner}
+          {!loaded && <button type="button" onClick={reload}>Try again</button>}
+        </div>
+      )}
+      {loaded
+        ? <ErrorBoundary><Reader {...loaded} edit={edit} undo={undo} redo={redo} restore={restore} tag={tag} historyApi={history} changes={changes} live={live} readOnly={!live || banner !== undefined} broken={banner !== undefined} /></ErrorBoundary>
+        : banner === undefined && <p className="muted loading" role="status">Loading</p>}
     </div>
   )
+}
+
+/** Esc answers a prompt with its safe choice. The press is the prompt's, not the page's behind it. */
+const leaveOnEsc = (e: ReactKeyboardEvent, keep: () => void) => {
+  if (e.key !== 'Escape') return
+  e.stopPropagation()
+  keep()
 }
 
 type Back = () => Promise<string | undefined>
@@ -299,7 +315,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       <div className="stage">
         <NavRail tab={nav} flows={totals.flows} shapes={totals.shapes}
           perf={{ runs: Object.keys(runs).length }} failures={{ count: modeCount(model) }} onPick={toggleTab} />
-        <main ref={canvas} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
+        <main ref={canvas} tabIndex={-1} onPointerDownCapture={pressBox} className={['canvas', editing && 'editing', nav && 'nav', loadTraffic && 'loaded', failuresOpen && 'failing', ((flow && usesStates(flow)) || timeEvents) && 'states', scrubbing && 'scrubbing', motion && `${motion.phase}-${motion.dir}`].filter(Boolean).join(' ')}
           style={{ '--nav-w': `${navWidth}px`, '--panel-w': `${detailsWidth}px`, ...(motion && { '--ox': `${motion.x}px`, '--oy': `${motion.y}px`, '--dx': `${motion.dx}%`, '--dy': `${motion.dy}%` }) } as CSSProperties}>
           {comparing ? (
             <CompareView ref={compareRef} model={model} runs={runs} view={view} compare={comparing} problems={problems} colorMode={colorMode} lines={lines} still={still} shown={side} nav={nav !== undefined} details={detailsOpen && side !== undefined} start={compareStart}
@@ -378,14 +394,16 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           )}
           {shortcuts && <Shortcuts editable={live && !readOnly} performance={canPerf} failures onClose={() => setShortcuts(false)} />}
           {asking && (
-            <div className="draft-ask" role="alertdialog" aria-label="Discard the note?">
+            <div className="draft-ask" role="alertdialog" aria-label="Discard the note?" onKeyDown={e => leaveOnEsc(e, () => setAsking(undefined))}>
+              <FocusBack fallback={() => canvas.current} />
               <span>Discard the note?</span>
               <button title="Throw the note away" onClick={discardNote}>Discard</button>
               <button className="primary" autoFocus title="Keep the note (Esc)" onClick={() => setAsking(undefined)}>Keep</button>
             </div>
           )}
           {dropping && (
-            <div className="draft-ask" role="alertdialog" aria-label="Remove the link and its note?">
+            <div className="draft-ask" role="alertdialog" aria-label="Remove the link and its note?" onKeyDown={e => leaveOnEsc(e, () => setDropping(undefined))}>
+              <FocusBack fallback={() => canvas.current} />
               <span>Remove the link and its note?</span>
               <button title="Take away the link and the note it holds" onClick={() => {
                 writeLink(dropping.id, dropping.other)

@@ -1,7 +1,9 @@
+import { useRef } from 'react'
 import type { ReactNode } from 'react'
 import { Section } from './Chrome.tsx'
 import { Activity, Bolt, Close, Pencil, Play, Search, Trash } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
+import { trapTab, useFocusBack } from './focusback.ts'
 import { helpRows, HELP_GROUPS } from './keymap.ts'
 import type { HelpGroupId } from './keymap.ts'
 
@@ -21,9 +23,11 @@ function Group({ icon, group }: { icon: (props?: IconProps) => ReactNode; group:
 
 /** What ? opens, read from the key map (keymap.ts). The editing keys only show where the page can edit. */
 export function Shortcuts({ editable, performance, failures, onClose }: { editable: boolean; performance: boolean; failures: boolean; onClose: () => void }) {
+  const box = useRef<HTMLElement>(null)
+  useFocusBack(() => document.querySelector('[data-shortcuts-toggle]'))
   return (
-    <section className="shortcuts" role="dialog" aria-label="Keyboard shortcuts">
-      <button className="close" aria-label="Close" onClick={onClose}><Close size={16} /></button>
+    <section className="shortcuts" role="dialog" aria-label="Keyboard shortcuts" ref={box} onKeyDown={e => trapTab(e, box.current)}>
+      <button className="close" aria-label="Close" autoFocus onClick={onClose}><Close size={16} /></button>
       <h2>Keyboard shortcuts</h2>
       <Group icon={Search} group="reading" />
       <Group icon={Play} group="flows" />

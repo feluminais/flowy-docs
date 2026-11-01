@@ -20,8 +20,9 @@ export function keepsKeys(target: { tagName?: string; type?: string; isContentEd
   return tag === 'input' && TEXT_TYPES.has(target?.type ?? 'text')
 }
 
-/** Enter belongs to a focused button, link or disclosure summary, not to the canvas behind it. */
-export const takesEnter = (target: { closest?: (selector: string) => unknown } | null): boolean => Boolean(target?.closest?.('button, a, summary'))
+/** Enter belongs to a focused button, link, disclosure summary, list, slider, tab strip or scrolling region, not to the canvas behind it. */
+const ENTER_TAKERS = 'button, a, summary, [role=listbox], [role=slider], [role=tablist], [role=region][tabindex], input[type=range]'
+export const takesEnter = (target: { closest?: (selector: string) => unknown } | null): boolean => Boolean(target?.closest?.(ENTER_TAKERS))
 
 /**
  * Whether Esc or Backspace should take back the box that was just dragged, rather than close or go up. Someone who has moved a box and got

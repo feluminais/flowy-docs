@@ -5,6 +5,7 @@ import type { Run } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { choicesFor, openable, playable } from './compare.ts'
 import type { Choice } from './compare.ts'
+import { useFocusBack, trapTab } from './focusback.ts'
 import { Link, Search as SearchIcon } from './icons.tsx'
 
 const NO_RUNS: Record<string, Run> = {} // the same object every time, so the choices are not worked out again for it
@@ -42,6 +43,9 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
   const q = query.trim().toLowerCase()
   // Closing by Esc or by picking hands the focus back to the Compare button; a press elsewhere has put it somewhere else on purpose.
   const giveBack = () => document.querySelector<HTMLElement>(`[${toggle}]`)?.focus()
+  useFocusBack(() => document.querySelector(`[${toggle}]`)) // and by any other way it closes, if the focus went down with it
+  const typed = useRef('')
+  typed.current = query
   const found = q === '' ? others : others.filter(c => c.name.toLowerCase().includes(q) || c.id.includes(q))
   // The arrow keys move over the rows that can be picked, linked ones first; Enter picks the one they are on. Typing puts them back on the first.
   const rows = [...linked, ...found]
@@ -53,7 +57,7 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
       if (pickable(rows[next])) return setCursor(next)
     }
   }
-  // Esc is this popover's while it is open, ahead of the keys of the page; a press outside it closes it (the Compare button toggles it itself).
+  // Esc is this popover's while it is open, ahead of the keys of the page: it clears what was typed, then closes. A press outside it closes it (the Compare button toggles it itself).
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
       if (e.target instanceof Element && !box.current?.contains(e.target) && e.target.closest(`[${toggle}]`) === null) onClose()
@@ -61,6 +65,7 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       e.stopPropagation()
+      if (typed.current !== '') return setQuery('')
       giveBack()
       onClose()
     }
@@ -96,7 +101,7 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
     )
   }
   const popover = (
-    <div className={at ? 'cpick pop' : kind === 'run' ? 'cpick down' : 'cpick'} ref={box} role="dialog" aria-label={label}
+    <div className={at ? 'cpick pop' : kind === 'run' ? 'cpick down' : 'cpick'} ref={box} role="dialog" aria-label={label} onKeyDown={e => trapTab(e, box.current)}
       style={at && { left: at.left, width: at.width, top: at.top ?? 'auto', bottom: at.bottom ?? 'auto' }}>
       {linked.length > 0 && <ul>{linked.map(c => row(c, true))}</ul>}
       <label className="cpick-find">
@@ -111,7 +116,10 @@ export function ComparePicker({ model, runs = NO_RUNS, kind = 'flow', id: flowId
               move(e.key === 'ArrowDown' ? 1 : -1)
               e.preventDefault()
             } else if (e.key === 'Enter') {
-              if (rows[onRow]) onPick(rows[onRow].id)
+              if (rows[onRow]) {
+                giveBack()
+                onPick(rows[onRow].id)
+              }
               e.preventDefault()
             }
           }} />
