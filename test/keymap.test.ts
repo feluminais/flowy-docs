@@ -175,6 +175,21 @@ test('a flow playing takes the arrows, Home, End, P and R', () => {
   assert.deepEqual(reach(press('r'), flow).calls, ['replay'])
 })
 
+test('a flow playing takes S for the speed, and comma and full stop for a moment back or on', () => {
+  const flow = { flow: true }
+  assert.equal(idOf(press('s'), flow), 'flow-speed')
+  assert.equal(idOf(press('ы', { code: 'KeyS' }), flow), 'flow-speed', 'a Cyrillic layout')
+  assert.equal(idOf(press(',', { code: 'Comma' }), flow), 'flow-nudge')
+  assert.equal(idOf(press('.', { code: 'Period' }), flow), 'flow-nudge')
+  assert.equal(idOf(press('s')), undefined, 'no flow, no S')
+  assert.equal(idOf(press(',', { code: 'Comma' })), undefined)
+  assert.equal(idOf(press('s', { ctrlKey: true }), flow), undefined)
+  assert.deepEqual(reach(press('s'), flow).calls, ['nextSpeed'])
+  assert.deepEqual(reach(press(',', { code: 'Comma' }), flow).calls, ['nudge(-1)'])
+  assert.deepEqual(reach(press('.', { code: 'Period' }), flow).calls, ['nudge(1)'])
+  assert.deepEqual(reach(press('s'), { compare: true }).calls, ['nextSpeed'], 'side by side, the pane last clicked')
+})
+
 test('C compares the flow playing, or closes the comparison, and is taken in edit mode to say why it does nothing', () => {
   assert.equal(idOf(press('c')), undefined, 'no flow, no comparison')
   assert.equal(idOf(press('c'), { flow: true }), 'compare')
@@ -334,7 +349,9 @@ test('the shortcut list says what it said before the table was built from the ke
   assert.deepEqual(rows.flows, [
     ['→  ←', 'Next and previous step'],
     ['Home  End', 'First and last step'],
-    ['P', 'Step through the flow on its own, or pause'],
+    ['P', 'Play or pause'],
+    ['S', 'Speed'],
+    [',  .', 'A moment back or on, while paused'],
     ['R', 'Replay the step'],
     ['C', 'Compare with another flow, or close the comparison'],
     ['X', 'Swap to the other flow of a comparison'],

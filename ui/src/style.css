@@ -385,7 +385,11 @@ svg { flex: none; }
 .player .player-outcome.channel { color: var(--accent); }
 .player-outcome::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .player-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.player-buttons button:last-child { margin-left: auto; }
+.player-buttons > button:last-child { margin-left: auto; }
+.player-buttons .speed { display: flex; gap: 2px; margin-left: auto; }
+.player-buttons .speed + button:last-child { margin-left: 0; }
+.player-buttons .speed button { padding-inline: 7px; font-variant-numeric: tabular-nums; }
+.player-buttons .speed button[aria-pressed='true'] { color: var(--fg); font-weight: 600; } /* the accent on the tint is too faint for text */
 /* How far a flow has got: a cell a stop, filled up to the one shown. A repeat or parallel group is a box with the line that says what it is at its foot, and a box that may stop early is dashed. A branch is a fork (below). */
 .progress { display: flex; align-items: flex-start; gap: 3px; margin: 8px 0; }
 .progress .stretch { display: grid; min-width: 0; }
@@ -395,6 +399,9 @@ svg { flex: none; }
 .progress .cell { position: relative; height: 4px; border-radius: 2px; background: var(--line); }
 .progress .cell::after { content: ''; position: absolute; inset: -1px 0; } /* a strip four pixels high is hard to point at: its hover text comes from a taller one */
 .progress .cell.done { background: var(--accent); }
+.progress .cell.now { background: linear-gradient(to right, var(--accent) calc(var(--fill, 1) * 100%), var(--line) 0); }
+.progress[role='slider'] { cursor: pointer; touch-action: none; border-radius: 3px; }
+.progress[role='slider']:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .progress .cell.off { box-sizing: border-box; background: none; border: 1px solid var(--line); }
 .progress .cell.off.done { border-color: var(--accent); }
 /* A branch: the bar's line splits with square corners into a row for each lane, its name over its strip, and meets again after. The way round an "only if" is a bare line.

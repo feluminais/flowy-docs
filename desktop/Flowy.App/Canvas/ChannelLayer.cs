@@ -145,7 +145,35 @@ internal sealed class ChannelLayer : Control
     /// <summary>The channels drawn now, in the order they were opened.</summary>
     internal IReadOnlyList<Shown> Marks => _items.Select(i => new Shown(i.Spec.Channel.Kind, i.Spec.Channel.Name, i.Spec.AtBox, i.Slot, i.Spec.Channel.Opening, i.Spec.Channel.Closing, i.Spec.AfterMs, i.Length)).ToList();
 
-    private static double Now() => Anim.Now();
+    private PlayerClock? _clock;
+
+    /// <summary>
+    /// The player's clock the marks keep time by: paused, they stand still and no frames are asked for; at a speed they run at it; and a jump (a seek, a drag) puts
+    /// the ones coming in or going at the stop on show at its moment. Null is the wall clock.
+    /// </summary>
+    internal PlayerClock? Clock
+    {
+        get => _clock;
+        set
+        {
+            if (_clock is not null) _clock.Changed -= OnClock;
+            _clock = value;
+            if (_clock is not null) _clock.Changed += OnClock;
+        }
+    }
+
+    private double Now() => _clock?.Now() ?? Anim.Now();
+
+    private void OnClock()
+    {
+        if (_clock is null || _items.Count == 0) return;
+        // What comes in or goes at this stop began with it: it stands at the stop's moment, wherever the clock was set to.
+        var began = _clock.Now() - _clock.Elapsed;
+        foreach (var item in _items)
+            if (item.Spec.Channel.Opening || item.Spec.Channel.Closing) _started[item.Spec.Key] = began;
+        if (!_clock.Paused) Start();
+        InvalidateVisual();
+    }
 
     /// <summary>The same shape of the same step is the same mark: it keeps its clock, so a redraw (a hover, a theme) does not bring it in again.</summary>
     internal static string KeyOf(Channel c) => $"{c.Kind}|{c.Step}|{c.Name}|{c.Opening}|{c.Closing}";
@@ -213,7 +241,7 @@ internal sealed class ChannelLayer : Control
             _running = false;
             return;
         }
-        if (_running || TopLevel.GetTopLevel(this) is not { } top) return;
+        if (_running || _clock is { Paused: true } || TopLevel.GetTopLevel(this) is not { } top) return;
         _frames.Watch(top, () =>
         {
             if (_items.Count > 0) Start();
@@ -229,6 +257,12 @@ internal sealed class ChannelLayer : Control
     private void Tick(TimeSpan _)
     {
         if (!_running) return;
+        if (_clock is { Paused: true })
+        {
+            _running = false; // the clock wakes it (see OnClock)
+            InvalidateVisual();
+            return;
+        }
         if (_frames.Minimised)
         {
             _running = false;

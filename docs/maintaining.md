@@ -354,8 +354,12 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
 - [ ] Open Order API and pick "Pricing a meal deal", then step to its second step: a pipe loops out of Pricing's side and back in, cards
       pile up under it, the counter on its corner goes `↻ 1`, `↻ 2`, `↻ 3` and back down, a flag lands where it stops, and `↻ 3 deep` is
       left when it ends. R plays it again from a clean start, and ← → in a hurry leave no card or counter on any box. With the system's
-      animation effects off only `↻ 3 deep` shows, and Autoplay (P) still moves on. The browser (`npx flowy-docs --dir docs/demo`, then
+      animation effects off only `↻ 3 deep` shows, and Play (P) still moves on. The browser (`npx flowy-docs --dir docs/demo`, then
       `#order-api/price-a-deal`) does the same. Light and dark both read.
+- [ ] Play "Customer places an order" and press P while a dot is on its way: it stops where it is, and P again carries it on from there.
+      Pause on "The customer follows the courier" while the live map comes in: it stays half drawn, and its dots stand still. Drag the bar
+      to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Pick 2×:
+      a step plays in about half the time, and the speed is still 2× after a reload (the browser) or for the next flow (the desktop app).
 - [ ] Open *Effects* (`#steps/effects`) and press P: the label of each of four steps runs from Effects · from to Effects · to, down a slope, doing what its word says. squish stretches
       along the line, bounce hops, pulse swells and settles, and wiggle rocks from side to side. Whatever it does, the pill stays level and whole: never sheared, one end up and
       one end down, and its words are never stretched. A step with no `effect` (Send with a word) keeps its shape. In the desktop app the same. The `effect` key is for fun

@@ -6,9 +6,9 @@ import { colorPair } from '../../src/core/look.ts'
 import type { Beat } from '../../src/core/animation.ts'
 import type { Rect } from './graph.ts'
 
-/** How long Autoplay rests after a step has finished moving, in ms. */
+/** How long Play rests after a step has finished moving, in ms. */
 export const GAP = 900
-/** How long Autoplay stays on a step that doesn't move, or when motion is reduced, in ms. */
+/** How long Play stays on a step that doesn't move, or when motion is reduced, in ms. */
 export const DWELL = 2200
 
 /** How long a step that moves rests between plays while you stay on it, in ms. */
@@ -44,6 +44,9 @@ export const cyclePeriod = (totals: Iterable<number>): number => Math.max(0, ...
 
 /** Whether a motion still needs a frame: until it has played through, and for as long as it repeats. A motion that is over holds its last frame. */
 export const keepsPlaying = (since: number, total: number, repeating: boolean): boolean => repeating || since < total
+
+/** The moment of a motion to draw, `elapsed` ms into its stop: with Repeat on it goes round every `period`, else it holds its last frame. */
+export const momentOf = (elapsed: number, total: number, repeating: boolean, period: number): number => (repeating ? elapsed % period : Math.min(elapsed, total))
 
 /** How far through a beat the moment `t` is: 0 before it, 1 after it. */
 export const progress = (b: Span, t: number): number => Math.min(1, Math.max(0, (t - b.at) / b.dur))

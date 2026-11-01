@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, cardBox, cardsAt, cyclePeriod, distance, ease, EFFECT, effectPose, entryPoint, keepsPlaying, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, REST, squish, STILL, tileSquash, tintColor, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, cardBox, cardsAt, cyclePeriod, distance, ease, EFFECT, effectPose, entryPoint, keepsPlaying, momentOf, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, REST, squish, STILL, tileSquash, tintColor, tubeOpacity } from '../ui/src/motion.ts'
 import { beatsFor, EFFECTS, TINTS } from '../src/core/animation.ts'
 import { COLORS } from '../src/core/look.ts'
 
@@ -243,4 +243,10 @@ test('with one box at both ends a squash on the first side is not wiped by the e
   assert.deepEqual(tileSquash(true, { from: 0.6, to: 0 }), { from: 0.6, to: 0 })
   assert.deepEqual(tileSquash(true, { from: 0.2, to: 0.5 }), { from: 0.5, to: 0 })
   assert.deepEqual(tileSquash(false, { from: 0.2, to: 0.5 }), { from: 0.2, to: 0.5 })
+})
+
+test('momentOf holds the end without Repeat and loops with it', () => {
+  assert.equal(momentOf(2500, 2000, false, 4500), 2000)
+  assert.equal(momentOf(1200, 2000, false, 4500), 1200)
+  assert.equal(momentOf(5000, 2000, true, 4500), 500)
 })
