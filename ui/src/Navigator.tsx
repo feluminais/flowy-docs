@@ -9,10 +9,13 @@ import { nameOf } from '../../src/core/views.ts'
 import { ObjectTile } from './Chrome.tsx'
 import type { PickAt } from './ComparePicker.tsx'
 import { Activity, Alert, ChevronRight, Close, Columns, FileCode, Folder, Home, Info, Link, Pencil, Play, Route, Workflow, Search as SearchIcon, Tag, Explorer as ExplorerIcon } from './icons.tsx'
+import { ErrorBoundary } from './ErrorBoundary.tsx'
+import { useFocusBack } from './focusback.ts'
 import { keyOf } from './keymap.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { MAX_WIDTH, MIN_WIDTH } from './navstate.ts'
 import type { NavTab } from './navstate.ts'
+import { Paged } from './Paging.tsx'
 import { scrollToRow, visibleRows } from './window.ts'
 
 const ROW = 30 // px: every row of the tree is this tall, which is what lets it be windowed
@@ -111,11 +114,17 @@ export function Sash({ side, width, onResize, onReset }: { side: 'nav' | 'detail
 
 /** The panel of the tabs on the left (Explorer, Flows, Performance, Failures and YAML). It has no scrolling of its own: each tab scrolls what it holds. */
 export function NavPanel({ tabs, onClose, children }: { tabs: ReactNode; onClose: () => void; children: ReactNode }) {
+  // Closed by Esc or the X, the focus goes back to the rail button that opened it: the one pressed while it is out, which is not by the time it closes.
+  const rail = useRef<Element | null>(null)
+  useEffect(() => {
+    rail.current = document.querySelector('nav.rail.left [aria-pressed="true"]')
+  }, [])
+  useFocusBack(() => rail.current)
   return (
     <aside className="panel navpanel" aria-label="Navigator">
       {tabs}
       <button className="close" aria-label="Close navigator" onClick={onClose}><Close size={16} /></button>
-      <div className="navbody">{children}</div>
+      <div className="navbody"><ErrorBoundary>{children}</ErrorBoundary></div>
     </aside>
   )
 }
@@ -182,7 +191,7 @@ function RowCompareButton({ flow, compare }: { flow: string; compare: RowCompare
  * The rows of the Flows list with each open folder's rows inside a group named for it, so a screen reader hears the nesting (a group in a group is a folder
  * in a folder) and not a flat run of buttons. The rows themselves are `list.rows`, in order, each with its depth; the groups only wrap them.
  */
-function nested(rows: FlowRow[], flow: (f: FlowRef, depth: number) => ReactNode, head: (folder: Extract<FlowRow, { kind: 'folder' }>) => ReactNode): ReactNode[] {
+function nested(rows: readonly FlowRow[], flow: (f: FlowRef, depth: number) => ReactNode, head: (folder: Extract<FlowRow, { kind: 'folder' }>) => ReactNode): ReactNode[] {
   const build = (from: number, depth: number): [ReactNode[], number] => {
     const out: ReactNode[] = []
     let at = from
@@ -302,14 +311,15 @@ export function FlowsTab({ model, editing, canEdit, current, compare, onOpen, on
           </div>
         )}
         {filtering && list.shown > 0 && <p className="muted navnote">{list.shown} of {plural(list.total, 'flow')}</p>}
-        {nested(list.rows, row, folder => (
+        {/* A page of rows at a time; the flow that is open is always among them */}
+        <Paged items={list.rows} reset={`${query} ${picked.join()}`} floor={list.rows.findIndex(r => r.kind === 'flow' && r.flow.id === current) + 1}>{shown => nested(shown, row, folder => (
           <button key={folder.key} className={classes('group-head', 'folder', marked(folder.path))} aria-expanded={folder.open} style={{ paddingLeft: 6 + INDENT * folder.depth }} onClick={() => toggleFolder(folder.path)} {...drop(folder.path)}>
             <ChevronRight size={14} />
             <Folder size={15} />
             <span className="name">{folder.name}</span>
             <span className="muted">{folder.flows}</span>
           </button>
-        ))}
+        ))}</Paged>
         {filtering && list.total > 0 && list.shown === 0 && <p className="muted navnote">{query.trim() !== '' ? `No flow matches “${query.trim()}”.` : 'No flow has these tags.'}</p>}
         {list.total === 0 && (editing
           ? <p className="muted navnote">No flows yet. New flow in the bar starts one.</p>

@@ -10,7 +10,7 @@ import { startServer } from '../src/node/server.ts'
 import { httpHistory } from '../ui/src/historyclient.ts'
 import { REDO_STALE, restoreIsStale, restoreVersion, saveEdit, UNDO_STALE } from '../ui/src/save.ts'
 import { httpTransport } from '../ui/src/transport.ts'
-import { entryAfterRestore, replay } from '../ui/src/undo.ts'
+import { entryAfterRestore, MAX_ENTRIES, pushCapped, replay } from '../ui/src/undo.ts'
 import type { Entry } from '../ui/src/undo.ts'
 
 /** A server with history over a folder that holds a shop, and what the page keeps for undo. */
@@ -115,4 +115,16 @@ test('a restore that changed nothing leaves nothing to undo, and neither does on
 
 test('only a step that is gone, or a file that changed, makes a restore stale', () => {
   assert.deepEqual([404, 409, 500, 503, undefined].map(restoreIsStale), [true, true, false, false, false])
+})
+
+test('a stack of undo entries keeps the newest hundred and drops the oldest', () => {
+  const entry = (n: number): Entry => ({ kind: 'restore', to: String(n), label: `edit ${n}`, seen: {} })
+  const stack: Entry[] = []
+  for (let n = 0; n < MAX_ENTRIES + 25; n++) pushCapped(stack, entry(n))
+  assert.equal(stack.length, MAX_ENTRIES)
+  assert.equal(stack[0].label, 'edit 25', 'the oldest 25 went')
+  assert.equal(stack[stack.length - 1].label, `edit ${MAX_ENTRIES + 24}`, 'the newest is on top')
+  const small: Entry[] = []
+  for (let n = 0; n < 5; n++) pushCapped(small, entry(n), 3)
+  assert.deepEqual(small.map(e => e.label), ['edit 2', 'edit 3', 'edit 4'])
 })
