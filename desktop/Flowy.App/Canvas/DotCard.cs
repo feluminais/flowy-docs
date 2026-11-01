@@ -1,6 +1,7 @@
 using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Flowy.Core;
@@ -30,5 +31,7 @@ internal sealed class DotCard : Border
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             Content = new StackPanel { Spacing = 8, Margin = new Avalonia.Thickness(0, 0, 12, 0), Children = { head, PayloadView.Body(shown, resource) } }, // room for the scroll bar
         };
+        // The wheel is the card's: scrolled to its end it does nothing, rather than zoom the canvas under it (which would close it).
+        AddHandler(PointerWheelChangedEvent, (_, e) => e.Handled = true);
     }
 }

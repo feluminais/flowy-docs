@@ -44,14 +44,14 @@ public class DotCardTests
           - { from: api, to: db, text: Saves it, animation: send }
         """;
 
-    private static (TempFolder Temp, Window Window, ReaderView Reader) Open(string source = Source)
+    private static (TempFolder Temp, Window Window, ReaderView Reader) Open(string source = Source, string flow = Flow)
     {
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
         var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
         Directory.CreateDirectory(Path.Combine(dir, "flows"));
         File.WriteAllText(Path.Combine(dir, "model.yaml"), source);
-        File.WriteAllText(Path.Combine(dir, "flows", "checkout.yaml"), Flow);
+        File.WriteAllText(Path.Combine(dir, "flows", "checkout.yaml"), flow);
         var reader = new ReaderView();
         var window = new Window { Width = 1200, Height = 800, Content = reader };
         window.Show();
@@ -249,6 +249,57 @@ public class DotCardTests
             Assert.True(card.Bounds.Width <= 380 && card.Bounds.Height <= 320, card.Bounds.ToString());
             var scroll = card.GetVisualDescendants().OfType<ScrollViewer>().First();
             Assert.True(scroll.Extent.Height > scroll.Viewport.Height);
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void Moved_to_another_dot_of_a_burst_the_card_goes_beside_it()
+    {
+        var (temp, _, reader) = Open(flow: Flow.Replace("animation: call, payload: order, reply: receipt", "animation: { kind: send, outcome: lost, share: 30 }, payload: order"));
+        using var _t = temp;
+        try
+        {
+            // A burst's dots leave one after another: pause once three are on their way.
+            reader.Play("checkout", 0);
+            Run(() => reader.Canvas.DrawnBeats.Count(b => b.Do == "blob") >= 3);
+            reader.Canvas.Clock.Pause();
+            Run(() => reader.Canvas.DotsOnScreen.Count >= 3, 2);
+            var dots = reader.Canvas.DotsOnScreen;
+            reader.Canvas.HoverDotAt(Middle(dots[0]));
+            Run(() => false, 0.05);
+            var first = reader.Canvas.DotCardNow!;
+            var at = (Avalonia.Controls.Canvas.GetLeft(first), Avalonia.Controls.Canvas.GetTop(first));
+            reader.Canvas.HoverDotAt(Middle(dots[^1]));
+            Run(() => false, 0.05);
+            var now = reader.Canvas.DotCardNow!;
+            Assert.NotEqual(at, (Avalonia.Controls.Canvas.GetLeft(now), Avalonia.Controls.Canvas.GetTop(now)));
+        }
+        finally
+        {
+            Finish();
+        }
+    }
+
+    [AvaloniaFact]
+    public void The_wheel_on_a_card_scrolled_to_its_end_leaves_the_canvas_alone()
+    {
+        var (temp, window, reader) = Open();
+        using var _t = temp;
+        try
+        {
+            PauseMidSend(reader);
+            reader.Canvas.HoverDotAt(Middle(reader.Canvas.DotsOnScreen[0]));
+            Run(() => false, 0.1);
+            var card = reader.Canvas.DotCardNow!;
+            var middle = card.TranslatePoint(new Point(card.Bounds.Width / 2, card.Bounds.Height / 2), window)!.Value;
+            window.MouseMove(middle);
+            window.MouseWheel(middle, new Vector(0, 1)); // up, at its top already
+            Run(() => false, 0.1);
+            Assert.Same(card, reader.Canvas.DotCardNow);
         }
         finally
         {
