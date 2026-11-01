@@ -360,6 +360,11 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       JSON example, then Receipt, whose tooltip names "Customer places an order, step 2 reply". Click Customer app: Basket sits closed under REST.
       Play "Customer places an order" to step 2: the card lists Basket (out) and Receipt (back), and the answer's dot says Receipt. Both readers
       show the same, light and dark.
+- [ ] In edit mode, click the line from Customer app to Order API: Payloads has a button for each of the six, Basket pressed. Press Order:
+      it is pressed, and its form sits under Basket's. Type Coupon in New payload, press Enter, write its About and leave the field: Coupon is
+      made and pressed. Open Basket's form and press Delete payload: it is refused, and the message names what still uses it. Open "Customer
+      places an order" for editing: step 2's Payload and Reply list Basket and Receipt first, and on step 1, a Send, Reply is greyed out with
+      its reason in the tooltip. Ctrl+Z takes each change back. Both readers do the same.
 - [ ] Play "Customer places an order" and press P while a dot is on its way: it stops where it is, and P again carries it on from there.
       Pause on "The customer follows the courier" while the live map comes in: it stays half drawn, and its dots stand still. Drag the bar
       to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Pick 2×:

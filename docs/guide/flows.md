@@ -12,7 +12,8 @@ payload described once under `payloads:` in model.yaml ([the file format](../for
 ```
 
 A `reply` goes on a `call`, a `callback` or a `recurse`, the steps where something comes back. A `payload` needs a `to`, except on a
-`recurse`, where the shape sends to itself. A line can list what it carries too, with `payloads:` on the connection.
+`recurse`, where the shape sends to itself. A line can list what it carries too, with `payloads:` on the connection. In edit mode
+both are buttons to press, in the step's form and in the line's panel ([Edit it](canvas.md#edit-it)).
 
 Keep a payload high level. An `Order` that holds dishes can name `Dish` and leave it at that. A long JSON schema or API shape is fine,
 up to 400 lines.
