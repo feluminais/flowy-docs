@@ -55,15 +55,15 @@
           <SolidColorBrush x:Key="ComponentTileBrush" Color="#d85a30" Opacity="0.18" />
           <SolidColorBrush x:Key="ExternalTileBrush" Color="#888780" Opacity="0.18" />
           <!-- The colours of code, as in ui/src/style.css (the tok colours). -->
-          <SolidColorBrush x:Key="TokCommentBrush" Color="#6e7781" />
-          <SolidColorBrush x:Key="TokKeywordBrush" Color="#cf222e" />
+          <SolidColorBrush x:Key="TokCommentBrush" Color="#57606a" />
+          <SolidColorBrush x:Key="TokKeywordBrush" Color="#a40e26" />
           <SolidColorBrush x:Key="TokStringBrush" Color="#0a3069" />
           <SolidColorBrush x:Key="TokNumberBrush" Color="#0550ae" />
           <SolidColorBrush x:Key="TokTypeBrush" Color="#953800" />
-          <SolidColorBrush x:Key="TokFunctionBrush" Color="#8250df" />
-          <SolidColorBrush x:Key="TokPropertyBrush" Color="#0e7490" />
+          <SolidColorBrush x:Key="TokFunctionBrush" Color="#6639ba" />
+          <SolidColorBrush x:Key="TokPropertyBrush" Color="#0b6178" />
           <SolidColorBrush x:Key="TokTagBrush" Color="#116329" />
-          <SolidColorBrush x:Key="TokMetaBrush" Color="#9a6700" />
+          <SolidColorBrush x:Key="TokMetaBrush" Color="#7d4e00" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="BgBrush" Color="#1c1917" />
@@ -115,7 +115,7 @@
           <SolidColorBrush x:Key="StoreTileBrush" Color="#ed93b1" Opacity="0.18" />
           <SolidColorBrush x:Key="ComponentTileBrush" Color="#f0997b" Opacity="0.18" />
           <SolidColorBrush x:Key="ExternalTileBrush" Color="#b4b2a9" Opacity="0.18" />
-          <SolidColorBrush x:Key="TokCommentBrush" Color="#8b949e" />
+          <SolidColorBrush x:Key="TokCommentBrush" Color="#959da5" />
           <SolidColorBrush x:Key="TokKeywordBrush" Color="#ff7b72" />
           <SolidColorBrush x:Key="TokStringBrush" Color="#a5d6ff" />
           <SolidColorBrush x:Key="TokNumberBrush" Color="#79c0ff" />

@@ -10,6 +10,16 @@ import type { DotAt } from './StepMotion.tsx'
 /** A dot of the paused moment and what it carries. */
 export type CarryingDot = { at: DotAt; shown: Shown; back: boolean }
 
+type Carried = { shown: Shown; back: boolean }
+
+/** The dots each moving step drew at the paused moment (by its index), each with what it carries: an answering dot the reply, any other the payload. Dots that carry nothing are left out. */
+export function carriedBy(animated: { i: number; sends?: Carried; reply?: Carried }[], dotsBy: Record<number, DotAt[]>): CarryingDot[] {
+  return animated.flatMap(m => (dotsBy[m.i] ?? []).flatMap(at => {
+    const p = at.tone === 'reply' ? m.reply : m.sends
+    return p ? [{ at, ...p }] : []
+  }))
+}
+
 /** How far round a dot the pointer still finds it, and how long the card waits for the pointer to come back before it goes. */
 const SLACK = 6
 const GRACE = 200

@@ -64,8 +64,7 @@ for (const theme of ['light', 'dark'] as const) {
     await ordering(page, theme)
     await page.locator('.react-flow__edge[data-id="customer-app order-api"]').click({ force: true })
     await rows(page).nth(1).locator('summary').click()
-    // The code's own colours are left out: the light theme's highlight colours are just under 4.5:1 on the code background in snippets too, a matter for the palette.
-    const result = await new AxeBuilder({ page }).include('.panel').exclude('.panel .code-block').analyze()
+    const result = await new AxeBuilder({ page }).include('.panel').analyze()
     const found = result.violations.filter(v => v.impact === 'serious' || v.impact === 'critical').map(v => `${v.id}: ${v.nodes[0]?.target.join(' ')}`)
     expect(found).toEqual([])
   })
