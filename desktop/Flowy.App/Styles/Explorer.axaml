@@ -12,7 +12,8 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="CornerRadius" Value="6" />
   </Style>
-  <Style Selector="ListBox.treelist:focus-within ListBoxItem:selected:not(.canvas) /template/ ContentPresenter">
+  <!-- The keyboard ring: only while keys drive the tree (.keys, ExplorerView), never after a click. -->
+  <Style Selector="ListBox.treelist.keys:focus-within ListBoxItem:selected:not(.canvas) /template/ ContentPresenter">
     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
     <Setter Property="BorderThickness" Value="2" />
   </Style>
