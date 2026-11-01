@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { Flow, Model, Step } from '../../src/core/model.ts'
 import { animationOf } from '../../src/core/animation.ts'
-import { motionOf } from '../../src/core/payloads.ts'
+import { dotPayload, motionOf } from '../../src/core/payloads.ts'
 import { channelsAt, kindsOf } from '../../src/core/channels.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
 import { marksOf, statesAt } from '../../src/core/states.ts'
@@ -55,7 +55,8 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
   const animated = flow && stop ? stop.steps.flatMap(i => {
     const a = motionOf(model, flow.steps[i])
     const p = shown?.ends[i]
-    return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p) }] : []
+    // What its dots carry: the reply on the answer's way back, the payload on every other dot (see DotCard).
+    return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p), sends: dotPayload(model, flow.steps[i]), reply: dotPayload(model, flow.steps[i], 'reply') }] : []
   }) : []
   const moving = animated.length > 0
   // What the flow has left open by this stop, with where it lands in this view. A stream and a listener need two boxes of the view; a job needs only the one it runs on.

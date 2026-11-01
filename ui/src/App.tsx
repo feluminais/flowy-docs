@@ -39,6 +39,9 @@ import { Shortcuts } from './Shortcuts.tsx'
 import { useLatest } from './stable.ts'
 import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
+import type { DotAt } from './StepMotion.tsx'
+import { DotCard } from './DotCard.tsx'
+import type { CarryingDot } from './DotCard.tsx'
 import { ErrorBoundary } from './ErrorBoundary.tsx'
 import { FocusBack } from './focusback.ts'
 import { useCssClock } from './cssClock.ts'
@@ -176,6 +179,12 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const stateMarks = flow ? flowMarks : runMarks
   const detailsOpen = details || (side !== undefined && !manyPicked) // the right-hand side holds Details and nothing else
   useCssClock(canvas, clock, stepKey, !comparing)
+  // Where each moving step's dots are while the player is paused, and what each carries (see DotCard).
+  const [dotsBy, setDotsBy] = useState<Record<number, DotAt[]>>({})
+  const carrying: CarryingDot[] = animated.flatMap(m => (dotsBy[m.i] ?? []).flatMap(at => {
+    const p = at.tone === 'reply' ? m.reply : m.sends
+    return p ? [{ at, ...p }] : []
+  }))
   const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays })
   const left = cameFrom(model.flows, playing?.trail ?? [])
   const trail = flow ? left : undefined
@@ -368,8 +377,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
                 {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
                 {flow && stop && animated.map(m => (
-                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)} />
+                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
+                    onDots={d => setDotsBy(by => ({ ...by, [m.i]: d }))} />
                 ))}
+                {flow && stop && <DotCard dots={carrying} clock={clock} stepKey={stepKey} />}
                 {flow && <GroupMarks marks={marks} />}
               </ReactFlow>
               </LabelSpots>
