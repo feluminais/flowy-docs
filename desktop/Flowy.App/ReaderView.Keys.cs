@@ -14,9 +14,13 @@ internal sealed partial class ReaderView
 
     private bool InNavigator(object? source) => _nav.IsVisible && source is Visual v && (ReferenceEquals(v, _nav) || v.GetVisualAncestors().Contains(_nav));
 
-    /// <summary>A click in the navigator makes Escape close it. A click anywhere else (the diagram, Details) makes Escape leave it alone, and takes the keyboard out of it.</summary>
+    /// <summary>
+    /// A click in the navigator makes Escape close it. A click anywhere else (the diagram, Details) makes Escape leave it alone, and takes the keyboard out of it.
+    /// A click outside the search box closes it, and the keyboard goes where the click went.
+    /// </summary>
     private void OnPointerDown(object? sender, PointerPressedEventArgs e)
     {
+        if (_search is { } search && !search.Holds(e.Source)) CloseSearch(false);
         var inside = InNavigator(e.Source);
         _compareMode.PressedOutsidePicker(e.Source);
         _perfPanel.PressedOutside(e.Source);
@@ -42,8 +46,15 @@ internal sealed partial class ReaderView
         var inNavigator = InNavigator(e.Source);
         if (e.Source is TextBox field)
         {
-            // A field keeps its keys. The navigator's filters give up Escape once they are empty, so it closes with a click in one.
-            if (e.Key != Key.Escape || !inNavigator) return;
+            // A field keeps its keys. Escape a field left alone takes the keyboard out of it, so the next one closes what is open. The navigator's
+            // filters give up Escape once they are empty, so it closes with a click in one.
+            if (e.Key != Key.Escape) return;
+            if (!inNavigator)
+            {
+                Focus();
+                e.Handled = true;
+                return;
+            }
             if (!string.IsNullOrEmpty(field.Text))
             {
                 field.Text = "";

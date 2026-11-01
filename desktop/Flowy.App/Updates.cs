@@ -40,7 +40,7 @@ internal static class Updates
                 return;
             }
             var version = update.TargetFullRelease.Version;
-            if (!await MessageDialog.AskAsync(owner, "Update available", $"Flowy Docs {version} is available. You have {manager.CurrentVersion}.", "Download and restart", "Later")) return;
+            if (!await MessageDialog.AskAsync(owner, "Update available", $"Flowy Docs {version} is available. You have {manager.CurrentVersion}.", "Download and restart", "Later", activate: asked)) return;
             await manager.DownloadUpdatesAsync(update);
             manager.ApplyUpdatesAndRestart(update.TargetFullRelease);
         }
