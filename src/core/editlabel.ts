@@ -1,6 +1,7 @@
 import { compareOf } from './compare.ts'
 import type { CompareTag } from './compare.ts'
 import { customIcons } from './look.ts'
+import { payloadsOf } from './payloads.ts'
 import { isMap } from './text.ts'
 import { folderOf } from './model.ts'
 import type { Analysis, Connection, Flow, Model } from './model.ts'
@@ -258,6 +259,21 @@ const positionsChanged: Detector = (before, after) => {
   return moved.length === 0 ? undefined : moved.length === 1 ? `Moved ${nameIn(after, moved[0])}` : `Moved ${moved.length} shapes`
 }
 
+/** The payloads under `payloads:` that were added, removed or changed, by the name a reader knows them by. */
+const payloadsChanged: Detector = (before, after) => {
+  const [was, now] = [payloadsOf(before), payloadsOf(after)]
+  const nameOf = (all: Record<string, { name?: string }>, id: string) => cut(typeof all[id].name === 'string' && all[id].name.trim() !== '' ? all[id].name : id)
+  const added = Object.keys(now).filter(id => !has(was, id))
+  const removed = Object.keys(was).filter(id => !has(now, id))
+  const edited = Object.keys(now).filter(id => has(was, id) && canon(was[id]) !== canon(now[id]))
+  const count = added.length + removed.length + edited.length
+  if (count > 1) return 'Changed the payloads'
+  if (added.length === 1) return `Added payload ${nameOf(now, added[0])}`
+  if (removed.length === 1) return `Removed payload ${nameOf(was, removed[0])}`
+  if (edited.length === 1) return `Edited payload ${nameOf(now, edited[0])}`
+  return undefined
+}
+
 const settingsChanged: Detector = (before, after) => {
   const [iconsBefore, iconsAfter] = [customIcons(before.meta), customIcons(after.meta)]
   const iconsAdded = Object.keys(iconsAfter).filter(name => !has(iconsBefore, name))
@@ -269,7 +285,8 @@ const settingsChanged: Detector = (before, after) => {
   if (differs('name')) return 'Renamed the project'
   if (differs('about')) return 'Changed the project description'
   if (differs('lines')) return 'Changed the line style'
-  const otherSettings = [...new Set([...Object.keys(before.meta), ...Object.keys(after.meta)])].some(differs)
+  // The payloads say their own sentence (payloadsChanged).
+  const otherSettings = [...new Set([...Object.keys(before.meta), ...Object.keys(after.meta)])].filter(key => key !== 'payloads').some(differs)
   return otherSettings ? 'Changed the settings' : undefined
 }
 
@@ -278,7 +295,7 @@ const DETECTORS: readonly Detector[] = [
   shapesAdded, shapesDeleted, shapesRenamed, shapesReparented, shapesChanged,
   linesChanged, flowsChanged,
   analysesAdded, analysesDeleted, analysesRenamed, modesAdded, modesDeleted, modesChanged, analysesChanged,
-  positionsChanged, settingsChanged,
+  positionsChanged, payloadsChanged, settingsChanged,
 ]
 
 /**
