@@ -37,6 +37,11 @@ internal sealed class PaneFlow
         _player.Back += () => Step(-1);
         _player.Next += () => Step(1);
         _player.Play += _playback.TogglePlay;
+        _player.Clock = _canvas.Clock;
+        _player.Speed += _playback.SetSpeed;
+        _player.ScrubStart += _playback.ScrubStart;
+        _player.ScrubTo += _playback.ScrubTo;
+        _player.ScrubEnd += _playback.ScrubEnd;
         _player.Replay += _playback.Replay;
     }
 

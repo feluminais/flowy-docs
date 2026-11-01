@@ -23,6 +23,9 @@ internal sealed class PlayerClock : ITimeSource
     /// <summary>How fast a flow can play: half, normal and double speed.</summary>
     public static readonly double[] Speeds = [0.5, 1, 2];
 
+    /// <summary>The speed chosen last, which a new canvas's clock starts at: it lasts while the app runs (the desktop app keeps no settings).</summary>
+    internal static double Kept { get; set; } = 1;
+
     private sealed class Wait(double left, Action then)
     {
         public double Left = left;

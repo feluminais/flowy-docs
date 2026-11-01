@@ -257,4 +257,48 @@ public class PlaybackTests
         rig.Playback.Nudge(-1);
         Assert.Equal(0, rig.Clock.Elapsed);
     }
+
+    [Fact]
+    public void Dragging_the_bar_holds_the_player_goes_to_the_moment_and_lets_go_as_it_was()
+    {
+        var rig = new Rig();
+        rig.Playback.Begin("order", 0, out _);
+        rig.Playback.TogglePlay(); // Play is on
+        rig.Playback.ScrubStart();
+        Assert.True(rig.Playback.Paused);
+        Assert.False(rig.Playback.Auto);
+        rig.Playback.ScrubTo(2, 0.5);
+        Assert.Equal(2, rig.Playback.Head!.Step);
+        rig.Playback.Begin("order", 2, out _); // the reader draws the stop
+        rig.Clock.Declare(1000); // and its motion says how long it is
+        Assert.Equal(500, rig.Clock.Elapsed);
+        rig.Playback.ScrubTo(2, 0.25);
+        Assert.Equal(250, rig.Clock.Elapsed);
+        rig.Playback.ScrubEnd();
+        Assert.False(rig.Playback.Paused);
+        Assert.True(rig.Playback.Auto);
+    }
+
+    [Fact]
+    public void Dragging_the_bar_from_a_step_you_took_stays_paused_when_let_go()
+    {
+        var rig = new Rig { Moving = true };
+        rig.Playback.Begin("order", 0, out _);
+        rig.Playback.ScrubStart();
+        rig.Playback.ScrubTo(0, 0.5);
+        rig.Playback.ScrubEnd();
+        Assert.True(rig.Playback.Paused);
+        Assert.False(rig.Playback.Auto);
+    }
+
+    [Fact]
+    public void The_bar_takes_the_cell_under_the_pointer_or_the_nearest_and_how_far_along_it_is()
+    {
+        // Two cells side by side, and a branch's second lane under the second.
+        var cells = new List<PlayerCard.CellBox> { new(0, 0, 100, 4, 0), new(103, 0, 100, 4, 1), new(103, 26, 100, 4, 2) };
+        Assert.Equal((1, 0.5), PlayerCard.CellAt(cells, 153, 2));
+        Assert.Equal((0, 1.0), PlayerCard.CellAt(cells, 101, 6)); // between two cells and a little below them: the nearer
+        Assert.Equal((2, 0.5), PlayerCard.CellAt(cells, 153, 27)); // the lane below: its cell
+    }
 }
+

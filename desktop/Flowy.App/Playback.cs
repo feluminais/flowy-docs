@@ -61,7 +61,7 @@ internal sealed class Playback
     /// </summary>
     public bool Begin(string? flowId, int index, out string key)
     {
-        key = flowId is null ? "" : $"{flowId}:{index}:{_replays}";
+        key = flowId is null ? "" : KeyOf(flowId, index);
         if (key == _stepKey) return false;
         _stepKey = key;
         // Another flow, or none: the player runs again, so a flow is never opened frozen.
@@ -130,6 +130,57 @@ internal sealed class Playback
         if (over) Head = Head! with { Step = 0 };
         _hooks.Redraw();
         ArmAuto();
+    }
+
+    /// <summary>The step (and replay) as the clock knows it: a new key is a new step to play.</summary>
+    private string KeyOf(string flowId, int index) => $"{flowId}:{index}:{_replays}";
+
+    private bool _wasOn; // whether Play was on when the bar was taken hold of
+
+    /// <summary>The bar is taken hold of: the player stands still while it is dragged.</summary>
+    public void ScrubStart()
+    {
+        _wasOn = Auto;
+        _hooks.Clock.Pause();
+        StopAuto();
+        _hooks.Redraw();
+    }
+
+    /// <summary>The bar is dragged to <paramref name="fraction"/> of the way through stop <paramref name="stop"/>: the reader goes to the stop, and the clock to the moment once the stop's motion says how long it is.</summary>
+    public void ScrubTo(int stop, double fraction)
+    {
+        if (Head is null || _hooks.Where() is not { } at) return;
+        var to = Math.Max(0, Math.Min(stop, at.Count - 1));
+        _hooks.Clock.SeekFraction(fraction, KeyOf(Head.Flow, to));
+        if (to == at.Index) return;
+        Head = Head with { Step = to };
+        _hooks.Redraw();
+    }
+
+    /// <summary>The bar is let go of: Play goes on if it was on, else the player stays paused where it was dragged to.</summary>
+    public void ScrubEnd()
+    {
+        if (!_wasOn) return;
+        _wasOn = false;
+        _hooks.Clock.Play();
+        Auto = true;
+        _hooks.Redraw();
+        ArmAuto();
+    }
+
+    /// <summary>Plays at <paramref name="speed"/>, and keeps it for the canvases that come after while the app runs. The caller draws.</summary>
+    public void SetSpeed(double speed)
+    {
+        _hooks.Clock.SetRate(speed);
+        PlayerClock.Kept = speed;
+        _hooks.Redraw();
+    }
+
+    /// <summary>The next of <see cref="PlayerClock.Speeds"/>, round to the first after the last (the S key).</summary>
+    public void NextSpeed()
+    {
+        var speeds = PlayerClock.Speeds;
+        SetSpeed(speeds[(Array.IndexOf(speeds, _hooks.Clock.Rate) + 1) % speeds.Length]);
     }
 
     /// <summary>A moment back or on, while paused.</summary>
