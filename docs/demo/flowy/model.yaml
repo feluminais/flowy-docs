@@ -3,6 +3,64 @@ about: |
   Food delivery for one city. Customers order in the app or on the website, restaurants cook, couriers deliver.
 
   Start with **Ordering**, which every order passes through. **Delivery** covers courier matching and tracking.
+payloads:
+  basket:
+    name: Basket
+    about: What the app sends to place an order. The idempotency key makes a double tap one order.
+    shape:
+      language: typescript
+      text: |
+        type PlaceOrder = {
+          idempotencyKey: string
+          restaurantId: string
+          lines: { dishId: string; count: number; notes?: string }[]
+          deliverTo: Address
+        }
+    example:
+      language: json
+      text: |
+        {
+          "idempotencyKey": "6f1c2b",
+          "restaurantId": "noodle-bar",
+          "lines": [{ "dishId": "ramen", "count": 2 }],
+          "deliverTo": { "street": "Kloosterstraat 12", "city": "Utrecht" }
+        }
+  receipt:
+    name: Receipt
+    about: What the app gets back once the order is placed. The total is in cents.
+    example:
+      language: json
+      text: |
+        { "orderId": "o-1042", "status": "placed", "total": 2490, "etaMinutes": 35 }
+  hold:
+    name: Card hold
+    about: Asks Stripe to hold the total on the card. Nothing is charged until the restaurant accepts.
+    example:
+      language: json
+      text: |
+        { "amount": 2490, "currency": "eur", "capture_method": "manual", "customer": "cus_9a1" }
+  order:
+    name: Order
+    about: The order as it is saved, with its status. Each line keeps the price it was ordered at.
+    shape:
+      language: sql
+      text: |
+        orders (id, customer_id, restaurant_id, status, total, placed_at)
+        order_lines (order_id, dish_id, count, price)
+  placed:
+    name: Order placed
+    about: The event every listener hears when an order is placed. It names the order, not its contents.
+    example:
+      language: json
+      text: |
+        { "type": "order.placed", "orderId": "o-1042", "restaurantId": "noodle-bar", "at": "2026-11-01T19:02:11Z" }
+  position:
+    name: Courier position
+    about: Where the courier is, every 5 s while a job is open.
+    example:
+      language: json
+      text: |
+        { "courierId": "c-77", "lat": 52.0907, "lng": 5.1214, "at": "2026-11-01T19:20:05Z" }
 objects:
   customer:
     type: actor
@@ -315,7 +373,7 @@ connections:
   - { from: courier, to: courier-app, label: takes deliveries }
   - { from: support, to: support-console, label: handles tickets }
   - { from: support, to: admin, label: looks up couriers }
-  - { from: customer-app, to: order-api, label: REST }
+  - { from: customer-app, to: order-api, label: REST, payloads: [basket] }
   - { from: web, to: order-api, label: REST }
   - { from: kitchen-tablet, to: order-api, label: "accepts, marks ready" }
   - { from: menu, to: menu-cache, label: reads menus }
@@ -324,9 +382,9 @@ connections:
   - { from: basket, to: pricing, label: asks for totals }
   - { from: pricing, to: mapbox, label: delivery distance }
   - { from: checkout, to: pricing, label: gets the total }
-  - { from: checkout, to: stripe, label: holds the card }
-  - { from: checkout, to: orders-db, label: writes the order }
-  - { from: checkout, to: events, label: announces placed }
+  - { from: checkout, to: stripe, label: holds the card, payloads: [hold] }
+  - { from: checkout, to: orders-db, label: writes the order, payloads: [order] }
+  - { from: checkout, to: events, label: announces placed, payloads: [placed] }
   - { from: status, to: orders-db, label: moves the order on }
   - { from: status, to: events, label: announces each step }
   - { from: status, to: notifier, label: order updates }
@@ -340,7 +398,7 @@ connections:
   - { from: eta, to: mapbox, label: travel times }
   - { from: offers, to: notifier, label: sends the offer }
   - { from: courier-app, to: dispatch, label: accepts or refuses }
-  - { from: courier-app, to: tracking, label: "position every 5 s" }
+  - { from: courier-app, to: tracking, label: "position every 5 s", payloads: [position] }
   - { from: courier-app, to: status, label: "picked up, delivered" }
   - { from: courier-app, to: mapbox, label: navigation }
   - { from: tracking, to: fleet-db, label: stores positions }

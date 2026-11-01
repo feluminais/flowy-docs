@@ -1153,6 +1153,17 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .tok-comment { color: var(--tok-comment); } .tok-keyword { color: var(--tok-keyword); } .tok-string { color: var(--tok-string); }
 .tok-number { color: var(--tok-number); } .tok-type { color: var(--tok-type); } .tok-function { color: var(--tok-function); }
 .tok-property { color: var(--tok-property); } .tok-tag { color: var(--tok-tag); } .tok-meta { color: var(--tok-meta); }
+/* A payload: a row that folds out to what it is about, its shape and its example. Its code never makes the panel taller than a screenful or wider than itself. */
+details.payload { margin-top: 6px; min-width: 0; }
+details.payload > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; }
+details.payload > summary .dirn { color: var(--muted); display: inline-flex; }
+details.payload > summary::-webkit-details-marker { display: none; }
+details.payload > summary::after { content: '▸'; color: var(--muted); font-weight: 400; } /* it folds out, as More does */
+details.payload[open] > summary::after { content: '▾'; }
+details.payload .payload-body { display: grid; gap: 8px; margin: 6px 0 4px 20px; min-width: 0; }
+details.payload .code-snippet { min-width: 0; }
+details.payload .code-block { max-height: 240px; overflow: auto; }
+.player details.payload { margin-top: 4px; }
 .code-block, .panel pre.code-block { margin: 0; font: 12.5px/1.55 ui-monospace, 'Cascadia Mono', Consolas, Menlo, monospace; tab-size: 4; white-space: pre; overflow-wrap: normal; }
 .code-block code, .panel .code-block code { padding: 0; background: none; font: inherit; }
 .code-snippet { margin: 0 0 12px; }
