@@ -1,4 +1,5 @@
 import { animationOf } from './animation.ts'
+import type { Animation } from './animation.ts'
 import { ID_RULE, isValidId } from './model.ts'
 import type { Connection, Model, Step } from './model.ts'
 import { codeLines, isBlankCode, LANGUAGES, languageOf } from './snippets.ts'
@@ -231,4 +232,21 @@ export function lineCarries(model: Model, view: string, from: string, to: string
     })
   }
   return rows
+}
+
+/**
+ * How a step's motion plays, with the words its payloads give it: the dot that goes out says the payload's name unless the animation says a word of its own, and
+ * what comes back (a call's answer, a recursion's way back) says the reply's name unless the animation says one. A burst keeps the names of its requests (r1, r2 ...).
+ */
+export function motionOf(model: Pick<Model, 'meta'>, step: Step): Animation | undefined {
+  const a = animationOf(step)
+  if (!a) return undefined
+  const sends = stepPayload(model, step)?.name
+  const answer = stepReply(model, step)?.name
+  return {
+    ...a,
+    ...(a.carries === undefined && a.share === undefined && sends !== undefined ? { carries: sends } : {}),
+    ...(a.kind === 'call' && answer !== undefined ? { replies: answer } : {}),
+    ...(a.kind === 'recurse' && a.returns === undefined && answer !== undefined ? { returns: answer } : {}),
+  }
 }
