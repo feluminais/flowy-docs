@@ -9,7 +9,29 @@ namespace Flowy.Core;
 /// </summary>
 public sealed record OutlineRow(
     string Key, string Kind, string Id, string? Parent, int Depth, string Name, string? Type, bool External, int Shapes, int Flows, int? Steps,
-    bool Problem, bool Expandable, bool Expanded, bool Match, bool? Linked = null, IReadOnlyList<string>? Partners = null, int Inside = 0);
+    bool Problem, bool Expandable, bool Expanded, bool Match, bool? Linked = null, IReadOnlyList<string>? Partners = null, int Inside = 0)
+{
+    /// <summary>
+    /// Rows are equal when they say the same, and <c>Partners</c> is a list built afresh each time the tree is: by reference it would never match, and the navigator draws every row of a model
+    /// with a pair again at each step to find that nothing changed.
+    /// </summary>
+    public bool Equals(OutlineRow? other) =>
+        other is not null && Key == other.Key && Kind == other.Kind && Id == other.Id && Parent == other.Parent && Depth == other.Depth && Name == other.Name && Type == other.Type
+        && External == other.External && Shapes == other.Shapes && Flows == other.Flows && Steps == other.Steps && Problem == other.Problem && Expandable == other.Expandable
+        && Expanded == other.Expanded && Match == other.Match && Linked == other.Linked && Inside == other.Inside
+        && (ReferenceEquals(Partners, other.Partners) || (Partners is not null && other.Partners is not null && Partners.SequenceEqual(other.Partners)));
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Key);
+        hash.Add(Name);
+        hash.Add(Depth);
+        hash.Add(Expanded);
+        hash.Add(Partners?.Count);
+        return hash.ToHashCode();
+    }
+}
 
 public sealed record OutlineTotals(int Shapes, int Flows, int Problems);
 
@@ -53,10 +75,13 @@ public static class Outlines
     private static string Lower(string text) => text.ToLowerInvariant();
 
     /// <summary>-1, 0 or 1 by name as VS Code's Explorer sorts: any case, and a run of digits counts as a number ("step 2" before "step 10"). Ordinal, like the TypeScript.</summary>
-    public static int ByName(string a, string b)
+    public static int ByName(string a, string b) => Compare(Parts(a), Parts(b));
+
+    /// <summary>A name cut into its text and its digit runs (text first, so the digit runs are the odd places), lower case. Made once for a name, not at every comparison of a sort.</summary>
+    private static string[] Parts(string name) => Regex.Split(Lower(name), "([0-9]+)");
+
+    private static int Compare(string[] x, string[] y)
     {
-        var x = Regex.Split(Lower(a), "([0-9]+)");
-        var y = Regex.Split(Lower(b), "([0-9]+)");
         for (var i = 0; i < Math.Min(x.Length, y.Length); i++)
         {
             if (x[i] == y[i]) continue;
@@ -75,8 +100,12 @@ public static class Outlines
 
     private static string Number(string digits) => digits.TrimStart('0') is { Length: > 0 } t ? t : "0"; // without leading zeros, but 000 is 0
 
-    private static Comparison<string> ByNameThenId(Func<string, string> name) =>
-        (a, b) => ByName(name(a), name(b)) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a, b));
+    private static Comparison<string> ByNameThenId(Func<string, string> name)
+    {
+        var parts = new Dictionary<string, string[]>();
+        string[] PartsOf(string id) => parts.TryGetValue(id, out var known) ? known : parts[id] = Parts(name(id));
+        return (a, b) => Compare(PartsOf(a), PartsOf(b)) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a, b));
+    }
 
     private static Tree TreeOf(Model model, bool editing)
     {
@@ -164,7 +193,10 @@ public static class Outlines
     }
 
     /// <summary>The flows that are in a pair (see <see cref="Compares.Linked"/>).</summary>
-    private static IReadOnlySet<string> LinkedFlows(Model model) => Compares.Linked(CompareChoices.TagsOf(model, new Dictionary<string, LoadRun>(), "flow"));
+    private static IReadOnlySet<string> LinkedFlows(IReadOnlyDictionary<string, object?> tags) => Compares.Linked(tags);
+
+    /// <summary>The tags that pair flows, read once for a list: every flow of a pair asks for its partners, and reading them again for each made a long list slow.</summary>
+    private static IReadOnlyDictionary<string, object?> PairTags(Model model) => CompareChoices.TagsOf(model, new Dictionary<string, LoadRun>(), "flow");
 
     private static string Plural(int n, string word) => $"{n} {word}{(n == 1 ? "" : "s")}";
 
@@ -180,9 +212,8 @@ public static class Outlines
     public static string ComparedWith(IReadOnlyList<string> partners) => partners.Count == 0 ? "Compare pair" : $"Compared with {string.Join(", ", partners)}";
 
     /// <summary>The names of the flows <paramref name="id"/> is paired with, the older one first: a tag to a flow that is not there names nobody.</summary>
-    private static IReadOnlyList<string> PartnerNames(Model model, string id)
+    private static IReadOnlyList<string> PartnerNames(Model model, IReadOnlyDictionary<string, object?> tags, string id)
     {
-        var tags = CompareChoices.TagsOf(model, new Dictionary<string, LoadRun>(), "flow");
         return [.. Compares.Partners(tags, id).Where(p => model.Flows.Contains(p.Id)).Select(p => model.Flows[p.Id].Name is { Length: > 0 } name ? name : p.Id)];
     }
 
@@ -193,7 +224,8 @@ public static class Outlines
         var tree = TreeOf(model, editing);
         var counts = CountsOf(tree);
         var bad = ProblemsIn(model, problems);
-        var linked = LinkedFlows(model);
+        var pairs = PairTags(model);
+        var linked = LinkedFlows(pairs);
         var root = counts[Names.Root];
         var totals = new OutlineTotals(root.Shapes, root.Flows, problems.Count);
 
@@ -229,7 +261,7 @@ public static class Outlines
             {
                 var name = FlowName(id);
                 rows.Add(new OutlineRow($"flow:{id}", "flow", id, parent, depth, name, null, false, 0, 0, model.Flows[id].Steps.Count,
-                    bad.Flows.Contains(id), false, false, Matches(id, name), linked.Contains(id), linked.Contains(id) ? PartnerNames(model, id) : null));
+                    bad.Flows.Contains(id), false, false, Matches(id, name), linked.Contains(id), linked.Contains(id) ? PartnerNames(model, pairs, id) : null));
                 continue;
             }
             var obj = model.GetObject(id);
@@ -274,12 +306,13 @@ public static class Outlines
     {
         var (editing, query, tags, closed) = options ?? new FlowListOptions();
         var tree = TreeOf(model, editing);
-        var linked = LinkedFlows(model);
+        var pairs = PairTags(model);
+        var linked = LinkedFlows(pairs);
         var playable = tree.FlowsIn.Values.SelectMany(ids => ids).ToHashSet();
         var refs = model.Flows.Keys.Where(playable.Contains).Select(id =>
         {
             var flow = model.Flows[id];
-            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View, linked.Contains(id), linked.Contains(id) ? PartnerNames(model, id) : [], model.FolderOf(id), flow.Tags);
+            return new FlowRef(id, flow.Name is { Length: > 0 } name ? name : id, flow.Steps.Count, flow.View, linked.Contains(id), linked.Contains(id) ? PartnerNames(model, pairs, id) : [], model.FolderOf(id), flow.Tags);
         }).ToList();
         refs.Sort((a, b) => ByName(a.Id, b.Id) is var c and not 0 ? c : Math.Sign(string.CompareOrdinal(a.Id, b.Id)));
 

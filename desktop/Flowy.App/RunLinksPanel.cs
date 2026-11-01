@@ -22,6 +22,8 @@ internal sealed class RunLinksPanel : StackPanel
     private IdMap<LoadRun>? _runs;
     private string? _pickerFor;
     private ComparePicker? _picker;
+    private string? _saveOff;
+    private bool _drawn;
 
     public RunLinksPanel() => Spacing = 12;
 
@@ -48,6 +50,10 @@ internal sealed class RunLinksPanel : StackPanel
     /// <summary>Builds the list again for these runs. <paramref name="saveOff"/> is why a link can't be written or taken away (the folder can't be saved), or null.</summary>
     public void Show(Model model, IdMap<LoadRun> runs, string? saveOff)
     {
+        // Every step and edit refreshes the reader: with the same model, runs and reason, the rows (and an open picker with what was typed in it) stay as they are.
+        if (_drawn && ReferenceEquals(model, _model) && (ReferenceEquals(runs, _runs) || (runs.Count == 0 && _runs?.Count == 0)) && saveOff == _saveOff) return;
+        _drawn = true;
+        _saveOff = saveOff;
         var open = _pickerFor;
         _model = model;
         _runs = runs;

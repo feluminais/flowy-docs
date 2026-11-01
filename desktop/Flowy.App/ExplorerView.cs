@@ -162,8 +162,13 @@ internal sealed class ExplorerView : Grid
     /// <summary>Redraws the tree for the model as it is now. <paramref name="here"/> is the level the canvas shows, <paramref name="selected"/> the shape selected on it, <paramref name="playing"/> the flow playing.</summary>
     public void Update(Model model, IReadOnlyList<Problem> problems, bool editing, IReadOnlySet<string> expanded, string here, string? selected, string? playing)
     {
-        _model = model;
         var current = playing is not null ? $"flow:{playing}" : $"shape:{selected ?? here}";
+        // Every step of a flow refreshes the reader. With the same model, problems, open shapes, filter and row in front, the tree is what it was: building it again is the cost of the whole model.
+        if (_built && ReferenceEquals(model, _model) && ReferenceEquals(problems, _problems) && editing == _editing && current == _current && (_find.Text ?? "") == _builtFilter && _builtExpanded.SetEquals(expanded)) return;
+        _built = true;
+        _builtFilter = _find.Text ?? "";
+        _builtExpanded = [.. expanded];
+        _model = model;
         var outline = Outlines.Build(model, problems, expanded, _find.Text, editing);
         _summary.Text = $"{Plural(outline.Totals.Shapes, "shape")} · {Plural(outline.Totals.Flows, "flow")}{(outline.Totals.Problems > 0 ? $" · {Plural(outline.Totals.Problems, "problem")}" : "")}";
         var off = CompareChoices.Off(model, editing); // the buttons of the rows are drawn with it, so a row that did not change is drawn again when it does
@@ -182,6 +187,9 @@ internal sealed class ExplorerView : Grid
         if (!_using && string.IsNullOrWhiteSpace(_find.Text)) ScrollTo(current);
     }
 
+    private bool _built;
+    private string _builtFilter = "";
+    private HashSet<string> _builtExpanded = [];
     private IReadOnlyList<Problem> _problems = [];
     private bool _editing;
     private IReadOnlySet<string> _expanded = new HashSet<string>();
@@ -192,6 +200,8 @@ internal sealed class ExplorerView : Grid
     {
         if (_model is null) return;
         var outline = Outlines.Build(_model, _problems, _expanded, _find.Text, _editing);
+        _builtFilter = _find.Text ?? "";
+        _builtExpanded = [.. _expanded];
         _rows = outline.Rows;
         _filterNote = (_find.Text ?? "").Trim();
         Fill();
