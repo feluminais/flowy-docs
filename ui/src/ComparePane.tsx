@@ -34,6 +34,8 @@ export type PaneHandle = {
   step(by: 1 | -1): void
   end(which: 'first' | 'last'): void
   play(): void
+  nextSpeed(): void
+  nudge(by: 1 | -1): void
   replay(): void
   fit(): void
   /** Whether Esc, Backspace and Z take the pane up a level: it is zoomed into a shape, and not at the top. */

@@ -282,7 +282,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       else setNotice(readOnly ? `This flow can't play yet. Fix ${p.file} first.` : 'Press E to fix this flow in edit mode.')
     }
   }
-  useReaderKeys({ model, view, editing, readOnly, canPerf, session, panels, perfRun, perfOpen, runsOpen, failuresOpen, shortcuts, setShortcuts, setSearching, flow, stops, stopIndex, stepTo, togglePlay, replay, setPlaying, comparing, compareRef, toggleCompare, closeCompare, recording, setSide, show, detailsOpen, manyPicked, closeDetails, failures: { analysis, rows, mode, modeId, selectMode }, navigation: { motion, back, jumpTo, zoomInto }, selectedBox, canOpen, fitNow: events.fitNow, toggleEdit, remove, members: graph.members })
+  useReaderKeys({ model, view, editing, readOnly, canPerf, session, panels, perfRun, perfOpen, runsOpen, failuresOpen, shortcuts, setShortcuts, setSearching, flow, stops, stopIndex, stepTo, togglePlay, replay, speed, setSpeed, nudge, setPlaying, comparing, compareRef, toggleCompare, closeCompare, recording, setSide, show, detailsOpen, manyPicked, closeDetails, failures: { analysis, rows, mode, modeId, selectMode }, navigation: { motion, back, jumpTo, zoomInto }, selectedBox, canOpen, fitNow: events.fitNow, toggleEdit, remove, members: graph.members })
 
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other

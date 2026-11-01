@@ -233,5 +233,9 @@ internal sealed class PaneFlow
 
     public void TogglePlay() => _playback.TogglePlay();
 
+    public void NextSpeed() => _playback.NextSpeed();
+
+    public void Nudge(int by) => _playback.Nudge(by);
+
     public void Replay() => _playback.Replay();
 }

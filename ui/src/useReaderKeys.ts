@@ -21,14 +21,16 @@ import type { useNavigation } from './useNavigation.ts'
 import type { usePanels } from './usePanels.ts'
 import type { usePerfRun } from './usePerfRun.ts'
 import type { Play } from './usePlayer.ts'
+import { nextOf } from './clock.ts'
+import type { Speed } from './clock.ts'
 
 /**
  * The keyboard. Added again on every render, so the handler always sees the current state. Which key does what is in keymap.ts; this builds what it needs to know and can do.
  */
-export function useReaderKeys({ model, view, editing, readOnly, canPerf, session, panels, perfRun, perfOpen, runsOpen, failuresOpen, shortcuts, setShortcuts, setSearching, flow, stops, stopIndex, stepTo, togglePlay, replay, setPlaying, comparing, compareRef, toggleCompare, closeCompare, recording, setSide, show, detailsOpen, manyPicked, closeDetails, failures, navigation, selectedBox, canOpen, fitNow, toggleEdit, remove, members }: {
+export function useReaderKeys({ model, view, editing, readOnly, canPerf, session, panels, perfRun, perfOpen, runsOpen, failuresOpen, shortcuts, setShortcuts, setSearching, flow, stops, stopIndex, stepTo, togglePlay, replay, speed, setSpeed, nudge, setPlaying, comparing, compareRef, toggleCompare, closeCompare, recording, setSide, show, detailsOpen, manyPicked, closeDetails, failures, navigation, selectedBox, canOpen, fitNow, toggleEdit, remove, members }: {
   model: Model; view: string; editing: boolean; readOnly: boolean; canPerf: boolean; session: ReturnType<typeof useEditSession>; panels: ReturnType<typeof usePanels>
   perfRun: ReturnType<typeof usePerfRun>; perfOpen: boolean; runsOpen: boolean; failuresOpen: boolean; shortcuts: boolean; setShortcuts: Dispatch<SetStateAction<boolean>>; setSearching: (searching: boolean) => void
-  flow: Flow | undefined; stops: ReturnType<typeof useFlowStage>['stops']; stopIndex: number; stepTo: (stop: number) => void; togglePlay: () => void; replay: () => void
+  flow: Flow | undefined; stops: ReturnType<typeof useFlowStage>['stops']; stopIndex: number; stepTo: (stop: number) => void; togglePlay: () => void; replay: () => void; speed: Speed; setSpeed: (s: Speed) => void; nudge: (by: 1 | -1) => void
   setPlaying: (playing: Play | undefined) => void; comparing: Compare | undefined; compareRef: RefObject<CompareHandle | null>; toggleCompare: () => void; closeCompare: () => void
   recording: FlowSide | undefined; setSide: (side: Side | undefined) => void; show: (s: Side | undefined) => void; detailsOpen: boolean; manyPicked: boolean; closeDetails: () => void
   failures: Pick<ReturnType<typeof useFailuresView>, 'analysis' | 'rows' | 'mode' | 'modeId' | 'selectMode'>; navigation: Pick<ReturnType<typeof useNavigation>, 'motion' | 'back' | 'jumpTo' | 'zoomInto'>
@@ -80,6 +82,8 @@ export function useReaderKeys({ model, view, editing, readOnly, canPerf, session
         stepFlow: by => (comparing ? compareRef.current?.focused()?.step(by) : stepTo(stopIndex + by)),
         flowEnd: end => (comparing ? compareRef.current?.focused()?.end(end) : stepTo(end === 'first' ? 0 : stops.length - 1)),
         play: () => (comparing ? compareRef.current?.focused()?.play() : togglePlay()),
+        nextSpeed: () => (comparing ? compareRef.current?.focused()?.nextSpeed() : setSpeed(nextOf(speed))),
+        nudge: by => (comparing ? compareRef.current?.focused()?.nudge(by) : nudge(by)),
         replay: () => (comparing ? compareRef.current?.focused()?.replay() : replay()),
         enter: () => {
           // The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel. A pane of a comparison does not open boxes.
