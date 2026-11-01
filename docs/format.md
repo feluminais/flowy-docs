@@ -41,6 +41,7 @@ with no value, and the file can't be saved again. `flowy check` reports that. A 
 | `about` | Markdown | What the system is for and who uses it, a paragraph or two. The Overview shows it |
 | `lines` | How the canvas draws lines: `straight` (the default, so leave it out), `curved` or `angled` |
 | `icons` | Your own icons: a mapping of name to SVG path data on a 24 by 24 grid ([the guide](guide/shapes.md#icons)) |
+| `payloads` | The data lines carry and steps send: a mapping of payload id to payload (below), at most 200 |
 
 Other top-level keys are kept as they are.
 
@@ -72,6 +73,37 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `from` | The id of the object it starts at |
 | `to` | The id of the object it goes to. Not the same as `from` |
 | `label` | A few words, a verb and what moves: `reads menus`. Optional but wanted. The same `from`, `to` and `label` can't repeat |
+| `payloads` | A list of what the line carries, at most 12: payload ids, or payloads written out in place with a `name` |
+
+### Payloads
+
+A payload is the data a line carries or a step sends, described once under `payloads:` and named by its id from connections and steps. It can stay high
+level: an `Order` that names `Dish` inside it needn't spell `Dish` out.
+
+```yaml
+payloads:
+  order:
+    name: Order
+    about: What the app sends when a guest checks out.
+    shape:
+      language: typescript
+      text: |
+        type Order = { id: string; table: number; dishes: Dish[] }
+    example:
+      language: json
+      text: |
+        { "id": "o-1042", "table": 7, "dishes": [{ "id": "ramen", "count": 2 }] }
+```
+
+| Key | Takes |
+| --- | --- |
+| `name` | Text. Left out, the id stands in. A payload written in place on a line or a step has no id, so it needs one |
+| `about` | Markdown: what it is and what it is for, often a sentence |
+| `shape` | `{ text, language }`: the whole thing, a type, a JSON schema or a CSV header. At most 400 lines and 40000 characters. `language` is optional and worked out when left out |
+| `example` | `{ text, language }`: a filled-in instance, with the same limits |
+
+A payload needs at least one of `about`, `shape` and `example`. The id is what makes two the same: a payload written in place is never one of the ones
+under `payloads:`, whatever its name.
 
 ## flows/&lt;id&gt;.yaml
 
@@ -98,6 +130,8 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `lane` | In a branch or parallel group: starts a lane here, named in plain words |
 | `flow` | The id of another flow that tells what happens next. It must exist |
 | `states` | The objects this step changes: object id to a state |
+| `payload` | What the step sends: a payload id, or a payload written in place with a `name` ([Payloads](#payloads)). Needs a `to`, except on a `recurse` |
+| `reply` | What comes back, the same way: only on a `call`, a `callback` or a `recurse` |
 
 A **state** is `running` (the default), `starting`, `stopping`, `stopped`, `restarting` or `degraded`. It holds from the step that sets it until another step
 changes it ([the guide](guide/flows.md#shape-states)).
@@ -184,8 +218,9 @@ one entry and leaves the rest of the file as it is), and a tool that writes a ru
 | An object and everything on it (`type`, `name`, `in`, `external`, `shape`, `color`, `opacity`, `icon`, `tech`, `description`, `code`, `links`, `snippets`, `data`) | `put_object` |
 | The system's `name` and `about` | `put_project` |
 | A custom icon | `put_icon` |
-| A connection | `connect`, `disconnect` |
-| A flow, with its groups, states and animations | `put_flow` |
+| A connection, and the `payloads` it carries | `connect`, `disconnect`, `set_payloads` |
+| A payload under `payloads` | `put_payload`, `delete_payload` |
+| A flow, with its groups, states, animations and each step's `payload` and `reply` | `put_flow` |
 | A failure analysis, or one mode of it | `put_failures`, `put_failure` |
 | The `compare` of a flow, or of a run | `set_compare` (a run is otherwise not written over MCP) |
 | `lines`, the rest of `perf/`, `layout.yaml` | Not over MCP: write the file, or use the canvas |

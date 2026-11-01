@@ -141,3 +141,12 @@ test('leftovers with the same ends pair in order as changed; the rest are remove
   assert.deepEqual(d.older.steps, { 0: 'changed', 1: 'changed', 2: 'removed' })
   assert.deepEqual(d.newer.steps, { 0: 'changed', 1: 'changed', 2: 'new' })
 })
+
+test('a step whose payload or reply changed is changed on both sides, and the same payload written in place is not', () => {
+  const sent = (payload?: unknown, reply?: unknown): Step[] => [{ from: 'a', to: 'b', text: 'one', animation: 'call', ...(payload === undefined ? {} : { payload }), ...(reply === undefined ? {} : { reply }) }]
+  assert.deepEqual(diffFlows(flow(sent('order')), flow(sent('refund'))).newer.steps, { 0: 'changed' })
+  assert.deepEqual(diffFlows(flow(sent('order')), flow(sent('order', 'receipt'))).older.steps, { 0: 'changed' })
+  assert.deepEqual(diffFlows(flow(sent(undefined)), flow(sent('order'))).newer.steps, { 0: 'changed' })
+  const inline = { name: 'Cart', about: 'The basket.' }
+  assert.deepEqual(diffFlows(flow(sent({ ...inline })), flow(sent({ about: 'The basket.', name: 'Cart' }))).newer.steps, {})
+})

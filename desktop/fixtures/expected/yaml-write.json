@@ -11016,6 +11016,137 @@
       "text": "name: Recursion\nview: shop\nsteps:\n  - from: api\n    text: Walks the category tree\n    animation: recurse\n  - from: api\n    text: Follows the CNAME\n    animation:\n      kind: recurse\n      depth: 4\n      carries: CNAME\n      returns: A record\n  - from: api\n    text: Too shallow\n    animation:\n      kind: recurse\n      depth: 1\n  - from: api\n    to: db\n    text: Recurse with a to\n    animation: recurse\n  - from: api\n    to: api\n    text: Recurse to itself\n    animation: recurse\n  - from: api\n    text: Wrong option\n    animation:\n      kind: send\n      depth: 3\n"
     },
     {
+      "folder": "desktop/fixtures/cases/payloads/flowy",
+      "rel": "model.yaml",
+      "data": {
+        "name": "Payloads",
+        "payloads": {
+          "order": {
+            "name": "Order",
+            "about": "What the web app sends at checkout.",
+            "shape": {
+              "language": "typescript",
+              "text": "type Order = { id: string; dishes: Dish[] }\n"
+            },
+            "example": {
+              "language": "json",
+              "text": "{ \"id\": \"o-1\" }"
+            }
+          },
+          "receipt": {
+            "about": "What comes back."
+          },
+          "empty": {
+            "name": "Empty"
+          },
+          "long": {
+            "shape": {
+              "text": "\r\n\r\nfield0: string\r\nfield1: string\r\nfield2: string\r\nfield3: string\r\nfield4: string\r\nfield5: string\r\nfield6: string\r\nfield7: string\r\nfield8: string\r\nfield9: string\r\nfield10: string\r\nfield11: string\r\nfield12: string\r\nfield13: string\r\nfield14: string\r\nfield15: string\r\nfield16: string\r\nfield17: string\r\nfield18: string\r\nfield19: string\r\nfield20: string\r\nfield21: string\r\nfield22: string\r\nfield23: string\r\nfield24: string\r\nfield25: string\r\nfield26: string\r\nfield27: string\r\nfield28: string\r\nfield29: string\r\nfield30: string\r\nfield31: string\r\nfield32: string\r\nfield33: string\r\nfield34: string\r\nfield35: string\r\nfield36: string\r\nfield37: string\r\nfield38: string\r\nfield39: string\r\nfield40: string\r\nfield41: string\r\nfield42: string\r\nfield43: string\r\nfield44: string\r\nfield45: string\r\nfield46: string\r\nfield47: string\r\nfield48: string\r\nfield49: string\r\nfield50: string\r\nfield51: string\r\nfield52: string\r\nfield53: string\r\nfield54: string\r\nfield55: string\r\nfield56: string\r\nfield57: string\r\nfield58: string\r\nfield59: string\r\nfield60: string\r\nfield61: string\r\nfield62: string\r\nfield63: string\r\nfield64: string\r\nfield65: string\r\nfield66: string\r\nfield67: string\r\nfield68: string\r\nfield69: string\r\nfield70: string\r\nfield71: string\r\nfield72: string\r\nfield73: string\r\nfield74: string\r\nfield75: string\r\nfield76: string\r\nfield77: string\r\nfield78: string\r\nfield79: string\r\nfield80: string\r\nfield81: string\r\nfield82: string\r\nfield83: string\r\nfield84: string\r\nfield85: string\r\nfield86: string\r\nfield87: string\r\nfield88: string\r\nfield89: string\r\nfield90: string\r\nfield91: string\r\nfield92: string\r\nfield93: string\r\nfield94: string\r\nfield95: string\r\nfield96: string\r\nfield97: string\r\nfield98: string\r\nfield99: string\r\nfield100: string\r\nfield101: string\r\nfield102: string\r\nfield103: string\r\nfield104: string\r\nfield105: string\r\nfield106: string\r\nfield107: string\r\nfield108: string\r\nfield109: string\r\nfield110: string\r\nfield111: string\r\nfield112: string\r\nfield113: string\r\nfield114: string\r\nfield115: string\r\nfield116: string\r\nfield117: string\r\nfield118: string\r\nfield119: string\r\nfield120: string\r\nfield121: string\r\nfield122: string\r\nfield123: string\r\nfield124: string\r\nfield125: string\r\nfield126: string\r\nfield127: string\r\nfield128: string\r\nfield129: string\r\nfield130: string\r\nfield131: string\r\nfield132: string\r\nfield133: string\r\nfield134: string\r\nfield135: string\r\nfield136: string\r\nfield137: string\r\nfield138: string\r\nfield139: string\r\nfield140: string\r\nfield141: string\r\nfield142: string\r\nfield143: string\r\nfield144: string\r\nfield145: string\r\nfield146: string\r\nfield147: string\r\nfield148: string\r\nfield149: string\r\nfield150: string\r\nfield151: string\r\nfield152: string\r\nfield153: string\r\nfield154: string\r\nfield155: string\r\nfield156: string\r\nfield157: string\r\nfield158: string\r\nfield159: string\r\nfield160: string\r\nfield161: string\r\nfield162: string\r\nfield163: string\r\nfield164: string\r\nfield165: string\r\nfield166: string\r\nfield167: string\r\nfield168: string\r\nfield169: string\r\nfield170: string\r\nfield171: string\r\nfield172: string\r\nfield173: string\r\nfield174: string\r\nfield175: string\r\nfield176: string\r\nfield177: string\r\nfield178: string\r\nfield179: string\r\nfield180: string\r\nfield181: string\r\nfield182: string\r\nfield183: string\r\nfield184: string\r\nfield185: string\r\nfield186: string\r\nfield187: string\r\nfield188: string\r\nfield189: string\r\nfield190: string\r\nfield191: string\r\nfield192: string\r\nfield193: string\r\nfield194: string\r\nfield195: string\r\nfield196: string\r\nfield197: string\r\nfield198: string\r\nfield199: string\r\nfield200: string\r\nfield201: string\r\nfield202: string\r\nfield203: string\r\nfield204: string\r\nfield205: string\r\nfield206: string\r\nfield207: string\r\nfield208: string\r\nfield209: string\r\nfield210: string\r\nfield211: string\r\nfield212: string\r\nfield213: string\r\nfield214: string\r\nfield215: string\r\nfield216: string\r\nfield217: string\r\nfield218: string\r\nfield219: string\r\nfield220: string\r\nfield221: string\r\nfield222: string\r\nfield223: string\r\nfield224: string\r\nfield225: string\r\nfield226: string\r\nfield227: string\r\nfield228: string\r\nfield229: string\r\nfield230: string\r\nfield231: string\r\nfield232: string\r\nfield233: string\r\nfield234: string\r\nfield235: string\r\nfield236: string\r\nfield237: string\r\nfield238: string\r\nfield239: string\r\nfield240: string\r\nfield241: string\r\nfield242: string\r\nfield243: string\r\nfield244: string\r\nfield245: string\r\nfield246: string\r\nfield247: string\r\nfield248: string\r\nfield249: string\r\nfield250: string\r\nfield251: string\r\nfield252: string\r\nfield253: string\r\nfield254: string\r\nfield255: string\r\nfield256: string\r\nfield257: string\r\nfield258: string\r\nfield259: string\r\nfield260: string\r\nfield261: string\r\nfield262: string\r\nfield263: string\r\nfield264: string\r\nfield265: string\r\nfield266: string\r\nfield267: string\r\nfield268: string\r\nfield269: string\r\nfield270: string\r\nfield271: string\r\nfield272: string\r\nfield273: string\r\nfield274: string\r\nfield275: string\r\nfield276: string\r\nfield277: string\r\nfield278: string\r\nfield279: string\r\nfield280: string\r\nfield281: string\r\nfield282: string\r\nfield283: string\r\nfield284: string\r\nfield285: string\r\nfield286: string\r\nfield287: string\r\nfield288: string\r\nfield289: string\r\nfield290: string\r\nfield291: string\r\nfield292: string\r\nfield293: string\r\nfield294: string\r\nfield295: string\r\nfield296: string\r\nfield297: string\r\nfield298: string\r\nfield299: string\r\nfield300: string\r\nfield301: string\r\nfield302: string\r\nfield303: string\r\nfield304: string\r\nfield305: string\r\nfield306: string\r\nfield307: string\r\nfield308: string\r\nfield309: string\r\nfield310: string\r\nfield311: string\r\nfield312: string\r\nfield313: string\r\nfield314: string\r\nfield315: string\r\nfield316: string\r\nfield317: string\r\nfield318: string\r\nfield319: string\r\nfield320: string\r\nfield321: string\r\nfield322: string\r\nfield323: string\r\nfield324: string\r\nfield325: string\r\nfield326: string\r\nfield327: string\r\nfield328: string\r\nfield329: string\r\nfield330: string\r\nfield331: string\r\nfield332: string\r\nfield333: string\r\nfield334: string\r\nfield335: string\r\nfield336: string\r\nfield337: string\r\nfield338: string\r\nfield339: string\r\nfield340: string\r\nfield341: string\r\nfield342: string\r\nfield343: string\r\nfield344: string\r\nfield345: string\r\nfield346: string\r\nfield347: string\r\nfield348: string\r\nfield349: string\r\nfield350: string\r\nfield351: string\r\nfield352: string\r\nfield353: string\r\nfield354: string\r\nfield355: string\r\nfield356: string\r\nfield357: string\r\nfield358: string\r\nfield359: string\r\nfield360: string\r\nfield361: string\r\nfield362: string\r\nfield363: string\r\nfield364: string\r\nfield365: string\r\nfield366: string\r\nfield367: string\r\nfield368: string\r\nfield369: string\r\nfield370: string\r\nfield371: string\r\nfield372: string\r\nfield373: string\r\nfield374: string\r\nfield375: string\r\nfield376: string\r\nfield377: string\r\nfield378: string\r\nfield379: string\r\nfield380: string\r\nfield381: string\r\nfield382: string\r\nfield383: string\r\nfield384: string\r\nfield385: string\r\nfield386: string\r\nfield387: string\r\nfield388: string\r\nfield389: string\r\nfield390: string\r\nfield391: string\r\nfield392: string\r\nfield393: string\r\nfield394: string\r\nfield395: string\r\nfield396: string\r\nfield397: string\r\nfield398: string\r\nfield399: string\r\nfield400: string\r\n\r\n"
+            }
+          },
+          "odd": {
+            "shape": {
+              "language": "cobol",
+              "text": "X"
+            },
+            "example": "json"
+          },
+          "constructor": {
+            "about": "A key of Object.prototype, as an id."
+          }
+        },
+        "objects": {
+          "shop": {
+            "type": "system",
+            "name": "Shop"
+          },
+          "web": {
+            "type": "app",
+            "in": "shop",
+            "name": "Web"
+          },
+          "api": {
+            "type": "app",
+            "in": "shop",
+            "name": "API"
+          }
+        },
+        "connections": [
+          {
+            "from": "web",
+            "to": "api",
+            "label": "REST",
+            "payloads": [
+              "order",
+              "nope",
+              {
+                "name": "Cart",
+                "about": "The basket."
+              },
+              {
+                "about": "No name."
+              }
+            ]
+          },
+          {
+            "from": "api",
+            "to": "web",
+            "label": "pushes",
+            "payloads": "order"
+          }
+        ]
+      },
+      "text": "name: Payloads\npayloads:\n  order:\n    name: Order\n    about: What the web app sends at checkout.\n    shape:\n      language: typescript\n      text: |\n        type Order = { id: string; dishes: Dish[] }\n    example:\n      language: json\n      text: '{ \"id\": \"o-1\" }'\n  receipt:\n    about: What comes back.\n  empty:\n    name: Empty\n  long:\n    shape:\n      text: \"\\r\n\n        \\r\n\n        field0: string\\r\n\n        field1: string\\r\n\n        field2: string\\r\n\n        field3: string\\r\n\n        field4: string\\r\n\n        field5: string\\r\n\n        field6: string\\r\n\n        field7: string\\r\n\n        field8: string\\r\n\n        field9: string\\r\n\n        field10: string\\r\n\n        field11: string\\r\n\n        field12: string\\r\n\n        field13: string\\r\n\n        field14: string\\r\n\n        field15: string\\r\n\n        field16: string\\r\n\n        field17: string\\r\n\n        field18: string\\r\n\n        field19: string\\r\n\n        field20: string\\r\n\n        field21: string\\r\n\n        field22: string\\r\n\n        field23: string\\r\n\n        field24: string\\r\n\n        field25: string\\r\n\n        field26: string\\r\n\n        field27: string\\r\n\n        field28: string\\r\n\n        field29: string\\r\n\n        field30: string\\r\n\n        field31: string\\r\n\n        field32: string\\r\n\n        field33: string\\r\n\n        field34: string\\r\n\n        field35: string\\r\n\n        field36: string\\r\n\n        field37: string\\r\n\n        field38: string\\r\n\n        field39: string\\r\n\n        field40: string\\r\n\n        field41: string\\r\n\n        field42: string\\r\n\n        field43: string\\r\n\n        field44: string\\r\n\n        field45: string\\r\n\n        field46: string\\r\n\n        field47: string\\r\n\n        field48: string\\r\n\n        field49: string\\r\n\n        field50: string\\r\n\n        field51: string\\r\n\n        field52: string\\r\n\n        field53: string\\r\n\n        field54: string\\r\n\n        field55: string\\r\n\n        field56: string\\r\n\n        field57: string\\r\n\n        field58: string\\r\n\n        field59: string\\r\n\n        field60: string\\r\n\n        field61: string\\r\n\n        field62: string\\r\n\n        field63: string\\r\n\n        field64: string\\r\n\n        field65: string\\r\n\n        field66: string\\r\n\n        field67: string\\r\n\n        field68: string\\r\n\n        field69: string\\r\n\n        field70: string\\r\n\n        field71: string\\r\n\n        field72: string\\r\n\n        field73: string\\r\n\n        field74: string\\r\n\n        field75: string\\r\n\n        field76: string\\r\n\n        field77: string\\r\n\n        field78: string\\r\n\n        field79: string\\r\n\n        field80: string\\r\n\n        field81: string\\r\n\n        field82: string\\r\n\n        field83: string\\r\n\n        field84: string\\r\n\n        field85: string\\r\n\n        field86: string\\r\n\n        field87: string\\r\n\n        field88: string\\r\n\n        field89: string\\r\n\n        field90: string\\r\n\n        field91: string\\r\n\n        field92: string\\r\n\n        field93: string\\r\n\n        field94: string\\r\n\n        field95: string\\r\n\n        field96: string\\r\n\n        field97: string\\r\n\n        field98: string\\r\n\n        field99: string\\r\n\n        field100: string\\r\n\n        field101: string\\r\n\n        field102: string\\r\n\n        field103: string\\r\n\n        field104: string\\r\n\n        field105: string\\r\n\n        field106: string\\r\n\n        field107: string\\r\n\n        field108: string\\r\n\n        field109: string\\r\n\n        field110: string\\r\n\n        field111: string\\r\n\n        field112: string\\r\n\n        field113: string\\r\n\n        field114: string\\r\n\n        field115: string\\r\n\n        field116: string\\r\n\n        field117: string\\r\n\n        field118: string\\r\n\n        field119: string\\r\n\n        field120: string\\r\n\n        field121: string\\r\n\n        field122: string\\r\n\n        field123: string\\r\n\n        field124: string\\r\n\n        field125: string\\r\n\n        field126: string\\r\n\n        field127: string\\r\n\n        field128: string\\r\n\n        field129: string\\r\n\n        field130: string\\r\n\n        field131: string\\r\n\n        field132: string\\r\n\n        field133: string\\r\n\n        field134: string\\r\n\n        field135: string\\r\n\n        field136: string\\r\n\n        field137: string\\r\n\n        field138: string\\r\n\n        field139: string\\r\n\n        field140: string\\r\n\n        field141: string\\r\n\n        field142: string\\r\n\n        field143: string\\r\n\n        field144: string\\r\n\n        field145: string\\r\n\n        field146: string\\r\n\n        field147: string\\r\n\n        field148: string\\r\n\n        field149: string\\r\n\n        field150: string\\r\n\n        field151: string\\r\n\n        field152: string\\r\n\n        field153: string\\r\n\n        field154: string\\r\n\n        field155: string\\r\n\n        field156: string\\r\n\n        field157: string\\r\n\n        field158: string\\r\n\n        field159: string\\r\n\n        field160: string\\r\n\n        field161: string\\r\n\n        field162: string\\r\n\n        field163: string\\r\n\n        field164: string\\r\n\n        field165: string\\r\n\n        field166: string\\r\n\n        field167: string\\r\n\n        field168: string\\r\n\n        field169: string\\r\n\n        field170: string\\r\n\n        field171: string\\r\n\n        field172: string\\r\n\n        field173: string\\r\n\n        field174: string\\r\n\n        field175: string\\r\n\n        field176: string\\r\n\n        field177: string\\r\n\n        field178: string\\r\n\n        field179: string\\r\n\n        field180: string\\r\n\n        field181: string\\r\n\n        field182: string\\r\n\n        field183: string\\r\n\n        field184: string\\r\n\n        field185: string\\r\n\n        field186: string\\r\n\n        field187: string\\r\n\n        field188: string\\r\n\n        field189: string\\r\n\n        field190: string\\r\n\n        field191: string\\r\n\n        field192: string\\r\n\n        field193: string\\r\n\n        field194: string\\r\n\n        field195: string\\r\n\n        field196: string\\r\n\n        field197: string\\r\n\n        field198: string\\r\n\n        field199: string\\r\n\n        field200: string\\r\n\n        field201: string\\r\n\n        field202: string\\r\n\n        field203: string\\r\n\n        field204: string\\r\n\n        field205: string\\r\n\n        field206: string\\r\n\n        field207: string\\r\n\n        field208: string\\r\n\n        field209: string\\r\n\n        field210: string\\r\n\n        field211: string\\r\n\n        field212: string\\r\n\n        field213: string\\r\n\n        field214: string\\r\n\n        field215: string\\r\n\n        field216: string\\r\n\n        field217: string\\r\n\n        field218: string\\r\n\n        field219: string\\r\n\n        field220: string\\r\n\n        field221: string\\r\n\n        field222: string\\r\n\n        field223: string\\r\n\n        field224: string\\r\n\n        field225: string\\r\n\n        field226: string\\r\n\n        field227: string\\r\n\n        field228: string\\r\n\n        field229: string\\r\n\n        field230: string\\r\n\n        field231: string\\r\n\n        field232: string\\r\n\n        field233: string\\r\n\n        field234: string\\r\n\n        field235: string\\r\n\n        field236: string\\r\n\n        field237: string\\r\n\n        field238: string\\r\n\n        field239: string\\r\n\n        field240: string\\r\n\n        field241: string\\r\n\n        field242: string\\r\n\n        field243: string\\r\n\n        field244: string\\r\n\n        field245: string\\r\n\n        field246: string\\r\n\n        field247: string\\r\n\n        field248: string\\r\n\n        field249: string\\r\n\n        field250: string\\r\n\n        field251: string\\r\n\n        field252: string\\r\n\n        field253: string\\r\n\n        field254: string\\r\n\n        field255: string\\r\n\n        field256: string\\r\n\n        field257: string\\r\n\n        field258: string\\r\n\n        field259: string\\r\n\n        field260: string\\r\n\n        field261: string\\r\n\n        field262: string\\r\n\n        field263: string\\r\n\n        field264: string\\r\n\n        field265: string\\r\n\n        field266: string\\r\n\n        field267: string\\r\n\n        field268: string\\r\n\n        field269: string\\r\n\n        field270: string\\r\n\n        field271: string\\r\n\n        field272: string\\r\n\n        field273: string\\r\n\n        field274: string\\r\n\n        field275: string\\r\n\n        field276: string\\r\n\n        field277: string\\r\n\n        field278: string\\r\n\n        field279: string\\r\n\n        field280: string\\r\n\n        field281: string\\r\n\n        field282: string\\r\n\n        field283: string\\r\n\n        field284: string\\r\n\n        field285: string\\r\n\n        field286: string\\r\n\n        field287: string\\r\n\n        field288: string\\r\n\n        field289: string\\r\n\n        field290: string\\r\n\n        field291: string\\r\n\n        field292: string\\r\n\n        field293: string\\r\n\n        field294: string\\r\n\n        field295: string\\r\n\n        field296: string\\r\n\n        field297: string\\r\n\n        field298: string\\r\n\n        field299: string\\r\n\n        field300: string\\r\n\n        field301: string\\r\n\n        field302: string\\r\n\n        field303: string\\r\n\n        field304: string\\r\n\n        field305: string\\r\n\n        field306: string\\r\n\n        field307: string\\r\n\n        field308: string\\r\n\n        field309: string\\r\n\n        field310: string\\r\n\n        field311: string\\r\n\n        field312: string\\r\n\n        field313: string\\r\n\n        field314: string\\r\n\n        field315: string\\r\n\n        field316: string\\r\n\n        field317: string\\r\n\n        field318: string\\r\n\n        field319: string\\r\n\n        field320: string\\r\n\n        field321: string\\r\n\n        field322: string\\r\n\n        field323: string\\r\n\n        field324: string\\r\n\n        field325: string\\r\n\n        field326: string\\r\n\n        field327: string\\r\n\n        field328: string\\r\n\n        field329: string\\r\n\n        field330: string\\r\n\n        field331: string\\r\n\n        field332: string\\r\n\n        field333: string\\r\n\n        field334: string\\r\n\n        field335: string\\r\n\n        field336: string\\r\n\n        field337: string\\r\n\n        field338: string\\r\n\n        field339: string\\r\n\n        field340: string\\r\n\n        field341: string\\r\n\n        field342: string\\r\n\n        field343: string\\r\n\n        field344: string\\r\n\n        field345: string\\r\n\n        field346: string\\r\n\n        field347: string\\r\n\n        field348: string\\r\n\n        field349: string\\r\n\n        field350: string\\r\n\n        field351: string\\r\n\n        field352: string\\r\n\n        field353: string\\r\n\n        field354: string\\r\n\n        field355: string\\r\n\n        field356: string\\r\n\n        field357: string\\r\n\n        field358: string\\r\n\n        field359: string\\r\n\n        field360: string\\r\n\n        field361: string\\r\n\n        field362: string\\r\n\n        field363: string\\r\n\n        field364: string\\r\n\n        field365: string\\r\n\n        field366: string\\r\n\n        field367: string\\r\n\n        field368: string\\r\n\n        field369: string\\r\n\n        field370: string\\r\n\n        field371: string\\r\n\n        field372: string\\r\n\n        field373: string\\r\n\n        field374: string\\r\n\n        field375: string\\r\n\n        field376: string\\r\n\n        field377: string\\r\n\n        field378: string\\r\n\n        field379: string\\r\n\n        field380: string\\r\n\n        field381: string\\r\n\n        field382: string\\r\n\n        field383: string\\r\n\n        field384: string\\r\n\n        field385: string\\r\n\n        field386: string\\r\n\n        field387: string\\r\n\n        field388: string\\r\n\n        field389: string\\r\n\n        field390: string\\r\n\n        field391: string\\r\n\n        field392: string\\r\n\n        field393: string\\r\n\n        field394: string\\r\n\n        field395: string\\r\n\n        field396: string\\r\n\n        field397: string\\r\n\n        field398: string\\r\n\n        field399: string\\r\n\n        field400: string\\r\n\n        \\r\\n\"\n  odd:\n    shape:\n      language: cobol\n      text: X\n    example: json\n  constructor:\n    about: A key of Object.prototype, as an id.\nobjects:\n  shop:\n    type: system\n    name: Shop\n  web:\n    type: app\n    in: shop\n    name: Web\n  api:\n    type: app\n    in: shop\n    name: API\nconnections:\n  - from: web\n    to: api\n    label: REST\n    payloads:\n      - order\n      - nope\n      - name: Cart\n        about: The basket.\n      - about: No name.\n  - from: api\n    to: web\n    label: pushes\n    payloads: order\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/payloads/flowy",
+      "rel": "flows/checkout.yaml",
+      "data": {
+        "name": "Checkout",
+        "view": "shop",
+        "steps": [
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Places the order",
+            "animation": "call",
+            "payload": "order",
+            "reply": "receipt"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Sends a note",
+            "animation": "send",
+            "reply": "order"
+          },
+          {
+            "from": "api",
+            "text": "Thinks it over",
+            "payload": "order"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Asks for something odd",
+            "payload": "toString"
+          },
+          {
+            "from": "web",
+            "to": "api",
+            "text": "Names an odd id",
+            "payload": "constructor",
+            "reply": {
+              "name": "Ack",
+              "about": "It arrived."
+            },
+            "animation": "call"
+          }
+        ]
+      },
+      "text": "name: Checkout\nview: shop\nsteps:\n  - from: web\n    to: api\n    text: Places the order\n    animation: call\n    payload: order\n    reply: receipt\n  - from: web\n    to: api\n    text: Sends a note\n    animation: send\n    reply: order\n  - from: api\n    text: Thinks it over\n    payload: order\n  - from: web\n    to: api\n    text: Asks for something odd\n    payload: toString\n  - from: web\n    to: api\n    text: Names an odd id\n    payload: constructor\n    reply:\n      name: Ack\n      about: It arrived.\n    animation: call\n"
+    },
+    {
       "folder": "docs/demo/flowy",
       "rel": "model.yaml",
       "data": {

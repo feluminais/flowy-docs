@@ -1,0 +1,4 @@
+name: reply-2
+view: root
+steps:
+  - { from: a, to: b, text: First, animation: call, payload: order, reply: receipt }

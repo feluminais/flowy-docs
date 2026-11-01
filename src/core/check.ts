@@ -9,6 +9,7 @@ import { FILE_KINDS, pathOf } from './filekinds.ts'
 import { isRepoPath, isWebAddress } from './paths.ts'
 import { stepPrefix, withoutStep } from './problem.ts'
 import type { Problem } from './problem.ts'
+import { connectionPayloadProblems, modelPayloadProblems, stepPayloadProblems } from './payloads.ts'
 import { snippetProblems } from './snippets.ts'
 import { channelProblems } from './channels.ts'
 import { stateProblems } from './states.ts'
@@ -80,6 +81,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       if (why) add('model.yaml', undefined, `icon ${name}: ${why}`)
     }
   }
+  for (const message of modelPayloadProblems(model.meta)) add('model.yaml', undefined, message)
 
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
@@ -137,6 +139,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
     seen.add(key)
+    for (const message of connectionPayloadProblems(model, c)) p(message)
   })
 
   for (const [fid, f] of Object.entries(model.flows)) {
@@ -173,6 +176,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else if (missing(s.from)) sp('"from" is missing')
       else if (!getObject(model, s.from)) sp(`unknown object "${s.from}"`)
       if (!hasText(s.text)) sp('text is missing')
+      for (const message of stepPayloadProblems(model, s)) sp(message)
       const animation = animationProblem(s.animation, !alone) ?? interceptorProblem(s.animation, s, id => getObject(model, id) !== undefined)
       if (animation && !(animation === RECURSE_HAS_TO && s.from === s.to)) sp(animation) // a step to itself is reported below
       if (alone) {

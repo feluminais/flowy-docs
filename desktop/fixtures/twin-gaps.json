@@ -99,10 +99,25 @@
   ],
   "ops": [
     "deleteIcon",
+    "deletePayload",
     "disconnect",
     "putIcon",
+    "putPayload",
+    "setLinePayloads",
     "tidyLayout",
     "tidyViews"
+  ],
+  "payloads": [
+    "PAYLOAD_MAX",
+    "REPLY_KINDS",
+    "connectionPayloadProblems",
+    "modelPayloadProblems",
+    "payloadUsers",
+    "payloadsOf",
+    "resolvePayload",
+    "saysSomething",
+    "stepPayloadProblems",
+    "tidyPayload"
   ],
   "perf/analyse": [
     "KNEE_LATENCY",

@@ -510,6 +510,19 @@ objects:
 
       Nothing here draws. The canvas colours code with highlight.js, and the desktop app runs the same highlight.js in-process, so the
       two show the same colours. The desktop app's ports (`Snippets.cs`, `Detect.cs`) are kept equal by fixtures.
+  payloads:
+    type: component
+    in: core
+    name: Payloads
+    tech: TypeScript
+    code: [src/core/payloads.ts, desktop/Flowy.Core/Payloads.cs]
+    description: |
+      The data a line carries and a flow step sends: a name, a few words about it, its whole shape and a filled-in example, described
+      once under payloads: in model.yaml and named by id from connections and steps. It reads them, says what is wrong with them (an
+      id nobody defined, a payload that says nothing, a schema of more than 400 lines, a reply on a step that gets no answer) and writes
+      their keys in order.
+
+      Nothing here draws yet. The desktop app's port (`Payloads.cs`) is kept equal by fixtures.
   perf:
     type: component
     in: core
@@ -659,6 +672,9 @@ connections:
   - { from: panel, to: store-data, label: what a store holds }
   - { from: ops, to: store-data, label: puts an entry's keys in order }
   - { from: check, to: snippets, label: asks if a snippet is right }
+  - { from: check, to: payloads, label: asks if a payload is right }
+  - { from: ops, to: payloads, label: puts a payload's keys in order }
+  - { from: mcp, to: payloads, label: shows the payloads }
   - { from: check, to: failures, label: asks if an analysis is right }
   - { from: ops, to: failures, label: refuses to delete what an analysis names }
   - { from: shell, to: failures-tab, label: "which analysis, which row, what is selected" }

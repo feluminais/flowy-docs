@@ -89,9 +89,29 @@ const deleteSomething: McpMaker = ({ model, runs }, rng) => {
     ...ids(model.objects).map((id): Move => ({ op: 'delete_object', label: `deleteObject ${id}`, call: { tool: 'delete_object', args: { id } }, run: m => ops.deleteObject(m, id) })),
     ...ids(model.flows).map((id): Move => ({ op: 'delete_flow', label: `deleteFlow ${id}`, call: { tool: 'delete_flow', args: { id } }, run: m => ops.deleteFlow(m, id) })),
     ...ids(model.failures).map((id): Move => ({ op: 'delete_failures', label: `deleteAnalysis ${id}`, call: { tool: 'delete_failures', args: { id } }, run: m => ops.deleteAnalysis(m, id) })),
+    ...Object.entries(model.failures).flatMap(([aid, a]) => ids(a.modes).map((mid): Move => ({ op: 'delete_failure', label: `deleteMode ${aid}/${mid}`, call: { tool: 'delete_failure', args: { analysis: aid, id: mid } }, run: m => ops.deleteMode(m, aid, mid) }))),
     ...model.connections.map((c): Move => ({ op: 'disconnect', label: `disconnect ${c.from} → ${c.to}`, call: { tool: 'disconnect', args: { from: c.from, to: c.to } }, run: m => ops.disconnect(m, { from: c.from, to: c.to }) })),
   ]
   for (const move of rng.some(candidates, 10)) {
+    try {
+      refuseNewProblems(model, move.run(model), undefined, runs)
+    } catch {
+      continue
+    }
+    return { op: move.op, label: move.label, kind: 'write', calls: [move.call!], twin: move }
+  }
+  return undefined
+}
+
+/**
+ * A connection that goes through. Most random ends are refused (a line there already, a shape to itself, one no view can show), which leaves untried what happens
+ * when one is made, so this looks for a pair that takes one, as deleteSomething does for deletes.
+ */
+const connectSomething: McpMaker = ({ model, runs }, rng) => {
+  const shapes = ids(model.objects)
+  const pairs = shapes.flatMap(from => shapes.filter(to => to !== from && !model.connections.some(c => c.from === from && c.to === to)).map(to => [from, to] as const))
+  for (const [from, to] of rng.some(pairs, 10)) {
+    const move: Move = { op: 'connect', label: `connect ${from} → ${to}`, call: { tool: 'connect', args: { from, to } }, run: m => ops.connect(m, { from, to }) }
     try {
       refuseNewProblems(model, move.run(model), undefined, runs)
     } catch {
@@ -109,6 +129,28 @@ const icon: McpMaker = (_, rng) => {
     op: 'delete_icon', label: `put_icon then delete_icon ${name}`, kind: 'write',
     calls: [{ tool: 'put_icon', args: { name, path: 'M0 0h10v10z' } }, { tool: 'delete_icon', args: { name } }],
     expect: (_, after) => (Object.hasOwn((after.meta.icons as object | undefined) ?? {}, name) ? `icon ${name} is still there` : undefined),
+  }
+}
+
+/** A payload made and then deleted, one call after the other: a delete_payload is refused unless the payload is there and nothing names it. */
+const payload: McpMaker = (_, rng) => {
+  const id = `payload-${rng.int(40)}`
+  return {
+    op: 'delete_payload', label: `put_payload then delete_payload ${id}`, kind: 'write',
+    calls: [{ tool: 'put_payload', args: { id, about: 'What moves.' } }, { tool: 'delete_payload', args: { id } }],
+    expect: (_, after) => (Object.hasOwn((after.meta.payloads as object | undefined) ?? {}, id) ? `payload ${id} is still there` : undefined),
+  }
+}
+
+/** A payload made and put on a line that is there, one call after the other: set_payloads comes up too seldom among the edits to be tried by chance. */
+const carried: McpMaker = ({ model }, rng) => {
+  if (model.connections.length === 0) return undefined
+  const c = rng.pick(model.connections)
+  const id = `payload-${rng.int(40)}`
+  const which = { from: c.from, to: c.to, ...(typeof c.label === 'string' ? { label: c.label } : {}) }
+  return {
+    op: 'set_payloads', label: `put_payload then set_payloads ${c.from} → ${c.to} ${id}`, kind: 'write',
+    calls: [{ tool: 'put_payload', args: { id, about: 'What moves.' } }, { tool: 'set_payloads', args: { ...which, payloads: [id] } }],
   }
 }
 
@@ -170,9 +212,13 @@ const echoes: Record<string, McpMaker> = {
 
 /** What a scenario draws from. Edits come up most; the rest keep the reads and the send-backs honest. */
 export const MCP_MAKERS: Record<string, McpMaker> = {
-  write1: write, write2: write, write3: write, write4: write, write5: write, write6: write,
+  // Six edits for every few other kinds of call; the three below payload and connect add three more, so a rare edit comes up as often as before.
+  write1: write, write2: write, write3: write, write4: write, write5: write, write6: write, write7: write, write8: write, write9: write,
   delete1: deleteSomething, delete2: deleteSomething,
+  connect: connectSomething,
   icon,
+  payload,
+  carried,
   together,
   ...Object.fromEntries(Object.entries(reads).map(([k, f]) => [`read-${k}`, f])),
   ...Object.fromEntries(Object.entries(echoes).map(([k, f]) => [`echo-${k}`, f])),

@@ -28,6 +28,9 @@ public sealed record FlowyObject(string? Type, string? Name, string? In, string?
 
 public sealed record Connection(string? From, string? To, string? Label)
 {
+    /// <summary>The <c>payloads</c> as the file held them: a list of payload ids and payloads written in place if it is well formed, which <see cref="Payloads"/> reads and the checks report on.</summary>
+    public object? Payloads { get; init; }
+
     /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>).</summary>
     public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
 }
@@ -40,6 +43,11 @@ public sealed record Connection(string? From, string? To, string? Label)
 /// </summary>
 public sealed record Step(string? From, string? To, string? Text, string? Description, object? Animation = null, string? Group = null, string? Lane = null, string? FlowId = null, object? States = null)
 {
+    /// <summary>The <c>payload</c> and <c>reply</c> as the file held them: a payload id, or a payload written in place (see <see cref="Payloads"/>); null when the key is not there.</summary>
+    public object? Payload { get; init; }
+
+    public object? Reply { get; init; }
+
     /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>), this step's own, down into its animation and states.</summary>
     public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
 }
