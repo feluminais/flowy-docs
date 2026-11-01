@@ -39,6 +39,7 @@ import { Shortcuts } from './Shortcuts.tsx'
 import { useLatest } from './stable.ts'
 import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
+import { useCssClock } from './cssClock.ts'
 import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
 import { cameFrom } from './trail.ts'
@@ -158,6 +159,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
   const stateMarks = flow ? flowMarks : runMarks
   const detailsOpen = details || (side !== undefined && !manyPicked) // the right-hand side holds Details and nothing else
+  useCssClock(canvas, clock, stepKey)
   const { finished, stepTo, togglePlay, showsPause, nudge } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused })
   const left = cameFrom(model.flows, playing?.trail ?? [])
   const trail = flow ? left : undefined
