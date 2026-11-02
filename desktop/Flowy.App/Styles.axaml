@@ -152,6 +152,8 @@
   <Style Selector="SelectableTextBlock">
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
     <Setter Property="IsTabStop" Value="False" />
+    <!-- With no background a press only lands on the drawn letters, so a drag that starts between them selects nothing. -->
+    <Setter Property="Background" Value="Transparent" />
   </Style>
   <Style Selector="TextBlock.muted">
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
