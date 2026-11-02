@@ -154,15 +154,21 @@ internal sealed class Panels
 
     private void ResizeNav(double width)
     {
-        _navWidth = NavigatorState.Clamp(width, Spare(_details.IsVisible ? _detailsWidth : 0));
+        _navWidth = NavigatorState.Clamp(width, Spare(_details.IsVisible ? _detailsWidth : 0), NavigatorState.WidestFor(_navWidth, SidewaysOverflow(_nav)));
         Resized?.Invoke();
     }
 
     private void ResizeDetails(double width)
     {
-        _detailsWidth = NavigatorState.Clamp(width, Spare(ShownTab is not null ? _navWidth : 0));
+        _detailsWidth = NavigatorState.Clamp(width, Spare(ShownTab is not null ? _navWidth : 0), NavigatorState.WidestFor(_detailsWidth, SidewaysOverflow(_details)));
         Resized?.Invoke();
     }
+
+    /// <summary>How far the widest thing in <paramref name="panel"/> that scrolls sideways (a code block, a table) runs past its box: 0 when everything shows whole.</summary>
+    private static double SidewaysOverflow(Avalonia.Controls.Control panel) =>
+        Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(panel).OfType<Avalonia.Controls.ScrollViewer>()
+            .Where(s => s.IsEffectivelyVisible && s.HorizontalScrollBarVisibility != Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled)
+            .Select(s => s.Extent.Width - s.Viewport.Width).DefaultIfEmpty(0).Max();
 
     /// <summary>Puts the panels and their sashes at the widths dragged.</summary>
     internal void Place()

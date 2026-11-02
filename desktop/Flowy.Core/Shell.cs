@@ -148,8 +148,17 @@ public sealed record NavigatorState(string? Tab, IReadOnlyList<string> Expanded,
 
     public const double MaxWidth = 640;
 
-    /// <summary>A panel's width in whole pixels, kept between <see cref="MinWidth"/> and <see cref="MaxWidth"/>, and below <paramref name="limit"/>: what the canvas can spare.</summary>
-    public static double Clamp(double width, double limit = MaxWidth) => Math.Round(Math.Max(MinWidth, Math.Min(width, Math.Min(MaxWidth, limit))), MidpointRounding.AwayFromZero);
+    /// <summary>
+    /// A panel's width in whole pixels, kept between <see cref="MinWidth"/> and <paramref name="most"/> (<see cref="MaxWidth"/> unless what it shows asks for more room), and below
+    /// <paramref name="limit"/>: what the canvas can spare.
+    /// </summary>
+    public static double Clamp(double width, double limit = MaxWidth, double most = MaxWidth) => Math.Round(Math.Max(MinWidth, Math.Min(width, Math.Min(most, limit))), MidpointRounding.AwayFromZero);
+
+    /// <summary>
+    /// The widest a panel <paramref name="width"/> wide may be dragged: <see cref="MaxWidth"/>, or wider while something in it still scrolls sideways, until its widest line shows whole.
+    /// <paramref name="overflow"/> is how far that runs past the panel now.
+    /// </summary>
+    public static double WidestFor(double width, double overflow) => Math.Max(MaxWidth, Math.Ceiling(width + Math.Max(0, overflow)));
 }
 
 /// <summary>
