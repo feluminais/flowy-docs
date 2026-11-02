@@ -2456,6 +2456,97 @@
               "language": "json",
               "text": "{ \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\n"
             }
+          },
+          "choice": {
+            "name": "Dishes and address",
+            "about": "What the customer picks before paying. Dishes, a note for the kitchen and where to bring them."
+          },
+          "ticket": {
+            "name": "Ticket",
+            "about": "A customer writes in. Support reads the order number and what went wrong, then looks the order up."
+          },
+          "accept": {
+            "name": "Acceptance",
+            "about": "The kitchen's answer to a new order, with how long the food takes.",
+            "example": {
+              "text": "{ \"orderId\": \"o-1042\", \"status\": \"accepted\", \"readyInMinutes\": 15 }\n"
+            }
+          },
+          "route": {
+            "name": "Route request",
+            "about": "Asks Mapbox how far apart two places are by bike. Pricing wants the distance, ETA and the courier app want the time.",
+            "example": {
+              "language": "text",
+              "text": "GET /directions-matrix/v1/mapbox/cycling/5.1214,52.0907;5.1102,52.0841?annotations=distance,duration\n"
+            }
+          },
+          "charge": {
+            "name": "Charge event",
+            "about": "Stripe calls Plum's webhook once a held amount is charged. Plum checks the signature before it trusts the event.",
+            "shape": {
+              "language": "json",
+              "text": "{\n  \"type\": \"object\",\n  \"required\": [\"id\", \"type\", \"data\"],\n  \"properties\": {\n    \"id\": { \"type\": \"string\" },\n    \"type\": { \"const\": \"charge.succeeded\" },\n    \"data\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"object\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"amount\": { \"type\": \"integer\" },\n            \"metadata\": { \"type\": \"object\", \"properties\": { \"orderId\": { \"type\": \"string\" } } }\n          }\n        }\n      }\n    }\n  }\n}\n"
+            },
+            "example": {
+              "language": "json",
+              "text": "{ \"id\": \"evt_1Q\", \"type\": \"charge.succeeded\", \"data\": { \"object\": { \"amount\": 2490, \"metadata\": { \"orderId\": \"o-1042\" } } } }\n"
+            }
+          },
+          "refund": {
+            "name": "Refund",
+            "about": "A refund in full or by line. Support picks a reason, and the reason is saved on the order.",
+            "shape": {
+              "language": "typescript",
+              "text": "type Refund = {\n  orderId: string\n  lines?: { dishId: string; count: number }[] // left out: the whole order\n  reason: 'late' | 'wrong dish' | 'never arrived' | 'other'\n}\n"
+            }
+          },
+          "stripe-refund": {
+            "name": "Stripe refund",
+            "about": "Stripe's answer. The money reaches the card in 5 to 10 days.",
+            "example": {
+              "language": "json",
+              "text": "{ \"id\": \"re_3Pq\", \"charge\": \"ch_3Pq\", \"amount\": 2490, \"status\": \"succeeded\" }\n"
+            }
+          },
+          "message": {
+            "name": "Message request",
+            "about": "What a service asks Notifications to send. Notifications takes the wording from a template and sends it by SMS.",
+            "shape": {
+              "language": "typescript",
+              "text": "type MessageRequest = {\n  to: { customerId: string } | { courierId: string }\n  template: 'order-placed' | 'order-on-its-way' | 'refund-done' | 'job-offer'\n  values: Record<string, string>\n}\n"
+            }
+          },
+          "sms": {
+            "name": "SMS",
+            "about": "What Notifications hands to Twilio. A text over 160 characters is sent in parts, so the templates stay short.",
+            "example": {
+              "language": "text",
+              "text": "To:   +31 6 1234 5678\nFrom: Plum\nBody: Plum: Noodle Bar has your order. It arrives in about 35 min.\n"
+            }
+          },
+          "job-offer": {
+            "name": "Job offer",
+            "about": "The job a courier sees and what it pays. They have 30 s to take it before the next courier gets it.",
+            "shape": {
+              "language": "kotlin",
+              "text": "data class JobOffer(\n    val orderId: String,\n    val pickup: Place,\n    val dropOff: Place,\n    val earningsCents: Int,\n    val expiresAt: Instant,\n)\n"
+            }
+          },
+          "delivery-step": {
+            "name": "Delivery step",
+            "about": "What the courier app reports at the restaurant and at the door.",
+            "example": {
+              "language": "json",
+              "text": "{ \"orderId\": \"o-1042\", \"step\": \"picked_up\", \"courierId\": \"c-77\", \"at\": \"2026-11-01T19:24:40Z\" }\n"
+            }
+          },
+          "report": {
+            "name": "Weekly report",
+            "about": "One row per restaurant and week, for the owners' Monday meeting.",
+            "example": {
+              "language": "sql",
+              "text": "select restaurant_id, date_trunc('week', placed_at) as week, count(*) as orders, sum(total) as revenue\nfrom orders\nwhere status = 'delivered'\ngroup by 1, 2\n"
+            }
           }
         },
         "objects": {
@@ -2927,27 +3018,48 @@
           {
             "from": "customer",
             "to": "customer-app",
-            "label": "orders on a phone"
+            "label": "orders on a phone",
+            "payloads": [
+              "choice"
+            ]
           },
           {
             "from": "customer",
             "to": "web",
-            "label": "orders in a browser"
+            "label": "orders in a browser",
+            "payloads": [
+              "choice"
+            ]
           },
           {
             "from": "restaurant",
             "to": "kitchen-tablet",
-            "label": "accepts orders"
+            "label": "accepts orders",
+            "payloads": [
+              {
+                "name": "Accept or refuse",
+                "about": "The kitchen taps Accept and says how long the food takes, or Refuse with a reason."
+              }
+            ]
           },
           {
             "from": "courier",
             "to": "courier-app",
-            "label": "takes deliveries"
+            "label": "takes deliveries",
+            "payloads": [
+              {
+                "name": "Yes or no",
+                "about": "The courier takes the job or lets it pass to the next one."
+              }
+            ]
           },
           {
             "from": "support",
             "to": "support-console",
-            "label": "handles tickets"
+            "label": "handles tickets",
+            "payloads": [
+              "ticket"
+            ]
           },
           {
             "from": "support",
@@ -2965,12 +3077,18 @@
           {
             "from": "web",
             "to": "order-api",
-            "label": "REST"
+            "label": "REST",
+            "payloads": [
+              "basket"
+            ]
           },
           {
             "from": "kitchen-tablet",
             "to": "order-api",
-            "label": "accepts, marks ready"
+            "label": "accepts, marks ready",
+            "payloads": [
+              "accept"
+            ]
           },
           {
             "from": "menu",
@@ -2995,7 +3113,10 @@
           {
             "from": "pricing",
             "to": "mapbox",
-            "label": "delivery distance"
+            "label": "delivery distance",
+            "payloads": [
+              "route"
+            ]
           },
           {
             "from": "checkout",
@@ -3034,17 +3155,32 @@
           {
             "from": "status",
             "to": "events",
-            "label": "announces each step"
+            "label": "announces each step",
+            "payloads": [
+              {
+                "name": "Status changed",
+                "example": {
+                  "language": "json",
+                  "text": "{ \"type\": \"order.status\", \"orderId\": \"o-1042\", \"status\": \"picked_up\", \"at\": \"2026-11-01T19:24:41Z\" }\n"
+                }
+              }
+            ]
           },
           {
             "from": "status",
             "to": "notifier",
-            "label": "order updates"
+            "label": "order updates",
+            "payloads": [
+              "message"
+            ]
           },
           {
             "from": "refunds",
             "to": "stripe",
-            "label": "refunds the charge"
+            "label": "refunds the charge",
+            "payloads": [
+              "refund"
+            ]
           },
           {
             "from": "refunds",
@@ -3054,7 +3190,10 @@
           {
             "from": "refunds",
             "to": "notifier",
-            "label": "confirms by message"
+            "label": "confirms by message",
+            "payloads": [
+              "message"
+            ]
           },
           {
             "from": "dispatch",
@@ -3079,12 +3218,19 @@
           {
             "from": "eta",
             "to": "mapbox",
-            "label": "travel times"
+            "label": "travel times",
+            "payloads": [
+              "route"
+            ]
           },
           {
             "from": "offers",
             "to": "notifier",
-            "label": "sends the offer"
+            "label": "sends the offer",
+            "payloads": [
+              "job-offer",
+              "message"
+            ]
           },
           {
             "from": "courier-app",
@@ -3102,12 +3248,18 @@
           {
             "from": "courier-app",
             "to": "status",
-            "label": "picked up, delivered"
+            "label": "picked up, delivered",
+            "payloads": [
+              "delivery-step"
+            ]
           },
           {
             "from": "courier-app",
             "to": "mapbox",
-            "label": "navigation"
+            "label": "navigation",
+            "payloads": [
+              "route"
+            ]
           },
           {
             "from": "tracking",
@@ -3117,17 +3269,26 @@
           {
             "from": "tracking",
             "to": "customer-app",
-            "label": "live map"
+            "label": "live map",
+            "payloads": [
+              "position"
+            ]
           },
           {
             "from": "tracking",
             "to": "web",
-            "label": "live map"
+            "label": "live map",
+            "payloads": [
+              "position"
+            ]
           },
           {
             "from": "notifier",
             "to": "twilio",
-            "label": "SMS"
+            "label": "SMS",
+            "payloads": [
+              "sms"
+            ]
           },
           {
             "from": "notifier",
@@ -3137,31 +3298,53 @@
           {
             "from": "support-console",
             "to": "order-api",
-            "label": "looks up orders"
+            "label": "looks up orders",
+            "payloads": [
+              "ticket"
+            ]
           },
           {
             "from": "support-console",
             "to": "refunds",
-            "label": "issues refunds"
+            "label": "issues refunds",
+            "payloads": [
+              "refund"
+            ]
           },
           {
             "from": "admin",
             "to": "order-api",
-            "label": "menus and promotions"
+            "label": "menus and promotions",
+            "payloads": [
+              {
+                "name": "Promotion",
+                "about": "A discount the back office sets up. It runs between two dates at the restaurants it names.",
+                "example": {
+                  "language": "yaml",
+                  "text": "code: DINNER10\npercentOff: 10\nrestaurants: [noodle-bar, pho-corner]\nfrom: 2026-11-01\nuntil: 2026-11-30\n"
+                }
+              }
+            ]
           },
           {
             "from": "admin",
             "to": "warehouse",
-            "label": "weekly reports"
+            "label": "weekly reports",
+            "payloads": [
+              "report"
+            ]
           },
           {
             "from": "events",
             "to": "warehouse",
-            "label": "streams every event"
+            "label": "streams every event",
+            "payloads": [
+              "placed"
+            ]
           }
         ]
       },
-      "text": "name: Plum\nabout: |\n  Food delivery for one city. Customers order in the app or on the website, restaurants cook, couriers deliver.\n\n  Start with **Ordering**, which every order passes through. **Delivery** covers courier matching and tracking.\npayloads:\n  basket:\n    name: Basket\n    about: What the app sends to place an order. The idempotency key makes a double tap one order.\n    shape:\n      language: typescript\n      text: |\n        type PlaceOrder = {\n          idempotencyKey: string\n          restaurantId: string\n          lines: { dishId: string; count: number; notes?: string }[]\n          deliverTo: Address\n        }\n    example:\n      language: json\n      text: |\n        {\n          \"idempotencyKey\": \"6f1c2b\",\n          \"restaurantId\": \"noodle-bar\",\n          \"lines\": [{ \"dishId\": \"ramen\", \"count\": 2 }],\n          \"deliverTo\": { \"street\": \"Kloosterstraat 12\", \"city\": \"Utrecht\" }\n        }\n  receipt:\n    name: Receipt\n    about: What the app gets back once the order is placed. The total is in cents.\n    example:\n      language: json\n      text: |\n        { \"orderId\": \"o-1042\", \"status\": \"placed\", \"total\": 2490, \"etaMinutes\": 35 }\n  hold:\n    name: Card hold\n    about: Asks Stripe to hold the total on the card. Nothing is charged until the restaurant accepts.\n    example:\n      language: json\n      text: |\n        { \"amount\": 2490, \"currency\": \"eur\", \"capture_method\": \"manual\", \"customer\": \"cus_9a1\" }\n  order:\n    name: Order\n    about: The order as it is saved, with its status. Each line keeps the price it was ordered at.\n    shape:\n      language: sql\n      text: |\n        orders (id, customer_id, restaurant_id, status, total, placed_at)\n        order_lines (order_id, dish_id, count, price)\n  placed:\n    name: Order placed\n    about: The event every listener hears when an order is placed. It names the order, not its contents.\n    example:\n      language: json\n      text: |\n        { \"type\": \"order.placed\", \"orderId\": \"o-1042\", \"restaurantId\": \"noodle-bar\", \"at\": \"2026-11-01T19:02:11Z\" }\n  position:\n    name: Courier position\n    about: Where the courier is, every 5 s while a job is open.\n    example:\n      language: json\n      text: |\n        { \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\nobjects:\n  customer:\n    type: actor\n    name: Customer\n    description: Orders from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: Kitchen staff. Accept orders and mark them ready.\n  courier:\n    type: actor\n    name: Courier\n    icon: truck\n    description: Carries the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customer and courier tickets.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything customer-facing: menus, basket, payment.\n\n      The **Order API** is the only entry point. It stores orders in Postgres and publishes each\n      new order to **Order events**, which **Delivery** consumes.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Assigns a courier to each order and tracks it to the door.\n\n      Dispatch matches and offers. Live tracking feeds the customer's map.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email. The only system that talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Internal tools for Plum staff. Not exposed to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: Card payments and refunds. Plum never handles card numbers.\n    links:\n      - url: https://status.stripe.com\n        title: Provider status\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: SMS delivery.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, geocoding and travel times.\n    links:\n      - url: https://docs.mapbox.com/api/overview/#rate-limits\n        title: Rate limits\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    links:\n      - url: apps/customer/README.md\n        title: Build and release notes\n    description: |\n      Mobile client. Browse, order, pay, follow the courier.\n\n      Stores only the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are server-rendered so search engines can index them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Alerts on a new order. The kitchen taps **Accept**, then **Ready** for pickup.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Entry point for every client, and the only service that touches the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds and leaves the order alone.\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: total, type: int, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, type: uuid, key: primary, to: orders}\n          - {name: item_id, type: uuid, key: primary}\n          - {name: quantity, type: int}\n          - {name: unit_price, type: int, note: Copied from the menu at order time. Later menu edits don't change it.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: order_id, type: uuid, to: orders}\n          - {name: amount, type: int}\n          - {name: reason, type: text?}\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: items, type: json}\n          - {name: expires_at, type: timestamp}\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, 5 min TTL. A restaurant's edit appears when the entry expires.\n    data:\n      - name: Keys\n        limits: LRU eviction at 256 MB\n        note: 5 min TTL. A shorter one put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message per order change: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch and the warehouse are consumers.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so each order's messages stay ordered.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves menus from the cache, and from the database on a miss.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds the picked items and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Computes the total: items, delivery fee and any promotion.\n\n      The fee is based on Mapbox travel distance, rounded up to the next 500 m.\n\n      A meal deal is priced by pricing each of its parts, and a part can be a deal too.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      The card is charged only when the restaurant accepts. A rejection releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Advances an order through `placed`, `accepted`, `picked-up` and `delivered`, publishing each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Refunds the card, then marks the order refunded. Full or per line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Reports position every 5 s while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Assigns a courier to each new order.\n\n      Consumes `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Relays courier position to the customer's map. Positions older than 1 min are dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, vehicles and last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks idle couriers near a restaurant by estimated arrival.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers the job to one courier at a time with a 30 s timeout.\n\n      A refusal or timeout moves to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Chooses push, SMS or email per message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    shape: document\n    tech: Postgres\n    description: Message text, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Only the **Admin dashboard** reads it.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n    payloads:\n      - basket\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n    payloads:\n      - hold\n  - from: checkout\n    to: orders-db\n    label: writes the order\n    payloads:\n      - order\n  - from: checkout\n    to: events\n    label: announces placed\n    payloads:\n      - placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n    payloads:\n      - position\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
+      "text": "name: Plum\nabout: |\n  Food delivery for one city. Customers order in the app or on the website, restaurants cook, couriers deliver.\n\n  Start with **Ordering**, which every order passes through. **Delivery** covers courier matching and tracking.\npayloads:\n  basket:\n    name: Basket\n    about: What the app sends to place an order. The idempotency key makes a double tap one order.\n    shape:\n      language: typescript\n      text: |\n        type PlaceOrder = {\n          idempotencyKey: string\n          restaurantId: string\n          lines: { dishId: string; count: number; notes?: string }[]\n          deliverTo: Address\n        }\n    example:\n      language: json\n      text: |\n        {\n          \"idempotencyKey\": \"6f1c2b\",\n          \"restaurantId\": \"noodle-bar\",\n          \"lines\": [{ \"dishId\": \"ramen\", \"count\": 2 }],\n          \"deliverTo\": { \"street\": \"Kloosterstraat 12\", \"city\": \"Utrecht\" }\n        }\n  receipt:\n    name: Receipt\n    about: What the app gets back once the order is placed. The total is in cents.\n    example:\n      language: json\n      text: |\n        { \"orderId\": \"o-1042\", \"status\": \"placed\", \"total\": 2490, \"etaMinutes\": 35 }\n  hold:\n    name: Card hold\n    about: Asks Stripe to hold the total on the card. Nothing is charged until the restaurant accepts.\n    example:\n      language: json\n      text: |\n        { \"amount\": 2490, \"currency\": \"eur\", \"capture_method\": \"manual\", \"customer\": \"cus_9a1\" }\n  order:\n    name: Order\n    about: The order as it is saved, with its status. Each line keeps the price it was ordered at.\n    shape:\n      language: sql\n      text: |\n        orders (id, customer_id, restaurant_id, status, total, placed_at)\n        order_lines (order_id, dish_id, count, price)\n  placed:\n    name: Order placed\n    about: The event every listener hears when an order is placed. It names the order, not its contents.\n    example:\n      language: json\n      text: |\n        { \"type\": \"order.placed\", \"orderId\": \"o-1042\", \"restaurantId\": \"noodle-bar\", \"at\": \"2026-11-01T19:02:11Z\" }\n  position:\n    name: Courier position\n    about: Where the courier is, every 5 s while a job is open.\n    example:\n      language: json\n      text: |\n        { \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\n  choice:\n    name: Dishes and address\n    about: What the customer picks before paying. Dishes, a note for the kitchen and where to bring them.\n  ticket:\n    name: Ticket\n    about: A customer writes in. Support reads the order number and what went wrong, then looks the order up.\n  accept:\n    name: Acceptance\n    about: The kitchen's answer to a new order, with how long the food takes.\n    example:\n      text: |\n        { \"orderId\": \"o-1042\", \"status\": \"accepted\", \"readyInMinutes\": 15 }\n  route:\n    name: Route request\n    about: Asks Mapbox how far apart two places are by bike. Pricing wants the distance, ETA and the courier app want the time.\n    example:\n      language: text\n      text: |\n        GET /directions-matrix/v1/mapbox/cycling/5.1214,52.0907;5.1102,52.0841?annotations=distance,duration\n  charge:\n    name: Charge event\n    about: Stripe calls Plum's webhook once a held amount is charged. Plum checks the signature before it trusts the event.\n    shape:\n      language: json\n      text: |\n        {\n          \"type\": \"object\",\n          \"required\": [\"id\", \"type\", \"data\"],\n          \"properties\": {\n            \"id\": { \"type\": \"string\" },\n            \"type\": { \"const\": \"charge.succeeded\" },\n            \"data\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"object\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"amount\": { \"type\": \"integer\" },\n                    \"metadata\": { \"type\": \"object\", \"properties\": { \"orderId\": { \"type\": \"string\" } } }\n                  }\n                }\n              }\n            }\n          }\n        }\n    example:\n      language: json\n      text: |\n        { \"id\": \"evt_1Q\", \"type\": \"charge.succeeded\", \"data\": { \"object\": { \"amount\": 2490, \"metadata\": { \"orderId\": \"o-1042\" } } } }\n  refund:\n    name: Refund\n    about: A refund in full or by line. Support picks a reason, and the reason is saved on the order.\n    shape:\n      language: typescript\n      text: |\n        type Refund = {\n          orderId: string\n          lines?: { dishId: string; count: number }[] // left out: the whole order\n          reason: 'late' | 'wrong dish' | 'never arrived' | 'other'\n        }\n  stripe-refund:\n    name: Stripe refund\n    about: Stripe's answer. The money reaches the card in 5 to 10 days.\n    example:\n      language: json\n      text: |\n        { \"id\": \"re_3Pq\", \"charge\": \"ch_3Pq\", \"amount\": 2490, \"status\": \"succeeded\" }\n  message:\n    name: Message request\n    about: What a service asks Notifications to send. Notifications takes the wording from a template and sends it by SMS.\n    shape:\n      language: typescript\n      text: |\n        type MessageRequest = {\n          to: { customerId: string } | { courierId: string }\n          template: 'order-placed' | 'order-on-its-way' | 'refund-done' | 'job-offer'\n          values: Record<string, string>\n        }\n  sms:\n    name: SMS\n    about: What Notifications hands to Twilio. A text over 160 characters is sent in parts, so the templates stay short.\n    example:\n      language: text\n      text: |\n        To:   +31 6 1234 5678\n        From: Plum\n        Body: Plum: Noodle Bar has your order. It arrives in about 35 min.\n  job-offer:\n    name: Job offer\n    about: The job a courier sees and what it pays. They have 30 s to take it before the next courier gets it.\n    shape:\n      language: kotlin\n      text: |\n        data class JobOffer(\n            val orderId: String,\n            val pickup: Place,\n            val dropOff: Place,\n            val earningsCents: Int,\n            val expiresAt: Instant,\n        )\n  delivery-step:\n    name: Delivery step\n    about: What the courier app reports at the restaurant and at the door.\n    example:\n      language: json\n      text: |\n        { \"orderId\": \"o-1042\", \"step\": \"picked_up\", \"courierId\": \"c-77\", \"at\": \"2026-11-01T19:24:40Z\" }\n  report:\n    name: Weekly report\n    about: One row per restaurant and week, for the owners' Monday meeting.\n    example:\n      language: sql\n      text: |\n        select restaurant_id, date_trunc('week', placed_at) as week, count(*) as orders, sum(total) as revenue\n        from orders\n        where status = 'delivered'\n        group by 1, 2\nobjects:\n  customer:\n    type: actor\n    name: Customer\n    description: Orders from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: Kitchen staff. Accept orders and mark them ready.\n  courier:\n    type: actor\n    name: Courier\n    icon: truck\n    description: Carries the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customer and courier tickets.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything customer-facing: menus, basket, payment.\n\n      The **Order API** is the only entry point. It stores orders in Postgres and publishes each\n      new order to **Order events**, which **Delivery** consumes.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Assigns a courier to each order and tracks it to the door.\n\n      Dispatch matches and offers. Live tracking feeds the customer's map.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email. The only system that talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Internal tools for Plum staff. Not exposed to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: Card payments and refunds. Plum never handles card numbers.\n    links:\n      - url: https://status.stripe.com\n        title: Provider status\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: SMS delivery.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, geocoding and travel times.\n    links:\n      - url: https://docs.mapbox.com/api/overview/#rate-limits\n        title: Rate limits\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    links:\n      - url: apps/customer/README.md\n        title: Build and release notes\n    description: |\n      Mobile client. Browse, order, pay, follow the courier.\n\n      Stores only the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are server-rendered so search engines can index them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Alerts on a new order. The kitchen taps **Accept**, then **Ready** for pickup.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Entry point for every client, and the only service that touches the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds and leaves the order alone.\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: total, type: int, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, type: uuid, key: primary, to: orders}\n          - {name: item_id, type: uuid, key: primary}\n          - {name: quantity, type: int}\n          - {name: unit_price, type: int, note: Copied from the menu at order time. Later menu edits don't change it.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: order_id, type: uuid, to: orders}\n          - {name: amount, type: int}\n          - {name: reason, type: text?}\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: items, type: json}\n          - {name: expires_at, type: timestamp}\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, 5 min TTL. A restaurant's edit appears when the entry expires.\n    data:\n      - name: Keys\n        limits: LRU eviction at 256 MB\n        note: 5 min TTL. A shorter one put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message per order change: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch and the warehouse are consumers.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so each order's messages stay ordered.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves menus from the cache, and from the database on a miss.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds the picked items and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Computes the total: items, delivery fee and any promotion.\n\n      The fee is based on Mapbox travel distance, rounded up to the next 500 m.\n\n      A meal deal is priced by pricing each of its parts, and a part can be a deal too.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      The card is charged only when the restaurant accepts. A rejection releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Advances an order through `placed`, `accepted`, `picked-up` and `delivered`, publishing each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Refunds the card, then marks the order refunded. Full or per line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Reports position every 5 s while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Assigns a courier to each new order.\n\n      Consumes `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Relays courier position to the customer's map. Positions older than 1 min are dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, vehicles and last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks idle couriers near a restaurant by estimated arrival.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers the job to one courier at a time with a 30 s timeout.\n\n      A refusal or timeout moves to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Chooses push, SMS or email per message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    shape: document\n    tech: Postgres\n    description: Message text, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Only the **Admin dashboard** reads it.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n    payloads:\n      - choice\n  - from: customer\n    to: web\n    label: orders in a browser\n    payloads:\n      - choice\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n    payloads:\n      - name: Accept or refuse\n        about: The kitchen taps Accept and says how long the food takes, or Refuse with a reason.\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n    payloads:\n      - name: Yes or no\n        about: The courier takes the job or lets it pass to the next one.\n  - from: support\n    to: support-console\n    label: handles tickets\n    payloads:\n      - ticket\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n    payloads:\n      - basket\n  - from: web\n    to: order-api\n    label: REST\n    payloads:\n      - basket\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n    payloads:\n      - accept\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n    payloads:\n      - route\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n    payloads:\n      - hold\n  - from: checkout\n    to: orders-db\n    label: writes the order\n    payloads:\n      - order\n  - from: checkout\n    to: events\n    label: announces placed\n    payloads:\n      - placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n    payloads:\n      - name: Status changed\n        example:\n          language: json\n          text: |\n            { \"type\": \"order.status\", \"orderId\": \"o-1042\", \"status\": \"picked_up\", \"at\": \"2026-11-01T19:24:41Z\" }\n  - from: status\n    to: notifier\n    label: order updates\n    payloads:\n      - message\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n    payloads:\n      - refund\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n    payloads:\n      - message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n    payloads:\n      - route\n  - from: offers\n    to: notifier\n    label: sends the offer\n    payloads:\n      - job-offer\n      - message\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n    payloads:\n      - position\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n    payloads:\n      - delivery-step\n  - from: courier-app\n    to: mapbox\n    label: navigation\n    payloads:\n      - route\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n    payloads:\n      - position\n  - from: tracking\n    to: web\n    label: live map\n    payloads:\n      - position\n  - from: notifier\n    to: twilio\n    label: SMS\n    payloads:\n      - sms\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n    payloads:\n      - ticket\n  - from: support-console\n    to: refunds\n    label: issues refunds\n    payloads:\n      - refund\n  - from: admin\n    to: order-api\n    label: menus and promotions\n    payloads:\n      - name: Promotion\n        about: A discount the back office sets up. It runs between two dates at the restaurants it names.\n        example:\n          language: yaml\n          text: |\n            code: DINNER10\n            percentOff: 10\n            restaurants: [noodle-bar, pho-corner]\n            from: 2026-11-01\n            until: 2026-11-30\n  - from: admin\n    to: warehouse\n    label: weekly reports\n    payloads:\n      - report\n  - from: events\n    to: warehouse\n    label: streams every event\n    payloads:\n      - placed\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -4322,47 +4505,46 @@
             "from": "support",
             "to": "backoffice",
             "text": "Finds the order in the support console",
-            "animation": {
-              "kind": "send",
-              "carries": "order id"
-            }
+            "animation": "send",
+            "payload": "ticket"
           },
           {
             "from": "backoffice",
             "to": "ordering",
             "text": "Asks for a refund, in full or by line",
-            "animation": {
-              "kind": "call",
-              "carries": "refund"
+            "animation": "call",
+            "payload": "refund",
+            "reply": {
+              "name": "Refund done",
+              "about": "The order as it stands once Stripe has confirmed.",
+              "example": {
+                "language": "json",
+                "text": "{ \"orderId\": \"o-1042\", \"status\": \"refunded\", \"refunded\": 2490, \"reason\": \"late\" }\n"
+              }
             }
           },
           {
             "from": "ordering",
             "to": "stripe",
             "text": "The money goes back to the card",
-            "animation": {
-              "kind": "call",
-              "carries": "refund"
-            },
+            "animation": "call",
+            "payload": "refund",
+            "reply": "stripe-refund",
             "description": "Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\nso the database never records a refund that didn't happen.\n"
           },
           {
             "from": "ordering",
             "to": "notifications",
             "text": "Requests a confirmation",
-            "animation": {
-              "kind": "send",
-              "carries": "confirm"
-            }
+            "animation": "send",
+            "payload": "message"
           },
           {
             "from": "notifications",
             "to": "twilio",
             "text": "Hands the SMS to Twilio",
-            "animation": {
-              "kind": "send",
-              "carries": "SMS"
-            }
+            "animation": "send",
+            "payload": "sms"
           },
           {
             "from": "twilio",
@@ -4370,13 +4552,20 @@
             "text": "The customer reads that the money is back",
             "animation": {
               "kind": "send",
-              "carries": "SMS",
               "effect": "bounce"
+            },
+            "payload": {
+              "name": "Text message",
+              "about": "What the customer's phone shows.",
+              "example": {
+                "language": "text",
+                "text": "Plum: your refund of €24.90 is on its way back to your card. It can take 5 days to show.\n"
+              }
             }
           }
         ]
       },
-      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Support, Back office and Stripe are in both flows.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation:\n      kind: send\n      carries: order id\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation:\n      kind: call\n      carries: refund\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the SMS to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The customer reads that the money is back\n    animation:\n      kind: send\n      carries: SMS\n      effect: bounce\n"
+      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Support, Back office and Stripe are in both flows.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation: send\n    payload: ticket\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation: call\n    payload: refund\n    reply:\n      name: Refund done\n      about: The order as it stands once Stripe has confirmed.\n      example:\n        language: json\n        text: |\n          { \"orderId\": \"o-1042\", \"status\": \"refunded\", \"refunded\": 2490, \"reason\": \"late\" }\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation: call\n    payload: refund\n    reply: stripe-refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation: send\n    payload: message\n  - from: notifications\n    to: twilio\n    text: Hands the SMS to Twilio\n    animation: send\n    payload: sms\n  - from: twilio\n    to: customer\n    text: The customer reads that the money is back\n    animation:\n      kind: send\n      effect: bounce\n    payload:\n      name: Text message\n      about: What the customer's phone shows.\n      example:\n        language: text\n        text: |\n          Plum: your refund of €24.90 is on its way back to your card. It can take 5 days to show.\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -4481,29 +4670,23 @@
             "from": "customer",
             "to": "ordering",
             "text": "Places an order",
-            "animation": {
-              "kind": "send",
-              "carries": "basket"
-            },
+            "animation": "send",
+            "payload": "basket",
             "flow": "place-order"
           },
           {
             "from": "ordering",
             "to": "notifications",
             "text": "Asks for an SMS that confirms it",
-            "animation": {
-              "kind": "send",
-              "carries": "confirm"
-            }
+            "animation": "send",
+            "payload": "message"
           },
           {
             "from": "notifications",
             "to": "twilio",
             "text": "Hands the confirmation to Twilio",
-            "animation": {
-              "kind": "send",
-              "carries": "SMS"
-            }
+            "animation": "send",
+            "payload": "sms"
           },
           {
             "from": "twilio",
@@ -4515,6 +4698,7 @@
               "reason": "Carrier drops it",
               "at": "0.6"
             },
+            "payload": "sms",
             "description": "Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n"
           },
           {
@@ -4523,7 +4707,7 @@
           }
         ]
       },
-      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: ordering\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: ordering\n    to: notifications\n    text: Asks for an SMS that confirms it\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
+      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: ordering\n    text: Places an order\n    animation: send\n    payload: basket\n    flow: place-order\n  - from: ordering\n    to: notifications\n    text: Asks for an SMS that confirms it\n    animation: send\n    payload: message\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation: send\n    payload: sms\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    payload: sms\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -4636,8 +4820,16 @@
             "text": "Calls Plum's webhook: the charge went through",
             "animation": {
               "kind": "callback",
-              "trigger": "outside",
-              "carries": "o_1042"
+              "trigger": "outside"
+            },
+            "payload": "charge",
+            "reply": {
+              "name": "Received",
+              "about": "Plum answers at once so Stripe doesn't send the event again.",
+              "example": {
+                "language": "json",
+                "text": "{ \"received\": true }"
+              }
             },
             "description": "Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n"
           },
@@ -4657,7 +4849,7 @@
           }
         ]
       },
-      "text": "name: Stripe reports a charge\nview: ordering\ntags:\n  - background\nsteps:\n  - from: stripe\n    to: order-api\n    text: \"Calls Plum's webhook: the charge went through\"\n    animation:\n      kind: callback\n      trigger: outside\n      carries: o_1042\n    description: |\n      Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    animation:\n      kind: call\n      carries: paid\n  - from: order-api\n    text: Carries on to publish the order\n    flow: announce-order\n"
+      "text": "name: Stripe reports a charge\nview: ordering\ntags:\n  - background\nsteps:\n  - from: stripe\n    to: order-api\n    text: \"Calls Plum's webhook: the charge went through\"\n    animation:\n      kind: callback\n      trigger: outside\n    payload: charge\n    reply:\n      name: Received\n      about: Plum answers at once so Stripe doesn't send the event again.\n      example:\n        language: json\n        text: '{ \"received\": true }'\n    description: |\n      Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    animation:\n      kind: call\n      carries: paid\n  - from: order-api\n    text: Carries on to publish the order\n    flow: announce-order\n"
     },
     {
       "folder": "docs/showcase/flowy",
@@ -11312,6 +11504,97 @@
               "language": "json",
               "text": "{ \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\n"
             }
+          },
+          "choice": {
+            "name": "Dishes and address",
+            "about": "What the customer picks before paying. Dishes, a note for the kitchen and where to bring them."
+          },
+          "ticket": {
+            "name": "Ticket",
+            "about": "A customer writes in. Support reads the order number and what went wrong, then looks the order up."
+          },
+          "accept": {
+            "name": "Acceptance",
+            "about": "The kitchen's answer to a new order, with how long the food takes.",
+            "example": {
+              "text": "{ \"orderId\": \"o-1042\", \"status\": \"accepted\", \"readyInMinutes\": 15 }\n"
+            }
+          },
+          "route": {
+            "name": "Route request",
+            "about": "Asks Mapbox how far apart two places are by bike. Pricing wants the distance, ETA and the courier app want the time.",
+            "example": {
+              "language": "text",
+              "text": "GET /directions-matrix/v1/mapbox/cycling/5.1214,52.0907;5.1102,52.0841?annotations=distance,duration\n"
+            }
+          },
+          "charge": {
+            "name": "Charge event",
+            "about": "Stripe calls Plum's webhook once a held amount is charged. Plum checks the signature before it trusts the event.",
+            "shape": {
+              "language": "json",
+              "text": "{\n  \"type\": \"object\",\n  \"required\": [\"id\", \"type\", \"data\"],\n  \"properties\": {\n    \"id\": { \"type\": \"string\" },\n    \"type\": { \"const\": \"charge.succeeded\" },\n    \"data\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"object\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"amount\": { \"type\": \"integer\" },\n            \"metadata\": { \"type\": \"object\", \"properties\": { \"orderId\": { \"type\": \"string\" } } }\n          }\n        }\n      }\n    }\n  }\n}\n"
+            },
+            "example": {
+              "language": "json",
+              "text": "{ \"id\": \"evt_1Q\", \"type\": \"charge.succeeded\", \"data\": { \"object\": { \"amount\": 2490, \"metadata\": { \"orderId\": \"o-1042\" } } } }\n"
+            }
+          },
+          "refund": {
+            "name": "Refund",
+            "about": "A refund in full or by line. Support picks a reason, and the reason is saved on the order.",
+            "shape": {
+              "language": "typescript",
+              "text": "type Refund = {\n  orderId: string\n  lines?: { dishId: string; count: number }[] // left out: the whole order\n  reason: 'late' | 'wrong dish' | 'never arrived' | 'other'\n}\n"
+            }
+          },
+          "stripe-refund": {
+            "name": "Stripe refund",
+            "about": "Stripe's answer. The money reaches the card in 5 to 10 days.",
+            "example": {
+              "language": "json",
+              "text": "{ \"id\": \"re_3Pq\", \"charge\": \"ch_3Pq\", \"amount\": 2490, \"status\": \"succeeded\" }\n"
+            }
+          },
+          "message": {
+            "name": "Message request",
+            "about": "What a service asks Notifications to send. Notifications takes the wording from a template and sends it by SMS.",
+            "shape": {
+              "language": "typescript",
+              "text": "type MessageRequest = {\n  to: { customerId: string } | { courierId: string }\n  template: 'order-placed' | 'order-on-its-way' | 'refund-done' | 'job-offer'\n  values: Record<string, string>\n}\n"
+            }
+          },
+          "sms": {
+            "name": "SMS",
+            "about": "What Notifications hands to Twilio. A text over 160 characters is sent in parts, so the templates stay short.",
+            "example": {
+              "language": "text",
+              "text": "To:   +31 6 1234 5678\nFrom: Plum\nBody: Plum: Noodle Bar has your order. It arrives in about 35 min.\n"
+            }
+          },
+          "job-offer": {
+            "name": "Job offer",
+            "about": "The job a courier sees and what it pays. They have 30 s to take it before the next courier gets it.",
+            "shape": {
+              "language": "kotlin",
+              "text": "data class JobOffer(\n    val orderId: String,\n    val pickup: Place,\n    val dropOff: Place,\n    val earningsCents: Int,\n    val expiresAt: Instant,\n)\n"
+            }
+          },
+          "delivery-step": {
+            "name": "Delivery step",
+            "about": "What the courier app reports at the restaurant and at the door.",
+            "example": {
+              "language": "json",
+              "text": "{ \"orderId\": \"o-1042\", \"step\": \"picked_up\", \"courierId\": \"c-77\", \"at\": \"2026-11-01T19:24:40Z\" }\n"
+            }
+          },
+          "report": {
+            "name": "Weekly report",
+            "about": "One row per restaurant and week, for the owners' Monday meeting.",
+            "example": {
+              "language": "sql",
+              "text": "select restaurant_id, date_trunc('week', placed_at) as week, count(*) as orders, sum(total) as revenue\nfrom orders\nwhere status = 'delivered'\ngroup by 1, 2\n"
+            }
           }
         },
         "objects": {
@@ -11783,27 +12066,48 @@
           {
             "from": "customer",
             "to": "customer-app",
-            "label": "orders on a phone"
+            "label": "orders on a phone",
+            "payloads": [
+              "choice"
+            ]
           },
           {
             "from": "customer",
             "to": "web",
-            "label": "orders in a browser"
+            "label": "orders in a browser",
+            "payloads": [
+              "choice"
+            ]
           },
           {
             "from": "restaurant",
             "to": "kitchen-tablet",
-            "label": "accepts orders"
+            "label": "accepts orders",
+            "payloads": [
+              {
+                "name": "Accept or refuse",
+                "about": "The kitchen taps Accept and says how long the food takes, or Refuse with a reason."
+              }
+            ]
           },
           {
             "from": "courier",
             "to": "courier-app",
-            "label": "takes deliveries"
+            "label": "takes deliveries",
+            "payloads": [
+              {
+                "name": "Yes or no",
+                "about": "The courier takes the job or lets it pass to the next one."
+              }
+            ]
           },
           {
             "from": "support",
             "to": "support-console",
-            "label": "handles tickets"
+            "label": "handles tickets",
+            "payloads": [
+              "ticket"
+            ]
           },
           {
             "from": "support",
@@ -11821,12 +12125,18 @@
           {
             "from": "web",
             "to": "order-api",
-            "label": "REST"
+            "label": "REST",
+            "payloads": [
+              "basket"
+            ]
           },
           {
             "from": "kitchen-tablet",
             "to": "order-api",
-            "label": "accepts, marks ready"
+            "label": "accepts, marks ready",
+            "payloads": [
+              "accept"
+            ]
           },
           {
             "from": "menu",
@@ -11851,7 +12161,10 @@
           {
             "from": "pricing",
             "to": "mapbox",
-            "label": "delivery distance"
+            "label": "delivery distance",
+            "payloads": [
+              "route"
+            ]
           },
           {
             "from": "checkout",
@@ -11890,17 +12203,32 @@
           {
             "from": "status",
             "to": "events",
-            "label": "announces each step"
+            "label": "announces each step",
+            "payloads": [
+              {
+                "name": "Status changed",
+                "example": {
+                  "language": "json",
+                  "text": "{ \"type\": \"order.status\", \"orderId\": \"o-1042\", \"status\": \"picked_up\", \"at\": \"2026-11-01T19:24:41Z\" }\n"
+                }
+              }
+            ]
           },
           {
             "from": "status",
             "to": "notifier",
-            "label": "order updates"
+            "label": "order updates",
+            "payloads": [
+              "message"
+            ]
           },
           {
             "from": "refunds",
             "to": "stripe",
-            "label": "refunds the charge"
+            "label": "refunds the charge",
+            "payloads": [
+              "refund"
+            ]
           },
           {
             "from": "refunds",
@@ -11910,7 +12238,10 @@
           {
             "from": "refunds",
             "to": "notifier",
-            "label": "confirms by message"
+            "label": "confirms by message",
+            "payloads": [
+              "message"
+            ]
           },
           {
             "from": "dispatch",
@@ -11935,12 +12266,19 @@
           {
             "from": "eta",
             "to": "mapbox",
-            "label": "travel times"
+            "label": "travel times",
+            "payloads": [
+              "route"
+            ]
           },
           {
             "from": "offers",
             "to": "notifier",
-            "label": "sends the offer"
+            "label": "sends the offer",
+            "payloads": [
+              "job-offer",
+              "message"
+            ]
           },
           {
             "from": "courier-app",
@@ -11958,12 +12296,18 @@
           {
             "from": "courier-app",
             "to": "status",
-            "label": "picked up, delivered"
+            "label": "picked up, delivered",
+            "payloads": [
+              "delivery-step"
+            ]
           },
           {
             "from": "courier-app",
             "to": "mapbox",
-            "label": "navigation"
+            "label": "navigation",
+            "payloads": [
+              "route"
+            ]
           },
           {
             "from": "tracking",
@@ -11973,17 +12317,26 @@
           {
             "from": "tracking",
             "to": "customer-app",
-            "label": "live map"
+            "label": "live map",
+            "payloads": [
+              "position"
+            ]
           },
           {
             "from": "tracking",
             "to": "web",
-            "label": "live map"
+            "label": "live map",
+            "payloads": [
+              "position"
+            ]
           },
           {
             "from": "notifier",
             "to": "twilio",
-            "label": "SMS"
+            "label": "SMS",
+            "payloads": [
+              "sms"
+            ]
           },
           {
             "from": "notifier",
@@ -11993,31 +12346,53 @@
           {
             "from": "support-console",
             "to": "order-api",
-            "label": "looks up orders"
+            "label": "looks up orders",
+            "payloads": [
+              "ticket"
+            ]
           },
           {
             "from": "support-console",
             "to": "refunds",
-            "label": "issues refunds"
+            "label": "issues refunds",
+            "payloads": [
+              "refund"
+            ]
           },
           {
             "from": "admin",
             "to": "order-api",
-            "label": "menus and promotions"
+            "label": "menus and promotions",
+            "payloads": [
+              {
+                "name": "Promotion",
+                "about": "A discount the back office sets up. It runs between two dates at the restaurants it names.",
+                "example": {
+                  "language": "yaml",
+                  "text": "code: DINNER10\npercentOff: 10\nrestaurants: [noodle-bar, pho-corner]\nfrom: 2026-11-01\nuntil: 2026-11-30\n"
+                }
+              }
+            ]
           },
           {
             "from": "admin",
             "to": "warehouse",
-            "label": "weekly reports"
+            "label": "weekly reports",
+            "payloads": [
+              "report"
+            ]
           },
           {
             "from": "events",
             "to": "warehouse",
-            "label": "streams every event"
+            "label": "streams every event",
+            "payloads": [
+              "placed"
+            ]
           }
         ]
       },
-      "text": "name: Plum\nabout: |\n  Food delivery for one city. Customers order in the app or on the website, restaurants cook, couriers deliver.\n\n  Start with **Ordering**, which every order passes through. **Delivery** covers courier matching and tracking.\npayloads:\n  basket:\n    name: Basket\n    about: What the app sends to place an order. The idempotency key makes a double tap one order.\n    shape:\n      language: typescript\n      text: |\n        type PlaceOrder = {\n          idempotencyKey: string\n          restaurantId: string\n          lines: { dishId: string; count: number; notes?: string }[]\n          deliverTo: Address\n        }\n    example:\n      language: json\n      text: |\n        {\n          \"idempotencyKey\": \"6f1c2b\",\n          \"restaurantId\": \"noodle-bar\",\n          \"lines\": [{ \"dishId\": \"ramen\", \"count\": 2 }],\n          \"deliverTo\": { \"street\": \"Kloosterstraat 12\", \"city\": \"Utrecht\" }\n        }\n  receipt:\n    name: Receipt\n    about: What the app gets back once the order is placed. The total is in cents.\n    example:\n      language: json\n      text: |\n        { \"orderId\": \"o-1042\", \"status\": \"placed\", \"total\": 2490, \"etaMinutes\": 35 }\n  hold:\n    name: Card hold\n    about: Asks Stripe to hold the total on the card. Nothing is charged until the restaurant accepts.\n    example:\n      language: json\n      text: |\n        { \"amount\": 2490, \"currency\": \"eur\", \"capture_method\": \"manual\", \"customer\": \"cus_9a1\" }\n  order:\n    name: Order\n    about: The order as it is saved, with its status. Each line keeps the price it was ordered at.\n    shape:\n      language: sql\n      text: |\n        orders (id, customer_id, restaurant_id, status, total, placed_at)\n        order_lines (order_id, dish_id, count, price)\n  placed:\n    name: Order placed\n    about: The event every listener hears when an order is placed. It names the order, not its contents.\n    example:\n      language: json\n      text: |\n        { \"type\": \"order.placed\", \"orderId\": \"o-1042\", \"restaurantId\": \"noodle-bar\", \"at\": \"2026-11-01T19:02:11Z\" }\n  position:\n    name: Courier position\n    about: Where the courier is, every 5 s while a job is open.\n    example:\n      language: json\n      text: |\n        { \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\nobjects:\n  customer:\n    type: actor\n    name: Customer\n    description: Orders from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: Kitchen staff. Accept orders and mark them ready.\n  courier:\n    type: actor\n    name: Courier\n    icon: truck\n    description: Carries the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customer and courier tickets.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything customer-facing: menus, basket, payment.\n\n      The **Order API** is the only entry point. It stores orders in Postgres and publishes each\n      new order to **Order events**, which **Delivery** consumes.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Assigns a courier to each order and tracks it to the door.\n\n      Dispatch matches and offers. Live tracking feeds the customer's map.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email. The only system that talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Internal tools for Plum staff. Not exposed to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: Card payments and refunds. Plum never handles card numbers.\n    links:\n      - url: https://status.stripe.com\n        title: Provider status\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: SMS delivery.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, geocoding and travel times.\n    links:\n      - url: https://docs.mapbox.com/api/overview/#rate-limits\n        title: Rate limits\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    links:\n      - url: apps/customer/README.md\n        title: Build and release notes\n    description: |\n      Mobile client. Browse, order, pay, follow the courier.\n\n      Stores only the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are server-rendered so search engines can index them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Alerts on a new order. The kitchen taps **Accept**, then **Ready** for pickup.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Entry point for every client, and the only service that touches the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds and leaves the order alone.\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: total, type: int, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, type: uuid, key: primary, to: orders}\n          - {name: item_id, type: uuid, key: primary}\n          - {name: quantity, type: int}\n          - {name: unit_price, type: int, note: Copied from the menu at order time. Later menu edits don't change it.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: order_id, type: uuid, to: orders}\n          - {name: amount, type: int}\n          - {name: reason, type: text?}\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: items, type: json}\n          - {name: expires_at, type: timestamp}\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, 5 min TTL. A restaurant's edit appears when the entry expires.\n    data:\n      - name: Keys\n        limits: LRU eviction at 256 MB\n        note: 5 min TTL. A shorter one put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message per order change: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch and the warehouse are consumers.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so each order's messages stay ordered.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves menus from the cache, and from the database on a miss.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds the picked items and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Computes the total: items, delivery fee and any promotion.\n\n      The fee is based on Mapbox travel distance, rounded up to the next 500 m.\n\n      A meal deal is priced by pricing each of its parts, and a part can be a deal too.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      The card is charged only when the restaurant accepts. A rejection releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Advances an order through `placed`, `accepted`, `picked-up` and `delivered`, publishing each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Refunds the card, then marks the order refunded. Full or per line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Reports position every 5 s while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Assigns a courier to each new order.\n\n      Consumes `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Relays courier position to the customer's map. Positions older than 1 min are dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, vehicles and last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks idle couriers near a restaurant by estimated arrival.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers the job to one courier at a time with a 30 s timeout.\n\n      A refusal or timeout moves to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Chooses push, SMS or email per message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    shape: document\n    tech: Postgres\n    description: Message text, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Only the **Admin dashboard** reads it.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n  - from: customer\n    to: web\n    label: orders in a browser\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n  - from: support\n    to: support-console\n    label: handles tickets\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n    payloads:\n      - basket\n  - from: web\n    to: order-api\n    label: REST\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n    payloads:\n      - hold\n  - from: checkout\n    to: orders-db\n    label: writes the order\n    payloads:\n      - order\n  - from: checkout\n    to: events\n    label: announces placed\n    payloads:\n      - placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n  - from: status\n    to: notifier\n    label: order updates\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n  - from: offers\n    to: notifier\n    label: sends the offer\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n    payloads:\n      - position\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n  - from: courier-app\n    to: mapbox\n    label: navigation\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n  - from: tracking\n    to: web\n    label: live map\n  - from: notifier\n    to: twilio\n    label: SMS\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n  - from: support-console\n    to: refunds\n    label: issues refunds\n  - from: admin\n    to: order-api\n    label: menus and promotions\n  - from: admin\n    to: warehouse\n    label: weekly reports\n  - from: events\n    to: warehouse\n    label: streams every event\n"
+      "text": "name: Plum\nabout: |\n  Food delivery for one city. Customers order in the app or on the website, restaurants cook, couriers deliver.\n\n  Start with **Ordering**, which every order passes through. **Delivery** covers courier matching and tracking.\npayloads:\n  basket:\n    name: Basket\n    about: What the app sends to place an order. The idempotency key makes a double tap one order.\n    shape:\n      language: typescript\n      text: |\n        type PlaceOrder = {\n          idempotencyKey: string\n          restaurantId: string\n          lines: { dishId: string; count: number; notes?: string }[]\n          deliverTo: Address\n        }\n    example:\n      language: json\n      text: |\n        {\n          \"idempotencyKey\": \"6f1c2b\",\n          \"restaurantId\": \"noodle-bar\",\n          \"lines\": [{ \"dishId\": \"ramen\", \"count\": 2 }],\n          \"deliverTo\": { \"street\": \"Kloosterstraat 12\", \"city\": \"Utrecht\" }\n        }\n  receipt:\n    name: Receipt\n    about: What the app gets back once the order is placed. The total is in cents.\n    example:\n      language: json\n      text: |\n        { \"orderId\": \"o-1042\", \"status\": \"placed\", \"total\": 2490, \"etaMinutes\": 35 }\n  hold:\n    name: Card hold\n    about: Asks Stripe to hold the total on the card. Nothing is charged until the restaurant accepts.\n    example:\n      language: json\n      text: |\n        { \"amount\": 2490, \"currency\": \"eur\", \"capture_method\": \"manual\", \"customer\": \"cus_9a1\" }\n  order:\n    name: Order\n    about: The order as it is saved, with its status. Each line keeps the price it was ordered at.\n    shape:\n      language: sql\n      text: |\n        orders (id, customer_id, restaurant_id, status, total, placed_at)\n        order_lines (order_id, dish_id, count, price)\n  placed:\n    name: Order placed\n    about: The event every listener hears when an order is placed. It names the order, not its contents.\n    example:\n      language: json\n      text: |\n        { \"type\": \"order.placed\", \"orderId\": \"o-1042\", \"restaurantId\": \"noodle-bar\", \"at\": \"2026-11-01T19:02:11Z\" }\n  position:\n    name: Courier position\n    about: Where the courier is, every 5 s while a job is open.\n    example:\n      language: json\n      text: |\n        { \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\n  choice:\n    name: Dishes and address\n    about: What the customer picks before paying. Dishes, a note for the kitchen and where to bring them.\n  ticket:\n    name: Ticket\n    about: A customer writes in. Support reads the order number and what went wrong, then looks the order up.\n  accept:\n    name: Acceptance\n    about: The kitchen's answer to a new order, with how long the food takes.\n    example:\n      text: |\n        { \"orderId\": \"o-1042\", \"status\": \"accepted\", \"readyInMinutes\": 15 }\n  route:\n    name: Route request\n    about: Asks Mapbox how far apart two places are by bike. Pricing wants the distance, ETA and the courier app want the time.\n    example:\n      language: text\n      text: |\n        GET /directions-matrix/v1/mapbox/cycling/5.1214,52.0907;5.1102,52.0841?annotations=distance,duration\n  charge:\n    name: Charge event\n    about: Stripe calls Plum's webhook once a held amount is charged. Plum checks the signature before it trusts the event.\n    shape:\n      language: json\n      text: |\n        {\n          \"type\": \"object\",\n          \"required\": [\"id\", \"type\", \"data\"],\n          \"properties\": {\n            \"id\": { \"type\": \"string\" },\n            \"type\": { \"const\": \"charge.succeeded\" },\n            \"data\": {\n              \"type\": \"object\",\n              \"properties\": {\n                \"object\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"amount\": { \"type\": \"integer\" },\n                    \"metadata\": { \"type\": \"object\", \"properties\": { \"orderId\": { \"type\": \"string\" } } }\n                  }\n                }\n              }\n            }\n          }\n        }\n    example:\n      language: json\n      text: |\n        { \"id\": \"evt_1Q\", \"type\": \"charge.succeeded\", \"data\": { \"object\": { \"amount\": 2490, \"metadata\": { \"orderId\": \"o-1042\" } } } }\n  refund:\n    name: Refund\n    about: A refund in full or by line. Support picks a reason, and the reason is saved on the order.\n    shape:\n      language: typescript\n      text: |\n        type Refund = {\n          orderId: string\n          lines?: { dishId: string; count: number }[] // left out: the whole order\n          reason: 'late' | 'wrong dish' | 'never arrived' | 'other'\n        }\n  stripe-refund:\n    name: Stripe refund\n    about: Stripe's answer. The money reaches the card in 5 to 10 days.\n    example:\n      language: json\n      text: |\n        { \"id\": \"re_3Pq\", \"charge\": \"ch_3Pq\", \"amount\": 2490, \"status\": \"succeeded\" }\n  message:\n    name: Message request\n    about: What a service asks Notifications to send. Notifications takes the wording from a template and sends it by SMS.\n    shape:\n      language: typescript\n      text: |\n        type MessageRequest = {\n          to: { customerId: string } | { courierId: string }\n          template: 'order-placed' | 'order-on-its-way' | 'refund-done' | 'job-offer'\n          values: Record<string, string>\n        }\n  sms:\n    name: SMS\n    about: What Notifications hands to Twilio. A text over 160 characters is sent in parts, so the templates stay short.\n    example:\n      language: text\n      text: |\n        To:   +31 6 1234 5678\n        From: Plum\n        Body: Plum: Noodle Bar has your order. It arrives in about 35 min.\n  job-offer:\n    name: Job offer\n    about: The job a courier sees and what it pays. They have 30 s to take it before the next courier gets it.\n    shape:\n      language: kotlin\n      text: |\n        data class JobOffer(\n            val orderId: String,\n            val pickup: Place,\n            val dropOff: Place,\n            val earningsCents: Int,\n            val expiresAt: Instant,\n        )\n  delivery-step:\n    name: Delivery step\n    about: What the courier app reports at the restaurant and at the door.\n    example:\n      language: json\n      text: |\n        { \"orderId\": \"o-1042\", \"step\": \"picked_up\", \"courierId\": \"c-77\", \"at\": \"2026-11-01T19:24:40Z\" }\n  report:\n    name: Weekly report\n    about: One row per restaurant and week, for the owners' Monday meeting.\n    example:\n      language: sql\n      text: |\n        select restaurant_id, date_trunc('week', placed_at) as week, count(*) as orders, sum(total) as revenue\n        from orders\n        where status = 'delivered'\n        group by 1, 2\nobjects:\n  customer:\n    type: actor\n    name: Customer\n    description: Orders from the Plum app or the website.\n  restaurant:\n    type: actor\n    name: Restaurant\n    description: Kitchen staff. Accept orders and mark them ready.\n  courier:\n    type: actor\n    name: Courier\n    icon: truck\n    description: Carries the order from the restaurant to the customer's door.\n  support:\n    type: actor\n    name: Support agent\n    description: Answers customer and courier tickets.\n  ordering:\n    type: system\n    name: Ordering\n    description: |\n      Everything customer-facing: menus, basket, payment.\n\n      The **Order API** is the only entry point. It stores orders in Postgres and publishes each\n      new order to **Order events**, which **Delivery** consumes.\n  delivery:\n    type: system\n    name: Delivery\n    description: |\n      Assigns a courier to each order and tracks it to the door.\n\n      Dispatch matches and offers. Live tracking feeds the customer's map.\n  notifications:\n    type: system\n    name: Notifications\n    description: Push, SMS and email. The only system that talks to a messaging provider.\n  backoffice:\n    type: system\n    name: Back office\n    description: Internal tools for Plum staff. Not exposed to customers or couriers.\n  stripe:\n    type: system\n    name: Stripe\n    external: true\n    description: Card payments and refunds. Plum never handles card numbers.\n    links:\n      - url: https://status.stripe.com\n        title: Provider status\n  twilio:\n    type: system\n    name: Twilio\n    external: true\n    description: SMS delivery.\n  mapbox:\n    type: system\n    name: Mapbox\n    external: true\n    description: Maps, geocoding and travel times.\n    links:\n      - url: https://docs.mapbox.com/api/overview/#rate-limits\n        title: Rate limits\n  customer-app:\n    type: app\n    in: ordering\n    name: Customer app\n    tech: React Native\n    code:\n      - apps/customer/\n    links:\n      - url: apps/customer/README.md\n        title: Build and release notes\n    description: |\n      Mobile client. Browse, order, pay, follow the courier.\n\n      Stores only the basket and the session.\n  web:\n    type: app\n    in: ordering\n    name: Website\n    tech: Next.js\n    description: The same ordering flow in a browser. Menus are server-rendered so search engines can index them.\n  kitchen-tablet:\n    type: app\n    in: ordering\n    name: Kitchen tablet\n    tech: Android\n    description: Alerts on a new order. The kitchen taps **Accept**, then **Ready** for pickup.\n  order-api:\n    type: app\n    in: ordering\n    name: Order API\n    tech: Node, Fastify\n    code:\n      - services/order-api/\n    description: |\n      Entry point for every client, and the only service that touches the **Orders DB**.\n\n      - `GET /menus/:restaurant` reads a menu\n      - `POST /orders` places an order\n      - `POST /orders/:id/refund` refunds one\n  orders-db:\n    type: store\n    in: ordering\n    name: Orders DB\n    tech: Postgres\n    description: Orders, baskets and refunds. The source of truth for what a customer owes and was charged.\n    data:\n      - name: orders\n        kind: table\n        limits: Kept 7 years, then archived\n        note: One row per order. A refund adds a row to refunds and leaves the order alone.\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: total, type: int, note: Stored in cents because rounding broke the first tax run.}\n        rows:\n          - [o_1042, c_77, 2490]\n          - [o_1043, c_12, 1380]\n          - [o_1044, c_77, 990]\n      - name: order_items\n        columns:\n          - {name: order_id, type: uuid, key: primary, to: orders}\n          - {name: item_id, type: uuid, key: primary}\n          - {name: quantity, type: int}\n          - {name: unit_price, type: int, note: Copied from the menu at order time. Later menu edits don't change it.}\n        rows:\n          - [o_1042, i_31, 2, 1245]\n          - [o_1043, i_8, 1, 1380]\n      - name: refunds\n        limits: Kept with its order\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: order_id, type: uuid, to: orders}\n          - {name: amount, type: int}\n          - {name: reason, type: text?}\n        rows:\n          - [r_9, o_1044, 990, Wrong item]\n      - name: baskets\n        limits: Swept after 24 hours\n        columns:\n          - {name: id, type: uuid, key: primary}\n          - {name: customer_id, type: uuid, to: customers}\n          - {name: items, type: json}\n          - {name: expires_at, type: timestamp}\n  menu-cache:\n    type: store\n    in: ordering\n    name: Menu cache\n    tech: Redis\n    description: Menus, 5 min TTL. A restaurant's edit appears when the entry expires.\n    data:\n      - name: Keys\n        limits: LRU eviction at 256 MB\n        note: 5 min TTL. A shorter one put too much load on Postgres.\n        columns: [Key, Value, Expires]\n        rows:\n          - [\"menu:{restaurantId}\", \"{ items, prices, hours }\", 5 min]\n          - [menu:r_42, '{ \"items\": 31 }', 3 min left]\n  events:\n    type: store\n    in: ordering\n    name: Order events\n    shape: queue\n    tech: Kafka\n    description: |\n      One message per order change: `placed`, `accepted`, `picked-up`, `delivered`.\n\n      Dispatch and the warehouse are consumers.\n    data:\n      - name: order-events\n        kind: topic\n        limits: Kept 7 days, 6 partitions\n        note: Keyed by order id, so each order's messages stay ordered.\n        columns: [Key, Value]\n        rows:\n          - [o_1042, '{ \"type\": \"placed\", \"total\": 2490 }']\n          - [o_1042, '{ \"type\": \"accepted\" }']\n          - [o_1042, '{ \"type\": \"picked-up\" }']\n  menu:\n    type: component\n    in: order-api\n    name: Menu\n    description: Serves menus from the cache, and from the database on a miss.\n  basket:\n    type: component\n    in: order-api\n    name: Basket\n    description: Holds the picked items and asks **Pricing** for the running total.\n  pricing:\n    type: component\n    in: order-api\n    name: Pricing\n    code:\n      - services/order-api/src/pricing.ts\n    description: |\n      Computes the total: items, delivery fee and any promotion.\n\n      The fee is based on Mapbox travel distance, rounded up to the next 500 m.\n\n      A meal deal is priced by pricing each of its parts, and a part can be a deal too.\n    snippets:\n      - title: Delivery fee\n        language: typescript\n        text: |-\n          // Mapbox answers in metres. Round up to the next 500 m.\n          const km = Math.ceil(meters / 500) / 2\n          const fee = Math.max(MIN_FEE, BASE_FEE + km * PER_KM)\n  checkout:\n    type: component\n    in: order-api\n    name: Checkout\n    code:\n      - services/order-api/src/checkout.ts\n    description: |\n      Prices the basket, authorises the card and places the order.\n\n      The card is charged only when the restaurant accepts. A rejection releases the hold.\n  status:\n    type: component\n    in: order-api\n    name: Order status\n    description: Advances an order through `placed`, `accepted`, `picked-up` and `delivered`, publishing each step.\n    snippets:\n      - title: Accepting an order\n        text: |-\n          UPDATE orders\n          SET status = 'accepted', updated_at = now()\n          WHERE id = $1 AND status = 'placed'\n  refunds:\n    type: component\n    in: order-api\n    name: Refunds\n    description: Refunds the card, then marks the order refunded. Full or per line.\n  courier-app:\n    type: app\n    in: delivery\n    name: Courier app\n    tech: Kotlin, Swift\n    description: Offers, navigation and proof of delivery. Reports position every 5 s while a job is open.\n  dispatch:\n    type: app\n    in: delivery\n    name: Dispatch\n    tech: Go\n    code:\n      - services/dispatch/\n    description: |\n      Assigns a courier to each new order.\n\n      Consumes `placed` events and offers the job to couriers one at a time, nearest first.\n  tracking:\n    type: app\n    in: delivery\n    name: Live tracking\n    tech: Go, WebSocket\n    description: Relays courier position to the customer's map. Positions older than 1 min are dropped.\n  fleet-db:\n    type: store\n    in: delivery\n    name: Fleet DB\n    tech: Postgres, PostGIS\n    description: Couriers, vehicles and last known position.\n  matcher:\n    type: component\n    in: dispatch\n    name: Matcher\n    code:\n      - services/dispatch/matcher.go\n    description: Ranks idle couriers near a restaurant by estimated arrival.\n  eta:\n    type: component\n    in: dispatch\n    name: ETA\n    description: Estimates travel time from distance, traffic and vehicle.\n  offers:\n    type: component\n    in: dispatch\n    name: Offers\n    description: |\n      Offers the job to one courier at a time with a 30 s timeout.\n\n      A refusal or timeout moves to the next courier.\n  notifier:\n    type: app\n    in: notifications\n    name: Notifier\n    tech: Node\n    description: Chooses push, SMS or email per message and sends it. Never blocks the caller.\n  templates:\n    type: store\n    in: notifications\n    name: Message templates\n    shape: document\n    tech: Postgres\n    description: Message text, per language.\n  admin:\n    type: app\n    in: backoffice\n    name: Admin dashboard\n    tech: React\n    description: Restaurants, delivery zones, promotions and the weekly reports.\n  support-console:\n    type: app\n    in: backoffice\n    name: Support console\n    tech: React\n    description: Look up an order, see where the courier is, issue a refund.\n  warehouse:\n    type: store\n    in: backoffice\n    name: Data warehouse\n    tech: ClickHouse\n    description: Every order event, kept for reporting. Only the **Admin dashboard** reads it.\nconnections:\n  - from: customer\n    to: customer-app\n    label: orders on a phone\n    payloads:\n      - choice\n  - from: customer\n    to: web\n    label: orders in a browser\n    payloads:\n      - choice\n  - from: restaurant\n    to: kitchen-tablet\n    label: accepts orders\n    payloads:\n      - name: Accept or refuse\n        about: The kitchen taps Accept and says how long the food takes, or Refuse with a reason.\n  - from: courier\n    to: courier-app\n    label: takes deliveries\n    payloads:\n      - name: Yes or no\n        about: The courier takes the job or lets it pass to the next one.\n  - from: support\n    to: support-console\n    label: handles tickets\n    payloads:\n      - ticket\n  - from: support\n    to: admin\n    label: looks up couriers\n  - from: customer-app\n    to: order-api\n    label: REST\n    payloads:\n      - basket\n  - from: web\n    to: order-api\n    label: REST\n    payloads:\n      - basket\n  - from: kitchen-tablet\n    to: order-api\n    label: accepts, marks ready\n    payloads:\n      - accept\n  - from: menu\n    to: menu-cache\n    label: reads menus\n  - from: menu\n    to: orders-db\n    label: on a cache miss\n  - from: basket\n    to: orders-db\n    label: saves the basket\n  - from: basket\n    to: pricing\n    label: asks for totals\n  - from: pricing\n    to: mapbox\n    label: delivery distance\n    payloads:\n      - route\n  - from: checkout\n    to: pricing\n    label: gets the total\n  - from: checkout\n    to: stripe\n    label: holds the card\n    payloads:\n      - hold\n  - from: checkout\n    to: orders-db\n    label: writes the order\n    payloads:\n      - order\n  - from: checkout\n    to: events\n    label: announces placed\n    payloads:\n      - placed\n  - from: status\n    to: orders-db\n    label: moves the order on\n  - from: status\n    to: events\n    label: announces each step\n    payloads:\n      - name: Status changed\n        example:\n          language: json\n          text: |\n            { \"type\": \"order.status\", \"orderId\": \"o-1042\", \"status\": \"picked_up\", \"at\": \"2026-11-01T19:24:41Z\" }\n  - from: status\n    to: notifier\n    label: order updates\n    payloads:\n      - message\n  - from: refunds\n    to: stripe\n    label: refunds the charge\n    payloads:\n      - refund\n  - from: refunds\n    to: orders-db\n    label: marks refunded\n  - from: refunds\n    to: notifier\n    label: confirms by message\n    payloads:\n      - message\n  - from: dispatch\n    to: events\n    label: reads placed orders\n  - from: matcher\n    to: fleet-db\n    label: finds idle couriers\n  - from: matcher\n    to: eta\n    label: asks who is quickest\n  - from: matcher\n    to: offers\n    label: hands over the ranking\n  - from: eta\n    to: mapbox\n    label: travel times\n    payloads:\n      - route\n  - from: offers\n    to: notifier\n    label: sends the offer\n    payloads:\n      - job-offer\n      - message\n  - from: courier-app\n    to: dispatch\n    label: accepts or refuses\n  - from: courier-app\n    to: tracking\n    label: position every 5 s\n    payloads:\n      - position\n  - from: courier-app\n    to: status\n    label: picked up, delivered\n    payloads:\n      - delivery-step\n  - from: courier-app\n    to: mapbox\n    label: navigation\n    payloads:\n      - route\n  - from: tracking\n    to: fleet-db\n    label: stores positions\n  - from: tracking\n    to: customer-app\n    label: live map\n    payloads:\n      - position\n  - from: tracking\n    to: web\n    label: live map\n    payloads:\n      - position\n  - from: notifier\n    to: twilio\n    label: SMS\n    payloads:\n      - sms\n  - from: notifier\n    to: templates\n    label: reads the wording\n  - from: support-console\n    to: order-api\n    label: looks up orders\n    payloads:\n      - ticket\n  - from: support-console\n    to: refunds\n    label: issues refunds\n    payloads:\n      - refund\n  - from: admin\n    to: order-api\n    label: menus and promotions\n    payloads:\n      - name: Promotion\n        about: A discount the back office sets up. It runs between two dates at the restaurants it names.\n        example:\n          language: yaml\n          text: |\n            code: DINNER10\n            percentOff: 10\n            restaurants: [noodle-bar, pho-corner]\n            from: 2026-11-01\n            until: 2026-11-30\n  - from: admin\n    to: warehouse\n    label: weekly reports\n    payloads:\n      - report\n  - from: events\n    to: warehouse\n    label: streams every event\n    payloads:\n      - placed\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -13178,47 +13553,46 @@
             "from": "support",
             "to": "backoffice",
             "text": "Finds the order in the support console",
-            "animation": {
-              "kind": "send",
-              "carries": "order id"
-            }
+            "animation": "send",
+            "payload": "ticket"
           },
           {
             "from": "backoffice",
             "to": "ordering",
             "text": "Asks for a refund, in full or by line",
-            "animation": {
-              "kind": "call",
-              "carries": "refund"
+            "animation": "call",
+            "payload": "refund",
+            "reply": {
+              "name": "Refund done",
+              "about": "The order as it stands once Stripe has confirmed.",
+              "example": {
+                "language": "json",
+                "text": "{ \"orderId\": \"o-1042\", \"status\": \"refunded\", \"refunded\": 2490, \"reason\": \"late\" }\n"
+              }
             }
           },
           {
             "from": "ordering",
             "to": "stripe",
             "text": "The money goes back to the card",
-            "animation": {
-              "kind": "call",
-              "carries": "refund"
-            },
+            "animation": "call",
+            "payload": "refund",
+            "reply": "stripe-refund",
             "description": "Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\nso the database never records a refund that didn't happen.\n"
           },
           {
             "from": "ordering",
             "to": "notifications",
             "text": "Requests a confirmation",
-            "animation": {
-              "kind": "send",
-              "carries": "confirm"
-            }
+            "animation": "send",
+            "payload": "message"
           },
           {
             "from": "notifications",
             "to": "twilio",
             "text": "Hands the SMS to Twilio",
-            "animation": {
-              "kind": "send",
-              "carries": "SMS"
-            }
+            "animation": "send",
+            "payload": "sms"
           },
           {
             "from": "twilio",
@@ -13226,13 +13600,20 @@
             "text": "The customer reads that the money is back",
             "animation": {
               "kind": "send",
-              "carries": "SMS",
               "effect": "bounce"
+            },
+            "payload": {
+              "name": "Text message",
+              "about": "What the customer's phone shows.",
+              "example": {
+                "language": "text",
+                "text": "Plum: your refund of €24.90 is on its way back to your card. It can take 5 days to show.\n"
+              }
             }
           }
         ]
       },
-      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Support, Back office and Stripe are in both flows.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation:\n      kind: send\n      carries: order id\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation:\n      kind: call\n      carries: refund\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation:\n      kind: call\n      carries: refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the SMS to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The customer reads that the money is back\n    animation:\n      kind: send\n      carries: SMS\n      effect: bounce\n"
+      "text": "name: Support refunds an order\nview: root\ntags:\n  - happy path\ncompare:\n  with: refund-not-recorded\n  note: |\n    The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.\n\n    Support, Back office and Stripe are in both flows.\nsteps:\n  - from: support\n    to: backoffice\n    text: Finds the order in the support console\n    animation: send\n    payload: ticket\n  - from: backoffice\n    to: ordering\n    text: Asks for a refund, in full or by line\n    animation: call\n    payload: refund\n    reply:\n      name: Refund done\n      about: The order as it stands once Stripe has confirmed.\n      example:\n        language: json\n        text: |\n          { \"orderId\": \"o-1042\", \"status\": \"refunded\", \"refunded\": 2490, \"reason\": \"late\" }\n  - from: ordering\n    to: stripe\n    text: The money goes back to the card\n    animation: call\n    payload: refund\n    reply: stripe-refund\n    description: |\n      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\n      so the database never records a refund that didn't happen.\n  - from: ordering\n    to: notifications\n    text: Requests a confirmation\n    animation: send\n    payload: message\n  - from: notifications\n    to: twilio\n    text: Hands the SMS to Twilio\n    animation: send\n    payload: sms\n  - from: twilio\n    to: customer\n    text: The customer reads that the money is back\n    animation:\n      kind: send\n      effect: bounce\n    payload:\n      name: Text message\n      about: What the customer's phone shows.\n      example:\n        language: text\n        text: |\n          Plum: your refund of €24.90 is on its way back to your card. It can take 5 days to show.\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -13337,29 +13718,23 @@
             "from": "customer",
             "to": "ordering",
             "text": "Places an order",
-            "animation": {
-              "kind": "send",
-              "carries": "basket"
-            },
+            "animation": "send",
+            "payload": "basket",
             "flow": "place-order"
           },
           {
             "from": "ordering",
             "to": "notifications",
             "text": "Asks for an SMS that confirms it",
-            "animation": {
-              "kind": "send",
-              "carries": "confirm"
-            }
+            "animation": "send",
+            "payload": "message"
           },
           {
             "from": "notifications",
             "to": "twilio",
             "text": "Hands the confirmation to Twilio",
-            "animation": {
-              "kind": "send",
-              "carries": "SMS"
-            }
+            "animation": "send",
+            "payload": "sms"
           },
           {
             "from": "twilio",
@@ -13371,6 +13746,7 @@
               "reason": "Carrier drops it",
               "at": "0.6"
             },
+            "payload": "sms",
             "description": "Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n"
           },
           {
@@ -13379,7 +13755,7 @@
           }
         ]
       },
-      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: ordering\n    text: Places an order\n    animation:\n      kind: send\n      carries: basket\n    flow: place-order\n  - from: ordering\n    to: notifications\n    text: Asks for an SMS that confirms it\n    animation:\n      kind: send\n      carries: confirm\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation:\n      kind: send\n      carries: SMS\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
+      "text": "name: The carrier drops the SMS\nview: root\ntags:\n  - error path\nsteps:\n  - from: customer\n    to: ordering\n    text: Places an order\n    animation: send\n    payload: basket\n    flow: place-order\n  - from: ordering\n    to: notifications\n    text: Asks for an SMS that confirms it\n    animation: send\n    payload: message\n  - from: notifications\n    to: twilio\n    text: Hands the confirmation to Twilio\n    animation: send\n    payload: sms\n  - from: twilio\n    to: customer\n    text: The carrier drops it before it reaches the phone\n    animation:\n      kind: send\n      outcome: lost\n      reason: Carrier drops it\n      at: 0.6\n    payload: sms\n    description: |\n      Twilio accepted the message, so Plum counts it as sent. It does not read Twilio's delivery receipts.\n  - from: notifications\n    text: Never hears that the customer got nothing\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -13492,8 +13868,16 @@
             "text": "Calls Plum's webhook: the charge went through",
             "animation": {
               "kind": "callback",
-              "trigger": "outside",
-              "carries": "o_1042"
+              "trigger": "outside"
+            },
+            "payload": "charge",
+            "reply": {
+              "name": "Received",
+              "about": "Plum answers at once so Stripe doesn't send the event again.",
+              "example": {
+                "language": "json",
+                "text": "{ \"received\": true }"
+              }
             },
             "description": "Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n"
           },
@@ -13513,7 +13897,7 @@
           }
         ]
       },
-      "text": "name: Stripe reports a charge\nview: ordering\ntags:\n  - background\nsteps:\n  - from: stripe\n    to: order-api\n    text: \"Calls Plum's webhook: the charge went through\"\n    animation:\n      kind: callback\n      trigger: outside\n      carries: o_1042\n    description: |\n      Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    animation:\n      kind: call\n      carries: paid\n  - from: order-api\n    text: Carries on to publish the order\n    flow: announce-order\n"
+      "text": "name: Stripe reports a charge\nview: ordering\ntags:\n  - background\nsteps:\n  - from: stripe\n    to: order-api\n    text: \"Calls Plum's webhook: the charge went through\"\n    animation:\n      kind: callback\n      trigger: outside\n    payload: charge\n    reply:\n      name: Received\n      about: Plum answers at once so Stripe doesn't send the event again.\n      example:\n        language: json\n        text: '{ \"received\": true }'\n    description: |\n      Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n  - from: order-api\n    to: orders-db\n    text: Marks the order paid\n    animation:\n      kind: call\n      carries: paid\n  - from: order-api\n    text: Carries on to publish the order\n    flow: announce-order\n"
     },
     {
       "folder": "example",
