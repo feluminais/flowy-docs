@@ -29,7 +29,7 @@ import { FailuresBody } from './Failures.tsx'
 import { createHoverStore, LabelSpots, Line, LineHover, LineMarksContext, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { clampWidth, widestFor } from './navstate.ts'
-import { compareRowAttr, DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
+import { compareRowAttr, DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTitle, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
 import { RunLinks } from './RunLinks.tsx'
 import { clampPos } from './perfview.ts'
@@ -321,7 +321,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
   /** How wide a panel may be dragged: wider than MAX_WIDTH while code or a table in it still scrolls sideways. */
   const widest = (panel: string, width: number) => widestFor(width, sidewaysOverflow(document.querySelector(panel)))
-  const navTabs = <NavTabs tab={nav ?? 'explorer'} onPick={setTab} />
   return (
     <>
       <TopBar model={model} draft={draftOf} view={view} editing={editing} live={live} readOnly={readOnly} problems={problems} models={models} onModels={setModels} lines={lines} searching={searching} shortcuts={shortcuts} run={run}
@@ -470,13 +469,13 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             </NavPanel>
           )}
           {nav === 'flows' && (
-            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
+            <NavPanel tabs={<NavTitle title="Flows" />} onClose={() => setTab(undefined)}>
               <FlowsTab model={model} editing={editing} canEdit={live && !readOnly} current={recording?.id || (flow ? playing?.flow : undefined)} compare={rowCompare} onOpen={f => openFlow(f.id)} onMove={editing && live && !readOnly ? (id, folder) => void run(m => moveFlow(m, id, folder)) : undefined} />
               {rowPicker}
             </NavPanel>
           )}
           {nav === 'explorer' && (
-            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
+            <NavPanel tabs={<NavTitle title="Explorer" />} onClose={() => setTab(undefined)}>
               <Explorer model={model} problems={problems} editing={editing} expanded={expanded} onToggle={toggleOpen} here={view} selected={selectedBox}
                 playing={flow ? playing?.flow : undefined} onPick={pickRow} onOpen={openRow} compare={rowCompare} />
               {live && !vscode && draftOf === undefined && <DraftsList drafts={drafts} off={noteOff(live, readOnly)} />}
@@ -497,7 +496,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             </NavPanel>
           )}
           {nav === 'yaml' && (
-            <NavPanel tabs={navTabs} onClose={() => setTab(undefined)}>
+            <NavPanel tabs={<NavTitle title="YAML" />} onClose={() => setTab(undefined)}>
               {yaml.store && yaml.why === undefined
                 ? <Yaml store={yaml.store} readOnly={!live} editing={editing} broken={broken} flow={recording?.id || (flow ? playing?.flow : undefined) || undefined} selected={selectedBox}
                     onRestore={restoreVersion} onClear={yaml.clear} />

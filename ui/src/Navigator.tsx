@@ -23,20 +23,7 @@ const ROW = 30 // px: every row of the tree is this tall, which is what lets it 
 const classes = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(' ') || undefined
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-export function NavTabs({ tab, onPick }: { tab: NavTab; onPick: (tab: NavTab) => void }) {
-  const tabs: [NavTab, string][] = [
-    ['explorer', 'Explorer'],
-    ['flows', 'Flows'],
-    ['yaml', 'YAML'],
-  ]
-  return (
-    <div className="navtabs" role="tablist" aria-label="Panel">
-      {tabs.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} onClick={() => onPick(id)}>{label}</button>)}
-    </div>
-  )
-}
-
-/** The head of the Performance and Failures panels: one tab, set like the navigator's, with the rail on the left to move between panels. */
+/** The head of each panel on the left: its name, set as one tab. The rail moves between panels. */
 export function NavTitle({ title }: { title: string }) {
   return (
     <div className="navtabs" role="tablist" aria-label="Panel">
