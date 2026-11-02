@@ -92,9 +92,10 @@ export function createHistoryApi(history: History, options: { gateMs?: number } 
       if (req.method === 'POST') return post(req, pathname)
       if (req.method !== 'GET') return undefined
       if (pathname === '/api/history') {
-        const reason = history.failure
-        const steps = await history.list().catch(() => [])
-        return { status: 200, body: { saving: reason === undefined, ...(reason === undefined ? {} : { reason }), steps } }
+        // A list that can't be read is said, so the tab shows "History isn't being saved" and not an empty history.
+        const listed = await history.list().then(steps => ({ steps, error: undefined }), (e: unknown) => ({ steps: [], error: e instanceof Error ? e.message : String(e) }))
+        const reason = history.failure ?? listed.error
+        return { status: 200, body: { saving: reason === undefined, ...(reason === undefined ? {} : { reason }), steps: listed.steps } }
       }
       if (pathname.startsWith(STEP)) {
         const view = await history.read(pathname.slice(STEP.length))
