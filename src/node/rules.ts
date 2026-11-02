@@ -2,10 +2,36 @@ import { SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 
 /**
- * What the AI is told about the parts of a model that most requests leave out. The server's instructions hold the default (shapes, connections, plain flows);
- * each of these is read as a resource, flowy://rules/<topic>, only when the user asked for that part.
+ * What the AI reads as resources, flowy://rules/<topic>. `writing` is how the default is written (shapes, names, text, plain flows), read before the first
+ * write; the server's instructions stay short because Claude Code cuts them off past about 4,000 characters. The other topics are the parts of a model
+ * that most requests leave out, each read only when the user asked for that part.
  */
 export const RULES = {
+  writing: {
+    title: 'What gets a shape, and how to word it',
+    description: 'Read once before the first write: what gets a shape, names, looks, how to word descriptions and labels, payloads, and how a flow reads.',
+    text: `What gets a shape:
+- An app runs on its own; a component is a part inside one running program. A folder, package, library, class or file is not a shape. Leave out what no flow touches (logging, config, deploy plumbing). Keep a view to a handful of shapes, a dozen at most.
+- Mark services you don't own external: true. A database or bucket the system owns is a store inside it, and so is a named queue or topic.
+- Name a shape for what it holds or does ("Orders DB"), never for its type ("Database"), in words a new teammate knows, and use one name for one thing everywhere. Name an outside service for the vendor (Stripe) and say its role in the teaser. Fill tech on every app, store and component with the real stack, short ("Node, Fastify"). Give every app, store and component a code path: two or three, folders before files.
+Looks (shape, color, opacity, icon) are optional; the type already picks a good default:
+- Leave them out unless they say something the type doesn't. A decision is a diamond, a message queue a queue, a file or report a document, a group of shapes a folder, a remark a note. A colour means something only if it means the same everywhere in the model: say what it means in the descriptions that use it, and don't colour for decoration.
+- Leave opacity alone unless you set a colour: it defaults to a light tint. Pick an icon from the built-in list only when it names the thing better than its type's icon does; put_icon adds one of your own.
+Writing text:
+- A description's first paragraph is the hover teaser: a sentence on what the object does for others, in words its name doesn't hold. Start apps and components with a verb. No "responsible for", no praise. Later paragraphs: why, limits, risks. No versions, counts or endpoint lists.
+- A connection label is a few words, a verb and what moves, said from the side that starts it ("publishes order events", "reads menus"). The arrow already shows which way it goes, so never end a label on "to", "from", "with" or another preposition. Never "uses". A reply is not a connection.
+- Put warnings first in the teaser ("Deprecated: ...", "(planned)"), since a reader may stop there. Write for any day: no "currently" or "soon". Behaviour, not implementation: leave out versions, counts and file lists that go stale. Where something is a guess, end its description with "Open question: ..." and never a plausible sentence.
+- Put long documents (runbooks, decision records, specs, wiki pages) in links, not in a description. code: is the files and folders an object lives in.
+- A payload says what data moves where: write one with put_payload only when the user asks what lines or steps carry, or names a request or message a reader would ask about. Write it once and name it by id from every line and step that carries it; stay high level (name the types inside, don't spell every field out), and copy a schema or type from the repo rather than invent one.
+Writing a flow, so it reads the way the code works:
+- One trigger, one story, usually 3-9 steps, named for the goal. A failure gets its own flow.
+- A step's text says what passes between "from" and "to", from the side of "from": "Hands over the order", "Asks for the total". The step already shows both ends, so leave the receiver's name out unless the text needs it, and never end a text on "to", "from" or another preposition. When "from" asks and gets its answer in the same step, say so, and don't add a step going back unless something new is sent.
+- Say when the sender doesn't wait for the other side (it queues the work, fires and forgets, or runs on a timer).
+- Keep to what the flow's trigger causes. Something that happens on its own gets a step that says so, or a flow of its own.
+- Play the flow on the view where its ends are separate shapes. put_flow answers with how each step reads there: an end written "X in Y" is drawn as Y.
+- A step's More (its description) holds why, timing, failure behaviour or limits, not a repeat of the step.
+- Write plain steps. Motion (animation), repeats, branches, parallel lanes and shape states are for a user who asked for them: read flowy://rules/flows first.`,
+  },
   code: {
     title: 'Writing code on a shape',
     description: 'Read before adding snippets to a shape: what to copy, how much, and what to leave out.',

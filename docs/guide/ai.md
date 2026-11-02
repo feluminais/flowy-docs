@@ -80,7 +80,7 @@ notes in an object's `description` instead.
 Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those, and `set_compare` is the one thing over MCP that changes a run) and the positions you drag, which are the canvas's. `tidy_layout` is the one thing over MCP that writes `layout.yaml`.
 
 Besides tools, the server offers the guides as resources (`flowy://docs/guide.md` says which page holds what, then `format.md`, `writing.md` and one page for each part, which a client can read when
-it has the clone) and the rules for the parts most requests leave out (`flowy://rules/flows`, `data`, `code` and `failures`) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
+it has the clone), how to word a model (`flowy://rules/writing`), the rules for the parts most requests leave out (`flowy://rules/flows`, `data`, `code` and `failures`) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
 [The file format](../format.md) lists every key, for writing the files by hand.
 
 If you or the AI write the YAML by hand, put double quotes around the text of a one-line step when it holds a comma:
