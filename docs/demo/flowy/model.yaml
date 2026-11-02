@@ -56,11 +56,27 @@ payloads:
         { "type": "order.placed", "orderId": "o-1042", "restaurantId": "noodle-bar", "at": "2026-11-01T19:02:11Z" }
   position:
     name: Courier position
-    about: Where the courier is, every 5 s while a job is open.
+    about: |
+      Where the courier is, sent every 5 s while a job is open. The Courier app reads it from the phone's location service (GPS, helped by
+      Wi-Fi and cell towers), so `lat` and `lng` are degrees (WGS 84) and `accuracyMeters` is how far off the fix may be.
+
+      Heading and speed come only while the phone is moving. Live tracking drops a position older than 1 min.
+    shape:
+      language: kotlin
+      text: |
+        data class CourierPosition(
+            val courierId: String,
+            val lat: Double, // degrees, WGS 84
+            val lng: Double,
+            val accuracyMeters: Float,
+            val headingDegrees: Float?, // 0 is north
+            val speedMps: Float?,
+            val at: Instant, // when the phone took the fix
+        )
     example:
       language: json
       text: |
-        { "courierId": "c-77", "lat": 52.0907, "lng": 5.1214, "at": "2026-11-01T19:20:05Z" }
+        { "courierId": "c-77", "lat": 52.0907, "lng": 5.1214, "accuracyMeters": 8, "headingDegrees": 274, "speedMps": 4.2, "at": "2026-11-01T19:20:05Z" }
   choice:
     name: Dishes and address
     about: What the customer picks before paying. Dishes, a note for the kitchen and where to bring them.
