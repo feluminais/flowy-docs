@@ -177,7 +177,10 @@ public static partial class YamlWriter
         return "'" + Breaks().Replace(s.Replace("'", "''"), m => m.Value + "\n" + pad) + "'";
     }
 
-    /// <summary>What JavaScript's JSON.stringify gives for text: the base of the double-quoted form.</summary>
+    /// <summary>
+    /// The double-quoted form: JSON.stringify's escapes, plus U+0085, U+2028 and U+2029, as the yaml package writes them. Not the same as
+    /// <see cref="JsCompat"/>'s JSON (no extras) or RunCompareText's (U+2028 and U+2029 only); each matches the TypeScript it twins.
+    /// </summary>
     private static string Json(string s)
     {
         var sb = new StringBuilder("\"");
