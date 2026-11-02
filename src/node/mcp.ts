@@ -4,10 +4,10 @@ import { join } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { ANIMATION_KINDS, CHANNEL_KINDS, EFFECTS } from '../core/animation.ts'
-import { check, newProblems } from '../core/check.ts'
+import { check } from '../core/check.ts'
 import { compareOf } from '../core/compare.ts'
 import type { CompareTag } from '../core/compare.ts'
-import { analysisText, BAND_NAMES, bandOf, riskOf, runLinkProblems, STATUSES } from '../core/failures.ts'
+import { analysisText, BAND_NAMES, bandOf, riskOf, STATUSES } from '../core/failures.ts'
 import { FILE_KINDS, kindOfPath, pathOf } from '../core/filekinds.ts'
 import { mcpLabel } from '../core/history.ts'
 import { ICON_GROUPS } from '../core/icons.ts'
@@ -15,12 +15,11 @@ import { sideReport } from '../core/layout.ts'
 import type { SideProblem } from '../core/layout.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
 import { folderOf, getObject, MAX_TAG_LENGTH, OBJECT_TYPES, projectAbout, projectName, ROOT, tagsOf } from '../core/model.ts'
-import { changedFiles, changedLayout } from '../core/modelfiles.ts'
 import type { Model } from '../core/model.ts'
 import { describeDependent } from '../core/dependents.ts'
 import { newDraft } from '../core/drafts.ts'
 import type { Dependent } from '../core/dependents.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deletePayload, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, putPayload, refuseNewProblems, setCompare, setFlowTags, setLinePayloads, setProject, tidyViews } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deletePayload, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, putPayload, setCompare, setFlowTags, setLinePayloads, setProject, tidyViews } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { PAYLOAD_MAX, payloadsOf } from '../core/payloads.ts'
@@ -28,8 +27,8 @@ import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
-import { blockedMessage, firstBlocked, firstUnreadable } from './commit.ts'
-import { hashBytes, loadDir, loadReport, loadRuns, missingPaths, saveFiles, saveRunCompare, VersionConflict } from './files.ts'
+import { blockedMessage, commitEdit, firstBlocked } from './commit.ts'
+import { hashBytes, loadDir, loadReport, loadRuns, missingPaths, saveRunCompare, VersionConflict } from './files.ts'
 import type { Report } from './files.ts'
 import { draftDir, hasDraft, listDrafts } from './drafts.ts'
 import { createDraft, deleteDraft } from './draftwrites.ts'
@@ -207,42 +206,13 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     }
   })
 
-  /**
-   * Load fresh, apply, refuse new problems, write changed files. Retries once if a file changed underneath. With history on, the files as
-   * they were become a step first, and `label` is the step the write makes.
-   */
+  /** One edit, through commitEdit (commit.ts): with history on, the files as they were become a step first, and `label` is the step the write makes. */
   const write = (op: (model: Model) => Model, done: string | ((before: Model) => string), label: string, withLayout = false) => inOrder(async () => {
-    for (let attempt = 1; ; attempt++) {
-      try {
-        const loaded = await loadDir(here())
-        const { model, versions } = loaded
-        const next = op(model)
-        // A run is a file in perf/, which the model doesn't hold: it can name a shape or a line the edit takes away, or be named by a failure mode.
-        const { runs } = await loadRuns(here(), model)
-        refuseNewProblems(model, next, missingPaths(here(), model, next), runs) // the canvas refuses the same edits, except missing code paths, which only Node can see
-        if (next.failures !== model.failures) {
-          const links = (m: Model) => Object.entries(m.failures).flatMap(([aid, a]) => runLinkProblems(aid, a, runs))
-          const added = newProblems(links(model), links(next))
-          if (added.length > 0) {
-            const known = Object.keys(runs)
-            return fail(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}\n${known.length > 0 ? `The runs in perf/ are: ${known.join(', ')}.` : 'There are no load-test runs in perf/, so leave run out.'}`)
-          }
-        }
-        const changes = [...changedFiles(model, next), ...(withLayout ? changedLayout(model, next) : [])]
-        // An analysis file that was skipped because it can't be read holds someone's work: it is never replaced or deleted.
-        const blocked = firstBlocked(loaded, changes.map(([rel]) => rel))
-        if (blocked) return fail(`Refused, nothing saved. ${blockedMessage(blocked.blocking, blocked.rel)}`)
-        // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.
-        const unreadable = firstUnreadable(changes)
-        if (unreadable) return fail(`Refused, nothing saved. The result couldn't be read back: ${unreadable.error instanceof Error ? unreadable.error.message : String(unreadable.error)}`)
-        await hist()?.ensureCurrent('write')
-        await saveFiles(here(), changes.map(([rel, text]) => ({ rel, text, expected: versions[rel] ?? null }))) // all or none
-        await hist()?.record(label, 'ai')
-        return ok(typeof done === 'function' ? done(model) : done)
-      } catch (e) {
-        if (!(e instanceof VersionConflict)) return fail(e)
-        if (attempt === 2) return fail(`Nothing saved: ${e.message}, twice in a row. Try again.`)
-      }
+    try {
+      const before = await commitEdit(here(), op, { label, withLayout, history: hist() })
+      return ok(typeof done === 'function' ? done(before) : done)
+    } catch (e) {
+      return fail(e)
     }
   })
 
@@ -511,8 +481,12 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     annotations: destructive,
   }, input => write(m => deleteFlow(m, input.id), `Deleted flow ${input.id}.`, mcpLabel('delete_flow', input)))
 
-  /** A run is read-only except for its `compare` tag, which is written in place with the helper the app's own write uses. */
-  const setRunTag = (runId: string, tag: CompareTag | undefined, done: string, label: string) => inOrder(async () => {
+  /**
+   * A run is read-only except for its `compare` tag, which is written in place with the helper the app's own write uses. It makes no history
+   * step, as in the canvas (ui/src/saveCompare.ts): the history keeps only the files Flowy writes whole, and a label asked for here would find
+   * them unchanged and land on the newest step, which is about something else.
+   */
+  const setRunTag = (runId: string, tag: CompareTag | undefined, done: string) => inOrder(async () => {
     for (let attempt = 1; ; attempt++) {
       try {
         const loaded = await loadDir(here())
@@ -525,7 +499,6 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
         if (blocked) return fail(`Refused, nothing saved. ${blockedMessage(blocked.blocking, rel)}`)
         const version = hashBytes(await readFile(join(here(), rel)))
         await saveRunCompare(here(), rel, tag, version, async () => { await hist()?.ensureCurrent('write') })
-        await hist()?.record(label, 'ai')
         return ok(done)
       } catch (e) {
         if (!(e instanceof VersionConflict)) return fail(e)
@@ -547,7 +520,7 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     const tag: CompareTag | undefined = input.with === undefined ? undefined : input.note === undefined ? { with: input.with } : { with: input.with, note: input.note }
     const done = tag === undefined ? `Removed the compare tag of ${input.kind} ${input.id}.` : `Saved: ${input.kind} ${input.id} compares with ${tag.with}.`
     const label = mcpLabel('set_compare', input)
-    return input.kind === 'flow' ? write(m => setCompare(m, input.id, tag), done, label) : setRunTag(input.id, tag, done, label)
+    return input.kind === 'flow' ? write(m => setCompare(m, input.id, tag), done, label) : setRunTag(input.id, tag, done)
   })
 
   const rating = z.preprocess(asNumber, z.number().int().min(1).max(10))

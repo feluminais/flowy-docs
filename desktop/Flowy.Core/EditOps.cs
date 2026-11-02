@@ -843,10 +843,15 @@ public static partial class EditOps
     /// </summary>
     public static void RefuseNewProblems(Model before, Model after, ISet<string>? absent = null, IdMap<LoadRun>? runs = null)
     {
-        List<Problem> Found(Model m) => [.. Checks.Run(m, absent), .. (runs ?? new IdMap<LoadRun>()).SelectMany(r => Perf.CheckRun(r.Key, r.Value, m))];
+        var known = runs ?? new IdMap<LoadRun>();
+        // A failure mode's run must be one of the runs in perf/. Only a caller that has read perf/ can tell, so without runs it isn't checked.
+        List<Problem> Links(Model m) => runs is null ? [] : [.. m.Failures.SelectMany(kv => Failures.RunLinkProblems(kv.Key, kv.Value, known))];
+        List<Problem> Found(Model m) => [.. Checks.Run(m, absent), .. known.SelectMany(r => Perf.CheckRun(r.Key, r.Value, m)), .. Links(m)];
         var added = NewProblems(Found(before), Found(after));
         if (added.Count == 0) return;
         var byRun = added.Any(p => p.File.StartsWith(FolderLayout.PerfDir + "/", StringComparison.Ordinal));
-        throw new OpError("Refused, nothing saved. This would add:\n" + string.Join("\n", added.Select(p => $"- {p.File}: {p.Message}")) + (byRun ? "\nChange or delete those runs first." : ""));
+        var linked = NewProblems(Links(before), Links(after)).Count > 0;
+        var hint = !linked ? "" : known.Count > 0 ? $"\nThe runs in perf/ are: {string.Join(", ", known.Keys)}." : "\nThere are no load-test runs in perf/, so leave run out.";
+        throw new OpError("Refused, nothing saved. This would add:\n" + string.Join("\n", added.Select(p => $"- {p.File}: {p.Message}")) + (byRun ? "\nChange or delete those runs first." : "") + hint);
     }
 }

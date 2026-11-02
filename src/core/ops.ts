@@ -6,7 +6,7 @@ import { tidyData } from './data.ts'
 import type { DataInput } from './data.ts'
 import { dependents, describeDependent, lineIndices, needsDecision } from './dependents.ts'
 import type { Action, Dependent, Target } from './dependents.ts'
-import { analysesText } from './failures.ts'
+import { analysesText, runLinkProblems } from './failures.ts'
 import { sideProblems, tidySpots } from './layout.ts'
 import type { SideProblem } from './layout.ts'
 import { iconProblem } from './look.ts'
@@ -983,10 +983,16 @@ export function tidyViews(model: Model, only?: string): { model: Model; found: S
  * `missing` holds the code paths that don't exist, in either model (see check). `runs` are the load-test runs of the folder: a run is a file the edit
  * can't change, so an edit that leaves one naming a shape or a line that is gone is refused, as one that a flow or a failure analysis uses is.
  */
-export function refuseNewProblems(before: Model, after: Model, missing: ReadonlySet<string> = new Set(), runs: Record<string, Run> = {}): void {
-  const found = (m: Model) => [...check(m, missing), ...Object.entries(runs).flatMap(([id, run]) => checkRun(id, run, m))]
+export function refuseNewProblems(before: Model, after: Model, missing: ReadonlySet<string> = new Set(), runs?: Record<string, Run>): void {
+  const known = runs ?? {}
+  // A failure mode's run must be one of the runs in perf/. Only a caller that has read perf/ can tell, so without `runs` it isn't checked.
+  const links = (m: Model) => (runs === undefined ? [] : Object.entries(m.failures).flatMap(([aid, a]) => runLinkProblems(aid, a, known)))
+  const found = (m: Model) => [...check(m, missing), ...Object.entries(known).flatMap(([id, run]) => checkRun(id, run, m)), ...links(m)]
   const added = newProblems(found(before), found(after))
   if (added.length === 0) return
   const byRun = added.some(p => p.file.startsWith('perf/'))
-  throw new OpError(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}${byRun ? '\nChange or delete those runs first.' : ''}`)
+  const ids = Object.keys(known)
+  const linked = newProblems(links(before), links(after)).length > 0
+  const hint = !linked ? '' : ids.length > 0 ? `\nThe runs in perf/ are: ${ids.join(', ')}.` : '\nThere are no load-test runs in perf/, so leave run out.'
+  throw new OpError(`Refused, nothing saved. This would add:\n${added.map(p => `- ${p.file}: ${p.message}`).join('\n')}${byRun ? '\nChange or delete those runs first.' : ''}${hint}`)
 }

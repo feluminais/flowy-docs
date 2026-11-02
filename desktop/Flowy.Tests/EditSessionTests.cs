@@ -103,6 +103,22 @@ public class EditSessionTests
     }
 
     [Fact]
+    public void An_analysis_file_that_cant_be_read_is_never_written_over_and_the_refusal_says_why()
+    {
+        var (temp, dir) = Copy();
+        using var _ = temp;
+        Directory.CreateDirectory(Path.Combine(dir, "failures"));
+        File.WriteAllText(Path.Combine(dir, "failures", "ordering.yaml"), "modes: [\n");
+        var session = new EditSession(dir);
+        var same = session.Apply(d => EditOps.PutAnalysis(d, "ordering", "Ordering")).Message;
+        Assert.Equal("Refused, nothing saved. failures/ordering.yaml can't be read, so it isn't replaced. Fix or delete it by hand.", same);
+        Assert.Equal("modes: [\n", Read(dir, "failures/ordering.yaml"));
+        Assert.False(session.CanUndo);
+        // The rest of the folder can still be edited.
+        Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, new ObjectInput("api", Tech: "Fastify"))));
+    }
+
+    [Fact]
     public void A_run_that_already_names_something_gone_does_not_stop_an_edit_that_has_nothing_to_do_with_it()
     {
         var (temp, dir) = Copy();
