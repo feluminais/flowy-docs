@@ -397,7 +397,7 @@ export function loadState(dir: string): Promise<State> {
 
 /** The files of a model that can't be written back: saving takes the model as data, writes it as text and reads that text again, and this is where that fails. */
 export function saveProblems(model: Model): Problem[] {
-  const files = ['model.yaml', ...Object.keys(model.flows).map(id => pathOf(FILE_KINDS.flow, id, folderOf(model, id))), ...Object.keys(model.failures).map(id => `failures/${id}.yaml`)]
+  const files = ['model.yaml', ...Object.keys(model.flows).map(id => pathOf(FILE_KINDS.flow, id, folderOf(model, id))), ...Object.keys(model.failures).map(id => pathOf(FILE_KINDS.failure, id))]
   return files.flatMap(rel => {
     try {
       parseFile(rel, serializeFile(rel, fileData(model, rel)))

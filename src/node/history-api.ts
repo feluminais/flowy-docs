@@ -1,6 +1,7 @@
 import type { IncomingMessage } from 'node:http'
 import { jsonBody } from './body.ts'
 import { isMap } from '../core/text.ts'
+import { MAX_STEP_LABEL } from '../core/history.ts'
 import type { History } from './history.ts'
 import type { Answer } from './writes.ts'
 
@@ -17,7 +18,6 @@ export type HistoryApi = {
 }
 
 const STEP = '/api/history/steps/'
-const MAX_STEP_LABEL = 200
 
 const bad = (error: string): Answer => ({ status: 400, body: { error } })
 
