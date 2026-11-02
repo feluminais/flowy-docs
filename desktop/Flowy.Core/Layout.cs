@@ -35,7 +35,7 @@ public static class Layout
     /// <summary>Which side of the line through p and q the point r is on: 1, -1, or 0 when it's on the line.</summary>
     private static int Turn(double px, double py, double qx, double qy, double rx, double ry) => Math.Sign((qx - px) * (ry - py) - (qy - py) * (rx - px));
 
-    /// <summary>Whether segment s and the segment (cx, cy)–(dx, dy) cross at a point inside both. Touching or lying in line doesn't count.</summary>
+    /// <summary>Whether segment s and the segment from (cx, cy) to (dx, dy) cross at a point inside both. Touching or lying in line doesn't count.</summary>
     private static bool Crosses(Segment s, double cx, double cy, double dx, double dy) =>
         Turn(s.Ax, s.Ay, s.Bx, s.By, cx, cy) * Turn(s.Ax, s.Ay, s.Bx, s.By, dx, dy) < 0
         && Turn(cx, cy, dx, dy, s.Ax, s.Ay) * Turn(cx, cy, dx, dy, s.Bx, s.By) < 0;

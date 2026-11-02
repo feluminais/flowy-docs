@@ -137,7 +137,7 @@ public partial class MainWindow : Window, IDisposable
         // Another folder in a window that holds a note nobody saved asks first; the same folder read again keeps its notes (they are by pair).
         if (Dir is { } shown && ModelFolders.Key(shown) != ModelFolders.Key(dir) && _reader.UnlessNotesKept(() => Open(dir, options))) return;
         Dir = dir;
-        Title = $"{ModelFolders.Title(dir)} — Flowy Docs";
+        Title = $"{ModelFolders.Title(dir)} - Flowy Docs";
         _disk?.Dispose();
         _disk = new FolderSession(dir);
         var folder = _disk.Read(out var problem);

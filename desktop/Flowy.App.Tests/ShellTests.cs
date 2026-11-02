@@ -18,7 +18,7 @@ public class ShellTests
         var shell = new Shell(null);
         var window = shell.Show(Plum);
         Assert.Equal(Plum, window.Dir);
-        Assert.Equal("demo — Flowy Docs", window.Title);
+        Assert.Equal("demo - Flowy Docs", window.Title);
         Assert.NotNull(window.Reader.Folder);
         window.Close();
     }
