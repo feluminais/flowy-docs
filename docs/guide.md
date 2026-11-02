@@ -1,6 +1,6 @@
 # Flowy Docs guide
 
-What every part of Flowy does, one page for each part. Read the page for the part you need and no others. The examples come from Plum, the food-delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
+What every part of Flowy does, one page for each part. The examples come from Plum, the food-delivery service whose model is in [`docs/demo/flowy`](demo/flowy).
 
 | Page | Covers | Read it when |
 | --- | --- | --- |
@@ -25,9 +25,9 @@ them, [Install](install.md) says how to get each version and [Shortcuts](shortcu
 A bare "document this repo" or "make Flowy docs" gets the default: the people, apps, stores, components and outside services in the
 repo, how they connect, and three to five plain flows. That needs [Writing good Flowy docs](writing.md) and nothing from the pages above.
 
-Anything else is asked for by name. Each part below has its own page, and it is the only one to load for that part.
+Anything else is asked for by name, and each part has its own page.
 
-| The request names | Load |
+| The request names | Read |
 | --- | --- |
 | Nothing but the repo | [Writing good Flowy docs](writing.md) |
 | Animation, a failed or lost request, a repeat, a branch, parallel steps, a shape going down | [Flows](guide/flows.md) |
