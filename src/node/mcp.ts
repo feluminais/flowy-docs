@@ -92,8 +92,11 @@ function refusedForDependents(message: string, rows: Dependent[]): Result {
   const how = 'To delete it anyway, call this tool again with "resolve": one { key, action, to } for each row above, taking one of the actions listed for it, the first being the usual one. "to" is the shape to send the step or mode to (reroute, repoint), a view for changeView, changeScope or moveOut ("root" is the top level), and is left out for the other actions. A row of a flow you delete needs nothing more. Lines, state entries and affects entries that name it go along without a choice. Nothing is saved until every row is settled.'
   return { ...ok(`${message}\n\n${list}\n\n${how}`), structuredContent: { dependents: rows }, isError: true }
 }
+/** A refusal for an id that isn't there says where the ids are, since a guessed id is the usual slip and the next guess is no better. */
+const HINT = '. get_model with summary: true lists the ids there are.'
+const hinted = (text: string) => (/^unknown [a-z ]+ "[^"\n]*"( in "[^"\n]*")?$/.test(text) ? text + HINT : text)
 const fail = (e: unknown): Result =>
-  e instanceof OpError && e.dependents !== undefined && e.dependents.length > 0 ? refusedForDependents(e.message, e.dependents) : { ...ok(e instanceof Error ? e.message : String(e)), isError: true }
+  e instanceof OpError && e.dependents !== undefined && e.dependents.length > 0 ? refusedForDependents(e.message, e.dependents) : { ...ok(hinted(e instanceof Error ? e.message : String(e))), isError: true }
 
 /** How one row of a refusal is settled when the delete is asked again: the row's key, one of its actions, and where to when the action points somewhere. */
 const resolution = z.object({
