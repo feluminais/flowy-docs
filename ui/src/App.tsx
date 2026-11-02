@@ -28,7 +28,7 @@ import { firstErrorAt, modeCount, modeIn } from './failuresview.ts'
 import { FailuresBody } from './Failures.tsx'
 import { createHoverStore, LabelSpots, Line, LineHover, LineMarksContext, LineStyleContext, LineWidthsContext } from './Line.tsx'
 import { TrafficLayer } from './TrafficLayer.tsx'
-import { clampWidth } from './navstate.ts'
+import { clampWidth, widestFor } from './navstate.ts'
 import { compareRowAttr, DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTabs, NavTitle, Sash } from './Navigator.tsx'
 import { PerfBody } from './Performance.tsx'
 import { RunLinks } from './RunLinks.tsx'
@@ -101,7 +101,19 @@ export function App() {
 }
 
 /** Esc answers a prompt with its safe choice. The press is the prompt's, not the page's behind it. */
-const leaveOnEsc = (e: ReactKeyboardEvent, keep: () => void) => {
+/** How far the widest thing in `panel` that scrolls sideways (a code block, a table) runs past its box: 0 when everything shows whole. */
+const sidewaysOverflow = (panel: Element | null): number => {
+  if (!panel) return 0
+  let most = 0
+  for (const e of panel.querySelectorAll<HTMLElement>('*')) {
+    if (e.scrollWidth <= e.clientWidth) continue
+    const x = getComputedStyle(e).overflowX
+    if (x === 'auto' || x === 'scroll') most = Math.max(most, e.scrollWidth - e.clientWidth)
+  }
+  return most
+}
+
+const leaveOnEsc =(e: ReactKeyboardEvent, keep: () => void) => {
   if (e.key !== 'Escape') return
   e.stopPropagation()
   keep()
@@ -307,6 +319,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
 
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
+  /** How wide a panel may be dragged: wider than MAX_WIDTH while code or a table in it still scrolls sideways. */
+  const widest = (panel: string, width: number) => widestFor(width, sidewaysOverflow(document.querySelector(panel)))
   const navTabs = <NavTabs tab={nav ?? 'explorer'} onPick={setTab} />
   return (
     <>
@@ -490,8 +504,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 : <p className="muted navnote">{yaml.why}</p>}
             </NavPanel>
           )}
-          {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(detailsOpen ? detailsWidth : 0)))} onReset={() => setNavWidth(NAV)} />}
-          {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0)))} onReset={() => setDetailsWidth(PANEL)} />}
+          {nav && <Sash side="nav" width={navWidth} onResize={w => setNavWidth(clampWidth(w, spare(detailsOpen ? detailsWidth : 0), widest('aside.navpanel', navWidth)))} onReset={() => setNavWidth(NAV)} />}
+          {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0), widest('aside.panel:not(.navpanel)', detailsWidth)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} showsPause={showsPause} moving={moving}
               trail={trail} clock={clock} speed={speed} onSpeed={setSpeed} scrub={scrub} onStep={stepTo} onPlay={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}

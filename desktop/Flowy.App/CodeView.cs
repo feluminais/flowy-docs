@@ -94,7 +94,10 @@ internal static class CodeView
 
     private static string BrushName(TokenKind kind) => $"Tok{kind}Brush";
 
-    /// <summary>Code as a box of coloured text, with a bar to scroll along when a line is long. <paramref name="language"/> is one of our ids, or null for plain text.</summary>
+    /// <summary>
+    /// Code as a box of coloured text, with a <see cref="CodeBar"/> under it to scroll along when a line is long. <paramref name="language"/> is one of our ids, or
+    /// null for plain text.
+    /// </summary>
     public static Control Block(string text, string? language, Func<string, IBrush> resource, double size = 12.5, double? maxHeight = null)
     {
         var block = new SelectableTextBlock { FontFamily = Fonts.Mono, FontSize = size, TextWrapping = TextWrapping.NoWrap };
@@ -105,15 +108,16 @@ internal static class CodeView
             if (run.Kind is { } kind) piece.Foreground = resource(BrushName(kind));
             block.Inlines!.Add(piece);
         }
-        // Room under the last line, so the bar that scrolls a long line does not sit on top of the code.
-        block.Margin = new Thickness(0, 0, 0, 10);
-        return new Border
+        // The box scrolls along but draws no bar of its own: that one widens over the last line under the pointer. The bar below takes its place.
+        var scroller = maxHeight is { } most
+            ? new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = most, Content = block, Classes = { "payloadcode" } }
+            : new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, Content = block };
+        var box = new Border
         {
-            Background = resource("BoxBrush"), BorderBrush = resource("LineBrush"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 8, 10, 0),
-            Child = maxHeight is { } most
-                ? new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = most, Content = block, Classes = { "payloadcode" } }
-                : new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, Content = block },
+            Background = resource("BoxBrush"), BorderBrush = resource("LineBrush"), BorderThickness = new Thickness(1), CornerRadius = new CornerRadius(6), Padding = new Thickness(10, 8),
+            Child = scroller,
         };
+        return new StackPanel { Spacing = 2, Children = { box, new CodeBar(scroller, resource) } };
     }
 
     /// <summary>A tab as four spaces: the text box draws a tab as one narrow gap, which breaks the columns of indented code.</summary>

@@ -58,7 +58,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   [Failure modes](failures.md#failure-modes). Details, on the right (its own icon, or a click on a shape or a line), is what the
   click picked, and it is all the right-hand side holds. With nothing picked at the top level it shows the Overview: the system's name and
   what it is (`name` and `about` in `model.yaml`), then how many shapes and flows there are. Inside a shape it shows that shape. Drag the inner edge of either panel to resize it,
-  and double-click it to put the width back. When the navigator opens, closes or is resized, or Details opens or closes, the view fits again to the room beside
+  and double-click it to put the width back. A panel stops at 640 px, unless a line of code or a table in it still runs past its edge: then it widens until that
+  shows whole, or until the canvas has no more room to give. When the navigator opens, closes or is resized, or Details opens or closes, the view fits again to the room beside
   them, so no shape starts under a panel, unless you have zoomed or panned the view since.
 - In the browser, a screen reader gets names, not ids: a connection reads "Customer app to Order API, REST", the level you are on is the
   current page in the breadcrumb, the two side panels are named Navigator and Details (with Close navigator and Close details), and a folder

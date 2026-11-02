@@ -21,8 +21,14 @@ export const MAX_OPEN = 2000 // a hand-edited or runaway entry never grows the s
 export const MIN_WIDTH = 220 // the narrowest a side panel gets when dragged
 export const MAX_WIDTH = 640
 
-/** A panel's width in whole pixels, kept between MIN_WIDTH and MAX_WIDTH, and below `limit`: what the canvas can spare. */
-export const clampWidth = (width: number, limit = MAX_WIDTH) => Math.round(Math.max(MIN_WIDTH, Math.min(width, MAX_WIDTH, limit)))
+/** A panel's width in whole pixels, kept between MIN_WIDTH and `most` (MAX_WIDTH unless what it shows asks for more room), and below `limit`: what the canvas can spare. */
+export const clampWidth = (width: number, limit = MAX_WIDTH, most = MAX_WIDTH) => Math.round(Math.max(MIN_WIDTH, Math.min(width, most, limit)))
+
+/**
+ * The widest a panel `width` wide may be dragged: MAX_WIDTH, or wider while something in it still scrolls sideways, until its widest line shows whole.
+ * `overflow` is how far that runs past the panel now.
+ */
+export const widestFor = (width: number, overflow: number) => Math.max(MAX_WIDTH, Math.ceil(width + Math.max(0, overflow)))
 
 const widthOf = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? clampWidth(value) : undefined)
 

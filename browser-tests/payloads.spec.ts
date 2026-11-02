@@ -69,3 +69,26 @@ for (const theme of ['light', 'dark'] as const) {
     expect(found).toEqual([])
   })
 }
+
+test('Details drags wider than 640 while a line of code runs past it, and stops once the line shows whole', async ({ page }) => {
+  await page.setViewportSize({ width: 2400, height: 900 })
+  await page.goto('/#root')
+  await page.locator('.react-flow__edge[data-id="ordering stripe"]').click({ force: true })
+  const charge = rows(page).filter({ hasText: 'Charge event' })
+  await charge.locator('summary').click()
+  const example = charge.locator('pre.code-block').last() // the event on one line
+  await expect(example).toBeVisible()
+  const runsPast = () => example.evaluate(e => e.scrollWidth - e.clientWidth)
+  expect(await runsPast()).toBeGreaterThan(0)
+  const widthNow = () => panel(page).evaluate(e => e.getBoundingClientRect().width)
+  const before = await widthNow()
+  const sash = (await page.getByRole('separator', { name: 'Resize the details panel' }).boundingBox())!
+  await page.mouse.move(sash.x + sash.width / 2, 300)
+  await page.mouse.down()
+  await page.mouse.move(sash.x - 1600, 300, { steps: 4 }) // its edge going left makes it wider
+  await page.mouse.up()
+  const width = await widthNow()
+  expect(width).toBeGreaterThan(640)
+  expect(width).toBeLessThan(before + 1600) // no wider than the line needs
+  expect(await runsPast()).toBeLessThanOrEqual(1)
+})
