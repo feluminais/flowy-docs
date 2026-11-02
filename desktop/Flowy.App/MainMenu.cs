@@ -96,8 +96,8 @@ internal sealed class MainMenu : IDisposable
 
         var menu = new NativeMenu { Items = { file, view, help } };
         NativeMenu.SetMenu(_window, menu);
-        // Windows and Linux draw it inside the window; macOS has it in the screen's menu bar and hides this.
-        var bar = new NativeMenuBar();
+        // Windows and Linux draw it inside the window (on Windows in the title bar); macOS has it in the screen's menu bar and hides this.
+        var bar = new TitleRow(_window, new NativeMenuBar());
         DockPanel.SetDock(bar, Dock.Top);
         frame.Children.Insert(0, bar);
         RebuildRecent();

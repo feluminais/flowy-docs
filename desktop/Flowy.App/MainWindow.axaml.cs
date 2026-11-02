@@ -26,6 +26,8 @@ public partial class MainWindow : Window, IDisposable
     {
         InitializeComponent();
         Icon = new WindowIcon(Avalonia.Platform.AssetLoader.Open(new Uri("avares://FlowyDocs/Assets/icon.png")));
+        // On Windows the menu shares the title bar (see TitleRow). A --shot picture is of the window's inside, which keeps the menu on a row of its own.
+        ExtendClientAreaToDecorationsHint = OperatingSystem.IsWindows() && Program.Options.Shot is null;
         _shell = shell;
         if (launch?.Size is { } size)
         {
