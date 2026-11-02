@@ -69,7 +69,7 @@ test('put_flow over a tagged flow keeps its compare tag', async t => {
 test('set_compare refuses a flow that is not there, itself, and an unknown holder, and saves nothing', async t => {
   const { dir, call } = await setup(t)
   const before = await readFile(join(dir, 'flows', 'after.yaml'), 'utf8')
-  assert.deepEqual(await call('set_compare', { kind: 'flow', id: 'after', with: 'nope' }), { error: true, text: 'unknown flow "nope"' })
+  assert.deepEqual(await call('set_compare', { kind: 'flow', id: 'after', with: 'nope' }), { error: true, text: 'unknown flow "nope". get_model with summary: true lists the ids there are.' })
   assert.deepEqual(await call('set_compare', { kind: 'flow', id: 'after', with: 'after' }), { error: true, text: 'flow "after" cannot compare with itself' })
   assert.equal((await call('set_compare', { kind: 'flow', id: 'missing', with: 'before' })).error, true)
   assert.equal(await readFile(join(dir, 'flows', 'after.yaml'), 'utf8'), before)
@@ -91,9 +91,9 @@ test('set_compare writes a run\'s compare in place and nothing else', async t =>
 test('set_compare refuses a run that is not there, a target that is not a run, and itself', async t => {
   const { dir, call } = await setup(t)
   const was = await readFile(join(dir, 'perf', 'new.yaml'), 'utf8')
-  assert.deepEqual(await call('set_compare', { kind: 'run', id: 'new', with: 'nope' }), { error: true, text: 'unknown run "nope"' })
+  assert.deepEqual(await call('set_compare', { kind: 'run', id: 'new', with: 'nope' }), { error: true, text: 'unknown run "nope". get_model with summary: true lists the ids there are.' })
   assert.deepEqual(await call('set_compare', { kind: 'run', id: 'new', with: 'new' }), { error: true, text: 'run "new" cannot compare with itself' })
-  assert.deepEqual(await call('set_compare', { kind: 'run', id: 'nope', with: 'old' }), { error: true, text: 'unknown run "nope"' })
+  assert.deepEqual(await call('set_compare', { kind: 'run', id: 'nope', with: 'old' }), { error: true, text: 'unknown run "nope". get_model with summary: true lists the ids there are.' })
   assert.equal(await readFile(join(dir, 'perf', 'new.yaml'), 'utf8'), was)
 })
 
