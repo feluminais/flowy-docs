@@ -8,15 +8,38 @@ compare:
 
     Support, Back office and Stripe are in both flows.
 steps:
-  - { from: support, to: backoffice, text: Finds the order in the support console, animation: { kind: send, carries: order id } }
-  - { from: backoffice, to: ordering, text: "Asks for a refund, in full or by line", animation: { kind: call, carries: refund } }
+  - { from: support, to: backoffice, text: Finds the order in the support console, animation: send, payload: ticket }
+  - from: backoffice
+    to: ordering
+    text: "Asks for a refund, in full or by line"
+    animation: call
+    payload: refund
+    reply:
+      name: Refund done
+      about: The order as it stands once Stripe has confirmed.
+      example:
+        language: json
+        text: |
+          { "orderId": "o-1042", "status": "refunded", "refunded": 2490, "reason": "late" }
   - from: ordering
     to: stripe
     text: The money goes back to the card
-    animation: { kind: call, carries: refund }
+    animation: call
+    payload: refund
+    reply: stripe-refund
     description: |
       Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,
       so the database never records a refund that didn't happen.
-  - { from: ordering, to: notifications, text: Requests a confirmation, animation: { kind: send, carries: confirm } }
-  - { from: notifications, to: twilio, text: Hands the SMS to Twilio, animation: { kind: send, carries: SMS } }
-  - { from: twilio, to: customer, text: The customer reads that the money is back, animation: { kind: send, carries: SMS, effect: bounce } }
+  - { from: ordering, to: notifications, text: Requests a confirmation, animation: send, payload: message }
+  - { from: notifications, to: twilio, text: Hands the SMS to Twilio, animation: send, payload: sms }
+  - from: twilio
+    to: customer
+    text: The customer reads that the money is back
+    animation: { kind: send, effect: bounce }
+    payload:
+      name: Text message
+      about: What the customer's phone shows.
+      example:
+        language: text
+        text: |
+          Plum: your refund of €24.90 is on its way back to your card. It can take 5 days to show.

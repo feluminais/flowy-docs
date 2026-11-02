@@ -61,6 +61,123 @@ payloads:
       language: json
       text: |
         { "courierId": "c-77", "lat": 52.0907, "lng": 5.1214, "at": "2026-11-01T19:20:05Z" }
+  choice:
+    name: Dishes and address
+    about: What the customer picks before paying. Dishes, a note for the kitchen and where to bring them.
+  ticket:
+    name: Ticket
+    about: A customer writes in. Support reads the order number and what went wrong, then looks the order up.
+  accept:
+    name: Acceptance
+    about: The kitchen's answer to a new order, with how long the food takes.
+    example:
+      text: |
+        { "orderId": "o-1042", "status": "accepted", "readyInMinutes": 15 }
+  route:
+    name: Route request
+    about: Asks Mapbox how far apart two places are by bike. Pricing wants the distance, ETA and the courier app want the time.
+    example:
+      language: text
+      text: |
+        GET /directions-matrix/v1/mapbox/cycling/5.1214,52.0907;5.1102,52.0841?annotations=distance,duration
+  charge:
+    name: Charge event
+    about: Stripe calls Plum's webhook once a held amount is charged. Plum checks the signature before it trusts the event.
+    shape:
+      language: json
+      text: |
+        {
+          "type": "object",
+          "required": ["id", "type", "data"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "const": "charge.succeeded" },
+            "data": {
+              "type": "object",
+              "properties": {
+                "object": {
+                  "type": "object",
+                  "properties": {
+                    "amount": { "type": "integer" },
+                    "metadata": { "type": "object", "properties": { "orderId": { "type": "string" } } }
+                  }
+                }
+              }
+            }
+          }
+        }
+    example:
+      language: json
+      text: |
+        { "id": "evt_1Q", "type": "charge.succeeded", "data": { "object": { "amount": 2490, "metadata": { "orderId": "o-1042" } } } }
+  refund:
+    name: Refund
+    about: A refund in full or by line. Support picks a reason, and the reason is saved on the order.
+    shape:
+      language: typescript
+      text: |
+        type Refund = {
+          orderId: string
+          lines?: { dishId: string; count: number }[] // left out: the whole order
+          reason: 'late' | 'wrong dish' | 'never arrived' | 'other'
+        }
+  stripe-refund:
+    name: Stripe refund
+    about: Stripe's answer. The money reaches the card in 5 to 10 days.
+    example:
+      language: json
+      text: |
+        { "id": "re_3Pq", "charge": "ch_3Pq", "amount": 2490, "status": "succeeded" }
+  message:
+    name: Message request
+    about: What a service asks Notifications to send. Notifications takes the wording from a template and sends it by SMS.
+    shape:
+      language: typescript
+      text: |
+        type MessageRequest = {
+          to: { customerId: string } | { courierId: string }
+          template: 'order-placed' | 'order-on-its-way' | 'refund-done' | 'job-offer'
+          values: Record<string, string>
+        }
+  sms:
+    name: SMS
+    about: What Notifications hands to Twilio. A text over 160 characters is sent in parts, so the templates stay short.
+    example:
+      language: text
+      text: |
+        To:   +31 6 1234 5678
+        From: Plum
+        Body: Plum: Noodle Bar has your order. It arrives in about 35 min.
+  job-offer:
+    name: Job offer
+    about: The job a courier sees and what it pays. They have 30 s to take it before the next courier gets it.
+    shape:
+      language: kotlin
+      text: |
+        data class JobOffer(
+            val orderId: String,
+            val pickup: Place,
+            val dropOff: Place,
+            val earningsCents: Int,
+            val expiresAt: Instant,
+        )
+  delivery-step:
+    name: Delivery step
+    about: What the courier app reports at the restaurant and at the door.
+    example:
+      language: json
+      text: |
+        { "orderId": "o-1042", "step": "picked_up", "courierId": "c-77", "at": "2026-11-01T19:24:40Z" }
+  report:
+    name: Weekly report
+    about: One row per restaurant and week, for the owners' Monday meeting.
+    example:
+      language: sql
+      text: |
+        select restaurant_id, date_trunc('week', placed_at) as week, count(*) as orders, sum(total) as revenue
+        from orders
+        where status = 'delivered'
+        group by 1, 2
 objects:
   customer:
     type: actor
@@ -367,47 +484,76 @@ objects:
     tech: ClickHouse
     description: Every order event, kept for reporting. Only the **Admin dashboard** reads it.
 connections:
-  - { from: customer, to: customer-app, label: orders on a phone }
-  - { from: customer, to: web, label: orders in a browser }
-  - { from: restaurant, to: kitchen-tablet, label: accepts orders }
-  - { from: courier, to: courier-app, label: takes deliveries }
-  - { from: support, to: support-console, label: handles tickets }
+  - { from: customer, to: customer-app, label: orders on a phone, payloads: [choice] }
+  - { from: customer, to: web, label: orders in a browser, payloads: [choice] }
+  - from: restaurant
+    to: kitchen-tablet
+    label: accepts orders
+    payloads:
+      - { name: Accept or refuse, about: "The kitchen taps Accept and says how long the food takes, or Refuse with a reason." }
+  - from: courier
+    to: courier-app
+    label: takes deliveries
+    payloads:
+      - { name: Yes or no, about: The courier takes the job or lets it pass to the next one. }
+  - { from: support, to: support-console, label: handles tickets, payloads: [ticket] }
   - { from: support, to: admin, label: looks up couriers }
   - { from: customer-app, to: order-api, label: REST, payloads: [basket] }
-  - { from: web, to: order-api, label: REST }
-  - { from: kitchen-tablet, to: order-api, label: "accepts, marks ready" }
+  - { from: web, to: order-api, label: REST, payloads: [basket] }
+  - { from: kitchen-tablet, to: order-api, label: "accepts, marks ready", payloads: [accept] }
   - { from: menu, to: menu-cache, label: reads menus }
   - { from: menu, to: orders-db, label: on a cache miss }
   - { from: basket, to: orders-db, label: saves the basket }
   - { from: basket, to: pricing, label: asks for totals }
-  - { from: pricing, to: mapbox, label: delivery distance }
+  - { from: pricing, to: mapbox, label: delivery distance, payloads: [route] }
   - { from: checkout, to: pricing, label: gets the total }
   - { from: checkout, to: stripe, label: holds the card, payloads: [hold] }
   - { from: checkout, to: orders-db, label: writes the order, payloads: [order] }
   - { from: checkout, to: events, label: announces placed, payloads: [placed] }
   - { from: status, to: orders-db, label: moves the order on }
-  - { from: status, to: events, label: announces each step }
-  - { from: status, to: notifier, label: order updates }
-  - { from: refunds, to: stripe, label: refunds the charge }
+  - from: status
+    to: events
+    label: announces each step
+    payloads:
+      - name: Status changed
+        example:
+          language: json
+          text: |
+            { "type": "order.status", "orderId": "o-1042", "status": "picked_up", "at": "2026-11-01T19:24:41Z" }
+  - { from: status, to: notifier, label: order updates, payloads: [message] }
+  - { from: refunds, to: stripe, label: refunds the charge, payloads: [refund] }
   - { from: refunds, to: orders-db, label: marks refunded }
-  - { from: refunds, to: notifier, label: confirms by message }
+  - { from: refunds, to: notifier, label: confirms by message, payloads: [message] }
   - { from: dispatch, to: events, label: reads placed orders }
   - { from: matcher, to: fleet-db, label: finds idle couriers }
   - { from: matcher, to: eta, label: asks who is quickest }
   - { from: matcher, to: offers, label: hands over the ranking }
-  - { from: eta, to: mapbox, label: travel times }
-  - { from: offers, to: notifier, label: sends the offer }
+  - { from: eta, to: mapbox, label: travel times, payloads: [route] }
+  - { from: offers, to: notifier, label: sends the offer, payloads: [job-offer, message] }
   - { from: courier-app, to: dispatch, label: accepts or refuses }
   - { from: courier-app, to: tracking, label: "position every 5 s", payloads: [position] }
-  - { from: courier-app, to: status, label: "picked up, delivered" }
-  - { from: courier-app, to: mapbox, label: navigation }
+  - { from: courier-app, to: status, label: "picked up, delivered", payloads: [delivery-step] }
+  - { from: courier-app, to: mapbox, label: navigation, payloads: [route] }
   - { from: tracking, to: fleet-db, label: stores positions }
-  - { from: tracking, to: customer-app, label: live map }
-  - { from: tracking, to: web, label: live map }
-  - { from: notifier, to: twilio, label: SMS }
+  - { from: tracking, to: customer-app, label: live map, payloads: [position] }
+  - { from: tracking, to: web, label: live map, payloads: [position] }
+  - { from: notifier, to: twilio, label: SMS, payloads: [sms] }
   - { from: notifier, to: templates, label: reads the wording }
-  - { from: support-console, to: order-api, label: looks up orders }
-  - { from: support-console, to: refunds, label: issues refunds }
-  - { from: admin, to: order-api, label: menus and promotions }
-  - { from: admin, to: warehouse, label: weekly reports }
-  - { from: events, to: warehouse, label: streams every event }
+  - { from: support-console, to: order-api, label: looks up orders, payloads: [ticket] }
+  - { from: support-console, to: refunds, label: issues refunds, payloads: [refund] }
+  - from: admin
+    to: order-api
+    label: menus and promotions
+    payloads:
+      - name: Promotion
+        about: A discount the back office sets up. It runs between two dates at the restaurants it names.
+        example:
+          language: yaml
+          text: |
+            code: DINNER10
+            percentOff: 10
+            restaurants: [noodle-bar, pho-corner]
+            from: 2026-11-01
+            until: 2026-11-30
+  - { from: admin, to: warehouse, label: weekly reports, payloads: [report] }
+  - { from: events, to: warehouse, label: streams every event, payloads: [placed] }
