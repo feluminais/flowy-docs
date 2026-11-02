@@ -121,36 +121,35 @@ internal sealed class NavRail : Border
     internal void Press(PanelTab tab) => Picked?.Invoke(tab);
 }
 
-/// <summary>The strip of tabs on top of the navigator: Explorer and Flows share one, and Performance, Failures and YAML each have a strip of their own that holds just their name.</summary>
-internal sealed class NavTabs : StackPanel
+/// <summary>The head of the navigator: the open panel's name, set as one tab. Each panel has its own, and the rail moves between them.</summary>
+internal sealed class NavTitle : StackPanel
 {
-    private readonly Dictionary<PanelTab, Button> _buttons = [];
+    private readonly Button _title = new();
 
-    public event Action<PanelTab>? Picked;
-
-    public NavTabs()
+    public NavTitle()
     {
         Orientation = Orientation.Horizontal;
-        Spacing = 2;
         Classes.Add("navtabs");
-        foreach (var (tab, label) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Performance, "Performance"), (PanelTab.Failures, "Failures"), (PanelTab.Yaml, "YAML") })
-        {
-            var button = new Button { Content = label };
-            button.Classes.Add("navtab");
-            button.Click += (_, _) => Picked?.Invoke(tab);
-            AutomationProperties.SetName(button, label);
-            _buttons[tab] = button;
-            Children.Add(button);
-        }
+        _title.Classes.Add("navtab");
+        _title.Classes.Add("on");
+        Children.Add(_title);
     }
+
+    /// <summary>The name showing.</summary>
+    internal string Text => (string?)_title.Content ?? "";
 
     public void Update(PanelTab active)
     {
-        foreach (var (tab, button) in _buttons)
+        var name = active switch
         {
-            button.Classes.Set("on", tab == active);
-            button.IsVisible = tab == active || (tab is PanelTab.Explorer or PanelTab.Flows && active is PanelTab.Explorer or PanelTab.Flows);
-        }
+            PanelTab.Flows => "Flows",
+            PanelTab.Performance => "Performance",
+            PanelTab.Failures => "Failures",
+            PanelTab.Yaml => "YAML",
+            _ => "Explorer",
+        };
+        _title.Content = name;
+        AutomationProperties.SetName(_title, name);
     }
 }
 
@@ -160,7 +159,7 @@ internal sealed class NavigatorPanel : Border
     private readonly ContentControl _body = new();
     private readonly ContentControl _pickerHost = new();
 
-    /// <summary>The flyout of a Compare button on a flow's row: the flows to compare it with, under the tabs. Null when there is none.</summary>
+    /// <summary>The flyout of a Compare button on a flow's row: the flows to compare it with, under the title. Null when there is none.</summary>
     public Control? Picker
     {
         get => _pickerHost.Content as Control;
@@ -171,7 +170,7 @@ internal sealed class NavigatorPanel : Border
         }
     }
 
-    public NavTabs Tabs { get; } = new();
+    public NavTitle Title { get; } = new();
 
     public FlowsView Flows { get; } = new();
 
@@ -209,12 +208,12 @@ internal sealed class NavigatorPanel : Border
         HorizontalAlignment = HorizontalAlignment.Left;
         IsVisible = false;
         Focusable = false;
-        Tabs.Margin = new Thickness(16, 10, 52, 0);
-        var close = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 6, 14, 0) }; // level with the tabs' words, not with the strip that holds their underline
+        Title.Margin = new Thickness(16, 10, 52, 0);
+        var close = new Button { Content = Icons.Make(Icons.Close, "closeicon", 16), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 6, 14, 0) }; // level with the title's word, not with the strip that holds its underline
         close.Classes.Add("close");
         close.Click += (_, _) => Closed?.Invoke();
         AutomationProperties.SetName(close, "Close");
-        var column = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { Tabs, _pickerHost, _body } };
+        var column = new Grid { RowDefinitions = [new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Auto), new RowDefinition(GridLength.Star)], Children = { Title, _pickerHost, _body } };
         Grid.SetRow(_pickerHost, 1);
         Grid.SetRow(_body, 2);
         Child = new Grid { Children = { column, close } };
@@ -222,7 +221,7 @@ internal sealed class NavigatorPanel : Border
 
     public void Show(PanelTab tab, bool editing = false)
     {
-        Tabs.Update(tab);
+        Title.Update(tab);
         _body.Content = tab switch
         {
             PanelTab.Flows => Flows,

@@ -34,7 +34,7 @@ internal sealed class FailuresTab
     /// <summary>The tab is always there. With no analysis its panel says so; with only a broken file of one it says what is wrong. It stays open while editing: the analyses have forms, and the marks follow the model as it changes.</summary>
     internal bool Available => _reader.Folder is not null;
 
-    /// <summary>The navigator's tab is Failures (chosen on its rail or its strip, or by M) and the folder has an analysis to show.</summary>
+    /// <summary>The navigator's tab is Failures (chosen on its rail or by M) and the folder has an analysis to show.</summary>
     internal bool IsOpen => _reader.Tab == PanelTab.Failures && Available;
 
     internal string? AnalysisKey => _reader.Folder is { } f ? FailuresView.ActiveAnalysis(f.Model.Failures, _analysisId) : null;

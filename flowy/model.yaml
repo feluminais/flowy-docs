@@ -397,7 +397,7 @@ objects:
       Lists an analysis's rows worst first, puts a risk mark on each shape and line, and lights what
       a picked row affects. In edit mode it holds the forms that write a row.
 
-      It is a tab on the left, beside Explorer and Flows. The desktop app has it too, read only: a C# port of the same lists, badges and words, kept equal by fixtures. It has no analysis forms yet.
+      It is a panel on the left, opened from the rail beside Explorer and Flows. The desktop app has it too, read only: a C# port of the same lists, badges and words, kept equal by fixtures. It has no analysis forms yet.
   navigator:
     type: component
     in: canvas
