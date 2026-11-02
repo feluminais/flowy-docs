@@ -125,7 +125,7 @@ public class EditOpsTests
         Assert.StartsWith("lines: curved\nowner: platform-team\nobjects:\n", files["model.yaml"]);
     }
 
-    private static void RunScript(EditDoc doc, JsonArray results, int atLeast)
+    private static void RunScript(EditDoc doc, JsonArray results, int atLeast, IdMap<LoadRun>? runs = null)
     {
         Assert.True(results.Count > atLeast);
         for (var i = 0; i < results.Count; i++)
@@ -137,7 +137,7 @@ public class EditOpsTests
             try
             {
                 next = Apply(doc, spec);
-                EditOps.RefuseNewProblems(doc.ToModel(), next.ToModel());
+                EditOps.RefuseNewProblems(doc.ToModel(), next.ToModel(), runs: runs);
             }
             catch (OpError e)
             {
@@ -191,7 +191,8 @@ public class EditOpsTests
     [Fact]
     public void The_failure_forms_write_what_the_typescript_ops_write_and_a_refusal_says_the_same_words()
     {
-        RunScript(Start("delete"), Expected()["failuresEdit"]!["results"]!.AsArray(), 30);
+        // The folder has no perf/, so a mode that names a run is refused, as it is on every path that reads perf/ (MCP, canvas, desktop).
+        RunScript(Start("delete"), Expected()["failuresEdit"]!["results"]!.AsArray(), 30, new IdMap<LoadRun>());
     }
 
     [Fact]
