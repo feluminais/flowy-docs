@@ -1,8 +1,7 @@
 import type { Analysis, Flow, Model } from '../../src/core/model.ts'
 import { table } from '../../src/core/failures.ts'
-import { copyMessage } from '../../src/core/host.ts'
 import { flowToMermaid, viewToMermaid } from '../../src/core/mermaid.ts'
-import { vscode } from './host.ts'
+import { copyText as toClipboard } from './clipboard.ts'
 import { starterRun } from './perfview.ts'
 import type { Play } from './usePlayer.ts'
 
@@ -11,16 +10,8 @@ export function useCopyOut({ model, view, flow, playing, analysis, setNotice }: 
   model: Model; view: string; flow: Flow | undefined; playing: Play | undefined; analysis: Analysis | undefined; setNotice: (notice: string) => void
 }) {
   // Fenced, so it pastes straight into a README or a PR, where GitHub draws it.
-  const copyText = async (text: string, notice: string) => {
-    try {
-      // In VS Code the editor writes it: a webview can't count on the clipboard API, which wants the page focused.
-      if (vscode) vscode.postMessage(copyMessage(text))
-      else await navigator.clipboard.writeText(text)
-      setNotice(notice)
-    } catch {
-      setNotice("Couldn't copy: the browser blocked it. Click the page and try again.")
-    }
-  }
+  const copyText = async (text: string, notice: string) =>
+    setNotice((await toClipboard(text)) ? notice : "Couldn't copy: the browser blocked it. Click the page and try again.")
   const copyMermaid = () => {
     const diagram = flow && playing ? flowToMermaid(model, playing.flow) : viewToMermaid(model, view)
     return copyText('```mermaid\n' + diagram + '```\n', `Copied ${flow ? 'this flow' : 'this view'} as Mermaid. Paste it into a README or a PR: GitHub draws it.`)
