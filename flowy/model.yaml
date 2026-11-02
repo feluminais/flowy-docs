@@ -177,10 +177,11 @@ objects:
     in: desktop
     name: Windows and shell
     tech: Avalonia
-    code: [desktop/Flowy.App/Shell.cs, desktop/Flowy.App/MainWindow.axaml.cs, desktop/Flowy.App/SingleInstance.cs]
+    code: [desktop/Flowy.App/Shell.cs, desktop/Flowy.App/MainWindow.axaml.cs, desktop/Flowy.App/TitleRow.cs, desktop/Flowy.App/SingleInstance.cs]
     description: |
       One window per model folder, the File, View and Help menus (Open Recent, Reload, Copy as
-      Mermaid, Save Picture, the demo), drops, and saved state (recent folders, line style, window
+      Mermaid, Save Picture, the demo; on Windows they share the title bar, drawn in the app's
+      colours), drops, and saved state (recent folders, line style, window
       size, the app chosen to open linked files). A folder deleted while open leaves the last good
       model with a banner, and reopening it resumes. A second launch passes its folder to the
       running instance through a pipe only this user can open.
