@@ -64,6 +64,11 @@
           <SolidColorBrush x:Key="TokPropertyBrush" Color="#0b6178" />
           <SolidColorBrush x:Key="TokTagBrush" Color="#116329" />
           <SolidColorBrush x:Key="TokMetaBrush" Color="#7d4e00" />
+          <!-- The title bar Avalonia draws on Windows (TitleRow.cs): the bar in the window's colour, its buttons in the text colour, hover and press as tints. -->
+          <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#fafaf9" />
+          <SolidColorBrush x:Key="CaptionButtonForeground" Color="#1c1917" />
+          <SolidColorBrush x:Key="CaptionButtonBackground" Color="#1c1917" Opacity="0.08" />
+          <SolidColorBrush x:Key="CaptionButtonBorderBrush" Color="#1c1917" Opacity="0.14" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="BgBrush" Color="#1c1917" />
@@ -124,12 +129,18 @@
           <SolidColorBrush x:Key="TokPropertyBrush" Color="#56d4dd" />
           <SolidColorBrush x:Key="TokTagBrush" Color="#7ee787" />
           <SolidColorBrush x:Key="TokMetaBrush" Color="#e3b341" />
+          <SolidColorBrush x:Key="TitleBarBackgroundBrush" Color="#1c1917" />
+          <SolidColorBrush x:Key="CaptionButtonForeground" Color="#f5f5f4" />
+          <SolidColorBrush x:Key="CaptionButtonBackground" Color="#f5f5f4" Opacity="0.10" />
+          <SolidColorBrush x:Key="CaptionButtonBorderBrush" Color="#f5f5f4" Opacity="0.18" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
   </Styles.Resources>
 
   <!-- The styles more than one area uses. An area's own (the canvas, a panel, the bar) are in Styles/<area>.axaml, on the control that holds it (AreaStyles.cs). -->
+  <!-- TitleRow shows the window's title between the menu and the buttons, so the one Avalonia draws at the left (over the menu) goes. -->
+  <Style Selector="WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel > TextBlock"><Setter Property="IsVisible" Value="False" /></Style>
   <Style Selector="Window">
     <Setter Property="Background" Value="{DynamicResource BgBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
