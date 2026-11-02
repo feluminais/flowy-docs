@@ -777,10 +777,14 @@
     },
     "position": {
       "name": "Courier position",
-      "about": "Where the courier is, every 5 s while a job is open.",
+      "about": "Where the courier is, sent every 5 s while a job is open. The Courier app reads it from the phone's location service (GPS, helped by\nWi-Fi and cell towers), so `lat` and `lng` are degrees (WGS 84) and `accuracyMeters` is how far off the fix may be.\n\nHeading and speed come only while the phone is moving. Live tracking drops a position older than 1 min.\n",
+      "shape": {
+        "language": "kotlin",
+        "text": "data class CourierPosition(\n    val courierId: String,\n    val lat: Double, // degrees, WGS 84\n    val lng: Double,\n    val accuracyMeters: Float,\n    val headingDegrees: Float?, // 0 is north\n    val speedMps: Float?,\n    val at: Instant, // when the phone took the fix\n)\n"
+      },
       "example": {
         "language": "json",
-        "text": "{ \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\n"
+        "text": "{ \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"accuracyMeters\": 8, \"headingDegrees\": 274, \"speedMps\": 4.2, \"at\": \"2026-11-01T19:20:05Z\" }\n"
       }
     },
     "choice": {
