@@ -152,8 +152,7 @@ internal sealed class MainMenu : IDisposable
 
     private async Task CopyMermaidAsync()
     {
-        if (_reader.MermaidText() is not { } text || _window.Clipboard is not { } clipboard) return;
-        await clipboard.SetTextAsync(text);
+        if (_reader.MermaidText() is not { } text || !await _reader.CopyAsync(text)) return;
         _reader.ShowNotice(_reader.PlayingFlowId is null
             ? "Copied this view as Mermaid. Paste it into a README or a PR: GitHub draws it."
             : "Copied this flow as Mermaid. Paste it into a README or a PR: GitHub draws it.", 4);

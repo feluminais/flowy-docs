@@ -338,7 +338,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>The text last copied (the Failures panel's table, the Performance panel's starter run), for a test that has no clipboard.</summary>
     internal string? CopiedText { get; private set; }
 
-    private async Task<bool> CopyAsync(string text)
+    /// <summary>Puts text on the clipboard. When the clipboard isn't there it says so in a notice and returns false, so a caller shows its own notice only on true.</summary>
+    internal async Task<bool> CopyAsync(string text)
     {
         CopiedText = text;
         if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
@@ -350,11 +351,15 @@ internal sealed partial class ReaderView : Grid, IDisposable
             }
             catch (Exception)
             {
-                // the clipboard wasn't available
+                // the clipboard wasn't available: said below
             }
         }
+        ShowNotice(CopyFailed, 6);
         return false;
     }
+
+    /// <summary>What a copy that didn't reach the clipboard says.</summary>
+    internal const string CopyFailed = "Couldn't copy: the clipboard isn't available. Try again.";
 
     /// <summary>Looks for the repo's other models away from the UI thread, since a big repo takes a moment to walk. The picker shows only when there are several.</summary>
     private async Task LoadModels(string dir)

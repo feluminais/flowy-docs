@@ -74,7 +74,7 @@ function attach(panel: vscode.WebviewPanel, dir: string, canvas: { media: vscode
   // What the canvas asks of the editor: the folder's State, a write (its edits), a path to open, a web address to open, and text to copy (its Mermaid button).
   panel.webview.onDidReceiveMessage(async (message: unknown) => {
     const text = textToCopy(message)
-    if (text !== undefined) return void vscode.env.clipboard.writeText(text)
+    if (text !== undefined) return void vscode.env.clipboard.writeText(text).then(undefined, () => vscode.window.showWarningMessage("Flowy Docs couldn't copy: the clipboard isn't available. Try again."))
     const path = pathToOpen(message)
     if (path !== undefined) return void openPath(dir, path)
     const url = urlToOpen(message)

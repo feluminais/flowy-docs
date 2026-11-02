@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FocusEvent, KeyboardEvent } from 'react'
-import { copyMessage } from '../../src/core/host.ts'
 import type { FlowyObject } from '../../src/core/model.ts'
 import { codeLines, isBlankCode, LANGUAGES, languageOf, SNIPPET_MAX, snippetsOf } from '../../src/core/snippets.ts'
 import type { Language, Snippet, SnippetInput } from '../../src/core/snippets.ts'
 import { Section } from './Chrome.tsx'
+import { copyText } from './clipboard.ts'
 import { detectLanguage, highlight } from './highlight.ts'
-import { vscode } from './host.ts'
 import { Check, ChevronRight, Code, Copy, Plus, Trash } from './icons.tsx'
 
 /** The language a snippet is shown in: the one it names, or else the one worked out from the code. `auto` says which. Undefined when it can't be told. */
@@ -27,30 +26,19 @@ export function CodeBlock({ text, language, label }: { text: string; language?: 
   )
 }
 
-/** Puts text on the clipboard: in VS Code the editor writes it (a webview can't count on the clipboard API), anywhere else the page does. */
-async function copy(text: string): Promise<boolean> {
-  try {
-    if (vscode) vscode.postMessage(copyMessage(text))
-    else await navigator.clipboard.writeText(text)
-    return true
-  } catch {
-    return false
-  }
-}
-
 export function CopyButton({ text }: { text: string }) {
-  const [done, setDone] = useState(false)
+  // What the last click came to, for a moment: the label says so, since a copy the browser blocked otherwise looks like a click that did nothing.
+  const [done, setDone] = useState<'Copied' | "Couldn't copy" | undefined>(undefined)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
   return (
-    <button type="button" className="icon code-copy" title={done ? 'Copied' : 'Copy'} aria-label={done ? 'Copied' : 'Copy'}
+    <button type="button" className="icon code-copy" title={done ?? 'Copy'} aria-label={done ?? 'Copy'}
       onClick={async () => {
-        if (!(await copy(codeLines(text).join('\n')))) return
-        setDone(true)
+        setDone((await copyText(codeLines(text).join('\n'))) ? 'Copied' : "Couldn't copy")
         clearTimeout(timer.current)
-        timer.current = setTimeout(() => setDone(false), 1500)
+        timer.current = setTimeout(() => setDone(undefined), 1500)
       }}>
-      {done ? <Check size={14} /> : <Copy size={14} />}
+      {done === 'Copied' ? <Check size={14} /> : <Copy size={14} />}
     </button>
   )
 }
