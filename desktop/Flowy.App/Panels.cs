@@ -23,7 +23,7 @@ internal sealed class Panels
     private readonly PerfSession _perf;
     private readonly IReader _reader;
 
-    private PanelTab? _tab; // the navigator's tab (Flows or Explorer), chosen on its rail or its strip; null: the navigator is closed
+    private PanelTab? _tab; // the navigator's tab, chosen on its rail; null: the navigator is closed
     private double _navWidth = Camera.Nav; // dragged by the sashes on the panels' edges
     private double _detailsWidth = Camera.Panel;
     private readonly HashSet<string> _expanded = [Names.Root]; // the shapes whose children show in the Explorer; the project's own row starts open
@@ -42,7 +42,6 @@ internal sealed class Panels
         _perf = perf;
         _reader = reader;
         _details.Closed += CloseDetails;
-        _nav.Tabs.Picked += SetTab;
         _nav.Closed += CloseNav;
         _nav.Explorer.Toggled += ToggleOpen;
         _rail.Picked += ToggleTab;
@@ -76,7 +75,7 @@ internal sealed class Panels
 
     internal double DetailsWidth => _detailsWidth;
 
-    /// <summary>The navigator's tab showing (Explorer, Flows, Performance, Failures or YAML): the one chosen on its rail or its strip, else none. All but Explorer are there only with a folder.</summary>
+    /// <summary>The navigator's tab showing (Explorer, Flows, Performance, Failures or YAML): the one chosen on its rail, else none. All but Explorer are there only with a folder.</summary>
     internal PanelTab? ShownTab => _tab is PanelTab.Flows or PanelTab.Failures or PanelTab.Performance or PanelTab.Yaml && _reader.Folder is null ? null : _tab;
 
     /// <summary>Whether the Details panel on the right is open: from its rail, or because something is picked.</summary>
