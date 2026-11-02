@@ -25,6 +25,9 @@ export type YamlNow = { files: Record<string, StepFile>; versions: Record<string
 /** The newest this many steps of a folder are kept. */
 export const HISTORY_LIMIT = 300
 
+/** The longest label a step of the history takes: the server refuses a longer one, and the canvas cuts its own to fit. */
+export const MAX_STEP_LABEL = 200
+
 /** Trimming reads every step, so it waits until there are this many more than the limit and then goes back to the limit in one go. */
 export const HISTORY_SLACK = 30
 

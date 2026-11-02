@@ -1,7 +1,7 @@
 import type { Problem } from '../../src/core/problem.ts'
 import type { DraftInfo } from '../../src/core/drafts.ts'
 import { describeEdit } from '../../src/core/editlabel.ts'
-import { fallbackLabel } from '../../src/core/history.ts'
+import { fallbackLabel, MAX_STEP_LABEL } from '../../src/core/history.ts'
 import { fileData, isRemovableFile } from '../../src/core/modelfiles.ts'
 import type { Model } from '../../src/core/model.ts'
 import { refuseNewProblems } from '../../src/core/ops.ts'
@@ -177,9 +177,6 @@ export async function undoEdit(undo: Undo, via: Via = '', onDone?: (back: Undo) 
     return text(e)
   }
 }
-
-/** The longest label a step of the history takes, as src/node/history-api.ts checks it. */
-const MAX_STEP_LABEL = 200
 
 /**
  * What a restore came to: the step that holds what the files were just before and the version each file has now (null: gone), or what to tell

@@ -136,7 +136,7 @@ Another MCP client runs `node /path/to/flowy-docs/dist/cli.js mcp` over stdio. T
 
 - **Source links.** A shape lists the files it lives in, and a path that no longer exists is reported. [More](docs/guide/canvas.md#read-it)
 - **Share.** Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request. [More](docs/guide/share.md)
-- **Search and history.** Ctrl+K finds a shape anywhere, and the YAML tab keeps every change to the files. [More](docs/guide/canvas.md#yaml-and-history)
+- **Search and history.** Ctrl+K finds a shape anywhere, and in the browser version the YAML tab keeps the last 300 changes to the files. [More](docs/guide/canvas.md#yaml-and-history)
 - **Drafts.** Sketch a system or a flow in `flowy/drafts/` without touching the model, from scratch or from copies of its shapes. [More](docs/guide/drafts.md)
 
 ## Install
@@ -182,8 +182,7 @@ connections:
 documents itself: open its own `flowy/` folder in the app, or run `node src/cli.ts`. Bug reports and feature requests go to
 [Issues](https://github.com/feluminais/flowy-docs/issues).
 
-Flowy Docs is written with AI coding agents, which is why most commits carry a `Co-Authored-By` line. Each change has to pass
-the tests and checks in CONTRIBUTING.md.
+Flowy Docs is written with AI coding agents. Each change has to pass the tests and checks in CONTRIBUTING.md.
 
 ## License
 

@@ -228,3 +228,15 @@ test('the wait for a label starts once the folder has been looked at, not when t
   api.close()
   assert.deepEqual(events, ['looked', 'recorded'])
 })
+
+test('a history that cannot be listed says it is not being saved, instead of looking empty', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'flowy-api-list-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const dir = join(root, 'flowy')
+  await mkdir(dir, { recursive: true })
+  const history = openHistory(dir, { app: 'browser', stateDir: join(root, 'state'), log: () => undefined })
+  const api = createHistoryApi({ ...history, list: async () => { throw new Error('the history folder can\'t be read') } })
+  t.after(() => api.close())
+  const answer = await api.handle({ method: 'GET' } as never, new URL('http://localhost/api/history'))
+  assert.deepEqual(answer, { status: 200, body: { saving: false, reason: 'the history folder can\'t be read', steps: [] } })
+})

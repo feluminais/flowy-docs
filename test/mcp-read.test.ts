@@ -119,7 +119,7 @@ test('get_model gives a summary, or one object, flow or analysis in full, and re
   for (const args of [{ object: 'nope' }, { flow: 'nope' }, { analysis: 'nope' }]) {
     const r = await call('get_model', args)
     assert.equal(r.error, true)
-    assert.match(r.text, /^unknown (object|flow|analysis) "nope"$/)
+    assert.match(r.text, /^unknown (object|flow|analysis) "nope"\. get_model with summary: true lists the ids there are\.$/)
   }
   const two = await call('get_model', { object: 'db', flow: 'checkout' })
   assert.equal(two.error, true)

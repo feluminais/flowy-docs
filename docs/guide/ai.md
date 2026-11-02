@@ -24,14 +24,14 @@ after `mcp` to keep the files somewhere other than `./flowy`.
 
 **What to ask for.** "Map this repo into Flowy" or "make Flowy docs" gets the default: the people, apps, stores, components and outside services in the repo, how they connect, and three to five plain flows. Nothing else is written until you name it: flows with motion, repeats, branches or failed requests ([Flows](flows.md)), what the stores hold ([Data](data.md)), code on shapes ([Code](code.md)), a failure analysis ([Failure modes](failures.md)) or a look ([Shapes, colour and icons](shapes.md)). Ask for "everything" and it asks which. It reads the rules for a part only when you ask for that part, and ends by naming what Flowy could add that it saw material for in the repo.
 
-The AI can also note where each shape lives in the code (`code: [src/api/]`). A path that doesn't
+A shape can note where it lives in the code (`code: [src/api/]`). A path that doesn't
 exist is refused, so the model can't quietly point at code that's gone. When code moves later,
 the shape gets a "!" until someone fixes the path.
 
-The AI can also link a shape to its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
+A shape can link its long documents (`links: [{ title: Runbook, url: docs/runbook.md }]`).
 A repo path must exist, and a web address is taken as given.
 
-The AI can also add a few lines of code that explain a shape (`snippets:`, see [Code](code.md#code)). It copies them from the repo as they are,
+A shape can hold a few lines of code that explain it (`snippets:`, see [Code](code.md#code)). The AI copies them from the repo as they are,
 leaves out secrets and real data, and keeps to the limits. `put_object` replaces the whole list, so it reads the shape first and
 sends the snippets to keep.
 
@@ -80,7 +80,7 @@ notes in an object's `description` instead.
 Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those, and `set_compare` is the one thing over MCP that changes a run) and the positions you drag, which are the canvas's. `tidy_layout` is the one thing over MCP that writes `layout.yaml`.
 
 Besides tools, the server offers the guides as resources (`flowy://docs/guide.md` says which page holds what, then `format.md`, `writing.md` and one page for each part, which a client can read when
-it has the clone) and the rules for the parts most requests leave out (`flowy://rules/flows`, `data`, `code` and `failures`) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
+it has the clone), how to word a model (`flowy://rules/writing`), the rules for the parts most requests leave out (`flowy://rules/flows`, `data`, `code` and `failures`) and five prompts for the usual jobs: `map-repo`, `update-after-change`, `write-flow`, `failure-analysis` and `review-model`.
 [The file format](../format.md) lists every key, for writing the files by hand.
 
 If you or the AI write the YAML by hand, put double quotes around the text of a one-line step when it holds a comma:
