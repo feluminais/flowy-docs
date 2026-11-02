@@ -25,6 +25,9 @@ import { hasText, isMap, own } from './text.ts'
 import { chain, isView, parentOf } from './views.ts'
 
 /** A refused edit. The message is written for whoever asked for the edit. */
+/** Why an edit can't change an object whose id is "root", a name the views keep for the top level. */
+const ROOT_RESERVED = '"root" is reserved, so this object can\'t be changed here. Rename or delete it in model.yaml by hand.'
+
 export class OpError extends Error {
   override name = 'OpError'
   /** When the edit was refused because other parts depend on what it deletes: the rows that need a decision (see dependents), so a caller can show or settle them. */
@@ -154,7 +157,7 @@ export function deleteIcon(model: Model, name: string): Model {
  */
 export function deleteObject(model: Model, id: string): Model {
   if (id === ROOT && Object.hasOwn(model.objects, ROOT))
-    throw new OpError('"root" is reserved, so this object can\'t be changed here. Rename or delete it in model.yaml by hand.')
+    throw new OpError(ROOT_RESERVED)
   if (!getObject(model, id)) throw new OpError(`unknown object "${id}"`)
   const rows = dependents(model, [{ object: id }]).filter(needsDecision)
   const children = rows.filter(r => r.kind === 'child').map(r => r.child)
@@ -204,7 +207,7 @@ function withoutStates(model: Model, gone: ReadonlySet<string>): Model {
 export function deleteWith(model: Model, targets: Target[], resolutions: Resolution[]): Model {
   for (const t of targets) {
     if ('object' in t) {
-      if (t.object === ROOT && Object.hasOwn(model.objects, ROOT)) throw new OpError('"root" is reserved, so this object can\'t be changed here. Rename or delete it in model.yaml by hand.')
+      if (t.object === ROOT && Object.hasOwn(model.objects, ROOT)) throw new OpError(ROOT_RESERVED)
       if (!getObject(model, t.object)) throw new OpError(`unknown object "${t.object}"`)
     } else if (lineIndices(model, t.line).length === 0) {
       const { from, to, label } = t.line

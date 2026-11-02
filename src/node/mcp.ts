@@ -272,7 +272,7 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     }
     if (analysis !== undefined) {
       if (!Object.hasOwn(m.failures, analysis)) throw new Error(`unknown analysis "${analysis}"`)
-      return { id: analysis, analysis: m.failures[analysis], problems: about(p => p.file === `failures/${analysis}.yaml`) }
+      return { id: analysis, analysis: m.failures[analysis], problems: about(p => p.file === pathOf(FILE_KINDS.failure, analysis)) }
     }
     return { ...project(m), objects: m.objects, connections: m.connections, flows: Object.fromEntries(Object.keys(m.flows).map(fid => [fid, flowShown(m, fid)])), failures: m.failures, icons: customIcons(m.meta), ...payloadsShown(m), runs: runList, problems }
   }))
