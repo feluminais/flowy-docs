@@ -79,6 +79,19 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
+    public void Each_panel_has_its_own_name_on_top_and_no_other_tab()
+    {
+        var (_, reader) = Open();
+        foreach (var (tab, name) in new[] { (PanelTab.Explorer, "Explorer"), (PanelTab.Flows, "Flows"), (PanelTab.Performance, "Performance"), (PanelTab.Failures, "Failures"), (PanelTab.Yaml, "YAML") })
+        {
+            reader.ClickRail(tab);
+            Dispatcher.UIThread.RunJobs();
+            Assert.Equal(name, reader.Navigator.Title.Text);
+            Assert.Equal([name], reader.Navigator.Title.GetVisualDescendants().OfType<Button>().Where(b => b.IsVisible).Select(b => b.Content as string));
+        }
+    }
+
+    [AvaloniaFact]
     public void L_and_O_open_the_tabs_and_Esc_closes_the_panel()
     {
         var (window, reader) = Open();

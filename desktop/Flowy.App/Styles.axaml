@@ -782,7 +782,7 @@
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
   </Style>
-  <!-- The navigator: the rail on the left edge, the strip of tabs, the Flows list and the Explorer tree (Navigator.cs, FlowsView.cs, ExplorerView.cs); the Details rail on the right edge. -->
+  <!-- The navigator: the rail on the left edge, the panel's title, the Flows list and the Explorer tree (Navigator.cs, FlowsView.cs, ExplorerView.cs); the Details rail on the right edge. -->
   <Style Selector=":is(Border).rail">
     <Setter Property="Background" Value="{DynamicResource BgBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />

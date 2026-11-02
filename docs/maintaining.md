@@ -218,7 +218,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       now (Busy, Struggling, Waiting, Not measured, a call, a failing call, More calls) with no sentences, all of it in view in an 880 px window; a shape past 85% busy wears its percentage and Waiting is a square badge; Esc closes the panel, and the Details button swaps Details back in. With animation effects off there
       are no dots and no Ramp button, and the outlines, thickness, numbers and strip still show. Light and dark both read.
 - [ ] `dotnet run --project desktop/Flowy.App -- docs/demo --view ordering --tab failures --select stripe-timeout`: the left rail has a Failures button under
-      Performance with a 14 on it, and M opens its tab beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
+      Performance with a 14 on it, and M opens its panel from the rail beside Explorer and Flows, with Details free on the right (a shape picked on the canvas reads out there and
       narrows the list). Opening Performance closes it. Press E: the tab stays open, with Edit analysis and New analysis folded under the name, and Add failure mode
       under the key; the mode picked has a form (part, effect, cause, the three ratings and their After ratings, controls, next action, owner, status, affects, flow,
       step, run, More) where a pick or a typed field is saved at once, and the arrows no longer step through the list. Order API wears a red 2 and is outlined orange (the mode is Medium), so is Stripe, solid, the line between them wears an amber 2 and
@@ -262,7 +262,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       example from the guide's Data section under another store's `data:`: it shows its fields one to a line, indented, with the note under them. In edit mode the
       form has a Data box holding the same lines as the file: delete a column from `columns` but not from the rows and click elsewhere, and a notice says a row has
       too many cells and the box keeps what you typed. Clear the box: `data:` is gone.
-- [ ] On a copy of `docs/demo`, open Support refunds an order from the Flows tab (**L**): the row has a link mark and a Compare button, quiet until you point at it. Press it: two panes open at once with the note under them (the row of a flow with no link opens a picker under the tabs), and Side by side, Swap, Show changes and Close in the bar. Show changes outlines New, Removed and Changed with the same key as the browser.
+- [ ] On a copy of `docs/demo`, open Support refunds an order from the Flows tab (**L**): the row has a link mark and a Compare button, quiet until you point at it. Press it: two panes open at once with the note under them (the row of a flow with no link opens a picker under the title), and Side by side, Swap, Show changes and Close in the bar. Show changes outlines New, Removed and Changed with the same key as the browser.
       Double-click a shape that opens in one pane: only that pane zooms in, with a breadcrumb under its title, and **Esc** goes back up before it closes the comparison.
       **X** in Swap glides the shapes, and **Esc** closes the comparison. Press **T** on Orders and pings, tested together, then **C**: two run panes, with Show changes greyed out. In edit mode every Compare button is greyed out
       with "Not while editing". `--compare refund,refund-not-recorded --changes` (below) opens the first pair with its marks on.
@@ -464,7 +464,7 @@ Shape states (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then 
 
 YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing at an empty folder, so the history stays out of your own):
 
-- [ ] The left panel gains a YAML tab beside Explorer and Flows, with a tab for `model.yaml`, `failures/ordering.yaml` and each flow, and one step, First seen. Press E, change
+- [ ] The left rail gains a YAML button below Explorer and Flows, with a tab for `model.yaml`, `failures/ordering.yaml` and each flow, and one step, First seen. Press E, change
       a shape's Tech, and press Tab: a "You" step appears, and the changed line shows red above green. Change a file in an editor: an "Outside" step appears.
 - [ ] Pick the older step: its files show with the marks against the step before it, and Restore is greyed out with "Edit to restore" beside it. Press E, then Restore: the
       model goes back, a "Restored" step is on top, and Ctrl+Z puts the change back. Clear history asks first, and Clear empties the list. On an exported page and in the VS Code panel the tab is there and says it has no history.

@@ -16,7 +16,7 @@ internal interface IReader
     /// <summary>What is picked: it shows in Details.</summary>
     ReaderView.Side? Pick { get; set; }
 
-    /// <summary>The navigator's tab, as chosen on its rail or its strip; null when it is closed.</summary>
+    /// <summary>The navigator's tab, as chosen on its rail; null when it is closed.</summary>
     PanelTab? Tab { get; }
 
     bool Editing { get; }
