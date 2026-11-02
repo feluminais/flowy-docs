@@ -782,33 +782,160 @@
         "language": "json",
         "text": "{ \"courierId\": \"c-77\", \"lat\": 52.0907, \"lng\": 5.1214, \"at\": \"2026-11-01T19:20:05Z\" }\n"
       }
+    },
+    "choice": {
+      "name": "Dishes and address",
+      "about": "What the customer picks before paying. Dishes, a note for the kitchen and where to bring them."
+    },
+    "ticket": {
+      "name": "Ticket",
+      "about": "A customer writes in. Support reads the order number and what went wrong, then looks the order up."
+    },
+    "accept": {
+      "name": "Acceptance",
+      "about": "The kitchen's answer to a new order, with how long the food takes.",
+      "example": {
+        "text": "{ \"orderId\": \"o-1042\", \"status\": \"accepted\", \"readyInMinutes\": 15 }\n"
+      }
+    },
+    "route": {
+      "name": "Route request",
+      "about": "Asks Mapbox how far apart two places are by bike. Pricing wants the distance, ETA and the courier app want the time.",
+      "example": {
+        "language": "text",
+        "text": "GET /directions-matrix/v1/mapbox/cycling/5.1214,52.0907;5.1102,52.0841?annotations=distance,duration\n"
+      }
+    },
+    "charge": {
+      "name": "Charge event",
+      "about": "Stripe calls Plum's webhook once a held amount is charged. Plum checks the signature before it trusts the event.",
+      "shape": {
+        "language": "json",
+        "text": "{\n  \"type\": \"object\",\n  \"required\": [\"id\", \"type\", \"data\"],\n  \"properties\": {\n    \"id\": { \"type\": \"string\" },\n    \"type\": { \"const\": \"charge.succeeded\" },\n    \"data\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"object\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"amount\": { \"type\": \"integer\" },\n            \"metadata\": { \"type\": \"object\", \"properties\": { \"orderId\": { \"type\": \"string\" } } }\n          }\n        }\n      }\n    }\n  }\n}\n"
+      },
+      "example": {
+        "language": "json",
+        "text": "{ \"id\": \"evt_1Q\", \"type\": \"charge.succeeded\", \"data\": { \"object\": { \"amount\": 2490, \"metadata\": { \"orderId\": \"o-1042\" } } } }\n"
+      }
+    },
+    "refund": {
+      "name": "Refund",
+      "about": "A refund in full or by line. Support picks a reason, and the reason is saved on the order.",
+      "shape": {
+        "language": "typescript",
+        "text": "type Refund = {\n  orderId: string\n  lines?: { dishId: string; count: number }[] // left out: the whole order\n  reason: 'late' | 'wrong dish' | 'never arrived' | 'other'\n}\n"
+      }
+    },
+    "stripe-refund": {
+      "name": "Stripe refund",
+      "about": "Stripe's answer. The money reaches the card in 5 to 10 days.",
+      "example": {
+        "language": "json",
+        "text": "{ \"id\": \"re_3Pq\", \"charge\": \"ch_3Pq\", \"amount\": 2490, \"status\": \"succeeded\" }\n"
+      }
+    },
+    "message": {
+      "name": "Message request",
+      "about": "What a service asks Notifications to send. Notifications takes the wording from a template and sends it by SMS.",
+      "shape": {
+        "language": "typescript",
+        "text": "type MessageRequest = {\n  to: { customerId: string } | { courierId: string }\n  template: 'order-placed' | 'order-on-its-way' | 'refund-done' | 'job-offer'\n  values: Record<string, string>\n}\n"
+      }
+    },
+    "sms": {
+      "name": "SMS",
+      "about": "What Notifications hands to Twilio. A text over 160 characters is sent in parts, so the templates stay short.",
+      "example": {
+        "language": "text",
+        "text": "To:   +31 6 1234 5678\nFrom: Plum\nBody: Plum: Noodle Bar has your order. It arrives in about 35 min.\n"
+      }
+    },
+    "job-offer": {
+      "name": "Job offer",
+      "about": "The job a courier sees and what it pays. They have 30 s to take it before the next courier gets it.",
+      "shape": {
+        "language": "kotlin",
+        "text": "data class JobOffer(\n    val orderId: String,\n    val pickup: Place,\n    val dropOff: Place,\n    val earningsCents: Int,\n    val expiresAt: Instant,\n)\n"
+      }
+    },
+    "delivery-step": {
+      "name": "Delivery step",
+      "about": "What the courier app reports at the restaurant and at the door.",
+      "example": {
+        "language": "json",
+        "text": "{ \"orderId\": \"o-1042\", \"step\": \"picked_up\", \"courierId\": \"c-77\", \"at\": \"2026-11-01T19:24:40Z\" }\n"
+      }
+    },
+    "report": {
+      "name": "Weekly report",
+      "about": "One row per restaurant and week, for the owners' Monday meeting.",
+      "example": {
+        "language": "sql",
+        "text": "select restaurant_id, date_trunc('week', placed_at) as week, count(*) as orders, sum(total) as revenue\nfrom orders\nwhere status = 'delivered'\ngroup by 1, 2\n"
+      }
     }
   },
   "connections": [
     {
       "from": "customer",
       "to": "customer-app",
-      "label": "orders on a phone"
+      "label": "orders on a phone",
+      "payloads": [
+        "choice"
+      ],
+      "carries": [
+        "Dishes and address"
+      ]
     },
     {
       "from": "customer",
       "to": "web",
-      "label": "orders in a browser"
+      "label": "orders in a browser",
+      "payloads": [
+        "choice"
+      ],
+      "carries": [
+        "Dishes and address"
+      ]
     },
     {
       "from": "restaurant",
       "to": "kitchen-tablet",
-      "label": "accepts orders"
+      "label": "accepts orders",
+      "payloads": [
+        {
+          "name": "Accept or refuse",
+          "about": "The kitchen taps Accept and says how long the food takes, or Refuse with a reason."
+        }
+      ],
+      "carries": [
+        "Accept or refuse"
+      ]
     },
     {
       "from": "courier",
       "to": "courier-app",
-      "label": "takes deliveries"
+      "label": "takes deliveries",
+      "payloads": [
+        {
+          "name": "Yes or no",
+          "about": "The courier takes the job or lets it pass to the next one."
+        }
+      ],
+      "carries": [
+        "Yes or no"
+      ]
     },
     {
       "from": "support",
       "to": "support-console",
-      "label": "handles tickets"
+      "label": "handles tickets",
+      "payloads": [
+        "ticket"
+      ],
+      "carries": [
+        "Ticket"
+      ]
     },
     {
       "from": "support",
@@ -829,12 +956,24 @@
     {
       "from": "web",
       "to": "order-api",
-      "label": "REST"
+      "label": "REST",
+      "payloads": [
+        "basket"
+      ],
+      "carries": [
+        "Basket"
+      ]
     },
     {
       "from": "kitchen-tablet",
       "to": "order-api",
-      "label": "accepts, marks ready"
+      "label": "accepts, marks ready",
+      "payloads": [
+        "accept"
+      ],
+      "carries": [
+        "Acceptance"
+      ]
     },
     {
       "from": "menu",
@@ -859,7 +998,13 @@
     {
       "from": "pricing",
       "to": "mapbox",
-      "label": "delivery distance"
+      "label": "delivery distance",
+      "payloads": [
+        "route"
+      ],
+      "carries": [
+        "Route request"
+      ]
     },
     {
       "from": "checkout",
@@ -907,17 +1052,41 @@
     {
       "from": "status",
       "to": "events",
-      "label": "announces each step"
+      "label": "announces each step",
+      "payloads": [
+        {
+          "name": "Status changed",
+          "example": {
+            "language": "json",
+            "text": "{ \"type\": \"order.status\", \"orderId\": \"o-1042\", \"status\": \"picked_up\", \"at\": \"2026-11-01T19:24:41Z\" }\n"
+          }
+        }
+      ],
+      "carries": [
+        "Status changed"
+      ]
     },
     {
       "from": "status",
       "to": "notifier",
-      "label": "order updates"
+      "label": "order updates",
+      "payloads": [
+        "message"
+      ],
+      "carries": [
+        "Message request"
+      ]
     },
     {
       "from": "refunds",
       "to": "stripe",
-      "label": "refunds the charge"
+      "label": "refunds the charge",
+      "payloads": [
+        "refund"
+      ],
+      "carries": [
+        "Refund"
+      ]
     },
     {
       "from": "refunds",
@@ -927,7 +1096,13 @@
     {
       "from": "refunds",
       "to": "notifier",
-      "label": "confirms by message"
+      "label": "confirms by message",
+      "payloads": [
+        "message"
+      ],
+      "carries": [
+        "Message request"
+      ]
     },
     {
       "from": "dispatch",
@@ -952,12 +1127,26 @@
     {
       "from": "eta",
       "to": "mapbox",
-      "label": "travel times"
+      "label": "travel times",
+      "payloads": [
+        "route"
+      ],
+      "carries": [
+        "Route request"
+      ]
     },
     {
       "from": "offers",
       "to": "notifier",
-      "label": "sends the offer"
+      "label": "sends the offer",
+      "payloads": [
+        "job-offer",
+        "message"
+      ],
+      "carries": [
+        "Job offer",
+        "Message request"
+      ]
     },
     {
       "from": "courier-app",
@@ -978,12 +1167,24 @@
     {
       "from": "courier-app",
       "to": "status",
-      "label": "picked up, delivered"
+      "label": "picked up, delivered",
+      "payloads": [
+        "delivery-step"
+      ],
+      "carries": [
+        "Delivery step"
+      ]
     },
     {
       "from": "courier-app",
       "to": "mapbox",
-      "label": "navigation"
+      "label": "navigation",
+      "payloads": [
+        "route"
+      ],
+      "carries": [
+        "Route request"
+      ]
     },
     {
       "from": "tracking",
@@ -993,17 +1194,35 @@
     {
       "from": "tracking",
       "to": "customer-app",
-      "label": "live map"
+      "label": "live map",
+      "payloads": [
+        "position"
+      ],
+      "carries": [
+        "Courier position"
+      ]
     },
     {
       "from": "tracking",
       "to": "web",
-      "label": "live map"
+      "label": "live map",
+      "payloads": [
+        "position"
+      ],
+      "carries": [
+        "Courier position"
+      ]
     },
     {
       "from": "notifier",
       "to": "twilio",
-      "label": "SMS"
+      "label": "SMS",
+      "payloads": [
+        "sms"
+      ],
+      "carries": [
+        "SMS"
+      ]
     },
     {
       "from": "notifier",
@@ -1013,27 +1232,64 @@
     {
       "from": "support-console",
       "to": "order-api",
-      "label": "looks up orders"
+      "label": "looks up orders",
+      "payloads": [
+        "ticket"
+      ],
+      "carries": [
+        "Ticket"
+      ]
     },
     {
       "from": "support-console",
       "to": "refunds",
-      "label": "issues refunds"
+      "label": "issues refunds",
+      "payloads": [
+        "refund"
+      ],
+      "carries": [
+        "Refund"
+      ]
     },
     {
       "from": "admin",
       "to": "order-api",
-      "label": "menus and promotions"
+      "label": "menus and promotions",
+      "payloads": [
+        {
+          "name": "Promotion",
+          "about": "A discount the back office sets up. It runs between two dates at the restaurants it names.",
+          "example": {
+            "language": "yaml",
+            "text": "code: DINNER10\npercentOff: 10\nrestaurants: [noodle-bar, pho-corner]\nfrom: 2026-11-01\nuntil: 2026-11-30\n"
+          }
+        }
+      ],
+      "carries": [
+        "Promotion"
+      ]
     },
     {
       "from": "admin",
       "to": "warehouse",
-      "label": "weekly reports"
+      "label": "weekly reports",
+      "payloads": [
+        "report"
+      ],
+      "carries": [
+        "Weekly report"
+      ]
     },
     {
       "from": "events",
       "to": "warehouse",
-      "label": "streams every event"
+      "label": "streams every event",
+      "payloads": [
+        "placed"
+      ],
+      "carries": [
+        "Order placed"
+      ]
     }
   ],
   "layout": {},
@@ -2632,72 +2888,95 @@
           "from": "support",
           "to": "backoffice",
           "text": "Finds the order in the support console",
-          "animation": {
-            "kind": "send",
-            "carries": "order id"
-          },
+          "animation": "send",
           "placed": [
             "support",
             "backoffice"
           ],
-          "ends": "Support agent → Back office"
+          "ends": "Support agent → Back office",
+          "payload": "ticket",
+          "sends": "Ticket",
+          "dots": {
+            "out": "Ticket"
+          }
         },
         {
           "from": "backoffice",
           "to": "ordering",
           "text": "Asks for a refund, in full or by line",
-          "animation": {
-            "kind": "call",
-            "carries": "refund"
-          },
+          "animation": "call",
           "placed": [
             "backoffice",
             "ordering"
           ],
-          "ends": "Back office → Ordering"
+          "ends": "Back office → Ordering",
+          "payload": "refund",
+          "reply": {
+            "name": "Refund done",
+            "about": "The order as it stands once Stripe has confirmed.",
+            "example": {
+              "language": "json",
+              "text": "{ \"orderId\": \"o-1042\", \"status\": \"refunded\", \"refunded\": 2490, \"reason\": \"late\" }\n"
+            }
+          },
+          "sends": "Refund",
+          "returns": "Refund done",
+          "dots": {
+            "out": "Refund",
+            "back": "Refund done"
+          }
         },
         {
           "from": "ordering",
           "to": "stripe",
           "text": "The money goes back to the card",
           "description": "Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,\nso the database never records a refund that didn't happen.\n",
-          "animation": {
-            "kind": "call",
-            "carries": "refund"
-          },
+          "animation": "call",
           "placed": [
             "ordering",
             "stripe"
           ],
-          "ends": "Ordering → Stripe"
+          "ends": "Ordering → Stripe",
+          "payload": "refund",
+          "reply": "stripe-refund",
+          "sends": "Refund",
+          "returns": "Stripe refund",
+          "dots": {
+            "out": "Refund",
+            "back": "Stripe refund"
+          }
         },
         {
           "from": "ordering",
           "to": "notifications",
           "text": "Requests a confirmation",
-          "animation": {
-            "kind": "send",
-            "carries": "confirm"
-          },
+          "animation": "send",
           "placed": [
             "ordering",
             "notifications"
           ],
-          "ends": "Ordering → Notifications"
+          "ends": "Ordering → Notifications",
+          "payload": "message",
+          "sends": "Message request",
+          "dots": {
+            "out": "Message request"
+          }
         },
         {
           "from": "notifications",
           "to": "twilio",
           "text": "Hands the SMS to Twilio",
-          "animation": {
-            "kind": "send",
-            "carries": "SMS"
-          },
+          "animation": "send",
           "placed": [
             "notifications",
             "twilio"
           ],
-          "ends": "Notifications → Twilio"
+          "ends": "Notifications → Twilio",
+          "payload": "sms",
+          "sends": "SMS",
+          "dots": {
+            "out": "SMS"
+          }
         },
         {
           "from": "twilio",
@@ -2705,14 +2984,25 @@
           "text": "The customer reads that the money is back",
           "animation": {
             "kind": "send",
-            "carries": "SMS",
             "effect": "bounce"
           },
           "placed": [
             "twilio",
             "customer"
           ],
-          "ends": "Twilio → Customer"
+          "ends": "Twilio → Customer",
+          "payload": {
+            "name": "Text message",
+            "about": "What the customer's phone shows.",
+            "example": {
+              "language": "text",
+              "text": "Plum: your refund of €24.90 is on its way back to your card. It can take 5 days to show.\n"
+            }
+          },
+          "sends": "Text message",
+          "dots": {
+            "out": "Text message"
+          }
         }
       ],
       "folder": "payments",
@@ -2860,44 +3150,50 @@
           "from": "customer",
           "to": "ordering",
           "text": "Places an order",
-          "animation": {
-            "kind": "send",
-            "carries": "basket"
-          },
+          "animation": "send",
           "flow": "place-order",
           "placed": [
             "customer",
             "ordering"
           ],
-          "ends": "Customer → Ordering"
+          "ends": "Customer → Ordering",
+          "payload": "basket",
+          "sends": "Basket",
+          "dots": {
+            "out": "Basket"
+          }
         },
         {
           "from": "ordering",
           "to": "notifications",
           "text": "Asks for an SMS that confirms it",
-          "animation": {
-            "kind": "send",
-            "carries": "confirm"
-          },
+          "animation": "send",
           "placed": [
             "ordering",
             "notifications"
           ],
-          "ends": "Ordering → Notifications"
+          "ends": "Ordering → Notifications",
+          "payload": "message",
+          "sends": "Message request",
+          "dots": {
+            "out": "Message request"
+          }
         },
         {
           "from": "notifications",
           "to": "twilio",
           "text": "Hands the confirmation to Twilio",
-          "animation": {
-            "kind": "send",
-            "carries": "SMS"
-          },
+          "animation": "send",
           "placed": [
             "notifications",
             "twilio"
           ],
-          "ends": "Notifications → Twilio"
+          "ends": "Notifications → Twilio",
+          "payload": "sms",
+          "sends": "SMS",
+          "dots": {
+            "out": "SMS"
+          }
         },
         {
           "from": "twilio",
@@ -2914,7 +3210,12 @@
             "twilio",
             "customer"
           ],
-          "ends": "Twilio → Customer"
+          "ends": "Twilio → Customer",
+          "payload": "sms",
+          "sends": "SMS",
+          "dots": {
+            "out": "SMS"
+          }
         },
         {
           "from": "notifications",
@@ -3075,14 +3376,28 @@
           "description": "Stripe initiates this call, not Plum. The order is marked paid when it arrives.\n",
           "animation": {
             "kind": "callback",
-            "trigger": "outside",
-            "carries": "o_1042"
+            "trigger": "outside"
           },
           "placed": [
             "stripe",
             "order-api"
           ],
-          "ends": "Stripe → Order API"
+          "ends": "Stripe → Order API",
+          "payload": "charge",
+          "reply": {
+            "name": "Received",
+            "about": "Plum answers at once so Stripe doesn't send the event again.",
+            "example": {
+              "language": "json",
+              "text": "{ \"received\": true }"
+            }
+          },
+          "sends": "Charge event",
+          "returns": "Received",
+          "dots": {
+            "out": "Charge event",
+            "back": "Received"
+          }
         },
         {
           "from": "order-api",
@@ -3532,31 +3847,89 @@
           "from": "customer",
           "to": "ordering",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Dishes and address",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Basket",
+              "back": false,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "sms-dropped",
+                  "step": 0,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "restaurant",
           "to": "ordering",
           "label": "accepts orders",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Accept or refuse",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "courier",
           "to": "delivery",
           "label": "takes deliveries",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Yes or no",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "support",
           "to": "backoffice",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Ticket",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "refund",
+                  "step": 0,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "ordering",
           "to": "mapbox",
           "label": "delivery distance",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Route request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "ordering",
@@ -3575,6 +3948,54 @@
                   "reply": false
                 }
               ]
+            },
+            {
+              "name": "Refund",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "refund",
+                  "step": 2,
+                  "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Stripe refund",
+              "back": true,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "refund",
+                  "step": 2,
+                  "reply": true
+                }
+              ]
+            },
+            {
+              "name": "Charge event",
+              "back": true,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "stripe-webhook",
+                  "step": 0,
+                  "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Received",
+              "back": false,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "stripe-webhook",
+                  "step": 0,
+                  "reply": true
+                }
+              ]
             }
           ]
         },
@@ -3582,38 +4003,156 @@
           "from": "ordering",
           "to": "notifications",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "refund",
+                  "step": 3,
+                  "reply": false
+                },
+                {
+                  "flow": "sms-dropped",
+                  "step": 1,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "delivery",
           "to": "ordering",
           "label": "4 connections",
-          "count": 4
+          "count": 4,
+          "carries": [
+            {
+              "name": "Delivery step",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Courier position",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "delivery",
           "to": "mapbox",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Route request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "delivery",
           "to": "notifications",
           "label": "sends the offer",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Job offer",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "notifications",
           "to": "twilio",
           "label": "SMS",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "SMS",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "refund",
+                  "step": 4,
+                  "reply": false
+                },
+                {
+                  "flow": "sms-dropped",
+                  "step": 2,
+                  "reply": false
+                }
+              ]
+            }
+          ]
         },
         {
           "from": "backoffice",
           "to": "ordering",
           "label": "4 connections",
           "count": 4,
-          "both": true
+          "both": true,
+          "carries": [
+            {
+              "name": "Ticket",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Refund",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "refund",
+                  "step": 1,
+                  "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Promotion",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Order placed",
+              "back": true,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Refund done",
+              "back": true,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "refund",
+                  "step": 1,
+                  "reply": true
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -3643,19 +4182,43 @@
           "from": "customer",
           "to": "customer-app",
           "label": "orders on a phone",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Dishes and address",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "customer",
           "to": "web",
           "label": "orders in a browser",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Dishes and address",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "restaurant",
           "to": "kitchen-tablet",
           "label": "accepts orders",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Accept or refuse",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "customer-app",
@@ -3693,13 +4256,29 @@
           "from": "web",
           "to": "order-api",
           "label": "REST",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Basket",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "kitchen-tablet",
           "to": "order-api",
           "label": "accepts, marks ready",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Acceptance",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "order-api",
@@ -3731,7 +4310,15 @@
           "from": "order-api",
           "to": "mapbox",
           "label": "delivery distance",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Route request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "order-api",
@@ -3748,6 +4335,36 @@
                   "flow": "place-order",
                   "step": 2,
                   "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Refund",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Charge event",
+              "back": true,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "stripe-webhook",
+                  "step": 0,
+                  "reply": false
+                }
+              ]
+            },
+            {
+              "name": "Received",
+              "back": false,
+              "own": false,
+              "steps": [
+                {
+                  "flow": "stripe-webhook",
+                  "step": 0,
+                  "reply": true
                 }
               ]
             }
@@ -3770,6 +4387,12 @@
                   "reply": false
                 }
               ]
+            },
+            {
+              "name": "Status changed",
+              "back": false,
+              "own": true,
+              "steps": []
             }
           ]
         },
@@ -3777,7 +4400,15 @@
           "from": "order-api",
           "to": "notifications",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "delivery",
@@ -3789,31 +4420,83 @@
           "from": "delivery",
           "to": "order-api",
           "label": "picked up, delivered",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Delivery step",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "delivery",
           "to": "customer-app",
           "label": "live map",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Courier position",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "delivery",
           "to": "web",
           "label": "live map",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Courier position",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "backoffice",
           "to": "order-api",
           "label": "3 connections",
-          "count": 3
+          "count": 3,
+          "carries": [
+            {
+              "name": "Ticket",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Refund",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Promotion",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "events",
           "to": "backoffice",
           "label": "streams every event",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Order placed",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         }
       ],
       "actors": [
@@ -3843,7 +4526,15 @@
           "from": "courier",
           "to": "courier-app",
           "label": "takes deliveries",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Yes or no",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "dispatch",
@@ -3861,13 +4552,35 @@
           "from": "dispatch",
           "to": "mapbox",
           "label": "travel times",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Route request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "dispatch",
           "to": "notifications",
           "label": "sends the offer",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Job offer",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "courier-app",
@@ -3899,13 +4612,29 @@
           "from": "courier-app",
           "to": "ordering",
           "label": "picked up, delivered",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Delivery step",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "courier-app",
           "to": "mapbox",
           "label": "navigation",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Route request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "tracking",
@@ -3917,7 +4646,15 @@
           "from": "tracking",
           "to": "ordering",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Courier position",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         }
       ],
       "actors": [
@@ -3942,19 +4679,49 @@
           "from": "ordering",
           "to": "notifier",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "delivery",
           "to": "notifier",
           "label": "sends the offer",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Job offer",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "notifier",
           "to": "twilio",
           "label": "SMS",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "SMS",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "notifier",
@@ -3980,7 +4747,15 @@
           "from": "support",
           "to": "support-console",
           "label": "handles tickets",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Ticket",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "support",
@@ -3992,25 +4767,63 @@
           "from": "support-console",
           "to": "ordering",
           "label": "2 connections",
-          "count": 2
+          "count": 2,
+          "carries": [
+            {
+              "name": "Ticket",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Refund",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "admin",
           "to": "ordering",
           "label": "menus and promotions",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Promotion",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "admin",
           "to": "warehouse",
           "label": "weekly reports",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Weekly report",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "ordering",
           "to": "warehouse",
           "label": "streams every event",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Order placed",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         }
       ]
     },
@@ -4064,7 +4877,15 @@
           "from": "pricing",
           "to": "mapbox",
           "label": "delivery distance",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Route request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "checkout",
@@ -4124,19 +4945,43 @@
           "from": "status",
           "to": "events",
           "label": "announces each step",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Status changed",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "status",
           "to": "notifications",
           "label": "order updates",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "refunds",
           "to": "stripe",
           "label": "refunds the charge",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Refund",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "refunds",
@@ -4148,19 +4993,43 @@
           "from": "refunds",
           "to": "notifications",
           "label": "confirms by message",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "delivery",
           "to": "status",
           "label": "picked up, delivered",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Delivery step",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "backoffice",
           "to": "refunds",
           "label": "issues refunds",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Refund",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         }
       ],
       "actors": [
@@ -4203,13 +5072,35 @@
           "from": "eta",
           "to": "mapbox",
           "label": "travel times",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Route request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         },
         {
           "from": "offers",
           "to": "notifications",
           "label": "sends the offer",
-          "count": 1
+          "count": 1,
+          "carries": [
+            {
+              "name": "Job offer",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Message request",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
         }
       ],
       "actors": [
