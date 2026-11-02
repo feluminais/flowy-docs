@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
+import { FILE_KINDS, pathOf } from '../../src/core/filekinds.ts'
 import { analysedText, bandLabel, bandOf, bandReason, BAND_NAMES, BAND_RULES, coverage, partName, lightFor, ratingsOf, riskOf, riskProduct } from '../../src/core/failures.ts'
 import type { Band, Part, Ranked } from '../../src/core/failures.ts'
 import type { Model } from '../../src/core/model.ts'
@@ -75,7 +76,7 @@ export function FailuresBody(p: FailuresProps) {
     if (at.top < around.top || at.top > around.bottom) el.scrollIntoView({ block: 'start' })
   }, [modeId])
 
-  const problems = [...p.failureProblems, ...p.problems.filter(x => analysisId !== undefined && x.file === `failures/${analysisId}.yaml`)]
+  const problems = [...p.failureProblems, ...p.problems.filter(x => analysisId !== undefined && x.file === pathOf(FILE_KINDS.failure, analysisId))]
   const problemList = problems.length > 0 && (
     <>
       <Section icon={Alert} title="Problems" count={problems.length} />

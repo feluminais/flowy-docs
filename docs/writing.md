@@ -8,7 +8,7 @@ The rules are what IcePanel, the C4 model, arc42, Structurizr and a few others t
 
 Write what the code can't tell you, and point at what it can. Code shows how. It doesn't show what a part is for, who relies on it, why it's cut this way or what it must never do. That's what the model is for. Facts that change with every commit (versions, endpoint lists, file lists) belong in the code, one `code:` path away. The model is a map, not all of the documentation: long documents still have a place beside it ([what stays outside Flowy](#what-stays-outside-flowy)).
 
-A reader meets your words in four layers, and each should work without the next:
+A reader meets your words in these layers, and each should work without the next:
 
 | Layer | Where it shows | What goes in it |
 | --- | --- | --- |

@@ -7,6 +7,7 @@ import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
 import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLinePayloads, setLines, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInput } from '../../src/core/ops.ts'
+import type { Run } from '../../src/core/perf/types.ts'
 import { loadState } from '../../src/node/files.ts'
 import { newId } from '../../ui/src/edit.ts'
 
@@ -395,7 +396,7 @@ function apply(model: Model, s: Spec): Model {
 const filesOf = (m: Model) => ({ ...modelFiles(m), 'layout.yaml': serializeLayout(m.layout) })
 
 /** What each edit of a script writes or says, starting from a folder. An edit that is refused changes nothing, as in the app. */
-async function run(dir: string, steps: Spec[]): Promise<{ initial: Record<string, string>; results: unknown[] }> {
+async function run(dir: string, steps: Spec[], runs?: Record<string, Run>): Promise<{ initial: Record<string, string>; results: unknown[] }> {
   const state = await loadState(dir)
   if ('parseError' in state) throw new Error(`${dir} can't be read`)
   let model: Model = modelOf(state)
@@ -403,7 +404,7 @@ async function run(dir: string, steps: Spec[]): Promise<{ initial: Record<string
   const results = steps.map(spec => {
     try {
       const next = apply(model, spec)
-      refuseNewProblems(model, next)
+      refuseNewProblems(model, next, undefined, runs)
       model = next
       return { spec, files: filesOf(model), ...(model.folders === undefined ? {} : { folders: model.folders }) }
     } catch (e) {
@@ -424,5 +425,5 @@ export async function dumpOps(): Promise<unknown> {
   const ids = names.flatMap(name => [[], ['orders-db', 'orders-db-2', 'API']].map(taken => ({ name, taken, id: newId(name, taken, 'component') })))
   const start: Model = modelOf(state)
   const types = [ROOT, ...Object.keys(start.objects), 'nowhere'].map(view => ({ view, types: typesIn(start, view) }))
-  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS), folderEdit: await run(join(root, 'desktop/fixtures/cases/folders/flowy'), FOLDER_STEPS) }
+  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS, {}), folderEdit: await run(join(root, 'desktop/fixtures/cases/folders/flowy'), FOLDER_STEPS) }
 }

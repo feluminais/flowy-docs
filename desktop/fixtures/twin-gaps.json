@@ -154,6 +154,53 @@
     "snippetsOf",
     "tidySnippets"
   ],
+  "src/node/commit": [
+    "blockedMessage",
+    "commitEdit",
+    "firstBlocked",
+    "firstUnreadable"
+  ],
+  "src/node/drafts": [
+    "draftDir",
+    "hasDraft",
+    "listDrafts",
+    "modelOfDraft",
+    "nameOfModel",
+    "repoOf"
+  ],
+  "src/node/files": [
+    "OutsideFolder",
+    "VersionConflict",
+    "blockedBy",
+    "hashBytes",
+    "loadFolder",
+    "loadReport",
+    "loadRuns",
+    "missingPaths",
+    "pointsOutside",
+    "realPlace",
+    "saveFile",
+    "saveFiles",
+    "saveProblems",
+    "saveRaw",
+    "saveRunCompare"
+  ],
+  "src/node/git": [
+    "codeBase",
+    "codeBaseFrom"
+  ],
+  "src/node/history": [
+    "yamlOf"
+  ],
+  "src/node/models": [
+    "Catalog",
+    "DEEP",
+    "QUICK",
+    "broadOf",
+    "entryOf",
+    "findModels",
+    "scanModels"
+  ],
   "states": [
     "isStateName",
     "readStates"
@@ -175,6 +222,159 @@
   "text": [
     "isMap",
     "own"
+  ],
+  "ui/src/compare": [
+    "changeAt",
+    "compareOff",
+    "draftKey",
+    "firstLinked",
+    "flipped",
+    "keepsDrafts",
+    "marksFor",
+    "pairOf",
+    "paneInside",
+    "paneLevel",
+    "paneUp",
+    "playable",
+    "samePick",
+    "withDraft"
+  ],
+  "ui/src/edit": [
+    "carriedOn",
+    "changesBetween",
+    "connectionsOf",
+    "pickStepState",
+    "problemsOf",
+    "stateOf",
+    "stepStateShapes",
+    "withKey"
+  ],
+  "ui/src/failuresview": [
+    "AFTER_LABEL",
+    "SEEN_IN_RUN_NAME",
+    "showItName",
+    "toLine",
+    "toShape"
+  ],
+  "ui/src/graph": [
+    "DOUBLE_CLICK",
+    "FRAME",
+    "NAV",
+    "PANEL",
+    "depthIn",
+    "fitOptions",
+    "frameNode",
+    "isStepLine",
+    "leaveAt",
+    "lineId",
+    "lineName",
+    "sizeOf"
+  ],
+  "ui/src/highlight": [
+    "TOKEN_KINDS",
+    "detectLanguage",
+    "highlight"
+  ],
+  "ui/src/keys": [
+    "escapeStep",
+    "keepsKeys",
+    "letter",
+    "takesEnter",
+    "undoesMove"
+  ],
+  "ui/src/levels": [
+    "cameBack",
+    "remember"
+  ],
+  "ui/src/motion": [
+    "CARD",
+    "EFFECT",
+    "LIT_FLOOR",
+    "REST",
+    "SQUISH",
+    "STILL",
+    "cyclePeriod",
+    "keepsPlaying",
+    "largest",
+    "momentOf",
+    "squashTile",
+    "squish",
+    "squishParts",
+    "tintColor"
+  ],
+  "ui/src/pathpoints": [
+    "extend",
+    "flatten",
+    "pointAt"
+  ],
+  "ui/src/perfview": [
+    "ABOUT_FOLDS_OVER",
+    "RUN_ABOUT_FOLDS_OVER",
+    "SLIDE_MAGNET",
+    "SLIDE_STEPS",
+    "boxAtLevel",
+    "boxMarks",
+    "chartRow",
+    "chartSubject",
+    "clampDial",
+    "floorOf",
+    "floorPos",
+    "lineAtLevel",
+    "lineMarks",
+    "positionOf",
+    "settle",
+    "speakLoad",
+    "starterRun"
+  ],
+  "ui/src/save": [
+    "CHANGED_OUTSIDE",
+    "REDO_STALE",
+    "UNDO_STALE",
+    "errorOf",
+    "failed",
+    "fetchModel",
+    "fromState",
+    "ok",
+    "restoreIsStale",
+    "restoreVersion",
+    "saveEdit",
+    "transportOf",
+    "undoEdit"
+  ],
+  "ui/src/traffic": [
+    "BACK",
+    "GHOST",
+    "HOLD",
+    "MOST",
+    "POP",
+    "REJECTED_END",
+    "advance",
+    "cutBy",
+    "ghost",
+    "howBehind",
+    "moteLook",
+    "newStream",
+    "visibility"
+  ],
+  "ui/src/trail": [
+    "cameFrom",
+    "closeFlow",
+    "followBack",
+    "openFlow"
+  ],
+  "ui/src/usedby": [
+    "settles"
+  ],
+  "ui/src/yamlview": [
+    "SOURCE_NAMES",
+    "canRestore",
+    "firstMark",
+    "neighbour",
+    "noHistory",
+    "restoreLabel",
+    "rowsFor",
+    "scrollTarget",
+    "timeLabel"
   ],
   "views": [
     "chain",

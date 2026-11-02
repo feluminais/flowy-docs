@@ -621,6 +621,37 @@ objects:
     name: Mermaid
     code: [src/core/mermaid.ts]
     description: A view as a flowchart, a flow as a sequence diagram (a group of steps becomes a loop, alt or par block), fenced and ready to paste where GitHub or GitLab draws it. A shape becomes the closest Mermaid node, and a colour a style line. A step one shape does on its own is a note over it, and a recursion is an arrow from the shape back to itself.
+  compare:
+    type: component
+    in: core
+    name: Compare
+    code: [src/core/compare.ts, src/core/perf/comparetag.ts, desktop/Flowy.Core/Compare.cs, desktop/Flowy.Core/SwapPlan.cs]
+    description: |
+      Pairs a flow or a load-test run with the older one it names in its `compare` tag, and plans how the canvas swaps from one
+      flow's diagram to the other's.
+
+      The tag only helps people find a pair; it limits nothing. In a run file it is the one field Flowy writes, in place, so every
+      other byte of the run stays as the load-testing tool wrote it.
+  compare-view:
+    type: component
+    in: canvas
+    name: Comparison
+    code: [ui/src/CompareView.tsx, ui/src/SwapCanvas.tsx, ui/src/useCompare.ts]
+    description: |
+      Shows two flows or two runs side by side, with marks on what changed and the note on the pair, or swaps one canvas into the
+      other.
+
+      While it is open, the single canvas and its player wait behind it.
+  drafts:
+    type: component
+    in: core
+    name: Drafts
+    code: [src/core/drafts.ts, src/node/drafts.ts, src/node/draftwrites.ts, desktop/Flowy.Core/Drafts.cs]
+    description: |
+      Keeps a sketch apart from the model: a draft is a model of its own in `drafts/<id>/`, the same files read and written the same
+      way, empty or a copy of shapes it starts from.
+
+      The model never reads a draft, so a draft can't change or break it. Every MCP tool takes a draft id to work on one instead.
 connections:
   - { from: reader, to: cli, label: node dist/cli.js }
   - { from: reader, to: desktop, label: opens folders in a window }
@@ -702,3 +733,7 @@ connections:
   - { from: perf, to: views, label: which line a connection lands in }
   - { from: perf, to: model, label: reads files the same way }
   - { from: perf-lab, to: perf, label: writes runs it can read }
+  - { from: compare-view, to: compare, label: asks what changed }
+  - { from: mcp, to: compare, label: sets a compare tag }
+  - { from: shell, to: drafts, label: makes and opens a draft }
+  - { from: mcp, to: drafts, label: works on a draft when asked }

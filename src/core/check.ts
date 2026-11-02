@@ -194,7 +194,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
 
   for (const [aid, a] of Object.entries(model.failures)) {
     problems.push(...analysisProblems(model, aid, a))
-    for (const path of emptyKeys(a)) add(`failures/${aid}.yaml`, undefined, emptyKeyMessage(path))
+    for (const path of emptyKeys(a)) add(pathOf(FILE_KINDS.failure, aid), undefined, emptyKeyMessage(path))
   }
   return problems
 }

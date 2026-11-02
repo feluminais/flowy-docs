@@ -64,10 +64,22 @@ internal static class CodeView
         ToolTip.SetTip(button, "Copy");
         button.Click += async (_, _) =>
         {
-            if (TopLevel.GetTopLevel(button)?.Clipboard is not { } clipboard) return;
-            await clipboard.SetTextAsync(text);
-            button.Content = Icons.Make(Icons.Check, "rowicon", 14);
-            ToolTip.SetTip(button, "Copied");
+            // A copy that didn't reach the clipboard says so on the button, as the browser's does, rather than reaching the "Something went wrong" banner.
+            var copied = false;
+            if (TopLevel.GetTopLevel(button)?.Clipboard is { } clipboard)
+            {
+                try
+                {
+                    await clipboard.SetTextAsync(text);
+                    copied = true;
+                }
+                catch (Exception)
+                {
+                    // the clipboard wasn't available
+                }
+            }
+            if (copied) button.Content = Icons.Make(Icons.Check, "rowicon", 14);
+            ToolTip.SetTip(button, copied ? "Copied" : "Couldn't copy");
             var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1500) };
             timer.Tick += (_, _) =>
             {

@@ -38,8 +38,34 @@ public sealed class EditSession(string dir)
     /// <summary>Raised on the thread that did it, after files were written and the session is free for the next edit.</summary>
     public event Action? Saved;
 
-    /// <summary>The folder as read: its files as trees, each file's version, and each file's text as it was (what an edit puts back, byte for byte, to take itself back).</summary>
-    private sealed record Disk(EditDoc Doc, Dictionary<string, string?> Versions, Dictionary<string, string?> Texts);
+    /// <summary>
+    /// The folder as read: its files as trees, each file's version, each file's text as it was (what an edit puts back, byte for byte, to take itself back),
+    /// and the analysis files that were left out because they can't be read.
+    /// </summary>
+    private sealed record Disk(EditDoc Doc, Dictionary<string, string?> Versions, Dictionary<string, string?> Texts, List<string> Skipped);
+
+    /// <summary>Why a write to <paramref name="rel"/> is refused when <paramref name="blocking"/>, a skipped analysis file, is in its way. The twin of blockedMessage in src/node/commit.ts.</summary>
+    private static string BlockedMessage(string blocking, string rel) =>
+        blocking == rel
+            ? $"{rel} can't be read, so it isn't replaced. Fix or delete it by hand."
+            : $"{blocking} is in the way (the same file name in other letters), so {rel} isn't written. Rename or delete it by hand.";
+
+    /// <summary>Why <paramref name="text"/> would not read back as the file <paramref name="rel"/> is, or null when it does. The twin of firstUnreadable in src/node/commit.ts.</summary>
+    private static string? ReadBack(string rel, string text)
+    {
+        try
+        {
+            if (rel == FolderLayout.ModelFile) ModelFiles.ParseModel(text);
+            else if (rel == FolderLayout.LayoutFile) ModelFiles.ParseLayout(text);
+            else if (FolderLayout.FlowIdOf(rel) is { } flow) ModelFiles.ParseFlow(flow, text, FolderLayout.FlowFolderOf(rel));
+            else if (FolderLayout.FailureIdOf(rel) is { } analysis) ModelFiles.ParseAnalysis(analysis, text);
+            return null;
+        }
+        catch (ParseError e)
+        {
+            return e.Message;
+        }
+    }
 
     private static string Unreadable(ParseError e) =>
         $"Can't read {e.File}{(e.Line is { } line ? $" (line {line})" : "")}: {e.Reason}. Fix the file and the view updates.";
@@ -65,6 +91,7 @@ public sealed class EditSession(string dir)
         var folders = flowFiles.Where(file => file.Folder != "").ToDictionary(file => file.Id, file => file.Folder);
         // An analysis that can't be read is not part of the edit, so it is never replaced or deleted, as in the browser and MCP.
         var failures = new List<KeyValuePair<string, string>>();
+        var skipped = new List<string>();
         foreach (var name in FileStore.FailureFiles(dir))
         {
             var id = FolderLayout.IdOfName(name);
@@ -81,9 +108,10 @@ public sealed class EditSession(string dir)
             {
                 versions.Remove(FolderLayout.FailureFile(id));
                 texts.Remove(FolderLayout.FailureFile(id));
+                skipped.Add(FolderLayout.FailureFile(id));
             }
         }
-        return new Disk(EditDoc.Parse(model, layout, flows, failures, folders), versions, texts);
+        return new Disk(EditDoc.Parse(model, layout, flows, failures, folders), versions, texts, skipped);
     }
 
     /// <summary>For tests: called with each file's path just before it is written, a file put back included, so a write can be made to fail.</summary>
@@ -132,6 +160,15 @@ public sealed class EditSession(string dir)
                 var before = disk.Doc.ToFiles();
                 var after = next.ToFiles();
                 var changed = before.Keys.Union(after.Keys).Where(r => before.GetValueOrDefault(r) != after.GetValueOrDefault(r)).ToList();
+                // A skipped analysis file holds someone's work: an edit that would write over it, or write a file whose name differs from it only
+                // in letters, is refused with the reason, as MCP and the browser refuse it.
+                foreach (var rel in changed)
+                    if (disk.Skipped.FirstOrDefault(s => string.Equals(s, rel, StringComparison.OrdinalIgnoreCase)) is { } blocking)
+                        throw new OpError($"Refused, nothing saved. {BlockedMessage(blocking, rel)}");
+                // Never write what can't be read back: if saving and loading ever disagree, refuse instead of breaking the folder.
+                foreach (var rel in changed)
+                    if (after.GetValueOrDefault(rel) is { } newText && ReadBack(rel, newText) is { } why)
+                        throw new OpError($"Refused, nothing saved. The result couldn't be read back: {why}");
                 // Every file must still be as it was read, before any is touched, so a file that moved on writes nothing.
                 foreach (var rel in changed)
                     if (FileStore.Read(dir, rel).Version != disk.Versions.GetValueOrDefault(rel)) throw new VersionConflict(rel, null);

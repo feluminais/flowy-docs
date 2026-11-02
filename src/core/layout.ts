@@ -24,7 +24,7 @@ type Segment = { ax: number; ay: number; bx: number; by: number }
 /** Which side of the line through p and q the point (rx, ry) is on: 1, -1, or 0 when it's on the line. */
 const turn = (px: number, py: number, qx: number, qy: number, rx: number, ry: number) => Math.sign((qx - px) * (ry - py) - (qy - py) * (rx - px))
 
-/** Whether segment s and the segment (cx, cy)–(dx, dy) cross at a point inside both. Touching or lying in line doesn't count. */
+/** Whether segment s and the segment from (cx, cy) to (dx, dy) cross at a point inside both. Touching or lying in line doesn't count. */
 function crosses(s: Segment, cx: number, cy: number, dx: number, dy: number): boolean {
   return turn(s.ax, s.ay, s.bx, s.by, cx, cy) * turn(s.ax, s.ay, s.bx, s.by, dx, dy) < 0
     && turn(cx, cy, dx, dy, s.ax, s.ay) * turn(cx, cy, dx, dy, s.bx, s.by) < 0

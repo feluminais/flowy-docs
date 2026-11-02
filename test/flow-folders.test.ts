@@ -249,6 +249,6 @@ test('put_flow takes a folder and tags, get_model shows them and move_flow and t
   assert.equal((await call('put_flow', { ...body, name: 'Pay again' })).error, false) // a replace keeps the tags
   assert.match(await readFile(join(dir, 'flows/pay.yaml'), 'utf8'), /tags:/)
   assert.deepEqual(await call('tag_flow', { id: 'pay', tags: [] }), { error: false, text: 'Took the tags off flow pay.' })
-  assert.deepEqual(await call('move_flow', { id: 'nope', folder: 'x' }), { error: true, text: 'unknown flow "nope"' })
+  assert.deepEqual(await call('move_flow', { id: 'nope', folder: 'x' }), { error: true, text: 'unknown flow "nope". get_model with summary: true lists the ids there are.' })
   assert.equal((await call('move_flow', { id: 'pay', folder: 'a:b' })).error, true)
 })

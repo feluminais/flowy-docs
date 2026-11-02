@@ -7,14 +7,14 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { draftFolder } from './core/drafts.ts'
 import { sideReport } from './core/layout.ts'
 import { flowToMermaid, viewToMermaid } from './core/mermaid.ts'
-import { changedLayout } from './core/modelfiles.ts'
 import { tidyViews } from './core/ops.ts'
 import { analysisText } from './core/failures.ts'
 import { FILE_KINDS, kindOfPath, pathOf } from './core/filekinds.ts'
 import { modelOf } from './core/state.ts'
 import { draftDir, listDrafts } from './node/drafts.ts'
 import { exportSite } from './node/export.ts'
-import { loadDir, loadReport, loadState, saveFiles } from './node/files.ts'
+import { commitEdit } from './node/commit.ts'
+import { loadDir, loadReport, loadState } from './node/files.ts'
 import { openHistory } from './node/history.ts'
 import { broadOf, Catalog, entryOf, QUICK } from './node/models.ts'
 import type { ModelEntry } from './node/models.ts'
@@ -132,14 +132,15 @@ async function printCheck(dir: string): Promise<number> {
  * them, on stderr, and exits 1 if there are any, so a build can gate on it. Resolves to the exit code.
  */
 async function printTidy(dir: string, only: boolean): Promise<number> {
-  const { model, versions } = await loadDir(dir)
-  const { model: next, found } = tidyViews(model)
+  const { model } = await loadDir(dir)
+  const { found } = tidyViews(model)
   if (only && found.length > 0) {
     console.error(sideReport(model, found, false))
     return 1
   }
   console.log(sideReport(model, found, true))
-  if (found.length > 0) await saveFiles(dir, changedLayout(model, next).map(([rel, text]) => ({ rel, text, expected: versions[rel] ?? null })))
+  // Through the same checks as every other write: a skipped analysis file, text that wouldn't read back, a file that changed meanwhile.
+  if (found.length > 0) await commitEdit(dir, m => tidyViews(m).model, { withLayout: true })
   return 0
 }
 

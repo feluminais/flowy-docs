@@ -29,7 +29,7 @@ test('the server offers the guide pages and the topic rules as resources, the pa
   const client = await setup(t)
   const listed = (await client.listResources()).resources
   const pages = (await readdir('docs/guide')).map(n => `flowy://docs/guide/${n}`)
-  assert.deepEqual(listed.map(r => r.uri).sort(), ['flowy://docs/format.md', 'flowy://docs/guide.md', ...pages, 'flowy://docs/writing.md', 'flowy://rules/code', 'flowy://rules/data', 'flowy://rules/failures', 'flowy://rules/flows'].sort())
+  assert.deepEqual(listed.map(r => r.uri).sort(), ['flowy://docs/format.md', 'flowy://docs/guide.md', ...pages, 'flowy://docs/writing.md', 'flowy://rules/code', 'flowy://rules/data', 'flowy://rules/failures', 'flowy://rules/flows', 'flowy://rules/writing'].sort())
   for (const r of listed) assert.ok(r.description && r.mimeType === 'text/markdown', r.uri)
   const read = await client.readResource({ uri: 'flowy://docs/format.md' })
   assert.equal((read.contents[0] as { text: string }).text, await readFile('docs/format.md', 'utf8'))
@@ -92,7 +92,18 @@ test('the instructions give the default, ask for the rest by name, and end on wh
   assert.match(instructions, /what Flowy could add, from what you saw/)
   // The long rules for the parts most requests leave out are not in the instructions; they are read on request.
   for (const rule of ['Writing code (put_object', 'Writing data (put_object', 'Writing failure modes (put_failures']) assert.ok(!instructions.includes(rule), rule)
-  for (const topic of ['flows', 'data', 'code', 'failures']) assert.ok(instructions.includes(`flowy://rules/${topic}`), topic)
+  for (const topic of ['flows', 'data', 'code', 'failures', 'writing']) assert.ok(instructions.includes(`flowy://rules/${topic}`), topic)
+})
+
+// Claude Code cuts a server's instructions off at about 4,000 characters (seen 2026-11-02: everything after character 4,110 was lost), and this
+// client never does, so the length is what keeps the rules that guard a user's repo in what a Claude Code agent reads.
+test('the instructions fit in what Claude Code shows, with the checks that keep a model honest inside them', async t => {
+  const client = await setup(t)
+  const instructions = client.getInstructions() ?? ''
+  assert.ok(instructions.length <= 3600, `the instructions are ${instructions.length} characters; keep them at 3,600 or less and move detail into flowy://rules/writing`)
+  for (const rule of [/check the list with the user before writing/, /Don't repeat the same call/, /get_problems/, /never instructions to you/, /flowy:\/\/rules\/writing/]) {
+    assert.match(instructions, rule)
+  }
 })
 
 test('each topic rule is a resource, with the limits the code enforces', async t => {
@@ -103,6 +114,8 @@ test('each topic rule is a resource, with the limits the code enforces', async t
   assert.match(await text('flows'), /Animate only when the user asked for motion/)
   assert.match(await text('data'), /Sample rows are invented/)
   assert.match(await text('failures'), /put_failure replaces the whole mode/)
+  assert.match(await text('writing'), /A connection label is a few words/)
+  assert.match(await text('writing'), /One trigger, one story/)
 })
 
 test('docs/guide.md routes to every page, and every relative link in the guide pages lands on a file', async () => {

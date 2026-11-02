@@ -17,13 +17,16 @@ Flowy runs on your machine and touches only its model folder and its own folder 
   another tab can't send. A website can't change your files through it. Every answer carries a content policy: the page loads only
   its own files and talks only to this server, and no other site may frame it. The server doesn't follow a link inside the model
   folder that leads outside it, to read or to write.
-- Saving, from the canvas or from an AI, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder and
-  nothing else; in the load-test runs in `perf/`, the only thing it writes is `compare`. `export` writes only to its output folder. The desktop app writes only when you edit, and only `model.yaml`, `layout.yaml` and `flows/*.yaml`, plus the `compare` field of a run file in `perf/` (from Link with, Unlink and a note on a run pair), each
+- Saving, from the canvas or from an AI, writes `model.yaml`, `layout.yaml`, `flows/*.yaml` and `failures/*.yaml` in the model folder,
+  or the same files of a draft in `drafts/<id>/`, and nothing else; in the load-test runs in `perf/`, the only thing it writes is
+  `compare`. New draft and `new_draft` create `drafts/<id>/`, and `delete_draft` removes that folder and every file in it. `export`
+  writes only to its output folder. The desktop app writes only when you edit or make a draft, and only those same files, plus the
+  `compare` field of a run file in `perf/` (from Link with, Unlink and a note on a run pair), each
   through a temporary file and only if the file is still as it was read. The check and the write are two steps, so another program saving in
   the same moment can still be overwritten.
 - The browser version's YAML history is in its own folder under your application data (`FLOWY_STATE_DIR` moves it), never in the
   repo. Opening a folder stores a copy of its YAML there, and each change adds another.
-- It never opens your code. For `code:` paths it checks that they exist, and it runs `git` with fixed arguments to read
+- It never runs your code. For `code:` paths it checks that they exist, and it runs `git` with fixed arguments to read
   the `origin` URL and the branch for the links.
 - It makes no network requests of its own: no telemetry, no CDN, no fonts. The page talks only to its local server.
   The desktop app adds one: a few seconds after it starts, an installed copy asks GitHub's Releases whether a newer version

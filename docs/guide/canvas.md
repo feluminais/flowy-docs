@@ -170,7 +170,7 @@ file again, so comments in it are not kept ([File format](../format.md#the-folde
 
 Every save goes through the same checks as an AI's edits: a change that would add a problem is
 refused, and nothing is written. If a file changed on disk in the meantime, the save is dropped
-and the page reloads. Git keeps the history, and the browser version's [YAML tab](#yaml-and-history) keeps every step.
+and the page reloads. Git keeps the history, and the browser version's [YAML tab](#yaml-and-history) keeps the last 300 steps.
 
 Ctrl+Z, or Undo, takes back your last change on this page, then the one before. It goes back as
 far as the page has been open. Ctrl+Y or Ctrl+Shift+Z, or Redo, puts back what you undid, until
@@ -181,7 +181,7 @@ save, it drops YAML comments and writes the file in Flowy's own layout.
 ## YAML and history
 
 In the browser version, the **YAML** tab of the left-hand panel (beside Explorer and Flows, or **Y**) shows the model's files as text
-and keeps every change to them. It stays open beside Details, so a change can be watched while you edit. It is read only: change a
+and keeps the last 300 changes to them. It stays open beside Details, so a change can be watched while you edit. It is read only: change a
 model on the canvas, or in your editor. A page made with `flowy export` shows the files too, marked **Read only**, with no steps, and
 so does the desktop app, which keeps no history.
 
