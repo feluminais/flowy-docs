@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLinePayloads, setLines, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInput } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -76,6 +76,27 @@ export const STEPS: Spec[] = [
   { op: 'relabel', from: 'web', to: 'api', which: 'missing', label: 'x' },
   { op: 'removeConnection', from: 'api', to: 'db', which: '' },
   { op: 'removeConnection', from: 'api', to: 'db', which: '' },
+  // A kind: written on a new connection, set where the connection is, changed in place, taken off, and refused when it is none of the six words.
+  { op: 'connect', from: 'api', to: 'pay', label: 'notifies', kind: 'publish' },
+  { op: 'connect', from: 'web', to: 'pay', label: 'pays', kind: 'cached', payloads: ['receipt'] },
+  { op: 'connect', from: 'web', to: 'db', label: 'asks', kind: '' },
+  { op: 'connect', from: 'web', to: 'db', label: 'asks again', kind: 'rpc' },
+  { op: 'connect', from: 'web', to: 'nowhere', kind: 'rpc' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'request' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'stream' },
+  { op: 'setKind', from: 'api', to: 'pay', which: 'charges', kind: 'extension' },
+  { op: 'setKind', from: 'customer', to: 'web', which: '', kind: 'object' }, // a connection with a key of its own: the kind goes before it
+  { op: 'setKind', from: 'web', to: 'pay', which: 'pays', kind: 'publish' }, // in place, between the label and the payloads
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'rpc' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'Request' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'nope', kind: 'rpc' }, // the missing connection comes first
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: '' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: '' },
+  { op: 'setKind', from: 'api', to: 'pay', which: 'charges', kind: '' },
+  { op: 'setKind', from: 'customer', to: 'web', which: '', kind: '' },
+  { op: 'removeConnection', from: 'api', to: 'pay', which: 'notifies' },
+  { op: 'removeConnection', from: 'web', to: 'pay', which: 'pays' },
+  { op: 'removeConnection', from: 'web', to: 'db', which: 'asks' },
   { op: 'putFlow', id: 'pay', name: 'Customer pays', view: 'root', steps: [{ from: 'customer', to: 'pay', text: 'Pays' }, { from: 'customer', text: 'Waits', description: '   ' }, { from: 'pay', text: 'Confirms', description: 'It takes a second.' }] },
   { op: 'putFlow', id: 'Pay', name: 'Same name, other case', view: 'root', steps: [{ from: 'customer', text: 'x' }] },
   { op: 'putFlow', id: 'bad id', name: 'Bad', view: 'root', steps: [{ from: 'customer', text: 'x' }] },
@@ -354,7 +375,7 @@ function apply(model: Model, s: Spec): Model {
     case 'deleteObject': return deleteObject(model, s.id)
     case 'deleteObjects': return deleteObjects(model, s.ids)
     case 'deleteWith': return deleteWith(model, s.targets, s.resolutions)
-    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label, ...(s.payloads === undefined ? {} : { payloads: s.payloads }) })
+    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label, ...(s.kind === undefined ? {} : { kind: s.kind }), ...(s.payloads === undefined ? {} : { payloads: s.payloads }) })
     case 'putPayload': {
       const { op: _, ...input } = s
       return putPayload(model, input as PayloadInput)
@@ -364,6 +385,7 @@ function apply(model: Model, s: Spec): Model {
     case 'setStepPayload': return setStepPayload(model, s.id, s.index, s.key, s.value)
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
+    case 'setKind': return setKind(model, { from: s.from, to: s.to, label: s.which }, s.kind)
     case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }), ...(s.states === undefined ? {} : { states: s.states }), ...(s.folder === undefined ? {} : { folder: s.folder }), ...(s.tags === undefined ? {} : { tags: s.tags }) })
     case 'moveFlow': return moveFlow(model, s.id, s.folder)
     case 'setFlowTags': return setFlowTags(model, s.id, s.tags)

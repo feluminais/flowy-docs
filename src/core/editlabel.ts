@@ -1,5 +1,6 @@
 import { compareOf } from './compare.ts'
 import type { CompareTag } from './compare.ts'
+import { kindName, kindOf, PLAIN_NAME } from './kinds.ts'
 import { customIcons } from './look.ts'
 import { payloadsOf } from './payloads.ts'
 import { isMap } from './text.ts'
@@ -129,6 +130,12 @@ const linesChanged: Detector = (before, after) => {
   const own = (c: Connection) => !touched.has(c.from) && !touched.has(c.to)
   const [gone, came] = [surplus(tally(before.connections), tally(after.connections)).filter(own), surplus(tally(after.connections), tally(before.connections)).filter(own)]
   if (gone.length === 0 && came.length === 0) return undefined
+  if (gone.length === 1 && came.length === 1 && gone[0].from === came[0].from && gone[0].to === came[0].to) {
+    // The same connection with only its kind changed: say which kind it is now, not that it was relabelled.
+    const [was, now] = [kindOf(gone[0]), kindOf(came[0])]
+    if (was !== now && canon({ ...gone[0], kind: undefined }) === canon({ ...came[0], kind: undefined }))
+      return `Set ${nameOf(before, after, came[0].from)} to ${nameOf(before, after, came[0].to)} as ${now === undefined ? PLAIN_NAME : kindName(now)}`
+  }
   if (gone.length === 1 && came.length === 1 && gone[0].from === came[0].from && gone[0].to === came[0].to)
     return `Relabelled ${nameOf(before, after, came[0].from)} to ${nameOf(before, after, came[0].to)}`
   if (gone.length > 0 && came.length > 0) return `Changed ${gone.length + came.length} lines`

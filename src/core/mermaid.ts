@@ -9,6 +9,7 @@ import { groupOf, runsOf } from './structure.ts'
 import { blank } from './text.ts'
 import type { Run } from './structure.ts'
 import { computeView, placeStep } from './views.ts'
+import type { Edge } from './views.ts'
 
 /**
  * Text as Mermaid shows it, never as its syntax: quotes, brackets, backticks, # and ; (a line break in sequence
@@ -55,6 +56,16 @@ function styleLine(model: Model, id: string, node: string): string[] {
   return [`  style ${node} fill:${hex},fill-opacity:${fillOpacity(o) / 100}${isColor(o.color) ? `,stroke:${hex}` : ''}`]
 }
 
+/**
+ * The arrow of a line, with a space after. A line with connections both ways has an arrowhead at each end, as on the canvas. Mermaid cannot say more of a
+ * kind than this: a line with a mark at its start (a tail) gets a head there too, and a dash-dot line is dotted. The kind's name is not added to the label.
+ */
+function arrowOf(e: Edge): string {
+  const back = e.both || (e.look !== undefined && e.look.tail !== 'none') ? '<' : ''
+  const label = e.label ? mermaidText(e.label) : ''
+  return e.look?.pattern === 'dashdot' ? `${back}-.${label ? ` "${label}" .` : ''}-> ` : `${back}${label ? `-- "${label}" ` : ''}--> `
+}
+
 /** A view as a Mermaid flowchart: its boxes, the boxes around it drawn dashed, and its merged lines. */
 export function viewToMermaid(model: Model, view: string): string {
   if (view !== ROOT && !getObject(model, view)) throw new Error(`unknown view "${view}"`)
@@ -68,8 +79,7 @@ export function viewToMermaid(model: Model, view: string): string {
   const lines = [
     'flowchart TB',
     ...[...n.keys()].map(box),
-    // A line with connections both ways has an arrowhead at each end, as on the canvas.
-    ...v.edges.map(e => `  ${n.get(e.from)} ${e.both ? '<' : ''}${e.label ? `-- "${mermaidText(e.label)}" ` : ''}--> ${n.get(e.to)}`),
+    ...v.edges.map(e => `  ${n.get(e.from)} ${arrowOf(e)}${n.get(e.to)}`),
     ...[...n].flatMap(([id, node]) => styleLine(model, id, node)),
   ]
   if (v.outsiders.length) lines.push('  classDef outsider stroke-dasharray: 4 3', `  class ${v.outsiders.map(id => n.get(id)).join(',')} outsider`)

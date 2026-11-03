@@ -10,6 +10,7 @@ import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpEditLabels } from '../desktop/fixtures/editlabel.ts'
 import { dumpFormula } from '../desktop/fixtures/formula.ts'
 import { buildTrail, dumpHistory } from '../desktop/fixtures/history.ts'
+import { dumpKinds } from '../desktop/fixtures/kinds.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
@@ -127,6 +128,11 @@ test('desktop history rules still match the TypeScript ones: diff, list, retenti
 test('desktop edit labels still match the TypeScript ones', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('editlabel'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(dumpEditLabels())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('the kinds of a connection still match what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('kinds'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpKinds())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('the sample history trail is what openHistory writes, byte for byte', async () => {

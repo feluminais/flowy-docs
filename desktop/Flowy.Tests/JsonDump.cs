@@ -72,9 +72,10 @@ internal static class JsonDump
                 ("id", v.Id),
                 ("members", Arr(v.Members)),
                 ("outsiders", Arr(v.Outsiders)),
-                ("edges", Arr(v.Edges.Select(e => e.Both
-                    ? Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("both", true), ("carries", Carries(m, id, e.From, e.To)))
-                    : Obj(("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("carries", Carries(m, id, e.From, e.To)))))));
+                // The kind and the look are left out of a line that has none, as the TypeScript dump does.
+                ("edges", Arr(v.Edges.Select(e => Obj(
+                    ("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("both", e.Both ? (object)true : null), ("kind", e.Kind),
+                    ("look", e.Look is null ? null : Obj(("pattern", e.Look.Pattern), ("head", e.Look.Head), ("tail", e.Look.Tail))), ("carries", Carries(m, id, e.From, e.To)))))));
             if (Views.FlowActors(m, id) is { Count: > 0 } actors) view["actors"] = Arr(actors); // left out when there are none, as the TypeScript dump does
             return KeyValuePair.Create(id, (JsonNode?)view);
         });

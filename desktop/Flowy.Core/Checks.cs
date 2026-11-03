@@ -148,6 +148,8 @@ public static class Checks
             CheckEnds(P, c.From, c.To);
             foreach (var path in c.NoValue) P(EmptyKeys.Message(path));
             if (!Missing(c.From) && c.From == c.To) P("connects an object to itself");
+            // A kind that is none of the six draws as the plain line; the problem is for whoever wrote it.
+            if (!Missing(c.Kind) && !Kinds.IsKind(c.Kind)) P($"unknown kind \"{c.Kind}\" (use {Kinds.List})");
             if (!seen.Add((c.From, c.To, c.Label ?? ""))) P($"duplicate{(string.IsNullOrEmpty(c.Label) ? "" : $" \"{c.Label}\"")}");
             foreach (var message in Payloads.ConnectionProblems(model, c)) P(message);
         }

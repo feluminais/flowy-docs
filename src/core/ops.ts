@@ -9,6 +9,7 @@ import type { Action, Dependent, Target } from './dependents.ts'
 import { analysesText, runLinkProblems } from './failures.ts'
 import { sideProblems, tidySpots } from './layout.ts'
 import type { SideProblem } from './layout.ts'
+import { isKindId, KIND_LIST } from './kinds.ts'
 import { iconProblem } from './look.ts'
 import { checkRun } from './perf/check.ts'
 import type { Run } from './perf/types.ts'
@@ -52,8 +53,8 @@ export type ObjectInput = {
 export type PayloadInput = { id: string; name?: string; about?: string; shape?: { text: string; language?: string } | null; example?: { text: string; language?: string } | null }
 /** A payload written in place on a line or a step: it has no id, so it needs a name. */
 export type PayloadInputInline = { name: string; about?: string; shape?: { text: string; language?: string }; example?: { text: string; language?: string } }
-/** `payloads` are what the line carries: ids from putPayload, or payloads written in place. */
-export type ConnectionInput = { from: string; to: string; label?: string; payloads?: (string | PayloadInputInline)[] }
+/** `payloads` are what the line carries: ids from putPayload, or payloads written in place. `kind` is one of the six words of kinds.ts; "" or left out is the plain line. */
+export type ConnectionInput = { from: string; to: string; label?: string; kind?: string; payloads?: (string | PayloadInputInline)[] }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
 export type GroupInput = { kind?: string; text?: string; times?: string | number; until?: string; [extra: string]: unknown }
 /** `states` is where shapes stand before step 1 (shape id to state word); a step's `states` are the shapes it changes. Left out or empty writes no `states:`. */
@@ -330,10 +331,19 @@ export function deleteWith(model: Model, targets: Target[], resolutions: Resolut
   return { ...m, objects, connections }
 }
 
-/** Add a connection. An empty label means no label, and no payloads means none. */
-export function connect(model: Model, { from, to, label, payloads }: ConnectionInput): Model {
+/** The kind to write: undefined for none ("" or left out), the word when it is one of the six, else a refusal. */
+function kindToWrite(kind: string | undefined): string | undefined {
+  if (kind === undefined || kind === '') return undefined
+  if (!isKindId(kind)) throw new OpError(`unknown kind "${kind}" (use ${KIND_LIST})`)
+  return kind
+}
+
+/** Add a connection. An empty label means no label, an empty or missing kind the plain line, and no payloads means none. */
+export function connect(model: Model, { from, to, label, kind, payloads }: ConnectionInput): Model {
   for (const end of [from, to]) if (!getObject(model, end)) throw new OpError(`unknown object "${end}"`)
   const c: Connection = label ? { from, to, label } : { from, to }
+  const word = kindToWrite(kind)
+  if (word !== undefined) c.kind = word
   if (payloads?.length) c.payloads = lineList(model, payloads)
   return { ...model, connections: [...model.connections, c] }
 }
@@ -395,6 +405,19 @@ export function relabel(model: Model, which: ConnectionInput, label: string): Mo
   const i = findConnection(model, which)
   const { label: _, ...rest } = model.connections[i]
   return { ...model, connections: model.connections.with(i, label ? { ...model.connections[i], label } : rest) }
+}
+
+/** Give one connection (the first that matches) a kind, in place. "" removes it. It keeps its place among the connection's keys, and a new kind goes after the label. */
+export function setKind(model: Model, which: ConnectionInput, kind: string): Model {
+  const i = findConnection(model, which)
+  const word = kindToWrite(kind)
+  const { kind: _, ...rest } = model.connections[i]
+  if (word === undefined) return { ...model, connections: model.connections.with(i, rest) }
+  if (Object.hasOwn(model.connections[i], 'kind')) return { ...model, connections: model.connections.with(i, { ...model.connections[i], kind: word }) }
+  // Written after the label, ahead of payloads and anything else, so a connection reads from, to, label, kind.
+  const { from, to, label, ...others } = rest
+  const next: Connection = { from, to, ...(label === undefined ? {} : { label }), kind: word, ...others }
+  return { ...model, connections: model.connections.with(i, next) }
 }
 
 /** The model with this flow (new, or replacing the one of that id). */

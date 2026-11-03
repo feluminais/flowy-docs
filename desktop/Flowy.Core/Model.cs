@@ -28,6 +28,9 @@ public sealed record FlowyObject(string? Type, string? Name, string? In, string?
 
 public sealed record Connection(string? From, string? To, string? Label)
 {
+    /// <summary>The <c>kind</c> as the file wrote it: one of the six words of <see cref="Kinds"/> when it is a kind. Any other word draws the plain line, and the checks report it.</summary>
+    public string? Kind { get; init; }
+
     /// <summary>The <c>payloads</c> as the file held them: a list of payload ids and payloads written in place if it is well formed, which <see cref="Payloads"/> reads and the checks report on.</summary>
     public object? Payloads { get; init; }
 

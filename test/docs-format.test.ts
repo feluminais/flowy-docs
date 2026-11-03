@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path'
 import { ANIMATION_KINDS, OUTCOMES } from '../src/core/animation.ts'
 import { STATUSES } from '../src/core/failures.ts'
 import { COLOR_NAMES, SHAPES } from '../src/core/look.ts'
+import { KIND_IDS } from '../src/core/kinds.ts'
 import { LINE_STYLES, OBJECT_TYPES } from '../src/core/model.ts'
 import { STATE_NAMES } from '../src/core/states.ts'
 import { GROUP_KINDS } from '../src/core/structure.ts'
@@ -14,7 +15,7 @@ const format = readFileSync('docs/format.md', 'utf8')
 test('docs/format.md names every word the files accept', () => {
   const words: [string, readonly string[]][] = [
     ['object types', OBJECT_TYPES], ['shapes', SHAPES], ['colours', COLOR_NAMES], ['line styles', LINE_STYLES], ['states', STATE_NAMES],
-    ['animation kinds', ANIMATION_KINDS], ['outcomes', OUTCOMES], ['group kinds', GROUP_KINDS], ['statuses', STATUSES],
+    ['animation kinds', ANIMATION_KINDS], ['connection kinds', KIND_IDS], ['outcomes', OUTCOMES], ['group kinds', GROUP_KINDS], ['statuses', STATUSES],
   ]
   for (const [what, list] of words) {
     const missing = list.filter(w => !new RegExp(`\`${w}\``).test(format))
@@ -26,7 +27,7 @@ test('docs/format.md names every key the files read', () => {
   const keys = {
     model: ['objects', 'connections', 'lines', 'icons'],
     object: ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description', 'code', 'links', 'snippets', 'data'],
-    connection: ['from', 'to', 'label'],
+    connection: ['from', 'to', 'label', 'kind', 'payloads'],
     flow: ['name', 'view', 'steps', 'groups', 'states', 'compare'],
     step: ['from', 'to', 'text', 'description', 'animation', 'group', 'lane', 'flow', 'states'],
     animation: ['kind', 'trigger', 'carries', 'outcome', 'share', 'reason', 'by', 'at', 'effect', 'depth', 'returns'],

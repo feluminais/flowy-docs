@@ -56,7 +56,7 @@ public class EditOpsTests
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "deleteObjects": return EditOps.DeleteObjects(doc, s["ids"]!.AsArray().Select(i => i!.GetValue<string>()).ToList());
             case "deleteWith": return EditOps.DeleteWith(doc, Targets(s["targets"]), Resolutions(s["resolutions"]));
-            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label"), s["payloads"] is { } carried ? carried.AsArray().Select(YamlWriterTests.Tree).ToList() : null));
+            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label"), s["payloads"] is { } carried ? carried.AsArray().Select(YamlWriterTests.Tree).ToList() : null, Str(s, "kind")));
             case "putPayload":
             {
                 var fields = new Dictionary<string, object?>();
@@ -69,6 +69,7 @@ public class EditOpsTests
             case "setStepPayload": return EditOps.SetStepPayload(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), Str(s, "key")!, s["value"] is { } v ? YamlWriterTests.Tree(v) : null);
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
+            case "setKind": return EditOps.SetKind(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "kind")!);
             case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]), Groups(s["states"]), Str(s, "folder"), Tags(s["tags"]));
             case "moveFlow": return EditOps.MoveFlow(doc, Str(s, "id")!, Str(s, "folder")!);
             case "setFlowTags": return EditOps.SetFlowTags(doc, Str(s, "id")!, Tags(s["tags"])!);

@@ -9,7 +9,7 @@ import { dump, quoteBlankFirstLines, readYaml } from './yamltext.ts'
 
 const TEXT_FIELDS = {
   object: ['type', 'name', 'in', 'external', 'shape', 'color', 'opacity', 'icon', 'tech', 'description'],
-  connection: ['from', 'to', 'label'],
+  connection: ['from', 'to', 'label', 'kind'],
   flow: ['name', 'view'],
   step: ['from', 'to', 'text', 'description', 'group', 'lane', 'flow'],
   group: ['kind', 'text', 'times', 'until'],
