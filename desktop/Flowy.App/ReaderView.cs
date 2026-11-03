@@ -756,7 +756,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.CompareOff = CompareChoices.Off(model, Editing);
         (string Name, int Step)? trail = _playback.Head is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
         var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.ShowsPause, trail, _canvas.StatesShown.Values.ToList(), null, _canvas.ChannelKindsShown);
-        _player.Show(card);
+        _player.Show(card, FlowStage.EveryCard(model, view, f.Flow, f.Id, StopsOf(f.Flow), shown, trail));
         _canvas.SetMarks(marks);
     }
 

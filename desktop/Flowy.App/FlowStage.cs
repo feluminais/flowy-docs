@@ -51,6 +51,14 @@ internal static class FlowStage
     }
 
     /// <summary>
+    /// The card of every stop of the flow, for <see cref="PlayerCard"/> to keep the size of the tallest: what each stop says, with the states and the kinds of channel the
+    /// flow has by then (whether or not this view can show them, so the room is never too small).
+    /// </summary>
+    public static PlayerCard.Every EveryCard(Model model, string view, Flow flow, string id, IReadOnlyList<Stop> stops, Playing? shown, (string Name, int Step)? trail, IReadOnlyDictionary<int, Change>? changes = null) =>
+        new((model, view, flow, stops, trail, changes), () => [.. Enumerable.Range(0, stops.Count).Select(k =>
+            CardAt(model, flow, id, stops, k, shown, false, trail, [.. States.Marks(model, States.At(flow, stops, k)).Values], changes, Channels.KindsOf(Channels.At(flow, stops, k))).Card)]);
+
+    /// <summary>
     /// What the flow has left open by the stop at <paramref name="index"/>, with where each channel lands in <paramref name="view"/>: a stream and a listener need two boxes (the view may fold
     /// both ends into one, and then there is nothing to draw between), a job only the one it runs on. The step whose motion decides when a mark comes or goes is the one that opens it,
     /// or the one in this stop that closes it.

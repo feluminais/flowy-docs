@@ -1,5 +1,5 @@
 import { animationOf, channelLine, outcomeLine } from '../../src/core/animation.ts'
-import { LEGEND } from '../../src/core/captions.ts'
+import { captionOf, LEGEND } from '../../src/core/captions.ts'
 import type { Caption, Progress } from '../../src/core/captions.ts'
 import type { Change } from '../../src/core/flowdiff.ts'
 import type { Flow, Model } from '../../src/core/model.ts'
@@ -10,10 +10,12 @@ import { PayloadRow } from './Payloads.tsx'
 import { stepPayload, stepReply } from '../../src/core/payloads.ts'
 import { CHANGE_NAMES, changeOfStop } from './compare.ts'
 import type { ChannelKind } from '../../src/core/animation.ts'
+import { marksOf, statesAt } from '../../src/core/states.ts'
 import type { StateMark } from '../../src/core/states.ts'
+import { channelsAt, kindsOf } from '../../src/core/channels.ts'
 import { Chip } from './Chrome.tsx'
-import { useEffect, useLayoutEffect, useRef } from 'react'
-import type { PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { SPEEDS } from './clock.ts'
 import type { PlayerClock, Speed } from './clock.ts'
 import type { ReactNode } from 'react'
@@ -74,6 +76,7 @@ type Props = {
 type Scrub = { start: () => void; to: (stop: number, fraction: number) => void; end: () => void }
 
 const IN_A_PANE = 'Not while comparing'
+const STILL = 'Nothing moves on this step'
 
 /**
  * The cell under the pointer, or the nearest one (a cell is four pixels high, so a drag strays off it), and how far along it the pointer is. Cells of another lane
@@ -254,104 +257,184 @@ function inView(box: HTMLElement, item: HTMLElement, below = 0) {
   else if (i.bottom + below > b.bottom) box.scrollTop += i.bottom + below - b.bottom
 }
 
-/** The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. */
+/** The stops a card measures to keep the size of its tallest; a longer flow keeps the card as each stop draws it. */
+const RESERVE_MOST = 300
+
+/** The chips over the card's body: the flow, the step and the group it is in, then Compare and the legend's button. */
+function Chips({ flow, stop, count, caption, kind, compare, legend, grouped, onLegend, minHeight }: {
+  flow: Flow; stop: number; count: number; caption: Caption; kind: GroupKind | undefined; compare?: Props['compare']; legend: boolean; grouped: boolean; onLegend: () => void; minHeight?: number
+}) {
+  const GroupIcon = kind === undefined ? undefined : KIND_ICON[kind]
+  return (
+    <div className="chips" style={minHeight ? { minHeight } : undefined}>
+      <Chip icon={Play}>{flow.name}</Chip>
+      <Chip kind="accent">Step {stop + 1} of {count}</Chip>
+      {caption.chip !== '' && <Chip icon={GroupIcon}>{caption.chip}</Chip>}
+      {compare && (
+        <button className="compare-btn" data-compare-toggle aria-pressed={compare.open} disabled={compare.off !== undefined} title={compare.off ?? 'Compare with another flow (C)'} onClick={compare.onToggle}><Columns size={14} />Compare</button>
+      )}
+      {grouped && (
+        <button className="help" aria-label="What do these mean?" title="What do these mean?" aria-pressed={legend} onClick={onLegend}><Help size={15} /></button>
+      )}
+    </div>
+  )
+}
+
+type BodyProps = Pick<Props, 'model' | 'flow' | 'stops' | 'stop' | 'ends' | 'caption' | 'progress' | 'marks' | 'channels' | 'changes' | 'clock' | 'scrub' | 'onOpenFlow'> & { legend: boolean; grouped: boolean }
+
+/** What the card shows of one stop between its chips and its buttons: the legend, the group's tabs and words, the bar, the keys and each step. */
+function StopBody({ model, flow, stops, stop, ends, caption, progress, marks, channels, changes, clock, scrub, legend, grouped, onOpenFlow }: BodyProps) {
+  const here = stops[stop]
+  return (
+    <>
+      {grouped && legend && (
+        <dl className="legend">
+          {LEGEND.map(row => {
+            const Icon = row.kind === null ? undefined : KIND_ICON[row.kind]
+            return (
+              <div key={row.title}>
+                <dt>{Icon && <Icon size={13} />}{row.title}</dt>
+                <dd>{row.text}</dd>
+              </div>
+            )
+          })}
+        </dl>
+      )}
+      {caption.tabs.length > 0 && (
+        <div className="tabs">{caption.tabs.map((t, i) => <span key={i} className={i === caption.tab ? 'tab on' : 'tab'}>{t}</span>)}</div>
+      )}
+      {caption.text !== '' && <p className="group-text">{caption.text}</p>}
+      <Bar progress={progress} now={stop} stops={stops} changes={changes} clock={clock} scrub={scrub} />
+      <StateKey marks={marks} />
+      <ChannelKey kinds={channels} />
+      {here.steps.map((i, n) => {
+        const step = flow.steps[i]
+        const link = typeof step.flow === 'string' && step.flow.trim() !== '' ? step.flow.trim() : undefined
+        const target = link !== undefined && Object.hasOwn(model.flows, link) ? model.flows[link] : undefined
+        const animation = animationOf(step)
+        const ended = animation && outcomeLine(animation, id => nameOf(model, id))
+        // What a step leaves open or closes is not a failure, so it is told in the accent colour, not the outcome's red.
+        const channel = animation && ended === undefined ? channelLine(animation) : undefined
+        const outcome = ended ?? channel
+        const sends = stepPayload(model, step)
+        const answer = stepReply(model, step)
+        return (
+          <div key={i} className={here.steps.length > 1 ? 'lane-block' : undefined}>
+            {caption.lanes[n] && <p className="lane-name">{caption.lanes[n]}</p>}
+            <p className="player-ends">{stepEnds(model, step, ends[i])}</p>
+            <p>{step.text}</p>
+            {outcome !== undefined && <p className={channel === undefined ? 'player-outcome' : 'player-outcome channel'}>{outcome}</p>}
+            {/* What the step sends and what comes back, folded away. */}
+            {sends && <PayloadRow key={`${stop}-${i}-sends`} shown={sends} />}
+            {answer && <PayloadRow key={`${stop}-${i}-reply`} shown={answer} back />}
+            {step.description && (
+              <details key={`${stop}-${i}`} className="more">
+                <summary>More</summary>
+                <Description text={String(step.description)} />
+              </details>
+            )}
+            {target && (
+              <div className="player-buttons flow-link">
+                <button disabled={onOpenFlow === undefined || target.steps.length === 0 || !isView(model, target.view)} title={onOpenFlow === undefined ? IN_A_PANE : undefined} onClick={() => onOpenFlow?.(link!)}><Route size={16} />Open flow: {target.name || link}</button>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </>
+  )
+}
+
+/**
+ * The height of the card's chips and of its body at its tallest stop, so the card keeps one size as the flow plays. Every stop is drawn once out of sight (in
+ * `measure`) when what the stops look like may have changed (`deps`) or the card's width did, and taken away again before anything is painted.
+ */
+function useReserve(section: RefObject<HTMLElement | null>, count: number, deps: readonly unknown[]) {
+  const measure = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+  useLayoutEffect(() => {
+    const at = section.current
+    if (!at) return
+    const seen = new ResizeObserver(([entry]) => setWidth(Math.round(entry.contentRect.width)))
+    seen.observe(at)
+    return () => seen.disconnect()
+  }, [section])
+  const token = useMemo(() => ({}), [...deps, width]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [reserve, setReserve] = useState<{ for: object; chips: number; body: number }>()
+  const measuring = count <= RESERVE_MOST && reserve?.for !== token
+  useLayoutEffect(() => {
+    if (!measuring || !measure.current) return
+    let chips = 0
+    let body = 0
+    for (const row of measure.current.children) {
+      chips = Math.max(chips, (row.children[0] as HTMLElement).offsetHeight)
+      body = Math.max(body, (row.children[1] as HTMLElement).offsetHeight)
+    }
+    setReserve({ for: token, chips, body })
+  })
+  return { measure, measuring, reserve: reserve?.for === token ? reserve : undefined }
+}
+
+/**
+ * The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. It keeps the size of its tallest stop
+ * (see useReserve), so its edge and its buttons stay put as the flow plays.
+ */
 export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, showsPause, moving, repeat, trail, changes, compare, clock, speed, onSpeed, scrub, onStep, onPlay, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
-  const sends = (s: Flow['steps'][number]) => stepPayload(model, s)
-  const answer = (s: Flow['steps'][number]) => stepReply(model, s)
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
   const grouped = progress.brackets.length > 0 // the legend explains groups, so a flow with none has no button
   const toggleLegend = () => setLegendPref(legend ? 'closed' : 'open')
-  const GroupIcon = here.kind === undefined ? undefined : KIND_ICON[here.kind]
   const body = useRef<HTMLDivElement>(null)
+  const section = useRef<HTMLElement>(null)
+  const { measure, measuring, reserve } = useReserve(section, stops.length, [model, flow, stops, legend, ends])
   // The lanes' tabs and the lanes in the bar scroll when there are many: the lane this stop is in is scrolled to.
   useLayoutEffect(() => {
     for (const on of body.current?.querySelectorAll<HTMLElement>('.tabs > .on') ?? []) inView(on.parentElement!, on)
     for (const on of body.current?.querySelectorAll<HTMLElement>('.fork .lane.on') ?? []) inView(on.closest<HTMLElement>('.fork')!, on, 8) // its cells, under its name
   }, [stop, flow])
+  const shared = { model, flow, stops, ends, progress, changes, clock, scrub, legend, grouped, onOpenFlow }
   return (
-    <section className="player" aria-live="polite">
+    <section className="player" aria-live="polite" ref={section}>
       {trail && onBack && <button className="trail" onClick={onBack}><ArrowLeft size={14} />Back to “{trail.name}”, step {trail.step}</button>}
-      <div className="chips">
-        <Chip icon={Play}>{flow.name}</Chip>
-        <Chip kind="accent">Step {stop + 1} of {stops.length}</Chip>
-        {caption.chip !== '' && <Chip icon={GroupIcon}>{caption.chip}</Chip>}
-        {compare && (
-          <button className="compare-btn" data-compare-toggle aria-pressed={compare.open} disabled={compare.off !== undefined} title={compare.off ?? 'Compare with another flow (C)'} onClick={compare.onToggle}><Columns size={14} />Compare</button>
-        )}
-        {grouped && (
-          <button className="help" aria-label="What do these mean?" title="What do these mean?" aria-pressed={legend} onClick={toggleLegend}><Help size={15} /></button>
-        )}
-      </div>
+      <Chips flow={flow} stop={stop} count={stops.length} caption={caption} kind={here.kind} compare={compare} legend={legend} grouped={grouped} onLegend={toggleLegend} minHeight={reserve?.chips} />
       <div className="player-body" ref={body}>
-        {grouped && legend && (
-          <dl className="legend">
-            {LEGEND.map(row => {
-              const Icon = row.kind === null ? undefined : KIND_ICON[row.kind]
-              return (
-                <div key={row.title}>
-                  <dt>{Icon && <Icon size={13} />}{row.title}</dt>
-                  <dd>{row.text}</dd>
-                </div>
-              )
-            })}
-          </dl>
-        )}
-        {caption.tabs.length > 0 && (
-          <div className="tabs">{caption.tabs.map((t, i) => <span key={i} className={i === caption.tab ? 'tab on' : 'tab'}>{t}</span>)}</div>
-        )}
-        {caption.text !== '' && <p className="group-text">{caption.text}</p>}
-        <Bar progress={progress} now={stop} stops={stops} changes={changes} clock={clock} scrub={scrub} />
-        <StateKey marks={marks} />
-        <ChannelKey kinds={channels} />
-        {here.steps.map((i, n) => {
-          const step = flow.steps[i]
-          const link = typeof step.flow === 'string' && step.flow.trim() !== '' ? step.flow.trim() : undefined
-          const target = link !== undefined && Object.hasOwn(model.flows, link) ? model.flows[link] : undefined
-          const animation = animationOf(step)
-          const ended = animation && outcomeLine(animation, id => nameOf(model, id))
-          // What a step leaves open or closes is not a failure, so it is told in the accent colour, not the outcome's red.
-          const channel = animation && ended === undefined ? channelLine(animation) : undefined
-          const outcome = ended ?? channel
-          return (
-            <div key={i} className={here.steps.length > 1 ? 'lane-block' : undefined}>
-              {caption.lanes[n] && <p className="lane-name">{caption.lanes[n]}</p>}
-              <p className="player-ends">{stepEnds(model, step, ends[i])}</p>
-              <p>{step.text}</p>
-              {outcome !== undefined && <p className={channel === undefined ? 'player-outcome' : 'player-outcome channel'}>{outcome}</p>}
-              {/* What the step sends and what comes back, folded away. */}
-              {sends(step) && <PayloadRow key={`${stop}-${i}-sends`} shown={sends(step)!} />}
-              {answer(step) && <PayloadRow key={`${stop}-${i}-reply`} shown={answer(step)!} back />}
-              {step.description && (
-                <details key={`${stop}-${i}`} className="more">
-                  <summary>More</summary>
-                  <Description text={String(step.description)} />
-                </details>
-              )}
-              {target && (
-                <div className="player-buttons flow-link">
-                  <button disabled={onOpenFlow === undefined || target.steps.length === 0 || !isView(model, target.view)} title={onOpenFlow === undefined ? IN_A_PANE : undefined} onClick={() => onOpenFlow?.(link!)}><Route size={16} />Open flow: {target.name || link}</button>
-                </div>
-              )}
-            </div>
-          )
-        })}
+        <div className="player-stop" style={reserve ? { minHeight: reserve.body } : undefined}>
+          <StopBody {...shared} stop={stop} caption={caption} marks={marks} channels={channels} />
+        </div>
       </div>
       <div className="player-buttons">
         <button disabled={stop === 0} onClick={() => onStep(stop - 1)}><StepBack size={16} />Back</button>
         <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
-        {showsPause
-          ? <button onClick={onPlay} title="Pause (P)"><Pause size={16} />Pause</button>
-          : <button onClick={onPlay} title="Play (P)"><Play size={16} />Play</button>}
-        {moving && <button aria-label="Replay this step" title="Replay this step (R)" onClick={onReplay}><Reload size={16} /></button>}
-        {moving && <button aria-label="Repeat" aria-pressed={repeat} title={repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>}
+        {/* Play and Pause are one button as wide as its longer word, and Replay and Repeat stay greyed out on a step that doesn't move, so the row never reflows. */}
+        <button onClick={onPlay} title={showsPause ? 'Pause (P)' : 'Play (P)'}>
+          {showsPause ? <Pause size={16} /> : <Play size={16} />}
+          <span className="same-width"><span className={showsPause ? undefined : 'ghost'} aria-hidden={!showsPause}>Pause</span><span className={showsPause ? 'ghost' : undefined} aria-hidden={showsPause}>Play</span></span>
+        </button>
+        <button aria-label="Replay this step" disabled={!moving} title={moving ? 'Replay this step (R)' : STILL} onClick={onReplay}><Reload size={16} /></button>
+        <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving} title={!moving ? STILL : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>
         <div className="speed" role="group" aria-label="Speed" title="Speed (S)">
           {SPEEDS.map(s => <button key={s} aria-pressed={speed === s} onClick={() => onSpeed(s)}>{s}×</button>)}
         </div>
         <button disabled={onStop === undefined} title={onStop === undefined ? 'Close the comparison to stop' : undefined} onClick={onStop}><Close size={16} />Stop</button>
       </div>
       {compare?.open && compare.picker}
+      {/* Every stop out of sight, for useReserve: here only until it is measured, before anything is painted. */}
+      {measuring && (
+        <div className="player-measure" ref={measure} aria-hidden="true" inert>
+          {stops.map((s, k) => {
+            const at = k === stop ? caption : captionOf(flow, s)
+            return (
+              <div key={k}>
+                <Chips flow={flow} stop={k} count={stops.length} caption={at} kind={s.kind} compare={compare} legend={legend} grouped={grouped} onLegend={toggleLegend} />
+                <div className="player-stop">
+                  <StopBody {...shared} stop={k} caption={at} marks={k === stop ? marks : marksOf(model, statesAt(flow, stops, k))} channels={k === stop ? channels : kindsOf(channelsAt(flow, stops, k))} />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }
