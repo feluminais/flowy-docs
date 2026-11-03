@@ -110,7 +110,12 @@ internal sealed partial class ReaderView
         var came = Levels.CameBack(_levels, here, id => id == Names.Root || CanOpen(id));
         var to = came ?? Views.ParentOf(folder.Model, here);
         _arriving = (to, came is not null);
-        ZoomOut(to);
+        var move = Navigation.MoveBetween(folder.Model, here, to);
+        var middle = Middle();
+        // Back across plays the way there in reverse: each view puts its neighbours where it likes, so where the level is drawn here may lie the same way again.
+        if (move == Move.Across && _slides.TryGetValue((to, here), out var there)) ZoomAt(to, move, new Pt(middle.X - there.X, middle.Y - there.Y));
+        else if (Levels.BackFrom(Views.Chain(folder.Model, to), move, id => _canvas.RectOf(id) is not null) is { } from) ZoomFrom(to, move, from); // else from where the level is drawn
+        else ZoomAt(to, move, middle);
     }
 
     /// <summary>The box with keyboard focus (Tab moves it), else the one whose panel is open: in if it opens, else its panel. False when there is none.</summary>

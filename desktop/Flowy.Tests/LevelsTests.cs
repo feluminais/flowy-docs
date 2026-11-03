@@ -40,6 +40,17 @@ public class LevelsTests
     }
 
     [Fact]
+    public void Esc_goes_back_from_the_box_the_level_is_drawn_as()
+    {
+        List<string> chain = ["dispatch", "back-office", "root"]; // the level Esc heads for, then the boxes around it
+        Assert.Equal("dispatch", Levels.BackFrom(chain, Move.Across, id => id == "dispatch"));
+        Assert.Equal("back-office", Levels.BackFrom(chain, Move.Across, id => id == "back-office")); // drawn as the box around it
+        Assert.Equal("dispatch", Levels.BackFrom(chain, Move.In, id => id == "dispatch"));
+        Assert.Null(Levels.BackFrom(chain, Move.Out, Anywhere)); // going out zooms about the middle
+        Assert.Null(Levels.BackFrom(chain, Move.Across, _ => false)); // not drawn: about the middle
+    }
+
+    [Fact]
     public void Only_the_last_fifty_levels_are_kept()
     {
         var levels = new List<string>();
