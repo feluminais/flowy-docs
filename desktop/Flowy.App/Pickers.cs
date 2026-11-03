@@ -10,6 +10,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using Flowy.App.Canvas;
 using Flowy.Core;
+using CoreKinds = Flowy.Core.Kinds;
 using Path = Avalonia.Controls.Shapes.Path;
 
 namespace Flowy.App;
@@ -72,6 +73,27 @@ internal static class Pick
             chooser.Add(id, name, new StackPanel { Spacing = 6, Children = { swatch, new TextBlock { Text = name, FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center } } });
         }
         chooser.Show(chosen);
+        return chooser;
+    }
+
+    /// <summary>
+    /// The kind of a connection as tiles: the plain line first ("" is its word), then the six kinds, each a small drawing of the line with its pattern and marks and its name
+    /// under it. A pick is a kind word or "". Twin of LineKindPicker in ui/src/Pickers.tsx.
+    /// </summary>
+    public static Chooser LineKinds(Func<string, Task<bool>> picked)
+    {
+        string Name(string id) => id == "" ? CoreKinds.PlainName : CoreKinds.NameOf(id);
+        var chooser = new Chooser("Kind", new UniformGrid { Columns = 3 }, picked, Name);
+        foreach (var id in new[] { "" }.Concat(CoreKinds.All.Select(k => k.Id)))
+        {
+            var swatch = new LookSwatch(id == "" ? null : CoreKinds.LookOfKind(id), 44, 24) { HorizontalAlignment = HorizontalAlignment.Center };
+            var caption = new TextBlock { Text = Name(id), FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center, TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap }; // "Publish and subscribe" wraps instead of being cut
+            var cell = chooser.Add(id, Name(id), new StackPanel { Spacing = 5, Children = { swatch, caption } });
+            cell.HorizontalAlignment = HorizontalAlignment.Stretch; // the tiles of a row are as wide and as tall as each other, a wrapped name or not
+            cell.VerticalAlignment = VerticalAlignment.Stretch;
+            cell.HorizontalContentAlignment = HorizontalAlignment.Center;
+        }
+        chooser.Show("");
         return chooser;
     }
 

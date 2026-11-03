@@ -16,6 +16,8 @@ import type { OutlineRow } from '../../src/core/outline.ts'
 import { chain, hasChildren, parentOf } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { KindKey } from './kinds.tsx'
+import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
 import { Close, Undo } from './icons.tsx'
 import { locate } from './edit.ts'
@@ -221,6 +223,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const openLevelStable = useLatest(() => openLevelNow?.())
   const openLevel = openLevelNow && openLevelStable
   const { graph, marksHere, nodes, flowNodes, shapes, edges, spots, sizes } = useCanvasGraph({ model, view, shown, problems, stateMarks, loadTraffic, failMarks, scrubbing, moved, pickedSet, litClass, usedClass, lit, openLevel, animated, still, selectedBox, selectedLine, lines })
+  const onScreen = useMemo(() => kindsOnScreen(edges), [edges]) // the kinds the lines are drawn as, for the key at the foot
   const { motion, go, goNow, jumpTo, back, zoomInto, openFlow, openLinked, goBack, showFlow } = useNavigation({ model, view, canvas, canOpen, editing, setViewId, playing, setPlaying, stopIndex, setCompare, setSide, show, session, cancelOpen: wait.cancelOpen, unlessDraft, setNotice, closeFailures })
   const events = useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, members: graph.members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait })
   const { copyMermaid, createRun, copyFailures } = useCopyOut({ model, view, flow, playing, analysis, setNotice })
@@ -397,6 +400,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               </LineWidthsContext>
             </LineStyleContext>
           )}
+          {!comparing && <KindKey {...onScreen} underPlayer={flow !== undefined} />}
           {!comparing && nodes.length === 0 && (
             <p className="empty">{editing
               ? 'No shapes yet. Press Add to put the first one here.'

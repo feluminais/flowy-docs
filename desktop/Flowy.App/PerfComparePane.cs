@@ -41,6 +41,7 @@ internal sealed class PerfComparePane : Border, IRunKeys
         Key = copy == 0 ? run.RunId : $"{run.RunId}#{copy}";
         run.Bind(_canvas);
         Classes.Add("pane");
+        _canvas.KindKeyAtTop = true; // the key of the kinds stands at the top: the foot is the player card's
         Focusable = false;
 
         var (head, title) = PaneChrome.Head();

@@ -111,8 +111,88 @@ internal sealed class CanvasView : Border
         ClipToBounds = true;
         Background = Brushes.Transparent;
         _world.Children.AddRange([_back, _cards, _stage, _traffic, _channels, _motion, _marks]);
-        Child = new Grid { Children = { _world, _marquee, _dotHost } };
+        Child = new Grid { Children = { _world, _marquee, _kindKey, _dotHost } };
         Clock.Changed += () => CloseDotCard();
+        SizeChanged += (_, _) => ArrangeKindKey();
+    }
+
+    // The key of the kinds the lines on show are drawn as, over the foot of the canvas (a compared pane has it at the top). Nothing when no line has a kind.
+    private readonly Border _kindKey = new() { IsHitTestVisible = false, IsVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom, Classes = { "kindkey" } };
+    private string _kindKeyFor = "";
+    private double _kindKeyLeft = 60;
+    private bool _kindKeyAtTop;
+    private bool _kindKeyBesidePlayer;
+
+    /// <summary>How far in from the left edge the key stands at the foot: clear of the zoom buttons, and of the navigator when it lies over the canvas.</summary>
+    public double KindKeyLeft
+    {
+        get => _kindKeyLeft;
+        set
+        {
+            _kindKeyLeft = value;
+            ArrangeKindKey();
+        }
+    }
+
+    /// <summary>Whether the key stands at the top left instead of the foot: a compared pane has its player card at the foot and its zoom buttons at the top right.</summary>
+    public bool KindKeyAtTop
+    {
+        get => _kindKeyAtTop;
+        set
+        {
+            _kindKeyAtTop = value;
+            ArrangeKindKey();
+        }
+    }
+
+    /// <summary>Whether a flow's card lies over the middle of the foot: the key then keeps to the room left of it.</summary>
+    public bool KindKeyBesidePlayer
+    {
+        get => _kindKeyBesidePlayer;
+        set
+        {
+            _kindKeyBesidePlayer = value;
+            ArrangeKindKey();
+        }
+    }
+
+    /// <summary>The key itself, for tests.</summary>
+    internal Border KindKeyHost => _kindKey;
+
+    /// <summary>The words in the key now, in order, for tests.</summary>
+    internal IReadOnlyList<string> KindKeyWords { get; private set; } = [];
+
+    /// <summary>The player card is 520 wide at most (<see cref="PlayerCard"/>) and stands in the middle: the key at the foot ends <see cref="PlayerGap"/> before it begins, as in the browser.</summary>
+    private const double PlayerHalf = 260;
+    private const double PlayerGap = 16;
+
+    private void ArrangeKindKey()
+    {
+        var width = Bounds.Width;
+        _kindKey.VerticalAlignment = _kindKeyAtTop ? Avalonia.Layout.VerticalAlignment.Top : Avalonia.Layout.VerticalAlignment.Bottom;
+        _kindKey.Margin = _kindKeyAtTop ? new Thickness(8, 8, 0, 0) : new Thickness(_kindKeyLeft, 0, 0, 16);
+        if (width <= 0) return;
+        _kindKey.MaxWidth = KindKeyMaxWidth(width, _kindKeyLeft, _kindKeyAtTop, _kindKeyBesidePlayer);
+    }
+
+    /// <summary>How wide the key may be on a canvas <paramref name="width"/> wide, standing <paramref name="left"/> in (past the navigator when it is open): beside a flow's card it ends <see cref="PlayerGap"/> short of the card.</summary>
+    internal static double KindKeyMaxWidth(double width, double left, bool atTop, bool besidePlayer) =>
+        atTop ? Math.Max(120, width - 8 - 60)
+        : besidePlayer ? Math.Max(190, width / 2 - PlayerHalf - PlayerGap - left)
+        : Math.Min(640, Math.Max(120, width - left - 16));
+
+    /// <summary>Shows the key for the lines of <paramref name="scene"/>: one swatch and name for each kind drawn now, and the plain line when one is drawn too. Built again only when that changes.</summary>
+    private void ShowKindKey(Scene scene)
+    {
+        var (kinds, plain) = KindKey.OnScreen(scene.Edges);
+        var signature = $"{string.Join(',', kinds)}{(plain ? "+plain" : "")}";
+        if (signature == _kindKeyFor) return;
+        _kindKeyFor = signature;
+        var key = KindKeyView.Of(kinds, plain);
+        _kindKey.Child = key;
+        _kindKey.IsVisible = key is not null;
+        KindKeyWords = KindKeyView.Words(kinds, plain);
+        ArrangeKindKey();
     }
 
     public Scene? Scene => _scene;
@@ -464,6 +544,7 @@ internal sealed class CanvasView : Border
         }
         foreach (var (id, control) in _boxes) control.SetSelected(_selected.Contains(id));
         _back.SetScene(scene, lineStyle);
+        ShowKindKey(scene);
         if (_load is not null) ApplyLoad();
         if (_failures is not null) ApplyFailures();
         ApplyChanges();

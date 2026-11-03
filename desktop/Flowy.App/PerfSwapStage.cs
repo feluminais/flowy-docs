@@ -40,6 +40,7 @@ internal sealed class PerfSwapStage : Border, IRunKeys
         _keys = [.. keys];
         _runs = [.. runs];
         Classes.Add("pane");
+        _canvas.KindKeyAtTop = true; // the key of the kinds stands at the top: the foot is the player card's
         Classes.Add("swapstage");
         Focusable = false;
         ClipToBounds = true;

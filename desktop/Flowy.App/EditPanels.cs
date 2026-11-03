@@ -352,6 +352,7 @@ internal sealed class LineEditor : StackPanel
         public int Index;
         public ConnectionInput Which = new("", "");
         public required FieldBox Label;
+        public required Chooser Kind;
         public required StackPanel Problems;
         public required Control Inside;
         public required StackPanel Payloads;
@@ -384,12 +385,15 @@ internal sealed class LineEditor : StackPanel
 
     internal IReadOnlyList<FieldBox> Labels => _live.Select(r => r.Label).ToList();
 
+    /// <summary>The kind tiles of each connection's form, in order, for tests.</summary>
+    internal IReadOnlyList<Chooser> KindChoices => _live.Select(r => r.Kind).ToList();
+
     public void Update(Model model, string view, IReadOnlyList<Problem> problems)
     {
         // As the panel a reader sees: one heading per way when connections run both ways (see SidePanel.Ways).
         var ways = SidePanel.Ways(model, _from, _to, Navigation.ConnectionsOf(model, view, _from, _to));
         _header.Children.Clear();
-        _header.Children.Add(_owner.LineHeader(model, ways.From, ways.To, ways.Both));
+        _header.Children.Add(_owner.LineHeader(model, ways.From, ways.To, ways.Both, SidePanel.LookOfLines(ways.Groups.SelectMany(w => w.Lines), ways.Both)));
         var lines = ways.Groups.SelectMany(w => w.Lines.Select(l => (l.Index, l.Connection, w.From, w.To))).ToList();
         if (!lines.Select(l => l.Index).SequenceEqual(_live.Select(r => r.Index)) || _rows.Children.Count != lines.Count + ways.Groups.Count)
         {
@@ -407,6 +411,7 @@ internal sealed class LineEditor : StackPanel
             var row = _live[i];
             row.Which = new ConnectionInput(c.From ?? "", c.To ?? "", c.Label ?? "");
             row.Label.Sync(c.Label ?? "");
+            row.Kind.Show(Kinds.KindOf(c) ?? "");
             row.Inside.IsVisible = c.From != wayFrom || c.To != wayTo;
             if (row.Inside is TextBlock t) t.Text = SidePanel.Describe(model, c);
             row.Problems.Children.Clear();
@@ -470,17 +475,18 @@ internal sealed class LineEditor : StackPanel
     {
         Row? row = null;
         var label = new FieldBox("Label", "", false, v => _run(d => EditOps.Relabel(d, row!.Which, v)));
+        var kind = Pick.LineKinds(id => _run(d => EditOps.SetKind(d, row!.Which, id)));
         var inside = _owner.Muted("");
         var problems = new StackPanel();
         var payloads = new StackPanel { Spacing = 8 };
-        row = new Row { Index = index, Label = label, Problems = problems, Inside = inside, Payloads = payloads };
+        row = new Row { Index = index, Label = label, Kind = kind, Problems = problems, Inside = inside, Payloads = payloads };
         var delete = new Button { HorizontalAlignment = HorizontalAlignment.Left };
         delete.Classes.Add("tool");
         delete.Classes.Add("danger");
         Chrome.Fill(delete, Icons.Trash, "Delete");
         delete.Click += (_, _) => _askDelete([new Target(Line: new LineTarget(row.Which.From, row.Which.To, row.Which.Label ?? ""))], _live.Count <= 1 ? _closed : null);
         _live.Add(row);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, label, payloads, problems, delete } });
+        return Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, label, kind, payloads, problems, delete } });
     }
 }
 

@@ -9,6 +9,8 @@ import type { LineTraffic, Run } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { KindKey } from './kinds.tsx'
+import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
@@ -179,6 +181,7 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
               </LabelSpots>
             </LineWidthsContext>
           </LineStyleContext>
+          <KindKey {...kindsOnScreen(edges)} />
         </div>
         <div className="run-panel">
           <PerfBody pane model={model} view={view} runs={runs} runProblems={NO_PROBLEMS} runId={perf.runKey} positions={perf.here} active={perf.activeDial} boxes={p.drawing.loadTraffic?.boxes} lines={p.drawnLines}

@@ -350,6 +350,7 @@ public class SceneParityTests
     {
         var scenes = ScenesJson()["scenes"]!.AsArray();
         Assert.True(scenes.Count > 30);
+        Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["look"] is not null)); // the kinds case: a line's look is part of what the scene decides
         foreach (var s in scenes)
         {
             var folder = Load(s!["folder"]!.GetValue<string>());
@@ -381,6 +382,7 @@ public class SceneParityTests
                 Assert.Equal(want["label"]?.GetValue<string>(), got.Label);
                 Assert.Equal(want["selected"]!.GetValue<bool>(), got.Selected);
                 Assert.Equal(want["both"]?.GetValue<bool>() ?? false, got.Both);
+                Assert.Equal(want["look"] is { } look ? new LineLook(look["pattern"]!.GetValue<string>(), look["head"]!.GetValue<string>(), look["tail"]!.GetValue<string>()) : null, got.Look);
                 Assert.True(Tokens(want["classes"]!).SequenceEqual(Tokens(SceneBuilder.Classes(got))), $"{what}: classes of line {got.Id}");
             }
         }

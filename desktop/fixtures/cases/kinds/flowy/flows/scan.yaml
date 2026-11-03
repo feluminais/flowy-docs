@@ -1,0 +1,9 @@
+name: Scan
+view: root
+steps:
+  - { from: ui, to: management, text: The screen starts a scan, animation: call }
+  - { from: management, to: ui, text: The first results reach the screen }
+  - { from: management, to: linux, text: The config is applied, animation: call }
+  - { from: management, to: bus, text: An event goes out, animation: event }
+  - { from: management, to: vendor, text: Vendor code runs, animation: send }
+  - { from: linux, to: ui, text: A step with no line of its own }

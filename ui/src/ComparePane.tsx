@@ -12,6 +12,8 @@ import type { LineStyle } from '../../src/core/model.ts'
 import { chain, hasChildren, nameOf } from '../../src/core/views.ts'
 import { Box, ChangeMarksContext, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { KindKey } from './kinds.tsx'
+import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
 import { paneInside, paneLevel, paneUp } from './compare.ts'
 import type { Picked } from './compare.ts'
@@ -163,6 +165,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
             </ChangeMarksContext>
           </LabelSpots>
         </LineStyleContext>
+        <KindKey {...kindsOnScreen(edges)} />
       </div>
       <PanePlayer model={model} p={p} marks={marks} />
     </section>

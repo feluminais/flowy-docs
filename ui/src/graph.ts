@@ -4,6 +4,8 @@ import { lineKey } from '../../src/core/failures.ts'
 import type { Mark } from '../../src/core/failures.ts'
 import type { BoxTraffic } from '../../src/core/perf/types.ts'
 import type { StateMark } from '../../src/core/states.ts'
+import { kindName } from '../../src/core/kinds.ts'
+import type { KindId } from '../../src/core/kinds.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
 import { childCount, computeView, nameOf, placeEnds } from '../../src/core/views.ts'
@@ -44,10 +46,10 @@ export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(i
 
 /**
  * What a screen reader says for a line: the two shapes by name, and the line's label ("Customer app to Order API, REST"), not the ids React Flow
- * would read. A line with connections both ways says "and" ("Ordering and Back office, 4 connections").
+ * would read. A line with connections both ways says "and" ("Ordering and Back office, 4 connections"). A line whose connections share a kind ends with its name ("Management to Linux, Request then stream").
  */
-export const lineName = (model: Model, from: string, to: string, label?: string, both?: boolean): string =>
-  `${nameOf(model, from)} ${both ? 'and' : 'to'} ${nameOf(model, to)}${label ? `, ${label}` : ''}`
+export const lineName = (model: Model, from: string, to: string, label?: string, both?: boolean, kind?: KindId): string =>
+  `${nameOf(model, from)} ${both ? 'and' : 'to'} ${nameOf(model, to)}${label ? `, ${label}` : ''}${kind === undefined ? '' : `, ${kindName(kind)}`}`
 
 /** The core's lineKey; App.tsx still calls it lineId. */
 export const lineId = lineKey
@@ -113,9 +115,9 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
       source: e.from,
       target: e.to,
       label: e.label || undefined,
-      ariaLabel: lineName(model, e.from, e.to, e.label, e.both),
-      // Connections both ways: an arrowhead at each end (see Line).
-      ...(e.both ? { data: { both: true } } : {}),
+      ariaLabel: lineName(model, e.from, e.to, e.label, e.both, e.kind),
+      // Connections both ways: an arrowhead at each end. A look (see mergedLook): the line's pattern and marks. Line draws both.
+      ...(e.both || e.look ? { data: { ...(e.both ? { both: true } : {}), ...(e.look ? { look: e.look } : {}) } } : {}),
       className: classes(dimming && (lit ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineKey(e.from, e.to)) && 'problem'),
       ...(lit ? litLine : {}),
     }

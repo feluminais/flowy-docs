@@ -31,8 +31,11 @@ public enum EdgeFlags
     Lane = 64, // a lane of a branch this stop is not in: dashed and faint, not lit
 }
 
-/// <summary><c>Label</c> is null unless the line should show it now. <c>Both</c>: connections run both ways, so it has an arrowhead at each end.</summary>
-public sealed record SceneEdge(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Selected, bool Both = false);
+/// <summary>
+/// <c>Label</c> is null unless the line should show it now. <c>Both</c>: connections run both ways, so it has an arrowhead at each end. <c>Look</c> is how the line is
+/// drawn when it is not the plain line (the pattern and the marks of the kind its connections share, see <see cref="Kinds.MergedLook"/>), else null; a step's line has none.
+/// </summary>
+public sealed record SceneEdge(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Selected, bool Both = false, LineLook? Look = null);
 
 /// <summary>Everything the canvas draws for one view: boxes with places, lines, and the frame around the members when you are inside a box.</summary>
 public sealed record Scene(string View, string FrameName, IReadOnlyList<SceneBox> Boxes, IReadOnlyList<SceneEdge> Edges, Rect? Frame, IReadOnlyList<string> Members);
@@ -147,13 +150,13 @@ public static class SceneBuilder
             !dimming ? BoxMode.Normal : litBoxes.Contains(id) ? BoxMode.Lit : BoxMode.Dim,
             badBoxes.Contains(id)) { Icon = Look.IconData(model, model.Objects[id]) }).ToList();
 
-        var lines = new List<(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Both)>();
+        var lines = new List<(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Both, LineLook? Look)>();
         foreach (var e in computed.Edges)
         {
             var flags = EdgeFlags.None;
             if (dimming) flags |= IsLit(e.From, e.To) ? EdgeFlags.Active : IsFaint(e.From, e.To) ? EdgeFlags.Lane : EdgeFlags.Dim;
             if (badLines.Contains(LineId(e.From, e.To))) flags |= EdgeFlags.Problem;
-            lines.Add((LineId(e.From, e.To), e.From, e.To, e.Label == "" ? null : e.Label, flags, e.Both));
+            lines.Add((LineId(e.From, e.To), e.From, e.To, e.Label == "" ? null : e.Label, flags, e.Both, e.Look));
         }
         // A one-box step lights its box, no line. A step with no line it can ride gets a dashed line, and so does a faint one.
         var drawn = new HashSet<string>();
@@ -161,12 +164,12 @@ public static class SceneBuilder
         {
             var e = litEnds[n];
             if (e.From == e.To || Rides(e) || !drawn.Add(LineId(e.From, e.To))) continue;
-            lines.Add((n == 0 ? "step" : $"step-{n}", e.From, e.To, null, EdgeFlags.Step, false));
+            lines.Add((n == 0 ? "step" : $"step-{n}", e.From, e.To, null, EdgeFlags.Step, false, null));
         }
         foreach (var (i, e) in faintSteps)
         {
             if (e.From == e.To || Rides(e) || !drawn.Add(LineId(e.From, e.To))) continue;
-            lines.Add(($"lane-{i}", e.From, e.To, null, EdgeFlags.Lane, false));
+            lines.Add(($"lane-{i}", e.From, e.To, null, EdgeFlags.Lane, false, null));
         }
 
         var edges = lines.Select(e =>
@@ -176,7 +179,7 @@ public static class SceneBuilder
             var flags = e.Flags;
             if (focus.Box is not null && !touches) flags |= EdgeFlags.Faint;
             if (e.Id == focus.Hover) flags |= EdgeFlags.Hover;
-            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line, e.Both);
+            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line, e.Both, e.Look);
         }).ToList();
 
         var inner = sceneBoxes.Where(b => isMember.Contains(b.Id)).Select(b => b.Rect).ToList();

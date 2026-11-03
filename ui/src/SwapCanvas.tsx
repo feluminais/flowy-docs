@@ -8,6 +8,8 @@ import type { Problem } from '../../src/core/problem.ts'
 import { usesStates } from '../../src/core/states.ts'
 import { Box, ChangeMarksContext, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { KindKey } from './kinds.tsx'
+import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
 import { BOX, FRAME, fitOptions, isStepLine, lineId } from './graph.ts'
@@ -189,6 +191,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
             </ChangeMarksContext>
           </LabelSpots>
         </LineStyleContext>
+        <KindKey {...kindsOnScreen(edges)} />
       </div>
       <PanePlayer model={model} p={target} marks={marks?.[index]} />
     </section>
