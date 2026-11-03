@@ -164,3 +164,40 @@ test('Turning Repeat off and on while paused keeps the frozen moment', async ({ 
   await page.waitForTimeout(200)
   expect(await dot(page).getAttribute('transform', { timeout: 1000 })).toBe(frozen)
 })
+
+test('A click a few pixels off the bar still goes to the step and the moment under the pointer', async ({ page }) => {
+  await openFlow(page)
+  const cell = (await player(page).locator('.progress .cell[data-stop="1"]').boundingBox())!
+  await page.mouse.click(cell.x + cell.width / 2, cell.y - 6) // above the four-pixel cell
+  await expect(player(page)).toContainText('Step 2 of')
+  await button(page, 'Pause').or(button(page, 'Play')).waitFor()
+  const fill = Number(await player(page).locator('.progress .cell.now').evaluate(e => (e as HTMLElement).style.getPropertyValue('--fill')))
+  expect(fill).toBeGreaterThan(0.3) // from the middle of the step, not its start
+})
+
+test('The card keeps one size and one top edge through a flow', async ({ page }) => {
+  for (const path of ['/#ordering/place-order', '/#root/refund', '/#ordering/nobody-accepts']) {
+    await page.goto(path)
+    await player(page).waitFor()
+    const count = Number((await player(page).locator('.chips').textContent())!.match(/of (\d+)/)![1])
+    const seen = new Set<string>()
+    for (let k = 0; k < count; k++) {
+      await expect(player(page)).toContainText(`Step ${k + 1} of`)
+      const box = (await player(page).boundingBox())!
+      seen.add(`${Math.round(box.y)} ${Math.round(box.height)}`)
+      if (k < count - 1) await player(page).getByRole('button', { name: 'Next' }).click()
+    }
+    expect([...seen], path).toHaveLength(1)
+  }
+})
+
+test('Replay and Repeat stay on a step that does not move, greyed out', async ({ page }) => {
+  await page.goto('/#root/sms-dropped')
+  await player(page).waitFor()
+  for (let k = 0; k < 4; k++) await player(page).getByRole('button', { name: 'Next' }).click()
+  await expect(player(page)).toContainText('Step 5 of 5')
+  for (const name of ['Replay this step', 'Repeat']) {
+    await expect(player(page).getByRole('button', { name })).toBeDisabled()
+    await expect(player(page).getByRole('button', { name })).toHaveAttribute('title', 'Nothing moves on this step')
+  }
+})

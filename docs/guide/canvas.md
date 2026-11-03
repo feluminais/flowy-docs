@@ -44,7 +44,7 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
 - Ctrl+K or / (or Search) finds a shape anywhere in the model by name. Pick one and the canvas
   opens the level it's on, with its panel open.
 - The icons on the left edge open a panel with tabs. Explorer (O) shows everything as a tree, with
-  how many shapes are inside each (the number the canvas shows as "N inside") and how many flows play in it, a dot where something is wrong, and a filter. Point at a row's number for the full count ("7 inside, 13 in all, 12 flows"), which counts every level. It sorts as
+  how many shapes are inside each (the number the canvas shows as "N inside") and how many flows play in it, a dot where something is wrong, and a filter. Point at a row's number for the full count ("7 inside, 13 in all, 13 flows"), which counts every level. It sorts as
   VS Code's Explorer does: shapes that hold others first, then the rest, each by name in any case, and
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
   or a double-click zooms into it, and the tree follows you as you zoom. Under the tree, **Drafts** lists the model's drafts
@@ -77,7 +77,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   In the browser the step plays again two and a half seconds after it ends, until you move on (the Repeat button on the card turns that off),
   R plays it again from the start, and Play (P) steps through the flow on its own after the first play. Pause (P again) holds
   everything where it is, the moving dot, a channel coming in and a shape's state included, and Play carries on from there. The bar
-  on the card can be dragged to any moment of any step, and the buttons beside Stop set the speed: 0.5×, 1× or 2×. The browser keeps
+  on the card can be clicked or dragged to any moment of any step, and the buttons beside Stop set the speed: 0.5×, 1× or 2×. The card keeps
+  the size of its tallest step, so its edge and its buttons stay put, and on a step that doesn't move Replay (and in the browser Repeat) is greyed out. The browser keeps
   the speed for your next visit; the desktop app keeps it until it closes. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays each step once.
