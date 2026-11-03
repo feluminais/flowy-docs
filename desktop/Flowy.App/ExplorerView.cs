@@ -328,8 +328,16 @@ internal sealed class ExplorerView : Grid
         else if (row.Id == Names.Root) icon = Icons.Make(Icons.Home, "navicon", 16);
         else icon = Chrome.ObjectTile(model, model.GetObject(row.Id), 18);
         icon.VerticalAlignment = VerticalAlignment.Center;
-        var name = new TextBlock { Text = row.Name, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center };
+        // Left, so only the name takes a drag as a selection and the rest of the row picks on press.
+        var name = new SelectableTextBlock { Text = row.Name, TextTrimming = TextTrimming.CharacterEllipsis, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
         name.Classes.Add("treename");
+        // A click on the name picks on release, and a drag that selected some of it picks nothing: a pick fills the list again, which would drop the name being dragged across.
+        name.PointerReleased += (_, e) =>
+        {
+            if (e.InitialPressMouseButton != MouseButton.Left || name.SelectionStart != name.SelectionEnd) return;
+            _focus = row.Key;
+            Picked?.Invoke(row);
+        };
         name.Classes.Set("sel", row.Key == _current);
         name.Classes.Set("dim", !row.Match);
         var dot = new Border { Width = 7, Height = 7, CornerRadius = new CornerRadius(4), IsVisible = row.Problem, VerticalAlignment = VerticalAlignment.Center };
@@ -366,7 +374,7 @@ internal sealed class ExplorerView : Grid
         AutomationProperties.SetName(border, Outlines.RowCountWords(row) is { Length: > 0 } words ? $"{row.Name}, {words}" : row.Name);
         border.PointerPressed += (_, e) =>
         {
-            if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed) return;
+            if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed || ReferenceEquals(e.Source, name)) return;
             _focus = row.Key;
             Picked?.Invoke(row);
         };
