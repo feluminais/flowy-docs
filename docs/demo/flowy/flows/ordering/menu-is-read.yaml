@@ -5,7 +5,7 @@ groups:
   lookup:
     kind: branch
 steps:
-  - { from: customer, to: customer-app, text: Opens a restaurant, animation: { kind: send, carries: tap } }
+  - { from: customer, to: customer-app, text: Opens a restaurant, animation: { kind: send, carries: restaurant } }
   - { from: customer-app, to: menu, text: Asks for a restaurant's menu, animation: { kind: call, carries: GET /menus } }
   - { from: menu, to: menu-cache, text: Looks the menu up, animation: { kind: call, carries: menu r_42 } }
   - from: menu-cache
