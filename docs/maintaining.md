@@ -379,7 +379,8 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Pick 2×:
       a step plays in about half the time, and the speed is still 2× after a reload (the browser) or for the next flow (the desktop app).
       Click a few pixels above a cell of the bar: the card goes to that step and moment. Step through Support refunds an order: the card's top edge and its
-      buttons never move, and on its last step Replay is greyed out with "Nothing moves on this step". Both readers.
+      buttons never move, and on its last step Repeat is greyed out with "Nothing moves on this step". The buttons read Back, Play, Next. On step 2 of
+      "Customer places an order", Back plays the step again and a second click within two seconds goes to step 1; with Play on, Back or Next ends it. Both readers.
 - [ ] Open *Effects* (`#steps/effects`) and press P: the label of each of four steps runs from Effects · from to Effects · to, down a slope, doing what its word says. squish stretches
       along the line, bounce hops, pulse swells and settles, and wiggle rocks from side to side. Whatever it does, the pill stays level and whole: never sheared, one end up and
       one end down, and its words are never stretched. A step with no `effect` (Send with a word) keeps its shape. In the desktop app the same. The `effect` key is for fun

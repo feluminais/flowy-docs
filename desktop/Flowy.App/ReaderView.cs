@@ -212,7 +212,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.ScrubStart += _playback.ScrubStart;
         _player.ScrubTo += _playback.ScrubTo;
         _player.ScrubEnd += _playback.ScrubEnd;
-        _player.Replay += _playback.Replay;
+        _player.Replay += () =>
+        {
+            _playback.StopAuto(); // as any step you take does
+            _playback.Replay();
+        };
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;
 

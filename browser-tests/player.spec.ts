@@ -192,13 +192,64 @@ test('The card keeps one size and one top edge through a flow', async ({ page })
   }
 })
 
-test('Replay and Repeat stay on a step that does not move, greyed out', async ({ page }) => {
+test('Repeat stays on a step that does not move, greyed out, and Back goes straight to the step before', async ({ page }) => {
   await page.goto('/#root/sms-dropped')
   await player(page).waitFor()
   for (let k = 0; k < 4; k++) await player(page).getByRole('button', { name: 'Next' }).click()
   await expect(player(page)).toContainText('Step 5 of 5')
-  for (const name of ['Replay this step', 'Repeat']) {
-    await expect(player(page).getByRole('button', { name })).toBeDisabled()
-    await expect(player(page).getByRole('button', { name })).toHaveAttribute('title', 'Nothing moves on this step')
-  }
+  const repeat = player(page).getByRole('button', { name: 'Repeat' })
+  await expect(repeat).toBeDisabled()
+  await expect(repeat).toHaveAttribute('title', 'Nothing moves on this step')
+  await player(page).getByRole('button', { name: 'Back', exact: true }).click()
+  await expect(player(page)).toContainText('Step 4 of 5')
+})
+
+const back = (page: Page) => player(page).getByRole('button', { name: 'Back', exact: true })
+/** The dots of the step on show have gone: its motion is over. */
+const settled = (page: Page) => expect(page.locator('.motion g[data-beat]:has(> .blob):visible')).toHaveCount(0, { timeout: 8000 })
+
+test('Back plays a step that moves again, and a second click goes to the step before', async ({ page }) => {
+  await openFlow(page)
+  await player(page).getByRole('button', { name: 'Repeat' }).click() // off: a step that has played holds its end
+  await player(page).getByRole('button', { name: 'Next' }).click()
+  await expect(player(page)).toContainText('Step 2 of')
+  await settled(page)
+  await expect(back(page)).toHaveAttribute('title', 'Replay the step, twice for the one before')
+  await back(page).click()
+  await expect(dot(page)).toBeVisible() // its dot runs again
+  await expect(player(page)).toContainText('Step 2 of')
+  await back(page).click()
+  await expect(player(page)).toContainText('Step 1 of')
+})
+
+test('Back on the first step plays it again', async ({ page }) => {
+  await openFlow(page)
+  await player(page).getByRole('button', { name: 'Repeat' }).click()
+  await settled(page)
+  await expect(back(page)).toBeEnabled()
+  await back(page).click()
+  await back(page).click()
+  await expect(dot(page)).toBeVisible()
+  await expect(player(page)).toContainText('Step 1 of')
+})
+
+test('Back and Next end Play', async ({ page }) => {
+  await openFlow(page)
+  await button(page, 'Play').click()
+  await player(page).getByRole('button', { name: 'Next' }).click()
+  await expect(player(page)).toContainText('Step 2 of')
+  await settled(page)
+  await page.waitForTimeout(2500) // longer than the rest between steps
+  await expect(player(page)).toContainText('Step 2 of')
+  await button(page, 'Play').click()
+  await back(page).click()
+  await settled(page)
+  await page.waitForTimeout(2500)
+  await expect(player(page)).toContainText('Step 2 of')
+})
+
+test('Play sits between Back and Next', async ({ page }) => {
+  await openFlow(page)
+  const names = await player(page).locator('.player-buttons > button').evaluateAll(bs => bs.slice(0, 3).map(b => b.textContent?.trim()))
+  expect(names).toEqual(['Back', 'PausePlay', 'Next'])
 })
