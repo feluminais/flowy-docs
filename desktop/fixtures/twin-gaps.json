@@ -283,6 +283,7 @@
     "undoesMove"
   ],
   "ui/src/levels": [
+    "backFrom",
     "cameBack",
     "remember"
   ],
