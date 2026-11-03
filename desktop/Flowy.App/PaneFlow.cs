@@ -42,7 +42,11 @@ internal sealed class PaneFlow
         _player.ScrubStart += _playback.ScrubStart;
         _player.ScrubTo += _playback.ScrubTo;
         _player.ScrubEnd += _playback.ScrubEnd;
-        _player.Replay += _playback.Replay;
+        _player.Replay += () =>
+        {
+            _playback.StopAuto(); // as any step you take does
+            _playback.Replay();
+        };
     }
 
     /// <summary>The flow was drawn (its name may be new): the pane's title follows.</summary>
