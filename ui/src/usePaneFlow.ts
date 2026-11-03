@@ -50,7 +50,7 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
   const pipes = animated.filter(m => !still || leavesMarks(m.animation)).map(m => lineId(m.placed[0], m.placed[1])).join('\n')
   const edges = useMemo(() => {
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
-    return focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
+    return focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { ...e.data, lift: true } } : e))
   }, [graph, selectedBox, selectedLine, hovered, pipes])
   const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
   const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])

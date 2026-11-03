@@ -49,6 +49,14 @@ public class CanvasLoadTests
     }
 
     [AvaloniaFact]
+    public void An_arrowhead_grows_with_the_traffic_width_only_as_in_the_browser()
+    {
+        Assert.Equal(1, BackLayer.HeadScaleOf(null)); // no load: the usual head, whether the line is picked or lit or not
+        Assert.Equal(1, BackLayer.HeadScaleOf(1.2)); // a quiet line keeps the usual head
+        Assert.Equal(1.549, BackLayer.HeadScaleOf(6)); // the thickest a load makes a line
+    }
+
+    [AvaloniaFact]
     public void A_load_outlines_the_shapes_it_measured_and_numbers_the_queue_and_leaves_the_rest_plain()
     {
         var (canvas, folder) = Open();

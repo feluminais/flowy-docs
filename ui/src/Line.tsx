@@ -1,8 +1,9 @@
-import { createContext, memo, useContext, useLayoutEffect, useRef, useSyncExternalStore } from 'react'
+import { createContext, memo, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { BaseEdge, EdgeLabelRenderer, getBezierPath, getSmoothStepPath, getStraightPath, Position, useInternalNode } from '@xyflow/react'
 import type { Edge, EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import type { Mark } from '../../src/core/failures.ts'
+import { endsOfPath, HEAD_PATH, headMatrix, headScale } from '../../src/core/heads.ts'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { ChangeMarksContext, FailBadge } from './Box.tsx'
@@ -144,12 +145,32 @@ export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode):
 /** The path of a recursion's loop pipe for one box, out of its right side and back in (the same in every line style). */
 export const loopPath = (n: InternalNode): string => loopAround(rect(n), outline(n))
 
+/** The usual thickness of a line, which the head's size is measured against (the stylesheet makes a picked or a lit line a little thicker, which the head ignores). */
+const USUAL_WIDTH = 1.5
+
+/**
+ * The arrowheads of a line: one on its end, and one on its start when it carries connections both ways. Flowy draws them itself (src/core/heads.ts), so they are the
+ * same size as on the desktop and the stylesheet colours them with the line (`.head` beside every rule for `.react-flow__edge-path`). They take no clicks.
+ */
+const Heads = memo(function Heads({ path, both, hot, width }: { path: string; both: boolean; hot: boolean; width: number | undefined }) {
+  const ends = useMemo(() => endsOfPath(path), [path])
+  if (!ends) return null
+  const scale = headScale(width ?? USUAL_WIDTH)
+  const className = hot ? 'head hot' : 'head'
+  return (
+    <>
+      <path className={className} d={HEAD_PATH} transform={`matrix(${headMatrix(ends.end, ends.endDir, scale).join(' ')})`} />
+      {both && <path className={className} d={HEAD_PATH} transform={`matrix(${headMatrix(ends.start, ends.startDir, scale).join(' ')})`} />}
+    </>
+  )
+})
+
 /**
  * A line between two boxes. Straight lines go edge to edge, whichever sides face each other: the boxes
  * sit above, beside and below the members, so lines that always left at the bottom would loop around.
  * Curved and right-angled lines leave from the middle of the facing side.
  */
-export const Line = memo(function Line({ id, source, target, label, markerStart, markerEnd, interactionWidth, data }: EdgeProps) {
+export const Line = memo(function Line({ id, source, target, label, interactionWidth, data }: EdgeProps) {
   const style = useContext(LineStyleContext)
   const width = useContext(LineWidthsContext).get(id)
   const mark = useContext(LineMarksContext).get(id)
@@ -172,7 +193,8 @@ export const Line = memo(function Line({ id, source, target, label, markerStart,
   return (
     <>
       {change && <path className="change-line" data-change={change} d={path} fill="none" />}
-      <BaseEdge id={id} path={path} className={hot ? 'hot' : undefined} label={text} labelX={labelX} labelY={labelY} markerStart={markerStart} markerEnd={markerEnd} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
+      <BaseEdge id={id} path={path} className={hot ? 'hot' : undefined} label={text} labelX={labelX} labelY={labelY} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
+      <Heads path={path} both={data?.both === true} hot={hot} width={width} />
       {mark && (
         <EdgeLabelRenderer>
           <FailBadge mark={mark} line={`${nameOfNode(a, source)} to ${nameOfNode(b, target)}`} className="line" style={{ transform: `translate(-50%, -150%) translate(${x}px, ${y}px)` }} />

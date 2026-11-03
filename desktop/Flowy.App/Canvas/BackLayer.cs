@@ -284,25 +284,24 @@ internal sealed class BackLayer : Control
         }
         context.DrawGeometry(null, new Pen(brush, thickness, dash, PenLineCap.Flat), line.Geometry);
 
-        // The arrowhead: a closed triangle on the end, pointing along the line. A line with connections both ways has one on its start too.
-        DrawArrow(context, brush, line.Path.End, line.Path.Direction);
-        if (e.Both) DrawArrow(context, brush, line.Path.Start, line.Path.StartDirection);
+        // The arrowhead is Flowy's own shape (Heads), in the line's colour, as big as the browser draws it: scaled by the traffic width alone, which being picked or lit
+        // does not change. A line with connections both ways has one on its start too.
+        var scale = HeadScaleOf(WidthOf(e.Id));
+        DrawEnd(context, brush, line.Path.End, line.Path.Direction, scale);
+        if (e.Both) DrawEnd(context, brush, line.Path.Start, line.Path.StartDirection, scale);
     }
 
-    private static void DrawArrow(DrawingContext context, IBrush brush, CorePt end, CorePt dir)
+    /// <summary>The arrowhead's shape, parsed once: the same triangle the browser draws (Heads.Path).</summary>
+    private static readonly Geometry HeadShape = Geometry.Parse(Heads.Path);
+
+    /// <summary>How much bigger than usual a head is on a line a load's traffic gave this width (null: the usual 1.5 thick, scale 1), as the browser's Heads in Line.tsx.</summary>
+    internal static double HeadScaleOf(double? traffic) => Heads.Scale(traffic ?? 1.5);
+
+    private static void DrawEnd(DrawingContext context, IBrush brush, CorePt end, CorePt dir, double scale)
     {
-        var tip = new Point(end.X, end.Y);
-        var back = new Point(end.X - dir.X * 10, end.Y - dir.Y * 10);
-        var side = new Vector(-dir.Y * 4.5, dir.X * 4.5);
-        var arrow = new StreamGeometry();
-        using (var g = arrow.Open())
-        {
-            g.BeginFigure(tip, true);
-            g.LineTo(back + side);
-            g.LineTo(back - side);
-            g.EndFigure(true);
-        }
-        context.DrawGeometry(brush, null, arrow);
+        var m = Heads.Matrix(end, dir, scale);
+        using (context.PushTransform(new Matrix(m.A, m.B, m.C, m.D, m.E, m.F)))
+            context.DrawGeometry(brush, null, HeadShape);
     }
 
     private static FormattedText Format(SceneEdge e, string text, IBrush brush) =>

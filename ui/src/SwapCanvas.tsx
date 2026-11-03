@@ -160,7 +160,6 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
                 edgeTypes={edgeTypes}
                 minZoom={0.2}
                 colorMode={colorMode}
-                defaultMarkerColor="var(--edge)"
                 nodesDraggable={false}
                 nodesConnectable={false}
                 zoomOnDoubleClick={false}
