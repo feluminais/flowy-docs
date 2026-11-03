@@ -516,6 +516,23 @@ internal sealed class PlayerCard : Border
         _reserve = (tallestTop, tallestColumn);
     }
 
+    private double? _playWidth;
+
+    /// <summary>The width of the Play button saying Pause or Play, whichever is wider: both are put on the card for a moment and measured, once.</summary>
+    private double PlayWidth()
+    {
+        if (_playWidth is { } known) return known;
+        var pause = Tool(Icons.Pause, "Pause", () => { });
+        var play = Tool(Icons.Play, "Play", () => { });
+        var probe = new StackPanel { Orientation = Orientation.Horizontal, Children = { pause, play } };
+        Child = probe;
+        probe.Measure(Size.Infinity);
+        Child = null;
+        var widest = Math.Ceiling(Math.Max(pause.DesiredSize.Width, play.DesiredSize.Width));
+        if (widest > 0) _playWidth = widest; // measured before the card has its styles, it is left to be measured again
+        return widest;
+    }
+
     /// <summary>What the card shows of one stop above its buttons: the trail back and the chips (<c>Top</c>), then the legend, the group's words, the bar, the keys and each step.</summary>
     private (StackPanel Top, StackPanel Column) Parts(PlayerView v)
     {
@@ -616,6 +633,7 @@ internal sealed class PlayerCard : Border
             else GreyedWith(back, tip);
         }
         var play = v.ShowsPause ? Tool(Icons.Pause, "Pause", () => Play?.Invoke()) : Tool(Icons.Play, "Play", () => Play?.Invoke());
+        play.MinWidth = PlayWidth(); // as wide as its longer word, so the buttons after it stay put when it changes
         ToolTip.SetTip(play, v.ShowsPause ? "Pause (P)" : "Play (P)");
         var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { back, play, Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true) } };
         var speeds = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(8, 0, 0, 0) };
