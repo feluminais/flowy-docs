@@ -73,7 +73,10 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `from` | The id of the object it starts at |
 | `to` | The id of the object it goes to. Not the same as `from` |
 | `label` | A few words, a verb and what moves: `reads menus`. Optional but wanted. The same `from`, `to` and `label` can't repeat |
+| `kind` | How the two talk, drawn on the line: `request`, `stream`, `publish`, `cached`, `object` or `extension`. Optional: left out, the line is plain. A word that is none of these draws plain and is a problem |
 | `payloads` | A list of what the line carries, at most 12: payload ids, or payloads written out in place with a `name` |
+
+A kind sets the pattern of a line and the mark at each end. It never changes the colour or the width. The app shows the six as Request and reply (`request`), Request then stream (`stream`), Publish and subscribe (`publish`), Cached publish (`cached`), Object updates (`object`) and Extension point (`extension`); a connection with no kind is a Plain line. `from` starts a connection and `to` receives it. For `publish`, `cached` and `object`, `from` is the publisher. For `extension`, `from` is the host that calls and `to` is what plugs into it. A line that stands for several connections (the model shows one line for each pair of shapes) shows their kind when they all share it, and is plain when they differ. The line's panel lists each connection with its own mark.
 
 ### Payloads
 
@@ -218,7 +221,7 @@ one entry and leaves the rest of the file as it is), and a tool that writes a ru
 | An object and everything on it (`type`, `name`, `in`, `external`, `shape`, `color`, `opacity`, `icon`, `tech`, `description`, `code`, `links`, `snippets`, `data`) | `put_object` |
 | The system's `name` and `about` | `put_project` |
 | A custom icon | `put_icon` |
-| A connection, and the `payloads` it carries | `connect`, `disconnect`, `set_payloads` |
+| A connection, its `kind`, and the `payloads` it carries | `connect`, `disconnect`, `set_kind`, `set_payloads` |
 | A payload under `payloads` | `put_payload`, `delete_payload` |
 | A flow, with its groups, states, animations and each step's `payload` and `reply` | `put_flow` |
 | A failure analysis, or one mode of it | `put_failures`, `put_failure` |

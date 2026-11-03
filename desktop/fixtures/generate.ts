@@ -16,6 +16,7 @@ import { dumpUsedBy } from './usedby.ts'
 import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
+import { dumpKinds } from './kinds.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
@@ -61,6 +62,7 @@ await write('state-folds', await dumpStates())
 await write('channel-folds', await dumpChannels())
 await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
+await write('kinds', dumpKinds())
 await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())
 await write('flow-diffs', await dumpFlowDiffs())

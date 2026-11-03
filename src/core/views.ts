@@ -1,11 +1,14 @@
+import { lookOf, mergedLook, sharedKind } from './kinds.ts'
+import type { KindId, LineLook } from './kinds.ts'
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 
 /**
  * One line between two shapes of a view, whichever way their connections run. `from` and `to` are the way the first of them runs; `both` is
- * set when some run the other way too, and the line gets an arrowhead at each end.
+ * set when some run the other way too, and the line gets an arrowhead at each end. `kind` is the kind all its connections share, and `look` how the
+ * line is drawn when that is not the plain line (see mergedLook in kinds.ts); both are left out otherwise, so a model with no kinds is unchanged.
  */
-export type Edge = { from: string; to: string; label: string; count: number; both?: true }
+export type Edge = { from: string; to: string; label: string; count: number; both?: true; kind?: KindId; look?: LineLook }
 export type View = { id: string; members: string[]; outsiders: string[]; edges: Edge[] }
 
 /** The view an object sits in: its parent, or root when it has none or a broken one (missing, or itself). */
@@ -166,11 +169,19 @@ export function computeView(model: Model, v: string): View {
   const outsiders: string[] = []
   const seenOutside = new Set<string>()
   const edges = new Map<string, Edge>()
+  // The connections each line stands for, for its kind and look. A model with no kind anywhere has nothing to work out.
+  const kinded = model.connections.some(c => c.kind !== undefined)
+  const joined = new Map<string, Model['connections']>()
   for (const c of model.connections) {
     const ends = placeEnds(model, v, c.from, c.to)
     if (!ends) continue
     for (const end of ends) if (!inView.has(end) && !seenOutside.has(end)) { seenOutside.add(end); outsiders.push(end) }
     const key = lineKey(...ends)
+    if (kinded) {
+      const same = joined.get(key)
+      if (same) same.push(c)
+      else joined.set(key, [c])
+    }
     const edge = edges.get(key)
     if (edge) {
       edge.count++
@@ -179,6 +190,13 @@ export function computeView(model: Model, v: string): View {
     } else edges.set(key, { from: ends[0], to: ends[1], label: typeof c.label === 'string' ? c.label : '', count: 1 })
   }
   for (const id of flowActors(model, v)) if (!seenOutside.has(id)) { seenOutside.add(id); outsiders.push(id) }
+  if (kinded) for (const [key, edge] of edges) {
+    const connections = joined.get(key)!
+    const kind = sharedKind(connections)
+    const look = mergedLook(connections.map(lookOf), edge.both === true)
+    if (kind !== undefined) edge.kind = kind
+    if (look !== undefined) edge.look = look
+  }
   return { id: v, members, outsiders, edges: [...edges.values()] }
 }
 

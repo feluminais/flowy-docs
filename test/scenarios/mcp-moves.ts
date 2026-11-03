@@ -92,7 +92,10 @@ const deleteSomething: McpMaker = ({ model, runs }, rng) => {
     ...Object.entries(model.failures).flatMap(([aid, a]) => ids(a.modes).map((mid): Move => ({ op: 'delete_failure', label: `deleteMode ${aid}/${mid}`, call: { tool: 'delete_failure', args: { analysis: aid, id: mid } }, run: m => ops.deleteMode(m, aid, mid) }))),
     ...model.connections.map((c): Move => ({ op: 'disconnect', label: `disconnect ${c.from} → ${c.to}`, call: { tool: 'disconnect', args: { from: c.from, to: c.to } }, run: m => ops.disconnect(m, { from: c.from, to: c.to }) })),
   ]
-  for (const move of rng.some(candidates, 10)) {
+  // One kind of delete at a time, or the shapes (most of the candidates) crowd out the flows, the analyses and the modes.
+  const families = [...new Set(candidates.map(c => c.op))]
+  const family = families.length === 0 ? undefined : rng.pick(families)
+  for (const move of rng.some(candidates.filter(c => c.op === family), 10)) {
     try {
       refuseNewProblems(model, move.run(model), undefined, runs)
     } catch {

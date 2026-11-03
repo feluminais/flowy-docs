@@ -1,3 +1,4 @@
+import { KIND_IDS } from '../../src/core/kinds.ts'
 import * as ops from '../../src/core/ops.ts'
 import { OBJECT_TYPES } from '../../src/core/model.ts'
 import type { Model, Step } from '../../src/core/model.ts'
@@ -266,7 +267,8 @@ export const MAKERS: Record<string, Maker> = {
     return { op: 'placeBoxes', label: `placeBoxes ${view} ${Object.keys(boxes).join(',')}`, run: model => ops.placeBoxes(model, view, boxes) }
   },
   forgetLayout: (m, rng) => {
-    const view = rng.pick(['root', ...Object.keys(m.layout), 'ghost'])
+    // Mostly a view that can be forgotten, so the op is accepted however the dice fall; now and then one that is not there.
+    const view = rng.chance(0.1) ? 'ghost' : rng.pick(['root', ...Object.keys(m.layout)])
     return { op: 'forgetLayout', label: `forgetLayout ${view}`, run: model => ops.forgetLayout(model, view) }
   },
   setLines: (_, rng) => {
@@ -296,6 +298,17 @@ export const MAKERS: Record<string, Maker> = {
     return {
       op: 'setLinePayloads', label: `setLinePayloads ${which.from} → ${which.to}`, call: { tool: 'set_payloads', args: { ...which, payloads } },
       run: model => ops.setLinePayloads(model, which, payloads),
+    }
+  },
+  setKind: (m, rng) => {
+    const c = m.connections.length === 0 || rng.chance(0.08) ? { from: 'ghost', to: 'ghost' } : rng.pick(m.connections)
+    const which = { from: String(c.from), to: String(c.to), ...(typeof c.label === 'string' ? { label: c.label } : {}) }
+    // Mostly one of the six or none; now and then a word that is no kind, which is refused.
+    const kind = rng.chance(0.08) ? rng.pick(HOSTILE) : rng.pick(['', ...KIND_IDS])
+    return {
+      op: 'setKind', label: `setKind ${which.from} → ${which.to} to "${kind}"`, call: { tool: 'set_kind', args: { ...which, kind } },
+      run: model => ops.setKind(model, which, kind),
+      expect: (_, after) => (kind === '' || after.connections.some(x => x.from === which.from && x.to === which.to && x.kind === kind) ? undefined : 'the kind was not set'),
     }
   },
   deleteIcon: (m, rng) => {

@@ -862,6 +862,280 @@
     },
     {
       "spec": {
+        "op": "connect",
+        "from": "api",
+        "to": "pay",
+        "label": "notifies",
+        "kind": "publish"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "pay",
+        "label": "pays",
+        "kind": "cached",
+        "payloads": [
+          "receipt"
+        ]
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "db",
+        "label": "asks",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "db",
+        "label": "asks again",
+        "kind": "rpc"
+      },
+      "error": "unknown kind \"rpc\" (use request, stream, publish, cached, object, extension)"
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "nowhere",
+        "kind": "rpc"
+      },
+      "error": "unknown object \"nowhere\""
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "request"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: request\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "stream"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "api",
+        "to": "pay",
+        "which": "charges",
+        "kind": "extension"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "customer",
+        "to": "web",
+        "which": "",
+        "kind": "object"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "pay",
+        "which": "pays",
+        "kind": "publish"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "rpc"
+      },
+      "error": "unknown kind \"rpc\" (use request, stream, publish, cached, object, extension)"
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "Request"
+      },
+      "error": "unknown kind \"Request\" (use request, stream, publish, cached, object, extension)"
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "nope",
+        "kind": "rpc"
+      },
+      "error": "no connection web → api labelled \"nope\""
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "api",
+        "to": "pay",
+        "which": "charges",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "customer",
+        "to": "web",
+        "which": "",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeConnection",
+        "from": "api",
+        "to": "pay",
+        "which": "notifies"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeConnection",
+        "from": "web",
+        "to": "pay",
+        "which": "pays"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeConnection",
+        "from": "web",
+        "to": "db",
+        "which": "asks"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
         "op": "putFlow",
         "id": "pay",
         "name": "Customer pays",

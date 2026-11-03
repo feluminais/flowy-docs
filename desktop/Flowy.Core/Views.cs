@@ -6,9 +6,10 @@ namespace Flowy.Core;
 /// <summary>A line as a view draws it. Several connections between the same two boxes merge into one, labelled "N connections".</summary>
 /// <summary>
 /// One line between two shapes of a view, whichever way their connections run. <c>From</c> and <c>To</c> are the way the first of them runs;
-/// <c>Both</c> is set when some run the other way too, and the line gets an arrowhead at each end.
+/// <c>Both</c> is set when some run the other way too, and the line gets an arrowhead at each end. <c>Kind</c> is the kind all its connections share, and <c>Look</c> how
+/// the line is drawn when that is not the plain line (see <see cref="Kinds.MergedLook"/>); both are null otherwise, so a model with no kinds is unchanged.
 /// </summary>
-public sealed record Edge(string From, string To, string Label, int Count, bool Both = false);
+public sealed record Edge(string From, string To, string Label, int Count, bool Both = false, string? Kind = null, LineLook? Look = null);
 
 /// <summary>What one level shows: the boxes inside it, the boxes elsewhere that its lines reach, and the lines.</summary>
 public sealed record View(string Id, IReadOnlyList<string> Members, IReadOnlyList<string> Outsiders, IReadOnlyList<Edge> Edges);
@@ -154,12 +155,20 @@ public static class Views
         var outsiders = new List<string>();
         var order = new List<string>();
         var edges = new Dictionary<string, Edge>();
+        // The connections each line stands for, for its kind and look. A model with no kind anywhere has nothing to work out.
+        var kinded = model.Connections.Any(c => c.Kind is not null);
+        var joined = new Dictionary<string, List<Connection>>();
         foreach (var c in model.Connections)
         {
             if (PlaceEnds(model, view, c.From, c.To) is not { } ends) continue;
             foreach (var end in new[] { ends.From, ends.To })
                 if (known.Add(end)) outsiders.Add(end);
             var key = LineKey(ends.From, ends.To);
+            if (kinded)
+            {
+                if (joined.TryGetValue(key, out var same)) same.Add(c);
+                else joined[key] = [c];
+            }
             if (edges.TryGetValue(key, out var edge))
             {
                 var count = edge.Count + 1;
@@ -172,6 +181,12 @@ public static class Views
             }
         }
         foreach (var id in FlowActors(model, view)) if (known.Add(id)) outsiders.Add(id);
+        if (kinded)
+            foreach (var (key, connections) in joined)
+            {
+                var edge = edges[key];
+                edges[key] = edge with { Kind = Kinds.SharedKind(connections), Look = Kinds.MergedLook([.. connections.Select(Kinds.LookOf)], edge.Both) };
+            }
         return new View(view, members, outsiders, order.Select(k => edges[k]).ToList());
     }
 

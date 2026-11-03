@@ -1,0 +1,1457 @@
+{
+  "ids": [
+    "request",
+    "stream",
+    "publish",
+    "cached",
+    "object",
+    "extension"
+  ],
+  "list": "request, stream, publish, cached, object, extension",
+  "plainName": "Plain line",
+  "plain": {
+    "pattern": "solid",
+    "head": "filled",
+    "tail": "none"
+  },
+  "kinds": [
+    {
+      "id": "request",
+      "name": "Request and reply",
+      "look": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "open"
+      },
+      "lookOfKind": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "open"
+      },
+      "plainLook": false
+    },
+    {
+      "id": "stream",
+      "name": "Request then stream",
+      "look": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "double"
+      },
+      "lookOfKind": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "double"
+      },
+      "plainLook": false
+    },
+    {
+      "id": "publish",
+      "name": "Publish and subscribe",
+      "look": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "none"
+      },
+      "lookOfKind": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "none"
+      },
+      "plainLook": false
+    },
+    {
+      "id": "cached",
+      "name": "Cached publish",
+      "look": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "ring"
+      },
+      "lookOfKind": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "ring"
+      },
+      "plainLook": false
+    },
+    {
+      "id": "object",
+      "name": "Object updates",
+      "look": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "diamond"
+      },
+      "lookOfKind": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "diamond"
+      },
+      "plainLook": false
+    },
+    {
+      "id": "extension",
+      "name": "Extension point",
+      "look": {
+        "pattern": "dashdot",
+        "head": "filled",
+        "tail": "none"
+      },
+      "lookOfKind": {
+        "pattern": "dashdot",
+        "head": "filled",
+        "tail": "none"
+      },
+      "plainLook": false
+    }
+  ],
+  "noKind": {
+    "lookOfKind": {
+      "pattern": "solid",
+      "head": "filled",
+      "tail": "none"
+    },
+    "plainLook": true
+  },
+  "same": [
+    {
+      "look": "plain",
+      "row": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "look": "request",
+      "row": [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "look": "stream",
+      "row": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "look": "publish",
+      "row": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "look": "cached",
+      "row": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "look": "object",
+      "row": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "look": "extension",
+      "row": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true,
+        false
+      ]
+    },
+    {
+      "look": "dashed ring",
+      "row": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ]
+    },
+    {
+      "look": "dashed filled",
+      "row": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true,
+        false
+      ]
+    },
+    {
+      "look": "dashed double",
+      "row": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  ],
+  "words": [
+    {
+      "value": "request",
+      "isKind": true,
+      "kind": "request"
+    },
+    {
+      "value": "stream",
+      "isKind": true,
+      "kind": "stream"
+    },
+    {
+      "value": "publish",
+      "isKind": true,
+      "kind": "publish"
+    },
+    {
+      "value": "cached",
+      "isKind": true,
+      "kind": "cached"
+    },
+    {
+      "value": "object",
+      "isKind": true,
+      "kind": "object"
+    },
+    {
+      "value": "extension",
+      "isKind": true,
+      "kind": "extension"
+    },
+    {
+      "value": "rpc",
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": "Request",
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": " request",
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": "request ",
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": "",
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": "toString",
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": "__proto__",
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": 3,
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": null,
+      "isKind": false,
+      "kind": null
+    },
+    {
+      "value": [
+        "request"
+      ],
+      "isKind": false,
+      "kind": null
+    }
+  ],
+  "shared": [
+    {
+      "connections": [
+        {
+          "kind": "request"
+        },
+        {
+          "kind": "request"
+        }
+      ],
+      "kind": "request"
+    },
+    {
+      "connections": [
+        {
+          "kind": "request"
+        },
+        {}
+      ],
+      "kind": null
+    },
+    {
+      "connections": [
+        {
+          "kind": "request"
+        },
+        {
+          "kind": "stream"
+        }
+      ],
+      "kind": null
+    },
+    {
+      "connections": [
+        {
+          "kind": "rpc"
+        },
+        {
+          "kind": "rpc"
+        }
+      ],
+      "kind": null
+    },
+    {
+      "connections": [],
+      "kind": null
+    }
+  ],
+  "dashes": {
+    "solid": [],
+    "dashdot": [
+      10,
+      4,
+      2,
+      4
+    ]
+  },
+  "marks": [
+    {
+      "shape": "filled",
+      "paint": "fill",
+      "width": 0,
+      "path": "M0 0L-10 -4.5L-10 4.5Z",
+      "scaled": [
+        {
+          "scale": 1,
+          "path": "M0 0L-10 -4.5L-10 4.5Z",
+          "stroke": 0
+        },
+        {
+          "scale": 1.2,
+          "path": "M0 0L-12 -5.4L-12 5.4Z",
+          "stroke": 0
+        },
+        {
+          "scale": 1.549,
+          "path": "M0 0L-15.49 -6.97L-15.49 6.97Z",
+          "stroke": 0
+        },
+        {
+          "scale": 1.333,
+          "path": "M0 0L-13.33 -5.998L-13.33 5.999Z",
+          "stroke": 0
+        }
+      ]
+    },
+    {
+      "shape": "open",
+      "paint": "stroke",
+      "width": 1.75,
+      "path": "M-9.5 -4L-1.5 0L-9.5 4",
+      "scaled": [
+        {
+          "scale": 1,
+          "path": "M-9.5 -4L-1.5 0L-9.5 4",
+          "stroke": 1.75
+        },
+        {
+          "scale": 1.2,
+          "path": "M-11.4 -4.8L-1.8 0L-11.4 4.8",
+          "stroke": 2.1
+        },
+        {
+          "scale": 1.549,
+          "path": "M-14.715 -6.196L-2.323 0L-14.715 6.196",
+          "stroke": 2.711
+        },
+        {
+          "scale": 1.333,
+          "path": "M-12.663 -5.332L-1.999 0L-12.663 5.332",
+          "stroke": 2.333
+        }
+      ]
+    },
+    {
+      "shape": "double",
+      "paint": "stroke",
+      "width": 1.75,
+      "path": "M-9.5 -4L-1.5 0L-9.5 4M-15.5 -4L-7.5 0L-15.5 4",
+      "scaled": [
+        {
+          "scale": 1,
+          "path": "M-9.5 -4L-1.5 0L-9.5 4M-15.5 -4L-7.5 0L-15.5 4",
+          "stroke": 1.75
+        },
+        {
+          "scale": 1.2,
+          "path": "M-11.4 -4.8L-1.8 0L-11.4 4.8M-18.6 -4.8L-9 0L-18.6 4.8",
+          "stroke": 2.1
+        },
+        {
+          "scale": 1.549,
+          "path": "M-14.715 -6.196L-2.323 0L-14.715 6.196M-24.009 -6.196L-11.617 0L-24.009 6.196",
+          "stroke": 2.711
+        },
+        {
+          "scale": 1.333,
+          "path": "M-12.663 -5.332L-1.999 0L-12.663 5.332M-20.661 -5.332L-9.997 0L-20.661 5.332",
+          "stroke": 2.333
+        }
+      ]
+    },
+    {
+      "shape": "ring",
+      "paint": "hollow",
+      "width": 1.5,
+      "path": "M0 0C0 1.933 -1.567 3.5 -3.5 3.5C-5.433 3.5 -7 1.933 -7 0C-7 -1.933 -5.433 -3.5 -3.5 -3.5C-1.567 -3.5 0 -1.933 0 0Z",
+      "scaled": [
+        {
+          "scale": 1,
+          "path": "M0 0C0 1.933 -1.567 3.5 -3.5 3.5C-5.433 3.5 -7 1.933 -7 0C-7 -1.933 -5.433 -3.5 -3.5 -3.5C-1.567 -3.5 0 -1.933 0 0Z",
+          "stroke": 1.5
+        },
+        {
+          "scale": 1.2,
+          "path": "M0 0C0 2.32 -1.88 4.2 -4.2 4.2C-6.52 4.2 -8.4 2.32 -8.4 0C-8.4 -2.32 -6.52 -4.2 -4.2 -4.2C-1.88 -4.2 0 -2.32 0 0Z",
+          "stroke": 1.8
+        },
+        {
+          "scale": 1.549,
+          "path": "M0 0C0 2.994 -2.427 5.422 -5.421 5.422C-8.416 5.422 -10.843 2.994 -10.843 0C-10.843 -2.994 -8.416 -5.421 -5.421 -5.421C-2.427 -5.421 0 -2.994 0 0Z",
+          "stroke": 2.324
+        },
+        {
+          "scale": 1.333,
+          "path": "M0 0C0 2.577 -2.089 4.666 -4.665 4.666C-7.242 4.666 -9.331 2.577 -9.331 0C-9.331 -2.577 -7.242 -4.665 -4.665 -4.665C-2.089 -4.665 0 -2.577 0 0Z",
+          "stroke": 1.999
+        }
+      ]
+    },
+    {
+      "shape": "diamond",
+      "paint": "hollow",
+      "width": 1.5,
+      "path": "M0 0L-6 -3.5L-12 0L-6 3.5Z",
+      "scaled": [
+        {
+          "scale": 1,
+          "path": "M0 0L-6 -3.5L-12 0L-6 3.5Z",
+          "stroke": 1.5
+        },
+        {
+          "scale": 1.2,
+          "path": "M0 0L-7.2 -4.2L-14.4 0L-7.2 4.2Z",
+          "stroke": 1.8
+        },
+        {
+          "scale": 1.549,
+          "path": "M0 0L-9.294 -5.421L-18.588 0L-9.294 5.422Z",
+          "stroke": 2.324
+        },
+        {
+          "scale": 1.333,
+          "path": "M0 0L-7.998 -4.665L-15.996 0L-7.998 4.666Z",
+          "stroke": 1.999
+        }
+      ]
+    }
+  ],
+  "merges": [
+    {
+      "looks": [
+        "request"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "open"
+      }
+    },
+    {
+      "looks": [
+        "request",
+        "request"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "open"
+      }
+    },
+    {
+      "looks": [
+        "request",
+        "request"
+      ],
+      "both": true,
+      "result": null
+    },
+    {
+      "looks": [
+        "stream"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "double"
+      }
+    },
+    {
+      "looks": [
+        "stream",
+        "stream"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "filled",
+        "tail": "double"
+      }
+    },
+    {
+      "looks": [
+        "stream",
+        "stream"
+      ],
+      "both": true,
+      "result": null
+    },
+    {
+      "looks": [
+        "publish"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "publish",
+        "publish"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "publish",
+        "publish"
+      ],
+      "both": true,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "cached"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "ring"
+      }
+    },
+    {
+      "looks": [
+        "cached",
+        "cached"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "ring"
+      }
+    },
+    {
+      "looks": [
+        "cached",
+        "cached"
+      ],
+      "both": true,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "object"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "diamond"
+      }
+    },
+    {
+      "looks": [
+        "object",
+        "object"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "diamond"
+      }
+    },
+    {
+      "looks": [
+        "object",
+        "object"
+      ],
+      "both": true,
+      "result": {
+        "pattern": "solid",
+        "head": "open",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "extension"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "dashdot",
+        "head": "filled",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "extension",
+        "extension"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "dashdot",
+        "head": "filled",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "extension",
+        "extension"
+      ],
+      "both": true,
+      "result": {
+        "pattern": "dashdot",
+        "head": "filled",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "plain",
+        "plain"
+      ],
+      "both": true,
+      "result": null
+    },
+    {
+      "looks": [
+        "request",
+        "plain"
+      ],
+      "both": false,
+      "result": null
+    },
+    {
+      "looks": [
+        "request",
+        "stream"
+      ],
+      "both": false,
+      "result": null
+    },
+    {
+      "looks": [
+        "publish",
+        "cached"
+      ],
+      "both": true,
+      "result": null
+    },
+    {
+      "looks": [
+        "extension",
+        "request"
+      ],
+      "both": false,
+      "result": null
+    },
+    {
+      "looks": [
+        "extension",
+        "plain"
+      ],
+      "both": true,
+      "result": null
+    },
+    {
+      "looks": [
+        "dashed ring",
+        "dashed filled"
+      ],
+      "both": false,
+      "result": {
+        "pattern": "dashdot",
+        "head": "filled",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [
+        "dashed ring",
+        "dashed double"
+      ],
+      "both": true,
+      "result": {
+        "pattern": "dashdot",
+        "head": "filled",
+        "tail": "none"
+      }
+    },
+    {
+      "looks": [],
+      "both": false,
+      "result": null
+    }
+  ],
+  "looks": {
+    "dashed ring": {
+      "pattern": "dashdot",
+      "head": "open",
+      "tail": "ring"
+    },
+    "dashed filled": {
+      "pattern": "dashdot",
+      "head": "filled",
+      "tail": "none"
+    },
+    "dashed double": {
+      "pattern": "dashdot",
+      "head": "open",
+      "tail": "double"
+    }
+  },
+  "views": [
+    {
+      "name": "no kind",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: REST\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "a word that is no kind",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "kind": "rpc"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: REST\n    kind: rpc\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "one request",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "kind": "request"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: REST\n    kind: request\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "count": 1,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        }
+      ]
+    },
+    {
+      "name": "two streams",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "stream"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "b",
+          "kind": "stream"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: stream\n  - from: web\n    to: api\n    label: b\n    kind: stream\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "2 connections",
+          "count": 2,
+          "kind": "stream",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        }
+      ]
+    },
+    {
+      "name": "cached publish both ways",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "cached"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "label": "b",
+          "kind": "cached"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: cached\n  - from: api\n    to: web\n    label: b\n    kind: cached\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "2 connections",
+          "count": 2,
+          "both": true,
+          "kind": "cached",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        }
+      ]
+    },
+    {
+      "name": "requests both ways",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "request"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "label": "b",
+          "kind": "request"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: request\n  - from: api\n    to: web\n    label: b\n    kind: request\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "2 connections",
+          "count": 2,
+          "both": true,
+          "kind": "request"
+        }
+      ]
+    },
+    {
+      "name": "extension both ways",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "extension"
+        },
+        {
+          "from": "api",
+          "to": "web",
+          "label": "b",
+          "kind": "extension"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: extension\n  - from: api\n    to: web\n    label: b\n    kind: extension\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "2 connections",
+          "count": 2,
+          "both": true,
+          "kind": "extension",
+          "look": {
+            "pattern": "dashdot",
+            "head": "filled",
+            "tail": "none"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a kind and none",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "request"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "b"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: request\n  - from: web\n    to: api\n    label: b\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "2 connections",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "two kinds",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "request"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "b",
+          "kind": "stream"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: request\n  - from: web\n    to: api\n    label: b\n    kind: stream\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "2 connections",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "name": "an extension and a request",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "extension"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "b",
+          "kind": "request"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: extension\n  - from: web\n    to: api\n    label: b\n    kind: request\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "edges": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "2 connections",
+          "count": 2
+        }
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "all six",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "c0",
+          "kind": "request"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "c1",
+          "kind": "stream"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "c2",
+          "kind": "publish"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "c3",
+          "kind": "cached"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "c4",
+          "kind": "object"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "c5",
+          "kind": "extension"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: c0\n    kind: request\n  - from: web\n    to: api\n    label: c1\n    kind: stream\n  - from: web\n    to: api\n    label: c2\n    kind: publish\n  - from: web\n    to: api\n    label: c3\n    kind: cached\n  - from: web\n    to: api\n    label: c4\n    kind: object\n  - from: web\n    to: api\n    label: c5\n    kind: extension\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "problems": []
+    },
+    {
+      "name": "a word that is no kind",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "rpc"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: rpc\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "problems": [
+        {
+          "message": "connection web → api: unknown kind \"rpc\" (use request, stream, publish, cached, object, extension)",
+          "connection": 0
+        }
+      ]
+    },
+    {
+      "name": "a kind with a capital",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "Request"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: Request\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "problems": [
+        {
+          "message": "connection web → api: unknown kind \"Request\" (use request, stream, publish, cached, object, extension)",
+          "connection": 0
+        }
+      ]
+    },
+    {
+      "name": "a blank kind",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": ""
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind:\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "problems": []
+    },
+    {
+      "name": "kinds make no duplicate",
+      "connections": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "request"
+        },
+        {
+          "from": "web",
+          "to": "api",
+          "label": "a",
+          "kind": "stream"
+        }
+      ],
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: request\n  - from: web\n    to: api\n    label: a\n    kind: stream\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "problems": [
+        {
+          "message": "connection web → api: duplicate \"a\"",
+          "connection": 1
+        }
+      ]
+    }
+  ],
+  "labels": [
+    {
+      "name": "a kind set",
+      "before": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST"
+        }
+      ],
+      "after": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "kind": "stream"
+        }
+      ],
+      "label": "Set Web app to API as Request then stream"
+    },
+    {
+      "name": "a kind changed",
+      "before": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "kind": "stream"
+        }
+      ],
+      "after": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "kind": "cached"
+        }
+      ],
+      "label": "Set Web app to API as Cached publish"
+    },
+    {
+      "name": "a kind taken off",
+      "before": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "kind": "stream"
+        }
+      ],
+      "after": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST"
+        }
+      ],
+      "label": "Set Web app to API as Plain line"
+    },
+    {
+      "name": "a kind and a label",
+      "before": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST"
+        }
+      ],
+      "after": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "HTTP",
+          "kind": "request"
+        }
+      ],
+      "label": "Relabelled Web app to API"
+    },
+    {
+      "name": "a connection made with a kind",
+      "before": [],
+      "after": [
+        {
+          "from": "web",
+          "to": "api",
+          "label": "REST",
+          "kind": "request"
+        }
+      ],
+      "label": "Connected Web app to API"
+    }
+  ],
+  "mermaid": [
+    {
+      "name": "no kind",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: REST\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 -- \"REST\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "a word that is no kind",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: REST\n    kind: rpc\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 -- \"REST\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "one request",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: REST\n    kind: request\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 <-- \"REST\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "two streams",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: stream\n  - from: web\n    to: api\n    label: b\n    kind: stream\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 <-- \"2 connections\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "cached publish both ways",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: cached\n  - from: api\n    to: web\n    label: b\n    kind: cached\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 <-- \"2 connections\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "requests both ways",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: request\n  - from: api\n    to: web\n    label: b\n    kind: request\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 <-- \"2 connections\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "extension both ways",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: extension\n  - from: api\n    to: web\n    label: b\n    kind: extension\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 <-. \"2 connections\" .-> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "a kind and none",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: request\n  - from: web\n    to: api\n    label: b\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 -- \"2 connections\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "two kinds",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: request\n  - from: web\n    to: api\n    label: b\n    kind: stream\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 -- \"2 connections\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    },
+    {
+      "name": "an extension and a request",
+      "files": {
+        "model.yaml": "objects:\n  customer:\n    type: actor\n    name: Customer\n  shop:\n    type: system\n    name: Shop\n    description: |-\n      Sells things online.\n\n      Longer notes.\n  web:\n    type: app\n    in: shop\n    name: Web app\n    tech: React\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Node\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  auth:\n    type: component\n    in: api\n    name: Auth\n  orders:\n    type: component\n    in: api\n    name: Orders\n  mail:\n    type: system\n    name: Mail service\nconnections:\n  - from: web\n    to: api\n    label: a\n    kind: extension\n  - from: web\n    to: api\n    label: b\n    kind: request\n",
+        "flows/checkout.yaml": "name: Customer checks out\nview: shop\nsteps:\n  - from: customer\n    to: web\n    text: Clicks \"Buy\"\n  - from: web\n    to: api\n    text: POST /orders\n  - from: api\n    to: db\n    text: Saves the order\n"
+      },
+      "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 -- \"2 connections\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
+    }
+  ]
+}

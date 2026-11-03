@@ -9,7 +9,7 @@ namespace Flowy.Core;
 public static class ModelFiles
 {
     private static readonly string[] ObjectFields = ["type", "name", "in", "external", "shape", "color", "opacity", "icon", "tech", "description"];
-    private static readonly string[] ConnectionFields = ["from", "to", "label"];
+    private static readonly string[] ConnectionFields = ["from", "to", "label", "kind"];
     private static readonly string[] FlowFields = ["name", "view"];
     private static readonly string[] StepFields = ["from", "to", "text", "description", "group", "lane", "flow"];
     private static readonly string[] GroupFields = ["kind", "text", "times", "until"];
@@ -81,7 +81,7 @@ public static class ModelFiles
         {
             var m = (OrderedDictionary<string, object?>)c!;
             m.TryGetValue("payloads", out var payloads);
-            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label")) { Payloads = payloads, NoValue = EmptyKeys.Of(m) };
+            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label")) { Kind = Text(m, "kind"), Payloads = payloads, NoValue = EmptyKeys.Of(m) };
         }).ToList();
         var meta = top.Where(kv => kv.Key is not ("objects" or "connections")).ToDictionary(kv => kv.Key, kv => kv.Value);
         return new ParsedModel(map, list, meta);

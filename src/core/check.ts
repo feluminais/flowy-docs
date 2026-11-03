@@ -4,6 +4,7 @@ import type { Model, ObjectType } from './model.ts'
 import { animationProblem, interceptorProblem, RECURSE_HAS_TO } from './animation.ts'
 import { compareOf, compareProblem } from './compare.ts'
 import { dataProblems } from './data.ts'
+import { isKindId, KIND_LIST } from './kinds.ts'
 import { analysisProblems } from './failures.ts'
 import { FILE_KINDS, pathOf } from './filekinds.ts'
 import { isRepoPath, isWebAddress } from './paths.ts'
@@ -136,6 +137,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     checkEnds(p, c.from, c.to)
     for (const path of emptyKeys(c)) p(emptyKeyMessage(path))
     if (!missing(c.from) && c.from === c.to) p('connects an object to itself')
+    // A kind that is none of the six draws as the plain line; the problem is for whoever wrote it.
+    if (!missing(c.kind) && !isKindId(c.kind)) p(`unknown kind "${String(c.kind)}" (use ${KIND_LIST})`)
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
     seen.add(key)

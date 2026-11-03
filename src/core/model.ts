@@ -24,7 +24,8 @@ export type FlowyObject = {
   description?: string
   [extra: string]: unknown
 }
-export type Connection = { from: string; to: string; label?: string; [extra: string]: unknown }
+/** A line from one object to another. `kind` is how the two talk, one of the six words of kinds.ts; check() reports any other word, and the line draws plain. */
+export type Connection = { from: string; to: string; label?: string; kind?: string; [extra: string]: unknown }
 /** One step of a flow. Without `to`, the `from` box does something on its own. `description` is the longer detail a reader can open. */
 export type Step = {
   from: string

@@ -10,8 +10,8 @@ public sealed record ObjectInput(string Id, string? Type = null, string? Name = 
     string? Shape = null, string? Color = null, string? Opacity = null, string? Icon = null, object? Data = null,
     IReadOnlyList<OrderedDictionary<string, object?>>? Snippets = null);
 
-/// <summary>A connection to add or find. <c>Payloads</c> are what <see cref="EditOps.Connect"/> writes on it: ids, or payloads written in place.</summary>
-public sealed record ConnectionInput(string From, string To, string? Label = null, IReadOnlyList<object?>? Payloads = null);
+/// <summary>A connection to add or find. <c>Payloads</c> are what <see cref="EditOps.Connect"/> writes on it: ids, or payloads written in place. <c>Kind</c> is one of the six words of <see cref="Kinds"/>; "" or null is the plain line.</summary>
+public sealed record ConnectionInput(string From, string To, string? Label = null, IReadOnlyList<object?>? Payloads = null, string? Kind = null);
 
 /// <summary>
 /// The edits, as functions from a <see cref="EditDoc"/> to a changed copy: a C# twin of src/core/ops.ts with the same rules, the same order of
@@ -124,14 +124,24 @@ public static partial class EditOps
 
     // ---- connections ---------------------------------------------------------------------------------------------
 
-    /// <summary>Add a connection. An empty label means no label.</summary>
+    /// <summary>The kind to write: null for none ("" or left out), the word when it is one of the six, else a refusal.</summary>
+    private static string? KindToWrite(string? kind)
+    {
+        if (string.IsNullOrEmpty(kind)) return null;
+        if (!Kinds.IsKind(kind)) throw new OpError($"unknown kind \"{kind}\" (use {Kinds.List})");
+        return kind;
+    }
+
+    /// <summary>Add a connection. An empty label means no label, an empty or missing kind the plain line.</summary>
     public static EditDoc Connect(EditDoc doc, ConnectionInput input)
     {
         foreach (var end in new[] { input.From, input.To })
             if (ObjectOf(doc, end) is null) throw new OpError($"unknown object \"{end}\"");
+        var word = KindToWrite(input.Kind);
         var d = doc.Clone();
         var c = new OrderedDictionary<string, object?> { ["from"] = input.From, ["to"] = input.To };
         if (!string.IsNullOrEmpty(input.Label)) c["label"] = input.Label;
+        if (word is not null) c["kind"] = word;
         if (input.Payloads is { Count: > 0 } payloads) c["payloads"] = LineList(doc, payloads);
         d.Connections.Add(c);
         return d;
@@ -163,6 +173,34 @@ public static partial class EditOps
         var c = Entry(d.Connections[i]);
         if (label != "") c["label"] = label;
         else c.Remove("label");
+        return d;
+    }
+
+    /// <summary>Give one connection (the first that matches) a kind, in place. "" removes it. It keeps its place among the connection's keys, and a new kind goes after the label.</summary>
+    public static EditDoc SetKind(EditDoc doc, ConnectionInput which, string kind)
+    {
+        var i = FindConnection(doc, which);
+        var word = KindToWrite(kind);
+        var d = doc.Clone();
+        var c = Entry(d.Connections[i]);
+        if (word is null)
+        {
+            c.Remove("kind");
+            return d;
+        }
+        if (c.ContainsKey("kind"))
+        {
+            c["kind"] = word;
+            return d;
+        }
+        // Written after the label, ahead of payloads and anything else, so a connection reads from, to, label, kind.
+        var next = new OrderedDictionary<string, object?>();
+        foreach (var key in new[] { "from", "to", "label" })
+            if (c.TryGetValue(key, out var value)) next[key] = value;
+        next["kind"] = word;
+        foreach (var (key, value) in c)
+            if (key is not ("from" or "to" or "label")) next[key] = value;
+        d.Connections[i] = next;
         return d;
     }
 
