@@ -31,7 +31,7 @@ async function scene(folder: string, view: string, playing?: Playing, focus: Foc
   return {
     folder, view, playing: playing ?? null, focus,
     boxes: graph.nodes.map(n => ({ id: n.id, classes: tokens(n.className), inside: n.data.inside })),
-    edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target, label: e.label ?? null, classes: tokens(e.className), selected: e.selected ?? false, ...(e.markerStart ? { both: true } : {}) })),
+    edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target, label: e.label ?? null, classes: tokens(e.className), selected: e.selected ?? false, ...(e.data?.both === true ? { both: true } : {}) })),
     members: graph.members,
   }
 }

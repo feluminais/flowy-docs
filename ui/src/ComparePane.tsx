@@ -125,7 +125,6 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
                 edgeTypes={edgeTypes}
                 minZoom={0.2}
                 colorMode={colorMode}
-                defaultMarkerColor="var(--edge)"
                 nodesDraggable={false}
                 nodesConnectable={false}
                 zoomOnDoubleClick={false}

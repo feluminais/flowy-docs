@@ -103,10 +103,8 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     data: { object: model.objects[id], inside: childCount(model, id), icon: iconData(model, model.objects[id]), ...(Object.hasOwn(states, id) ? { state: states[id] } : {}) },
     className: classes(!inView.has(id) && 'outsider', dimming && (litBoxes.has(id) ? 'lit' : 'dim'), badBoxes.has(id) && 'problem'),
   }))
-  // A lit line draws over the faded boxes (zIndex), with an arrowhead in its own colour.
-  const arrow = { type: 'arrowclosed' } as const
-  const litArrow = { type: 'arrowclosed', color: 'var(--accent)' } as const
-  const litLine = { zIndex: 1, markerEnd: litArrow } as const
+  // A lit line draws over the faded boxes (zIndex). Its arrowheads are drawn by Line, in the line's own colour in every state.
+  const litLine = { zIndex: 1 } as const
   const lines: Edge[] = edges.map(e => {
     const lit = dimming && isLit(e.from, e.to)
     return {
@@ -116,9 +114,8 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
       target: e.to,
       label: e.label || undefined,
       ariaLabel: lineName(model, e.from, e.to, e.label, e.both),
-      markerEnd: arrow,
-      // Connections both ways: an arrowhead at each end.
-      ...(e.both ? { markerStart: lit ? litArrow : arrow } : {}),
+      // Connections both ways: an arrowhead at each end (see Line).
+      ...(e.both ? { data: { both: true } } : {}),
       className: classes(dimming && (lit ? 'active' : isFaint(e.from, e.to) ? 'lane' : 'dim'), badLines.has(lineKey(e.from, e.to)) && 'problem'),
       ...(lit ? litLine : {}),
     }
@@ -135,7 +132,7 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const id = lineKey(e[0], e[1])
     if (e[0] === e[1] || rides(e) || drawn.has(id)) continue
     drawn.add(id)
-    lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'lane', markerEnd: { type: 'arrowclosed' } })
+    lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'lane' })
   }
   return { nodes, edges: lines, members }
 }

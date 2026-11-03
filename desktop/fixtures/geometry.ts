@@ -1,4 +1,5 @@
 import { getBezierPath, getSmoothStepPath, getStraightPath, getViewportForBounds, Position } from '@xyflow/system'
+import { endsOfPath, HEAD_HALF_WIDTH, HEAD_LENGTH, HEAD_PATH, headMatrix, headScale } from '../../src/core/heads.ts'
 import { SHAPE_DEFS } from '../../src/core/look.ts'
 import type { Shape } from '../../src/core/look.ts'
 import { frameAround, lineEnds, loopAround, panIntoView, ports } from '../../ui/src/graph.ts'
@@ -63,6 +64,20 @@ const LOOPS: [Rect, Shape][] = [
   [box(40, 90, 260, 100), 'diamond'],
 ]
 
+/** Line widths to scale a head for: the usual three, the failing 2.5, and what traffic can make a line (up to 6). */
+const HEAD_WIDTHS = [1, 1.2, 1.5, 2, 2.5, 3, 4, 6, 10]
+
+/** Where a head sits: the tip, and the direction out of the line, at the four ways a line can end and at awkward angles. */
+const HEAD_ENDS: [{ x: number; y: number }, { x: number; y: number }, number][] = [
+  [{ x: 400, y: 36 }, { x: 1, y: 0 }, 1],
+  [{ x: 0, y: 36 }, { x: -1, y: 0 }, 1],
+  [{ x: 100, y: 72 }, { x: 0, y: 1 }, 1],
+  [{ x: 100, y: 0 }, { x: 0, y: -1 }, 1],
+  [{ x: 123.5, y: -40.25 }, { x: Math.SQRT1_2, y: -Math.SQRT1_2 }, 1],
+  [{ x: 50, y: 50 }, { x: 0.6, y: 0.8 }, 1.55],
+  [{ x: -20, y: 7 }, { x: -0.8, y: 0.6 }, 1.2],
+]
+
 const px = (n: number): `${number}px` => `${n}px`
 const FITS = [
   { bounds: box(0, 0, 1000, 600), size: [1100, 700], pad: [40, 40, 40, 40] },
@@ -112,12 +127,21 @@ export function dumpGeometry(): unknown {
   return {
     paths: PAIRS.flatMap(([a, b]) => STYLES.map(style => {
       const p = ports(a, b)
-      return { a, b, style, ...draw(style, a, b), ends: lineEnds(a, b), ports: p }
+      const line = draw(style, a, b)
+      return { a, b, style, ...line, ends: lineEnds(a, b), ports: p, heads: endsOfPath(line.data) }
     })),
     shaped: SHAPED.flatMap(([a, shapeA, b, shapeB]) => STYLES.map(style => {
       const [edgeA, edgeB] = [SHAPE_DEFS[shapeA].edge, SHAPE_DEFS[shapeB].edge]
-      return { a, b, shapeA, shapeB, style, ...draw(style, a, b, edgeA, edgeB), ends: lineEnds(a, b, edgeA, edgeB), ports: ports(a, b, edgeA, edgeB) }
+      const line = draw(style, a, b, edgeA, edgeB)
+      return { a, b, shapeA, shapeB, style, ...line, ends: lineEnds(a, b, edgeA, edgeB), ports: ports(a, b, edgeA, edgeB), heads: endsOfPath(line.data) }
     })),
+    head: {
+      path: HEAD_PATH,
+      length: HEAD_LENGTH,
+      halfWidth: HEAD_HALF_WIDTH,
+      scales: HEAD_WIDTHS.map(width => ({ width, scale: headScale(width) })),
+      matrices: HEAD_ENDS.map(([end, dir, scale]) => ({ end, dir, scale, matrix: headMatrix(end, dir, scale) })),
+    },
     loops: LOOPS.map(([b, shape]) => ({ box: b, shape, path: loopAround(b, SHAPE_DEFS[shape].edge) })),
     frames: [[box(0, 0), box(300, 200)], [box(10, 10, 50, 50)], [box(-100, 40), box(0, -20), box(80, 300)]].map(rects => ({ rects, frame: frameAround(rects) })),
     fits: FITS.map(f => ({

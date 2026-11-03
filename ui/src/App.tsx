@@ -361,7 +361,6 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 edgeTypes={edgeTypes}
                 minZoom={0.2} // the default 0.5 stops the fit short, so a wide diagram in a small window is cut off
                 colorMode={colorMode}
-                defaultMarkerColor="var(--edge)"
                 nodesDraggable={editing && !recording}
                 nodesConnectable={editing && !recording}
                 zoomOnDoubleClick={false}

@@ -151,7 +151,6 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
                   edgeTypes={edgeTypes}
                   minZoom={0.2}
                   colorMode={colorMode}
-                  defaultMarkerColor="var(--edge)"
                   nodesDraggable={false}
                   nodesConnectable={false}
                   zoomOnDoubleClick={false}

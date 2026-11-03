@@ -166,7 +166,7 @@ svg { flex: none; }
 
 .canvas { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 .canvas .react-flow {
-  --xy-background-color: var(--bg); --xy-edge-stroke: var(--edge); --xy-edge-stroke-width: 1.5;
+  --xy-background-color: var(--bg); --xy-edge-stroke: var(--edge); --xy-edge-stroke-width: 1.5; --xy-edge-stroke-selected: var(--accent);
   --xy-controls-button-background-color: transparent; --xy-controls-button-background-color-hover: var(--hover);
   --xy-controls-button-color: var(--muted); --xy-controls-button-color-hover: var(--fg);
   --xy-controls-button-border-color: transparent; --xy-controls-box-shadow: none;
@@ -254,9 +254,12 @@ svg { flex: none; }
 .react-flow__node.lit { opacity: 1; }
 .react-flow__node.lit .shape { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent)); }
 .react-flow__node.lit .shape path { stroke: var(--accent); stroke-width: 2; stroke-dasharray: none; }
+/* A line's arrowheads (Heads in Line.tsx) are filled paths, coloured by the same states as the line's own stroke, so a head is never a different colour from its line. */
+.react-flow__edge .head { fill: var(--edge); pointer-events: none; }
 .react-flow__edge.active .react-flow__edge-path, .react-flow__edge.step .react-flow__edge-path {
   stroke: var(--accent); stroke-width: 2.5;
 }
+.react-flow__edge.active .head, .react-flow__edge.step .head { fill: var(--accent); }
 .react-flow__edge.step .react-flow__edge-path { stroke-dasharray: 8 5; }
 /* The other lanes of a branch: where it might have gone, faint and dashed, and not lit. */
 .react-flow__edge.lane { opacity: 0.55; }
@@ -467,6 +470,9 @@ svg { flex: none; }
 
 .grow { flex: 1; }
 .react-flow__edge.selected .react-flow__edge-path, .react-flow__edge.hover .react-flow__edge-path, .react-flow__edge-path.hot { stroke: var(--accent); stroke-width: 2; }
+.react-flow__edge.selected .head, .react-flow__edge.hover .head, .react-flow__edge .head.hot { fill: var(--accent); }
+/* React Flow colours a picked or keyboard-focused line with --xy-edge-stroke-selected (set to the accent above), which beats the rules above; the head follows. */
+.react-flow__edge.selectable:focus .head, .react-flow__edge.selectable:focus-visible .head { fill: var(--xy-edge-stroke-selected, var(--accent)); }
 
 .problems { position: relative; }
 .problems summary { color: var(--warn-fg); font-weight: 600; list-style: none; }
@@ -484,6 +490,7 @@ svg { flex: none; }
   background: var(--warn); color: var(--on-warn); font: 700 12px/18px system-ui, sans-serif; text-align: center;
 }
 .react-flow__edge.problem .react-flow__edge-path { stroke: var(--warn); }
+.react-flow__edge.problem .head { fill: var(--warn); }
 
 /* Top left, so it never covers the side panel. */
 .notice {
@@ -1087,6 +1094,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .react-flow__node.fails .shape path { stroke: var(--fc); stroke-width: 3; stroke-dasharray: none; }
 .react-flow__node.affected .shape path { stroke: color-mix(in srgb, var(--fc) 45%, transparent); stroke-width: 2; stroke-dasharray: none; }
 .react-flow__edge.fails .react-flow__edge-path { stroke: var(--fc); stroke-width: 2.5; }
+.react-flow__edge.fails .head { fill: var(--fc); }
 .canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: opacity 0.2s; }
 @media (prefers-reduced-motion: reduce) { .canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: none; } }
 /* The marks of the key and of the list, drawn the way the canvas draws them. */
