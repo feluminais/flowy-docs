@@ -273,7 +273,7 @@ internal sealed class BackLayer : Control
             brush = Brush(_failures.LitBand switch { RiskBand.High => "DangerBrush", RiskBand.Medium => "WarnBrush", _ => "MutedBrush" });
             thickness = 2.5;
         }
-        var dash = e.Flags.HasFlag(EdgeFlags.Step) ? new DashStyle([8 / thickness, 5 / thickness], 0) : e.Flags.HasFlag(EdgeFlags.Lane) ? new DashStyle([4 / thickness, 5 / thickness], 0) : null;
+        var dash = KindMarks.Dash(DashesOf(e.Flags, e.Look, _widths is not null), thickness);
         using var opacity = context.PushOpacity(Fade(e));
         if (ChangeOf(e) is { } change)
         {
@@ -284,25 +284,32 @@ internal sealed class BackLayer : Control
         }
         context.DrawGeometry(null, new Pen(brush, thickness, dash, PenLineCap.Flat), line.Geometry);
 
-        // The arrowhead is Flowy's own shape (Heads), in the line's colour, as big as the browser draws it: scaled by the traffic width alone, which being picked or lit
-        // does not change. A line with connections both ways has one on its start too.
-        var scale = HeadScaleOf(WidthOf(e.Id));
-        DrawEnd(context, brush, line.Path.End, line.Path.Direction, scale);
-        if (e.Both) DrawEnd(context, brush, line.Path.Start, line.Path.StartDirection, scale);
+        // The marks are Flowy's own shapes (Heads, Kinds.Marks), in the line's colour, as big as the browser draws them: scaled by the traffic width alone, which being picked or lit
+        // does not change. A plain line has a filled head on its end (and on its start when connections run both ways); a line with a kind has the kind's head and, running one way,
+        // its tail on the start.
+        var scale = KindKey.MarkScale(HeadScaleOf(WidthOf(e.Id)), 1);
+        var ground = Brush("BgBrush");
+        var marks = KindKey.MarksOf(e.Look, e.Both);
+        KindMarks.Draw(context, marks.Head, brush, ground, line.Path.End, line.Path.Direction, scale);
+        if (marks.HeadAtStart) KindMarks.Draw(context, marks.Head, brush, ground, line.Path.Start, line.Path.StartDirection, scale);
+        if (marks.Tail is { } tail) KindMarks.Draw(context, tail, brush, ground, line.Path.Start, line.Path.StartDirection, scale);
     }
 
-    /// <summary>The arrowhead's shape, parsed once: the same triangle the browser draws (Heads.Path).</summary>
-    private static readonly Geometry HeadShape = Geometry.Parse(Heads.Path);
-
-    /// <summary>How much bigger than usual a head is on a line a load's traffic gave this width (null: the usual 1.5 thick, scale 1), as the browser's Heads in Line.tsx.</summary>
-    internal static double HeadScaleOf(double? traffic) => Heads.Scale(traffic ?? 1.5);
-
-    private static void DrawEnd(DrawingContext context, IBrush brush, CorePt end, CorePt dir, double scale)
+    /// <summary>
+    /// The dashes a line is drawn with, in px as SVG counts them, or null for a solid line. A step's line and a lane keep their own. A kind's pattern shows on a line that is
+    /// not lit (a lit line is solid, so the dot has a clean base) and not under a load's traffic (<paramref name="loaded"/>), which paints on top of it; the marks stay either way.
+    /// </summary>
+    internal static IReadOnlyList<double>? DashesOf(EdgeFlags flags, LineLook? look, bool loaded)
     {
-        var m = Heads.Matrix(end, dir, scale);
-        using (context.PushTransform(new Matrix(m.A, m.B, m.C, m.D, m.E, m.F)))
-            context.DrawGeometry(brush, null, HeadShape);
+        if (flags.HasFlag(EdgeFlags.Step)) return [8, 5];
+        if (flags.HasFlag(EdgeFlags.Lane)) return [4, 5];
+        if (flags.HasFlag(EdgeFlags.Active) || look is null || loaded) return null;
+        var dashes = Kinds.Dashes(look.Pattern);
+        return dashes.Count == 0 ? null : dashes;
     }
+
+    /// <summary>How much bigger than usual a head is on a line a load's traffic gave this width (null: the usual 1.5 thick, scale 1), as the browser's Ends in Line.tsx.</summary>
+    internal static double HeadScaleOf(double? traffic) => Heads.Scale(traffic ?? 1.5);
 
     private static FormattedText Format(SceneEdge e, string text, IBrush brush) =>
         new(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,

@@ -1453,5 +1453,565 @@
       },
       "text": "flowchart TB\n  n0[\"Web app<br/>app · React\"]\n  n1[\"API<br/>app · Node\"]\n  n2[(\"Orders DB<br/>store · Postgres\")]\n  n3([\"Customer<br/>actor\"])\n  n0 -- \"2 connections\" --> n1\n  classDef outsider stroke-dasharray: 4 3\n  class n3 outsider\n"
     }
-  ]
+  ],
+  "key": {
+    "laneMarkScale": 1.2,
+    "onScreen": [
+      {
+        "name": "no lines",
+        "lines": [],
+        "result": {
+          "kinds": [],
+          "plain": false
+        }
+      },
+      {
+        "name": "plain lines only",
+        "lines": [
+          {
+            "id": "a b",
+            "look": null
+          },
+          {
+            "id": "b c",
+            "look": null
+          }
+        ],
+        "result": {
+          "kinds": [],
+          "plain": true
+        }
+      },
+      {
+        "name": "one kind",
+        "lines": [
+          {
+            "id": "a b",
+            "look": {
+              "pattern": "solid",
+              "head": "open",
+              "tail": "ring"
+            }
+          }
+        ],
+        "result": {
+          "kinds": [
+            "cached"
+          ],
+          "plain": false
+        }
+      },
+      {
+        "name": "a kind and a plain line",
+        "lines": [
+          {
+            "id": "a b",
+            "look": {
+              "pattern": "solid",
+              "head": "open",
+              "tail": "ring"
+            }
+          },
+          {
+            "id": "b c",
+            "look": null
+          }
+        ],
+        "result": {
+          "kinds": [
+            "cached"
+          ],
+          "plain": true
+        }
+      },
+      {
+        "name": "a kind drawn twice",
+        "lines": [
+          {
+            "id": "a b",
+            "look": {
+              "pattern": "solid",
+              "head": "filled",
+              "tail": "double"
+            }
+          },
+          {
+            "id": "b c",
+            "look": {
+              "pattern": "solid",
+              "head": "filled",
+              "tail": "double"
+            }
+          }
+        ],
+        "result": {
+          "kinds": [
+            "stream"
+          ],
+          "plain": false
+        }
+      },
+      {
+        "name": "every kind, the other way round, is listed in the order of the list",
+        "lines": [
+          {
+            "id": "l0 m",
+            "look": {
+              "pattern": "dashdot",
+              "head": "filled",
+              "tail": "none"
+            }
+          },
+          {
+            "id": "l1 m",
+            "look": {
+              "pattern": "solid",
+              "head": "open",
+              "tail": "diamond"
+            }
+          },
+          {
+            "id": "l2 m",
+            "look": {
+              "pattern": "solid",
+              "head": "open",
+              "tail": "ring"
+            }
+          },
+          {
+            "id": "l3 m",
+            "look": {
+              "pattern": "solid",
+              "head": "open",
+              "tail": "none"
+            }
+          },
+          {
+            "id": "l4 m",
+            "look": {
+              "pattern": "solid",
+              "head": "filled",
+              "tail": "double"
+            }
+          },
+          {
+            "id": "l5 m",
+            "look": {
+              "pattern": "solid",
+              "head": "filled",
+              "tail": "open"
+            }
+          }
+        ],
+        "result": {
+          "kinds": [
+            "request",
+            "stream",
+            "publish",
+            "cached",
+            "object",
+            "extension"
+          ],
+          "plain": false
+        }
+      },
+      {
+        "name": "step lines are no connection and do not make the plain line show",
+        "lines": [
+          {
+            "id": "step",
+            "look": null
+          },
+          {
+            "id": "step-2",
+            "look": null
+          },
+          {
+            "id": "lane-1",
+            "look": null
+          },
+          {
+            "id": "a b",
+            "look": {
+              "pattern": "solid",
+              "head": "filled",
+              "tail": "double"
+            }
+          }
+        ],
+        "result": {
+          "kinds": [
+            "stream"
+          ],
+          "plain": false
+        }
+      },
+      {
+        "name": "a step line beside nothing",
+        "lines": [
+          {
+            "id": "step",
+            "look": null
+          }
+        ],
+        "result": {
+          "kinds": [],
+          "plain": false
+        }
+      },
+      {
+        "name": "a pattern with a head and a tail that are no kind",
+        "lines": [
+          {
+            "id": "a b",
+            "look": {
+              "pattern": "dashdot",
+              "head": "open",
+              "tail": "ring"
+            }
+          }
+        ],
+        "result": {
+          "kinds": [],
+          "plain": false
+        }
+      },
+      {
+        "name": "the extension look",
+        "lines": [
+          {
+            "id": "a b",
+            "look": {
+              "pattern": "dashdot",
+              "head": "filled",
+              "tail": "none"
+            }
+          }
+        ],
+        "result": {
+          "kinds": [
+            "extension"
+          ],
+          "plain": false
+        }
+      }
+    ],
+    "marksOf": [
+      {
+        "look": null,
+        "both": false,
+        "result": {
+          "head": "filled",
+          "headAtStart": false,
+          "tail": null
+        }
+      },
+      {
+        "look": null,
+        "both": true,
+        "result": {
+          "head": "filled",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "filled",
+          "tail": "none"
+        },
+        "both": false,
+        "result": {
+          "head": "filled",
+          "headAtStart": false,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "filled",
+          "tail": "none"
+        },
+        "both": true,
+        "result": {
+          "head": "filled",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "filled",
+          "tail": "open"
+        },
+        "both": false,
+        "result": {
+          "head": "filled",
+          "headAtStart": false,
+          "tail": "open"
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "filled",
+          "tail": "open"
+        },
+        "both": true,
+        "result": {
+          "head": "filled",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "filled",
+          "tail": "double"
+        },
+        "both": false,
+        "result": {
+          "head": "filled",
+          "headAtStart": false,
+          "tail": "double"
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "filled",
+          "tail": "double"
+        },
+        "both": true,
+        "result": {
+          "head": "filled",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "open",
+          "tail": "none"
+        },
+        "both": false,
+        "result": {
+          "head": "open",
+          "headAtStart": false,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "open",
+          "tail": "none"
+        },
+        "both": true,
+        "result": {
+          "head": "open",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "open",
+          "tail": "ring"
+        },
+        "both": false,
+        "result": {
+          "head": "open",
+          "headAtStart": false,
+          "tail": "ring"
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "open",
+          "tail": "ring"
+        },
+        "both": true,
+        "result": {
+          "head": "open",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "open",
+          "tail": "diamond"
+        },
+        "both": false,
+        "result": {
+          "head": "open",
+          "headAtStart": false,
+          "tail": "diamond"
+        }
+      },
+      {
+        "look": {
+          "pattern": "solid",
+          "head": "open",
+          "tail": "diamond"
+        },
+        "both": true,
+        "result": {
+          "head": "open",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "filled",
+          "tail": "none"
+        },
+        "both": false,
+        "result": {
+          "head": "filled",
+          "headAtStart": false,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "filled",
+          "tail": "none"
+        },
+        "both": true,
+        "result": {
+          "head": "filled",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "open",
+          "tail": "ring"
+        },
+        "both": false,
+        "result": {
+          "head": "open",
+          "headAtStart": false,
+          "tail": "ring"
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "open",
+          "tail": "ring"
+        },
+        "both": true,
+        "result": {
+          "head": "open",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "filled",
+          "tail": "none"
+        },
+        "both": false,
+        "result": {
+          "head": "filled",
+          "headAtStart": false,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "filled",
+          "tail": "none"
+        },
+        "both": true,
+        "result": {
+          "head": "filled",
+          "headAtStart": true,
+          "tail": null
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "open",
+          "tail": "double"
+        },
+        "both": false,
+        "result": {
+          "head": "open",
+          "headAtStart": false,
+          "tail": "double"
+        }
+      },
+      {
+        "look": {
+          "pattern": "dashdot",
+          "head": "open",
+          "tail": "double"
+        },
+        "both": true,
+        "result": {
+          "head": "open",
+          "headAtStart": true,
+          "tail": null
+        }
+      }
+    ],
+    "markScale": [
+      {
+        "scale": 1,
+        "lanes": 1,
+        "result": 1
+      },
+      {
+        "scale": 1.549,
+        "lanes": 1,
+        "result": 1.549
+      },
+      {
+        "scale": 1.549,
+        "lanes": 2,
+        "result": 1.2
+      },
+      {
+        "scale": 1,
+        "lanes": 3,
+        "result": 1
+      },
+      {
+        "scale": 1.1,
+        "lanes": 2,
+        "result": 1.1
+      },
+      {
+        "scale": 1.2,
+        "lanes": 4,
+        "result": 1.2
+      },
+      {
+        "scale": 1.5,
+        "lanes": 0,
+        "result": 1.5
+      }
+    ]
+  }
 }

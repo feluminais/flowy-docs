@@ -1,0 +1,32 @@
+name: Kinds
+objects:
+  ui:
+    type: app
+    name: Screen
+  management:
+    type: app
+    name: Management
+  linux:
+    type: system
+    name: Linux
+  vendor:
+    type: system
+    name: Vendor hooks
+  bus:
+    type: store
+    name: Event bus
+  clients:
+    type: store
+    name: Client list
+connections:
+  - { from: ui, to: management, label: Start scan, kind: stream }
+  - { from: management, to: linux, label: Apply config, kind: request }
+  - { from: management, to: linux, label: Vendor patch, kind: extension }
+  - { from: management, to: vendor, label: Vendor hooks, kind: extension }
+  - { from: management, to: bus, label: Events, kind: publish }
+  - { from: bus, to: management, label: Acknowledged, kind: publish }
+  - { from: linux, to: vendor, label: Driver call, kind: request }
+  - { from: management, to: clients, label: Client entry, kind: object }
+  - { from: bus, to: clients, label: Radio state, kind: cached }
+  - { from: ui, to: bus, label: Listens, kind: rpc }
+  - { from: ui, to: clients, label: Reads }

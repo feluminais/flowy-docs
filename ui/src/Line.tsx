@@ -4,6 +4,8 @@ import { BaseEdge, EdgeLabelRenderer, getBezierPath, getSmoothStepPath, getStrai
 import type { Edge, EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import type { Mark } from '../../src/core/failures.ts'
 import { endsOfPath, HEAD_PATH, headMatrix, headScale } from '../../src/core/heads.ts'
+import type { Point } from '../../src/core/heads.ts'
+import type { LineLook } from '../../src/core/kinds.ts'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { ChangeMarksContext, FailBadge } from './Box.tsx'
@@ -11,6 +13,8 @@ import { changeAt } from './compare.ts'
 import { lineEnds, loopAround, ports, sizeOf } from './graph.ts'
 import { clip, placeLabels } from './labels.ts'
 import type { Spot } from './labels.ts'
+import { marksOf, markScale } from './kindkey.ts'
+import { MarkPath } from './kinds.tsx'
 import { labelOffset } from './motion.ts'
 import type { BoxData, BoxNode, Outline, Rect } from './graph.ts'
 
@@ -149,18 +153,27 @@ export const loopPath = (n: InternalNode): string => loopAround(rect(n), outline
 const USUAL_WIDTH = 1.5
 
 /**
- * The arrowheads of a line: one on its end, and one on its start when it carries connections both ways. Flowy draws them itself (src/core/heads.ts), so they are the
- * same size as on the desktop and the stylesheet colours them with the line (`.head` beside every rule for `.react-flow__edge-path`). They take no clicks.
+ * The marks at the ends of a line. Flowy draws them itself (src/core/heads.ts and src/core/kinds.ts), so they are the same size as on the desktop and the stylesheet
+ * colours them with the line (`.head` and `.kmark` beside every rule for `.react-flow__edge-path`). They take no clicks.
+ *
+ * A plain line has a filled head on its end, and on its start when it carries connections both ways. A line with a kind has the kind's head instead (a filled
+ * triangle or an open chevron, at both ends when both ways) and, when it runs one way, the kind's tail on its start.
  */
-const Heads = memo(function Heads({ path, both, hot, width }: { path: string; both: boolean; hot: boolean; width: number | undefined }) {
+const Ends = memo(function Ends({ path, both, hot, width, look, lanes }: { path: string; both: boolean; hot: boolean; width: number | undefined; look: LineLook | undefined; lanes: number }) {
   const ends = useMemo(() => endsOfPath(path), [path])
   if (!ends) return null
-  const scale = headScale(width ?? USUAL_WIDTH)
+  const full = headScale(width ?? USUAL_WIDTH)
+  const scale = markScale(full, lanes)
   const className = hot ? 'head hot' : 'head'
+  const { head: headShape, headAtStart, tail } = marksOf(look, both)
+  const head = (at: Point, dir: Point) => headShape === 'filled'
+    ? <path className={className} d={HEAD_PATH} transform={`matrix(${headMatrix(at, dir, scale).join(' ')})`} />
+    : <MarkPath shape={headShape} at={at} dir={dir} scale={scale} hot={hot} />
   return (
     <>
-      <path className={className} d={HEAD_PATH} transform={`matrix(${headMatrix(ends.end, ends.endDir, scale).join(' ')})`} />
-      {both && <path className={className} d={HEAD_PATH} transform={`matrix(${headMatrix(ends.start, ends.startDir, scale).join(' ')})`} />}
+      {head(ends.end, ends.endDir)}
+      {headAtStart && head(ends.start, ends.startDir)}
+      {tail && <MarkPath shape={tail} at={ends.start} dir={ends.startDir} scale={scale} hot={hot} />}
     </>
   )
 })
@@ -179,6 +192,7 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   const spots = useContext(LabelSpotsContext)
   const spot = useSyncExternalStore(spots.subscribe, () => spots.get(id))
   const change = changeAt(useContext(ChangeMarksContext)?.lines, id)
+  const look = data?.look as LineLook | undefined
   const a = useInternalNode(source)
   const b = useInternalNode(target)
   if (!a || !b) return null
@@ -193,8 +207,8 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   return (
     <>
       {change && <path className="change-line" data-change={change} d={path} fill="none" />}
-      <BaseEdge id={id} path={path} className={hot ? 'hot' : undefined} label={text} labelX={labelX} labelY={labelY} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
-      <Heads path={path} both={data?.both === true} hot={hot} width={width} />
+      <BaseEdge id={id} path={path} className={[hot && 'hot', look?.pattern === 'dashdot' && 'dashdot'].filter(Boolean).join(' ') || undefined} label={text} labelX={labelX} labelY={labelY} interactionWidth={interactionWidth} style={width === undefined ? undefined : { strokeWidth: width }} />
+      <Ends path={path} both={data?.both === true} hot={hot} width={width} look={look} lanes={typeof data?.lanes === 'number' ? data.lanes : 1} />
       {mark && (
         <EdgeLabelRenderer>
           <FailBadge mark={mark} line={`${nameOfNode(a, source)} to ${nameOfNode(b, target)}`} className="line" style={{ transform: `translate(-50%, -150%) translate(${x}px, ${y}px)` }} />

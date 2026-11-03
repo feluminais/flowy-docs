@@ -31,14 +31,14 @@ async function scene(folder: string, view: string, playing?: Playing, focus: Foc
   return {
     folder, view, playing: playing ?? null, focus,
     boxes: graph.nodes.map(n => ({ id: n.id, classes: tokens(n.className), inside: n.data.inside })),
-    edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target, label: e.label ?? null, classes: tokens(e.className), selected: e.selected ?? false, ...(e.data?.both === true ? { both: true } : {}) })),
+    edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target, label: e.label ?? null, classes: tokens(e.className), selected: e.selected ?? false, ...(e.data?.both === true ? { both: true } : {}), ...(e.data?.look ? { look: e.data.look } : {}) })),
     members: graph.members,
   }
 }
 
 export async function dumpScenes(): Promise<unknown> {
   const scenes: Awaited<ReturnType<typeof scene>>[] = []
-  for (const folder of ['docs/demo/flowy', 'example', 'desktop/fixtures/cases/problems/flowy']) {
+  for (const folder of ['docs/demo/flowy', 'example', 'desktop/fixtures/cases/problems/flowy', 'desktop/fixtures/cases/kinds/flowy']) {
     const { model } = await load(folder)
     const views = [ROOT, ...Object.keys(model.objects)].filter(id => isView(model, id))
     for (const view of views) scenes.push(await scene(folder, view))

@@ -645,6 +645,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec);
         var line = _side is Side.Line l ? SceneBuilder.LineId(l.From, l.To) : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
+        _canvas.KindKeyBesidePlayer = flow is not null; // a flow's card lies over the middle of the foot
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
         // Where shapes stand at this stop, folded from the flow's start and the steps up to it: nothing is stored, so stepping back needs no undo.
         // While the Performance panel is open a run over time sets the states instead (a flow waits behind the panel).

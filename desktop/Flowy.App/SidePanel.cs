@@ -399,8 +399,11 @@ internal sealed class SidePanel : Border
         return new StackPanel { Children = { header, items } };
     }
 
-    /// <summary>The two ends of a line at the top of its panel: a tile and a name each, with an arrow between (one each way when <paramref name="both"/>).</summary>
-    internal Control LineHeader(Model model, string from, string to, bool both = false)
+    /// <summary>
+    /// The two ends of a line at the top of its panel: a tile and a name each, with an arrow between (one each way when <paramref name="both"/>). A line drawn with a kind's look
+    /// (<paramref name="look"/>, see <see cref="LookOfLines"/>) has that drawing between them instead, as it is on the canvas.
+    /// </summary>
+    internal Control LineHeader(Model model, string from, string to, bool both = false, LineLook? look = null)
     {
         Control End(string id)
         {
@@ -412,7 +415,7 @@ internal sealed class SidePanel : Border
         }
         var left = End(from);
         var right = End(to);
-        var arrow = Icons.Make(both ? Icons.ArrowsLeftRight : Icons.ArrowRight, "rowicon", 22);
+        Control arrow = look is null ? Icons.Make(both ? Icons.ArrowsLeftRight : Icons.ArrowRight, "rowicon", 22) : new LookSwatch(look, 56, 22, both);
         arrow.VerticalAlignment = VerticalAlignment.Top;
         arrow.Margin = new Thickness(8, 9, 8, 0);
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { left, arrow, right } };
@@ -434,14 +437,16 @@ internal sealed class SidePanel : Border
             return;
         }
         var ways = Ways(model, from, to, lines);
+        var kinded = lines.Any(l => Kinds.KindOf(l.Connection) is not null); // only then does each card say what its own kind is
         var column = new StackPanel { Spacing = 14 };
-        column.Children.Add(LineHeader(model, ways.From, ways.To, ways.Both));
+        column.Children.Add(LineHeader(model, ways.From, ways.To, ways.Both, LookOfLines(lines, ways.Both)));
         foreach (var way in ways.Groups)
         {
             column.Children.Add(way.Heading);
             foreach (var (index, c, _) in way.Lines)
             {
                 var section = new StackPanel { Spacing = 6 };
+                if (kinded) section.Children.Add(KindRow(c));
                 section.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "No label", FontStyle = FontStyle.Italic, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, FontSize = 15, TextWrapping = TextWrapping.Wrap });
                 if (c.From != way.From || c.To != way.To) section.Children.Add(Muted(Describe(model, c), 12));
                 var mine = problems.Where(p => p.Connection == index).Select(p => p.Message).ToList();
@@ -457,6 +462,20 @@ internal sealed class SidePanel : Border
         }
         Show(column, $"line:{from}>{to}");
     }
+
+    /// <summary>The kind of a connection beside its drawing, muted: how a card says what its own connection is when the line's connections have kinds. A connection with none is the plain line.</summary>
+    internal static Control KindRow(Connection c)
+    {
+        var name = new TextBlock { Text = Kinds.KindOf(c) is { } kind ? Kinds.NameOf(kind) : Kinds.PlainName, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center };
+        name.Classes.Add("muted");
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new LookSwatch(Kinds.LookOf(c), 44, 16), name } };
+        row.Classes.Add("kindrow");
+        return row;
+    }
+
+    /// <summary>How the line is drawn for these connections: a shared look shows, a mixed one is the plain line (null), see <see cref="Kinds.MergedLook"/>.</summary>
+    internal static LineLook? LookOfLines(IEnumerable<(int Index, Connection Connection, bool Back)> lines, bool both) =>
+        Kinds.MergedLook([.. lines.Select(l => Kinds.LookOf(l.Connection))], both);
 
     /// <summary>One way a line's connections run: its heading, its ends, and the connections that run that way.</summary>
     internal sealed record Way(Control Heading, string From, string To, List<(int Index, Connection Connection, bool Back)> Lines);

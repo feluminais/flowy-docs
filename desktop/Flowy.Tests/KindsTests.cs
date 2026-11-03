@@ -198,6 +198,48 @@ public class KindsTests
         Assert.Contains(cases, c => c!["text"]!.GetValue<string>().Contains("<--"));
     }
 
+    private static SceneEdge LineWith(string id, LineLook? look) => new(id, "a", "b", null, EdgeFlags.None, false, false, look);
+
+    [Fact]
+    public void The_key_lists_the_kinds_on_show_in_the_order_of_the_list_and_the_plain_line_only_when_one_is_drawn()
+    {
+        var cases = Expected()["key"]!["onScreen"]!.AsArray();
+        Assert.Equal(10, cases.Count);
+        foreach (var c in cases.Select(v => v!))
+        {
+            var lines = c["lines"]!.AsArray().Select(l => LineWith(l!["id"]!.GetValue<string>(), l["look"] is { } look ? LookOf(look) : null)).ToList();
+            var (kinds, plain) = KindKey.OnScreen(lines);
+            Assert.Equal(c["result"]!["kinds"]!.AsArray().Select(k => k!.GetValue<string>()), kinds);
+            Assert.Equal(c["result"]!["plain"]!.GetValue<bool>(), plain);
+        }
+        Assert.Contains(cases, c => c!["result"]!["kinds"]!.AsArray().Count == 6);
+    }
+
+    [Fact]
+    public void A_line_wears_its_heads_and_its_tail_as_the_browser_draws_them()
+    {
+        var cases = Expected()["key"]!["marksOf"]!.AsArray();
+        Assert.Equal(2 * (2 + 6 + 3), cases.Count);
+        foreach (var c in cases.Select(v => v!))
+        {
+            var got = KindKey.MarksOf(c["look"] is { } look ? LookOf(look) : null, c["both"]!.GetValue<bool>());
+            var want = c["result"]!;
+            Assert.Equal(want["head"]!.GetValue<string>(), got.Head);
+            Assert.Equal(want["headAtStart"]!.GetValue<bool>(), got.HeadAtStart);
+            Assert.Equal(want["tail"]?.GetValue<string>(), got.Tail);
+        }
+    }
+
+    [Fact]
+    public void One_of_several_lines_side_by_side_wears_marks_no_bigger_than_the_cap()
+    {
+        var key = Expected()["key"]!;
+        Assert.Equal(KindKey.LaneMarkScale, D(key["laneMarkScale"]));
+        var cases = key["markScale"]!.AsArray();
+        Assert.Equal(7, cases.Count);
+        foreach (var c in cases.Select(v => v!)) Assert.Equal(D(c["result"]), KindKey.MarkScale(D(c["scale"]), c["lanes"]!.GetValue<int>()));
+    }
+
     [Fact]
     public void A_connection_is_read_with_its_kind()
     {

@@ -7,10 +7,13 @@ import type { FlowyObject, Model, ObjectType } from '../../src/core/model.ts'
 import { isExternal, isValidTag, MAX_TAG_LENGTH, SUGGESTED_TAGS, tagKey } from '../../src/core/model.ts'
 import { STATE_LABELS, STATE_NAMES } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
+import { KIND_IDS, KINDS, PLAIN_LOOK, PLAIN_NAME } from '../../src/core/kinds.ts'
+import type { KindId } from '../../src/core/kinds.ts'
 import { lookVars, TypeTile } from './Chrome.tsx'
 import type { FlowTile } from './compare.ts'
 import { ChevronRight, Close, Link, PathIcon, Route, Search as SearchIcon, Tag } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
+import { LookSwatch } from './kinds.tsx'
 import { PlainSwatch, Swatch } from './states.tsx'
 
 /**
@@ -301,6 +304,29 @@ export function StatePicker({ label, value, onPick }: { label: string; value?: S
     <div className="pick-field">
       <Head label={label} value={value === undefined ? 'None' : STATE_LABELS[value]} />
       <div className="pick-grid states" role="radiogroup" aria-label={`State of ${label}`}>{['', ...STATE_NAMES].map(id => cell(id as StateName | ''))}</div>
+    </div>
+  )
+}
+
+/**
+ * The kind of a connection as tiles: the plain line first, then the six kinds, each a small drawing of the line with its pattern and marks and its name under it.
+ * The tile of the kind a connection has is ringed. `value` is undefined for a plain connection (or a word that is none of the six, which draws plain).
+ */
+export function LineKindPicker({ value, onPick }: { value: KindId | undefined; onPick: (kind: KindId | '') => void }) {
+  const cell = (id: KindId | '') => {
+    const name = id === '' ? PLAIN_NAME : KINDS[id].name
+    const on = id === (value ?? '')
+    return (
+      <button key={id} type="button" role="radio" aria-checked={on} aria-label={name} title={name} className="pick linekind" onClick={() => !on && onPick(id)}>
+        <LookSwatch look={id === '' ? PLAIN_LOOK : KINDS[id].look} width={44} height={24} />
+        <span>{name}</span>
+      </button>
+    )
+  }
+  return (
+    <div className="pick-field">
+      <Head label="Kind" value={value === undefined ? PLAIN_NAME : KINDS[value].name} />
+      <div className="pick-grid linekinds" role="radiogroup" aria-label="Kind">{['', ...KIND_IDS].map(id => cell(id as KindId | ''))}</div>
     </div>
   )
 }

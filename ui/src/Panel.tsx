@@ -4,13 +4,14 @@ import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import type { DataInput } from '../../src/core/data.ts'
 import { lineKey } from '../../src/core/failures.ts'
+import { kindName, kindOf, lookOf, mergedLook, PLAIN_NAME } from '../../src/core/kinds.ts'
 import { getObject, isExternal, linksOf, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { parseData } from '../../src/core/data.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, setGroupKind, setLinePayloads, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, setGroupKind, setKind, setLinePayloads, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInputInline } from '../../src/core/ops.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
@@ -18,9 +19,10 @@ import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.
 import { nameOf, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CarriedRows, idsOf, NewPayload, PayloadForm, payloadChoices, PayloadRow } from './Payloads.tsx'
-import { PayloadPicker } from './Pickers.tsx'
+import { LineKindPicker, PayloadPicker } from './Pickers.tsx'
 import { connectionPayloads, lineCarries, payloadsOf } from '../../src/core/payloads.ts'
 import { CodeFields, CodeSection } from './Code.tsx'
+import { LookSwatch } from './kinds.tsx'
 import { DataField, DataSection } from './Data.tsx'
 import { carriedOn, connectionsOf, linesOf, newId, pickStepState, problemsOf, stateOf, stepStateShapes, withKey } from './edit.ts'
 import type { BoxLine } from './edit.ts'
@@ -240,14 +242,19 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
   const ahead = lines.filter(l => !l.back)
   const back = lines.filter(l => l.back)
   const both = ahead.length > 0 && back.length > 0
+  // The line as drawn (a shared look shows, a mixed one is plain, see mergedLook), and whether any connection has a kind: only then does each card say what its own is.
+  const look = mergedLook(lines.map(l => lookOf(l.connection)), both)
+  const kinded = lines.some(l => kindOf(l.connection) !== undefined)
   const card = ({ index, connection: c }: (typeof lines)[number], a: string, b: string) => {
     const which = { from: c.from, to: c.to, label: c.label ?? '' }
     return (
       <section key={index} className="line card">
         {(c.from !== a || c.to !== b) && <p className="muted">{nameOf(model, c.from)} → {nameOf(model, c.to)}</p>}
+        {kinded && !editing && <p className="kind-row muted"><LookSwatch look={lookOf(c)} width={44} height={16} />{kindOf(c) === undefined ? PLAIN_NAME : kindName(kindOf(c)!)}</p>}
         {editing ? (
           <form className="form" onSubmit={e => e.preventDefault()}>
             <Field label="Label" value={c.label ?? ''} onSave={label => run(m => relabel(m, which, label))} />
+            <LineKindPicker value={kindOf(c)} onPick={kind => void run(m => setKind(m, which, kind))} />
             {/* What it carries: the payloads written in place stay as they are, after the ones picked. */}
             <PayloadPicker label="Payloads" all={payloadChoices(model)} chosen={idsOf(c.payloads)} many
               onSet={next => void run(m => setLinePayloads(m, which, [...next, ...inlineOf(c)]))} onNew={name => setFresh({ index, name })} />
@@ -281,7 +288,8 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
               <strong>{nameOf(model, end)}</strong>
             </div>
           )
-          return i === 0 ? [name, both ? <ArrowsLeftRight key="arrow" size={22} /> : <ArrowRight key="arrow" size={22} />] : [name]
+          const arrow = look ? <LookSwatch key="arrow" look={look} width={56} height={22} both={both} /> : both ? <ArrowsLeftRight key="arrow" size={22} /> : <ArrowRight key="arrow" size={22} />
+          return i === 0 ? [name, arrow] : [name]
         })}
       </header>
       <h2 className="visually-hidden">{nameOf(model, a)} {both ? '↔' : '→'} {nameOf(model, b)}</h2>

@@ -26955,6 +26955,1007 @@
       ]
     },
     {
+      "folder": "desktop/fixtures/cases/kinds/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "vendor",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "clients",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        },
+        {
+          "id": "linux management",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "management vendor",
+          "source": "management",
+          "target": "vendor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "dashdot",
+            "head": "filled",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "bus management",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "both": true,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "linux vendor",
+          "source": "linux",
+          "target": "vendor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "clients management",
+          "source": "management",
+          "target": "clients",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "diamond"
+          }
+        },
+        {
+          "id": "bus clients",
+          "source": "bus",
+          "target": "clients",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "bus ui",
+          "source": "ui",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "problem"
+          ],
+          "selected": false
+        },
+        {
+          "id": "clients ui",
+          "source": "ui",
+          "target": "clients",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "vendor",
+        "bus",
+        "clients"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/kinds/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "management",
+            "bus"
+          ],
+          [
+            "management",
+            "vendor"
+          ],
+          [
+            "linux",
+            "ui"
+          ]
+        ],
+        "step": 0
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "lit",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "vendor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "clients",
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        },
+        {
+          "id": "linux management",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "management vendor",
+          "source": "management",
+          "target": "vendor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "dashdot",
+            "head": "filled",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "bus management",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "both": true,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "linux vendor",
+          "source": "linux",
+          "target": "vendor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "clients management",
+          "source": "management",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "diamond"
+          }
+        },
+        {
+          "id": "bus clients",
+          "source": "bus",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "bus ui",
+          "source": "ui",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "selected": false
+        },
+        {
+          "id": "clients ui",
+          "source": "ui",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "vendor",
+        "bus",
+        "clients"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/kinds/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "management",
+            "bus"
+          ],
+          [
+            "management",
+            "vendor"
+          ],
+          [
+            "linux",
+            "ui"
+          ]
+        ],
+        "step": 3
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "vendor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "lit",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "clients",
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        },
+        {
+          "id": "linux management",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "management vendor",
+          "source": "management",
+          "target": "vendor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "dashdot",
+            "head": "filled",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "bus management",
+          "source": "management",
+          "target": "bus",
+          "label": "2 connections",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "both": true,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "linux vendor",
+          "source": "linux",
+          "target": "vendor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "clients management",
+          "source": "management",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "diamond"
+          }
+        },
+        {
+          "id": "bus clients",
+          "source": "bus",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "bus ui",
+          "source": "ui",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "selected": false
+        },
+        {
+          "id": "clients ui",
+          "source": "ui",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "vendor",
+        "bus",
+        "clients"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/kinds/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "management",
+            "bus"
+          ],
+          [
+            "management",
+            "vendor"
+          ],
+          [
+            "linux",
+            "ui"
+          ]
+        ],
+        "step": 5
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "lit",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "vendor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "clients",
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        },
+        {
+          "id": "linux management",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "management vendor",
+          "source": "management",
+          "target": "vendor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "dashdot",
+            "head": "filled",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "bus management",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "both": true,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "linux vendor",
+          "source": "linux",
+          "target": "vendor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "clients management",
+          "source": "management",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "diamond"
+          }
+        },
+        {
+          "id": "bus clients",
+          "source": "bus",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "bus ui",
+          "source": "ui",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim",
+            "problem"
+          ],
+          "selected": false
+        },
+        {
+          "id": "clients ui",
+          "source": "ui",
+          "target": "clients",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "linux",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "vendor",
+        "bus",
+        "clients"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/kinds/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "management",
+            "bus"
+          ],
+          [
+            "management",
+            "vendor"
+          ],
+          [
+            "linux",
+            "ui"
+          ]
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "vendor",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "clients",
+          "classes": [
+            "problem"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        },
+        {
+          "id": "linux management",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "management vendor",
+          "source": "management",
+          "target": "vendor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "dashdot",
+            "head": "filled",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "bus management",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "both": true,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "linux vendor",
+          "source": "linux",
+          "target": "vendor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "clients management",
+          "source": "management",
+          "target": "clients",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "diamond"
+          }
+        },
+        {
+          "id": "bus clients",
+          "source": "bus",
+          "target": "clients",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "bus ui",
+          "source": "ui",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "problem"
+          ],
+          "selected": false
+        },
+        {
+          "id": "clients ui",
+          "source": "ui",
+          "target": "clients",
+          "label": null,
+          "classes": [],
+          "selected": false
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "vendor",
+        "bus",
+        "clients"
+      ]
+    },
+    {
       "folder": "desktop/fixtures/cases/groups/flowy",
       "view": "shop",
       "playing": {

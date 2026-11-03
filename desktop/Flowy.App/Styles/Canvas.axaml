@@ -217,4 +217,12 @@
     <Setter Property="Stroke" Value="{DynamicResource BoxBrush}" />
     <Setter Property="StrokeThickness" Value="2" />
   </Style>
+  <!-- The key of the kinds of connection on show, over the foot of the canvas (CanvasView.KindKeyHost); its cells carry the 6 under them. -->
+  <Style Selector="Border.kindkey">
+    <Setter Property="Background" Value="{DynamicResource BoxBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="12,7,12,1" />
+  </Style>
 </Styles>
