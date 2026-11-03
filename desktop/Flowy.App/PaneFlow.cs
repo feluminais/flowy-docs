@@ -158,7 +158,7 @@ internal sealed class PaneFlow
             _canvas.Fit(0, true, 0, 0, refit: false); // once, when the pane first has a size; after that the reader's zoom stays through a resize
         }
         var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.ShowsPause, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps, _canvas.ChannelKindsShown);
-        _player.Show(card);
+        _player.Show(card, FlowStage.EveryCard(model, view, flow, _flowId, stops, shown, null, Changes?.Steps));
         _canvas.SetMarks(marks);
 
         // The motion of the step on show starts once for each step and replay: a hover, a theme or a change on disk redraws without starting it again.
