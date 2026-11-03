@@ -40,6 +40,7 @@ internal sealed class PlayerCard : Border
     public event Action? Next;
     public event Action? Stop;
     public event Action? Play;
+    /// <summary>Back on a step that moves: the step plays again from its start, and Play ends.</summary>
     public event Action? Replay;
     /// <summary>The bar is taken hold of, dragged to a stop and a fraction of the way through it, and let go of (see <see cref="Playback.ScrubStart"/>).</summary>
     public event Action? ScrubStart;
@@ -135,6 +136,25 @@ internal sealed class PlayerCard : Border
     }
 
     private Control? _picker;
+
+    /// <summary>How soon a second click of Back goes to the step before, in ms. The browser's Back (ui/src/Player.tsx) waits the same.</summary>
+    internal const long BackAgain = 2000;
+
+    private long _lastBack = long.MinValue / 2;
+
+    /// <summary>Back plays the step again, and a second click soon after goes to the step before; on a step that doesn't move it goes there at once.</summary>
+    private void BackClicked(PlayerView v)
+    {
+        var now = Environment.TickCount64;
+        var again = now - _lastBack < BackAgain;
+        _lastBack = now;
+        if (v.Moving && (!again || v.Stop == 0)) Replay?.Invoke();
+        else Back?.Invoke();
+    }
+
+    /// <summary>What Back does on this stop: a step that moves plays again first.</summary>
+    internal static string? BackTip(int stop, bool moving) =>
+        !moving ? (stop == 0 ? "Nothing moves on this step" : null) : stop == 0 ? "Replay the step" : "Replay the step, twice for the one before";
 
     private Button Tool(string icon, string? text, Action click, bool enabled = true, bool primary = false, string? name = null)
     {
@@ -589,15 +609,15 @@ internal sealed class PlayerCard : Border
         stop.Margin = new Thickness(16, 0, 0, 0);
         DockPanel.SetDock(stop, Dock.Right);
         buttons.Children.Add(stop);
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { Tool(Icons.StepBack, "Back", () => Back?.Invoke(), v.Stop > 0), Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true) } };
+        var back = Tool(Icons.StepBack, "Back", () => BackClicked(v), v.Stop > 0 || v.Moving);
+        if (BackTip(v.Stop, v.Moving) is { } tip)
+        {
+            if (back.IsEnabled) ToolTip.SetTip(back, tip);
+            else GreyedWith(back, tip);
+        }
         var play = v.ShowsPause ? Tool(Icons.Pause, "Pause", () => Play?.Invoke()) : Tool(Icons.Play, "Play", () => Play?.Invoke());
         ToolTip.SetTip(play, v.ShowsPause ? "Pause (P)" : "Play (P)");
-        left.Children.Add(play);
-        // Replay stays on a step that doesn't move, greyed out, so the row and the card keep their size from step to step.
-        var replay = Tool(Icons.Reload, null, () => Replay?.Invoke(), v.Moving, name: "Replay this step");
-        if (v.Moving) ToolTip.SetTip(replay, "Replay this step (R)");
-        else GreyedWith(replay, "Nothing moves on this step");
-        left.Children.Add(replay);
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { back, play, Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true) } };
         var speeds = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(8, 0, 0, 0) };
         speeds.Classes.Add("speed");
         ToolTip.SetTip(speeds, "Speed (S)");

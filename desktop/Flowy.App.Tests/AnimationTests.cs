@@ -254,7 +254,7 @@ public class AnimationTests
     }
 
     [AvaloniaFact]
-    public void A_tagged_step_offers_Replay()
+    public void A_tagged_step_can_be_replayed_with_Back()
     {
         var (window, reader) = Open("0");
         try
@@ -269,7 +269,7 @@ public class AnimationTests
     }
 
     private static bool HasReplay(Window window) =>
-        window.GetVisualDescendants().OfType<Button>().Any(b => AutomationProperties.GetName(b) == "Replay this step");
+        window.GetVisualDescendants().OfType<Button>().Any(b => AutomationProperties.GetName(b) == "Back" && b.IsEnabled && ToolTip.GetTip(b) is string tip && tip.StartsWith("Replay the step"));
 
     [AvaloniaFact]
     public void R_plays_the_step_again()

@@ -19,7 +19,7 @@ import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { SPEEDS } from './clock.ts'
 import type { PlayerClock, Speed } from './clock.ts'
 import type { ReactNode } from 'react'
-import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, Pause, Play, Reload, Repeat, Route } from './icons.tsx'
+import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, Pause, Play, Repeat, Route } from './icons.tsx'
 import { ChannelKey } from './Channels.tsx'
 import { StateKey } from './states.tsx'
 import { usePref } from './store.ts'
@@ -77,6 +77,12 @@ type Scrub = { start: () => void; to: (stop: number, fraction: number) => void; 
 
 const IN_A_PANE = 'Not while comparing'
 const STILL = 'Nothing moves on this step'
+/** How soon a second click of Back goes to the step before, in ms. */
+const BACK_AGAIN = 2000
+
+/** What Back does on this stop: a step that moves plays again first. */
+const backTip = (stop: number, moving: boolean): string | undefined =>
+  !moving ? (stop === 0 ? STILL : undefined) : stop === 0 ? 'Replay the step' : 'Replay the step, twice for the one before'
 
 /**
  * The cell under the pointer, or the nearest one (a cell is four pixels high, so a drag strays off it), and how far along it the pointer is. Cells of another lane
@@ -393,6 +399,16 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
     for (const on of body.current?.querySelectorAll<HTMLElement>('.tabs > .on') ?? []) inView(on.parentElement!, on)
     for (const on of body.current?.querySelectorAll<HTMLElement>('.fork .lane.on') ?? []) inView(on.closest<HTMLElement>('.fork')!, on, 8) // its cells, under its name
   }, [stop, flow])
+  // Back plays the step again, and a second click soon after goes to the step before; on a step that doesn't move it goes there at once.
+  const lastBack = useRef(-Infinity)
+  const back = () => {
+    const again = performance.now() - lastBack.current < BACK_AGAIN
+    lastBack.current = performance.now()
+    if (moving && (!again || stop === 0)) {
+      onStep(stop) // ends Play, as any step you take does
+      onReplay()
+    } else onStep(stop - 1)
+  }
   const shared = { model, flow, stops, ends, progress, changes, clock, scrub, legend, grouped, onOpenFlow }
   return (
     <section className="player" aria-live="polite" ref={section}>
@@ -404,14 +420,13 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
         </div>
       </div>
       <div className="player-buttons">
-        <button disabled={stop === 0} onClick={() => onStep(stop - 1)}><StepBack size={16} />Back</button>
-        <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
-        {/* Play and Pause are one button as wide as its longer word, and Replay and Repeat stay greyed out on a step that doesn't move, so the row never reflows. */}
+        <button disabled={stop === 0 && !moving} title={backTip(stop, moving)} onClick={back}><StepBack size={16} />Back</button>
+        {/* Play and Pause are one button as wide as its longer word, and Repeat stays greyed out on a step that doesn't move, so the row never reflows. */}
         <button onClick={onPlay} title={showsPause ? 'Pause (P)' : 'Play (P)'}>
           {showsPause ? <Pause size={16} /> : <Play size={16} />}
           <span className="same-width"><span className={showsPause ? undefined : 'ghost'} aria-hidden={!showsPause}>Pause</span><span className={showsPause ? 'ghost' : undefined} aria-hidden={showsPause}>Play</span></span>
         </button>
-        <button aria-label="Replay this step" disabled={!moving} title={moving ? 'Replay this step (R)' : STILL} onClick={onReplay}><Reload size={16} /></button>
+        <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
         <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving} title={!moving ? STILL : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>
         <div className="speed" role="group" aria-label="Speed" title="Speed (S)">
           {SPEEDS.map(s => <button key={s} aria-pressed={speed === s} onClick={() => onSpeed(s)}>{s}×</button>)}
