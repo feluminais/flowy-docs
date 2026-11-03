@@ -125,7 +125,8 @@ async function stepTwoTakes(page: Page): Promise<number> {
   const started = Date.now()
   await player(page).getByRole('button', { name: 'Next' }).click()
   await dot(page).waitFor()
-  await expect(page.locator('.motion g[data-beat]:has(> .blob):visible')).toHaveCount(0, { timeout: 8000 })
+  // Every 20 ms: toHaveCount backs off to one look a second, so on a slow machine both speeds land on the same look.
+  await expect.poll(() => page.locator('.motion g[data-beat]:has(> .blob):visible').count(), { intervals: [20], timeout: 8000 }).toBe(0)
   return Date.now() - started
 }
 
