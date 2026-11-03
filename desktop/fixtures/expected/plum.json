@@ -1841,7 +1841,7 @@
           "text": "Opens the order to see where the food is",
           "animation": {
             "kind": "send",
-            "carries": "tap"
+            "carries": "order"
           },
           "placed": [
             "customer",
@@ -2098,7 +2098,7 @@
           "text": "Opens a restaurant",
           "animation": {
             "kind": "send",
-            "carries": "tap"
+            "carries": "restaurant"
           },
           "placed": [
             "customer",

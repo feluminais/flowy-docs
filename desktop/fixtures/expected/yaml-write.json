@@ -3760,7 +3760,7 @@
             "text": "Opens the order to see where the food is",
             "animation": {
               "kind": "send",
-              "carries": "tap"
+              "carries": "order"
             }
           },
           {
@@ -3823,7 +3823,7 @@
           }
         ]
       },
-      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
+      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: order\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -3945,7 +3945,7 @@
             "text": "Opens a restaurant",
             "animation": {
               "kind": "send",
-              "carries": "tap"
+              "carries": "restaurant"
             }
           },
           {
@@ -4019,7 +4019,7 @@
           }
         ]
       },
-      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens a restaurant\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n  - from: customer-app\n    to: customer\n    text: Shows the dishes and prices\n    animation:\n      kind: send\n      carries: menu\n"
+      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens a restaurant\n    animation:\n      kind: send\n      carries: restaurant\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n  - from: customer-app\n    to: customer\n    text: Shows the dishes and prices\n    animation:\n      kind: send\n      carries: menu\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -12812,7 +12812,7 @@
             "text": "Opens the order to see where the food is",
             "animation": {
               "kind": "send",
-              "carries": "tap"
+              "carries": "order"
             }
           },
           {
@@ -12875,7 +12875,7 @@
           }
         ]
       },
-      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
+      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: order\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -12997,7 +12997,7 @@
             "text": "Opens a restaurant",
             "animation": {
               "kind": "send",
-              "carries": "tap"
+              "carries": "restaurant"
             }
           },
           {
@@ -13071,7 +13071,7 @@
           }
         ]
       },
-      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens a restaurant\n    animation:\n      kind: send\n      carries: tap\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n  - from: customer-app\n    to: customer\n    text: Shows the dishes and prices\n    animation:\n      kind: send\n      carries: menu\n"
+      "text": "name: A menu is read\nview: order-api\ntags:\n  - happy path\ngroups:\n  lookup:\n    kind: branch\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens a restaurant\n    animation:\n      kind: send\n      carries: restaurant\n  - from: customer-app\n    to: menu\n    text: Asks for a restaurant's menu\n    animation:\n      kind: call\n      carries: GET /menus\n  - from: menu\n    to: menu-cache\n    text: Looks the menu up\n    animation:\n      kind: call\n      carries: menu r_42\n  - from: menu-cache\n    to: menu\n    text: Returns the cached menu\n    group: lookup\n    lane: Cache hit\n    animation:\n      kind: send\n      carries: menu\n    description: |\n      5 min TTL, so a restaurant's edit can take that long to appear.\n  - from: menu\n    to: orders-db\n    text: Reads the menu from the database\n    group: lookup\n    lane: Cache miss\n    animation:\n      kind: call\n      carries: menu\n  - from: menu\n    to: menu-cache\n    text: Caches it for 5 min\n    group: lookup\n    animation:\n      kind: send\n      carries: menu\n  - from: menu\n    to: customer-app\n    text: Returns the menu\n    animation:\n      kind: send\n      carries: menu\n  - from: customer-app\n    to: customer\n    text: Shows the dishes and prices\n    animation:\n      kind: send\n      carries: menu\n"
     },
     {
       "folder": "docs/demo/flowy",
