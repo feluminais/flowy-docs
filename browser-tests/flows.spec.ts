@@ -19,7 +19,7 @@ const rows = (page: Page) => page.locator('.navscroll .flow-item')
 test('the Flows tab lists the flows as the folders they are filed in, folders first and flows by file name', async ({ page }) => {
   await openFlows(page)
   expect(await folders(page)).toEqual(['delivery', 'ordering', 'payments', 'stripe'])
-  expect(await rows(page).count()).toBe(20)
+  expect(await rows(page).count()).toBe(21)
   const names = await page.locator('.navscroll .flow-row .name').allTextContents()
   // delivery's flows come in file-name order (courier-pings-lost, deliver-order, events-arrive-late ...), not in the order of their titles
   expect(names.slice(0, 3)).toEqual(['Courier pings are lost', 'A courier delivers it', 'Dispatch hears about an order late'])
@@ -28,13 +28,13 @@ test('the Flows tab lists the flows as the folders they are filed in, folders fi
 test('a folder folds away with its flows, and keeps its count', async ({ page }) => {
   await openFlows(page)
   const ordering = page.locator('.group-head.folder', { hasText: 'ordering' })
-  await expect(ordering.locator('.muted')).toHaveText('7')
+  await expect(ordering.locator('.muted')).toHaveText('8')
   await ordering.click()
   await expect(ordering).toHaveAttribute('aria-expanded', 'false')
   expect(await rows(page).count()).toBe(13)
-  await expect(ordering.locator('.muted')).toHaveText('7')
+  await expect(ordering.locator('.muted')).toHaveText('8')
   await ordering.click()
-  expect(await rows(page).count()).toBe(20)
+  expect(await rows(page).count()).toBe(21)
 })
 
 test('the tags in use filter the list, and pressing one again lets the flows back', async ({ page }) => {
@@ -43,14 +43,14 @@ test('the tags in use filter the list, and pressing one again lets the flows bac
   expect(await bar.getByRole('button').allTextContents()).toEqual(['error path9', 'happy path7', 'edge case3', 'background2', 'recovery2'])
   await bar.getByRole('button', { name: /^error path/ }).click()
   expect(await rows(page).count()).toBe(9)
-  await expect(page.locator('.navscroll .navnote').first()).toHaveText('9 of 20 flows')
+  await expect(page.locator('.navscroll .navnote').first()).toHaveText('9 of 21 flows')
   expect(await folders(page)).toEqual(['delivery', 'ordering', 'payments', 'stripe'])
   await bar.getByRole('button', { name: /^recovery/ }).click() // any of the tags, so recovery adds nothing here: every recovery flow is an error path too
   expect(await rows(page).count()).toBe(9)
   await bar.getByRole('button', { name: /^error path/ }).click()
   expect(await rows(page).count()).toBe(2)
   await bar.getByRole('button', { name: /^recovery/ }).click()
-  expect(await rows(page).count()).toBe(20)
+  expect(await rows(page).count()).toBe(21)
 })
 
 test('the search matches a folder or a tag, opens the folders that have a match, and says when nothing does', async ({ page }) => {
