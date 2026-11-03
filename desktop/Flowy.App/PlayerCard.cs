@@ -98,7 +98,7 @@ internal sealed class PlayerCard : Border
         AreaStyles.Add(this, "Player");
         _inPane = inPane;
         Classes.Add("card");
-        HorizontalAlignment = HorizontalAlignment.Center;
+        HorizontalAlignment = HorizontalAlignment.Stretch; // 520 wide when there is room, centred: its words never make it wider or narrower
         VerticalAlignment = VerticalAlignment.Bottom;
         MaxWidth = 520;
         Margin = inPane ? new Thickness(10, 0, 10, 12) : new Thickness(16, 24, 16, 24);
@@ -416,10 +416,89 @@ internal sealed class PlayerCard : Border
         (same ?? buttons.FirstOrDefault())?.Focus();
     }
 
-    public void Show(PlayerView v)
+    /// <summary>
+    /// The card of every stop of the flow on show, for <see cref="Show"/> to keep the size of the tallest. <c>Key</c> is the same object for as long as those cards
+    /// look the same (the flow, its stops and the model), so they are measured again only when it changes, or the card's width or the legend does.
+    /// </summary>
+    internal sealed record Every(object Key, Func<IReadOnlyList<PlayerView>> Views);
+
+    /// <summary>The stops a card measures to keep the size of its tallest; a longer flow keeps the card as each stop draws it. The browser's card has the same.</summary>
+    private const int ReserveMost = 300;
+
+    private (object? Key, double Width, bool Legend) _reserveFor;
+    private (double Top, double Column)? _reserve;
+    private Every? _every; // the flow's cards, kept for the card's own rebuilds (the legend, the Compare flyout, a new width)
+
+    /// <summary>
+    /// The card at <paramref name="v"/>. With <paramref name="every"/> it is as tall as at its tallest stop, so its edge and its buttons stay put as the flow plays: the
+    /// part above the buttons of every stop is built once out of sight and measured, and the tallest is kept. Left out, the cards of the last call are used.
+    /// </summary>
+    public void Show(PlayerView v, Every? every = null)
     {
         var keyboard = KeyboardOnButton();
         _shown = v;
+        if (every is not null) _every = every;
+        Reserve(_every);
+        var (top, column) = Parts(v);
+        if (_reserve is { } room)
+        {
+            top.MinHeight = room.Top;
+            column.MinHeight = room.Column - top.Margin.Bottom;
+        }
+        Buttons(v, top, column, keyboard);
+    }
+
+    /// <summary>A card that gets wider or narrower (the window did) measures its stops again at the new width.</summary>
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        if (e.WidthChanged && _every is not null && _reserveFor.Key is not null && Math.Round(ContentWidth()) != _reserveFor.Width && _shown is { } v)
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_shown == v && IsVisible) Show(v);
+            });
+    }
+
+    /// <summary>The width the card's content gets: the card's own, once it has one, less its padding and border.</summary>
+    private double ContentWidth() =>
+        (Bounds.Width > 0 ? Bounds.Width : MaxWidth) - Padding.Left - Padding.Right - BorderThickness.Left - BorderThickness.Right;
+
+    private void Reserve(Every? every)
+    {
+        if (every is null)
+        {
+            _reserve = null;
+            _reserveFor = default;
+            return;
+        }
+        var width = Math.Round(ContentWidth());
+        var key = (every.Key, width, s_legend);
+        if (_reserve is not null && _reserveFor.Equals(key)) return;
+        _reserveFor = key;
+        var views = every.Views();
+        if (views.Count > ReserveMost)
+        {
+            _reserve = null;
+            return;
+        }
+        // Each stop's parts are put on the card for a moment, so they take its styles, and measured at its width; the card on show is built after them.
+        double tallestTop = 0, tallestColumn = 0;
+        foreach (var view in views)
+        {
+            var (top, column) = Parts(view);
+            var probe = new StackPanel { Children = { top, column } };
+            Child = probe;
+            probe.Measure(new Size(width, double.PositiveInfinity));
+            tallestTop = Math.Max(tallestTop, top.DesiredSize.Height - top.Margin.Top - top.Margin.Bottom);
+            tallestColumn = Math.Max(tallestColumn, column.DesiredSize.Height + top.Margin.Bottom); // the gap over the column is the chips' margin, or the bar's own room
+        }
+        Child = null;
+        _reserve = (tallestTop, tallestColumn);
+    }
+
+    /// <summary>What the card shows of one stop above its buttons: the trail back and the chips (<c>Top</c>), then the legend, the group's words, the bar, the keys and each step.</summary>
+    private (StackPanel Top, StackPanel Column) Parts(PlayerView v)
+    {
         var grouped = v.Progress.Brackets.Count > 0; // the legend explains groups, so a flow with none has no button
         var top = new StackPanel { Spacing = 8, Margin = new Thickness(0, 0, 0, 8) };
         var column = new StackPanel { Spacing = 8 };
@@ -474,7 +553,11 @@ internal sealed class PlayerCard : Border
             column.Children.Add(Scrolled(tabs, 84, "tab")); // three rows and half of a fourth (24 each), then they scroll
         }
         if (v.Caption.Text != "") column.Children.Add(new SelectableTextBlock { Text = v.Caption.Text, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Classes = { "muted" } });
-        var bar = new Border { Background = Brushes.Transparent, Child = Bar(v.Progress, v.Stop, v.Changes), Cursor = new Cursor(StandardCursorType.Hand) };
+        // The cells are four pixels high: the strip that takes a click or a drag reaches 8 more each way, into the room between the card's lines. When the bar comes
+        // first, the room above it is the chips' margin, outside the part that scrolls, so the strip takes that room inside instead.
+        var first = column.Children.Count == 0;
+        if (first) top.Margin = new Thickness(0);
+        var bar = new Border { Background = Brushes.Transparent, Child = Bar(v.Progress, v.Stop, v.Changes), Cursor = new Cursor(StandardCursorType.Hand), Padding = new Thickness(0, 8), Margin = new Thickness(0, first ? 0 : -8, 0, -8) };
         AutomationProperties.SetName(bar, "Step");
         AutomationProperties.SetHelpText(bar, $"Step {v.Stop + 1} of {v.Count}");
         bar.PointerPressed += (_, e) =>
@@ -482,8 +565,11 @@ internal sealed class PlayerCard : Border
             if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
             e.Pointer.Capture(this); // the card is rebuilt as the drag goes through the stops: the card, not the bar, keeps the pointer
             _dragging = true;
+            // The cell under the pointer is read before the player holds: holding can rebuild the card (Pause becomes Play), and the new cells have no place yet.
+            var at = e.GetPosition(this);
+            var hit = CellAt(CellBoxes(), at.X, at.Y);
             ScrubStart?.Invoke();
-            DragTo(e.GetPosition(this));
+            if (hit is { } cell) ScrubTo?.Invoke(cell.Stop, cell.Fraction);
             e.Handled = true;
         };
         column.Children.Add(bar);
@@ -491,6 +577,12 @@ internal sealed class PlayerCard : Border
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
         if (v.ChannelKinds is { Count: > 0 } kinds) column.Children.Add(ChannelKey.Of(kinds));
         foreach (var step in v.Steps) column.Children.Add(Block(step, v.Steps.Count > 1));
+        return (top, column);
+    }
+
+    /// <summary>The buttons under the parts, and the card put together.</summary>
+    private void Buttons(PlayerView v, StackPanel top, StackPanel column, string? keyboard)
+    {
         var buttons = new DockPanel { Margin = new Thickness(0, 14, 0, 0), LastChildFill = false }; // the 8 between the card's lines and 6 more
         var stop = Tool(Icons.Close, "Stop", () => Stop?.Invoke(), !_inPane);
         if (_inPane) GreyedWith(stop, "Close the comparison to stop");
@@ -501,12 +593,11 @@ internal sealed class PlayerCard : Border
         var play = v.ShowsPause ? Tool(Icons.Pause, "Pause", () => Play?.Invoke()) : Tool(Icons.Play, "Play", () => Play?.Invoke());
         ToolTip.SetTip(play, v.ShowsPause ? "Pause (P)" : "Play (P)");
         left.Children.Add(play);
-        if (v.Moving)
-        {
-            var replay = Tool(Icons.Reload, null, () => Replay?.Invoke(), name: "Replay this step");
-            ToolTip.SetTip(replay, "Replay this step (R)");
-            left.Children.Add(replay);
-        }
+        // Replay stays on a step that doesn't move, greyed out, so the row and the card keep their size from step to step.
+        var replay = Tool(Icons.Reload, null, () => Replay?.Invoke(), v.Moving, name: "Replay this step");
+        if (v.Moving) ToolTip.SetTip(replay, "Replay this step (R)");
+        else GreyedWith(replay, "Nothing moves on this step");
+        left.Children.Add(replay);
         var speeds = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(8, 0, 0, 0) };
         speeds.Classes.Add("speed");
         ToolTip.SetTip(speeds, "Speed (S)");
@@ -603,6 +694,7 @@ internal sealed class PlayerCard : Border
 
     public void Clear()
     {
+        _every = null;
         _filling?.Dispose();
         _filling = null;
         Detach(_picker);

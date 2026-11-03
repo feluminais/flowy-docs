@@ -155,7 +155,7 @@ public class GroupsTests
         Assert.DoesNotContain(Borders(reader, "tab"), _ => true);
         Assert.DoesNotContain(Borders(reader, "laneblock"), _ => true);
         Assert.NotNull(Named(reader, "Back"));
-        Assert.Null(Named(reader, "Replay this step"));
+        Assert.False(Named(reader, "Replay this step")!.IsEnabled); // greyed out: nothing moves
     }
 
     [AvaloniaFact]
