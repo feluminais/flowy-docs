@@ -185,22 +185,22 @@ public class PlayerSizeTests
     }
 
     [AvaloniaFact]
-    public void Play_and_Pause_are_one_width_so_Replay_stays_put()
+    public void Play_and_Pause_are_one_width_so_Next_stays_put()
     {
         var (temp, window, reader) = Open();
         using var _ = temp;
         reader.Play("checkout", 0);
         Settle(window);
-        double ReplayX() => Named(reader.Card, "Replay this step")!.TranslatePoint(new Point(0, 0), window)!.Value.X;
+        double NextX() => Named(reader.Card, "Next")!.TranslatePoint(new Point(0, 0), window)!.Value.X;
         var play = Named(reader.Card, "Play") ?? Named(reader.Card, "Pause");
         Assert.NotNull(play);
-        var (width, x) = (play.Bounds.Width, ReplayX());
+        var (width, x) = (play.Bounds.Width, NextX());
         window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, "p");
         Settle(window);
         var other = AutomationProperties.GetName(play) == "Play" ? Named(reader.Card, "Pause") : Named(reader.Card, "Play");
         Assert.NotNull(other); // the button changed its word
         Assert.Equal(width, other.Bounds.Width);
-        Assert.Equal(x, ReplayX());
+        Assert.Equal(x, NextX());
     }
 
     [AvaloniaFact]
