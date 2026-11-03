@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { cameBack, remember } from '../ui/src/levels.ts'
+import { backFrom, cameBack, remember } from '../ui/src/levels.ts'
 
 const anywhere = () => true
 
@@ -24,6 +24,15 @@ test('a level that is gone or is the current one is passed over', () => {
   assert.equal(cameBack(['root', 'gone', 'ordering'], 'ordering', id => id !== 'gone')?.to, 'root')
   assert.deepEqual(cameBack(['root', 'gone'], 'ordering', id => id !== 'gone')?.rest, [])
   assert.equal(cameBack(['gone'], 'ordering', id => id !== 'gone'), undefined)
+})
+
+test('Esc goes back from the box the level is drawn as', () => {
+  const chain = ['dispatch', 'back-office', 'root'] // the level Esc heads for, then the boxes around it
+  assert.equal(backFrom(chain, 'across', id => id === 'dispatch'), 'dispatch')
+  assert.equal(backFrom(chain, 'across', id => id === 'back-office'), 'back-office', 'drawn as the box around it')
+  assert.equal(backFrom(chain, 'in', id => id === 'dispatch'), 'dispatch')
+  assert.equal(backFrom(chain, 'out', () => true), undefined, 'going out zooms about the middle')
+  assert.equal(backFrom(chain, 'across', () => false), undefined, 'not drawn: about the middle')
 })
 
 test('only the last 50 levels are kept', () => {

@@ -3,10 +3,11 @@ import type { Dispatch, RefObject, SetStateAction } from 'react'
 import type { Model } from '../../src/core/model.ts'
 import { ROOT } from '../../src/core/model.ts'
 import { stopIndexOf, stopsOf } from '../../src/core/structure.ts'
-import { isView, parentOf } from '../../src/core/views.ts'
+import { chain, isView, parentOf } from '../../src/core/views.ts'
 import type { Compare } from './compare.ts'
 import { moveBetween } from './edit.ts'
-import { cameBack, remember } from './levels.ts'
+import type { Move } from './edit.ts'
+import { backFrom, cameBack, remember } from './levels.ts'
 import type { Levels } from './levels.ts'
 import type { Side } from './side.ts'
 import { closeFlow, openFlow as leaveFlow } from './trail.ts'
@@ -26,6 +27,7 @@ export function useNavigation({ model, view, canvas, canOpen, editing, setViewId
 }) {
   const levels = useRef<Levels>([]) // the levels the reader has left, for Esc to go back through
   const arriving = useRef<{ id: string; how: 'back' | 'jump' }>(undefined) // the level a way back or a jump up is heading for
+  const slides = useRef(new Map<string, [number, number]>()) // "from>to": how far from the middle each move started, for Esc to go back the other way
   const zoom = useZoom({ canvas, model, go: id => go(id) }) // the zoom between views (see useZoom.ts)
   const { motion } = zoom
   const close = () => setSide(undefined)
@@ -59,15 +61,35 @@ export function useNavigation({ model, view, canvas, canOpen, editing, setViewId
     const to = came?.to ?? parentOf(model, here)
     levels.current = came?.rest ?? []
     arriving.current = { id: to, how: came ? 'back' : 'jump' }
-    zoom.zoomAbout(to, moveBetween(model, here, to))
+    const move = moveBetween(model, here, to)
+    const c = canvas.current!.getBoundingClientRect()
+    // Back across plays the way there in reverse: each view puts its neighbours where it likes, so where the level is drawn here may lie the same way again.
+    const there = move === 'across' ? slides.current.get(`${to}>${here}`) : undefined
+    // Else from where the level is drawn. A second press is still on the old view, so about the middle.
+    const from = here === view ? backFrom(chain(model, to), move, id => !!nodeOf(id)) : undefined
+    if (there) zoomAt(here, to, move, c.width / 2 - there[0], c.height / 2 - there[1])
+    else if (from) zoomFrom(to, move, from)
+    else zoomAt(here, to, move, c.width / 2, c.height / 2)
+  }
+  /** Zoom from view `from` to `to` about (x, y) on the canvas, and remember where it started. */
+  const zoomAt = (from: string, to: string, move: Move, x: number, y: number) => {
+    const c = canvas.current!.getBoundingClientRect()
+    if (slides.current.size > 100) slides.current.clear()
+    slides.current.set(`${from}>${to}`, [x - c.width / 2, y - c.height / 2])
+    zoom.zoomTo(to, move, x, y)
+  }
+  const nodeOf = (id: string) => canvas.current?.querySelector(`.react-flow__node[data-id="${CSS.escape(id)}"]`)
+  /** Zoom to view `to` from where box `id` sits on screen, or about the middle when it isn't drawn. */
+  const zoomFrom = (to: string, move: Move, id: string) => {
+    const c = canvas.current!.getBoundingClientRect()
+    const b = nodeOf(id)?.getBoundingClientRect()
+    zoomAt(view, to, move, b ? b.x + b.width / 2 - c.x : c.width / 2, b ? b.y + b.height / 2 - c.y : c.height / 2)
   }
   /** Open box `id`, from where it sits on screen: zoom in when it's inside this view, slide across when it sits beside it. */
   const zoomInto = (id: string) => {
     cancelOpen() // a click on the box queued its panel; the zoom replaces it
     close()
-    const c = canvas.current!.getBoundingClientRect()
-    const b = canvas.current!.querySelector(`.react-flow__node[data-id="${CSS.escape(id)}"]`)?.getBoundingClientRect()
-    zoom.zoomTo(id, moveBetween(model, view, id), b ? b.x + b.width / 2 - c.x : c.width / 2, b ? b.y + b.height / 2 - c.y : c.height / 2)
+    zoomFrom(id, moveBetween(model, view, id), id)
   }
   /** Play a flow where it plays (going to its level first), or while editing open it to edit. */
   const openFlow = (id: string) => {

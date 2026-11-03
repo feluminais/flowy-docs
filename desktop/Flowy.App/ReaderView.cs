@@ -74,6 +74,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private string _view = Names.Root;
     private readonly List<string> _levels = []; // the levels the reader has left, for Esc to go back through
     private (string Id, bool Back)? _arriving; // the level a way back (Back) or a jump up is heading for
+    private readonly Dictionary<(string From, string To), Pt> _slides = []; // how far from the middle each move started, for Esc to go back the other way
     private Side? _side; // what is picked: it shows in Details
     private readonly TopBar _bar = new();
     private readonly Panels _panels;
@@ -829,13 +830,25 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         Interacted();
         _side = null;
-        var rect = _canvas.RectOf(id);
-        var origin = rect is { } r ? _canvas.Viewport.ToScreen(r.Center) : new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2);
-        _levelMotion.Zoom(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), origin, _compareMode.State is not null);
+        ZoomFrom(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), id);
     }
 
+    /// <summary>Zooms to view <paramref name="to"/> from where box <paramref name="id"/> sits on screen, or about the middle when it isn't drawn.</summary>
+    private void ZoomFrom(string to, Move move, string id) => ZoomAt(to, move, _canvas.RectOf(id) is { } r ? _canvas.Viewport.ToScreen(r.Center) : Middle());
+
+    /// <summary>Zooms to view <paramref name="to"/> about <paramref name="origin"/> on the canvas, and remembers where it started.</summary>
+    private void ZoomAt(string to, Move move, Pt origin)
+    {
+        var middle = Middle();
+        if (_slides.Count > 100) _slides.Clear();
+        _slides[(CurrentView(), to)] = new Pt(origin.X - middle.X, origin.Y - middle.Y);
+        _levelMotion.Zoom(to, move, origin, _compareMode.State is not null);
+    }
+
+    private Pt Middle() => new(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2);
+
     /// <summary>Zooms out to a view, about the middle of the canvas: the box's place in the outer view isn't known until it's drawn.</summary>
-    private void ZoomOut(string id) => _levelMotion.Zoom(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), new Pt(_canvas.Bounds.Width / 2, _canvas.Bounds.Height / 2), _compareMode.State is not null);
+    private void ZoomOut(string id) => ZoomAt(id, Navigation.MoveBetween(_folder!.Model, CurrentView(), id), Middle());
 
     public void FitNow()
     {

@@ -1,3 +1,5 @@
+import type { Move } from './edit.ts'
+
 /** The most levels Esc can step back through. */
 const MAX = 50
 
@@ -18,4 +20,12 @@ export function cameBack(levels: Levels, here: string, exists: (id: string) => b
     if (levels[i] !== here && exists(levels[i])) return { to: levels[i], rest: levels.slice(0, i) }
   }
   return undefined
+}
+
+/**
+ * The box Esc zooms from when the move there is not known to play back: the first of `chain` (the level it heads for, then the boxes around it) that is `drawn` on the
+ * canvas now. Undefined going out, or when none is drawn: the zoom is about the middle.
+ */
+export function backFrom(chain: readonly string[], move: Move, drawn: (id: string) => boolean): string | undefined {
+  return move === 'out' ? undefined : chain.find(drawn)
 }

@@ -417,7 +417,7 @@ public class CompareTests
     /// can step over a part of it altogether. <see cref="Pass"/> lets time go by in frames of 10 ms. Every read of the clock moves it on a little: the headless window only asks for another
     /// frame when the last one changed what is drawn, so a frame that saw the same time as the one before it (a key press runs a few of its own) would end the chain of frames.
     /// </summary>
-    private sealed class ManualClock : IDisposable
+    internal sealed class ManualClock : IDisposable
     {
         private double _now;
 
