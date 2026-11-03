@@ -283,6 +283,45 @@ public class KeyMapTests
         Assert.Equal(Names.Root, reader.View);
     }
 
+    /// <summary>Esc after opening a box beside this level slides back the way the reader came, against the way there: it does not only fade.</summary>
+    [AvaloniaFact]
+    public void Esc_after_a_move_across_slides_back_the_way_it_came()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.GoTo("ordering");
+        Dispatcher.UIThread.RunJobs();
+        var model = reader.Folder!.Model;
+        var beside = reader.Canvas.Scene!.Boxes.Select(b => b.Id).First(id => Views.IsView(model, id) && Navigation.MoveBetween(model, "ordering", id) == Move.Across);
+        Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
+        using var clock = new CompareTests.ManualClock();
+        try
+        {
+            reader.OpenBox(beside);
+            clock.Pass(60);
+            var there = Slide(reader);
+            clock.Pass(1000);
+            Assert.Equal(beside, reader.View);
+            window.KeyPress(Key.Escape, RawInputModifiers.None, PhysicalKey.Escape, null);
+            clock.Pass(60);
+            var back = Slide(reader);
+            Assert.True(back.X * there.X + back.Y * there.Y < 0, $"there {there}, back {back}");
+            clock.Pass(1000);
+            Assert.Equal("ordering", reader.View);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1");
+        }
+    }
+
+    /// <summary>How far the canvas has slid in a move across.</summary>
+    private static Vector Slide(ReaderView reader)
+    {
+        var t = Assert.IsType<Avalonia.Media.TranslateTransform>(reader.Canvas.RenderTransform);
+        return new Vector(t.X, t.Y);
+    }
+
     [Fact]
     public void The_first_entry_that_takes_a_press_wins()
     {

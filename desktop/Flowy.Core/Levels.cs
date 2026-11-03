@@ -29,4 +29,11 @@ public static class Levels
         }
         return null;
     }
+
+    /// <summary>
+    /// The box Esc zooms from when the move there is not known to play back: the first of <paramref name="chain"/> (the level it heads for, then the boxes around it) that is
+    /// <paramref name="drawn"/> on the canvas now. Null going out, or when none is drawn: the zoom is about the middle.
+    /// </summary>
+    public static string? BackFrom(IReadOnlyList<string> chain, Move move, Func<string, bool> drawn) =>
+        move == Move.Out ? null : chain.FirstOrDefault(drawn);
 }
