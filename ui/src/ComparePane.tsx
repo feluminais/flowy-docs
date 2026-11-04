@@ -23,6 +23,7 @@ import { edgeUnder, lineOf } from './lanehit.ts'
 import type { CanvasPoint } from './lanehit.ts'
 import { ChevronRight, Home } from './icons.tsx'
 import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
+import { PartsContext } from './parts.ts'
 import { Player } from './Player.tsx'
 import { ChannelMarks } from './Channels.tsx'
 import { StepMotion } from './StepMotion.tsx'
@@ -120,6 +121,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
       )}
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
+          <PartsContext value={p.parts}>
           <LabelSpots spots={spots}>
             <ChangeMarksContext value={marks}>
               <ReactFlow
@@ -149,9 +151,9 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
                   setZoomed(node.id)
                 }}
                 onEdgeClick={(event, hit) => {
-                  if (!isStepLine(hit.id)) onPick(lineOf(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit), view)) // of the lines of a pair side by side, the one nearest the pointer
+                  if (!isStepLine(hit.id)) onPick(lineOf(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit, p.parts.lam), view)) // of the lines of a pair side by side, the one nearest the pointer
                 }}
-                onEdgeMouseEnter={(event, hit) => p.setHovered(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit).id)}
+                onEdgeMouseEnter={(event, hit) => p.setHovered(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit, p.parts.lam).id)}
                 onEdgeMouseLeave={() => p.setHovered(undefined)}
                 onPaneClick={() => {
                   onFocus()
@@ -168,6 +170,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
               </ReactFlow>
             </ChangeMarksContext>
           </LabelSpots>
+          </PartsContext>
         </LineStyleContext>
         <KindKey {...kindsOnScreen(edges)} />
       </div>

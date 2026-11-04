@@ -10,9 +10,9 @@ public class BeatsTests
     private static JsonNode Expected() => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "beats.json")))!;
 
     /// <summary>A step with the tag, with a "to" or without one: recurse takes none and the other kinds need one.</summary>
-    private static Step Tagged(JsonNode? animation, bool to) => new("a", to ? "x" : null, "t", null, YamlWriterTests.Tree(animation));
+    internal static Step Tagged(JsonNode? animation, bool to) => new("a", to ? "x" : null, "t", null, YamlWriterTests.Tree(animation));
 
-    private static JsonObject Json(StepAnimation a)
+    internal static JsonObject Json(StepAnimation a)
     {
         var o = new JsonObject { ["kind"] = a.Kind, ["trigger"] = a.Trigger };
         if (a.Carries is not null) o["carries"] = a.Carries;
@@ -31,7 +31,7 @@ public class BeatsTests
         return o;
     }
 
-    private static JsonObject Json(Beat b)
+    internal static JsonObject Json(Beat b)
     {
         var o = new JsonObject { ["do"] = b.Do, ["on"] = b.On, ["at"] = b.At, ["dur"] = b.Dur };
         if (b.Dir is not null) o["dir"] = b.Dir;

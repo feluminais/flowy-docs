@@ -9,6 +9,7 @@ import { DOUBLE_CLICK, isStepLine } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import type { SaveEdit } from './forms.tsx'
 import { hitStrand } from './lanehit.ts'
+import type { PartStore } from './parts.ts'
 import type { HoverStore } from './Line.tsx'
 import type { Recording } from './Recorder.tsx'
 import { addsToSelection, banded, toggled } from './selection.ts'
@@ -41,11 +42,13 @@ function pick(rec: Recording, id: string): Recording {
  * What a click, a drag or a connection on the canvas does. The handlers of the canvas never change, and call the current ones: a new function for each would make React Flow take
  * them in again on every render.
  */
-export function useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, edges, lines, setFocusedLine, members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait }: {
+export function useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, edges, lines, setFocusedLine, members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait, parts }: {
   model: Model; view: string; editing: boolean; recording: FlowSide | undefined; side: Side | undefined; chosen: string[]; selectedLine: string | undefined
   nodes: BoxNode[]; edges: Edge[]; lines: LineStyle; setFocusedLine: (id: string | undefined) => void; members: string[]; sizes: ReturnType<typeof useCanvasGraph>['sizes']; session: ReturnType<typeof useEditSession>; run: SaveEdit
   show: (s: Side | undefined) => void; setSide: (s: Side | undefined) => void; closeDetails: () => void; canOpen: (id: string) => boolean; zoomInto: (id: string) => void
   hover: HoverStore; wait: ReturnType<typeof useClickWait>
+  /** How far the lines of each pair are parted around a lit line (see parts.ts), so a click means the line it is on where the lines are now. */
+  parts?: PartStore
 }) {
   const { opening, openingBox, cancelOpen } = wait
   const { didSomethingElse } = session
@@ -112,7 +115,7 @@ export function useCanvasEvents({ model, view, editing, recording, side, chosen,
   /** The line the pointer means: of the lines of a pair side by side, the nearest to the pointer (see hitStrand), not the one whose strip React Flow found first. */
   const edgeAt = (event: ReactMouseEvent, hit: Edge): Edge => {
     if (!flow.current || typeof hit.data?.pair !== 'string') return hit
-    const id = hitStrand(edges, nodes, lines, hit, flow.current.screenToFlowPosition({ x: event.clientX, y: event.clientY }), flow.current.getZoom())
+    const id = hitStrand(edges, nodes, lines, hit, flow.current.screenToFlowPosition({ x: event.clientX, y: event.clientY }), flow.current.getZoom(), parts?.lam)
     return id === hit.id ? hit : edges.find(e => e.id === id) ?? hit
   }
   const onEdgeClick = useLatest((event: ReactMouseEvent, hit: Edge) => {

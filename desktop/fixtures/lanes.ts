@@ -1,9 +1,14 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { beatsFor, partOf, PART_LEAD, PART_MS } from '../../src/core/animation.ts'
+import type { Animation } from '../../src/core/animation.ts'
 import { endsOfPath } from '../../src/core/heads.ts'
 import type { Point } from '../../src/core/heads.ts'
-import { bulge, displacement, easedSpread, GUTTER, HIT_WIDTH, laneCapacity, laneGeometry, leaveAt, MARGIN, MOST, MOVE_WORDS, nearestStrand, offsetOf, PITCH, pitchFor, REACH, REST, roomOf, round3, SAMPLES, SIBLING_OPACITY, slotsOf, SPREAD, SPREAD_MS, SPREAD_PITCH, spreadProgress, usableOf } from '../../src/core/lanes.ts'
-import type { HitLane, LaneBox, Pose, Slot } from '../../src/core/lanes.ts'
+import {
+  bulge, bundleReach, dashPhase, displacement, easedSpread, gapBeside, GUTTER, HIT_WIDTH, JUMP_MS, KIN_OPACITY, laneCapacity, laneGeometry, leaveAt, LIT_FLOOR_LANES, litLanes, MARGIN, markReach, MOST, MOVE_WORDS, nearestStrand,
+  offsetOf, PART_CLEAR, partEase, partingFor, PITCH, pitchFor, poseAt, REACH, REST, roomOf, round3, SAMPLES, SHIFT_MS, SIBLING_OPACITY, slotsOf, SPREAD, SPREAD_MS, SPREAD_PITCH, spreadProgress, usableOf,
+} from '../../src/core/lanes.ts'
+import type { HitLane, LaneBox, Parting, Pose, Slot } from '../../src/core/lanes.ts'
 import { SHAPE_DEFS } from '../../src/core/look.ts'
 import type { Shape } from '../../src/core/look.ts'
 import { modelOf } from '../../src/core/state.ts'
@@ -13,6 +18,8 @@ import { loadState } from '../../src/node/files.ts'
 import { pairOf, strandName } from '../../ui/src/graph.ts'
 import { clip, placeLabels, SAMPLE } from '../../ui/src/labels.ts'
 import type { LabelItem } from '../../ui/src/labels.ts'
+import { LIT_FLOOR, litOpacity, markerSpot } from '../../ui/src/motion.ts'
+import { planOf, STEPS } from '../../ui/src/parts.ts'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 
@@ -202,4 +209,94 @@ export function dumpLaneLabels(): unknown {
       spots: items.map(i => spots.get(i.id)),
     }
   })
+}
+
+
+/** The partings: how a pair's lanes go from one pose to the next over a stop, and the pose at several moments of the player's clock. */
+const PARTINGS: { name: string; parting: Parting }[] = [
+  { name: 'a first parting at the beat', parting: partingFor([0, 0, 0], [0, 1, 0], { beat: { at: 200, dur: PART_MS } }) },
+  { name: 'a first parting of a step with no motion', parting: partingFor([0, 0, 0], [1, 0, 0]) },
+  { name: 'the next step on another lane', parting: partingFor([0, 1, 0], [0, 0, 1], { beat: { at: 200, dur: PART_MS } }) },
+  { name: 'the stop is left', parting: partingFor([0, 0, 1], [0, 0, 0], { beat: { at: 200, dur: PART_MS } }) },
+  { name: 'a jump from half way', parting: partingFor([0, 0.4, 0], [1, 0, 0], { beat: { at: 600, dur: PART_MS }, jump: true }) },
+  { name: 'two lit lanes at once', parting: partingFor([0, 0, 0, 0, 0], [0, 1, 1, 0, 0]) },
+]
+const CLOCKS = [-20, 0, 50, 112.5, 195, 200, 225, 312.5, 425, 600, 825, 5000]
+
+/** What a stop asks of the lanes of the draft-lanes case's pairs: the lit lanes by pair, and the earliest part beat. */
+async function dumpPlans(): Promise<unknown> {
+  const state = await loadState(join(root, 'desktop/fixtures/cases/draft-lanes/flowy'))
+  if ('parseError' in state) throw new Error('the draft-lanes case cannot be read')
+  const view = computeView(modelOf(state), 'root')
+  const strands = view.strands!
+  const idOf = (label: string) => strands.find(s => s.label === label)!.id
+  const beats = (a: Animation, lanes: number) => beatsFor(a, { length: 250, afterLanding: false, lanes }).beats
+  const cases: [string, { strand: string | undefined; animation?: Animation }[]][] = [
+    ['one request', [{ strand: idOf('Request and reply'), animation: { kind: 'call', trigger: 'inside' } }]],
+    ['a callback', [{ strand: idOf('Start scan'), animation: { kind: 'callback', trigger: 'outside' } }]],
+    ['an event to one lane and a callback to another', [{ strand: idOf('Scan results'), animation: { kind: 'event', trigger: 'inside' } }, { strand: idOf('Radio state'), animation: { kind: 'callback', trigger: 'outside' } }]],
+    ['a step with no motion', [{ strand: idOf('Set country') }]],
+    ['a step on a lone line', [{ strand: idOf('Events'), animation: { kind: 'send', trigger: 'inside' } }]],
+    ['a step on no line', [{ strand: undefined, animation: { kind: 'send', trigger: 'inside' } }]],
+  ]
+  return cases.map(([name, steps]) => ({
+    name,
+    steps: steps.map(s => ({ strand: s.strand ?? null, animation: s.animation ?? null })),
+    plan: [...planOf(strands, steps.map(s => ({ strand: s.strand, ...(s.animation === undefined || s.strand === undefined ? {} : { beats: beats(s.animation, strands.find(x => x.id === s.strand)!.lanes) }) })))],
+    lit: [...litLanes(strands, steps.flatMap(s => s.strand ?? []))],
+  }))
+}
+
+/** The beats of a step among the lines of its pair: with lanes or without, the part beat and the same total. */
+const PART_ANIMATIONS: Animation[] = [
+  { kind: 'send', trigger: 'inside' }, { kind: 'call', trigger: 'inside' }, { kind: 'event', trigger: 'inside' }, { kind: 'callback', trigger: 'inside' }, { kind: 'callback', trigger: 'outside' },
+  { kind: 'call', trigger: 'inside', outcome: 'timeout' }, { kind: 'call', trigger: 'inside', outcome: 'rejected', reason: 'Rate limit' }, { kind: 'send', trigger: 'inside', outcome: 'lost', at: 0.4 },
+  { kind: 'call', trigger: 'inside', outcome: 'delayed' }, { kind: 'send', trigger: 'inside', outcome: 'intercepted', by: { name: 'Tap' } }, { kind: 'call', trigger: 'inside', outcome: 'duplicated' },
+  { kind: 'call', trigger: 'inside', outcome: 'rejected', share: 30 }, { kind: 'call', trigger: 'inside', opens: 'stream', name: 'Rows' }, { kind: 'recurse', trigger: 'inside', depth: 3 },
+]
+
+const litOf = (lanes: number, lit: number): number[] => Array.from({ length: lanes }, (_, k) => (k === lit ? 1 : 0))
+
+/** The lines of a pair while a flow plays on them: the beats with a part, the pose of the player clock, the lanes at those poses, what stays clear of what, how much each line fades. */
+export async function dumpParts(): Promise<unknown> {
+  const { a, b } = CONFIGS[0]
+  const [diamond, ellipse] = [CONFIGS[5].a, CONFIGS[5].b]
+  const slotOf = (lane: number, lanes: number, back: number): Slot => ({ lane, lanes, back })
+  const gapCases: [string, LaneBox, LaneBox, number, number][] = [
+    ['beside, 3 lanes', a, b, 3, 0], ['beside, 5 lanes, 2 back', a, b, 5, 2], ['diamond and ellipse, 5 lanes, 2 back', diamond, ellipse, 5, 2], ['close together, 3 lanes', a, CONFIGS[7].b, 3, 0],
+  ]
+  return {
+    constants: { PART_MS, PART_LEAD, PART_CLEAR, SHIFT_MS, JUMP_MS, KIN_OPACITY, LIT_FLOOR_LANES, LIT_FLOOR, STEPS },
+    eases: (['out', 'smooth'] as const).flatMap(kind => [0, 0.1, 0.25, 0.5, 0.75, 0.9, 1].map(p => ({ kind, p, e: round3(partEase(kind, p)) }))),
+    beats: PART_ANIMATIONS.flatMap(animation => [false, true].flatMap(afterLanding => [1, 3].map(lanes => {
+      const { beats, total } = beatsFor(animation, { length: 250, afterLanding, lanes })
+      return { animation, afterLanding, lanes, beats, total, part: partOf(beats) ?? null }
+    }))),
+    partings: PARTINGS.map(({ name, parting }) => ({
+      name, parting,
+      poses: CLOCKS.map(clock => { const pose = poseAt(parting, clock); return { clock, s: pose.s, lam: pose.lam, rest: pose === REST } }),
+    })),
+    // Three lanes between two boxes 400 apart, and five between a diamond and an ellipse, drawn at the pose of the player clock.
+    lanes: ([['beside (short sides)', a, b, 3, 0, 1], ['diamond and ellipse', diamond, ellipse, 5, 2, 3]] as const).flatMap(([name, from, to, lanes, back, lit]) => {
+      const parting = partingFor(litOf(lanes, -1), litOf(lanes, lit), { beat: { at: 0, dur: PART_MS } })
+      return [0, 60, 112.5, 225, 400].map(clock => ({ name, clock, lanes, back, lit, lines: bundle(from, to, lanes, back, poseAt(parting, clock)) }))
+    }),
+    plans: await dumpPlans(),
+    gaps: gapCases.flatMap(([name, from, to, lanes, back]) => [0, 1, 2].map(lit => ({
+      name, lanes, back, lit,
+      at: [0, 0.1, 0.4, 0.5, 0.55, 0.9, 0.97, 1].map(t => ({
+        t, rest: gapBeside(from, to, slotOf(lit, lanes, back), REST, t), parted: gapBeside(from, to, slotOf(lit, lanes, back), { s: 0, lam: litOf(lanes, lit) }, t),
+      })),
+      reach: bundleReach(from, to, slotOf(lit, lanes, back)),
+    }))),
+    alone: { gapIsInfinite: gapBeside(a, b, slotOf(0, 1, 0), REST, 0.5) === Infinity, reach: bundleReach(a, b, slotOf(0, 1, 0)) },
+    marks: [[22, 12], [22, 18], [22, 30], [24, 30], [40, 30], [40, 29.7], [7, 30], [22, 5], [22, 9], [22, 100]].map(([half, gap]) => ({ half, gap, reach: markReach(half, gap) })),
+    markReachAlone: markReach(22, Infinity),
+    phases: [[0, 1], [0, 2], [1, 2], [0, 4], [1, 4], [3, 4], [2, 3], [7, 8]].map(([lane, lanes]) => ({ lane, lanes, px: dashPhase({ lane, lanes }) })),
+    // The motion maths the part touches: a lit line that times out fades to a floor, and the marker of whoever takes an intercepted request clears the bundle.
+    motion: {
+      litOpacity: [0, 999, 1000, 1150, 1300, 1600, 5000].flatMap(t => [undefined, LIT_FLOOR_LANES].map(floor => ({ t, floor: floor ?? null, opacity: litOpacity([{ do: 'fade', at: 1000, dur: 600 }], t, floor) }))),
+      markerSpot: [[300, 0], [-300, 0], [0, 300], [200, 100], [0, 0]].flatMap(([dx, dy]) => [0, 24, 44].map(clear => ({ dx, dy, clear, at: markerSpot(dx, dy, { width: 100, height: 28 }, clear) }))),
+    },
+  }
 }

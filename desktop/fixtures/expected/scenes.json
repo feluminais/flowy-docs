@@ -34668,7 +34668,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -34690,7 +34690,8 @@
           "target": "management",
           "label": "Start scan",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -34712,7 +34713,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "pair": "management ui",
@@ -34729,7 +34730,7 @@
           "target": "ui",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -34751,7 +34752,7 @@
           "target": "ui",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -35161,7 +35162,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -35183,7 +35184,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -35205,7 +35206,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "pair": "management ui",
@@ -35222,7 +35223,8 @@
           "target": "ui",
           "label": "Scan results",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -35244,7 +35246,7 @@
           "target": "ui",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -35654,7 +35656,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -35676,7 +35678,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -35698,7 +35700,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "pair": "management ui",
@@ -35715,7 +35717,7 @@
           "target": "ui",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -35737,7 +35739,8 @@
           "target": "ui",
           "label": "Radio state",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -36252,7 +36255,8 @@
           "target": "linux",
           "label": "Apply config",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -36274,7 +36278,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -36745,7 +36749,7 @@
           "target": "linux",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -36767,7 +36771,8 @@
           "target": "management",
           "label": "Link state",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -37628,7 +37633,7 @@
           "target": "management",
           "label": "Request and reply",
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -37650,7 +37655,7 @@
           "target": "management",
           "label": "Start scan",
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -37672,7 +37677,7 @@
           "target": "management",
           "label": "Set country",
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": true,
           "pair": "management ui",
@@ -37689,7 +37694,8 @@
           "target": "ui",
           "label": "Scan results",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -37711,7 +37717,7 @@
           "target": "ui",
           "label": "Radio state",
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -38124,7 +38130,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -38146,7 +38152,8 @@
           "target": "management",
           "label": "Start scan",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -38168,7 +38175,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "pair": "management ui",
@@ -38185,7 +38192,7 @@
           "target": "ui",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -38207,7 +38214,7 @@
           "target": "ui",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {
@@ -38229,7 +38236,8 @@
           "target": "linux",
           "label": "Apply config",
           "classes": [
-            "active"
+            "active",
+            "several"
           ],
           "selected": false,
           "look": {
@@ -38251,7 +38259,7 @@
           "target": "management",
           "label": null,
           "classes": [
-            "dim"
+            "kin"
           ],
           "selected": false,
           "look": {

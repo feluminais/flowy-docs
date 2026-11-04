@@ -8,7 +8,7 @@ import { leavesMarks } from '../../src/core/animation.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { focusEdges, frameNode, lineId, pairOf, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
-import { labelSpots } from './Line.tsx'
+import { spotsFor } from './labelspots.ts'
 import { keepSame, nothingKept } from './stable.ts'
 import type { Kept } from './stable.ts'
 import type { useFailuresView } from './useFailuresView.ts'
@@ -62,6 +62,6 @@ export function useCanvasGraph({ model, view, shown, problems, stateMarks, loadT
   const edges = keptEdges.current.list as Edge[] // a hover changes one or two lines, and only those draw again
   // Labels that would overlap (the lines of a selected shape) are spread along their lines. They follow the boxes, so a drag moves them.
   const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
-  const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])
+  const spots = useMemo(() => spotsFor(lines, edges, nodes), [lines, edges, placedAt])
   return { graph, marksHere, nodes, flowNodes: keptFlowNodes.current.list as (BoxNode | FrameNode)[], shapes: nodes.length + frame.length, edges, spots, sizes }
 }

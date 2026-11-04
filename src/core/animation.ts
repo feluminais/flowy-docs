@@ -141,9 +141,11 @@ export type Glyph = 'envelope' | 'bolt' | 'bell' | 'flag'
  * The outcomes add five more: a puff where a request is lost (`pop`), a bar flashing at the receiver's door (`bar`), a dashed clock turning
  * while a request waits (`clock`), a few words next to where something happens (`note`) and the dashed marker of whoever takes a request (`marker`).
  * `on` is `by` for what happens at the interceptor. Times are milliseconds from the start of the step.
+ * Where a project draws a line for each connection and the step's pair has several, there is one more: the other lines of the pair part around the lit one (`part`, see
+ * partOf); its `dur` is how long the lines take to open, and they stay open until the stop is left.
  */
 export type Beat = {
-  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop' | 'fade' | 'pop' | 'bar' | 'clock' | 'note' | 'marker' | 'stack'
+  do: 'pipe' | 'blob' | 'ring' | 'flash' | 'gulp' | 'wait' | 'drop' | 'fade' | 'pop' | 'bar' | 'clock' | 'note' | 'marker' | 'stack' | 'part'
   on: 'from' | 'to' | 'line' | 'by'
   at: number
   dur: number
@@ -408,6 +410,10 @@ export const followsLanding = (previous: readonly [string, string] | null | unde
 
 const effect = (d: 'ring' | 'flash' | 'gulp' | 'wait', on: 'from' | 'to', at: number, dur: number): Beat => ({ do: d, on, at, dur })
 
+/** How long the lines of a pair take to part around a lit one, and how far ahead of the first dot they start, so they are open when it leaves. */
+export const PART_MS = 225
+export const PART_LEAD = 250
+
 /** How long a reason stays up beside where the outcome happens, and how long a puff, a bar and the wait of a delayed request last. */
 const NOTE_MS = 1600
 const POP_MS = 500
@@ -470,8 +476,11 @@ function recurseBeats(a: Animation, T: number): Beat[] {
  * A step with a `share` plays a burst of requests one after another (see burstOf): the ones that meet the outcome are named `r1`, `r2`, ... or by `carries`,
  * and coloured and ringed, and the rest are ordinary deliveries that carry no name. Without one the step plays a single request.
  * The kinds of beat and their order never depend on `length`, only their times and the fractions that follow from it, so a renderer may lay its shapes out once.
+ * `lanes` is how many lines the step's pair has side by side (a project that draws a line for each connection). With more than one, a `part` beat follows the tube: it starts
+ * PART_LEAD before the first dot leaves (or at 0) and takes PART_MS, inside the lead-ins every step has already, so `total` is what it was without it. A recursion is a loop on
+ * a shape, with no pair, so it never has one.
  */
-export function beatsFor(a: Animation, { length, afterLanding }: { length: number; afterLanding: boolean }): { beats: Beat[]; total: number } {
+export function beatsFor(a: Animation, { length, afterLanding, lanes = 1 }: { length: number; afterLanding: boolean; lanes?: number }): { beats: Beat[]; total: number } {
   const T = travelMs(length)
   /** A fraction of the time a request takes to cross, in whole milliseconds. */
   const ms = (fraction: number): number => Math.floor(T * fraction + 0.5)
@@ -636,7 +645,15 @@ export function beatsFor(a: Animation, { length, afterLanding }: { length: numbe
   const marker: Beat[] = a.outcome === 'intercepted' && a.by !== undefined
     ? [{ do: 'marker', on: 'by', at: 0, dur: total, along: WAIT_AT, ...('name' in a.by ? { text: a.by.name } : {}) }]
     : []
-  return { beats: [{ do: 'pipe', on: 'line', at: 0, dur: total }, ...marker, ...body], total }
+  const first = Math.min(...body.filter(b => b.do === 'blob').map(b => b.at))
+  const part: Beat[] = lanes > 1 && a.kind !== 'recurse' && Number.isFinite(first) ? [{ do: 'part', on: 'line', at: Math.max(0, first - PART_LEAD), dur: PART_MS }] : []
+  return { beats: [{ do: 'pipe', on: 'line', at: 0, dur: total }, ...marker, ...part, ...body], total }
+}
+
+/** When the lines of a step's pair part around its lit line: the `part` beat's start and length, or undefined for a step that has none. */
+export const partOf = (beats: readonly Beat[]): { at: number; dur: number } | undefined => {
+  const b = beats.find(x => x.do === 'part')
+  return b === undefined ? undefined : { at: b.at, dur: b.dur }
 }
 
 /**

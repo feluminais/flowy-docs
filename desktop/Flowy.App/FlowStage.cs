@@ -29,6 +29,30 @@ internal static class FlowStage
         return [.. ends.Select((placed, i) => placed is { } at ? Strands.StrandOf(model, laid, flow.Steps[i], at)?.Id : null)];
     }
 
+    /// <summary>No pair is parted: what a stop asks of the lines when none of its steps rides a pair of several.</summary>
+    public static readonly IReadOnlyDictionary<string, PartPlan> NoPlans = new Dictionary<string, PartPlan>();
+
+    /// <summary>
+    /// What the stop at <paramref name="index"/> asks of the lines of each pair it rides, where a project draws a line for each connection: which of the pair's lines are lit, and when the earliest
+    /// <c>part</c> beat of the steps on it starts (see <see cref="Parts.PlanOf"/>). <paramref name="shown"/> says which line each step rides. Empty for a pair of one line, and where a pair is one line.
+    /// </summary>
+    public static IReadOnlyDictionary<string, PartPlan> PartsAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, Playing? shown)
+    {
+        if (shown?.Strands is not { } ridden || Views.Compute(model, view).Strands is not { } strands) return NoPlans;
+        var stop = stops[index];
+        var lanes = strands.ToDictionary(s => s.Id, s => s.Lanes);
+        var steps = new List<(string? Strand, IReadOnlyList<Beat>? Beats)>();
+        foreach (var i in stop.Steps)
+        {
+            var id = i < ridden.Count ? ridden[i] : null;
+            if (id is not null && Payloads.MotionOf(model, flow.Steps[i]) is { } animation && shown.Ends[i] is { } placed && lanes.TryGetValue(id, out var n))
+                steps.Add((id, Animations.BeatsFor(animation, 0, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), n).Beats));
+            else steps.Add((id, null));
+        }
+        var plans = Parts.PlanOf(strands, steps);
+        return plans.Count == 0 ? NoPlans : plans;
+    }
+
     /// <summary>The card for the stop at <paramref name="index"/>, and the marks its groups put on the lines.</summary>
     public static (PlayerView Card, List<CanvasView.Mark> Marks) CardAt(
         Model model, Flow flow, string id, IReadOnlyList<Stop> stops, int index, Playing? shown, bool showsPause, (string Name, int Step)? trail, IReadOnlyList<StateMark> states,
@@ -78,6 +102,8 @@ internal static class FlowStage
     public static List<CanvasView.OpenChannel> OpenAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index)
     {
         var open = new List<CanvasView.OpenChannel>();
+        var laid = model.Pairs == "separate" ? Views.Compute(model, view) : null;
+        var slots = laid?.Strands is { } drawn ? Lanes.SlotsOf(drawn) : null;
         foreach (var channel in Channels.At(flow, stops, index))
         {
             if (Views.PlaceStep(model, view, channel.From, channel.To) is not { } placed) continue;
@@ -85,19 +111,24 @@ internal static class FlowStage
             var by = channel.Opening ? channel.Step : stops[index].Steps.Cast<int?>().FirstOrDefault(i => channel.Name is not null && Animations.Read(flow.Steps[i!.Value])?.Closes == channel.Name);
             var motion = by is { } step ? Animations.Read(flow.Steps[step]) : null;
             var motionAt = by is { } s2 ? Views.PlaceStep(model, view, flow.Steps[s2].From, flow.Steps[s2].To) : null;
-            open.Add(new CanvasView.OpenChannel(channel, placed.From, placed.To, motion, motionAt?.From, motionAt?.To));
+            // Where each connection is a line of its own, a stream and a listener belong to the line of the step that opened them.
+            var strand = laid is null || placed.From == placed.To ? null : Strands.StrandOf(model, laid, flow.Steps[channel.Step], placed);
+            open.Add(new CanvasView.OpenChannel(channel, placed.From, placed.To, motion, motionAt?.From, motionAt?.To,
+                strand?.Id, strand is null ? null : slots![strand.Id], strand?.Pair));
         }
         return open;
     }
 
     /// <summary>The steps of the stop at <paramref name="index"/> that move, ready for <see cref="CanvasView.PlaySteps"/>; empty when none does.</summary>
-    public static List<CanvasView.StepRun> RunsOf(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, Playing shown)
+    public static List<CanvasView.StepRun> RunsOf(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, Playing shown, IReadOnlyDictionary<string, PartPlan>? plans = null)
     {
         // Every step of the stop that moves plays at once; the stop has settled when the longest has finished.
         var stop = stops[index];
         var runs = new List<CanvasView.StepRun>();
         // Where a project draws a line for each connection, the pipe of a step runs along the line it rides.
-        var slots = shown.Strands is null ? null : Lanes.SlotsOf(Views.Compute(model, view).Strands ?? []);
+        var strands = shown.Strands is null ? null : Views.Compute(model, view).Strands ?? [];
+        var slots = strands is null ? null : Lanes.SlotsOf(strands);
+        plans ??= PartsAt(model, view, flow, stops, index, shown);
         foreach (var i in stop.Steps)
         {
             // The dots say what the step's payloads are called (see Payloads.MotionOf).
@@ -105,7 +136,9 @@ internal static class FlowStage
             // What its dots carry: the reply on the answer's way back, the payload on every other dot (see DotCard).
             var strand = shown.Strands is { } ridden && i < ridden.Count ? ridden[i] : null;
             runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), TakenBy(model, view, animation, placed),
-                Payloads.OfDot(model, flow.Steps[i], null)?.Shown, Payloads.OfDot(model, flow.Steps[i], "reply")?.Shown, strand, strand is not null && slots is not null && slots.TryGetValue(strand, out var slot) ? slot : null));
+                Payloads.OfDot(model, flow.Steps[i], null)?.Shown, Payloads.OfDot(model, flow.Steps[i], "reply")?.Shown, strand, strand is not null && slots is not null && slots.TryGetValue(strand, out var slot) ? slot : null,
+                // Where the lines of its pair part around the lit ones, what runs along it is laid out on the line as it stands once they have.
+                strand is not null && strands!.FirstOrDefault(s => s.Id == strand)?.Pair is { } pair && plans.TryGetValue(pair, out var plan) ? plan.Lit : null));
         }
         return runs;
     }

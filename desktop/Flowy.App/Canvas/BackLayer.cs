@@ -18,7 +18,11 @@ internal sealed class BackLayer : Control
     /// A line as drawn. `Made` is what its path was made from: the two boxes and their outlines, so a line whose boxes stayed where they were keeps its path, its geometry and its label.
     /// `Label` is the label's box at the middle of the line, as measured; where it is drawn is in `_labelAt`.
     /// </summary>
-    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds, IReadOnlyList<CorePt>? Points = null, double S = 0);
+    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds, IReadOnlyList<CorePt>? Points = null, LanePose? Pose = null)
+    {
+        /// <summary>The <c>s</c> of the pose it is drawn in: how far its pair is spread.</summary>
+        public double S => Pose?.S ?? 0;
+    }
 
     private string _style = "";
 
@@ -33,6 +37,8 @@ internal sealed class BackLayer : Control
 
     private readonly LaneStore _lanes;
 
+    private PartStore? _parts; // how far the lines of each pair are parted around the lit one while a flow plays
+
     /// <summary>How far each pair of lines side by side is on its way to spread (0 is rest, 1 is spread; linear), by pair id, and where it is going. The pose the lanes are drawn in is its eased value.</summary>
     private readonly Dictionary<string, (double Progress, double Goal)> _spread = [];
 
@@ -45,6 +51,21 @@ internal sealed class BackLayer : Control
         _lanes = lanes;
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
+    }
+
+    /// <summary>
+    /// The store that says how far the lines of a pair are parted around the lit one (see <see cref="PartStore"/>). A line of a pair of several reads it when it is made; <see cref="PartsChanged"/> makes the
+    /// lines again when the store moves.
+    /// </summary>
+    internal PartStore? Parts
+    {
+        set => _parts = value;
+    }
+
+    /// <summary>The lanes of some pair have moved (a step is parting them, or they are closing): the lines of pairs of several are made again, and only those whose pose changed are.</summary>
+    internal void PartsChanged()
+    {
+        if (_scene is { } scene) Build(scene, _style);
     }
 
     /// <summary>The camera, for the places a pointer is turned into the diagram's own. The layer is drawn in the diagram's units: the canvas moves it with the boxes, so a move of the camera draws nothing again.</summary>
@@ -108,6 +129,15 @@ internal sealed class BackLayer : Control
 
     private static LanePose PoseAt(double s) => s == 0 ? LanePose.Rest : s == 1 ? LanePose.Spread : new LanePose(s, []);
 
+    /// <summary>
+    /// The pose a line is drawn in: its pair's spread, and while a step plays on the pair, how lit each of its lanes is (the others part around the lit one, see <see cref="PartStore"/>; a step playing
+    /// on a pair wins over its being spread, so the scene does not spread it then).
+    /// </summary>
+    private LanePose PoseOf(SceneEdge e) =>
+        e.Pair is not null && e.Lanes > 1 && _parts?.Lam(e.Pair) is { } lit ? new LanePose(SpreadNow(e), lit) : PoseAt(SpreadNow(e));
+
+    private static bool SamePose(LanePose? a, LanePose? b) => (a ?? LanePose.Rest).S == (b ?? LanePose.Rest).S && (a ?? LanePose.Rest).Lam.SequenceEqual((b ?? LanePose.Rest).Lam);
+
     private void Build(Scene scene, string style)
     {
         var rects = scene.Boxes.ToDictionary(b => b.Id, b => b.Rect);
@@ -121,12 +151,12 @@ internal sealed class BackLayer : Control
             {
                 var made = (rects[e.From], rects[e.To], outlines[e.From], outlines[e.To], style);
                 if (before.TryGetValue(e.Id, out var was) && was.Made.From == made.Item1 && was.Made.To == made.Item2 && ReferenceEquals(was.Made.OutlineFrom, made.Item3) && ReferenceEquals(was.Made.OutlineTo, made.Item4)
-                    && was.Edge.Label == e.Label && was.Edge.Slot == e.Slot && was.Edge.Spread == e.Spread && was.S == SpreadNow(e) && (e.Label is null || (e.Flags & EdgeFlags.Active) == (was.Edge.Flags & EdgeFlags.Active)))
+                    && was.Edge.Label == e.Label && was.Edge.Slot == e.Slot && was.Edge.Spread == e.Spread && SamePose(was.Pose, PoseOf(e)) && (e.Label is null || (e.Flags & EdgeFlags.Active) == (was.Edge.Flags & EdgeFlags.Active)))
                     return was with { Edge = e };
-                var s = SpreadNow(e);
-                var lane = _lanes.PathFor(e.Id, style, new LaneEnd(e.From, made.Item1, made.Item3), new LaneEnd(e.To, made.Item2, made.Item4), PoseAt(s), e.Slot);
+                var pose = PoseOf(e);
+                var lane = _lanes.PathFor(e.Id, style, new LaneEnd(e.From, made.Item1, made.Item3), new LaneEnd(e.To, made.Item2, made.Item4), pose, e.Slot);
                 var label = e.Label is { Length: > 0 } ? LabelBox(lane.Path, Format(e, LineLabels.Clip(e.Label), Brushes.Black)) : (CoreRect?)null;
-                return new Drawn(e, lane.Path, lane.Geometry, made, label, lane.Geometry.Bounds, lane.Points, s);
+                return new Drawn(e, lane.Path, lane.Geometry, made, label, lane.Geometry.Bounds, lane.Points, pose);
             }).ToList();
         PointedAt(scene);
         PlaceLabels();
@@ -210,6 +240,9 @@ internal sealed class BackLayer : Control
 
     /// <summary>Where the labels showing now are, with their padding: what traffic runs under, as it runs under a shape.</summary>
     internal IReadOnlyList<CoreRect> LabelRects => _labels;
+
+    /// <summary>The path data of a line as it is drawn now, for tests.</summary>
+    internal string? PathOf(string edgeId) => _lines.FirstOrDefault(l => l.Edge.Id == edgeId)?.Path.Data;
 
     /// <summary>The geometry of a line, for tests: a line whose boxes did not move keeps the one it had.</summary>
     internal Geometry? GeometryOf(string edgeId) => _lines.FirstOrDefault(l => l.Edge.Id == edgeId)?.Geometry;
@@ -314,6 +347,7 @@ internal sealed class BackLayer : Control
     private IBrush Brush(string key) => AppTheme.Brush(this, key);
 
     private double _litFade = 1;
+    private double _litFadeSeveral = 1;
 
     /// <summary>How strong the lines a step has lit are drawn: 1, or less while a step that timed out has dimmed them (see MotionMath.LitOpacity).</summary>
     public double LitFade
@@ -327,10 +361,24 @@ internal sealed class BackLayer : Control
         }
     }
 
+    /// <summary>How strong a lit line that has others beside it is drawn: as <see cref="LitFade"/>, but a step that timed out dims it to <see cref="Lanes.LitFloorLanes"/>, not a quarter, so it is never fainter than its kin.</summary>
+    public double LitFadeSeveral
+    {
+        get => _litFadeSeveral;
+        set
+        {
+            if (_litFadeSeveral == value) return;
+            _litFadeSeveral = value;
+            InvalidateVisual();
+        }
+    }
+
     private double Fade(SceneEdge e) =>
         _failures?.LightOfLine(e.From, e.To) == FailLight.Dim ? 0.15 :
         e.Flags.HasFlag(EdgeFlags.Dim) ? (ChangeOf(e) is null ? 0.15 : 0.6) : // a mark on a line off the step on show stays readable
- e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25 : e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step) ? _litFade : 1;
+ e.Flags.HasFlag(EdgeFlags.Lane) ? 0.55 : e.Flags.HasFlag(EdgeFlags.Kin) ? Lanes.KinOpacity : e.Flags.HasFlag(EdgeFlags.Faint) ? 0.25
+        : e.Flags.HasFlag(EdgeFlags.Active) && e.Flags.HasFlag(EdgeFlags.Several) ? _litFadeSeveral
+        : e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step) ? _litFade : 1;
 
     public override void Render(DrawingContext context)
     {

@@ -65,6 +65,10 @@ internal sealed class PlayerClock : ITimeSource
 
     public event Action? Changed;
 
+    /// <summary>A new step is about to begin (see <see cref="Begin"/>), before the clock goes back to its first moment: what is drawn from the clock can take where it stands now (the lines of a pair
+    /// parted around a lit one go on from there, see <see cref="PartStore"/>).</summary>
+    public event Action? Beginning;
+
     public bool Paused { get; private set; }
 
     public double Rate { get; private set; } = 1;
@@ -81,6 +85,7 @@ internal sealed class PlayerClock : ITimeSource
     public void Begin(string key)
     {
         if (key == _key) return;
+        Beginning?.Invoke();
         _key = key;
         var kept = _pending is { } p && p.Key == key ? _pending : null;
         Restart();

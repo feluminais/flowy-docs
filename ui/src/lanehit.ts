@@ -22,16 +22,19 @@ export const laneOf = (data: Record<string, unknown> | undefined): { slot: Slot 
 
 /**
  * The id of the edge in `edges` the pointer at `at` (a point of the canvas) means, given that React Flow said it is on `hit` and that the canvas is at `zoom`. `hit` itself when its pair
- * has one line or the pointer is near none. How near is measured in screen pixels (see nearestStrand), as the desktop does.
+ * has one line or the pointer is near none. How near is measured in screen pixels (see nearestStrand), as the desktop does. `lit` says how lit each lane of a pair is while a step plays
+ * on it (the pair is parted around the lit lane, see parts.ts): the lanes are asked where they are then.
  */
-export function hitStrand(edges: readonly Edge[], nodes: readonly BoxNode[], style: LineStyle, hit: Edge, at: Point, zoom = 1): string {
+export function hitStrand(edges: readonly Edge[], nodes: readonly BoxNode[], style: LineStyle, hit: Edge, at: Point, zoom = 1, lit?: (pair: string) => readonly number[] | undefined): string {
   if (typeof hit.data?.pair !== 'string' || !(typeof hit.data.lanes === 'number' && hit.data.lanes > 1)) return hit.id
   const pair = pairOf(hit)
   const byId = new Map(nodes.map(n => [n.id, n]))
+  const parted = lit?.(pair)
   const near: HitLane[] = edges.flatMap(e => {
     const [a, b, slot] = [byId.get(e.source), byId.get(e.target), laneOf(e.data).slot]
     if (pairOf(e) !== pair || e.data?.pair === undefined || !a || !b || slot === undefined) return []
-    const points = lanes.laneFor(e.id, style, boxEnd(a), boxEnd(b), laneOf(e.data).pose, slot).points
+    const pose = laneOf(e.data).pose
+    const points = lanes.laneFor(e.id, style, boxEnd(a), boxEnd(b), parted === undefined ? pose : { s: pose.s, lam: parted }, slot).points
     return points ? [{ id: e.id, pair, lane: slot.lane, points }] : []
   })
   return nearestStrand(near, at, zoom) ?? hit.id
@@ -42,11 +45,12 @@ export type CanvasPoint = { screenToFlowPosition: (at: { x: number; y: number })
 
 /**
  * The edge a pointer event in a pane means: `hit`, or of the lines of its pair side by side the nearest to the pointer (see hitStrand). A pane has no lane store of its own, so it asks
- * with the React Flow instance it keeps from `onInit` and the edges and nodes it draws; without an instance yet it takes `hit` as it is.
+ * with the React Flow instance it keeps from `onInit` and the edges and nodes it draws; without an instance yet it takes `hit` as it is. A pane that plays a flow draws its pairs parted
+ * around the lit line (see parts.ts), so it passes `lit` (its store's `lam`) and the pointer means the line where it is now, as it does on the main canvas and the desktop.
  */
-export function edgeUnder(instance: CanvasPoint | undefined, event: { clientX: number; clientY: number }, edges: readonly Edge[], nodes: readonly BoxNode[], style: LineStyle, hit: Edge): Edge {
+export function edgeUnder(instance: CanvasPoint | undefined, event: { clientX: number; clientY: number }, edges: readonly Edge[], nodes: readonly BoxNode[], style: LineStyle, hit: Edge, lit?: (pair: string) => readonly number[] | undefined): Edge {
   if (!instance || typeof hit.data?.pair !== 'string') return hit
-  const id = hitStrand(edges, nodes, style, hit, instance.screenToFlowPosition({ x: event.clientX, y: event.clientY }), instance.getZoom())
+  const id = hitStrand(edges, nodes, style, hit, instance.screenToFlowPosition({ x: event.clientX, y: event.clientY }), instance.getZoom(), lit)
   return id === hit.id ? hit : edges.find(e => e.id === id) ?? hit
 }
 

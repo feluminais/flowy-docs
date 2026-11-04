@@ -88,12 +88,15 @@ test('a step lights the line it names, or the one its way and order pick, and di
   const model = wlan()
   const ends = model.flows.scan.steps.map((s): [string, string] => [s.from, s.to!])
   const lit = (playing: Parameters<typeof toGraph>[2]) => toGraph(model, 'root', playing).edges.map(e => [e.id, e.className])
-  // Without being told which line a step rides, it takes the first that runs its way: step 0 the first from UI, step 1 the first from Management to UI.
-  assert.deepEqual(lit({ ends, step: 0 }), [[IDS.request, 'active'], [IDS.scan, 'dim'], [IDS.results, 'dim'], [IDS.radio, 'dim'], [IDS.apply, 'dim'], [IDS.cloud, 'dim']])
-  assert.deepEqual(lit({ ends, step: 1 }), [[IDS.request, 'dim'], [IDS.scan, 'dim'], [IDS.results, 'active'], [IDS.radio, 'dim'], [IDS.apply, 'dim'], [IDS.cloud, 'dim']])
+  // Without being told which line a step rides, it takes the first that runs its way: step 0 the first from UI, step 1 the first from Management to UI. The other lines of the pair are
+  // its kin (0.35), the lines of other pairs are dim (0.15), and a lit line with neighbours is `several` (it fades to half, not a quarter, when its step times out).
+  assert.deepEqual(lit({ ends, step: 0 }), [[IDS.request, 'active several'], [IDS.scan, 'kin'], [IDS.results, 'kin'], [IDS.radio, 'kin'], [IDS.apply, 'dim'], [IDS.cloud, 'dim']])
+  assert.deepEqual(lit({ ends, step: 1 }), [[IDS.request, 'kin'], [IDS.scan, 'kin'], [IDS.results, 'active several'], [IDS.radio, 'kin'], [IDS.apply, 'dim'], [IDS.cloud, 'dim']])
   // The player says which line each step rides, from the step's `via`, payload and ends (strandOf): that wins. Step 0 names "Start scan".
-  assert.deepEqual(lit({ ends, step: 0, strands: [IDS.scan, IDS.results, IDS.apply] }).map(([, c]) => c), ['dim', 'active', 'dim', 'dim', 'dim', 'dim'])
-  assert.deepEqual(lit({ ends, step: 1, strands: [undefined, IDS.radio, undefined] }).map(([, c]) => c), ['dim', 'dim', 'dim', 'active', 'dim', 'dim'])
+  assert.deepEqual(lit({ ends, step: 0, strands: [IDS.scan, IDS.results, IDS.apply] }).map(([, c]) => c), ['kin', 'active several', 'kin', 'kin', 'dim', 'dim'])
+  assert.deepEqual(lit({ ends, step: 1, strands: [undefined, IDS.radio, undefined] }).map(([, c]) => c), ['kin', 'kin', 'kin', 'active several', 'dim', 'dim'])
+  // A line alone between its shapes has no kin and no neighbours to part for.
+  assert.deepEqual(lit({ ends, step: 2 }).map(([, c]) => c), ['dim', 'dim', 'dim', 'dim', 'active', 'dim'])
   // A step against a one-way line gets a dashed one of its own, as before: a reply on a publish has nothing to ride.
   const against = toGraph(model, 'root', { ends: [['linux', 'management']], step: 0 })
   assert.ok(against.edges.some(e => e.id === 'step' && e.className?.includes('step')))
@@ -219,6 +222,33 @@ test('a click on a line in a pane of a comparison picks the line of the pair nea
   assert.equal(edgeUnder(undefined, { clientX: 0, clientY: 0 }, edges, nodes, 'straight', first), first)
   const merged = canvas(wlan({ meta: { name: 'WLAN' } }))
   assert.equal(lineOf(merged.edges[0], 'root').strand, undefined)
+})
+
+test('while a step plays on a pair, a pane of a comparison means the line where the pair has parted to, as the main canvas and the desktop do', () => {
+  const { nodes, edges } = canvas(wlan())
+  const at = new Map(nodes.map(n => [n.id, n]))
+  const instance = { screenToFlowPosition: (p: { x: number; y: number }) => p, getZoom: () => 1 }
+  const ids = [IDS.request, IDS.scan, IDS.results, IDS.radio]
+  const where = (id: string, lam?: readonly number[]) => {
+    const e = edges.find(x => x.id === id)!
+    const pose = laneOf(e.data).pose
+    return lanes.laneFor(id, 'straight', boxEnd(at.get(e.source)!), boxEnd(at.get(e.target)!), lam === undefined ? pose : { s: pose.s, lam }, laneOf(e.data).slot)
+  }
+  const hit = edges.find(e => e.id === IDS.request)! // React Flow found the first strip whatever lane was clicked
+  // A step rides the third line: the pair parts around it. Each line is picked where it is now, and the same pointer means another line (or none) at rest.
+  const lam = [0, 0, 1, 0]
+  const lit = (pair: string) => (pair === 'management ui' ? lam : undefined)
+  let moved = 0
+  for (const id of ids) {
+    const { x, y } = where(id, lam)
+    const event = { clientX: x, clientY: y }
+    assert.equal(edgeUnder(instance, event, edges, nodes, 'straight', hit, lit).id, id, `${id} where the pair has parted to`)
+    if (edgeUnder(instance, event, edges, nodes, 'straight', hit).id !== id) moved++
+  }
+  assert.ok(moved > 0, 'the parted pair has lines that are not where they rest')
+  // A pair that is not parted answers as it does at rest.
+  const { x, y } = where(IDS.scan)
+  assert.equal(edgeUnder(instance, { clientX: x, clientY: y }, edges, nodes, 'straight', hit, () => undefined).id, IDS.scan)
 })
 
 test('the pointer reaches 7 screen pixels from a line of a pair at any zoom, as the desktop measures it', () => {

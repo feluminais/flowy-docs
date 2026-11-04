@@ -103,6 +103,9 @@ internal sealed class CanvasView : Border
     /// <summary>The flow player's time on this canvas (see <see cref="PlayerClock"/>): a step's motion, its channels and the shapes' states are drawn from it.</summary>
     public PlayerClock Clock { get; }
 
+    /// <summary>How far the lines of each pair are parted around the lit one while a flow plays, from the same clock (see <see cref="PartStore"/>).</summary>
+    internal PartStore Parts { get; }
+
     public CanvasView()
     {
         _back = new BackLayer(_lanes);
@@ -111,6 +114,14 @@ internal sealed class CanvasView : Border
         Clock = new PlayerClock(timer: (ms, then) => Anim.Wait(this, ms, then));
         Clock.SetRate(PlayerClock.Kept);
         _channels.Clock = Clock;
+        Parts = new PartStore(Clock, next => Anim.Frames(this, _ => { next(); return false; }));
+        _back.Parts = Parts;
+        _channels.Parts = Parts;
+        Parts.Changed += () =>
+        {
+            _back.PartsChanged();
+            _channels.Reroute();
+        };
         AreaStyles.Add(this, "Canvas");
         ClipToBounds = true;
         Background = Brushes.Transparent;
@@ -279,8 +290,19 @@ internal sealed class CanvasView : Border
     /// </summary>
     public sealed record TakenBy(string? Node = null, string? Name = null);
 
-    /// <summary>One step of a stop to play: its animation, its two boxes, whether the stop before it ended at its source, and who takes it if it is intercepted.</summary>
-    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null, Payloads.Shown? Sends = null, Payloads.Shown? Reply = null, string? Strand = null, LaneSlot? Slot = null);
+    /// <summary>
+    /// One step of a stop to play: its animation, its two boxes, whether the stop before it ended at its source, and who takes it if it is intercepted. Where a project draws a line for each
+    /// connection, <c>Strand</c> and <c>Slot</c> are the line it rides, and <c>Lit</c> how lit each line of that pair is once the pair has parted around the lit ones (see <see cref="FlowStage.PartsAt"/>):
+    /// what runs along the line is laid out on it as it stands then.
+    /// </summary>
+    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null, Payloads.Shown? Sends = null, Payloads.Shown? Reply = null, string? Strand = null, LaneSlot? Slot = null,
+        IReadOnlyList<double>? Lit = null);
+
+    /// <summary>
+    /// The stop of <paramref name="flow"/> at <paramref name="stop"/> (null for none) is on show: the lines of the pairs it rides open away from the lit lines, as <paramref name="plans"/> (from
+    /// <see cref="FlowStage.PartsAt"/>) say, by the player's clock. Called once the clock has begun the stop, before its motion plays.
+    /// </summary>
+    internal void PartStop(string? flow, int stop, IReadOnlyDictionary<string, PartPlan> plans) => Parts.Set(flow, stop, plans, MotionSettings.Reduced);
 
     // The payload card on a paused dot (see DotCard): the steps playing, whose dots the pointer can find, the card, and the moment before it goes once the pointer has left.
     private const double DotSlack = 6;
@@ -398,7 +420,7 @@ internal sealed class CanvasView : Border
             : by.Node is { } id && _scene!.Boxes.FirstOrDefault(x => x.Id == id) is { } box ? new MotionLayer.Taker(box.Rect, Look.DefOf(box.Object).Path)
             : by.Name is { } name ? new MotionLayer.Taker(Name: name) : null;
         _back.LiftLabels(playing.Where(r => Animations.LeavesMarks(r.Animation)).Select(r => (r.From, r.To)));
-        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, r.From, r.To, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By), r.Strand, r.Slot)).ToList();
+        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, r.From, r.To, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By), r.Strand, r.Slot, r.Lit)).ToList();
         if (MotionSettings.Reduced)
         {
             _motion.StartStill(specs);
@@ -425,6 +447,7 @@ internal sealed class CanvasView : Border
             }
             foreach (var (id, amounts) in asked) Squash(id, MotionMath.Largest(amounts));
             _back.LitFade = started.Min(s => MotionMath.LitOpacity(s.Beats, now));
+            _back.LitFadeSeveral = started.Min(s => MotionMath.LitOpacity(s.Beats, now, Lanes.LitFloorLanes));
         }
         // The motion is drawn from the player's clock, so it pauses, scrubs and runs at its speed. Once it is over it rests (a line that timed out stays dim until the step
         // is left), and a seek back into it draws it again; `done` is called the first time it ends.
@@ -519,6 +542,7 @@ internal sealed class CanvasView : Border
         if (!keepFade)
         {
             _back.LitFade = 1;
+            _back.LitFadeSeveral = 1;
             _back.LiftLabels([]);
         }
     }
@@ -743,9 +767,11 @@ internal sealed class CanvasView : Border
 
     /// <summary>
     /// A channel the stop on show has left open, with the two boxes its ends are on in this view and, when it opens or closes at this stop, the step whose motion has to land
-    /// before the mark comes or goes (its animation and its two boxes).
+    /// before the mark comes or goes (its animation and its two boxes). Where each connection is a line of its own, <c>StrandId</c>, <c>Slot</c> and <c>Pair</c> are the line of the
+    /// step that opened it: its dots and its tether run along that line, not the pair's middle.
     /// </summary>
-    public sealed record OpenChannel(Channel Channel, string FromBox, string ToBox, StepAnimation? Motion = null, string? MotionFrom = null, string? MotionTo = null);
+    public sealed record OpenChannel(Channel Channel, string FromBox, string ToBox, StepAnimation? Motion = null, string? MotionFrom = null, string? MotionTo = null,
+        string? StrandId = null, LaneSlot? Slot = null, string? Pair = null);
 
     /// <summary>
     /// Shows the channels that are open at the stop on show (see <see cref="Channels.At"/>): a stream as dots along its line, a listener as a bell with a dotted line, a job as a turning
@@ -781,10 +807,17 @@ internal sealed class CanvasView : Border
                 var line = _lanes.PathFor(null, LineStyle, new LaneEnd(fromId, a, outline(fromId)), new LaneEnd(toId, b, outline(toId))).Geometry;
                 after = Animations.BeatsFor(motion, line.ContourLength, false).Total;
             }
-            specs.Add(new ChannelLayer.Spec(ChannelLayer.KeyOf(o.Channel), o.Channel, o.FromBox, o.ToBox, from, to, outline(o.FromBox), outline(o.ToBox), o.Channel.End == "to" ? o.ToBox : o.FromBox, after));
+            specs.Add(new ChannelLayer.Spec(ChannelLayer.KeyOf(o.Channel), o.Channel, o.FromBox, o.ToBox, from, to, outline(o.FromBox), outline(o.ToBox), o.Channel.End == "to" ? o.ToBox : o.FromBox, after,
+                o.StrandId, o.Slot, o.Pair));
         }
         _channels.Set(specs, LineStyle);
     }
+
+    /// <summary>The path data of a line as it is drawn now (null when there is none with this id), for the tests.</summary>
+    internal string? LinePath(string edgeId) => _back.PathOf(edgeId);
+
+    /// <summary>The path data of the line each open channel runs along, for the tests.</summary>
+    internal IReadOnlyList<string?> ChannelLinePaths => _channels.LinePaths;
 
     /// <summary>The channels drawn now, for the tests and the key under the player.</summary>
     internal IReadOnlyList<ChannelLayer.Shown> ChannelsShown => _channels.Marks;

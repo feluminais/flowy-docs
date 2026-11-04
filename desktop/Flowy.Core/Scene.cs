@@ -33,6 +33,8 @@ public enum EdgeFlags
     Faint = 16, // another box is selected and this line doesn't touch it
     Hover = 32,
     Lane = 64, // a lane of a branch this stop is not in: dashed and faint, not lit
+    Kin = 128, // another line of a pair that a step rides on one of its lines: faded a little less than the lines of other pairs
+    Several = 256, // a lit line that has others beside it: it fades to half, not to a quarter, when its step times out
 }
 
 /// <summary>
@@ -196,6 +198,8 @@ public static class SceneBuilder
         bool Rides((string From, string To) e, int i) => strands is null ? runs.Contains((e.From, e.To)) : StrandAt(i) is not null;
         var litLines = litSteps.Where(i => Rides(PlacedAt(i)!.Value, i)).Select(i => LineId(PlacedAt(i)!.Value.From, PlacedAt(i)!.Value.To)).ToHashSet();
         var litStrands = litSteps.Select(StrandAt).OfType<string>().ToHashSet();
+        // The pairs of several lines that a step rides: their other lines are its kin, faded a little less than the lines of other pairs (see Lanes.KinOpacity).
+        var litPairs = (strands ?? []).Where(s => s.Lanes > 1 && litStrands.Contains(s.Id)).Select(s => s.Pair).ToHashSet();
         var faintLines = faintSteps.Where(f => Rides(f.E, f.I)).Select(f => LineId(f.E.From, f.E.To)).ToHashSet();
         var faintStrands = faintSteps.Select(f => StrandAt(f.I)).OfType<string>().ToHashSet();
         var badConnections = problems.Where(p => p.Connection is not null).Select(p => p.Connection!.Value).ToHashSet();
@@ -215,7 +219,11 @@ public static class SceneBuilder
             foreach (var s in strands)
             {
                 var flags = EdgeFlags.None;
-                if (dimming) flags |= litStrands.Contains(s.Id) ? EdgeFlags.Active : faintStrands.Contains(s.Id) ? EdgeFlags.Lane : EdgeFlags.Dim;
+                // How much a line stays: the line a step rides (Active) over a line of the flow's other branches (Lane), over the other lines of the pair a step rides (Kin), over the rest (Dim).
+                // A lit line with neighbours is Several, which has its own floor when its step times out.
+                var lit = dimming && litStrands.Contains(s.Id);
+                if (dimming) flags |= lit ? EdgeFlags.Active : faintStrands.Contains(s.Id) ? EdgeFlags.Lane : litPairs.Contains(s.Pair) ? EdgeFlags.Kin : EdgeFlags.Dim;
+                if (lit && s.Lanes > 1) flags |= EdgeFlags.Several;
                 if (s.Connections.Any(badConnections.Contains)) flags |= EdgeFlags.Problem;
                 lines.Add(new Drawn(s.Id, s.From, s.To, s.Label == "" ? null : s.Label, flags, false, s.Look, s.Pair, slots[s.Id], s.Lanes));
             }
@@ -293,5 +301,7 @@ public static class SceneBuilder
         if (e.Flags.HasFlag(EdgeFlags.Faint)) yield return "faint";
         if (e.Flags.HasFlag(EdgeFlags.Hover)) yield return "hover";
         if (e.Flags.HasFlag(EdgeFlags.Lane)) yield return "lane";
+        if (e.Flags.HasFlag(EdgeFlags.Kin)) yield return "kin";
+        if (e.Flags.HasFlag(EdgeFlags.Several)) yield return "several";
     }
 }

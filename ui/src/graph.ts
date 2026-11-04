@@ -112,6 +112,8 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   const litLines = new Set(litSteps.filter(i => rides(placedAt(i)!, i)).map(i => lineKey(...placedAt(i)!)))
   const isLit = (from: string, to: string) => litLines.has(lineKey(from, to))
   const litStrands = new Set(litSteps.flatMap(i => strandAt(i) ?? []))
+  // The pairs of several lines that a step rides: their other lines are its kin, faded a little less than the lines of other pairs (see KIN_OPACITY).
+  const litPairs = new Set((strands ?? []).filter(s => s.lanes > 1 && litStrands.has(s.id)).map(s => s.pair))
   const faintSteps = (playing?.faint ?? []).flatMap(i => {
     const e = placedAt(i)
     return e ? [{ i, e }] : []
@@ -144,7 +146,9 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
       ...(s.lanes > 1 ? { interactionWidth: HIT_WIDTH } : {}),
       // `pair` is the id of the pair's one merged line, which everything about a pair (traffic, failure marks, a compared flow) keeps using; `slot` is the place among the lanes.
       data: { pair: s.pair, lanes: s.lanes, slot: slots!.get(s.id), ...(s.look ? { look: s.look } : {}) },
-      className: classes(dimming && (lit ? 'active' : faintStrands.has(s.id) ? 'lane' : 'dim'), s.connections.some(i => badConnections.has(i)) && 'problem'),
+      // How much a line stays: the line a step rides (`active`) over a line of the flow's other branches (`lane`, 0.55), over the other lines of the pair a step rides (`kin`, 0.35), over the rest (`dim`, 0.15).
+      // A lit line with neighbours is `several`, which has its own floor when its step times out.
+      className: classes(dimming && (lit ? 'active' : faintStrands.has(s.id) ? 'lane' : litPairs.has(s.pair) ? 'kin' : 'dim'), lit && s.lanes > 1 && 'several', s.connections.some(i => badConnections.has(i)) && 'problem'),
       ...(lit ? litLine : {}),
     }
   }) : edges.map(e => {

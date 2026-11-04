@@ -11,13 +11,13 @@ namespace Flowy.Tests;
 /// </summary>
 public class LanesTests
 {
-    private static JsonNode Expected(string name) => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "lanes", name + ".json")))!;
+    internal static JsonNode Expected(string name) => JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "lanes", name + ".json")))!;
 
-    private static double D(JsonNode? n) => n!.GetValue<double>();
+    internal static double D(JsonNode? n) => n!.GetValue<double>();
 
-    private static void Same(double want, double got, string what) => Assert.True(Math.Abs(want - got) < 1e-9, $"{what}: wanted {want}, got {got}");
+    internal static void Same(double want, double got, string what) => Assert.True(Math.Abs(want - got) < 1e-9, $"{what}: wanted {want}, got {got}");
 
-    private static void Same(JsonNode want, Pt got, string what)
+    internal static void Same(JsonNode want, Pt got, string what)
     {
         Same(D(want[0]), got.X, what + " x");
         Same(D(want[1]), got.Y, what + " y");
@@ -29,20 +29,20 @@ public class LanesTests
         Same(D(want["y"]), got.Y, what + " y");
     }
 
-    private static LaneBox Box(JsonNode b) =>
+    internal static LaneBox Box(JsonNode b) =>
         new(b["id"]!.GetValue<string>(), new Rect(D(b["x"]), D(b["y"]), D(b["width"]), D(b["height"])), LookData.Shapes[b["shape"]!.GetValue<string>()].Edge);
 
-    private static LanePose Pose(JsonNode n) => new(D(n["s"]), n["lam"]!.AsArray().Select(D).ToList());
+    internal static LanePose Pose(JsonNode n) => new(D(n["s"]), n["lam"]!.AsArray().Select(D).ToList());
 
-    private static LaneSlot Slot(JsonNode n) => new(n["lane"]!.GetValue<int>(), n["lanes"]!.GetValue<int>(), n["back"]!.GetValue<int>());
+    internal static LaneSlot Slot(JsonNode n) => new(n["lane"]!.GetValue<int>(), n["lanes"]!.GetValue<int>(), n["back"]!.GetValue<int>());
 
     /// <summary>The lanes of a pair, as the dump has them: the first <paramref name="back"/> run from b to a, the others from a to b.</summary>
-    private static List<LaneLine> Bundle(LaneBox a, LaneBox b, int lanes, int back, LanePose pose) =>
+    internal static List<LaneLine> Bundle(LaneBox a, LaneBox b, int lanes, int back, LanePose pose) =>
         Enumerable.Range(0, lanes).Select(lane => lane < back
             ? Lanes.LaneGeometry(b, a, new LaneSlot(lane, lanes, back), pose)
             : Lanes.LaneGeometry(a, b, new LaneSlot(lane, lanes, back), pose)).ToList();
 
-    private static void SameLane(JsonNode want, LaneLine got, string what)
+    internal static void SameLane(JsonNode want, LaneLine got, string what)
     {
         Assert.Equal(want["path"]!.GetValue<string>(), got.Path);
         Same(want["anchor"]!, new Pt(got.X, got.Y), what + " anchor");
