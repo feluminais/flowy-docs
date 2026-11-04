@@ -1,0 +1,13 @@
+# Codecov reads the coverage and test results ci.yml sends (https://app.codecov.io/gh/feluminais/flowy-docs).
+# Its two checks only report: a pull request that lowers coverage says so on the check and in the comment, and stays green.
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+comment:
+  layout: "condensed_header, diff, flags, condensed_files, condensed_footer"
