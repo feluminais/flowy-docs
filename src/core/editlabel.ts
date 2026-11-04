@@ -1,9 +1,10 @@
 import { compareOf } from './compare.ts'
 import type { CompareTag } from './compare.ts'
+import { kindName, kindOf, PLAIN_NAME } from './kinds.ts'
 import { customIcons } from './look.ts'
 import { payloadsOf } from './payloads.ts'
 import { isMap } from './text.ts'
-import { folderOf } from './model.ts'
+import { folderOf, PAIR_NAMES, pairMode, PAIRS_FIELD } from './model.ts'
 import type { Analysis, Connection, Flow, Model } from './model.ts'
 import { isStateName, STATE_LABELS } from './states.ts'
 import type { StateName } from './states.ts'
@@ -129,6 +130,12 @@ const linesChanged: Detector = (before, after) => {
   const own = (c: Connection) => !touched.has(c.from) && !touched.has(c.to)
   const [gone, came] = [surplus(tally(before.connections), tally(after.connections)).filter(own), surplus(tally(after.connections), tally(before.connections)).filter(own)]
   if (gone.length === 0 && came.length === 0) return undefined
+  if (gone.length === 1 && came.length === 1 && gone[0].from === came[0].from && gone[0].to === came[0].to) {
+    // The same connection with only its kind changed: say which kind it is now, not that it was relabelled.
+    const [was, now] = [kindOf(gone[0]), kindOf(came[0])]
+    if (was !== now && canon({ ...gone[0], kind: undefined }) === canon({ ...came[0], kind: undefined }))
+      return `Set ${nameOf(before, after, came[0].from)} to ${nameOf(before, after, came[0].to)} as ${now === undefined ? PLAIN_NAME : kindName(now)}`
+  }
   if (gone.length === 1 && came.length === 1 && gone[0].from === came[0].from && gone[0].to === came[0].to)
     return `Relabelled ${nameOf(before, after, came[0].from)} to ${nameOf(before, after, came[0].to)}`
   if (gone.length > 0 && came.length > 0) return `Changed ${gone.length + came.length} lines`
@@ -136,6 +143,13 @@ const linesChanged: Detector = (before, after) => {
   if (came.length > 1) return `Added ${came.length} lines`
   if (gone.length === 1) return `Disconnected ${nameOf(before, after, gone[0].from)} from ${nameOf(before, after, gone[0].to)}`
   return `Removed ${gone.length} lines`
+}
+
+/** The same connections in another order: the lines of a pair that has several run in the order of the file. */
+const linesReordered: Detector = (before, after) => {
+  if (before.connections.length !== after.connections.length || canon(before.connections) === canon(after.connections)) return undefined
+  const [gone, came] = [surplus(tally(before.connections), tally(after.connections)), surplus(tally(after.connections), tally(before.connections))]
+  return gone.length === 0 && came.length === 0 ? 'Reordered connections' : undefined
 }
 
 /**
@@ -159,6 +173,11 @@ function tagEdit(before: Model, after: Model, id: string): string | undefined {
   return compareLabel(compareOf(b.compare), compareOf(a.compare), id, key => after.flows[key]?.name || key)
 }
 
+/** A flow as it reads without any step's `via`, as a string to compare. */
+const vialess = (flow: Flow): string => canon({ ...flow, steps: flow.steps.map(s => ({ ...s, via: undefined })) })
+
+const connectionsDiffer = (before: Model, after: Model): boolean => canon(before.connections) !== canon(after.connections)
+
 const flowsChanged: Detector = (before, after) => {
   const flowName = (m: Model, id: string) => cut(m.flows[id]?.name || id)
   const changes: string[] = []
@@ -169,6 +188,8 @@ const flowsChanged: Detector = (before, after) => {
       // Only where the file is can differ: a flow keeps its id when it moves.
       const to = folderOf(after, id)
       if (folderOf(before, id) !== to) changes.push(`Moved the ${flowName(after, id)} flow ${to === '' ? 'to the top' : `into ${cut(to)}`}`)
+    } else if (vialess(before.flows[id]) === vialess(after.flows[id]) && connectionsDiffer(before, after)) {
+      // Only the `via` of some steps differ, and a connection changed with them: the change of the connection says it all (a relabel rewrites the vias that named the old label).
     } else {
       const onlyTheName = canon({ ...before.flows[id], name: '' }) === canon({ ...after.flows[id], name: '' })
       const onlyTheTags = canon({ ...before.flows[id], tags: undefined }) === canon({ ...after.flows[id], tags: undefined })
@@ -285,6 +306,7 @@ const settingsChanged: Detector = (before, after) => {
   if (differs('name')) return 'Renamed the project'
   if (differs('about')) return 'Changed the project description'
   if (differs('lines')) return 'Changed the line style'
+  if (differs('pairs')) return `Set ${PAIRS_FIELD.toLowerCase()} to ${PAIR_NAMES[pairMode(after)].toLowerCase()}`
   // The payloads say their own sentence (payloadsChanged).
   const otherSettings = [...new Set([...Object.keys(before.meta), ...Object.keys(after.meta)])].filter(key => key !== 'payloads').some(differs)
   return otherSettings ? 'Changed the settings' : undefined
@@ -293,7 +315,7 @@ const settingsChanged: Detector = (before, after) => {
 /** In the order the first sentence is picked. */
 const DETECTORS: readonly Detector[] = [
   shapesAdded, shapesDeleted, shapesRenamed, shapesReparented, shapesChanged,
-  linesChanged, flowsChanged,
+  linesChanged, linesReordered, flowsChanged,
   analysesAdded, analysesDeleted, analysesRenamed, modesAdded, modesDeleted, modesChanged, analysesChanged,
   positionsChanged, payloadsChanged, settingsChanged,
 ]

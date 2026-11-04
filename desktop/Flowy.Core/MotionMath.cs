@@ -137,11 +137,14 @@ public static class MotionMath
     /// <summary>The clear space between the pipe and the marker beside it.</summary>
     private const double MarkerGap = 26;
 
-    /// <summary>Where the middle of a marker of this size sits, from the point on the line it hangs from: on the lower side, clear of the blob that runs along the line.</summary>
-    public static (double X, double Y) MarkerSpot(double dx, double dy, (double Width, double Height) size)
+    /// <summary>
+    /// Where the middle of a marker of this size sits, from the point on the line it hangs from: on the lower side, clear of the blob that runs along the line. Among the lines of a pair it
+    /// hangs below the whole bundle: <paramref name="clear"/> is how far the bundle reaches from the lit line (see <see cref="Lanes.BundleReach"/>).
+    /// </summary>
+    public static (double X, double Y) MarkerSpot(double dx, double dy, (double Width, double Height) size, double clear = 0)
     {
         var n = LowerSide(dx, dy);
-        var far = MarkerGap + Math.Abs(n.X) * (size.Width / 2) + Math.Abs(n.Y) * (size.Height / 2);
+        var far = MarkerGap + clear + Math.Abs(n.X) * (size.Width / 2) + Math.Abs(n.Y) * (size.Height / 2);
         return (Zero(n.X * far), Zero(n.Y * far));
     }
 
@@ -161,10 +164,11 @@ public static class MotionMath
 
     /// <summary>
     /// How strong the lit lines of a stop are at <paramref name="t"/>: full until a <c>fade</c> beat starts, falling to <see cref="LitFloor"/> over it, and
-    /// staying there after it (the line is dim until the step is left). The strongest fade of several wins; beats with no <c>fade</c> leave it at 1.
+    /// staying there after it (the line is dim until the step is left). The strongest fade of several wins; beats with no <c>fade</c> leave it at 1. <paramref name="floor"/> is how much it keeps
+    /// at the end: a line among its pair's lines keeps <see cref="Lanes.LitFloorLanes"/>, so it never ends fainter than the lines beside it.
     /// </summary>
-    public static double LitOpacity(IEnumerable<Beat> beats, double t) =>
-        1 - (1 - LitFloor) * beats.Where(b => b.Do == "fade").Aggregate(0.0, (most, b) => Math.Max(most, Progress(b, t)));
+    public static double LitOpacity(IEnumerable<Beat> beats, double t, double floor = LitFloor) =>
+        1 - (1 - floor) * beats.Where(b => b.Do == "fade").Aggregate(0.0, (most, b) => Math.Max(most, Progress(b, t)));
 
     /// <summary>The biggest of some squashes, 0 for none: a box that several steps squash takes the largest.</summary>
     public static double Largest(IEnumerable<double> amounts) => amounts.Aggregate(0.0, Math.Max);

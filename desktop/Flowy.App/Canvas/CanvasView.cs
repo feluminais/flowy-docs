@@ -20,10 +20,11 @@ internal sealed class CanvasView : Border
 
     private static readonly Cursor HandCursor = new(StandardCursorType.Hand);
 
-    private readonly BackLayer _back = new();
-    private readonly MotionLayer _motion = new();
+    private readonly LaneStore _lanes = new(); // the one place a line's path is made: the layers below all ask it
+    private readonly BackLayer _back;
+    private readonly MotionLayer _motion;
     private readonly CardsLayer _cards = new(); // a recursion's pile of cards, under the boxes
-    private readonly ChannelLayer _channels = new();
+    private readonly ChannelLayer _channels;
     private IReadOnlyList<OpenChannel> _open = []; // the channels the stop on show has left open, with the shapes they are on
     private readonly MarksLayer _marks = new();
     private readonly TrafficLayer _traffic = new();
@@ -102,17 +103,111 @@ internal sealed class CanvasView : Border
     /// <summary>The flow player's time on this canvas (see <see cref="PlayerClock"/>): a step's motion, its channels and the shapes' states are drawn from it.</summary>
     public PlayerClock Clock { get; }
 
+    /// <summary>How far the lines of each pair are parted around the lit one while a flow plays, from the same clock (see <see cref="PartStore"/>).</summary>
+    internal PartStore Parts { get; }
+
     public CanvasView()
     {
+        _back = new BackLayer(_lanes);
+        _motion = new MotionLayer(_lanes);
+        _channels = new ChannelLayer(_lanes);
         Clock = new PlayerClock(timer: (ms, then) => Anim.Wait(this, ms, then));
         Clock.SetRate(PlayerClock.Kept);
         _channels.Clock = Clock;
+        Parts = new PartStore(Clock, next => Anim.Frames(this, _ => { next(); return false; }));
+        _back.Parts = Parts;
+        _channels.Parts = Parts;
+        Parts.Changed += () =>
+        {
+            _back.PartsChanged();
+            _channels.Reroute();
+        };
         AreaStyles.Add(this, "Canvas");
         ClipToBounds = true;
         Background = Brushes.Transparent;
         _world.Children.AddRange([_back, _cards, _stage, _traffic, _channels, _motion, _marks]);
-        Child = new Grid { Children = { _world, _marquee, _dotHost } };
+        Child = new Grid { Children = { _world, _marquee, _kindKey, _dotHost } };
         Clock.Changed += () => CloseDotCard();
+        SizeChanged += (_, _) => ArrangeKindKey();
+    }
+
+    // The key of the kinds the lines on show are drawn as, over the foot of the canvas (a compared pane has it at the top). Nothing when no line has a kind.
+    private readonly Border _kindKey = new() { IsHitTestVisible = false, IsVisible = false, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left, VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom, Classes = { "kindkey" } };
+    private string _kindKeyFor = "";
+    private double _kindKeyLeft = 60;
+    private bool _kindKeyAtTop;
+    private bool _kindKeyBesidePlayer;
+
+    /// <summary>How far in from the left edge the key stands at the foot: clear of the zoom buttons, and of the navigator when it lies over the canvas.</summary>
+    public double KindKeyLeft
+    {
+        get => _kindKeyLeft;
+        set
+        {
+            _kindKeyLeft = value;
+            ArrangeKindKey();
+        }
+    }
+
+    /// <summary>Whether the key stands at the top left instead of the foot: a compared pane has its player card at the foot and its zoom buttons at the top right.</summary>
+    public bool KindKeyAtTop
+    {
+        get => _kindKeyAtTop;
+        set
+        {
+            _kindKeyAtTop = value;
+            ArrangeKindKey();
+        }
+    }
+
+    /// <summary>Whether a flow's card lies over the middle of the foot: the key then keeps to the room left of it.</summary>
+    public bool KindKeyBesidePlayer
+    {
+        get => _kindKeyBesidePlayer;
+        set
+        {
+            _kindKeyBesidePlayer = value;
+            ArrangeKindKey();
+        }
+    }
+
+    /// <summary>The key itself, for tests.</summary>
+    internal Border KindKeyHost => _kindKey;
+
+    /// <summary>The words in the key now, in order, for tests.</summary>
+    internal IReadOnlyList<string> KindKeyWords { get; private set; } = [];
+
+    /// <summary>The player card is 520 wide at most (<see cref="PlayerCard"/>) and stands in the middle: the key at the foot ends <see cref="PlayerGap"/> before it begins, as in the browser.</summary>
+    private const double PlayerHalf = 260;
+    private const double PlayerGap = 16;
+
+    private void ArrangeKindKey()
+    {
+        var width = Bounds.Width;
+        _kindKey.VerticalAlignment = _kindKeyAtTop ? Avalonia.Layout.VerticalAlignment.Top : Avalonia.Layout.VerticalAlignment.Bottom;
+        _kindKey.Margin = _kindKeyAtTop ? new Thickness(8, 8, 0, 0) : new Thickness(_kindKeyLeft, 0, 0, 16);
+        if (width <= 0) return;
+        _kindKey.MaxWidth = KindKeyMaxWidth(width, _kindKeyLeft, _kindKeyAtTop, _kindKeyBesidePlayer);
+    }
+
+    /// <summary>How wide the key may be on a canvas <paramref name="width"/> wide, standing <paramref name="left"/> in (past the navigator when it is open): beside a flow's card it ends <see cref="PlayerGap"/> short of the card.</summary>
+    internal static double KindKeyMaxWidth(double width, double left, bool atTop, bool besidePlayer) =>
+        atTop ? Math.Max(120, width - 8 - 60)
+        : besidePlayer ? Math.Max(190, width / 2 - PlayerHalf - PlayerGap - left)
+        : Math.Min(640, Math.Max(120, width - left - 16));
+
+    /// <summary>Shows the key for the lines of <paramref name="scene"/>: one swatch and name for each kind drawn now, and the plain line when one is drawn too. Built again only when that changes.</summary>
+    private void ShowKindKey(Scene scene)
+    {
+        var (kinds, plain, stacked, inUse) = KindKey.OnScreen(scene.Edges);
+        var signature = $"{string.Join(',', kinds)}{(plain ? "+plain" : "")}{(stacked ? "+stacked" : "")}{(inUse ? "+inuse" : "")}";
+        if (signature == _kindKeyFor) return;
+        _kindKeyFor = signature;
+        var key = KindKeyView.Of(kinds, plain, stacked, inUse);
+        _kindKey.Child = key;
+        _kindKey.IsVisible = key is not null;
+        KindKeyWords = KindKeyView.Words(kinds, plain, stacked, inUse);
+        ArrangeKindKey();
     }
 
     public Scene? Scene => _scene;
@@ -195,8 +290,19 @@ internal sealed class CanvasView : Border
     /// </summary>
     public sealed record TakenBy(string? Node = null, string? Name = null);
 
-    /// <summary>One step of a stop to play: its animation, its two boxes, whether the stop before it ended at its source, and who takes it if it is intercepted.</summary>
-    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null, Payloads.Shown? Sends = null, Payloads.Shown? Reply = null);
+    /// <summary>
+    /// One step of a stop to play: its animation, its two boxes, whether the stop before it ended at its source, and who takes it if it is intercepted. Where a project draws a line for each
+    /// connection, <c>Strand</c> and <c>Slot</c> are the line it rides, and <c>Lit</c> how lit each line of that pair is once the pair has parted around the lit ones (see <see cref="FlowStage.PartsAt"/>):
+    /// what runs along the line is laid out on it as it stands then.
+    /// </summary>
+    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null, Payloads.Shown? Sends = null, Payloads.Shown? Reply = null, string? Strand = null, LaneSlot? Slot = null,
+        IReadOnlyList<double>? Lit = null);
+
+    /// <summary>
+    /// The stop of <paramref name="flow"/> at <paramref name="stop"/> (null for none) is on show: the lines of the pairs it rides open away from the lit lines, as <paramref name="plans"/> (from
+    /// <see cref="FlowStage.PartsAt"/>) say, by the player's clock. Called once the clock has begun the stop, before its motion plays.
+    /// </summary>
+    internal void PartStop(string? flow, int stop, IReadOnlyDictionary<string, PartPlan> plans) => Parts.Set(flow, stop, plans, MotionSettings.Reduced);
 
     // The payload card on a paused dot (see DotCard): the steps playing, whose dots the pointer can find, the card, and the moment before it goes once the pointer has left.
     private const double DotSlack = 6;
@@ -314,7 +420,7 @@ internal sealed class CanvasView : Border
             : by.Node is { } id && _scene!.Boxes.FirstOrDefault(x => x.Id == id) is { } box ? new MotionLayer.Taker(box.Rect, Look.DefOf(box.Object).Path)
             : by.Name is { } name ? new MotionLayer.Taker(Name: name) : null;
         _back.LiftLabels(playing.Where(r => Animations.LeavesMarks(r.Animation)).Select(r => (r.From, r.To)));
-        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By))).ToList();
+        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, r.From, r.To, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By), r.Strand, r.Slot, r.Lit)).ToList();
         if (MotionSettings.Reduced)
         {
             _motion.StartStill(specs);
@@ -341,6 +447,7 @@ internal sealed class CanvasView : Border
             }
             foreach (var (id, amounts) in asked) Squash(id, MotionMath.Largest(amounts));
             _back.LitFade = started.Min(s => MotionMath.LitOpacity(s.Beats, now));
+            _back.LitFadeSeveral = started.Min(s => MotionMath.LitOpacity(s.Beats, now, Lanes.LitFloorLanes));
         }
         // The motion is drawn from the player's clock, so it pauses, scrubs and runs at its speed. Once it is over it rests (a line that timed out stays dim until the step
         // is left), and a seek back into it draws it again; `done` is called the first time it ends.
@@ -400,8 +507,8 @@ internal sealed class CanvasView : Border
         foreach (var m in marks)
         {
             if (RectOf(m.From) is not { } a || RectOf(m.To) is not { } b) continue;
-            var (x, y) = m.From == m.To ? (a.X + a.Width - 24, a.Y) : (LinePaths.Build(LineStyle, a, b, outline(m.From), outline(m.To)).Label.X, LinePaths.Build(LineStyle, a, b, outline(m.From), outline(m.To)).Label.Y);
-            at.Add(new MarkSpec(m.Text, m.Kind, x, y));
+            var spot = m.From == m.To ? new CorePt(a.X + a.Width - 24, a.Y) : _lanes.PathFor(null, LineStyle, new LaneEnd(m.From, a, outline(m.From)), new LaneEnd(m.To, b, outline(m.To))).Path.Label;
+            at.Add(new MarkSpec(m.Text, m.Kind, spot.X, spot.Y));
         }
         _marks.Set(at);
     }
@@ -435,6 +542,7 @@ internal sealed class CanvasView : Border
         if (!keepFade)
         {
             _back.LitFade = 1;
+            _back.LitFadeSeveral = 1;
             _back.LiftLabels([]);
         }
     }
@@ -464,6 +572,7 @@ internal sealed class CanvasView : Border
         }
         foreach (var (id, control) in _boxes) control.SetSelected(_selected.Contains(id));
         _back.SetScene(scene, lineStyle);
+        ShowKindKey(scene);
         if (_load is not null) ApplyLoad();
         if (_failures is not null) ApplyFailures();
         ApplyChanges();
@@ -658,9 +767,11 @@ internal sealed class CanvasView : Border
 
     /// <summary>
     /// A channel the stop on show has left open, with the two boxes its ends are on in this view and, when it opens or closes at this stop, the step whose motion has to land
-    /// before the mark comes or goes (its animation and its two boxes).
+    /// before the mark comes or goes (its animation and its two boxes). Where each connection is a line of its own, <c>StrandId</c>, <c>Slot</c> and <c>Pair</c> are the line of the
+    /// step that opened it: its dots and its tether run along that line, not the pair's middle.
     /// </summary>
-    public sealed record OpenChannel(Channel Channel, string FromBox, string ToBox, StepAnimation? Motion = null, string? MotionFrom = null, string? MotionTo = null);
+    public sealed record OpenChannel(Channel Channel, string FromBox, string ToBox, StepAnimation? Motion = null, string? MotionFrom = null, string? MotionTo = null,
+        string? StrandId = null, LaneSlot? Slot = null, string? Pair = null);
 
     /// <summary>
     /// Shows the channels that are open at the stop on show (see <see cref="Channels.At"/>): a stream as dots along its line, a listener as a bell with a dotted line, a job as a turning
@@ -692,13 +803,21 @@ internal sealed class CanvasView : Border
             if ((o.Channel.Opening || o.Channel.Closing) && o.Motion is { } motion)
             {
                 var (a, b) = RectOf(o.MotionFrom ?? o.FromBox) is { } mf && RectOf(o.MotionTo ?? o.ToBox) is { } mt ? (mf, mt) : (from, to);
-                var line = Geometry.Parse(LinePaths.Build(LineStyle, a, b, outline(o.MotionFrom ?? o.FromBox), outline(o.MotionTo ?? o.ToBox)).Data);
+                var (fromId, toId) = (o.MotionFrom ?? o.FromBox, o.MotionTo ?? o.ToBox);
+                var line = _lanes.PathFor(null, LineStyle, new LaneEnd(fromId, a, outline(fromId)), new LaneEnd(toId, b, outline(toId))).Geometry;
                 after = Animations.BeatsFor(motion, line.ContourLength, false).Total;
             }
-            specs.Add(new ChannelLayer.Spec(ChannelLayer.KeyOf(o.Channel), o.Channel, from, to, outline(o.FromBox), outline(o.ToBox), o.Channel.End == "to" ? o.ToBox : o.FromBox, after));
+            specs.Add(new ChannelLayer.Spec(ChannelLayer.KeyOf(o.Channel), o.Channel, o.FromBox, o.ToBox, from, to, outline(o.FromBox), outline(o.ToBox), o.Channel.End == "to" ? o.ToBox : o.FromBox, after,
+                o.StrandId, o.Slot, o.Pair));
         }
         _channels.Set(specs, LineStyle);
     }
+
+    /// <summary>The path data of a line as it is drawn now (null when there is none with this id), for the tests.</summary>
+    internal string? LinePath(string edgeId) => _back.PathOf(edgeId);
+
+    /// <summary>The path data of the line each open channel runs along, for the tests.</summary>
+    internal IReadOnlyList<string?> ChannelLinePaths => _channels.LinePaths;
 
     /// <summary>The channels drawn now, for the tests and the key under the player.</summary>
     internal IReadOnlyList<ChannelLayer.Shown> ChannelsShown => _channels.Marks;
@@ -782,7 +901,7 @@ internal sealed class CanvasView : Border
     {
         if (_scene is null || RectOf(line.From) is not { } a || RectOf(line.To) is not { } b) return null;
         double[]? Outline(string id) => Look.DefOf(_scene.Boxes.First(x => x.Id == id).Object).Edge;
-        var path = PathPoints.Flatten(LinePaths.Build(LineStyle, a, b, Outline(line.From), Outline(line.To)).Data);
+        var path = PathPoints.Flatten(_lanes.PathFor(null, LineStyle, new LaneEnd(line.From, a, Outline(line.From)), new LaneEnd(line.To, b, Outline(line.To))).Path.Data);
         // A line that ends at a shape that opens runs on into it, and one that starts at one comes out of it. Its traffic is drawn only outside the shapes at both its ends (see Particles.CutBy).
         var (fromBox, toBox) = (_scene.Boxes.First(x => x.Id == line.From), _scene.Boxes.First(x => x.Id == line.To));
         TrafficLayer.ShapeCover Cover(SceneBox box) => new(box.Id, box.Rect, Look.DefOf(box.Object).Edge);
@@ -976,6 +1095,12 @@ internal sealed class CanvasView : Border
 
     private Padding FitRoom() => _fitPlayer && PlayerRoom is { } room ? _fitPadding with { Bottom = room() } : _fitPadding;
 
+    /// <summary>Fits again to the room as it is now (the player's card grew or shrank), but only a view that is still the fitted one: one the reader has zoomed or panned is theirs.</summary>
+    public void Refit()
+    {
+        if (_fitOnResize && Content() is { } bounds && base.Bounds.Width > 0 && base.Bounds.Height > 0) SetViewport(Camera.Fit(bounds, base.Bounds.Width, base.Bounds.Height, FitRoom()));
+    }
+
     /// <summary>The whole view, centred, with room for the details panel (`panel` wide, 0 when closed), the navigator (`nav` wide) and the flow player when they're there. Fits again when the window is resized.</summary>
     public void Fit(double panel, bool player, double nav = 0, double milliseconds = 0, bool refit = true)
     {
@@ -1012,6 +1137,16 @@ internal sealed class CanvasView : Border
     public void RevealAll(IEnumerable<string> ids, double panel = Camera.Panel, double nav = 0, double milliseconds = 200)
     {
         var rects = ids.Select(RectOf).OfType<Flowy.Core.Rect>().ToList();
+        if (rects.Count == 0) return;
+        var (x, y) = (rects.Min(r => r.X), rects.Min(r => r.Y));
+        var all = new Flowy.Core.Rect(x, y, rects.Max(r => r.Right) - x, rects.Max(r => r.Bottom) - y);
+        if (Camera.PanIntoView(all, _viewport, base.Bounds.Width, base.Bounds.Height, panel, 24, Math.Min(nav, base.Bounds.Width)) is { } to) MoveTo(to, milliseconds);
+    }
+
+    /// <summary>Pans just far enough that the labels of the lines of a pair side by side, which run out to each side of the pair past its shapes, are clear of the details panel and the navigator, as the browser's Camera does.</summary>
+    public void RevealLabels(double panel = Camera.Panel, double nav = 0, double milliseconds = 200)
+    {
+        var rects = _back.LaneLabelRects;
         if (rects.Count == 0) return;
         var (x, y) = (rects.Min(r => r.X), rects.Min(r => r.Y));
         var all = new Flowy.Core.Rect(x, y, rects.Max(r => r.Right) - x, rects.Max(r => r.Bottom) - y);

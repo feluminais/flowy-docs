@@ -1,0 +1,5 @@
+name: via-new
+view: root
+steps:
+  - { from: a, to: b, text: Ask, via: Slow path }
+  - { from: b, to: c, text: Pass on, via: Fast path }

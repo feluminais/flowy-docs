@@ -18,11 +18,12 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   are the payloads it carries, each a row with an arrow for the way it goes that opens to what it is about, its
   shape and an example; a payload only a flow step sends sits under the line once, and its tooltip names the step.
   Click a line to see the connections it stands for, with a Payloads section under them and the first one open.
-- Two shapes have one line between them, whichever way their connections run. When they run both ways the line
+- In the model, two shapes have one line between them, whichever way their connections run. When they run both ways the line
   has an arrowhead at each end, and its panel lists each way under its own heading: in Plum, the line between
   Ordering and Back office lists "streams every event" under Ordering → Back office and three connections under
   Back office → Ordering. A flow step that goes against a one-way line plays on a dashed line of its own, so no
   arrowhead points against it.
+  A sketch can draw a line for each connection instead ([Sketches](sketches.md#several-lines-between-two-shapes)). A connection's kind shows on its line as a pattern and a mark at each end, and a key at the foot of the canvas names the ones drawn ([Connection kinds](kinds.md)).
 - Lines have no labels until you point at one. Click a shape and its lines show theirs while the
   others fade.
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
@@ -47,8 +48,8 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   how many shapes are inside each (the number the canvas shows as "N inside") and how many flows play in it, a dot where something is wrong, and a filter. Point at a row's number for the full count ("7 inside, 13 in all, 13 flows"), which counts every level. It sorts as
   VS Code's Explorer does: shapes that hold others first, then the rest, each by name in any case, and
   with numbers read as numbers ("step 2" before "step 10"). A click shows a shape where it's drawn; Enter
-  or a double-click zooms into it, and the tree follows you as you zoom. Under the tree, **Drafts** lists the model's drafts
-  and has **New draft** ([Drafts](drafts.md)). Flows (L) lists every flow as the
+  or a double-click zooms into it, and the tree follows you as you zoom. Under the tree, **Sketches** lists the model's sketches
+  and has **New sketch** ([Sketches](sketches.md)). Flows (L) lists every flow as the
   folders they are filed in under `flows/`, a folder before the flows beside it and the flows by file name, so `01-place-order` comes before `02-pay`.
   A click goes to the level a flow plays in and plays it. The tags in use sit above the list: press one to keep the flows that have it, or press
   several to keep those with any of them. The search matches names, file names, folders and tags. A YAML tab (Y) beside them shows the files
@@ -124,6 +125,7 @@ file again, so comments in it are not kept ([File format](../format.md#the-folde
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
   is refused.
 - "Outside service" in a shape's panel marks it `external: true`, for things you use but don't own.
+- Click a line, and each connection's card has a **Kind**: a row of drawn tiles, one for each kind and one for the plain line, and the pick is saved as `kind:` ([Connection kinds](kinds.md)). Where a sketch draws a line for each connection, the card also has **Move up** and **Move down**, which change the order of the lines of the pair. With nothing picked, Details has **Lines between two shapes**, with **Merged** and **Separate**.
 - Click a line, and each connection's card has **Payloads**: a button for each payload in the model, pressed for the ones it carries.
   Type a name in New payload and press Enter to make one. It is saved, and put on the line, once its About is. Under the buttons, each
   payload the line carries has a form folded under its name: Name, About, and a Shape and an Example, each a language and the code, as

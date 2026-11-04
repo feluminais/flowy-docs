@@ -862,6 +862,280 @@
     },
     {
       "spec": {
+        "op": "connect",
+        "from": "api",
+        "to": "pay",
+        "label": "notifies",
+        "kind": "publish"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "pay",
+        "label": "pays",
+        "kind": "cached",
+        "payloads": [
+          "receipt"
+        ]
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "db",
+        "label": "asks",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "db",
+        "label": "asks again",
+        "kind": "rpc"
+      },
+      "error": "unknown kind \"rpc\" (use request, stream, publish, cached, object, extension)"
+    },
+    {
+      "spec": {
+        "op": "connect",
+        "from": "web",
+        "to": "nowhere",
+        "kind": "rpc"
+      },
+      "error": "unknown object \"nowhere\""
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "request"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: request\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "stream"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "api",
+        "to": "pay",
+        "which": "charges",
+        "kind": "extension"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "customer",
+        "to": "web",
+        "which": "",
+        "kind": "object"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: cached\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "pay",
+        "which": "pays",
+        "kind": "publish"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n    kind: stream\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "rpc"
+      },
+      "error": "unknown kind \"rpc\" (use request, stream, publish, cached, object, extension)"
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": "Request"
+      },
+      "error": "unknown kind \"Request\" (use request, stream, publish, cached, object, extension)"
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "nope",
+        "kind": "rpc"
+      },
+      "error": "no connection web → api labelled \"nope\""
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "web",
+        "to": "api",
+        "which": "HTTP",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n    kind: extension\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "api",
+        "to": "pay",
+        "which": "charges",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    kind: object\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "setKind",
+        "from": "customer",
+        "to": "web",
+        "which": "",
+        "kind": ""
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: api\n    to: pay\n    label: notifies\n    kind: publish\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeConnection",
+        "from": "api",
+        "to": "pay",
+        "which": "notifies"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: web\n    to: pay\n    label: pays\n    kind: publish\n    payloads:\n      - receipt\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeConnection",
+        "from": "web",
+        "to": "pay",
+        "which": "pays"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n  - from: web\n    to: db\n    label: asks\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
+        "op": "removeConnection",
+        "from": "web",
+        "to": "db",
+        "which": "asks"
+      },
+      "files": {
+        "model.yaml": "lines: curved\nowner: platform-team\npayloads:\n  order:\n    name: Order\n    shape:\n      language: typescript\n      text: \"type Order = { id: string }\"\n  receipt:\n    about: What comes back.\nobjects:\n  2:\n    type: actor\n    name: Second\n  10:\n    type: actor\n    name: Tenth\n  customer:\n    type: actor\n    name: Shopper\n    owner: sales\n  shop:\n    type: system\n    name: Shop\n    status: live\n  web:\n    type: app\n    in: shop\n    name: Web app\n    code:\n      - apps/web/\n    shape: hexagon\n    color: \"#C026D3\"\n    opacity: 0\n    icon: truck\n  api:\n    type: app\n    in: shop\n    name: API\n    tech: Fastify\n    links:\n      - title: Back again\n        url: docs/api.md\n  db:\n    type: store\n    in: shop\n    name: Orders DB\n    tech: Postgres\n  pay:\n    type: system\n    name: Payments\n    external: true\n  checkout:\n    type: component\n    name: Checkout\n    in: api\n    description: |\n      Line one\n\n      Line two\n  weird:\n    type: actor\n    name: \"a: b # c\"\n    description: |2-\n        leading\n      second\n  cache:\n    type: store\n    name: Cache\n    in: shop\n    tech: Valkey\nconnections:\n  - from: customer\n    to: web\n    note: hand-written\n  - from: web\n    to: api\n    label: HTTP\n  - from: api\n    to: pay\n    label: charges\n  - from: web\n    to: api\n    label: REST again\n  - from: api\n    to: cache\n  - from: web\n    to: db\n    label: reads\n    payloads:\n      - order\n      - name: Key\n        about: A key.\n        shape:\n          text: k\n",
+        "flows/browse.yaml": "name: Customer browses\nview: root\nsteps:\n  - from: customer\n    to: web\n    text: Opens the site\n",
+        "flows/order.yaml": "name: Customer orders\nview: root\nowner: product\nsteps:\n  - from: customer\n    to: shop\n    text: Places an order\n    note: x\n  - from: shop\n    text: Takes payment\n    description: |\n      Details about it.\n",
+        "layout.yaml": "root:\n  customer: [10, 20]\n  shop: [300, 40.5]\n  gone: [1, 1]\nshop:\n  web: [0, 0]\n"
+      }
+    },
+    {
+      "spec": {
         "op": "putFlow",
         "id": "pay",
         "name": "Customer pays",
@@ -5291,6 +5565,446 @@
           "id": "nope"
         },
         "error": "unknown flow \"nope\""
+      }
+    ]
+  },
+  "pairsEdit": {
+    "initial": {
+      "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+      "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+      "layout.yaml": "{}\n"
+    },
+    "results": [
+      {
+        "spec": {
+          "op": "setPairs",
+          "mode": "merged"
+        },
+        "files": {
+          "model.yaml": "name: Pairs\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setPairs",
+          "mode": "separate"
+        },
+        "files": {
+          "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setPairs",
+          "mode": "bundled"
+        },
+        "error": "unknown mode \"bundled\" (use merged or separate)"
+      },
+      {
+        "spec": {
+          "op": "setPairs"
+        },
+        "files": {
+          "model.yaml": "name: Pairs\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setPairs",
+          "mode": "separate"
+        },
+        "files": {
+          "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setLines",
+          "style": "curved"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setPairs",
+          "mode": "merged"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Pairs\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setPairs",
+          "mode": "separate"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setProject",
+          "name": "Wireless",
+          "pairs": "merged"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setProject",
+          "pairs": "separate"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "setProject",
+          "pairs": "every"
+        },
+        "error": "unknown mode \"every\" (use merged or separate)"
+      },
+      {
+        "spec": {
+          "op": "setProject",
+          "about": "Scans."
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "removeConnection",
+          "from": "ui",
+          "to": "management",
+          "which": "Start scan"
+        },
+        "error": "connection ui → management is named by flow rides step 1, flow rides step 7. Change those first."
+      },
+      {
+        "spec": {
+          "op": "removeConnection",
+          "from": "ui",
+          "to": "management",
+          "which": "Request and reply"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "connect",
+          "from": "management",
+          "to": "ui",
+          "label": "start scan",
+          "kind": "publish"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "removeConnection",
+          "from": "ui",
+          "to": "management",
+          "which": "Start scan"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "removeConnection",
+          "from": "management",
+          "to": "ui",
+          "which": "start scan"
+        },
+        "error": "connection management → ui is named by flow rides step 1, flow rides step 7. Change those first."
+      },
+      {
+        "spec": {
+          "op": "relabel",
+          "from": "management",
+          "to": "ui",
+          "which": "Scan results",
+          "label": "Results"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "relabel",
+          "from": "cloud",
+          "to": "management",
+          "which": "Fetch update",
+          "label": "Fetch update"
+        },
+        "error": "no connection cloud → management labelled \"Fetch update\""
+      },
+      {
+        "spec": {
+          "op": "relabel",
+          "from": "management",
+          "to": "cloud",
+          "which": "Fetch update",
+          "label": "FETCH UPDATE"
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: FETCH UPDATE\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "named",
+          "name": "Named",
+          "view": "root",
+          "steps": [
+            {
+              "from": "ui",
+              "to": "management",
+              "text": "Asks",
+              "via": "Start scan"
+            },
+            {
+              "from": "management",
+              "to": "ui",
+              "text": "Answers",
+              "via": "  "
+            }
+          ]
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: FETCH UPDATE\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "flows/named.yaml": "name: Named\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: Asks\n    via: Start scan\n  - from: management\n    to: ui\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "relabel",
+          "from": "ui",
+          "to": "management",
+          "which": "Start scan",
+          "label": "Begin scan"
+        },
+        "error": "no connection ui → management labelled \"Start scan\""
+      },
+      {
+        "spec": {
+          "op": "relabel",
+          "from": "ui",
+          "to": "management",
+          "which": "Begin scan",
+          "label": ""
+        },
+        "error": "no connection ui → management labelled \"Begin scan\""
+      },
+      {
+        "spec": {
+          "op": "putFlow",
+          "id": "named",
+          "name": "Named",
+          "view": "root",
+          "steps": [
+            {
+              "from": "ui",
+              "to": "management",
+              "text": "Asks",
+              "via": "Nothing like it"
+            }
+          ]
+        },
+        "error": "Refused, nothing saved. This would add:\n- flows/named.yaml: step 1: \"via\" \"Nothing like it\" matches no connection from ui to management"
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            2
+          ],
+          "before": 0
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: screen\n    to: agent\n    label: Ask\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: FETCH UPDATE\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "flows/named.yaml": "name: Named\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: Asks\n    via: Start scan\n  - from: management\n    to: ui\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            0
+          ],
+          "before": 2
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: screen\n    to: agent\n    label: Ask\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: FETCH UPDATE\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "flows/named.yaml": "name: Named\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: Asks\n    via: Start scan\n  - from: management\n    to: ui\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            1
+          ],
+          "before": 2
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: screen\n    to: agent\n    label: Ask\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: FETCH UPDATE\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "flows/named.yaml": "name: Named\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: Asks\n    via: Start scan\n  - from: management\n    to: ui\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            3,
+            1
+          ],
+          "before": 0
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: management\n    to: cloud\n    label: FETCH UPDATE\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "flows/named.yaml": "name: Named\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: Asks\n    via: Start scan\n  - from: management\n    to: ui\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            0,
+            1
+          ],
+          "before": 4
+        },
+        "files": {
+          "model.yaml": "lines: curved\nname: Wireless\nabout: Scans.\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: management\n    to: ui\n    label: Results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: FETCH UPDATE\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n    kind: publish\n",
+          "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n",
+          "flows/named.yaml": "name: Named\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: Asks\n    via: Start scan\n  - from: management\n    to: ui\n    text: Answers\n",
+          "layout.yaml": "{}\n"
+        }
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            0
+          ],
+          "before": 99
+        },
+        "error": "a connection can go before a place from 0 to 10"
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            1
+          ],
+          "before": -1
+        },
+        "error": "a connection can go before a place from 0 to 10"
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [],
+          "before": 0
+        },
+        "error": "connections to move must be places from 0 to 9, each once"
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            2,
+            2
+          ],
+          "before": 0
+        },
+        "error": "connections to move must be places from 0 to 9, each once"
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            99
+          ],
+          "before": 0
+        },
+        "error": "connections to move must be places from 0 to 9, each once"
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            -1
+          ],
+          "before": 0
+        },
+        "error": "connections to move must be places from 0 to 9, each once"
+      },
+      {
+        "spec": {
+          "op": "reorderConnections",
+          "indexes": [
+            0.5
+          ],
+          "before": 0
+        },
+        "error": "connections to move must be places from 0 to 9, each once"
       }
     ]
   }

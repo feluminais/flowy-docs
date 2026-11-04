@@ -318,22 +318,37 @@ internal sealed class SidePanel : Border
         var column = new StackPanel { Spacing = 14 };
         var (outgoing, incoming) = Navigation.LinesOf(model, id);
         var carried = new HashSet<string>(); // a line that runs both ways has two rows, out and in: what only steps send goes under the first
-        if (outgoing.Count > 0) column.Children.Add(Lines(model, "Out", Icons.ArrowRight, outgoing, pick, hover, carried));
-        if (incoming.Count > 0) column.Children.Add(Lines(model, "In", Icons.ArrowLeft, incoming, pick, hover, carried));
+        var drawn = StrandsOf(model, Views.ParentOf(model, id));
+        if (outgoing.Count > 0) column.Children.Add(Lines(model, "Out", Icons.ArrowRight, outgoing, pick, hover, carried, drawn));
+        if (incoming.Count > 0) column.Children.Add(Lines(model, "In", Icons.ArrowLeft, incoming, pick, hover, carried, drawn));
         return column;
     }
 
-    private Control Lines(Model model, string title, string arrow, List<BoxLine> lines, Action<string> pick, Action<string?> hover, HashSet<string> carried)
+    /// <summary>
+    /// The id of the line each connection is drawn as, where a project draws a line for each connection: pointing at a connection lights its own line, not the whole pair. Null where a pair is one line.
+    /// Connections are told apart by reference, as two equal ones are still two lines.
+    /// </summary>
+    internal static Dictionary<Connection, string>? StrandsOf(Model model, string view)
+    {
+        if (model.Pairs != "separate" || Views.Compute(model, view).Strands is not { } strands) return null;
+        var drawn = new Dictionary<Connection, string>(ReferenceEqualityComparer.Instance);
+        foreach (var s in strands)
+            foreach (var i in s.Connections) drawn[model.Connections[i]] = s.Id;
+        return drawn;
+    }
+
+    private Control Lines(Model model, string title, string arrow, List<BoxLine> lines, Action<string> pick, Action<string?> hover, HashSet<string> carried, Dictionary<Connection, string>? drawn)
     {
         var section = new StackPanel { Spacing = 2 };
         section.Children.Add(Chrome.Section(arrow, title, lines.Count));
-        foreach (var line in lines) section.Children.Add(Row(model, line, arrow, pick, hover, carried));
+        foreach (var line in lines) section.Children.Add(Row(model, line, arrow, pick, hover, carried, drawn));
         return section;
     }
 
-    private Control Row(Model model, BoxLine line, string arrow, Action<string> pick, Action<string?> hover, HashSet<string> carried)
+    private Control Row(Model model, BoxLine line, string arrow, Action<string> pick, Action<string?> hover, HashSet<string> carried, Dictionary<Connection, string>? drawn)
     {
-        var lineId = SceneBuilder.LineId(line.From, line.To);
+        var pair = SceneBuilder.LineId(line.From, line.To);
+        var lineId = line.Connections.Count == 1 && drawn is not null && drawn.TryGetValue(line.Connections[0], out var own) ? own : pair;
         var other = model.GetObject(line.Other);
         var head = new StackPanel
         {
@@ -350,7 +365,7 @@ internal sealed class SidePanel : Border
             if (c.From != line.From || c.To != line.To) body.Children.Add(Muted(Describe(model, c), 12));
             foreach (var payload in Carried(model, view, c, line)) body.Children.Add(payload);
         }
-        else body.Children.Add(Disclosure($"{line.Connections.Count} connections", model, line.Connections, c => Carried(model, view, c, line)));
+        else body.Children.Add(Disclosure($"{line.Connections.Count} connections", model, line.Connections, c => Carried(model, view, c, line), hover, c => drawn is not null && drawn.TryGetValue(c, out var one) ? one : pair));
         // What only flow steps send along the line, once for the line, each saying where it comes from.
         if (carried.Add(Views.LineKey(line.From, line.To)) && PayloadView.Rows(model, [.. Payloads.OnLine(model, view, line.From, line.To).Where(c => !c.Own)], false, Resource) is { } sent)
             body.Children.Add(sent);
@@ -376,7 +391,7 @@ internal sealed class SidePanel : Border
     }
 
     /// <summary>"N connections", opening to list each with its label, the boxes inside it that it joins and what it carries.</summary>
-    private Control Disclosure(string title, Model model, IReadOnlyList<Connection> connections, Func<Connection, List<Control>>? carried = null)
+    private Control Disclosure(string title, Model model, IReadOnlyList<Connection> connections, Func<Connection, List<Control>>? carried = null, Action<string?>? hover = null, Func<Connection, string>? lineOf = null)
     {
         var items = new StackPanel { Spacing = 8, Margin = new Thickness(0, 6, 0, 0), IsVisible = false };
         var header = new Button { Content = $"▸ {title}" };
@@ -391,6 +406,14 @@ internal sealed class SidePanel : Border
                     item.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "no label", FontStyle = FontStyle.Italic, FontSize = 13, Foreground = Resource("MutedBrush") } : new TextBlock { Text = c.Label, TextWrapping = TextWrapping.Wrap });
                     item.Children.Add(Muted(Describe(model, c), 12));
                     foreach (var payload in carried?.Invoke(c) ?? []) item.Children.Add(payload);
+                    if (hover is not null && lineOf is not null)
+                    {
+                        // Pointing at one of the connections lights its own line (the pair's, where the pair is one line).
+                        var line = lineOf(c);
+                        item.Background = Brushes.Transparent;
+                        item.PointerEntered += (_, _) => hover(line);
+                        item.PointerExited += (_, _) => hover(null);
+                    }
                     items.Children.Add(item);
                 }
             items.IsVisible = !items.IsVisible;
@@ -399,8 +422,11 @@ internal sealed class SidePanel : Border
         return new StackPanel { Children = { header, items } };
     }
 
-    /// <summary>The two ends of a line at the top of its panel: a tile and a name each, with an arrow between (one each way when <paramref name="both"/>).</summary>
-    internal Control LineHeader(Model model, string from, string to, bool both = false)
+    /// <summary>
+    /// The two ends of a line at the top of its panel: a tile and a name each, with an arrow between (one each way when <paramref name="both"/>). A line drawn with a kind's look
+    /// (<paramref name="look"/>, see <see cref="LookOfLines"/>) has that drawing between them instead, as it is on the canvas.
+    /// </summary>
+    internal Control LineHeader(Model model, string from, string to, bool both = false, LineLook? look = null)
     {
         Control End(string id)
         {
@@ -412,7 +438,7 @@ internal sealed class SidePanel : Border
         }
         var left = End(from);
         var right = End(to);
-        var arrow = Icons.Make(both ? Icons.ArrowsLeftRight : Icons.ArrowRight, "rowicon", 22);
+        Control arrow = look is null ? Icons.Make(both ? Icons.ArrowsLeftRight : Icons.ArrowRight, "rowicon", 22) : new LookSwatch(look, 56, 22, both);
         arrow.VerticalAlignment = VerticalAlignment.Top;
         arrow.Margin = new Thickness(8, 9, 8, 0);
         var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { left, arrow, right } };
@@ -425,7 +451,7 @@ internal sealed class SidePanel : Border
     /// A line in the view: its two ends, and the connections it stands for, each with its label and problems. A view draws one line between two
     /// shapes, so when connections run both ways they are listed under one heading per way.
     /// </summary>
-    public void ShowLine(Model model, string view, string from, string to, IReadOnlyList<Problem> problems)
+    public void ShowLine(Model model, string view, string from, string to, IReadOnlyList<Problem> problems, string? strand = null, Action<string?>? hover = null)
     {
         var lines = Navigation.ConnectionsOf(model, view, from, to);
         if (lines.Count == 0)
@@ -434,19 +460,25 @@ internal sealed class SidePanel : Border
             return;
         }
         var ways = Ways(model, from, to, lines);
+        // Where a project draws a line for each connection, each connection is a line of its own: the id of the one each card is, to light it on the canvas and to show which one was picked.
+        var drawn = StrandsOf(model, view);
+        var kinded = drawn is not null || lines.Any(l => Kinds.KindOf(l.Connection) is not null); // only then does each card say what its own kind is
         var column = new StackPanel { Spacing = 14 };
-        column.Children.Add(LineHeader(model, ways.From, ways.To, ways.Both));
+        column.Children.Add(LineHeader(model, ways.From, ways.To, ways.Both, LookOfLines(lines, ways.Both)));
         foreach (var way in ways.Groups)
         {
             column.Children.Add(way.Heading);
             foreach (var (index, c, _) in way.Lines)
             {
                 var section = new StackPanel { Spacing = 6 };
+                if (kinded) section.Children.Add(KindRow(c));
                 section.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "No label", FontStyle = FontStyle.Italic, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, FontSize = 15, TextWrapping = TextWrapping.Wrap });
                 if (c.From != way.From || c.To != way.To) section.Children.Add(Muted(Describe(model, c), 12));
                 var mine = problems.Where(p => p.Connection == index).Select(p => p.Message).ToList();
                 if (mine.Count > 0) section.Children.Add(Problems(mine));
-                column.Children.Add(Chrome.Card(section));
+                var card = Chrome.Card(section);
+                MarkLine(card, drawn is not null && drawn.TryGetValue(c, out var id) ? id : null, strand, hover);
+                column.Children.Add(card);
             }
         }
         var carries = Payloads.OnLine(model, view, ways.From, ways.To);
@@ -455,8 +487,40 @@ internal sealed class SidePanel : Border
             column.Children.Add(Chrome.Section(Icons.Code, "Payloads", carries.Count));
             column.Children.Add(rows);
         }
-        Show(column, $"line:{from}>{to}");
+        Show(column, $"line:{from}>{to}|{strand}");
     }
+
+    /// <summary>
+    /// A card of a connection that is a line of its own: the card of the line picked on the canvas is ringed in the accent colour, and pointing at a card lights its line.
+    /// <paramref name="id"/> is the id of the card's line, null where the pair is one line.
+    /// </summary>
+    internal static void MarkLine(Border card, string? id, string? picked, Action<string?>? hover)
+    {
+        if (id is null) return;
+        if (id == picked)
+        {
+            card.Classes.Add("current");
+            Avalonia.Automation.AutomationProperties.SetItemStatus(card, "Picked");
+        }
+        card.Background = Brushes.Transparent;
+        if (hover is null) return;
+        card.PointerEntered += (_, _) => hover(id);
+        card.PointerExited += (_, _) => hover(null);
+    }
+
+    /// <summary>The kind of a connection beside its drawing, muted: how a card says what its own connection is when the line's connections have kinds. A connection with none is the plain line.</summary>
+    internal static Control KindRow(Connection c)
+    {
+        var name = new TextBlock { Text = Kinds.KindOf(c) is { } kind ? Kinds.NameOf(kind) : Kinds.PlainName, FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center };
+        name.Classes.Add("muted");
+        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { new LookSwatch(Kinds.LookOf(c), 44, 16), name } };
+        row.Classes.Add("kindrow");
+        return row;
+    }
+
+    /// <summary>How the line is drawn for these connections: a shared look shows, a mixed one is the plain line (null), see <see cref="Kinds.MergedLook"/>.</summary>
+    internal static LineLook? LookOfLines(IEnumerable<(int Index, Connection Connection, bool Back)> lines, bool both) =>
+        Kinds.MergedLook([.. lines.Select(l => Kinds.LookOf(l.Connection))], both);
 
     /// <summary>One way a line's connections run: its heading, its ends, and the connections that run that way.</summary>
     internal sealed record Way(Control Heading, string From, string To, List<(int Index, Connection Connection, bool Back)> Lines);
@@ -513,7 +577,7 @@ internal sealed class SidePanel : Border
     }
 
     /// <summary>The forms for the connections one line stands for: a label each, and delete.</summary>
-    public void ShowLineEditor(Model model, string view, string from, string to, IReadOnlyList<Problem> problems, EditRun run, Action closed, Action<IReadOnlyList<Target>, Action?> askDelete)
+    public void ShowLineEditor(Model model, string view, string from, string to, IReadOnlyList<Problem> problems, EditRun run, Action closed, Action<IReadOnlyList<Target>, Action?> askDelete, string? strand = null, Action<string?>? hover = null)
     {
         if (Navigation.ConnectionsOf(model, view, from, to).Count == 0)
         {
@@ -523,11 +587,11 @@ internal sealed class SidePanel : Border
         var key = $"edit-line:{from}>{to}";
         if (_lineEditor is { } editor && _shown == key)
         {
-            editor.Update(model, view, problems);
+            editor.Update(model, view, problems, strand);
             return;
         }
-        var fresh = new LineEditor(this, from, to, run, closed, askDelete);
-        fresh.Update(model, view, problems);
+        var fresh = new LineEditor(this, from, to, run, closed, askDelete, hover);
+        fresh.Update(model, view, problems, strand);
         Show(fresh, key);
         _lineEditor = fresh;
     }

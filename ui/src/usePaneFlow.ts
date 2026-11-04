@@ -5,9 +5,9 @@ import type { LineStyle, Model } from '../../src/core/model.ts'
 import { ROOT } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import { nameOf } from '../../src/core/views.ts'
-import { focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
+import { focusEdges, frameNode, lineId, pairOf, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
-import { labelSpots } from './Line.tsx'
+import { spotsFor } from './labelspots.ts'
 import { nextOf } from './clock.ts'
 import { usePlayback, usePlayer } from './usePlayer.ts'
 import { useFlowStage } from './useFlowStage.ts'
@@ -35,10 +35,10 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
   const view = level ?? flow?.view ?? ROOT
   const player = usePlayer({ initialFlow: () => flowId, initialStep: startAt })
   const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock, paused, speed, setSpeed } = player
-  const stage = useFlowStage({ model, view, flow, playing, replays })
+  const stage = useFlowStage({ model, view, flow, playing, replays, clock, lines })
   const { stops, stopIndex, flowMarks, shown, animated, moving, stepKey } = stage
   const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays })
-  const graph = useMemo(() => toGraph(model, view, shown, problems, flowMarks), [model, view, shown, problems, flowMarks])
+  const graph = useMemo(() => toGraph(model, view, shown, problems, flowMarks, { style: lines, opened: selectedLine }), [model, view, shown, problems, flowMarks, lines, selectedLine])
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   const sizes = useRef(new Map<string, { width: number; height: number }>()) // what each box measured (see Reader: React Flow forgets it on every new node object)
   const [hovered, setHovered] = useState<string>()
@@ -50,10 +50,10 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
   const pipes = animated.filter(m => !still || leavesMarks(m.animation)).map(m => lineId(m.placed[0], m.placed[1])).join('\n')
   const edges = useMemo(() => {
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
-    return focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(e.id) ? { ...e, data: { lift: true } } : e))
+    return focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }).map(e => (lifted.has(pairOf(e)) && (e.data?.pair === undefined || e.className?.includes('active')) ? { ...e, data: { ...e.data, lift: true } } : e))
   }, [graph, selectedBox, selectedLine, hovered, pipes])
   const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
-  const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])
+  const spots = useMemo(() => spotsFor(lines, edges, nodes), [lines, edges, placedAt])
   const onNodesChange = (changes: NodeChange<BoxNode | FrameNode>[]) => {
     for (const c of changes) if (c.type === 'dimensions' && c.dimensions) sizes.current.set(c.id, c.dimensions)
   }

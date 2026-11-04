@@ -9,11 +9,16 @@ import type { LineTraffic, Run } from '../../src/core/perf/types.ts'
 import { nameOf } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { KindKey } from './kinds.tsx'
+import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
+import { edgeUnder, lineOf } from './lanehit.ts'
+import type { CanvasPoint } from './lanehit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
-import { LabelSpots, Line, LineStyleContext, LineWidthsContext, labelSpots } from './Line.tsx'
+import { LabelSpots, Line, LineStyleContext, LineWidthsContext } from './Line.tsx'
+import { spotsFor } from './labelspots.ts'
 import { PerfBody } from './Performance.tsx'
 import type { PerfProps } from './Performance.tsx'
 import { stepFrom, dialTop, top } from './perfview.ts'
@@ -58,7 +63,7 @@ export function usePaneRun({ model, runs, runId, view, problems, selectedBox, se
   const perf = usePerfRun({ runs, named: () => ({ run: runId }), still })
   const drawing = useRunDrawing({ model, runs, perf, view, shown: true })
   const { loadTraffic, runMarks } = drawing
-  const graph = useMemo(() => toGraph(model, view, undefined, problems, runMarks), [model, view, problems, runMarks])
+  const graph = useMemo(() => toGraph(model, view, undefined, problems, runMarks, { style: lines, opened: selectedLine }), [model, view, problems, runMarks, lines, selectedLine])
   // The states on the canvas now, for the panel's key: a shape on another view that is in one is not drawn here.
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   const sizes = useRef(new Map<string, { width: number; height: number }>()) // what each box measured (see Reader: React Flow forgets it on every new node object)
@@ -75,7 +80,7 @@ export function usePaneRun({ model, runs, runId, view, problems, selectedBox, se
   const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
   const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
-  const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])
+  const spots = useMemo(() => spotsFor(lines, edges, nodes), [lines, edges, placedAt])
   const onNodesChange = (changes: NodeChange<BoxNode | FrameNode>[]) => {
     for (const c of changes) if (c.type === 'dimensions' && c.dimensions) sizes.current.set(c.id, c.dimensions)
   }
@@ -131,6 +136,7 @@ type PaneProps = {
 function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFocus, onPick, onEmpty, selection, fitKey, colorMode, lines, still, alone, ref }: PaneProps) {
   const { perf, drawing, view, nodes, frame, edges, spots } = p
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
+  const canvasAt = useRef<CanvasPoint>(undefined) // to turn the pointer's place on the screen into a place on the canvas
   const fit = () => fitNow.current?.({ ...fitOptions(0, false), duration: 300 })
   useImperativeHandle(ref, () => ({ ...p.keys, fit }))
   const classes = ['pane', 'run-pane', alone && 'alone', focused && 'focused', drawing.loadTraffic && 'loaded', drawing.timeEvents && 'states', perf.scrubbing && 'scrubbing'].filter(Boolean).join(' ')
@@ -151,7 +157,6 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
                   edgeTypes={edgeTypes}
                   minZoom={0.2}
                   colorMode={colorMode}
-                  defaultMarkerColor="var(--edge)"
                   nodesDraggable={false}
                   nodesConnectable={false}
                   zoomOnDoubleClick={false}
@@ -160,14 +165,15 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
                   onNodeClick={(_, node) => {
                     if (node.type === 'box') onPick({ kind: 'object', id: node.id })
                   }}
-                  onEdgeClick={(_, e) => onPick({ kind: 'line', from: e.source, to: e.target, view })}
-                  onEdgeMouseEnter={(_, e) => p.setHovered(e.id)}
+                  onEdgeClick={(event, hit) => onPick(lineOf(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit), view))} // of the lines of a pair side by side, the one nearest the pointer
+                  onEdgeMouseEnter={(event, hit) => p.setHovered(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit).id)}
                   onEdgeMouseLeave={() => p.setHovered(undefined)}
                   onPaneClick={() => {
                     onFocus()
                     onEmpty() // as on the single canvas, a click on nothing closes the panel
                   }}
                   onInit={instance => {
+                    canvasAt.current = instance
                     fitNow.current = options => void instance.fitView(options)
                   }}
                 >
@@ -180,6 +186,7 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
               </LabelSpots>
             </LineWidthsContext>
           </LineStyleContext>
+          <KindKey {...kindsOnScreen(edges)} />
         </div>
         <div className="run-panel">
           <PerfBody pane model={model} view={view} runs={runs} runProblems={NO_PROBLEMS} runId={perf.runKey} positions={perf.here} active={perf.activeDial} boxes={p.drawing.loadTraffic?.boxes} lines={p.drawnLines}
@@ -197,13 +204,13 @@ type CommonProps = Pick<PaneProps, 'paneId' | 'focused' | 'onFocus' | 'onPick' |
   view: string
   problems: Problem[]
   /** What the shared Details panel shows, as `{ kind, id }` or `{ kind, from, to }`. */
-  shown: { kind: string; id?: string; from?: string; to?: string } | undefined
+  shown: { kind: string; id?: string; from?: string; to?: string; strand?: string } | undefined
 }
 
 /** The Details panel's pick as the shape or line a run's canvas outlines and its panel reads out. */
 function pickedBy(shown: CommonProps['shown']): { box?: string; line?: string; selection?: Shown } {
   if (shown?.kind === 'object' && shown.id !== undefined) return { box: shown.id, selection: { kind: 'object', id: shown.id } }
-  if (shown?.kind === 'line' && shown.from !== undefined && shown.to !== undefined) return { line: lineId(shown.from, shown.to), selection: { kind: 'line', from: shown.from, to: shown.to } }
+  if (shown?.kind === 'line' && shown.from !== undefined && shown.to !== undefined) return { line: shown.strand ?? lineId(shown.from, shown.to), selection: { kind: 'line', from: shown.from, to: shown.to } }
   return {}
 }
 

@@ -4,14 +4,13 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { draftFolder } from './core/drafts.ts'
 import { sideReport } from './core/layout.ts'
 import { flowToMermaid, viewToMermaid } from './core/mermaid.ts'
 import { tidyViews } from './core/ops.ts'
 import { analysisText } from './core/failures.ts'
 import { FILE_KINDS, kindOfPath, pathOf } from './core/filekinds.ts'
 import { modelOf } from './core/state.ts'
-import { draftDir, listDrafts } from './node/drafts.ts'
+import { listSketches, sketchDir, sketchFolderIn } from './node/sketches.ts'
 import { exportSite } from './node/export.ts'
 import { commitEdit } from './node/commit.ts'
 import { loadDir, loadReport, loadState } from './node/files.ts'
@@ -108,17 +107,17 @@ async function printCheck(dir: string): Promise<number> {
   const what = `${count(Object.keys(model.objects).length, 'shape')}, ${count(Object.keys(model.flows).length, 'flow')}, ${count(Object.keys(model.failures).length, 'failure analysis', 'failure analyses')} and ${count(Object.keys(runs).length, 'load-test run')} in ${dir}`
   if (problems.length === 0) console.log(`No problems in ${what}.`)
   else console.error(`${count(problems.length, 'problem')} in ${what}.`)
-  // Each draft is a model of its own, checked on its own; its files are named from the model folder.
+  // Each sketch is a model of its own, checked on its own; its files are named from the model folder.
   let found = problems.length
-  for (const { id } of await listDrafts(dir)) {
-    const at = draftFolder(id)
+  for (const { id } of await listSketches(dir)) {
+    const at = sketchFolderIn(dir, id)
     try {
-      const draft = await loadReport(draftDir(dir, id))
-      for (const p of draft.problems) console.error(`${at}/${p.file}: ${p.message}`)
-      const shapes = `${count(Object.keys(draft.model.objects).length, 'shape')} and ${count(Object.keys(draft.model.flows).length, 'flow')} in draft ${id}`
-      if (draft.problems.length === 0) console.log(`No problems in ${shapes}.`)
-      else console.error(`${count(draft.problems.length, 'problem')} in ${shapes}.`)
-      found += draft.problems.length
+      const sketch = await loadReport(sketchDir(dir, id))
+      for (const p of sketch.problems) console.error(`${at}/${p.file}: ${p.message}`)
+      const shapes = `${count(Object.keys(sketch.model.objects).length, 'shape')} and ${count(Object.keys(sketch.model.flows).length, 'flow')} in sketch ${id}`
+      if (sketch.problems.length === 0) console.log(`No problems in ${shapes}.`)
+      else console.error(`${count(sketch.problems.length, 'problem')} in ${shapes}.`)
+      found += sketch.problems.length
     } catch (e) {
       console.error(`${at}/${e instanceof Error ? e.message : String(e)}`)
       found++
@@ -202,7 +201,7 @@ if (args?.positionals[0] === 'mcp') {
     const history = (e: ModelEntry) => openHistory(e.dir, { app: 'browser' })
     const models = shown.slice(0, catalog ? 1 : undefined).map(e => ({ ...e, history: history(e) }))
     if (catalog && found.length === 0) catalog.add(shown[0])
-    const { port } = await startServer({ dir: models[0].dir, ui, port: Number(args.values.port), history: models[0].history, models, discovery: catalog && { catalog, historyFor: history }, draftHistory: d => openHistory(d, { app: 'browser' }) })
+    const { port } = await startServer({ dir: models[0].dir, ui, port: Number(args.values.port), history: models[0].history, models, discovery: catalog && { catalog, historyFor: history }, sketchHistory: d => openHistory(d, { app: 'browser' }) })
     const url = `http://127.0.0.1:${port}/`
     const list = catalog?.list()
     const stopped = list?.stoppedBy ? ` (stopped after ${count(list.looked, 'folder')}; Scan deeper in the page looks further)` : ''

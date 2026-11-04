@@ -1,5 +1,6 @@
 import { lineKey } from './failures.ts'
 import type { Flow, Step } from './model.ts'
+import { viaKey } from './strands.ts'
 import { isMap, own } from './text.ts'
 
 /**
@@ -15,7 +16,8 @@ import { isMap, own } from './text.ts'
  * 2. The steps of the two flows are matched in order with a longest common subsequence of keys. When the older step and the newer step
  *    at the cursor have the same key they are matched. Otherwise, if skipping the older step keeps the best length (it is at least as
  *    long as skipping the newer step), the older step is skipped; if not, the newer step is skipped. So a tie skips the older step.
- * 3. A matched pair is `changed` on both sides when its `animation`, its `description`, its `payload` or its `reply` differ, compared in a canonical form:
+ * 3. A matched pair is `changed` on both sides when its `animation`, its `description`, its `payload`, its `reply` or its `via` differ. The `via` is compared as `viaKey` reads it
+ *    (the space at its ends cut off, whatever the case; a missing or blank one equals none). The others are compared in a canonical form:
  *    a missing value (or, for the animation, an empty text) equals nothing; a bare text animation counts as a mapping with that text as
  *    its `kind` (the model reads it so); then the value is written as JSON text with the keys of every mapping sorted in code point
  *    order, at every level, and lists kept in order. So reordered keys, or `pulse` against `{kind: pulse}`, are not a change. Otherwise
@@ -29,7 +31,7 @@ import { isMap, own } from './text.ts'
  * steps use is `new` (marked on the newer side). One that both flows use is `changed` on both sides when any step of either flow that
  * uses it is marked (changed, new or removed), and unmarked otherwise.
  *
- * Known limit: fields other than `from`, `to`, `text`, `animation`, `description`, `payload` and `reply` (states, group, lane, flow and any extra) are not compared.
+ * Known limit: fields other than `from`, `to`, `text`, `animation`, `description`, `payload`, `reply` and `via` (states, group, lane, flow and any extra) are not compared.
  *
  * `related` is true when the flows share a shape. When they share none, every record is empty: nothing is "everything changed".
  */
@@ -113,7 +115,7 @@ export function diffFlows(older: Flow, newer: Flow): FlowDiff {
     matchedNewer.add(j)
     const o = older.steps[i]
     const n = newer.steps[j]
-    if (!sameAnimation(o.animation, n.animation) || !sameText(o.description, n.description) || !sameText(o.payload, n.payload) || !sameText(o.reply, n.reply)) {
+    if (!sameAnimation(o.animation, n.animation) || !sameText(o.description, n.description) || !sameText(o.payload, n.payload) || !sameText(o.reply, n.reply) || viaKey(o.via) !== viaKey(n.via)) {
       result.older.steps[i] = 'changed'
       result.newer.steps[j] = 'changed'
     }

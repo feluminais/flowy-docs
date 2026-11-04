@@ -1,0 +1,16 @@
+name: The radio does not answer
+view: root
+tags: [error path]
+steps:
+  - { from: user, to: touch-app, text: Taps Join while the radio is stuck, animation: { kind: send, carries: join } }
+  - { from: touch-app, to: controller, text: Sends the choice, animation: { kind: call, carries: network }, via: reads and saves settings, payload: wifi-settings }
+  - from: controller
+    to: network-daemon
+    text: Applies the config, and the daemon does not answer
+    animation: { kind: call, carries: config, outcome: timeout, reason: No answer in 5 s }
+    via: applies the config
+    payload: radio-config
+    description: |
+      The Controller waits 5 s, then gives up and keeps the old settings. The radio may still have joined, so the next state it publishes decides what the screen shows.
+  - { from: controller, to: touch-app, text: Tells the screen the network was not joined, animation: { kind: send, carries: failed }, via: reads and saves settings }
+  - { from: touch-app, to: user, text: Shows Could not join, animation: { kind: send, carries: screen } }

@@ -1,12 +1,30 @@
-import { getObject, ROOT } from './model.ts'
+import { lookOf, mergedLook, sharedKind } from './kinds.ts'
+import type { KindId, LineLook } from './kinds.ts'
+import { getObject, pairMode, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 
 /**
  * One line between two shapes of a view, whichever way their connections run. `from` and `to` are the way the first of them runs; `both` is
- * set when some run the other way too, and the line gets an arrowhead at each end.
+ * set when some run the other way too, and the line gets an arrowhead at each end. `kind` is the kind all its connections share, and `look` how the
+ * line is drawn when that is not the plain line (see mergedLook in kinds.ts); both are left out otherwise, so a model with no kinds is unchanged.
  */
-export type Edge = { from: string; to: string; label: string; count: number; both?: true }
-export type View = { id: string; members: string[]; outsiders: string[]; edges: Edge[] }
+export type Edge = { from: string; to: string; label: string; count: number; both?: true; kind?: KindId; look?: LineLook }
+/**
+ * One line of a pair of shapes where a project draws a line for each connection (`pairs: separate`). `pair` is the id of the pair's one merged line (`lineKey`), which
+ * everything about a pair keeps using; `from` and `to` are the way the connection runs there; `connections` are the indexes in `model.connections` that land here (more than
+ * one when a zoomed-out view folds connections with the same ends and label into one). `lane` counts from 0 among the `lanes` strands of the pair: the strands that run from the
+ * pair's later id to its earlier come first, then the others, each in the order of the file. `kind` and `look` are the ones all its connections share, left out for none.
+ * computeView makes strands of single connections (or of connections with the same ends and label); a reader that draws a pair with more lines than fit across its shapes folds them
+ * into trunks (`trunk`, see trunks.ts), which stand for several strands.
+ */
+export type Strand = { id: string; pair: string; from: string; to: string; label: string; connections: number[]; lane: number; lanes: number; kind?: KindId; look?: LineLook; trunk?: Trunk }
+/**
+ * What a strand is when it stands for several lines of its pair that did not all fit across the shapes (see foldPair in trunks.ts): `size` is the connections it holds (the number its
+ * chip shows) and `members` the ids of the strands it folded, in the order of the file. Such a strand is a trunk: one lane with two hairlines behind it.
+ */
+export type Trunk = { size: number; members: string[] }
+/** `strands` is there only when the project draws a line for each connection; without it a reader draws the edges, one for each pair. */
+export type View = { id: string; members: string[]; outsiders: string[]; edges: Edge[]; strands?: Strand[] }
 
 /** The view an object sits in: its parent, or root when it has none or a broken one (missing, or itself). */
 export function parentOf(model: Model, id: string): string {
@@ -166,20 +184,77 @@ export function computeView(model: Model, v: string): View {
   const outsiders: string[] = []
   const seenOutside = new Set<string>()
   const edges = new Map<string, Edge>()
-  for (const c of model.connections) {
+  // The connections each line stands for, for its kind and look. A model with no kind anywhere has nothing to work out.
+  const kinded = model.connections.some(c => c.kind !== undefined)
+  const joined = new Map<string, Model['connections']>()
+  // Where a project draws a line for each connection: the strands of each pair, in the order the connections first land on them.
+  const separate = pairMode(model) === 'separate'
+  const drawn = new Map<string, PairDraft>()
+  model.connections.forEach((c, index) => {
     const ends = placeEnds(model, v, c.from, c.to)
-    if (!ends) continue
+    if (!ends) return
     for (const end of ends) if (!inView.has(end) && !seenOutside.has(end)) { seenOutside.add(end); outsiders.push(end) }
     const key = lineKey(...ends)
+    if (kinded) {
+      const same = joined.get(key)
+      if (same) same.push(c)
+      else joined.set(key, [c])
+    }
+    if (separate) {
+      const label = typeof c.label === 'string' ? c.label : ''
+      const pair: PairDraft = drawn.get(key) ?? { first: ends[0] < ends[1] ? ends[0] : ends[1], strands: [], byId: new Map() }
+      drawn.set(key, pair)
+      const id = `${ends[0]}>${ends[1]}|${label}`
+      const found = pair.byId.get(id)
+      if (found) found.connections.push(index)
+      else {
+        const strand = { from: ends[0], to: ends[1], label, connections: [index] }
+        pair.byId.set(id, strand)
+        pair.strands.push(strand)
+      }
+    }
     const edge = edges.get(key)
     if (edge) {
       edge.count++
       edge.label = `${edge.count} connections`
       if (edge.from !== ends[0]) edge.both = true
     } else edges.set(key, { from: ends[0], to: ends[1], label: typeof c.label === 'string' ? c.label : '', count: 1 })
-  }
+  })
   for (const id of flowActors(model, v)) if (!seenOutside.has(id)) { seenOutside.add(id); outsiders.push(id) }
-  return { id: v, members, outsiders, edges: [...edges.values()] }
+  if (kinded) for (const [key, edge] of edges) {
+    const connections = joined.get(key)!
+    const kind = sharedKind(connections)
+    const look = mergedLook(connections.map(lookOf), edge.both === true)
+    if (kind !== undefined) edge.kind = kind
+    if (look !== undefined) edge.look = look
+  }
+  return { id: v, members, outsiders, edges: [...edges.values()], ...(separate ? { strands: strandsOf(model, drawn) } : {}) }
+}
+
+/** A strand as the connections that land on a pair give it, before it has its place among the pair's strands; a pair's `first` is the earlier of its two ids (see lineKey). */
+type StrandDraft = { from: string; to: string; label: string; connections: number[] }
+type PairDraft = { first: string; strands: StrandDraft[]; byId: Map<string, StrandDraft> }
+
+/**
+ * The strands of every pair of a view, pair by pair in the order the pairs first appear. Within a pair they run in lanes: first the ones that run from the pair's later id to its
+ * earlier (so every lane sits on the right of its own way, like traffic on a road), then the others, each group in the order of the file. Nothing here depends on a shape's name,
+ * so renaming a shape never turns a bundle round.
+ */
+function strandsOf(model: Model, drawn: Map<string, PairDraft>): Strand[] {
+  const out: Strand[] = []
+  for (const [pair, { first, strands }] of drawn) {
+    const ordered = [...strands.filter(d => d.from !== first), ...strands.filter(d => d.from === first)]
+    ordered.forEach((d, lane) => {
+      const connections = d.connections.map(i => model.connections[i])
+      const kind = sharedKind(connections)
+      const look = mergedLook(connections.map(lookOf), false)
+      out.push({
+        id: `${pair}|${d.from}>${d.to}|${d.label}`, pair, from: d.from, to: d.to, label: d.label, connections: d.connections, lane, lanes: ordered.length,
+        ...(kind === undefined ? {} : { kind }), ...(look === undefined ? {} : { look }),
+      })
+    })
+  }
+  return out
 }
 
 /**

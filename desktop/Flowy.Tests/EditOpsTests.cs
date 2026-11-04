@@ -56,7 +56,7 @@ public class EditOpsTests
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "deleteObjects": return EditOps.DeleteObjects(doc, s["ids"]!.AsArray().Select(i => i!.GetValue<string>()).ToList());
             case "deleteWith": return EditOps.DeleteWith(doc, Targets(s["targets"]), Resolutions(s["resolutions"]));
-            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label"), s["payloads"] is { } carried ? carried.AsArray().Select(YamlWriterTests.Tree).ToList() : null));
+            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label"), s["payloads"] is { } carried ? carried.AsArray().Select(YamlWriterTests.Tree).ToList() : null, Str(s, "kind")));
             case "putPayload":
             {
                 var fields = new Dictionary<string, object?>();
@@ -69,6 +69,8 @@ public class EditOpsTests
             case "setStepPayload": return EditOps.SetStepPayload(doc, Str(s, "id")!, s["index"]!.GetValue<int>(), Str(s, "key")!, s["value"] is { } v ? YamlWriterTests.Tree(v) : null);
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
+            case "setKind": return EditOps.SetKind(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "kind")!);
+            case "reorderConnections": return EditOps.ReorderConnections(doc, s["indexes"]!.AsArray().Select(i => i!.GetValue<double>()).ToList(), s["before"]!.GetValue<double>());
             case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]), Groups(s["states"]), Str(s, "folder"), Tags(s["tags"]));
             case "moveFlow": return EditOps.MoveFlow(doc, Str(s, "id")!, Str(s, "folder")!);
             case "setFlowTags": return EditOps.SetFlowTags(doc, Str(s, "id")!, Tags(s["tags"])!);
@@ -93,7 +95,8 @@ public class EditOpsTests
             case "placeBoxes":
                 return EditOps.PlaceBoxes(doc, Str(s, "view")!, s["boxes"]!.AsObject().Select(b => (b.Key, b.Value![0]!.GetValue<double>(), b.Value![1]!.GetValue<double>())));
             case "setLines": return EditOps.SetLines(doc, Str(s, "style"));
-            case "setProject": return EditOps.SetProject(doc, Str(s, "name"), Str(s, "about"));
+            case "setPairs": return EditOps.SetPairs(doc, Str(s, "mode"));
+            case "setProject": return EditOps.SetProject(doc, Str(s, "name"), Str(s, "about"), Str(s, "pairs"));
             case "forgetLayout": return EditOps.ForgetLayout(doc, Str(s, "view")!);
             default: throw new InvalidOperationException($"unknown op {Str(s, "op")}");
         }
@@ -186,6 +189,16 @@ public class EditOpsTests
         Assert.True(Differences(initial, files) == "", Differences(initial, files));
         Assert.DoesNotContain(files.Keys, k => k.Contains(".drafts", StringComparison.Ordinal) || k.Contains("a#b", StringComparison.Ordinal) || k.EndsWith(".yml", StringComparison.Ordinal)); // a file the loader leaves out is never written
         RunScript(Start("folders"), edit["results"]!.AsArray(), 30);
+    }
+
+    [Fact]
+    public void The_lines_between_two_shapes_write_what_the_typescript_ops_write_and_a_via_follows_its_connection()
+    {
+        var edit = Expected()["pairsEdit"]!;
+        var files = Start("pairs").ToFiles();
+        var initial = Files(edit["initial"]!);
+        Assert.True(Differences(initial, files) == "", Differences(initial, files));
+        RunScript(Start("pairs"), edit["results"]!.AsArray(), 20);
     }
 
     [Fact]

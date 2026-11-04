@@ -5,7 +5,7 @@ import type { Recording } from './Recorder.tsx'
 export type Side =
   | { kind: 'object'; id: string }
   | { kind: 'objects'; ids: string[] } // several shapes picked in edit mode, to move or delete together
-  | { kind: 'line'; from: string; to: string; view?: string } // `view` is the view of the pane of a comparison it was clicked in; on the single canvas it is the one on show
+  | { kind: 'line'; from: string; to: string; view?: string; focusLabel?: number; strand?: string } // `strand` is the id of the line of the pair that was picked, where a project draws a line for each connection (see View.strands); the pair's panel opens on that connection. `view` is the view of the pane of a comparison it was clicked in; on the single canvas it is the one on show. `focusLabel` is a connection (its place in the model) whose label field takes the focus as the panel opens: the one a drag just made, where each connection has a line of its own
   | { kind: 'add' }
   | { kind: 'usedby'; targets: Target[]; back: Side | undefined } // what is waiting on the shapes or lines about to be deleted (see UsedBy)
   | ({ kind: 'flow' } & Recording)

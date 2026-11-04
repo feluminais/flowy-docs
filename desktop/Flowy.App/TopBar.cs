@@ -14,7 +14,7 @@ namespace Flowy.App;
 /// </summary>
 internal sealed class TopBar : Border
 {
-    private readonly StackPanel _draftMark = new() { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center }; // inside a draft: the model it belongs to, and Draft; in the bar only there
+    private readonly StackPanel _sketchMark = new() { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center }; // inside a sketch: the model it belongs to, and Sketch; in the bar only there
     private Grid? _left;
     private readonly Button _ownerButton = new() { Classes = { "crumb" } };
     private readonly StackPanel _crumbs = new() { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
@@ -44,7 +44,7 @@ internal sealed class TopBar : Border
     /// <summary>Another model of the repo was picked, by its folder.</summary>
     public event Action<string>? ModelPicked;
 
-    /// <summary>The name of the model a draft belongs to was pressed: back to the model.</summary>
+    /// <summary>The name of the model a sketch belongs to was pressed: back to the model.</summary>
     public event Action? OwnerClicked;
 
     /// <summary>A line style was picked: "straight", "curved" or "angled".</summary>
@@ -74,8 +74,8 @@ internal sealed class TopBar : Border
 
     internal ComboBox ModelPicker => _modelPicker;
 
-    /// <summary>The model's name in the draft mark, or null when this is no draft. For a test.</summary>
-    internal string? DraftOf => _draftMark.Parent is not null ? AutomationProperties.GetName(_ownerButton) : null;
+    /// <summary>The model's name in the sketch mark, or null when this is no sketch. For a test.</summary>
+    internal string? SketchOf => _sketchMark.Parent is not null ? AutomationProperties.GetName(_ownerButton) : null;
 
     internal Button OwnerButton => _ownerButton;
 
@@ -135,13 +135,13 @@ internal sealed class TopBar : Border
         };
         _ownerButton.Click += (_, _) => OwnerClicked?.Invoke();
         ToolTip.SetTip(_ownerButton, "Back to the model");
-        _draftMark.Children.Add(_ownerButton);
-        _draftMark.Children.Add(DraftChip());
+        _sketchMark.Children.Add(_ownerButton);
+        _sketchMark.Children.Add(SketchChip());
         // The left side gets the room the buttons on the right leave, and the crumbs are cut at its edge: a deep or long-named level must not run under Search and Edit.
         _modelPicker.MaxWidth = 220;
         _modelPicker.Margin = new Thickness(0, 0, 2, 0);
-        _draftMark.Margin = new Thickness(0, 0, 2, 0);
-        Grid.SetColumn(_draftMark, 1);
+        _sketchMark.Margin = new Thickness(0, 0, 2, 0);
+        Grid.SetColumn(_sketchMark, 1);
         var crumbs = new Border { Child = _crumbs, ClipToBounds = true, Margin = new Thickness(0, 0, 2, 0) };
         Grid.SetColumn(crumbs, 2);
         Grid.SetColumn(_editTools, 3);
@@ -151,26 +151,26 @@ internal sealed class TopBar : Border
         return new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { left, right } };
     }
 
-    /// <summary>The chip that says this is a draft: its icon and the word Draft, in the accent, inside a dashed outline.</summary>
-    private static Control DraftChip()
+    /// <summary>The chip that says this is a sketch: its icon and the word Sketch, in the accent, inside a dashed outline.</summary>
+    private static Control SketchChip()
     {
-        var icon = Icons.Make(Icons.Draft, "draftmark", 14);
+        var icon = Icons.Make(Icons.Sketch, "sketchmark", 14);
         icon.VerticalAlignment = VerticalAlignment.Center;
-        var word = new TextBlock { Text = "Draft", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 1), Classes = { "draftmark" } };
+        var word = new TextBlock { Text = "Sketch", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 1), Classes = { "sketchmark" } };
         var outline = new Avalonia.Controls.Shapes.Rectangle { RadiusX = 11, RadiusY = 11 };
-        outline.Classes.Add("draftmark");
+        outline.Classes.Add("sketchmark");
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Margin = new Thickness(9, 3), Children = { icon, word } };
         var chip = new Grid { VerticalAlignment = VerticalAlignment.Center, Children = { outline, row } };
-        AutomationProperties.SetName(chip, "Draft");
+        AutomationProperties.SetName(chip, "Sketch");
         return chip;
     }
 
-    /// <summary>Inside a draft: the name of the model it belongs to, which leads back, and the Draft chip. Null outside one.</summary>
-    internal void ShowDraft(string? modelName)
+    /// <summary>Inside a sketch: the name of the model it belongs to, which leads back, and the Sketch chip. Null outside one.</summary>
+    internal void ShowSketch(string? modelName)
     {
-        _left!.Children.Remove(_draftMark);
+        _left!.Children.Remove(_sketchMark);
         if (modelName is null) return;
-        _left.Children.Add(_draftMark);
+        _left.Children.Add(_sketchMark);
         _ownerButton.Content = new TextBlock { Text = modelName, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 200 };
         AutomationProperties.SetName(_ownerButton, modelName);
     }

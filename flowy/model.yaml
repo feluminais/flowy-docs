@@ -643,16 +643,16 @@ objects:
       other.
 
       While it is open, the single canvas and its player wait behind it.
-  drafts:
+  sketches:
     type: component
     in: core
-    name: Drafts
-    code: [src/core/drafts.ts, src/node/drafts.ts, src/node/draftwrites.ts, desktop/Flowy.Core/Drafts.cs]
+    name: Sketches
+    code: [src/core/sketches.ts, src/node/sketches.ts, src/node/sketchwrites.ts, desktop/Flowy.Core/Sketches.cs]
     description: |
-      Keeps a sketch apart from the model: a draft is a model of its own in `drafts/<id>/`, the same files read and written the same
-      way, empty or a copy of shapes it starts from.
+      Keeps a sketch apart from the model: a sketch is a model of its own in `sketches/<id>/`, the same files read and written the same
+      way, empty or a copy of shapes it starts from. The old `drafts/<id>/` folder is still read.
 
-      The model never reads a draft, so a draft can't change or break it. Every MCP tool takes a draft id to work on one instead.
+      The model never reads a sketch, so a sketch can't change or break it. Every MCP tool takes a sketch id to work on one instead.
 connections:
   - { from: reader, to: cli, label: node dist/cli.js }
   - { from: reader, to: desktop, label: opens folders in a window }
@@ -736,5 +736,5 @@ connections:
   - { from: perf-lab, to: perf, label: writes runs it can read }
   - { from: compare-view, to: compare, label: asks what changed }
   - { from: mcp, to: compare, label: sets a compare tag }
-  - { from: shell, to: drafts, label: makes and opens a draft }
-  - { from: mcp, to: drafts, label: works on a draft when asked }
+  - { from: shell, to: sketches, label: makes and opens a sketch }
+  - { from: mcp, to: sketches, label: works on a sketch when asked }

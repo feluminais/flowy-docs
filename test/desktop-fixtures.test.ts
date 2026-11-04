@@ -10,9 +10,13 @@ import { dumpGeometry } from '../desktop/fixtures/geometry.ts'
 import { dumpEditLabels } from '../desktop/fixtures/editlabel.ts'
 import { dumpFormula } from '../desktop/fixtures/formula.ts'
 import { buildTrail, dumpHistory } from '../desktop/fixtures/history.ts'
+import { dumpKinds } from '../desktop/fixtures/kinds.ts'
+import { dumpCapacity, dumpCurveLabels, dumpCurvePoses, dumpCurves, dumpSeparateLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpParts, dumpPoses } from '../desktop/fixtures/lanes.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
+import { dumpPairs } from '../desktop/fixtures/pairs.ts'
+import { dumpLayoutLanes, dumpTrunks } from '../desktop/fixtures/trunks.ts'
 import { dumpPerf, dumpPerfView } from '../desktop/fixtures/perf.ts'
 import { dumpStates } from '../desktop/fixtures/states.ts'
 import { dumpCaptions, dumpStops } from '../desktop/fixtures/structure.ts'
@@ -127,6 +131,33 @@ test('desktop history rules still match the TypeScript ones: diff, list, retenti
 test('desktop edit labels still match the TypeScript ones', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('editlabel'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(dumpEditLabels())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('the kinds of a connection still match what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('kinds'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(dumpKinds())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('the lines between two shapes still match what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('pair-lines'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpPairs())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+for (const [name, dump] of [['rest', dumpLanes], ['poses', dumpPoses], ['capacity', dumpCapacity], ['hits', dumpHits], ['labels', dumpLaneLabels], ['separate', dumpSeparateLanes], ['parts', dumpParts], ['curves', dumpCurves], ['curve-poses', dumpCurvePoses], ['curve-labels', dumpCurveLabels]] as const) {
+  test(`the lines of a pair side by side still match what the desktop is held to: ${name}`, async () => {
+    const expected: unknown = JSON.parse(await readFile(expectedPath(`lanes/${name}`), 'utf8'))
+    assert.deepEqual(JSON.parse(JSON.stringify(await dump())), expected, 'run: node desktop/fixtures/generate.ts')
+  })
+}
+
+test('the lanes, folding and trunks of a pair with many lines still match what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('trunks'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpTrunks())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('what the layout makes of a bundle still matches what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('layout-lanes'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpLayoutLanes())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('the sample history trail is what openHistory writes, byte for byte', async () => {

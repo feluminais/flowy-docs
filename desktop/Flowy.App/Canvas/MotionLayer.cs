@@ -21,7 +21,7 @@ internal sealed class MotionLayer : Control
 
     /// <summary><c>Depth</c> is how tall a recursion's stack gets, which its counter says; <c>Total</c> is how long the run lasts.</summary>
     private sealed record Run(IReadOnlyList<Beat> Beats, Geometry Line, double Length, CoreRect From, CoreRect To, Geometry? ShapeFrom, Geometry? ShapeTo, CoreRect? TakerBox, Geometry? TakerShape, string? TakerName, string? Effect = null,
-        int Depth = Animations.DepthDefault, int Total = 0, FlatLine? Flat = null);
+        int Depth = Animations.DepthDefault, int Total = 0, FlatLine? Flat = null, IReadOnlyDictionary<Beat, double>? Keep = null);
 
     /// <summary>How strongly a shape lights up when it flashes, at the start.</summary>
     private const double Flash = 0.55;
@@ -37,14 +37,21 @@ internal sealed class MotionLayer : Control
     private bool _still;
     private (CoreRect Rect, int Depth)? _rest; // a recursion's counter at rest: where its box is and how deep it went
 
-    public MotionLayer()
+    private readonly LaneStore _lanes;
+
+    public MotionLayer(LaneStore lanes)
     {
+        _lanes = lanes;
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
     /// <summary>One step to draw: its animation, whether it follows a landing, the line style, the two boxes (with the outline each shape has), and who takes it when it is intercepted.</summary>
-    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null, Taker? By = null);
+    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, string FromId, string ToId, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null, Taker? By = null, string? Strand = null, LaneSlot? Slot = null,
+        IReadOnlyList<double>? Lit = null);
+
+    /// <summary>How far from the line the marks of an outcome reach at their widest: a puff's outermost tick, a clock's dial and a bar's half length.</summary>
+    private const double PopHalf = 40, ClockHalf = 24, BarHalf = 22;
 
     private IReadOnlyList<(IReadOnlyList<Beat> Beats, int Total)> Prepare(IReadOnlyList<RunSpec> specs)
     {
@@ -53,26 +60,58 @@ internal sealed class MotionLayer : Control
         foreach (var s in specs)
         {
             // A recursion's pipe is a loop out of its one box and back in; every other kind runs along the line between two boxes.
-            var data = s.Animation.Kind == "recurse" ? BoxGeometry.LoopAround(s.From, s.OutlineFrom) : LinePaths.Build(s.Style, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data;
-            var line = Geometry.Parse(data);
-            var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding);
+            string data;
+            Geometry line;
+            if (s.Animation.Kind == "recurse")
+            {
+                data = BoxGeometry.LoopAround(s.From, s.OutlineFrom);
+                line = Geometry.Parse(data);
+            }
+            else
+            {
+                // Among the lines of a pair the line is laid out as it stands once the pair has parted around the lit lines, so the dot runs along where its line is going to be.
+                var lane = _lanes.PathFor(s.Strand, s.Style, new LaneEnd(s.FromId, s.From, s.OutlineFrom), new LaneEnd(s.ToId, s.To, s.OutlineTo), s.Lit is null ? null : new LanePose(0, s.Lit), s.Slot);
+                (data, line) = (lane.Path.Data, lane.Geometry);
+            }
+            var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding, s.Slot?.Lanes ?? 1);
             // Whoever takes the request: its box, or the dashed marker that hangs below the line where the request leaves it.
             var by = s.By ?? (s.Animation.By is { } given ? new Taker(Name: given.Name ?? given.Shape) : null);
+            // Among the lines of a pair the marks stay clear of the lines beside, and a marker hangs below the whole bundle.
+            var among = s.Animation.Kind != "recurse" && s.Slot is { Lanes: > 1 } ? s.Slot : null;
+            LaneBox? one = among is null ? null : new LaneBox(s.FromId, s.From, s.OutlineFrom), other = among is null ? null : new LaneBox(s.ToId, s.To, s.OutlineTo);
             CoreRect? takerBox = by?.Box;
             if (takerBox is null && by?.Name is { } name)
             {
                 var size = MotionMath.MarkerSize(name);
                 var spot = SpotAt(line, line.ContourLength, beats.FirstOrDefault(b => b.Do == "marker")?.Along ?? 0.4);
-                var offset = MotionMath.MarkerSpot(spot.Dx, spot.Dy, size);
+                var offset = MotionMath.MarkerSpot(spot.Dx, spot.Dy, size, among is { } slot ? Lanes.BundleReach(one!, other!, slot, s.Style) : 0);
                 takerBox = new CoreRect(spot.X + offset.X - size.Width / 2, spot.Y + offset.Y - size.Height / 2, size.Width, size.Height);
             }
             runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo),
-                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect, s.Animation.Depth ?? Animations.DepthDefault, total, PathPoints.Flatten(data)));
+                takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect, s.Animation.Depth ?? Animations.DepthDefault, total, PathPoints.Flatten(data),
+                among is { } grouped ? KeepOf(beats, one!, other!, grouped, s.Lit, s.Style) : null));
             started.Add((beats, total));
         }
         _runs = runs;
         InvalidateVisual();
         return started;
+    }
+
+    /// <summary>
+    /// How much of its size each mark of an outcome keeps, among the lines of a pair: a mark of half-extent <c>half</c> at <c>along</c> the line reaches no further than the gap beside the lit line leaves
+    /// there (see <see cref="Lanes.MarkReach"/>), once the pair has parted. A mark that fits keeps all of it (1).
+    /// </summary>
+    private static Dictionary<Beat, double> KeepOf(IReadOnlyList<Beat> beats, LaneBox from, LaneBox to, LaneSlot slot, IReadOnlyList<double>? lit, string style)
+    {
+        var parted = new LanePose(0, lit ?? []);
+        var kept = new Dictionary<Beat, double>();
+        foreach (var beat in beats)
+        {
+            if (beat.Along is not { } along || beat.Do is not ("pop" or "clock" or "bar")) continue;
+            var half = beat.Do switch { "pop" => PopHalf, "clock" => ClockHalf, _ => BarHalf };
+            kept[beat] = Math.Min(1, Lanes.MarkReach(half, Lanes.GapBeside(from, to, slot, parted, along, style)) / half);
+        }
+        return kept;
     }
 
     /// <summary>
@@ -156,6 +195,12 @@ internal sealed class MotionLayer : Control
 
     /// <summary>The beats of a step that are drawn now: those running at the time shown, and the marks that stay; with motion reduced, just the marks.</summary>
     private IEnumerable<Beat> Drawn(Run run) => _still ? run.Beats.Where(IsMark) : run.Beats.Where(Shown);
+
+    /// <summary>How much of its size each mark of the step <paramref name="run"/> keeps among the lines of its pair (a mark that fits keeps all of it, and is not listed), for the tests.</summary>
+    internal IReadOnlyDictionary<Beat, double> KeptOf(int run) => _runs[run].Keep ?? new Dictionary<Beat, double>();
+
+    /// <summary>The box of whoever takes the request of the step <paramref name="run"/>, for the tests.</summary>
+    internal CoreRect? TakerBoxOf(int run) => _runs[run].TakerBox;
 
     /// <summary>Every beat of the steps being played, drawn or not, for the tests.</summary>
     public IReadOnlyList<Beat> AllBeats => _runs.SelectMany(r => r.Beats).ToList();
@@ -380,6 +425,10 @@ internal sealed class MotionLayer : Control
         }
     }
 
+    /// <summary>A matrix that scales by <paramref name="k"/> about <paramref name="centre"/> (the identity for 1): a mark kept to the gap beside its lane shrinks onto its place on the line.</summary>
+    private static Matrix AboutPoint(Point centre, double k) =>
+        k == 1 ? Matrix.Identity : Matrix.CreateTranslation(-centre.X, -centre.Y) * Matrix.CreateScale(k, k) * Matrix.CreateTranslation(centre.X, centre.Y);
+
     private FormattedText Words(string text, IBrush brush) =>
         new(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, brush);
 
@@ -395,6 +444,7 @@ internal sealed class MotionLayer : Control
                 var spot = SpotAt(run.Line, run.Length, beat.Along!.Value);
                 var ink = beat.Tint is { } slot ? Tint(slot) : Brush("AccentBrush");
                 var centre = new Point(spot.X, spot.Y);
+                using var kept = context.PushTransform(AboutPoint(centre, run.Keep?.GetValueOrDefault(beat, 1) ?? 1));
                 if (p < 1)
                 {
                     // The ring and the ticks go out and fade.
@@ -422,7 +472,7 @@ internal sealed class MotionLayer : Control
                 // The bar at the receiver's door flashes in thick, settles, and stays.
                 var spot = SpotAt(run.Line, run.Length, beat.Along!.Value);
                 using (context.PushOpacity(Math.Min(1, p * 8)))
-                using (context.PushTransform(Matrix.CreateRotation(Math.Atan2(spot.Dy, spot.Dx)) * Matrix.CreateTranslation(spot.X, spot.Y)))
+                using (context.PushTransform(Matrix.CreateScale(1, run.Keep?.GetValueOrDefault(beat, 1) ?? 1) * Matrix.CreateRotation(Math.Atan2(spot.Dy, spot.Dx)) * Matrix.CreateTranslation(spot.X, spot.Y)))
                     context.DrawLine(Round(danger, 7 + 6 * Math.Max(0, 1 - p * 4)), new Point(0, -22), new Point(0, 22));
                 break;
             }
@@ -434,6 +484,7 @@ internal sealed class MotionLayer : Control
                 var accent = Brush("AccentBrush");
                 var centre = new Point(spot.X, spot.Y);
                 using var fade = context.PushOpacity(_still ? 1 : MotionMath.TubeOpacity(beat, _t));
+                using var kept = context.PushTransform(AboutPoint(centre, run.Keep?.GetValueOrDefault(beat, 1) ?? 1));
                 var turn = _still ? 0 : _t / 1000 * 18.85 / 2; // 8 s a turn, in units of the pen
                 context.DrawEllipse(null, new Pen(muted, 2, new DashStyle([1.5, 2.5], turn), PenLineCap.Flat), centre, 24, 24);
                 var orbit = (_still ? -60 : -60 + 360 * (_t % 1600) / 1600) * Math.PI / 180;

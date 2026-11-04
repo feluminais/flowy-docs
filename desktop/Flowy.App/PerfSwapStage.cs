@@ -40,6 +40,7 @@ internal sealed class PerfSwapStage : Border, IRunKeys
         _keys = [.. keys];
         _runs = [.. runs];
         Classes.Add("pane");
+        _canvas.KindKeyAtTop = true; // the key of the kinds stands at the top: the foot is the player card's
         Classes.Add("swapstage");
         Focusable = false;
         ClipToBounds = true;
@@ -144,7 +145,7 @@ internal sealed class PerfSwapStage : Border, IRunKeys
     public bool Holds(ReaderView.Side side) => side switch
     {
         ReaderView.Side.Box box => _canvas.Scene?.Boxes.Any(b => b.Id == box.Id) ?? true,
-        ReaderView.Side.Line line => _canvas.Scene?.Edges.Any(e => e.Id == SceneBuilder.LineId(line.From, line.To)) ?? true,
+        ReaderView.Side.Line line => _canvas.Scene?.Edges.Any(e => e.PairId == SceneBuilder.LineId(line.From, line.To)) ?? true,
         _ => true,
     };
 

@@ -9,12 +9,52 @@ namespace Flowy.App;
 /// </summary>
 internal static class FlowStage
 {
-    /// <summary>Where the steps of the stop at <paramref name="index"/> stand on <paramref name="view"/>, with the shapes that take a request off a line lit with them.</summary>
-    public static Playing PlayingAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index)
+    /// <summary>
+    /// Where the steps of the stop at <paramref name="index"/> stand on <paramref name="view"/>, with the shapes that take a request off a line lit with them. <paramref name="lineStyle"/> is how lines are
+    /// drawn here: where a pair has more lines than fit across its shapes they are folded into trunks, which depends on it (see <see cref="Trunks.Draw"/>).
+    /// </summary>
+    public static Playing PlayingAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, string lineStyle = "straight")
     {
         // A shape that takes a request off the line (`by`) is lit with the step, so it does not sit at the faint level while it flashes.
         var also = stops[index].Steps.SelectMany(i => Animations.Read(flow.Steps[i])?.By is { Shape: { } taker } && Views.PlaceStep(model, view, taker, null) is { } at ? new[] { at.From } : []).ToList();
-        return new Playing(flow.Steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList(), null, stops[index].Steps, Structure.OtherLaneSteps(stops, index), also.Count > 0 ? also : null);
+        var ends = flow.Steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList();
+        return new Playing(ends, null, stops[index].Steps, Structure.OtherLaneSteps(stops, index), also.Count > 0 ? also : null, StrandsOf(model, view, flow, ends, lineStyle));
+    }
+
+    /// <summary>
+    /// Where a project draws a line for each connection, the line each step of the flow rides (the id of its strand, see <see cref="Strands.StrandOf"/>; null for a step that rides none).
+    /// Null where a pair is one line. A step that rides a line folded into a trunk rides the trunk (see <see cref="Trunks.DrawnStrandOf"/>).
+    /// </summary>
+    public static List<string?>? StrandsOf(Model model, string view, Flow flow, IReadOnlyList<(string From, string To)?> ends, string lineStyle = "straight")
+    {
+        if (model.Pairs != "separate") return null;
+        var drawn = Trunks.Draw(model, view, lineStyle);
+        return [.. ends.Select((placed, i) => placed is { } at ? Trunks.DrawnStrandOf(model, drawn, flow.Steps[i], at) : null)];
+    }
+
+    /// <summary>No pair is parted: what a stop asks of the lines when none of its steps rides a pair of several.</summary>
+    public static readonly IReadOnlyDictionary<string, PartPlan> NoPlans = new Dictionary<string, PartPlan>();
+
+    /// <summary>
+    /// What the stop at <paramref name="index"/> asks of the lines of each pair it rides, where a project draws a line for each connection: which of the pair's lines are lit, and when the earliest
+    /// <c>part</c> beat of the steps on it starts (see <see cref="Parts.PlanOf"/>). <paramref name="shown"/> says which line each step rides. Empty for a pair of one line, and where a pair is one line.
+    /// </summary>
+    public static IReadOnlyDictionary<string, PartPlan> PartsAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, Playing? shown, string lineStyle = "straight")
+    {
+        // The lines as drawn: a pair with more lines than fit has them as trunks, and a trunk is one lane of its pair.
+        if (shown?.Strands is not { } ridden || Trunks.Draw(model, view, lineStyle).View.Strands is not { } strands) return NoPlans;
+        var stop = stops[index];
+        var lanes = strands.ToDictionary(s => s.Id, s => s.Lanes);
+        var steps = new List<(string? Strand, IReadOnlyList<Beat>? Beats)>();
+        foreach (var i in stop.Steps)
+        {
+            var id = i < ridden.Count ? ridden[i] : null;
+            if (id is not null && Payloads.MotionOf(model, flow.Steps[i]) is { } animation && shown.Ends[i] is { } placed && lanes.TryGetValue(id, out var n))
+                steps.Add((id, Animations.BeatsFor(animation, 0, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), n).Beats));
+            else steps.Add((id, null));
+        }
+        var plans = Parts.PlanOf(strands, steps);
+        return plans.Count == 0 ? NoPlans : plans;
     }
 
     /// <summary>The card for the stop at <paramref name="index"/>, and the marks its groups put on the lines.</summary>
@@ -63,9 +103,11 @@ internal static class FlowStage
     /// both ends into one, and then there is nothing to draw between), a job only the one it runs on. The step whose motion decides when a mark comes or goes is the one that opens it,
     /// or the one in this stop that closes it.
     /// </summary>
-    public static List<CanvasView.OpenChannel> OpenAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index)
+    public static List<CanvasView.OpenChannel> OpenAt(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, string lineStyle = "straight")
     {
         var open = new List<CanvasView.OpenChannel>();
+        var laid = model.Pairs == "separate" ? Trunks.Draw(model, view, lineStyle) : null;
+        var slots = laid?.View.Strands is { } drawn ? Lanes.SlotsOf(drawn) : null;
         foreach (var channel in Channels.At(flow, stops, index))
         {
             if (Views.PlaceStep(model, view, channel.From, channel.To) is not { } placed) continue;
@@ -73,24 +115,34 @@ internal static class FlowStage
             var by = channel.Opening ? channel.Step : stops[index].Steps.Cast<int?>().FirstOrDefault(i => channel.Name is not null && Animations.Read(flow.Steps[i!.Value])?.Closes == channel.Name);
             var motion = by is { } step ? Animations.Read(flow.Steps[step]) : null;
             var motionAt = by is { } s2 ? Views.PlaceStep(model, view, flow.Steps[s2].From, flow.Steps[s2].To) : null;
-            open.Add(new CanvasView.OpenChannel(channel, placed.From, placed.To, motion, motionAt?.From, motionAt?.To));
+            // Where each connection is a line of its own, a stream and a listener belong to the line of the step that opened them.
+            var strand = laid is null || placed.From == placed.To ? null : Trunks.DrawnStrandOf(model, laid, flow.Steps[channel.Step], placed);
+            open.Add(new CanvasView.OpenChannel(channel, placed.From, placed.To, motion, motionAt?.From, motionAt?.To,
+                strand, strand is null ? null : slots![strand], strand is null ? null : laid!.View.Strands!.First(s => s.Id == strand).Pair));
         }
         return open;
     }
 
     /// <summary>The steps of the stop at <paramref name="index"/> that move, ready for <see cref="CanvasView.PlaySteps"/>; empty when none does.</summary>
-    public static List<CanvasView.StepRun> RunsOf(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, Playing shown)
+    public static List<CanvasView.StepRun> RunsOf(Model model, string view, Flow flow, IReadOnlyList<Stop> stops, int index, Playing shown, IReadOnlyDictionary<string, PartPlan>? plans = null, string lineStyle = "straight")
     {
         // Every step of the stop that moves plays at once; the stop has settled when the longest has finished.
         var stop = stops[index];
         var runs = new List<CanvasView.StepRun>();
+        // Where a project draws a line for each connection, the pipe of a step runs along the line it rides.
+        var strands = shown.Strands is null ? null : Trunks.Draw(model, view, lineStyle).View.Strands ?? [];
+        var slots = strands is null ? null : Lanes.SlotsOf(strands);
+        plans ??= PartsAt(model, view, flow, stops, index, shown, lineStyle);
         foreach (var i in stop.Steps)
         {
             // The dots say what the step's payloads are called (see Payloads.MotionOf).
             if (Payloads.MotionOf(model, flow.Steps[i]) is not { } animation || shown.Ends[i] is not { } placed) continue;
             // What its dots carry: the reply on the answer's way back, the payload on every other dot (see DotCard).
+            var strand = shown.Strands is { } ridden && i < ridden.Count ? ridden[i] : null;
             runs.Add(new CanvasView.StepRun(animation, placed.From, placed.To, stop.Before.Any(j => Animations.Follows(shown.Ends[j], placed)), TakenBy(model, view, animation, placed),
-                Payloads.OfDot(model, flow.Steps[i], null)?.Shown, Payloads.OfDot(model, flow.Steps[i], "reply")?.Shown));
+                Payloads.OfDot(model, flow.Steps[i], null)?.Shown, Payloads.OfDot(model, flow.Steps[i], "reply")?.Shown, strand, strand is not null && slots is not null && slots.TryGetValue(strand, out var slot) ? slot : null,
+                // Where the lines of its pair part around the lit ones, what runs along it is laid out on the line as it stands once they have.
+                strand is not null && strands!.FirstOrDefault(s => s.Id == strand)?.Pair is { } pair && plans.TryGetValue(pair, out var plan) ? plan.Lit : null));
         }
         return runs;
     }

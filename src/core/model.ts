@@ -6,6 +6,15 @@ export type ObjectType = (typeof OBJECT_TYPES)[number]
 /** How the canvas draws lines. A project picks one with a top-level `lines:` in model.yaml; without it, straight. */
 export const LINE_STYLES = ['straight', 'curved', 'angled'] as const
 export type LineStyle = (typeof LINE_STYLES)[number]
+/**
+ * Whether a pair of shapes is drawn as one line or as one line for each connection. A project picks one with a top-level `pairs:` in model.yaml; without it, merged
+ * (one line between two shapes, however many connections run between them). A sketch made by new_sketch starts as separate.
+ */
+export const PAIR_MODES = ['merged', 'separate'] as const
+export type PairMode = (typeof PAIR_MODES)[number]
+/** What the edit panel calls the setting and its two values. */
+export const PAIRS_FIELD = 'Lines between two shapes'
+export const PAIR_NAMES: Record<PairMode, string> = { merged: 'Merged', separate: 'Separate' }
 
 export type FlowyObject = {
   type: ObjectType
@@ -24,7 +33,8 @@ export type FlowyObject = {
   description?: string
   [extra: string]: unknown
 }
-export type Connection = { from: string; to: string; label?: string; [extra: string]: unknown }
+/** A line from one object to another. `kind` is how the two talk, one of the six words of kinds.ts; check() reports any other word, and the line draws plain. */
+export type Connection = { from: string; to: string; label?: string; kind?: string; [extra: string]: unknown }
 /** One step of a flow. Without `to`, the `from` box does something on its own. `description` is the longer detail a reader can open. */
 export type Step = {
   from: string
@@ -39,6 +49,8 @@ export type Step = {
   flow?: string
   /** The shapes this step changes, shape id to state word (see states.ts). Read it with readStates; check() reports a wrong one. */
   states?: unknown
+  /** The label of the connection the step rides, where a pair of shapes draws a line for each connection (see strands.ts). Text; check() reports one that matches no connection. */
+  via?: string
   [extra: string]: unknown
 }
 /** A stretch of neighbouring steps that repeat, branch or run in parallel (see structure.ts). Every known option is text when present; check() reports what is wrong. */
@@ -88,6 +100,9 @@ export const emptyModel = (): Model => ({ objects: {}, connections: [], flows: {
 
 /** The project's line style. Anything unknown draws straight; check() reports it. */
 export const lineStyle = (model: Model): LineStyle => LINE_STYLES.find(s => s === model.meta.lines) ?? 'straight'
+
+/** How the project draws a pair of shapes. Anything but `separate` is merged; check() reports a word that is neither. */
+export const pairMode = (model: Pick<Model, 'meta'>): PairMode => PAIR_MODES.find(m => m === model.meta.pairs) ?? 'merged'
 
 /** The project's name: the top-level `name:` in model.yaml. Empty when there is none (check() reports a value that isn't text). */
 export const projectName = (model: Pick<Model, 'meta'>): string => (typeof model.meta.name === 'string' ? model.meta.name.trim() : '')

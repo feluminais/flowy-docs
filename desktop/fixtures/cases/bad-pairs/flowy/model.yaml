@@ -1,0 +1,7 @@
+name: Bad pairs
+pairs: each
+objects:
+  ui: { type: system, name: UI }
+  management: { type: system, name: Management }
+connections:
+  - { from: ui, to: management, label: Ask }

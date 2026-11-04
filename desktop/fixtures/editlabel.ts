@@ -78,6 +78,12 @@ export const CASES: EditLabelCase[] = [
     m.connections.push({ from: 'api', to: 'mail' })
   }),
   make('two lines removed', 'Removed 2 lines', m => { m.connections = m.connections.filter(c => c.from !== 'orders') }),
+  make('connections in another order', 'Reordered connections', m => { m.connections = [m.connections[1], m.connections[0], ...m.connections.slice(2)] }),
+  make('a connection moved to the end', 'Reordered connections', m => { m.connections = [...m.connections.slice(1), m.connections[0]] }),
+  make('connections reordered and one relabelled', 'Relabelled Web app to API', m => {
+    m.connections = [m.connections[1], m.connections[0], ...m.connections.slice(2)]
+    m.connections.find(c => c.from === 'web' && c.to === 'api')!.label = 'HTTP'
+  }),
   make('a flow added', 'Added the Refund flow', m => { m.flows.refund = { name: 'Refund', view: 'shop', steps: [{ from: 'web', to: 'api', text: 'Refunds' }] } }),
   make('a flow deleted', 'Deleted the Customer checks out flow', m => { delete m.flows.checkout }),
   make('a flow renamed', 'Renamed the flow Customer checks out to Pay', m => { m.flows.checkout.name = 'Pay' }),

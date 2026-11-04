@@ -350,19 +350,25 @@ public class SceneParityTests
     {
         var scenes = ScenesJson()["scenes"]!.AsArray();
         Assert.True(scenes.Count > 30);
+        Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["look"] is not null)); // the kinds case: a line's look is part of what the scene decides
+        Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["spread"] is not null)); // the separate-lanes case: a pair of lines side by side spreads while it is picked
+        Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["trunk"] is not null)); // the trunks case: a pair with more lines than fit is drawn as trunks
+        Assert.Contains(scenes, s => s!["drawing"]?["opened"] is not null); // and a selected line opens the trunks of its pair
         foreach (var s in scenes)
         {
             var folder = Load(s!["folder"]!.GetValue<string>());
             var view = s["view"]!.GetValue<string>();
             Playing? playing = s["playing"] is { } p
                 ? new Playing(p["ends"]!.AsArray().Select(e => e is null ? ((string, string)?)null : (e[0]!.GetValue<string>(), e[1]!.GetValue<string>())).ToList(), p["step"]?.GetValue<int>(),
-                    p["steps"]?.AsArray().Select(i => i!.GetValue<int>()).ToList(), p["faint"]?.AsArray().Select(i => i!.GetValue<int>()).ToList())
+                    p["steps"]?.AsArray().Select(i => i!.GetValue<int>()).ToList(), p["faint"]?.AsArray().Select(i => i!.GetValue<int>()).ToList(),
+                    Strands: p["strands"]?.AsArray().Select(i => i?.GetValue<string>()).ToList())
                 : null;
             var f = s["focus"]!;
-            var focus = new Focus(f["box"]?.GetValue<string>(), f["line"]?.GetValue<string>(), f["hover"]?.GetValue<string>());
-            var what = $"{s["folder"]} {view} {s["playing"]?.ToJsonString()} {f.ToJsonString()}";
+            var focus = new Focus(f["box"]?.GetValue<string>(), f["line"]?.GetValue<string>(), f["hover"]?.GetValue<string>(), f["focused"]?.GetValue<string>());
+            var drawing = s["drawing"] is { } d ? new SceneDrawing(d["style"]?.GetValue<string>() ?? "straight", d["opened"]?.GetValue<string>()) : null;
+            var what = $"{s["folder"]} {view} {s["playing"]?.ToJsonString()} {f.ToJsonString()} {s["drawing"]?.ToJsonString()}";
 
-            var scene = SceneBuilder.Build(folder.Model, view, playing, folder.Problems, focus);
+            var scene = SceneBuilder.Build(folder.Model, view, playing, folder.Problems, focus, drawing);
             Assert.True(Tokens(s["members"]!).SequenceEqual(scene.Members), $"{what}: members");
             var boxes = s["boxes"]!.AsArray();
             Assert.True(boxes.Select(b => b!["id"]!.GetValue<string>()).SequenceEqual(scene.Boxes.Select(b => b.Id)), $"{what}: boxes in order");
@@ -381,7 +387,17 @@ public class SceneParityTests
                 Assert.Equal(want["label"]?.GetValue<string>(), got.Label);
                 Assert.Equal(want["selected"]!.GetValue<bool>(), got.Selected);
                 Assert.Equal(want["both"]?.GetValue<bool>() ?? false, got.Both);
+                Assert.Equal(want["look"] is { } look ? new LineLook(look["pattern"]!.GetValue<string>(), look["head"]!.GetValue<string>(), look["tail"]!.GetValue<string>()) : null, got.Look);
                 Assert.True(Tokens(want["classes"]!).SequenceEqual(Tokens(SceneBuilder.Classes(got))), $"{what}: classes of line {got.Id}");
+                // Where a project draws a line for each connection, a line also knows its pair, its place among the pair's lines, and whether the pair is spread.
+                Assert.Equal(want["pair"]?.GetValue<string>(), got.Pair);
+                Assert.Equal(want["pair"]?.GetValue<string>() ?? got.Id, SceneBuilder.PairOf(got));
+                Assert.Equal(want["lanes"]?.GetValue<int>() ?? 1, got.Lanes);
+                Assert.Equal(want["slot"] is { } slot ? TrunksTests.SlotOf(slot) : null, got.Slot);
+                Assert.Equal(want["spread"]?.GetValue<bool>() ?? false, got.Spread);
+                // A trunk says how many connections it holds and which lines it stands for.
+                Assert.Equal(want["trunk"] is { } trunk ? trunk["size"]!.GetValue<int>() : null, got.Trunk?.Size);
+                Assert.Equal(want["trunk"] is { } listed ? listed["members"]!.AsArray().Select(m => m!.GetValue<string>()).ToList() : null, got.Trunk?.Members);
             }
         }
     }

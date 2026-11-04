@@ -45,13 +45,13 @@ test('stepPayload and stepReply read the step\'s payload and reply', () => {
   assert.equal(stepPayload(model(), { from: 'app', text: 'x' }), undefined)
 })
 
-test('a draft that copies a line takes the payloads its lines and the model name with it', async () => {
-  const { newDraft } = await import('../src/core/drafts.ts')
+test('a sketch that copies a line takes the payloads its lines and the model name with it', async () => {
+  const { newSketch } = await import('../src/core/sketches.ts')
   const { check } = await import('../src/core/check.ts')
   const m = { ...emptyModel(), objects: { a: { type: 'system' as const, name: 'A' }, b: { type: 'system' as const, name: 'B' } }, connections: [{ from: 'a', to: 'b', payloads: ['refund'] }], meta: { payloads: { order, refund: { about: 'Money going back.' } } } }
-  const draft = newDraft(m, { name: 'Sketch', copy: ['a', 'b'] })
-  assert.deepEqual(check(draft), [])
-  assert.deepEqual(Object.keys(payloadsOf(draft)), ['order', 'refund'])
+  const sketch = newSketch(m, { name: 'Sketch', copy: ['a', 'b'] })
+  assert.deepEqual(check(sketch), [])
+  assert.deepEqual(Object.keys(payloadsOf(sketch)), ['order', 'refund'])
 })
 
 const withReply = () => ({ ...emptyModel(), meta: { payloads: { order: { name: 'Order' }, receipt: { name: 'Receipt' } } } })

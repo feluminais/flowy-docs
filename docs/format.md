@@ -15,7 +15,7 @@ A model is a folder, `flowy/` by default, next to the code it describes.
 | `failures/<id>.yaml` | One failure analysis | You, an AI, the canvas |
 | `perf/<id>.yaml` | One load-test run | A tool. Flowy reads it, and writes only its `compare` |
 | `layout.yaml` | Where shapes were dragged | The canvas. Don't write it |
-| `drafts/<id>/` | A draft: a model of its own with the same files, which the model never reads ([Drafts](guide/drafts.md)) | You, an AI, the canvas |
+| `sketches/<id>/` | A sketch: a model of its own with the same files, which the model never reads ([Sketches](guide/sketches.md)). Sketches made before the rename are in `drafts/<id>/`, which is still read | You, an AI, the canvas |
 
 A flow's file can sit in folders inside `flows/` (`flows/payments/refund.yaml`), and the folders are yours to arrange. The id is the file name alone, so no two flows share one whatever their folders, and a flow moved to another folder keeps its id. A folder name may hold letters, digits, spaces and most marks, but not `\ / : * ? " < > | # %`; it can't start with a dot (such a folder is left alone), end in a dot or a space, or be longer than 64 characters, and folders nest six deep at most. `flowy check` lists a folder it skips and a name that two files share.
 
@@ -40,6 +40,7 @@ with no value, and the file can't be saved again. `flowy check` reports that. A 
 | `name` | Text | What the system is called. The Overview's heading |
 | `about` | Markdown | What the system is for and who uses it, a paragraph or two. The Overview shows it |
 | `lines` | How the canvas draws lines: `straight` (the default, so leave it out), `curved` or `angled` |
+| `pairs` | How the canvas draws two shapes with several connections between them: `merged` (the default, so leave it out) is one line, `separate` is a line for each connection, side by side. A sketch starts as `separate`; the model leaves it out |
 | `icons` | Your own icons: a mapping of name to SVG path data on a 24 by 24 grid ([the guide](guide/shapes.md#icons)) |
 | `payloads` | The data lines carry and steps send: a mapping of payload id to payload (below), at most 200 |
 
@@ -73,7 +74,10 @@ A line from one object to another. It has a direction, and an arrow shows it.
 | `from` | The id of the object it starts at |
 | `to` | The id of the object it goes to. Not the same as `from` |
 | `label` | A few words, a verb and what moves: `reads menus`. Optional but wanted. The same `from`, `to` and `label` can't repeat |
+| `kind` | How the two talk, drawn on the line: `request`, `stream`, `publish`, `cached`, `object` or `extension`. Optional: left out, the line is plain. A word that is none of these draws plain and is a problem |
 | `payloads` | A list of what the line carries, at most 12: payload ids, or payloads written out in place with a `name` |
+
+A kind sets the pattern of a line and the mark at each end ([Connection kinds](guide/kinds.md)). It never changes the colour or the width. The app shows the six as Request and reply (`request`), Request then stream (`stream`), Publish and subscribe (`publish`), Cached publish (`cached`), Object updates (`object`) and Extension point (`extension`); a connection with no kind is a Plain line. `from` starts a connection and `to` receives it. For `publish`, `cached` and `object`, `from` is the publisher. For `extension`, `from` is the host that calls and `to` is what plugs into it. A line that stands for several connections (the model shows one line for each pair of shapes) shows their kind when they all share it, and is plain when they differ. The line's panel lists each connection with its own mark.
 
 ### Payloads
 
@@ -129,6 +133,7 @@ under `payloads:`, whatever its name.
 | `group` | The id of a group under `groups` |
 | `lane` | In a branch or parallel group: starts a lane here, named in plain words |
 | `flow` | The id of another flow that tells what happens next. It must exist |
+| `via` | Where `pairs` is `separate`: the `label` of the connection the step rides, whatever its case. Leave it out when the payload or the direction already say which one. It has to match a connection between the step's two shapes |
 | `states` | The objects this step changes: object id to a state |
 | `payload` | What the step sends: a payload id, or a payload written in place with a `name` ([Payloads](#payloads)). Needs a `to`, except on a `recurse` |
 | `reply` | What comes back, the same way: only on a `call`, a `callback` or a `recurse` |
@@ -216,11 +221,11 @@ one entry and leaves the rest of the file as it is), and a tool that writes a ru
 | To change | Use |
 | --- | --- |
 | An object and everything on it (`type`, `name`, `in`, `external`, `shape`, `color`, `opacity`, `icon`, `tech`, `description`, `code`, `links`, `snippets`, `data`) | `put_object` |
-| The system's `name` and `about` | `put_project` |
+| The system's `name`, `about` and `pairs` | `put_project` |
 | A custom icon | `put_icon` |
-| A connection, and the `payloads` it carries | `connect`, `disconnect`, `set_payloads` |
+| A connection, its `kind`, and the `payloads` it carries | `connect`, `disconnect`, `set_kind`, `set_payloads` |
 | A payload under `payloads` | `put_payload`, `delete_payload` |
-| A flow, with its groups, states, animations and each step's `payload` and `reply` | `put_flow` |
+| A flow, with its groups, states, animations and each step's `payload`, `reply` and `via` | `put_flow` |
 | A failure analysis, or one mode of it | `put_failures`, `put_failure` |
 | The `compare` of a flow, or of a run | `set_compare` (a run is otherwise not written over MCP) |
 | `lines`, the rest of `perf/`, `layout.yaml` | Not over MCP: write the file, or use the canvas |

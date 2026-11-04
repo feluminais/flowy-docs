@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { ResourceTemplate, type McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { z } from 'zod'
 import { RULES } from './rules.ts'
 
@@ -12,13 +12,14 @@ const DOCS = [
   { file: 'guide.md', title: 'Flowy Docs guide', description: 'Which page holds what, and which to read for a request. Start here.' },
   { file: 'guide/canvas.md', title: 'Guide: the canvas', description: 'Zooming, panels, search, editing, the YAML tab and history.' },
   { file: 'guide/shapes.md', title: 'Guide: shapes, colour and icons', description: 'Which shape, colour, opacity and icon a box takes.' },
-  { file: 'guide/flows.md', title: 'Guide: flows', description: 'How a request ends, repeats, branches, parallel steps and shape states.' },
+  { file: 'guide/flows.md', title: 'Guide: flows', description: 'How a request ends, which line of a pair a step rides (via), repeats, branches, parallel steps and shape states.' },
+  { file: 'guide/kinds.md', title: 'Guide: connection kinds', description: 'The six kinds of connection (request and reply, request then stream, publish, cached publish, object updates, extension point): how to pick one, and how the line draws it.' },
   { file: 'guide/data.md', title: 'Guide: data', description: 'What a store holds: tables, key sets, topics and collections.' },
   { file: 'guide/code.md', title: 'Guide: code', description: 'A few lines of code on a shape.' },
   { file: 'guide/failures.md', title: 'Guide: failure modes', description: 'Rating how each part fails, and reading the ranked list.' },
   { file: 'guide/performance.md', title: 'Guide: performance', description: 'Replaying a load test on the diagram.' },
   { file: 'guide/compare.md', title: 'Guide: compare', description: 'Two flows or two runs side by side, the marks of what changed, a note, and the compare tag that makes a pair.' },
-  { file: 'guide/drafts.md', title: 'Guide: drafts', description: 'A sketch of a system or a flow in drafts/<id>/, kept apart from the model: making one, copying shapes into it, and the draft argument of every tool.' },
+  { file: 'guide/sketches.md', title: 'Guide: sketches', description: 'A sketch of a system or a flow in sketches/<id>/, kept apart from the model: making one, copying shapes into it, the sketch argument of every tool, and a line for each connection (pairs: separate).' },
   { file: 'guide/ai.md', title: 'Guide: AI and MCP', description: 'Setup, the tools, the prompts and what to ask for.' },
   { file: 'guide/share.md', title: 'Guide: check it and share it', description: 'The check command and exporting a read-only site.' },
   { file: 'guide/desktop.md', title: 'Guide: the desktop app', description: 'What the desktop app does and where it differs from the browser.' },
@@ -108,6 +109,13 @@ export function registerGuidance(server: McpServer): void {
     if (!existsSync(path)) continue
     server.registerResource(file.replace(/\.md$/, '').replace('/', '-'), `flowy://docs/${file}`, { title, description, mimeType: 'text/markdown' }, async uri => ({
       contents: [{ uri: uri.href, mimeType: 'text/markdown', text: await readFile(path, 'utf8') }],
+    }))
+  }
+  const sketches = `${docsDir}guide/sketches.md`
+  if (existsSync(sketches)) {
+    // The sketches guide was flowy://docs/guide/drafts.md. It still reads there, but a listing shows only the new address.
+    server.registerResource('guide-drafts', new ResourceTemplate('flowy://docs/guide/drafts.md', { list: undefined }), { title: 'Guide: sketches (old address)', description: 'Deprecated, read flowy://docs/guide/sketches.md.', mimeType: 'text/markdown' }, async uri => ({
+      contents: [{ uri: uri.href, mimeType: 'text/markdown', text: await readFile(sketches, 'utf8') }],
     }))
   }
 }

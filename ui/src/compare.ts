@@ -133,13 +133,13 @@ export function withDraft(drafts: Drafts, key: string, text: string | undefined,
 /** Whether leaving the page would lose a note: some pair, not just the one on show, has a draft that differs from what it held. */
 export const keepsDrafts = (drafts: Drafts): boolean => [...drafts.values()].some(d => unsaved(d.text, d.saved))
 
-/** What a click in a pane picked: a shape, or a line with the view its pane draws (the same two shapes can be joined differently in another view). */
-export type Picked = { kind: 'object'; id: string } | { kind: 'line'; from: string; to: string; view: string }
+/** What a click in a pane picked: a shape, or a line with the view its pane draws (the same two shapes can be joined differently in another view) and, where each connection has a line of its own, the line of the pair that was clicked. */
+export type Picked = { kind: 'object'; id: string } | { kind: 'line'; from: string; to: string; view: string; strand?: string }
 
 /** Whether the panel already shows what was clicked, so a second click on it closes the panel, as on the single canvas. */
-export function samePick(shown: { kind: string; id?: string; from?: string; to?: string; view?: string } | undefined, picked: Picked): boolean {
+export function samePick(shown: { kind: string; id?: string; from?: string; to?: string; view?: string; strand?: string } | undefined, picked: Picked): boolean {
   if (shown === undefined || shown.kind !== picked.kind) return false
-  return picked.kind === 'object' ? shown.id === picked.id : shown.from === picked.from && shown.to === picked.to && shown.view === picked.view
+  return picked.kind === 'object' ? shown.id === picked.id : shown.from === picked.from && shown.to === picked.to && shown.view === picked.view && shown.strand === picked.strand
 }
 
 /** A flow the player can play: it has steps and its view opens. Opening a comparison needs both flows to be one. */

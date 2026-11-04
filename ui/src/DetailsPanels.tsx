@@ -28,7 +28,7 @@ export function DetailsPanels({ model, view, side, open, comparing, editing, rec
       )}
       {open && side === undefined && view === ROOT && !comparing && <OverviewPanel model={model} totals={totals} editing={editing} run={run} onClose={onClose} />}
       {open && side?.kind === 'line' && (
-        <LinePanel model={model} view={side.view ?? view} from={side.from} to={side.to} editing={editing} problems={problems} run={run} onClose={onClose} onDelete={onDelete} />
+        <LinePanel model={model} view={side.view ?? view} from={side.from} to={side.to} strand={side.strand} editing={editing} problems={problems} run={run} onClose={onClose} onDelete={onDelete} onHover={onHover} focusLabel={side.focusLabel} />
       )}
       {editing && side?.kind === 'usedby' && (
         <UsedBy model={model} targets={side.targets} run={run} onFlag={onFlag}

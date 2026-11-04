@@ -1,0 +1,107 @@
+{
+  "lineStyle": "straight",
+  "projectName": "Bad pairs",
+  "projectAbout": "",
+  "objects": [
+    {
+      "id": "ui",
+      "type": "system",
+      "name": "UI"
+    },
+    {
+      "id": "management",
+      "type": "system",
+      "name": "Management"
+    }
+  ],
+  "connections": [
+    {
+      "from": "ui",
+      "to": "management",
+      "label": "Ask"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "ask",
+      "name": "Ask",
+      "view": "root",
+      "steps": [
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "The screen asks",
+          "via": "Ask",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management"
+        },
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "The screen asks again",
+          "via": "Tell",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management"
+        },
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "A via with no text",
+          "via": "",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management"
+        },
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "A blank via",
+          "via": "   ",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "model.yaml",
+      "message": "pairs can be merged or separate"
+    },
+    {
+      "file": "flows/ask.yaml",
+      "message": "step 2: \"via\" \"Tell\" matches no connection from ui to management",
+      "step": 1
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "ui",
+        "management"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "ui",
+          "to": "management",
+          "label": "Ask",
+          "count": 1
+        }
+      ]
+    }
+  }
+}

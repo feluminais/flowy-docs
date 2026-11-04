@@ -41,13 +41,19 @@ internal sealed class EditGestures
     /// <summary>The boxes picked now: the open box, or the several in the panel.</summary>
     internal IReadOnlyList<string> PickedBoxes() => _reader.Pick is ReaderView.Side.Boxes many ? many.Ids : SelectedBox is { } one ? [one] : [];
 
-    /// <summary>What the canvas shows while recording: the flow's steps so far, and the step being picked lit.</summary>
-    internal static Playing RecordingShown(Model model, string view, Recording rec)
+    /// <summary>
+    /// What the canvas shows while recording: the flow's steps so far, and the step being picked lit. Where a project draws a line for each connection, the line each step rides comes with it,
+    /// and for the step being picked the line a click on a line chose (<see cref="Recording.Via"/>), as the browser's useFlowStage does.
+    /// </summary>
+    internal static Playing RecordingShown(Model model, string view, Recording rec, string lineStyle = "straight")
     {
-        var done = (model.Flows.TryGetValue(rec.Id, out var flow) ? flow.Steps : []).Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList();
+        var steps = (model.Flows.TryGetValue(rec.Id, out var flow) ? flow.Steps : []).ToList();
+        var done = steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList();
         if (rec.From is null || rec.To is null) return new Playing(done);
-        done.Add(Views.PlaceStep(model, view, rec.From, rec.To == rec.From ? null : rec.To));
-        return new Playing(done, done.Count - 1);
+        var next = new Step(rec.From, rec.To == rec.From ? null : rec.To, "", null) { Via = rec.To == rec.From || string.IsNullOrEmpty(rec.Via) ? null : rec.Via };
+        steps.Add(next);
+        done.Add(Views.PlaceStep(model, view, next.From, next.To));
+        return new Playing(done, done.Count - 1, Strands: FlowStage.StrandsOf(model, view, new Flow(null, view, steps), done, lineStyle));
     }
 
     internal void OpenAdd()
@@ -86,7 +92,18 @@ internal sealed class EditGestures
     internal void PickBox(Recording rec, string id)
     {
         if (string.IsNullOrEmpty(rec.Id)) return; // still being named
-        _reader.Pick = new ReaderView.Side.Flow(rec.From is null || rec.To is not null ? rec with { From = id, To = null } : rec with { To = id });
+        _reader.Pick = new ReaderView.Side.Flow(rec.From is null || rec.To is not null ? rec with { From = id, To = null, Via = null } : rec with { To = id, Via = null }); // a line picked before is not the line of a step between other shapes
+        _reader.Refresh();
+    }
+
+    /// <summary>
+    /// A line clicked while recording, where each connection is a line of its own: the click picks the step's ends and the line it rides (its <c>via</c>, the label of the connection; none
+    /// when the connection has no label, then the step rides the first line that runs its way). Where a pair is one line the click does nothing.
+    /// </summary>
+    internal void PickLine(Recording rec, SceneEdge edge, string label)
+    {
+        if (string.IsNullOrEmpty(rec.Id) || edge.Pair is null) return;
+        _reader.Pick = new ReaderView.Side.Flow(rec with { From = edge.From, To = edge.To, Via = label == "" ? null : label });
         _reader.Refresh();
     }
 
@@ -94,7 +111,7 @@ internal sealed class EditGestures
     internal bool ResetPick()
     {
         if (Recording is not { From: not null } rec) return false;
-        _reader.Pick = new ReaderView.Side.Flow(rec with { From = null, To = null });
+        _reader.Pick = new ReaderView.Side.Flow(rec with { From = null, To = null, Via = null });
         _reader.Refresh();
         return true;
     }
@@ -153,11 +170,15 @@ internal sealed class EditGestures
         SetPicked(scene.Members.ToList());
     }
 
-    /// <summary>A line drawn from one box to another: a connection with no label, and its panel opens to type one. Only lines this view can show.</summary>
+    /// <summary>
+    /// A line drawn from one box to another: a connection with no label, and its panel opens to type one. Only lines this view can show. Where each connection has a line of its own (<c>pairs: separate</c>)
+    /// the label field takes the cursor at once, since a second connection the same way with no label would be a duplicate.
+    /// </summary>
     private async Task ConnectAsync(string from, string to)
     {
         if (_reader.Folder is not { } folder || !_edit.Editing || Views.PlaceEnds(folder.Model, _reader.CurrentView, from, to) is null) return;
-        if (await _edit.RunAsync(d => EditOps.Connect(d, new ConnectionInput(from, to)))) _reader.OpenLine(from, to);
+        var made = folder.Model.Connections.Count; // where the new connection goes
+        if (await _edit.RunAsync(d => EditOps.Connect(d, new ConnectionInput(from, to)))) _reader.OpenLine(from, to, folder.Model.Pairs == "separate" ? made : null);
     }
 
     /// <summary>

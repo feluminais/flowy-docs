@@ -43,6 +43,7 @@ internal sealed partial class ReaderView
         RefitBesidePanels();
         var nav = ShownTab is not null;
         if (_zoomButtons is not null) _zoomButtons.Margin = new Thickness(16 + (nav ? _panels.NavWidth : 0), 16, 16, 16);
+        _canvas.KindKeyLeft = 60 + (nav ? _panels.NavWidth : 0); // the key of the kinds stands beside the zoom buttons
         // The comparison keeps clear of both panels instead of fitting round them, so its panes (each with a zoom of its own) are never under one.
         _compareHost.Margin = new Thickness(nav ? _panels.NavWidth : 0, 0, _panel.IsVisible ? _panels.DetailsWidth : 0, 0);
         if (_notice is not null) _notice.Margin = NoticeMargin;
@@ -110,7 +111,7 @@ internal sealed partial class ReaderView
         else if (tab == PanelTab.Explorer)
         {
             _nav.Explorer.Update(model, _folder!.Problems, Editing, _panels.Expanded, view, SelectedBox, flow?.Id);
-            ShowDrafts();
+            ShowSketches();
         }
         else if (tab == PanelTab.Failures) _failures.Show(model, view);
         else if (tab == PanelTab.Yaml && _dir is not null) _nav.Yaml.Show(_dir, _folder!, Recording?.Id ?? flow?.Id, SelectedBox);

@@ -1,6 +1,7 @@
 namespace Flowy.Core;
 
-public readonly record struct Ends(string From, string To);
+/// <summary>A line between two boxes. <c>Lanes</c>, where a project draws a line for each connection (<c>pairs: separate</c>), is how many lines run side by side between them (1 for a single line).</summary>
+public readonly record struct Ends(string From, string To, int Lanes = 1);
 
 /// <summary>Where an outsider waits: in the column left or right of the members, or in the rows below or above.</summary>
 public enum Region { Left, Right, Below, Above }
@@ -30,7 +31,10 @@ public static class Layout
 
     private static readonly Region[] Regions = [Region.Left, Region.Right, Region.Below, Region.Above];
 
-    private readonly record struct Segment(double Ax, double Ay, double Bx, double By);
+    private readonly record struct Segment(double Ax, double Ay, double Bx, double By, int Lanes = 1);
+
+    /// <summary>How much room, in pixels, on each side of the line between the centres, the lanes of a bundle of <paramref name="lanes"/> take besides the line itself: half their span and 6 more. 0 for a single line.</summary>
+    private static double ReachOf(int lanes) => lanes > 1 ? (lanes - 1) * Lanes.Pitch / 2 + 6 : 0;
 
     /// <summary>Which side of the line through p and q the point r is on: 1, -1, or 0 when it's on the line.</summary>
     private static int Turn(double px, double py, double qx, double qy, double rx, double ry) => Math.Sign((qx - px) * (ry - py) - (qy - py) * (rx - px));
@@ -40,10 +44,14 @@ public static class Layout
         Turn(s.Ax, s.Ay, s.Bx, s.By, cx, cy) * Turn(s.Ax, s.Ay, s.Bx, s.By, dx, dy) < 0
         && Turn(cx, cy, dx, dy, s.Ax, s.Ay) * Turn(cx, cy, dx, dy, s.Bx, s.By) < 0;
 
-    /// <summary>Whether segment s runs through the box at p. The box is shrunk by 4px so a line grazing a corner doesn't count.</summary>
+    /// <summary>
+    /// Whether segment s runs through the box at p. The box is shrunk by 4px so a line grazing a corner doesn't count. A bundle of lanes is as wide as its lanes are spread: the box is widened by
+    /// that (half the span plus 6, see <see cref="ReachOf"/>), since a lane beside the line between the centres may run through it.
+    /// </summary>
     private static bool RunsThrough(Segment s, Pt p)
     {
-        double l = p.X + 4, t = p.Y + 4, r = p.X + BoxGeometry.BoxWidth - 4, b = p.Y + BoxGeometry.BoxHeight - 4;
+        var reach = ReachOf(s.Lanes);
+        double l = p.X + 4 - reach, t = p.Y + 4 - reach, r = p.X + BoxGeometry.BoxWidth - 4 + reach, b = p.Y + BoxGeometry.BoxHeight - 4 + reach;
         return Crosses(s, l, t, r, b) || Crosses(s, r, t, l, b);
     }
 
@@ -57,6 +65,7 @@ public static class Layout
         private readonly Dictionary<string, int> _index = [];
         private readonly Pt[] _at;
         private readonly (int From, int To)[] _lines;
+        private readonly int[] _lanes;
         private readonly List<int>[] _touching;
         private readonly Segment[] _segments;
 
@@ -65,7 +74,9 @@ public static class Layout
             var i = 0;
             foreach (var id in at.Keys) _index[id] = i++;
             _at = at.Values.ToArray();
-            _lines = edges.Where(e => e.From != e.To && _index.ContainsKey(e.From) && _index.ContainsKey(e.To)).Select(e => (_index[e.From], _index[e.To])).ToArray();
+            var kept = edges.Where(e => e.From != e.To && _index.ContainsKey(e.From) && _index.ContainsKey(e.To)).ToList();
+            _lines = kept.Select(e => (_index[e.From], _index[e.To])).ToArray();
+            _lanes = kept.Select(e => e.Lanes).ToArray();
             _touching = Enumerable.Range(0, _at.Length).Select(_ => new List<int>()).ToArray();
             _segments = new Segment[_lines.Length];
             for (var l = 0; l < _lines.Length; l++)
@@ -79,7 +90,7 @@ public static class Layout
         private void Recompute(int l)
         {
             var (a, b) = (_at[_lines[l].From], _at[_lines[l].To]);
-            _segments[l] = new Segment(a.X + Hx, a.Y + Hy, b.X + Hx, b.Y + Hy);
+            _segments[l] = new Segment(a.X + Hx, a.Y + Hy, b.X + Hx, b.Y + Hy, _lanes[l]);
         }
 
         public int IndexOf(string id) => _index[id];
@@ -109,7 +120,7 @@ public static class Layout
                         if (j == i || (moves[j] && j < i)) continue;
                         var m = _lines[j];
                         var shared = m.From == from || m.From == to || m.To == from || m.To == to;
-                        if (!shared && Crosses(_segments[i], _segments[j].Ax, _segments[j].Ay, _segments[j].Bx, _segments[j].By)) score++;
+                        if (!shared && Crosses(_segments[i], _segments[j].Ax, _segments[j].Ay, _segments[j].Bx, _segments[j].By)) score += _lanes[i] * _lanes[j]; // a crossing of bundles is every lane of one over every lane of the other
                     }
                 if (moves[i])
                 {
@@ -129,7 +140,8 @@ public static class Layout
     /// <summary>
     /// How tangled a layout looks: each pair of lines that cross (lines from the same box never do), plus each time a line runs through
     /// a box that isn't one of its ends. Lines are taken centre to centre. With <paramref name="moved"/>, it counts only what involves
-    /// those boxes, which is all a move of them can change.
+    /// those boxes, which is all a move of them can change. A line with <c>Lanes</c> is a bundle: a crossing of two bundles counts every lane of one against every lane of the other (N times M),
+    /// and a bundle runs through a box sooner than a single line, since its outer lanes are <see cref="ReachOf"/> away from it.
     /// </summary>
     public static int Tangle(OrderedDictionary<string, Pt> at, IReadOnlyList<Ends> edges, ISet<string>? moved = null)
     {
@@ -324,15 +336,30 @@ public static class Layout
     }
 
     /// <summary>
+    /// How many lines run side by side between the boxes of each pair of a view that draws a line for each connection (by <see cref="Views.LineKey"/>): its strands, no more than <see cref="Lanes.Most"/>, which is
+    /// what a pair draws before it folds its lines into trunks (where that happens depends on the room between the shapes, which is not known before they are placed). Pairs with a single line are left
+    /// out, and a view that draws one line for each pair has none, so a project that does not draw lines apart is placed as it always was.
+    /// </summary>
+    public static OrderedDictionary<string, int> LaneCounts(View view)
+    {
+        var counts = new OrderedDictionary<string, int>();
+        foreach (var s in view.Strands ?? []) counts[s.Pair] = counts.GetValueOrDefault(s.Pair) + 1;
+        var kept = new OrderedDictionary<string, int>();
+        foreach (var (pair, n) in counts)
+            if (n > 1) kept[pair] = Math.Min(n, Lanes.Most);
+        return kept;
+    }
+
+    /// <summary>
     /// Where every box of a view goes when nothing is saved. Finding the least tangled layout is NP-hard, so this settles for a good one. The
     /// layered layout starts from several orders of the boxes (as given, reversed, most lines first, then a few fixed shuffles), and the
     /// outsiders from two places (split between the side columns, or all in rows below). From each start, outsiders move between sides while
     /// that helps, then boxes trade places. The least tangled wins, the first on a tie, so a clean view keeps its side columns.
     /// </summary>
-    public static OrderedDictionary<string, Pt> Place(IReadOnlyList<string> members, IReadOnlyList<string> around, IReadOnlyList<Edge> edges, IReadOnlyDictionary<string, Region>? fixedSides = null)
+    public static OrderedDictionary<string, Pt> Place(IReadOnlyList<string> members, IReadOnlyList<string> around, IReadOnlyList<Edge> edges, IReadOnlyDictionary<string, Region>? fixedSides = null, IReadOnlyDictionary<string, int>? lanes = null)
     {
         fixedSides ??= new Dictionary<string, Region>();
-        var lines = edges.Select(e => new Ends(e.From, e.To)).ToList();
+        var lines = edges.Select(e => new Ends(e.From, e.To, lanes is not null && lanes.TryGetValue(Views.LineKey(e.From, e.To), out var n) ? n : 1)).ToList();
         int Degree(string id) => lines.Count(e => e.From == id || e.To == id);
         // Known limit: a big view tries one starting order with fewer passes, so it still opens without a pause.
         var big = (members.Count + around.Count) * lines.Count > 2000;

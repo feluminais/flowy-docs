@@ -53,6 +53,7 @@ internal sealed class SwapStage : Border, IFlowKeys
     {
         _keys = [.. keys];
         Classes.Add("pane");
+        _canvas.KindKeyAtTop = true; // the key of the kinds stands at the top: the foot is the player card's
         Classes.Add("swapstage");
         Focusable = false;
 
@@ -170,7 +171,7 @@ internal sealed class SwapStage : Border, IFlowKeys
         return side switch
         {
             ReaderView.Side.Box box => scene.Boxes.Any(b => b.Id == box.Id),
-            ReaderView.Side.Line line => line.View == scene.View && scene.Edges.Any(e => e.Id == SceneBuilder.LineId(line.From, line.To)),
+            ReaderView.Side.Line line => line.View == scene.View && scene.Edges.Any(e => e.PairId == SceneBuilder.LineId(line.From, line.To)),
             _ => true,
         };
     }
