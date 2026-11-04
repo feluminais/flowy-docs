@@ -41,6 +41,7 @@ test("the dash-dot of an extension point is core's, and a lit line (not one of s
   const dash = rulesFor('.react-flow__edge-path.dashdot')
   assert.equal(dash.length, 1)
   assert.equal(valueOf(dash[0].body, 'stroke-dasharray'), DASHES.dashdot.join(' '))
+  assert.equal(valueOf(dash[0].body, 'stroke-width'), '2', 'a dash-dot line is 2 wide where the others rest at 1.5, so it does not read dimmer than they do in the dark theme')
   const at = (selector: string) => rules.findIndex(r => r.selectors.includes(selector))
   const lit = rulesFor('.react-flow__edge.active .react-flow__edge-path')
   assert.equal(valueOf(lit[0].body, 'stroke-dasharray'), 'none', 'a lit line is solid')

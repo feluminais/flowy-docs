@@ -311,9 +311,9 @@ internal sealed class PlayerCard : Border
             {
                 var b = progress.Brackets[group];
                 var cells = Cells(b, inGroup[group]);
-                var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 0, 0, 2) };
+                var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(3, 0, 3, 2) };
                 label.Children.Add(Icons.Make(Icons.ForKind(b.Kind), "chipicon", 11));
-                label.Children.Add(new TextBlock { Text = b.Text, FontSize = 10.5, Classes = { "muted" } });
+                label.Children.Add(new TextBlock { Text = b.Text, FontSize = 10.5, TextTrimming = TextTrimming.CharacterEllipsis, Classes = { "muted" } });
                 var box = new Rectangle();
                 box.Classes.Add("box");
                 if (b.Maybe) box.Classes.Add("maybe");

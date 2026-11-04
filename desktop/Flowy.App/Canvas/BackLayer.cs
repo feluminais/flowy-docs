@@ -202,6 +202,19 @@ internal sealed class BackLayer : Control
     internal IReadOnlyList<string> DrawOrder() => InDrawOrder().Select(l => l.Edge.Id).ToList();
 
     /// <summary>
+    /// The box a label is drawn in: where it was placed, at the width this reader measured for its text. A label of a line among others was placed at the browser's width, so its end by the line stays where it was
+    /// placed (the left end for a label that runs to the right, the right end for one that runs to the left, the middle for one on its line) and the far end follows the text.
+    /// </summary>
+    private static CoreRect Placed(LabelItem item, LabelSpot spot, double measured)
+    {
+        var box = LineLabels.Around(spot.At, item);
+        if (item.Across is null) return box;
+        var width = measured + item.Extra;
+        var x = spot.Side > 0 ? box.X : spot.Side < 0 ? box.X + box.Width - width : spot.At.X - width / 2;
+        return box with { X = x, Width = width };
+    }
+
+    /// <summary>
     /// Where the labels on show go, as the browser places them: each slides along its line to the first place clear of the boxes and of the labels placed
     /// before it. A lit line's label and a lifted one stay at the middle of the line, and the others are placed round them.
     /// </summary>
@@ -215,10 +228,13 @@ internal sealed class BackLayer : Control
             var across = l.Edge.Lanes > 1 && l.Edge.Pair is not null
                 ? _lines.Where(o => o.Edge.Id != l.Edge.Id && o.Edge.Pair == l.Edge.Pair && o.Points is not null).Select(o => o.Points!).ToList()
                 : null;
-            return new LabelItem(l.Edge.Id, l.Path.Data, new CorePt(box.X + box.Width / 2, box.Y + box.Height / 2), box.Width, box.Height, pinned, across, across is null ? 0 : LineLabels.Sample, IsLifted(l.Edge) ? LineLabels.PipeClear : LineLabels.NextTo);
+            // The label of a line among others is placed by the width the browser counts for it (so the two readers leave out the same labels of a crowded pair) and drawn at the width this reader measures, see Placed.
+            var (width, height) = across is null ? (box.Width, box.Height) : (LineLabels.WidthOf(LineLabels.Clip(l.Edge.Label ?? "").Length), LineLabels.LabelHeight);
+            return new LabelItem(l.Edge.Id, l.Path.Data, new CorePt(box.X + box.Width / 2, box.Y + box.Height / 2), width, height, pinned, across, across is null ? 0 : LineLabels.Sample, IsLifted(l.Edge) ? LineLabels.PipeClear : LineLabels.NextTo, across is null ? null : l.Edge.Pair);
         }).ToList();
+        var measured = _lines.Where(l => l.Label is not null).ToDictionary(l => l.Edge.Id, l => l.Label!.Value.Width);
         var spots = LineLabels.PlaceSpots(items, _scene?.Boxes.Select(b => b.Rect).ToList() ?? []);
-        _labelAt = items.ToDictionary(i => i.Id, i => LineLabels.Around(spots[i.Id].At, i));
+        _labelAt = items.ToDictionary(i => i.Id, i => Placed(i, spots[i.Id], measured[i.Id]));
         _labelSide = spots.Where(e => e.Value.Side != 0).ToDictionary(e => e.Key, e => e.Value.Side);
         _labelHidden = spots.Where(e => e.Value.Hidden).Select(e => e.Key).ToHashSet();
         _labels = [.. _labelAt.Where(e => !_labelHidden.Contains(e.Key)).Select(e => e.Value)];
@@ -246,6 +262,9 @@ internal sealed class BackLayer : Control
 
     /// <summary>Where the labels showing now are, with their padding: what traffic runs under, as it runs under a shape.</summary>
     internal IReadOnlyList<CoreRect> LabelRects => _labels;
+
+    /// <summary>The labels on show of the lines of pairs side by side, the ones that run out to each side of a pair (for the camera, which brings them clear of the details panel).</summary>
+    internal IReadOnlyList<CoreRect> LaneLabelRects => [.. _lines.Where(l => l.Edge.Lanes > 1 && l.Edge.Pair is not null && !_labelHidden.Contains(l.Edge.Id) && _labelAt.ContainsKey(l.Edge.Id)).Select(l => _labelAt[l.Edge.Id])];
 
     /// <summary>The path data of a line as it is drawn now, for tests.</summary>
     internal string? PathOf(string edgeId) => _lines.FirstOrDefault(l => l.Edge.Id == edgeId)?.Path.Data;
@@ -452,7 +471,9 @@ internal sealed class BackLayer : Control
             brush = Brush(_failures.LitBand switch { RiskBand.High => "DangerBrush", RiskBand.Medium => "WarnBrush", _ => "MutedBrush" });
             thickness = 2.5;
         }
-        var dash = KindMarks.Dash(DashesOf(e.Flags, e.Look, _widths is not null), thickness);
+        var dashes = DashesOf(e.Flags, e.Look, _widths is not null);
+        if (dashes is not null && _widths is null && !lit && thickness < 2) thickness = 2; // a dash-dot line has about 6 tenths of the ink of a solid one, so it is a little wider than the 1.5 the others rest at (the browser's .dashdot)
+        var dash = KindMarks.Dash(dashes, thickness);
         using var opacity = context.PushOpacity(OpacityOf(e));
         if (ChangeOf(e) is { } change)
         {
@@ -464,7 +485,7 @@ internal sealed class BackLayer : Control
         // A trunk, several lines stacked as one: two hairlines behind its line, on its outer side, and a chip with the number of connections on its middle (not while its label shows there).
         if (line.Step is { } step) TrunkMarks.Hairlines(context, line.Geometry, brush, step);
         context.DrawGeometry(null, new Pen(brush, thickness, dash, PenLineCap.Flat), line.Geometry);
-        if (e.Trunk is { } trunk && !(e.Flags.HasFlag(EdgeFlags.Hover) && e.Label is not null)) TrunkMarks.Chip(context, trunk.Size, line.Path.Label, brush, Brush("BoxBrush"), Brush("FgBrush"));
+        if (e.Trunk is { } trunk && !(e.Flags.HasFlag(EdgeFlags.Hover) && e.Label is not null)) TrunkMarks.Chip(context, trunk.Size, line.Path.Label with { Y = line.Path.Label.Y + TrunkMarks.Stagger(e.Slot?.Lane ?? 0, e.Lanes) }, brush, Brush("BoxBrush"), Brush("FgBrush"));
 
         // The marks are Flowy's own shapes (Heads, Kinds.Marks), in the line's colour, as big as the browser draws them: scaled by the traffic width alone, which being picked or lit
         // does not change. A plain line has a filled head on its end (and on its start when connections run both ways); a line with a kind has the kind's head and, running one way,
@@ -525,10 +546,11 @@ internal sealed class BackLayer : Control
             var (x, y) = MotionMath.LabelOffset(b.Rect.X + b.Rect.Width / 2 - (a.Rect.X + a.Rect.Width / 2), b.Rect.Y + b.Rect.Height / 2 - (a.Rect.Y + a.Rect.Height / 2), text.Length);
             box = box with { X = box.X + x, Y = box.Y + y };
         }
-        context.DrawRectangle(Brush("BgBrush"), null, new Avalonia.Rect(box.X, box.Y, box.Width, box.Height), 2, 2);
+        // A label shown only because its line is pointed at sits over the lines round it, outlined (the browser's .lane-pill.revealed).
+        context.DrawRectangle(Brush("BgBrush"), hidden ? new Pen(Brush("LineBrush"), 1) : null, new Avalonia.Rect(box.X, box.Y, box.Width, box.Height), 2, 2);
         // A label that runs to the left of its line has the sample at its right end, so the sample is by the line.
         var flipped = found && _labelSide.TryGetValue(line.Edge.Id, out var side) && side < 0;
         if (sampled) LookSwatch.Sketch(context, line.Edge.Look ?? Kinds.PlainLook, false, Brush("EdgeBrush"), Brush("BgBrush"), flipped ? box.X + box.Width - sample + 6 : box.X + 4, flipped ? box.X + box.Width - 4 : box.X + sample - 6, box.Y + box.Height / 2);
-        context.DrawText(formatted, new Point(flipped ? box.X + 4 : box.X + 4 + sample, box.Y + 2));
+        context.DrawText(formatted, new Point(flipped ? box.X + 4 : box.X + 4 + sample, sampled ? box.Y + (box.Height - formatted.Height) / 2 : box.Y + 2));
     }
 }

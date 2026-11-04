@@ -217,13 +217,13 @@ export function dumpLaneLabels(style: LineStyle = 'straight'): unknown {
     const bundleLines = bundle(a, b, lanes, back, pose, style)
     const items: LabelItem[] = bundleLines.map((l, i) => ({
       id: `l${i}`, path: l.path, mid: { x: l.anchor[0], y: l.anchor[1] }, chars: clip('x'.repeat(chars[i])).length, pinned: pinned === i,
-      across: bundleLines.filter((_, k) => k !== i).map(o => o.points.map(([x, y]) => ({ x, y }))), extra: SAMPLE, ...(clear === undefined ? {} : { clear }),
+      across: bundleLines.filter((_, k) => k !== i).map(o => o.points.map(([x, y]) => ({ x, y }))), extra: SAMPLE, pair: 'a b', ...(clear === undefined ? {} : { clear }),
     }))
     const boxes = [a.rect, b.rect]
     const spots = placeLabels(items, boxes)
     return {
       name, a: boxJson(a), b: boxJson(b), lanes, back, spread: pose === SPREAD, ...(style === 'straight' ? {} : { style }), boxes,
-      items: items.map(i => ({ id: i.id, path: i.path, mid: i.mid, width: i.chars * CHAR + 10, height: 18, pinned: i.pinned === true, extra: i.extra, clear: i.clear ?? NEXT_TO, across: i.across })),
+      items: items.map(i => ({ id: i.id, path: i.path, mid: i.mid, width: i.chars * CHAR + 10, height: 18, pinned: i.pinned === true, extra: i.extra, clear: i.clear ?? NEXT_TO, pair: i.pair, across: i.across })),
       spots: items.map(i => spots.get(i.id)),
     }
   })

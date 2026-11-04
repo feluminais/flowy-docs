@@ -55,6 +55,12 @@ export function TrunkChip({ size, at }: { size: number; at: Point }) {
 /** How tall the chip of a trunk is (and the least it is wide). */
 export const CHIP_HEIGHT = 16
 
+/**
+ * How far from the middle of its line the chip of a trunk sits, among the trunks of a pair: the chips of neighbouring trunks (18 apart, and a chip is 16 wide) alternate 9 above and 9 below the middle,
+ * so they do not touch. A pair of one trunk keeps its chip on the middle.
+ */
+export const chipStagger = (lane: number, lanes: number): number => (lanes > 1 ? (lane % 2 === 0 ? -9 : 9) : 0)
+
 /** A lane a step plays on, as the canvas draws it: in the accent colour, a little thicker, with its head. */
 function InUseSwatch() {
   return <LookSwatch look={undefined} className="in-use" />

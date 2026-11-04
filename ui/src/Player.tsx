@@ -244,7 +244,7 @@ function Bar({ progress, now, stops, changes, clock, scrub }: { progress: Progre
         return (
           <div key={part.at} className={`stretch grp ${b.kind}${b.maybe ? ' maybe' : ''}`} style={{ flex: span }} title={b.title}>
             <div className="runs" style={{ gridTemplateColumns: `repeat(${span}, 1fr)`, gridTemplateRows: '4px' }}>{mine.map(c => cell(c, 1))}</div>
-            <span className="bracket"><Icon size={11} />{b.text}</span>
+            <span className="bracket"><Icon size={11} /><span>{b.text}</span></span>
           </div>
         )
       })}

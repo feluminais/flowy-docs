@@ -46,7 +46,7 @@ export function labelSpots(style: LineStyle, edges: Edge[], nodes: BoxNode[], li
       const points = laneAt(o)?.points
       return points ? [points] : []
     })
-    return [{ id: e.id, path, mid: { x, y }, chars: clip(e.label).length, pinned: e.className?.includes('active') || e.data?.lift === true, ...(across === undefined ? {} : { across, extra: SAMPLE, ...(e.data?.lift === true ? { clear: PIPE_CLEAR } : {}) }) }]
+    return [{ id: e.id, path, mid: { x, y }, chars: clip(e.label).length, pinned: e.className?.includes('active') || e.data?.lift === true, ...(across === undefined ? {} : { across, extra: SAMPLE, pair: pairOf(e), ...(e.data?.lift === true ? { clear: PIPE_CLEAR } : {}) }) }]
   })
   return placeLabels(items, boxes)
 }

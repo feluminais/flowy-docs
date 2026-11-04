@@ -56,6 +56,9 @@ internal static class TrunkMarks
     /// <summary>How tall a chip is (and the least it is wide).</summary>
     internal const double ChipHeight = 16;
 
+    /// <summary>How far from the middle of its line the chip of a trunk sits among the trunks of a pair: neighbouring chips alternate 9 above and 9 below, so they do not touch. A pair of one trunk keeps its chip on the middle.</summary>
+    internal static double Stagger(int lane, int lanes) => lanes > 1 ? (lane % 2 == 0 ? -9 : 9) : 0;
+
     /// <summary>How wide a chip with this number is: 8 px and 6 for each digit, no less than it is tall.</summary>
     internal static double ChipWidth(int size) => Math.Max(ChipHeight, 8 + 6 * size.ToString(CultureInfo.InvariantCulture).Length);
 

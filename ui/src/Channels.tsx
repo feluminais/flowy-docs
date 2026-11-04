@@ -27,6 +27,8 @@ const GAP = 4
 /** The dots of a stream are a dash every 12 px (see .stream-dots in style.css) and a loop of them takes 0.7 s: a phase in px is that many 12ths of a loop. */
 const DASH_PERIOD = 12
 const LOOP_S = 0.7
+/** How far the name of a stream stands from a line that runs up and down, so the dots do not run through the word (the desktop's ChannelDraw.NameGap is the same). Over a line that runs across it stands 16 above. */
+const NAME_GAP = 12
 
 /** The drawing inside a disc: a bell for a listener, a turning arc for a job. Centred on the origin. */
 function Glyph({ kind }: { kind: Exclude<ChannelKind, 'stream'> }) {
@@ -58,7 +60,7 @@ function OneChannel({ open, slot }: { open: OpenChannel; slot: number }) {
   const from = useInternalNode(placed[0])
   const to = useInternalNode(placed[1])
   const route = useRef<SVGPathElement>(null)
-  const [laid, setLaid] = useState<{ x: number; y: number; after: number }>()
+  const [laid, setLaid] = useState<{ x: number; y: number; after: number; steep: boolean }>()
   // Its line moves when a step plays on a line beside it: the pair parts around the lit line (see parts.ts), and the dots follow their line.
   const parts = useContext(PartsContext)
   const pair = open.strand?.pair
@@ -71,13 +73,15 @@ function OneChannel({ open, slot }: { open: OpenChannel; slot: number }) {
     const length = path.getTotalLength()
     const mid = path.getPointAtLength(length / 2)
     const waits = (c.opening || c.closing) && motion !== undefined
-    setLaid({ x: mid.x, y: mid.y, after: waits ? beatsFor(motion, { length, afterLanding: false }).total : 0 })
+    const [before, after] = [path.getPointAtLength(Math.max(0, length / 2 - 2)), path.getPointAtLength(Math.min(length, length / 2 + 2))]
+    setLaid({ x: mid.x, y: mid.y, after: waits ? beatsFor(motion, { length, afterLanding: false }).total : 0, steep: Math.abs(after.y - before.y) > Math.abs(after.x - before.x) })
   }, [d, c.opening, c.closing, motion])
 
   if (!from || !to) return null
   const at = c.end === 'to' ? to : from
   const r = rect(at)
   const badge = { x: r.x + r.width - DISC - GAP - slot * (2 * DISC + GAP), y: r.y }
+  const nameSide = open.strand !== undefined && open.strand.slot.lanes > 1 && open.strand.slot.lane * 2 < open.strand.slot.lanes - 1 ? -1 : 1 // the left lanes of a pair have it on the left, the rest on the right
   const among = open.strand !== undefined && open.strand.slot.lanes > 1 // one of several lines side by side: the tether is thicker, and the dots of neighbouring streams do not march in step
   const classes = ['channels', c.kind, c.end === 'from' ? 'reverse' : '', c.opening ? 'opening' : '', c.closing ? 'closing' : '', among ? 'bundled' : ''].filter(Boolean).join(' ')
   const wait = { '--after': `${laid?.after ?? 0}ms`, ...(among ? { '--phase': `${-Math.round((dashPhase(open.strand!.slot) / DASH_PERIOD) * LOOP_S * 1000) / 1000}s` } : {}) } as CSSProperties
@@ -96,7 +100,10 @@ function OneChannel({ open, slot }: { open: OpenChannel; slot: number }) {
             {c.name !== undefined && <text className="label" y={-DISC - 10} textAnchor="middle" dominantBaseline="central">{c.name}</text>}
           </g>
         )}
-        {c.kind === 'stream' && c.name !== undefined && laid && <text className="label" x={laid.x} y={laid.y - 16} textAnchor="middle" dominantBaseline="central">{c.name}</text>}
+        {c.kind === 'stream' && c.name !== undefined && laid && (laid.steep
+          // A line that runs up and down has its name beside it, on the side away from the lines of its pair that are further out; across, above it.
+          ? <text className="label" x={laid.x + nameSide * NAME_GAP} y={laid.y} textAnchor={nameSide < 0 ? 'end' : 'start'} dominantBaseline="central">{c.name}</text>
+          : <text className="label" x={laid.x} y={laid.y - 16} textAnchor="middle" dominantBaseline="central">{c.name}</text>)}
       </svg>
     </ViewportPortal>
   )

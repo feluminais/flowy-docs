@@ -1143,6 +1143,16 @@ internal sealed class CanvasView : Border
         if (Camera.PanIntoView(all, _viewport, base.Bounds.Width, base.Bounds.Height, panel, 24, Math.Min(nav, base.Bounds.Width)) is { } to) MoveTo(to, milliseconds);
     }
 
+    /// <summary>Pans just far enough that the labels of the lines of a pair side by side, which run out to each side of the pair past its shapes, are clear of the details panel and the navigator, as the browser's Camera does.</summary>
+    public void RevealLabels(double panel = Camera.Panel, double nav = 0, double milliseconds = 200)
+    {
+        var rects = _back.LaneLabelRects;
+        if (rects.Count == 0) return;
+        var (x, y) = (rects.Min(r => r.X), rects.Min(r => r.Y));
+        var all = new Flowy.Core.Rect(x, y, rects.Max(r => r.Right) - x, rects.Max(r => r.Bottom) - y);
+        if (Camera.PanIntoView(all, _viewport, base.Bounds.Width, base.Bounds.Height, panel, 24, Math.Min(nav, base.Bounds.Width)) is { } to) MoveTo(to, milliseconds);
+    }
+
     public void ZoomBy(double factor)
     {
         _fitOnResize = false;

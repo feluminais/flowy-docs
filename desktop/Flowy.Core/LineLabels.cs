@@ -5,9 +5,9 @@ namespace Flowy.Core;
 /// <c>Height</c>: the label's box with its padding. <c>Pinned</c>: the label stays at <c>Mid</c> and the others keep clear of it (a lit line's label). <c>Across</c>: the other lines of the pair
 /// this line is one of, as the points they are made of; the label keeps off them if it can, and is never stacked above or below the middle. <c>Extra</c>: width in pixels the label has besides
 /// its text (the sample of its line that starts the label of a line of a pair side by side, see <see cref="LineLabels.Sample"/>). <c>Clear</c>: for a lit line of a pair side by side, the clear space its label keeps
-/// from the line (a step's pipe is wider than the line, see <see cref="LineLabels.PipeClear"/>).
+/// from the line (a step's pipe is wider than the line, see <see cref="LineLabels.PipeClear"/>). <c>Pair</c>: which pair of shapes the line is one of, so the labels that run to one side of the pair share its rows.
 /// </summary>
-public sealed record LabelItem(string Id, string Path, Pt Mid, double Width, double Height, bool Pinned = false, IReadOnlyList<IReadOnlyList<Pt>>? Across = null, double Extra = 0, double Clear = LineLabels.NextTo);
+public sealed record LabelItem(string Id, string Path, Pt Mid, double Width, double Height, bool Pinned = false, IReadOnlyList<IReadOnlyList<Pt>>? Across = null, double Extra = 0, double Clear = LineLabels.NextTo, string? Pair = null);
 
 /// <summary>
 /// Where a label's middle goes. <c>Side</c> is -1 for the label of a line among others that sits beside its line and runs to the left of it, 1 where it runs to the right, and 0 where it sits on its line; the sample of the line
@@ -25,6 +25,9 @@ public static class LineLabels
 {
     /// <summary>The clear space kept between two labels, one above the other.</summary>
     private const double Apart = 3;
+
+    /// <summary>The same between two labels beside the lines of a pair: 2, so that four rows of them fit in the 90 px a pair of eight lanes has between its shapes.</summary>
+    private const double RowApart = 2;
 
     /// <summary>The clear space kept between two labels side by side, about four characters with the padding.</summary>
     private const double RowGap = 16;
@@ -54,8 +57,12 @@ public static class LineLabels
     /// <summary>How far from each end of its line a label beside it stays, so it is clear of the heads and of the shape.</summary>
     private const double HeadRoom = 6;
 
-    /// <summary>The rows beside the lines tried each way from the middle, in the order tried.</summary>
-    private static readonly int[] Rows = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8];
+    /// <summary>
+    /// The rows beside the lines tried each way from the middle, in label heights from it and in the order tried: whole rows where the labels that run to one side are an odd number, half rows where they are an even number, so the labels
+    /// of one side pack into the fewest rows centred on the lines.
+    /// </summary>
+    private static readonly double[] RowsWhole = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8];
+    private static readonly double[] RowsHalf = [0.5, -0.5, 1.5, -1.5, 2.5, -2.5, 3.5, -3.5, 4.5, -4.5, 5.5, -5.5, 6.5, -6.5, 7.5, -7.5, 8.5, -8.5];
 
     private const double OnBox = 1e6;
     private const double PerStep = 10;
@@ -66,6 +73,11 @@ public static class LineLabels
 
     /// <summary>The cost of a label over the lit line of its pair, which a step plays along: far dearer than over another line, for a lit line is the one to see.</summary>
     private const double OnLit = 1e4;
+
+    /// <summary>How wide a label of this many characters is to the browser's layout (6.2 a character and 10 of padding), and how tall: a pair of lines side by side is placed at these in both readers (ui/src/labels.ts).</summary>
+    public static double WidthOf(int chars) => chars * 6.2 + 10;
+
+    public const double LabelHeight = 18;
 
     /// <summary>The width of the sample of a line (its pattern and marks) that starts the label of a line of a pair side by side, with the space after it.</summary>
     public const double Sample = 34;
@@ -224,11 +236,24 @@ public static class LineLabels
         }
         // The lit lines of the pairs side by side: the label of another line of a pair keeps off them, and has no place at all where that is the only way.
         var lit = items.Where(i => i.Pinned && i.Across is not null).Select(i => PointsOf(i.Path)).ToList();
-        // OrderBy is a stable sort, as Array.prototype.sort is: labels of one width keep the order they came in.
-        foreach (var item in items.Where(i => !i.Pinned).OrderByDescending(i => i.Width))
+        // The labels of lines alone go first, widest first (the hardest to fit). The labels of the lines of a pair side by side follow in the order the lines came, whatever their widths: a reader that
+        // measures its text gets other widths than one that counts characters, and the two must leave out the same lines of a crowded pair. OrderBy is a stable sort, as Array.prototype.sort is.
+        var free = items.Where(i => !i.Pinned).ToList();
+        var movable = free.Where(i => i.Across is null).OrderByDescending(i => i.Width).Concat(free.Where(i => i.Across is not null)).ToList();
+        // How many labels run to each side of each pair, to tell whether they share whole rows or half rows.
+        var crowd = new Dictionary<(string, int), int>();
+        foreach (var item in movable.Where(i => i.Across is not null))
+        {
+            var key = (item.Pair ?? "", Outward(item));
+            crowd[key] = crowd.GetValueOrDefault(key) + 1;
+        }
+        foreach (var item in movable)
         {
             var line = PathPoints.Flatten(item.Path);
             var points = PointsOf(item.Path);
+            var apart = item.Across is null ? Apart : RowApart;
+            var minY = points.Min(p => p.Y);
+            var maxY = points.Max(p => p.Y);
             var candidates = new List<(Pt At, int Side, double Cost)>();
             foreach (var s in Along)
             {
@@ -242,12 +267,10 @@ public static class LineLabels
             {
                 // Beside the line only where the line runs up and down enough for a label to sit by it, level with the line and clear of the heads at its ends (or at the middle where the line is too short for rows).
                 var side = Outward(item);
-                var minY = points.Min(p => p.Y);
-                var maxY = points.Max(p => p.Y);
-                foreach (var k in Rows)
+                foreach (var k in crowd.GetValueOrDefault((item.Pair ?? "", side)) % 2 == 0 ? RowsHalf : RowsWhole)
                 {
                     // Each row is by the line where the line is level with it (a line that slants has its rows shifted along it).
-                    var level = k == 0 ? item.Mid : Abreast(points, item.Mid.Y + k * (item.Height + Apart), item.Mid.X, side, item.Height);
+                    var level = k == 0 ? item.Mid : Abreast(points, item.Mid.Y + k * (item.Height + RowApart), item.Mid.X, side, item.Height);
                     if (level is not { } found) continue;
                     var at = Next(found, item.Width + item.Extra, side, NextTo);
                     var label = Around(at, item);
@@ -264,7 +287,7 @@ public static class LineLabels
                 var onBoxes = 0.0;
                 foreach (var b in boxes) onBoxes += Overlap(label, b) > 0 ? OnBox : 0;
                 var onLabels = 0.0;
-                foreach (var p in placed) onLabels += Overlap(label, p, RowGap, Apart);
+                foreach (var p in placed) onLabels += Overlap(label, p, RowGap, apart);
                 var onLanes = 0.0;
                 foreach (var other in item.Across ?? []) onLanes += Touches(label, other) ? OnLane : 0;
                 var cost = c.Cost + onBoxes + onLabels + onLanes + (item.Across is null ? 0 : lit.Count(l => Touches(label, l))) * OnLit;
@@ -276,8 +299,11 @@ public static class LineLabels
                 if (cost == c.Cost) break; // clear: the first such place is the one nearest the middle
             }
             var chosen = Around(best.At, item);
-            // A line of a pair side by side whose label finds no place clear of the boxes, of the labels placed and of the lit line of its pair has no label drawn.
-            if (item.Across is not null && (boxes.Any(b => Overlap(chosen, b) > 0) || placed.Any(p => Overlap(chosen, p, RowGap, Apart) > 0) || lit.Any(l => Touches(chosen, l)) || !Near(chosen, points)))
+            // A line of a pair side by side has no label drawn where its label finds no place clear of the boxes, of the labels placed and of the lit line of its pair, none near its own line, or, where the pair
+            // runs up and down, only a place on the lines (over its own line and its neighbours').
+            var upAndDown = maxY - minY > points.Max(p => p.X) - points.Min(p => p.X);
+            var beside = best.Side != 0;
+            if (item.Across is not null && (boxes.Any(b => Overlap(chosen, b) > 0) || placed.Any(p => Overlap(chosen, p, RowGap, apart) > 0) || lit.Any(l => Touches(chosen, l)) || !Near(chosen, points) || (upAndDown && !beside && item.Across.Any(o => Touches(chosen, o)))))
             {
                 spots[item.Id] = new LabelSpot(best.At, best.Side, true);
                 continue;
