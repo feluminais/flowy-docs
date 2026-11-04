@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
-import { newDraft } from '../src/core/drafts.ts'
+import { newSketch } from '../src/core/sketches.ts'
 import type { Model } from '../src/core/model.ts'
 import { createMcpServer } from '../src/node/mcp.ts'
 import { shop } from './fixtures.ts'
@@ -107,11 +107,11 @@ test('a file with a kind that is none of the six loads, says so in get_problems,
   assert.deepEqual(view.edges, [{ from: 'ui', to: 'management', label: 'a', count: 1 }])
 })
 
-test('a draft made from the model keeps the kinds of the connections it copies', () => {
+test('a sketch made from the model keeps the kinds of the connections it copies', () => {
   const model: Model = { ...shop(), connections: [{ from: 'web', to: 'api', label: 'REST', kind: 'request' }, { from: 'api', to: 'db', label: 'saves' }, { from: 'api', to: 'mail', label: 'hook', kind: 'extension' }] }
-  const draft = newDraft(model, { name: 'Sketch', copy: ['web', 'api', 'db'] })
-  assert.deepEqual(draft.connections, [{ from: 'web', to: 'api', label: 'REST', kind: 'request' }, { from: 'api', to: 'db', label: 'saves' }])
-  // A copy, not the same object: changing the draft does not change the model.
-  draft.connections[0].kind = 'stream'
+  const sketch = newSketch(model, { name: 'Sketch', copy: ['web', 'api', 'db'] })
+  assert.deepEqual(sketch.connections, [{ from: 'web', to: 'api', label: 'REST', kind: 'request' }, { from: 'api', to: 'db', label: 'saves' }])
+  // A copy, not the same object: changing the sketch does not change the model.
+  sketch.connections[0].kind = 'stream'
   assert.equal(model.connections[0].kind, 'request')
 })

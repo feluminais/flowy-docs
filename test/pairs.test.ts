@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { check } from '../src/core/check.ts'
-import { newDraft } from '../src/core/drafts.ts'
+import { newSketch } from '../src/core/sketches.ts'
 import { describeEdit } from '../src/core/editlabel.ts'
 import { emptyModel, pairMode } from '../src/core/model.ts'
 import type { Model } from '../src/core/model.ts'
@@ -266,13 +266,13 @@ test('viaBroken lists the steps whose via names nothing after a change, and none
   assert.deepEqual(viaBroken(model, model), [])
 })
 
-test('a new draft is made with pairs: separate, empty or copied', () => {
-  const draft = newDraft(wlan({ pairs: undefined }), { name: 'Sketch', copy: ['ui', 'management'] })
-  assert.equal(draft.meta.pairs, 'separate')
-  assert.deepEqual(Object.keys(draft.meta).slice(0, 2), ['name', 'pairs'])
-  assert.equal(draft.connections.length, 4)
-  assert.deepEqual(newDraft(emptyModel(), { name: 'Blank' }).meta, { name: 'Blank', pairs: 'separate' })
-  assert.deepEqual(newDraft(emptyModel(), { name: 'Blank', about: 'Try.' }).meta, { name: 'Blank', about: 'Try.', pairs: 'separate' })
+test('a new sketch is made with pairs: separate, empty or copied', () => {
+  const sketch = newSketch(wlan({ pairs: undefined }), { name: 'Sketch', copy: ['ui', 'management'] })
+  assert.equal(sketch.meta.pairs, 'separate')
+  assert.deepEqual(Object.keys(sketch.meta).slice(0, 2), ['name', 'pairs'])
+  assert.equal(sketch.connections.length, 4)
+  assert.deepEqual(newSketch(emptyModel(), { name: 'Blank' }).meta, { name: 'Blank', pairs: 'separate' })
+  assert.deepEqual(newSketch(emptyModel(), { name: 'Blank', about: 'Try.' }).meta, { name: 'Blank', about: 'Try.', pairs: 'separate' })
 })
 
 test('disconnect with no label is refused where each connection is a line of its own and several run between the two, and lists the labels', () => {

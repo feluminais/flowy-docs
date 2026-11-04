@@ -247,7 +247,7 @@ public class FocusTests
     }
 
     [AvaloniaFact]
-    public void Esc_on_a_new_draft_name_puts_the_keyboard_back_on_New()
+    public void Esc_on_a_new_sketch_name_puts_the_keyboard_back_on_New()
     {
         using var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
@@ -259,7 +259,7 @@ public class FocusTests
         reader.Load(FolderLoader.Load(dir), dir);
         reader.ClickRail(PanelTab.Explorer);
         EditModeTests.Settle(window);
-        var group = reader.DraftsGroup;
+        var group = reader.SketchesGroup;
         group.PressNew();
         EditModeTests.Settle(window);
         Assert.Same(group.NameBox, Focused(window));

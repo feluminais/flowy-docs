@@ -351,7 +351,7 @@ public class SceneParityTests
         var scenes = ScenesJson()["scenes"]!.AsArray();
         Assert.True(scenes.Count > 30);
         Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["look"] is not null)); // the kinds case: a line's look is part of what the scene decides
-        Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["spread"] is not null)); // the draft-lanes case: a pair of lines side by side spreads while it is picked
+        Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["spread"] is not null)); // the separate-lanes case: a pair of lines side by side spreads while it is picked
         Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["trunk"] is not null)); // the trunks case: a pair with more lines than fit is drawn as trunks
         Assert.Contains(scenes, s => s!["drawing"]?["opened"] is not null); // and a selected line opens the trunks of its pair
         foreach (var s in scenes)

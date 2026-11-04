@@ -1,5 +1,5 @@
 import type { Problem } from '../../src/core/problem.ts'
-import type { DraftInfo } from '../../src/core/drafts.ts'
+import type { SketchInfo } from '../../src/core/sketches.ts'
 import { describeEdit } from '../../src/core/editlabel.ts'
 import { fallbackLabel, MAX_STEP_LABEL } from '../../src/core/history.ts'
 import { fileData, isRemovableFile } from '../../src/core/modelfiles.ts'
@@ -18,8 +18,8 @@ const text = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 type Loaded = {
   model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; runs: Record<string, Run>; runProblems: Problem[]; failureProblems: Problem[]
-  /** The model folder's drafts (none in a draft), and, in a draft, the name of the model it belongs to. */
-  drafts: DraftInfo[]; draft?: { of: string }
+  /** The model folder's sketches (none in a sketch), and, in a sketch, the name of the model it belongs to. */
+  sketches: SketchInfo[]; sketch?: { of: string }
 }
 const loaded = new WeakMap<State, Loaded>()
 
@@ -33,7 +33,7 @@ export function fromState(state: State): Loaded {
     throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
   }
   let made = loaded.get(state)
-  if (!made) loaded.set(state, (made = { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [], failureProblems: state.failureProblems ?? [], drafts: state.drafts ?? [], ...(state.draft ? { draft: state.draft } : {}) }))
+  if (!made) loaded.set(state, (made = { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [], failureProblems: state.failureProblems ?? [], sketches: state.sketches ?? [], ...(state.sketch ? { sketch: state.sketch } : {}) }))
   return made
 }
 

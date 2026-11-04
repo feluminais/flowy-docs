@@ -52,7 +52,7 @@ reads the way the code works.
 Saving rewrites the file, so YAML comments in `model.yaml` and flow files aren't kept. Put
 notes in an object's `description` instead.
 
-**The tools.** The server has twenty-nine. What `get_model` shows can be sent straight back to the tool that writes it. Every tool but the three draft tools also takes `draft`, a draft's id, and then reads or writes that draft instead of the model ([Drafts](drafts.md)).
+**The tools.** The server has thirty-two. What `get_model` shows can be sent straight back to the tool that writes it. Every tool but the three sketch tools also takes `sketch`, a sketch's id, and then reads or writes that sketch instead of the model ([Sketches](sketches.md)). Three of the thirty-two are old names, listed last, that keep older setups working.
 
 | Tool | Does |
 | --- | --- |
@@ -75,8 +75,9 @@ notes in an object's `description` instead.
 | `put_icon`, `delete_icon` | Your own icon, or removes one nothing uses |
 | `tidy_layout` | Puts the faded shapes of each view on the side they have in the view above, so zooming across never leads the same way twice, and saves it in `layout.yaml`. A view that already agrees is left as it is. `view` limits it to one view, and `check: true` only lists what is on the wrong side. Ask for it once, when the shapes and connections are in |
 | `set_compare` | The `compare` of a flow or a run: the older one it is compared with, and a note. Leave `with` out to remove it |
-| `get_drafts` | The drafts of the model, with their ids and names |
-| `new_draft`, `delete_draft` | A draft in `drafts/<id>/`, empty or starting with copies of the shapes `copy` names, the shapes they sit in and the lines between them, drawn with a line for each connection; or removes one with every file in it. The model is not touched |
+| `get_sketches` | The sketches of the model, with their ids and names |
+| `new_sketch`, `delete_sketch` | A sketch in `sketches/<id>/`, empty or starting with copies of the shapes `copy` names, the shapes they sit in and the lines between them, drawn with a line for each connection; or removes one with every file in it. The model is not touched |
+| `get_drafts`, `new_draft`, `delete_draft` | The old names of the three above, from when sketches were called drafts. They do the same, and every tool still takes `draft` in place of `sketch`. Use the new names |
 
 Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those, and `set_compare` is the one thing over MCP that changes a run) and the positions you drag, which are the canvas's. `tidy_layout` is the one thing over MCP that writes `layout.yaml`.
 

@@ -158,7 +158,7 @@ public class PartsTests
     [Fact]
     public void A_stop_asks_each_pair_for_its_lit_lanes_and_the_earliest_part_beat()
     {
-        var model = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "draft-lanes", "flowy")).Model;
+        var model = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "separate-lanes", "flowy")).Model;
         var strands = Views.Compute(model, "root").Strands!;
         var all = Parts()["plans"]!.AsArray();
         Assert.Equal(6, all.Count);

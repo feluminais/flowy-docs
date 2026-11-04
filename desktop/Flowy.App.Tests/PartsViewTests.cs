@@ -10,14 +10,14 @@ using CoreRect = Flowy.Core.Rect;
 namespace Flowy.App.Tests;
 
 /// <summary>
-/// How the desktop plays a flow on a project that draws a line for each connection (desktop/fixtures/cases/draft-lanes): the lines of the pair a step rides part around the lit one by the player's
+/// How the desktop plays a flow on a project that draws a line for each connection (desktop/fixtures/cases/separate-lanes): the lines of the pair a step rides part around the lit one by the player's
 /// clock, the other lines of the pair are its kin, what runs along the lit line (the dot, a stream, the marks of an outcome) follows it, and a payload card sits beside the dot where it is. The poses,
 /// the beats and the plans are core's, which the fixtures pin against the browser (PartsTests); these hold what the app does with them. Headless: no window opens, and a clock the test moves by hand
 /// stands in for the player's; nothing here plays in real time.
 /// </summary>
 public class PartsViewTests
 {
-    private static string Dir => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "draft-lanes", "flowy");
+    private static string Dir => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "separate-lanes", "flowy");
 
     private const string Pair = "management ui"; // the pair of five lines: Request and reply, Start scan, Set country (one way), Scan results, Radio state (the other)
 

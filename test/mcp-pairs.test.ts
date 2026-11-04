@@ -103,11 +103,11 @@ test('disconnect is refused while a step names the connection with via, and says
   assert.equal((await call('disconnect', { from: 'ui', to: 'management', label: 'Request and reply' })).error, false)
 })
 
-test('new_draft makes a draft that draws a line for each connection', async t => {
+test('new_sketch makes a sketch that draws a line for each connection', async t => {
   const { dir, call } = await setup(t)
-  assert.equal((await call('new_draft', { id: 'wlan', name: 'WLAN', copy: ['ui', 'management'] })).error, false)
-  assert.match(await readFile(join(dir, 'drafts', 'wlan', 'model.yaml'), 'utf8'), /^pairs: separate\r?$/m)
-  const view = JSON.parse((await call('get_view', { draft: 'wlan', view: 'root' })).text)
+  assert.equal((await call('new_sketch', { id: 'wlan', name: 'WLAN', copy: ['ui', 'management'] })).error, false)
+  assert.match(await readFile(join(dir, 'sketches', 'wlan', 'model.yaml'), 'utf8'), /^pairs: separate\r?$/m)
+  const view = JSON.parse((await call('get_view', { sketch: 'wlan', view: 'root' })).text)
   assert.equal(view.strands.length, 3)
   assert.doesNotMatch(await readFile(join(dir, 'model.yaml'), 'utf8'), /pairs/) // the model keeps one line for each pair
 })

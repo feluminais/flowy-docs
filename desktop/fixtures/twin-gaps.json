@@ -33,13 +33,6 @@
     "MIN_SCORE",
     "YAML_BUT_CODE"
   ],
-  "drafts": [
-    "DRAFTS_FOLDER",
-    "draftFolder",
-    "draftModelId",
-    "isDraftId",
-    "splitDraftModelId"
-  ],
   "failures": [
     "BAND_NAMES",
     "RATING_KEYS",
@@ -143,6 +136,14 @@
     "stepPrefix",
     "withoutStep"
   ],
+  "sketches": [
+    "LEGACY_DRAFTS_FOLDER",
+    "SKETCHES_FOLDER",
+    "isSketchId",
+    "sketchFolder",
+    "sketchModelId",
+    "splitSketchModelId"
+  ],
   "snippets": [
     "SNIPPET_MAX",
     "codeLines",
@@ -157,14 +158,6 @@
     "commitEdit",
     "firstBlocked",
     "firstUnreadable"
-  ],
-  "src/node/drafts": [
-    "draftDir",
-    "hasDraft",
-    "listDrafts",
-    "modelOfDraft",
-    "nameOfModel",
-    "repoOf"
   ],
   "src/node/files": [
     "OutsideFolder",
@@ -198,6 +191,15 @@
     "entryOf",
     "findModels",
     "scanModels"
+  ],
+  "src/node/sketches": [
+    "hasSketch",
+    "listSketches",
+    "modelOfSketch",
+    "nameOfModel",
+    "repoOf",
+    "sketchDir",
+    "sketchFolderIn"
   ],
   "states": [
     "isStateName",

@@ -8,7 +8,7 @@ export const LINE_STYLES = ['straight', 'curved', 'angled'] as const
 export type LineStyle = (typeof LINE_STYLES)[number]
 /**
  * Whether a pair of shapes is drawn as one line or as one line for each connection. A project picks one with a top-level `pairs:` in model.yaml; without it, merged
- * (one line between two shapes, however many connections run between them). A draft made by new_draft starts as separate.
+ * (one line between two shapes, however many connections run between them). A sketch made by new_sketch starts as separate.
  */
 export const PAIR_MODES = ['merged', 'separate'] as const
 export type PairMode = (typeof PAIR_MODES)[number]
