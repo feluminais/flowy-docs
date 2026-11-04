@@ -153,11 +153,15 @@ internal sealed class EditGestures
         SetPicked(scene.Members.ToList());
     }
 
-    /// <summary>A line drawn from one box to another: a connection with no label, and its panel opens to type one. Only lines this view can show.</summary>
+    /// <summary>
+    /// A line drawn from one box to another: a connection with no label, and its panel opens to type one. Only lines this view can show. Where each connection has a line of its own (<c>pairs: separate</c>)
+    /// the label field takes the cursor at once, since a second connection the same way with no label would be a duplicate.
+    /// </summary>
     private async Task ConnectAsync(string from, string to)
     {
         if (_reader.Folder is not { } folder || !_edit.Editing || Views.PlaceEnds(folder.Model, _reader.CurrentView, from, to) is null) return;
-        if (await _edit.RunAsync(d => EditOps.Connect(d, new ConnectionInput(from, to)))) _reader.OpenLine(from, to);
+        var made = folder.Model.Connections.Count; // where the new connection goes
+        if (await _edit.RunAsync(d => EditOps.Connect(d, new ConnectionInput(from, to)))) _reader.OpenLine(from, to, folder.Model.Pairs == "separate" ? made : null);
     }
 
     /// <summary>

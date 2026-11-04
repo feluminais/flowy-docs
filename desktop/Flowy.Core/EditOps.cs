@@ -156,16 +156,32 @@ public static partial class EditOps
         return i;
     }
 
-    /// <summary>Remove one connection: the first that matches. Exact duplicates go one at a time.</summary>
+    /// <summary>Remove one connection: the first that matches. Exact duplicates go one at a time. Refused while a step's <c>via</c> names it and no other connection with that label is left between the two shapes.</summary>
     public static EditDoc RemoveConnection(EditDoc doc, ConnectionInput which)
     {
         var i = FindConnection(doc, which);
         var d = doc.Clone();
         d.Connections.RemoveAt(i);
+        if (HasVia(doc))
+        {
+            var steps = Strands.ViaBroken(doc.ToModel(), d.ToModel()).Select(b => $"flow {b.Flow} step {b.Step + 1}").ToList();
+            if (steps.Count > 0)
+            {
+                var shown = steps.Count > 5 ? [.. steps.Take(5), $"{steps.Count - 5} more"] : steps;
+                throw new OpError($"connection {which.From} → {which.To} is named by {string.Join(", ", shown)}. Change those first.");
+            }
+        }
         return d;
     }
 
-    /// <summary>Give one connection (the first that matches) a new label, in place. "" removes the label.</summary>
+    /// <summary>Whether any step of any flow names a connection with <c>via</c>, which is when a change to the connections has to look at the flows.</summary>
+    private static bool HasVia(EditDoc doc) =>
+        doc.Flows.Values.Any(f => Entry(f).GetValueOrDefault("steps") is List<object?> steps && steps.Any(s => s is OrderedDictionary<string, object?> step && step.ContainsKey("via")));
+
+    /// <summary>
+    /// Give one connection (the first that matches) a new label, in place. "" removes the label. A step that named the old label with <c>via</c> and would name nothing now names the new label
+    /// (or, for no label, names nothing), so renaming a line never leaves a flow pointing at a line that is not there.
+    /// </summary>
     public static EditDoc Relabel(EditDoc doc, ConnectionInput which, string label)
     {
         var i = FindConnection(doc, which);
@@ -173,6 +189,13 @@ public static partial class EditOps
         var c = Entry(d.Connections[i]);
         if (label != "") c["label"] = label;
         else c.Remove("label");
+        if (!HasVia(doc)) return d;
+        foreach (var (flow, step) in Strands.ViaBroken(doc.ToModel(), d.ToModel()))
+        {
+            var written = Entry(((List<object?>)Entry(d.Flows[flow])["steps"]!)[step]);
+            if (label == "") written.Remove("via");
+            else written["via"] = label;
+        }
         return d;
     }
 
@@ -328,6 +351,7 @@ public static partial class EditOps
             var copy = Clone(s);
             // A blank detail is no detail, as on the canvas, so the file stays as short as it can be.
             if (copy.TryGetValue("description", out var detail) && detail is string text && JsCompat.Blank(text)) copy.Remove("description");
+            if (copy.TryGetValue("via", out var line) && line is string via && JsCompat.Blank(via)) copy.Remove("via");
             if (copy.TryGetValue("states", out var own) && own is OrderedDictionary<string, object?> { Count: 0 }) copy.Remove("states");
             // A payload written in place is tidied as one on a line is.
             foreach (var key in new[] { "payload", "reply" })
@@ -807,10 +831,36 @@ public static partial class EditOps
     }
 
     /// <summary>
-    /// Set the project's name and what it is: the top-level <c>name:</c> and <c>about:</c> in model.yaml. A field left null stays as it is; blank text removes the key.
-    /// A new <c>name</c> goes first, a new <c>about</c> right after the name, and one that's there keeps its place.
+    /// Set whether a pair of shapes is drawn as one line or as a line for each connection: the top-level <c>pairs:</c> in model.yaml. Merged is the default, so merged or null removes the key.
+    /// A new key goes after <c>lines:</c> (the other setting of how lines are drawn), else after the name and about it starts with; one that's there keeps its place.
     /// </summary>
-    public static EditDoc SetProject(EditDoc doc, string? name = null, string? about = null)
+    public static EditDoc SetPairs(EditDoc doc, string? mode)
+    {
+        if (mode is not null && !Names.PairModes.Contains(mode)) throw new OpError($"unknown mode \"{mode}\" (use {string.Join(" or ", Names.PairModes)})");
+        var d = doc.Clone();
+        if (mode is null or "merged")
+        {
+            d.Meta.Remove("pairs");
+            return d;
+        }
+        if (d.Meta.ContainsKey("pairs"))
+        {
+            d.Meta["pairs"] = mode;
+            return d;
+        }
+        var entries = d.Meta.ToList();
+        var last = entries.FindLastIndex(e => e.Key is "lines" or "about" or "name");
+        entries.Insert(last + 1, new KeyValuePair<string, object?>("pairs", mode));
+        var meta = new OrderedDictionary<string, object?>();
+        foreach (var (key, value) in entries) meta[key] = value;
+        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Folders = d.Folders, Failures = d.Failures, Layout = d.Layout };
+    }
+
+    /// <summary>
+    /// Set the project's name and what it is: the top-level <c>name:</c> and <c>about:</c> in model.yaml. A field left null stays as it is; blank text removes the key.
+    /// A new <c>name</c> goes first, a new <c>about</c> right after the name, and one that's there keeps its place. <paramref name="pairs"/> is the mode of <see cref="SetPairs"/>.
+    /// </summary>
+    public static EditDoc SetProject(EditDoc doc, string? name = null, string? about = null, string? pairs = null)
     {
         var d = doc.Clone();
         var meta = d.Meta;
@@ -828,7 +878,8 @@ public static partial class EditOps
                 foreach (var (k, v) in entries) meta[k] = v;
             }
         }
-        return new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Folders = d.Folders, Failures = d.Failures, Layout = d.Layout };
+        var named = new EditDoc { Meta = meta, Objects = d.Objects, Connections = d.Connections, Flows = d.Flows, Folders = d.Folders, Failures = d.Failures, Layout = d.Layout };
+        return pairs is null ? named : SetPairs(named, pairs);
     }
 
     /// <summary>Forget where boxes were dragged in one view, so the computed layout shows again.</summary>

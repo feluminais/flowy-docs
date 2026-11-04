@@ -94,7 +94,7 @@ public class DraftsTests
         group.PressAdd();
         var made = Drafts.DirOf(model, "unicode-cafe");
         Assert.Equal([made], asked);
-        Assert.Equal("name: Ünïcode Café\nobjects: {}\nconnections: []\n", File.ReadAllText(Path.Combine(made, "model.yaml")).Replace("\r\n", "\n"));
+        Assert.Equal("name: Ünïcode Café\npairs: separate\nobjects: {}\nconnections: []\n", File.ReadAllText(Path.Combine(made, "model.yaml")).Replace("\r\n", "\n"));
         Assert.False(group.Naming);
     }
 

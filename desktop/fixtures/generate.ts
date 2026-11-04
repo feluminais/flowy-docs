@@ -10,6 +10,7 @@ import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpFolderRules } from './folders.ts'
 import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
+import { dumpNewDrafts } from './drafts.ts'
 import { dumpEditLabels } from './editlabel.ts'
 import { dumpFailures, dumpFailuresView } from './failures.ts'
 import { dumpUsedBy } from './usedby.ts'
@@ -22,6 +23,7 @@ import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
 import { dumpNumbers } from './numbers.ts'
 import { dumpOutline } from './outline.ts'
+import { dumpPairs } from './pairs.ts'
 import { dumpPerf, dumpPerfView } from './perf.ts'
 import { dumpStates } from './states.ts'
 import { dumpCaptions, dumpStops } from './structure.ts'
@@ -63,6 +65,8 @@ await write('channel-folds', await dumpChannels())
 await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
 await write('kinds', dumpKinds())
+await write('pair-lines', await dumpPairs())
+await write('drafts', dumpNewDrafts())
 await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())
 await write('flow-diffs', await dumpFlowDiffs())

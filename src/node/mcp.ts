@@ -15,18 +15,19 @@ import { KIND_IDS, kindOf } from '../core/kinds.ts'
 import { sideReport } from '../core/layout.ts'
 import type { SideProblem } from '../core/layout.ts'
 import { COLOR_NAMES, customIcons, SHAPES } from '../core/look.ts'
-import { folderOf, getObject, MAX_TAG_LENGTH, OBJECT_TYPES, projectAbout, projectName, ROOT, tagsOf } from '../core/model.ts'
+import { folderOf, getObject, MAX_TAG_LENGTH, OBJECT_TYPES, PAIR_MODES, pairMode, projectAbout, projectName, ROOT, tagsOf } from '../core/model.ts'
 import type { Model } from '../core/model.ts'
 import { describeDependent } from '../core/dependents.ts'
 import { newDraft } from '../core/drafts.ts'
 import type { Dependent } from '../core/dependents.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deletePayload, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, putPayload, setCompare, setFlowTags, setKind, setLinePayloads, setProject, tidyViews } from '../core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteIcon, deleteMode, deleteObject, deletePayload, deleteWith, disconnect, moveFlow, OpError, putAnalysis, putFlow, putIcon, putMode, putObject, putPayload, refuseBlindDisconnect, setCompare, setFlowTags, setKind, setLinePayloads, setProject, tidyViews } from '../core/ops.ts'
 import type { FlowInput } from '../core/ops.ts'
 import { flowToMermaid, viewToMermaid } from '../core/mermaid.ts'
 import { PAYLOAD_MAX, payloadsOf } from '../core/payloads.ts'
 import { LANGUAGES, SNIPPET_MAX } from '../core/snippets.ts'
 import { STATE_NAMES } from '../core/states.ts'
 import { GROUP_KINDS } from '../core/structure.ts'
+import { strandCandidates, strandOf } from '../core/strands.ts'
 import { computeView, nameOf, placeStep, stepEnds } from '../core/views.ts'
 import { blockedMessage, commitEdit, firstBlocked } from './commit.ts'
 import { hashBytes, loadDir, loadReport, loadRuns, missingPaths, saveRunCompare, VersionConflict } from './files.ts'
@@ -70,10 +71,13 @@ const withTag = (value: unknown): { compare?: CompareTag } => {
  * the box that holds it, a hint says so, since two steps on two parts of one box can read as a round trip.
  */
 function readout(model: Model, flow: FlowInput): string {
+  // Where the project draws a line for each connection, a step that could ride several says which one it does.
+  const view = pairMode(model) === 'separate' ? computeView(model, flow.view) : undefined
   const steps = flow.steps.map((s, i) => {
     const placed = placeStep(model, flow.view, s)
     const inside = placed !== null && (placed[0] !== s.from || placed[1] !== (s.to ?? s.from))
-    return { line: `${i + 1}. ${stepEnds(model, s, placed)}: ${s.text}`, inside }
+    const rides = view && placed && strandCandidates(view, placed).length > 1 ? strandOf(model, view, s, placed) : undefined
+    return { line: `${i + 1}. ${stepEnds(model, s, placed)}: ${s.text}${rides ? ` (rides ${JSON.stringify(rides.label)})` : ''}`, inside }
   })
   const hint = 'Ends written "X in Y" are drawn as Y on this view. If two steps then seem to go to Y and back, say in the text which part of Y is meant, or play the flow inside Y.'
   return [`Saved flow ${flow.id}. On ${nameOf(model, flow.view)} it reads:`, ...steps.map(s => s.line), ...(steps.some(s => s.inside) ? [hint] : [])].join('\n')
@@ -289,14 +293,14 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
   }, () => reading(({ problems }) => (problems.length === 0 ? 'No problems.' : problems.map(p => `${p.file}: ${p.message}`).join('\n'))))
 
   tool('get_view', {
-    description: 'What one diagram shows: members (its shapes), outsiders (faded shapes from elsewhere that connect in, and people its flows name) and edges (connections merged to that zoom level: one per pair of shapes, with both: true when they run both ways, kind when all its connections have the same kind, and look when the line is drawn other than plain).',
+    description: 'What one diagram shows: members (its shapes), outsiders (faded shapes from elsewhere that connect in, and people its flows name) and edges (connections merged to that zoom level: one per pair of shapes, with both: true when they run both ways, kind when all its connections have the same kind, and look when the line is drawn other than plain). In a project with pairs: separate it also has strands: one line for each connection (or for the connections of one label and way, when zoomed out), with its id, pair, from, to, label, connections (their positions in the model), lane and lanes.',
     inputSchema: { view: z.string().max(64).describe('"root" for the top level, or the id of an object with children') },
     annotations: readOnly,
   }, ({ view }) => read(m => {
     if (view !== ROOT && !getObject(m, view)) throw new Error(`unknown view "${view}"`)
     const v = computeView(m, view)
     const box = (boxId: string) => ({ id: boxId, name: m.objects[boxId].name, type: m.objects[boxId].type })
-    return { view, members: v.members.map(box), outsiders: v.outsiders.map(box), edges: v.edges }
+    return { view, members: v.members.map(box), outsiders: v.outsiders.map(box), edges: v.edges, ...(v.strands === undefined ? {} : { strands: v.strands }) }
   }))
 
   tool('get_mermaid', {
@@ -348,6 +352,7 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
     inputSchema: {
       name: z.string().max(200).optional().describe('What the system is called, e.g. "Plum".'),
       about: z.string().max(4000).optional().describe('Markdown. What the system is for and who uses it, in a paragraph or two. Long documents belong in links on the top-level system.'),
+      pairs: z.enum(PAIR_MODES).optional().describe('Lines between two shapes: merged (the default) draws one line however many connections run between them; separate draws a line for each connection, side by side, which a draft wants. merged takes the setting off.'),
     },
   }, input => write(m => setProject(m, input), 'Saved the project details.', mcpLabel('put_project', input)))
 
@@ -411,10 +416,10 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
   }, input => write(m => setLinePayloads(m, input, input.payloads), `Set what ${input.from} → ${input.to} carries.`, mcpLabel('set_payloads', input)))
 
   tool('disconnect', {
-    description: 'Remove connections from → to. Refused while a failure mode is on that line and no other from → to line is left: the refusal lists the mode as a row, and the same call with `resolve` removes the mode and the line in one edit.',
-    inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all.'), resolve },
+    description: 'Remove connections from → to. Refused while a failure mode is on that line and no other from → to line is left: the refusal lists the mode as a row, and the same call with `resolve` removes the mode and the line in one edit. Also refused while a flow step names the connection with via and no other connection with that label is left between the two shapes; the refusal lists the steps.',
+    inputSchema: { ...ends, label: z.string().optional().describe('Only remove the ones with this label; "" means only the unlabelled ones. Leave it out to remove all, unless the project draws a line for each connection (pairs: separate) and several run between the two: then it is refused and lists the labels.'), resolve },
     annotations: destructive,
-  }, input => write(m => (input.resolve === undefined ? disconnect(m, input) : deleteWith(m, [{ line: { from: input.from, to: input.to, ...(input.label === undefined ? {} : { label: input.label }), all: true } }], input.resolve)), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
+  }, input => write(m => (input.resolve === undefined ? disconnect(m, input) : (refuseBlindDisconnect(m, input), deleteWith(m, [{ line: { from: input.from, to: input.to, ...(input.label === undefined ? {} : { label: input.label }), all: true } }], input.resolve))), `Disconnected ${input.from} → ${input.to}.`, mcpLabel('disconnect', input)))
 
   tool('tidy_layout', {
     description: 'Put the shapes of a view where they read the same from every side. A view shows the shapes around it too, and each one belongs on the side it has in the view above: if Back office is right of Ordering at the top level, Ordering shows it on the right and Back office shows Ordering on the left. Views that already agree are left as they are, and the rest are laid out again (layout.yaml, which replaces any positions dragged by hand there). Call it once when the shapes and connections are in. check: true only lists what is on the wrong side and saves nothing.',
@@ -470,6 +475,7 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
         group: z.string().max(64).optional().describe('The id of the group (under groups) this step belongs to. The steps of a group sit next to each other.'),
         lane: z.string().optional().describe('Branch and parallel groups only: starts a lane at this step, named in plain words (for a branch, the condition). The steps after it in the group belong to it until the next lane. The first step of a branch or parallel group needs one.'),
         flow: z.string().max(64).optional().describe('The id of another flow that tells what happens next. It must exist.'),
+        via: z.string().max(200).optional().describe('Where a pair of shapes has a line for each connection (pairs: separate): the label of the connection this step rides. Leave it out when the payload, the direction or the order already say which one; a label that matches no connection between the two shapes is refused.'),
         payload: payloadRef.optional().describe('What this step sends: a payload id from put_payload, or a payload written in place with a name. put_flow replaces the flow, so send it again with every step that has it.'),
         reply: payloadRef.optional().describe('What comes back, only on a call, a callback or a recurse: an id or a payload written in place with a name. Send it again with the step, as payload.'),
         states: stateMap.optional().describe(`The shapes this step changes: shape id to ${STATE_NAMES.join(', ')}. The change holds from this step until another step changes it, so set a shape back to running when it recovers. Only where the step really takes a shape down, brings it up or hurts it.`),
@@ -641,7 +647,7 @@ export function createMcpServer(modelDir: string, history?: History, draftHistor
   }, () => inOrder(async () => ok({ drafts: await listDrafts(modelDir) })))
 
   server.registerTool('new_draft', {
-    description: 'Make a draft: a model of its own in flowy/drafts/<id>/, for sketching a system or a flow without touching the model. It starts with copies of the shapes copy names, the shapes they sit in and the lines between them; later changes to the model never reach the copies. Then give draft: <id> to any other tool to read or write the draft.',
+    description: 'Make a draft: a model of its own in flowy/drafts/<id>/, for sketching a system or a flow without touching the model. It starts with copies of the shapes copy names, the shapes they sit in and the lines between them; later changes to the model never reach the copies. The draft draws a line for each connection (pairs: separate in its model.yaml), so connections between the same two shapes run side by side and a flow step can name one with via. Then give draft: <id> to any other tool to read or write the draft.',
     inputSchema: {
       id: id('Draft id, also its folder name'),
       name: z.string().min(1).max(200).describe('What the draft is called, e.g. "LAN transfer"'),

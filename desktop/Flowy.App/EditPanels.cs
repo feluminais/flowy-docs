@@ -385,6 +385,14 @@ internal sealed class LineEditor : StackPanel
 
     internal IReadOnlyList<FieldBox> Labels => _live.Select(r => r.Label).ToList();
 
+    /// <summary>Puts the cursor in the label field of the connection that is the <paramref name="connection"/>th of the model, if this panel has a form for it. Returns whether it did.</summary>
+    internal bool FocusLabel(int connection)
+    {
+        if (_live.FirstOrDefault(r => r.Index == connection) is not { } row) return false;
+        row.Label.Box.Focus();
+        return true;
+    }
+
     /// <summary>The kind tiles of each connection's form, in order, for tests.</summary>
     internal IReadOnlyList<Chooser> KindChoices => _live.Select(r => r.Kind).ToList();
 

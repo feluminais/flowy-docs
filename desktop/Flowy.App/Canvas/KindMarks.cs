@@ -90,3 +90,40 @@ internal sealed class LookSwatch : Control
         if (marks.HeadAtStart) KindMarks.Draw(context, marks.Head, ink, ground, new CorePt(x0, y), new CorePt(-1, 0));
     }
 }
+
+/// <summary>
+/// How a pair of shapes is drawn, as a tile: two boxes with one line between them (merged) or a line for each connection, side by side (separate). Twin of the sketch in PairsPicker in
+/// ui/src/Pickers.tsx. It takes the outline of the boxes and the lines from the theme it sits in. Decorative: the name beside it is the meaning.
+/// </summary>
+internal sealed class PairsSwatch : Control
+{
+    private readonly string _mode;
+
+    public PairsSwatch(string mode, double width = 44, double height = 24)
+    {
+        _mode = mode;
+        Width = width;
+        Height = height;
+        IsHitTestVisible = false;
+        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+        ActualThemeVariantChanged += (_, _) => InvalidateVisual();
+    }
+
+    /// <summary>The mode drawn, for tests.</summary>
+    internal string Mode => _mode;
+
+    /// <summary>How many lines are drawn between the boxes, for tests.</summary>
+    internal int Lines => _mode == "separate" ? 3 : 1;
+
+    public override void Render(DrawingContext context)
+    {
+        base.Render(context);
+        var ink = AppTheme.Brush(this, "FgBrush");
+        var pen = new Pen(ink, 1.5, null, PenLineCap.Round);
+        var scale = Height / 24;
+        context.DrawRectangle(null, pen, new Avalonia.Rect(2 * scale, 3 * scale, 8 * scale, 18 * scale), 2 * scale, 2 * scale);
+        context.DrawRectangle(null, pen, new Avalonia.Rect(Width - 10 * scale, 3 * scale, 8 * scale, 18 * scale), 2 * scale, 2 * scale);
+        foreach (var y in _mode == "separate" ? new[] { 7.0, 12, 17 } : [12.0])
+            context.DrawLine(pen, new Point(10 * scale, y * scale), new Point(Width - 10 * scale, y * scale));
+    }
+}

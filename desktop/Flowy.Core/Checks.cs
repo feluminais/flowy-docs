@@ -64,6 +64,10 @@ public static class Checks
         if (model.Meta.TryGetValue("lines", out var lines) && !(lines is string style && Names.LineStyles.Contains(style)))
             Add(FolderLayout.ModelFile, null, "lines must be straight, curved or angled");
 
+        // Honoured in any folder, drafts or not: the check does not know which folder a model is in.
+        if (model.Meta.TryGetValue("pairs", out var pairs) && !(pairs is string mode && Names.PairModes.Contains(mode)))
+            Add(FolderLayout.ModelFile, null, "pairs can be merged or separate");
+
         foreach (var key in new[] { "name", "about" })
             if (model.Meta.TryGetValue(key, out var text) && text is not (null or string)) Add(FolderLayout.ModelFile, null, $"{key} must be text");
 
@@ -180,6 +184,8 @@ public static class Checks
                 if (tag.With == fid) P("compare points at this flow itself");
                 else if (!model.Flows.Contains(tag.With)) P($"compare \"{tag.With}\" is not a flow");
             }
+            // The labels of the connections on each pair of the view the flow plays on, for a step's via; worked out when a step has one.
+            Dictionary<string, HashSet<string>>? labels = null;
             for (var i = 0; i < f.Steps.Count; i++)
             {
                 var s = f.Steps[i];
@@ -201,8 +207,16 @@ public static class Checks
                     continue;
                 }
                 if (!Missing(s.From) && s.From == s.To) Sp("goes from an object to itself (leave out \"to\" for a step one shape does on its own)");
-                else if (viewOk && model.GetObject(s.From) is not null && model.GetObject(s.To) is not null && Views.PlaceStep(model, f.View, s.From, s.To) is null)
-                    Sp($"{s.From} → {s.To} can't be shown in view \"{f.View}\"");
+                else if (viewOk && model.GetObject(s.From) is not null && model.GetObject(s.To) is not null)
+                {
+                    var placed = Views.PlaceStep(model, f.View, s.From, s.To);
+                    if (placed is null) Sp($"{s.From} → {s.To} can't be shown in view \"{f.View}\"");
+                    else if (s.Via is not null && JsCompat.JsTrim(s.Via) != "")
+                    {
+                        labels ??= Strands.PairLabels(model, f.View!);
+                        if (Strands.ViaProblem(labels, s, placed) is { } wrong) Sp(wrong);
+                    }
+                }
             }
             foreach (var finding in Structure.Problems(f, id => model.Flows.Contains(id)).Concat(States.Problems(f, Structure.Stops(f), id => model.GetObject(id) is not null)).Concat(Channels.Problems(f, Structure.Stops(f))))
             {

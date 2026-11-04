@@ -1,0 +1,7 @@
+name: Ask
+view: root
+steps:
+  - { from: ui, to: management, text: The screen asks, via: Ask }
+  - { from: ui, to: management, text: The screen asks again, via: Tell }
+  - { from: ui, to: management, text: A via with no text, via: }
+  - { from: ui, to: management, text: A blank via, via: '   ' }

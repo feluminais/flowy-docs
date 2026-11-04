@@ -38,7 +38,6 @@
     "draftFolder",
     "draftModelId",
     "isDraftId",
-    "newDraft",
     "splitDraftModelId"
   ],
   "failures": [
@@ -90,7 +89,6 @@
     "ID_RULE",
     "LINE_STYLES",
     "OBJECT_TYPES",
-    "emptyModel",
     "isExternal",
     "isValidId",
     "linksOf",
@@ -100,6 +98,7 @@
     "deleteIcon",
     "disconnect",
     "putIcon",
+    "refuseBlindDisconnect",
     "tidyLayout",
     "tidyViews"
   ],

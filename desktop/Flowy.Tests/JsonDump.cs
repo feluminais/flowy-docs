@@ -77,6 +77,11 @@ internal static class JsonDump
                     ("from", e.From), ("to", e.To), ("label", e.Label), ("count", e.Count), ("both", e.Both ? (object)true : null), ("kind", e.Kind),
                     ("look", e.Look is null ? null : Obj(("pattern", e.Look.Pattern), ("head", e.Look.Head), ("tail", e.Look.Tail))), ("carries", Carries(m, id, e.From, e.To)))))));
             if (Views.FlowActors(m, id) is { Count: > 0 } actors) view["actors"] = Arr(actors); // left out when there are none, as the TypeScript dump does
+            // Where each connection has a line of its own, as dump.ts has it.
+            if (v.Strands is { } strands)
+                view["strands"] = Arr(strands.Select(t => Obj(
+                    ("id", t.Id), ("pair", t.Pair), ("from", t.From), ("to", t.To), ("label", t.Label), ("connections", Arr(t.Connections.Cast<object?>())), ("lane", t.Lane), ("lanes", t.Lanes), ("kind", t.Kind),
+                    ("look", t.Look is null ? null : Obj(("pattern", t.Look.Pattern), ("head", t.Look.Head), ("tail", t.Look.Tail))))));
             return KeyValuePair.Create(id, (JsonNode?)view);
         });
         // Partners and links are dumped only where some flow holds a compare, and the runs only where some run reads one, so older cases dump as before.
@@ -85,6 +90,7 @@ internal static class JsonDump
         var runsTagged = folder.Runs is { } loaded && loaded.Any(kv => kv.Value.Compare is not null);
         var result = Obj(
             ("lineStyle", m.LineStyle),
+            ("pairs", m.Pairs == "merged" ? null : m.Pairs), // left out for the merged lines every older fixture has
             ("projectName", m.ProjectName),
             ("projectAbout", m.ProjectAbout),
             ("objects", Arr(m.Objects.Select(kv => Obj(
@@ -130,9 +136,11 @@ internal static class JsonDump
                 ("steps", Arr(flow.Steps.Select(s =>
                 {
                     var placed = Views.PlaceStep(m, flow.View, s.From, s.To);
-                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)), ("group", s.Group), ("lane", s.Lane), ("flow", s.FlowId), ("states", Raw(s.States)));
+                    var step = Obj(("from", s.From), ("to", s.To), ("text", s.Text), ("description", s.Description), ("animation", Raw(s.Animation)), ("group", s.Group), ("lane", s.Lane), ("flow", s.FlowId), ("states", Raw(s.States)), ("via", s.Via));
                     step["placed"] = Pair(placed); // null stays in the JSON here, as it does in dump.ts
                     step["ends"] = s.From is null ? null : JsonValue.Create(Views.StepEnds(m, s.From, s.To, placed));
+                    // The line the step rides where each connection has one of its own, left out when it rides none.
+                    if (m.Pairs == "separate" && placed is { } at && s.To is not null && Strands.StrandOf(m, Views.Compute(m, flow.View!), s, at) is { } rides) step["rides"] = rides.Id;
                     // Left out when the step has none, as in dump.ts.
                     if (s.Payload is not null) step["payload"] = Raw(s.Payload);
                     if (s.Reply is not null) step["reply"] = Raw(s.Reply);

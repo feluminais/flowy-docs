@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import type { Edge, FitViewOptions, NodeChange, ReactFlowInstance } from '@xyflow/react'
+import { pairMode } from '../../src/core/model.ts'
 import type { Model } from '../../src/core/model.ts'
 import { connect, placeBoxes } from '../../src/core/ops.ts'
 import { placeEnds } from '../../src/core/views.ts'
@@ -71,8 +72,12 @@ export function useCanvasEvents({ model, view, editing, recording, side, chosen,
     })
   })
   const isValidConnection = useLatest((c: { source: string; target: string }) => placeEnds(model, view, c.source, c.target) !== null)
-  const onConnect = useLatest((c: { source: string; target: string }) => void run(m => connect(m, { from: c.source, to: c.target }))
-    .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target })))
+  const onConnect = useLatest((c: { source: string; target: string }) => {
+    // Where each connection has a line of its own, a second unlabelled connection the same way would be a duplicate, so its label field takes the focus as its panel opens.
+    const focusLabel = pairMode(model) === 'separate' ? model.connections.length : undefined
+    void run(m => connect(m, { from: c.source, to: c.target }))
+      .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target, ...(focusLabel === undefined ? {} : { focusLabel }) }))
+  })
   const onNodeClick = useLatest((e: ReactMouseEvent, node: { id: string; type?: string }) => {
     if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
     didSomethingElse()

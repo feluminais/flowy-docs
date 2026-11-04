@@ -5,13 +5,13 @@ import type { Problem } from '../../src/core/problem.ts'
 import type { DataInput } from '../../src/core/data.ts'
 import { lineKey } from '../../src/core/failures.ts'
 import { kindName, kindOf, lookOf, mergedLook, PLAIN_NAME } from '../../src/core/kinds.ts'
-import { getObject, isExternal, linksOf, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
+import { getObject, isExternal, linksOf, pairMode, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { parseData } from '../../src/core/data.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, setGroupKind, setKind, setLinePayloads, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, setGroupKind, setKind, setLinePayloads, setPairs, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInputInline } from '../../src/core/ops.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
@@ -19,7 +19,7 @@ import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.
 import { nameOf, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CarriedRows, idsOf, NewPayload, PayloadForm, payloadChoices, PayloadRow } from './Payloads.tsx'
-import { LineKindPicker, PayloadPicker } from './Pickers.tsx'
+import { LineKindPicker, PairsPicker, PayloadPicker } from './Pickers.tsx'
 import { connectionPayloads, lineCarries, payloadsOf } from '../../src/core/payloads.ts'
 import { CodeFields, CodeSection } from './Code.tsx'
 import { LookSwatch } from './kinds.tsx'
@@ -55,6 +55,7 @@ export function OverviewPanel({ model, totals, editing, run, onClose }: Common &
             <Field label="Name" value={name} onSave={value => run(m => setProject(m, { name: value }))} />
           </div>
           <Field label="About (Markdown)" value={about} multiline onSave={value => run(m => setProject(m, { about: value }))} />
+          <PairsPicker value={pairMode(model)} onPick={mode => void run(m => setPairs(m, mode))} />
         </form>
       ) : !about && <p className="muted">Click a shape.</p>}
     </Panel>
@@ -234,7 +235,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
  * The connections one line stands for (a zoomed-out line can merge several), each with its label. A view draws one line between two shapes,
  * so when connections run both ways they are listed under one heading per way.
  */
-export function LinePanel({ model, view, from, to, editing, problems, run, onClose, onDelete }: Common & { onDelete: Delete; view: string; from: string; to: string; editing: boolean; problems: Problem[] }) {
+export function LinePanel({ model, view, from, to, editing, problems, run, onClose, onDelete, focusLabel }: Common & { onDelete: Delete; view: string; from: string; to: string; editing: boolean; problems: Problem[]; focusLabel?: number }) {
   // A payload made from a name in the picker, until its first About saves it (see NewPayload): which connection, and its name.
   const [fresh, setFresh] = useState<{ index: number; name: string }>()
   const lines = connectionsOf(model, view, from, to)
@@ -253,7 +254,7 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
         {kinded && !editing && <p className="kind-row muted"><LookSwatch look={lookOf(c)} width={44} height={16} />{kindOf(c) === undefined ? PLAIN_NAME : kindName(kindOf(c)!)}</p>}
         {editing ? (
           <form className="form" onSubmit={e => e.preventDefault()}>
-            <Field label="Label" value={c.label ?? ''} onSave={label => run(m => relabel(m, which, label))} />
+            <Field label="Label" value={c.label ?? ''} autoFocus={index === focusLabel} onSave={label => run(m => relabel(m, which, label))} />
             <LineKindPicker value={kindOf(c)} onPick={kind => void run(m => setKind(m, which, kind))} />
             {/* What it carries: the payloads written in place stay as they are, after the ones picked. */}
             <PayloadPicker label="Payloads" all={payloadChoices(model)} chosen={idsOf(c.payloads)} many

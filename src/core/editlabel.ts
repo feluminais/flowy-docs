@@ -4,7 +4,7 @@ import { kindName, kindOf, PLAIN_NAME } from './kinds.ts'
 import { customIcons } from './look.ts'
 import { payloadsOf } from './payloads.ts'
 import { isMap } from './text.ts'
-import { folderOf } from './model.ts'
+import { folderOf, PAIR_NAMES, pairMode, PAIRS_FIELD } from './model.ts'
 import type { Analysis, Connection, Flow, Model } from './model.ts'
 import { isStateName, STATE_LABELS } from './states.ts'
 import type { StateName } from './states.ts'
@@ -166,6 +166,11 @@ function tagEdit(before: Model, after: Model, id: string): string | undefined {
   return compareLabel(compareOf(b.compare), compareOf(a.compare), id, key => after.flows[key]?.name || key)
 }
 
+/** A flow as it reads without any step's `via`, as a string to compare. */
+const vialess = (flow: Flow): string => canon({ ...flow, steps: flow.steps.map(s => ({ ...s, via: undefined })) })
+
+const connectionsDiffer = (before: Model, after: Model): boolean => canon(before.connections) !== canon(after.connections)
+
 const flowsChanged: Detector = (before, after) => {
   const flowName = (m: Model, id: string) => cut(m.flows[id]?.name || id)
   const changes: string[] = []
@@ -176,6 +181,8 @@ const flowsChanged: Detector = (before, after) => {
       // Only where the file is can differ: a flow keeps its id when it moves.
       const to = folderOf(after, id)
       if (folderOf(before, id) !== to) changes.push(`Moved the ${flowName(after, id)} flow ${to === '' ? 'to the top' : `into ${cut(to)}`}`)
+    } else if (vialess(before.flows[id]) === vialess(after.flows[id]) && connectionsDiffer(before, after)) {
+      // Only the `via` of some steps differ, and a connection changed with them: the change of the connection says it all (a relabel rewrites the vias that named the old label).
     } else {
       const onlyTheName = canon({ ...before.flows[id], name: '' }) === canon({ ...after.flows[id], name: '' })
       const onlyTheTags = canon({ ...before.flows[id], tags: undefined }) === canon({ ...after.flows[id], tags: undefined })
@@ -292,6 +299,7 @@ const settingsChanged: Detector = (before, after) => {
   if (differs('name')) return 'Renamed the project'
   if (differs('about')) return 'Changed the project description'
   if (differs('lines')) return 'Changed the line style'
+  if (differs('pairs')) return `Set ${PAIRS_FIELD.toLowerCase()} to ${PAIR_NAMES[pairMode(after)].toLowerCase()}`
   // The payloads say their own sentence (payloadsChanged).
   const otherSettings = [...new Set([...Object.keys(before.meta), ...Object.keys(after.meta)])].filter(key => key !== 'payloads').some(differs)
   return otherSettings ? 'Changed the settings' : undefined

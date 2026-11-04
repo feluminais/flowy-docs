@@ -4,9 +4,10 @@ import { fileURLToPath } from 'node:url'
 import { compareOf, compareProblem, linkedIds, partnersOf } from '../../src/core/compare.ts'
 import { dataShown } from '../../src/core/data.ts'
 import { connectionPayloads, dotPayload, lineCarries, stepPayload, stepReply } from '../../src/core/payloads.ts'
-import { folderOf, lineStyle, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
+import { folderOf, lineStyle, pairMode, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Analysis, Model } from '../../src/core/model.ts'
+import { strandOf } from '../../src/core/strands.ts'
 import { computeView, flowActors, isView, placeStep, stepEnds } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -80,6 +81,8 @@ export async function dumpFolder(dir: string): Promise<unknown> {
   const tags = model.flows as Record<string, { compare?: unknown }>
   return {
     lineStyle: lineStyle(model),
+    // Left out for the merged lines every older fixture has.
+    ...(pairMode(model) === 'merged' ? {} : { pairs: pairMode(model) }),
     projectName: projectName(model),
     projectAbout: projectAbout(model),
     objects: Object.entries(model.objects).map(([id, o]) => ({ id, type: o.type, name: o.name, in: o.in, external: o.external, shape: o.shape, color: o.color, opacity: o.opacity, icon: o.icon, tech: o.tech, description: o.description, code: o.code, links: o.links, snippets: o.snippets, data: o.data, shown: shownOf(o) })),
@@ -94,7 +97,10 @@ export async function dumpFolder(dir: string): Promise<unknown> {
       view: f.view,
       steps: f.steps.map(s => {
         const placed = placeStep(model, f.view, s)
-        return { from: s.from, to: s.to, text: s.text, description: s.description, animation: s.animation, group: s.group, lane: s.lane, flow: s.flow, states: s.states, placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null, ...stepPayloadsDump(model, s) }
+        // Where each connection has a line of its own: the line a step rides (strandOf), left out when it rides none, and its via when it has one.
+        const view = placed !== null && s.to !== undefined && pairMode(model) === 'separate' ? computeView(model, f.view) : undefined
+        const rides = view === undefined || placed === null ? undefined : strandOf(model, view, s, placed)?.id
+        return { from: s.from, to: s.to, text: s.text, description: s.description, animation: s.animation, group: s.group, lane: s.lane, flow: s.flow, states: s.states, ...(s.via === undefined ? {} : { via: s.via }), placed, ends: typeof s.from === 'string' ? stepEnds(model, s, placed) : null, ...(rides === undefined ? {} : { rides }), ...stepPayloadsDump(model, s) }
       }),
       groups: f.groups,
       states: f.states,

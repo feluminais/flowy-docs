@@ -11,6 +11,14 @@ public static partial class Names
 
     public static readonly string[] LineStyles = ["straight", "curved", "angled"];
 
+    /// <summary>Whether a pair of shapes is drawn as one line (merged) or a line for each connection (separate): the top-level <c>pairs:</c>. Twin of PAIR_MODES in src/core/model.ts.</summary>
+    public static readonly string[] PairModes = ["merged", "separate"];
+
+    /// <summary>What the edit panel calls the setting and its two values.</summary>
+    public const string PairsField = "Lines between two shapes";
+
+    public static string PairName(string mode) => mode == "separate" ? "Separate" : "Merged";
+
     /// <summary>What an id (an object's, or a flow's file name) may be, worded to follow "ids".</summary>
     public const string IdRule = "use lowercase letters, digits and dashes, not starting with a dash (\"root\" and Windows device names such as \"con\" are reserved)";
 

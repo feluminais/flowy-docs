@@ -949,12 +949,16 @@ internal sealed partial class ReaderView : Grid, IDisposable
         else OpenObject(id);
     }
 
-    /// <summary>Shows the panel of a line of the current view.</summary>
-    public void OpenLine(string from, string to)
+    /// <summary>
+    /// Shows the panel of a line of the current view. <paramref name="focusLabel"/> is a connection (its place in the model) whose label field takes the cursor as the panel opens: the one a drag
+    /// just made, where each connection has a line of its own and a second one without a label would be a duplicate.
+    /// </summary>
+    public void OpenLine(string from, string to, int? focusLabel = null)
     {
         DidSomethingElse();
         _side = new Side.Line(from, to);
         Refresh();
+        if (focusLabel is { } connection && Editing) Avalonia.Threading.Dispatcher.UIThread.Post(() => _panel.CurrentLineEditor?.FocusLabel(connection), Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
     // ---- flows -------------------------------------------------------------------------------------------------

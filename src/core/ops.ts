@@ -14,13 +14,14 @@ import { iconProblem } from './look.ts'
 import { checkRun } from './perf/check.ts'
 import type { Run } from './perf/types.ts'
 import type { Shape } from './look.ts'
-import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, MAX_TAG_LENGTH, ROOT, tagKey, tagsOf } from './model.ts'
-import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, Step } from './model.ts'
+import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, MAX_TAG_LENGTH, PAIR_MODES, pairMode, ROOT, tagKey, tagsOf } from './model.ts'
+import type { Analysis, Connection, Flow, FlowyObject, Group, Layout, LineStyle, Link, Mode, Model, ObjectType, PairMode, Step } from './model.ts'
 import { payloadUsers, REPLY_KINDS, saysSomething, tidyPayload } from './payloads.ts'
 import { tidySnippets } from './snippets.ts'
 import type { SnippetInput } from './snippets.ts'
 import { changeKind, dropGroup, groupRange, joinGroup, leaveGroup, newGroup, stepGroupId, withGroups } from './groups.ts'
 import { stateProblems } from './states.ts'
+import { viaBroken } from './strands.ts'
 import { GROUP_KINDS, isGroupKind, TIMES_MAX, TIMES_MIN, timesOk } from './structure.ts'
 import { hasText, isMap, own } from './text.ts'
 import { chain, isView, parentOf } from './views.ts'
@@ -365,8 +366,22 @@ export function setLinePayloads(model: Model, which: ConnectionInput, payloads: 
   return { ...model, connections: model.connections.with(i, payloads.length ? { ...rest, payloads: lineList(model, payloads) } : rest) }
 }
 
+/**
+ * Refuses a `disconnect` with no label where the project draws a line for each connection (`pairs: separate`) and several connections run from → to: each one is a line of its own, so
+ * removing them all by leaving the label out would be a slip. The refusal lists the labels, and a call that names one goes through. A project that draws one line for each pair
+ * keeps the old meaning: no label removes every connection between the two.
+ */
+export function refuseBlindDisconnect(model: Model, { from, to, label }: ConnectionInput) {
+  if (label !== undefined || pairMode(model) !== 'separate') return
+  const here = model.connections.filter(c => c.from === from && c.to === to)
+  if (here.length < 2) return
+  const names = here.map(c => (c.label ? `"${c.label}"` : 'one without a label'))
+  throw new OpError(`${here.length} connections run ${from} → ${to} and each is a line of its own (${names.join(', ')}). Name the label of the one to remove.`)
+}
+
 /** Remove from → to connections. With a label, only the ones carrying it; "" means the unlabelled ones. */
 export function disconnect(model: Model, { from, to, label }: ConnectionInput): Model {
+  refuseBlindDisconnect(model, { from, to, label })
   const sameEnds = (c: Connection) => c.from === from && c.to === to
   const matches = (c: Connection) => sameEnds(c) && (label === undefined || (c.label ?? '') === label)
   if (!model.connections.some(matches)) {
@@ -376,7 +391,16 @@ export function disconnect(model: Model, { from, to, label }: ConnectionInput): 
   }
   const connections = model.connections.filter(c => !matches(c))
   refuseLineUsers(model, { from, to, ...(label === undefined ? {} : { label }), all: true })
+  refuseViaUsers(model, { ...model, connections }, from, to)
   return { ...model, connections }
+}
+
+/** Refuses a change that would leave a step's `via` naming a connection that is no longer there, as a failure mode's line is kept. The steps are listed so they can be changed first. */
+function refuseViaUsers(before: Model, after: Model, from: string, to: string) {
+  const steps = viaBroken(before, after).map(({ flow, step }) => `flow ${flow} step ${step + 1}`)
+  if (steps.length === 0) return
+  const shown = steps.length > 5 ? [...steps.slice(0, 5), `${steps.length - 5} more`] : steps
+  throw new OpError(`connection ${from} → ${to} is named by ${shown.join(', ')}. Change those first.`)
 }
 
 /** Refuses a change that would leave a line mode with no connection from → to, as a flow's shapes can't be deleted from under it. The refusal carries the rows. */
@@ -397,14 +421,35 @@ function findConnection(model: Model, { from, to, label = '' }: ConnectionInput)
 export function removeConnection(model: Model, which: ConnectionInput): Model {
   const connections = model.connections.toSpliced(findConnection(model, which), 1)
   refuseLineUsers(model, { from: which.from, to: which.to, label: which.label ?? '' })
+  refuseViaUsers(model, { ...model, connections }, which.from, which.to)
   return { ...model, connections }
 }
 
-/** Give one connection (the first that matches) a new label, in place. "" removes the label. */
+/**
+ * Give one connection (the first that matches) a new label, in place. "" removes the label. A step that named the old label with `via` and would name nothing now names the
+ * new label (or, for no label, names nothing), so renaming a line never leaves a flow pointing at a line that is not there.
+ */
 export function relabel(model: Model, which: ConnectionInput, label: string): Model {
   const i = findConnection(model, which)
   const { label: _, ...rest } = model.connections[i]
-  return { ...model, connections: model.connections.with(i, label ? { ...model.connections[i], label } : rest) }
+  const relabelled = { ...model, connections: model.connections.with(i, label ? { ...model.connections[i], label } : rest) }
+  const broken = viaBroken(model, relabelled)
+  if (broken.length === 0) return relabelled
+  const flows = { ...relabelled.flows }
+  for (const flow of new Set(broken.map(b => b.flow))) {
+    const steps = new Set(broken.filter(b => b.flow === flow).map(b => b.step))
+    flows[flow] = { ...flows[flow], steps: flows[flow].steps.map((s, n) => (steps.has(n) ? withVia(s, label) : s)) }
+  }
+  return { ...relabelled, flows }
+}
+
+/** The step with `via` set to `label` where it is (a new one goes last), or taken off for no label. */
+function withVia(step: Step, label: string): Step {
+  if (label === '') {
+    const { via: _, ...rest } = step
+    return rest
+  }
+  return { ...step, via: label }
 }
 
 /** Give one connection (the first that matches) a kind, in place. "" removes it. It keeps its place among the connection's keys, and a new kind goes after the label. */
@@ -520,6 +565,7 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states, f
   const copy = (s: Step): Step => {
     const out: Record<string, unknown> = { ...s }
     if (typeof s.description === 'string' && !s.description.trim()) delete out.description
+    if (typeof s.via === 'string' && !s.via.trim()) delete out.via
     if (isMap(s.states) && Object.keys(s.states).length === 0) delete out.states
     // A number in an animation (share, at) is written as text, as a file holds it.
     if ('animation' in out) out.animation = animationAsText(out.animation)
@@ -942,11 +988,26 @@ export function setLines(model: Model, style: LineStyle | undefined): Model {
 }
 
 /**
+ * Set whether a pair of shapes is drawn as one line or as a line for each connection: the top-level `pairs:` in model.yaml. Merged is the default, so merged or undefined removes
+ * the key. A new key goes after `lines:` (the other setting of how lines are drawn), else after the name and about it starts with; one that's there keeps its place.
+ */
+export function setPairs(model: Model, mode: PairMode | undefined): Model {
+  if (mode !== undefined && !PAIR_MODES.some(m => m === mode)) throw new OpError(`unknown mode "${String(mode)}" (use ${PAIR_MODES.join(' or ')})`)
+  const { pairs: _, ...rest } = model.meta
+  if (mode === undefined || mode === 'merged') return { ...model, meta: rest }
+  if (Object.hasOwn(model.meta, 'pairs')) return { ...model, meta: { ...model.meta, pairs: mode } }
+  const entries = Object.entries(rest)
+  const last = entries.findLastIndex(([key]) => key === 'lines' || key === 'about' || key === 'name')
+  entries.splice(last + 1, 0, ['pairs', mode])
+  return { ...model, meta: Object.fromEntries(entries) }
+}
+
+/**
  * Set the project's name and what it is: the top-level `name:` and `about:` in model.yaml. A field left
  * out stays as it is; blank text removes the key. A new `name` goes first, a new `about` right after the
- * name, and one that's there keeps its place.
+ * name, and one that's there keeps its place. `pairs` is the mode of setPairs.
  */
-export function setProject(model: Model, fields: { name?: string; about?: string }): Model {
+export function setProject(model: Model, fields: { name?: string; about?: string; pairs?: PairMode }): Model {
   let meta = model.meta
   for (const key of ['name', 'about'] as const) {
     const given = fields[key]
@@ -962,7 +1023,8 @@ export function setProject(model: Model, fields: { name?: string; about?: string
       meta = Object.fromEntries(entries)
     }
   }
-  return { ...model, meta }
+  const named = { ...model, meta }
+  return fields.pairs === undefined ? named : setPairs(named, fields.pairs)
 }
 
 /** Forget where boxes were dragged in one view (its part of layout.yaml), so the computed layout shows again. */

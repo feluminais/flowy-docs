@@ -9,4 +9,7 @@ objects:
   d: { type: system, name: D }
   e: { type: system, name: E }
   f: { type: system, name: F }
-connections: []
+connections:
+  - { from: a, to: b, label: Fast path }
+  - { from: a, to: b, label: Slow path }
+  - { from: b, to: c, label: Fast path }

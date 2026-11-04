@@ -1,0 +1,363 @@
+{
+  "modes": [
+    "merged",
+    "separate"
+  ],
+  "field": "Lines between two shapes",
+  "names": {
+    "merged": "Merged",
+    "separate": "Separate"
+  },
+  "viaKeys": [
+    {
+      "value": "Start scan",
+      "key": "start scan"
+    },
+    {
+      "value": " start SCAN ",
+      "key": "start scan"
+    },
+    {
+      "value": "\tStart scan\n",
+      "key": "start scan"
+    },
+    {
+      "value": "",
+      "key": ""
+    },
+    {
+      "value": "   ",
+      "key": ""
+    },
+    {
+      "value": "ÉCRAN",
+      "key": "écran"
+    },
+    {
+      "value": "Σ",
+      "key": "σ"
+    },
+    {
+      "value": "ΟΔΟΣ",
+      "key": "οδος"
+    },
+    {
+      "value": "οδος",
+      "key": "οδος"
+    },
+    {
+      "value": "İ",
+      "key": "i̇"
+    },
+    {
+      "value": "İSTANBUL",
+      "key": "i̇stanbul"
+    },
+    {
+      "value": 3,
+      "key": ""
+    },
+    {
+      "value": null,
+      "key": ""
+    },
+    {
+      "value": null,
+      "key": ""
+    },
+    {
+      "value": [
+        "Start scan"
+      ],
+      "key": ""
+    }
+  ],
+  "candidates": [
+    {
+      "placed": [
+        "ui",
+        "management"
+      ],
+      "strands": [
+        "management ui|ui>management|Request and reply",
+        "management ui|ui>management|Start scan",
+        "management ui|ui>management|Ask",
+        "management ui|ui>management|Banner"
+      ]
+    },
+    {
+      "placed": [
+        "management",
+        "ui"
+      ],
+      "strands": [
+        "management ui|management>ui|Scan results",
+        "management ui|management>ui|Radio state",
+        "management ui|ui>management|Request and reply",
+        "management ui|ui>management|Start scan"
+      ]
+    },
+    {
+      "placed": [
+        "cloud",
+        "management"
+      ],
+      "strands": [
+        "cloud management|management>cloud|Fetch update"
+      ]
+    },
+    {
+      "placed": [
+        "management",
+        "cloud"
+      ],
+      "strands": [
+        "cloud management|management>cloud|Fetch update"
+      ]
+    },
+    {
+      "placed": [
+        "bus",
+        "management"
+      ],
+      "strands": []
+    },
+    {
+      "placed": [
+        "management",
+        "bus"
+      ],
+      "strands": [
+        "bus management|management>bus|Events"
+      ]
+    },
+    {
+      "placed": [
+        "linux",
+        "management"
+      ],
+      "strands": [
+        "linux management|linux>management|",
+        "linux management|management>linux|Apply config"
+      ]
+    },
+    {
+      "placed": [
+        "management",
+        "linux"
+      ],
+      "strands": [
+        "linux management|management>linux|Apply config"
+      ]
+    },
+    {
+      "placed": [
+        "ui",
+        "linux"
+      ],
+      "strands": []
+    },
+    {
+      "placed": [
+        "ui",
+        "ui"
+      ],
+      "strands": []
+    }
+  ],
+  "merged": {
+    "files": {
+      "model.yaml": "objects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+      "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+    },
+    "candidates": [
+      {
+        "placed": [
+          "ui",
+          "management"
+        ],
+        "strands": []
+      },
+      {
+        "placed": [
+          "management",
+          "ui"
+        ],
+        "strands": []
+      }
+    ]
+  },
+  "labels": [
+    {
+      "pair": "management ui",
+      "labels": [
+        "ask",
+        "banner",
+        "radio state",
+        "request and reply",
+        "scan results",
+        "start scan"
+      ]
+    },
+    {
+      "pair": "cloud management",
+      "labels": [
+        "fetch update"
+      ]
+    },
+    {
+      "pair": "bus management",
+      "labels": [
+        "events"
+      ]
+    },
+    {
+      "pair": "linux management",
+      "labels": [
+        "",
+        "apply config"
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "flow": "rides",
+      "step": 0,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 1,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 2,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 3,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 4,
+      "problem": "\"via\" \"Nope\" matches no connection from ui to management"
+    },
+    {
+      "flow": "rides",
+      "step": 5,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 6,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 7,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 8,
+      "problem": null
+    },
+    {
+      "flow": "rides",
+      "step": 9,
+      "problem": null
+    }
+  ],
+  "changes": [
+    {
+      "name": "nothing changes",
+      "files": {
+        "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+        "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+      },
+      "broken": []
+    },
+    {
+      "name": "the connection a via names is gone",
+      "files": {
+        "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+        "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+      },
+      "broken": [
+        {
+          "flow": "rides",
+          "step": 0
+        },
+        {
+          "flow": "rides",
+          "step": 6
+        }
+      ]
+    },
+    {
+      "name": "a connection no via names is gone",
+      "files": {
+        "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+        "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+      },
+      "broken": []
+    },
+    {
+      "name": "a connection is renamed",
+      "files": {
+        "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Begin scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+        "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+      },
+      "broken": [
+        {
+          "flow": "rides",
+          "step": 0
+        },
+        {
+          "flow": "rides",
+          "step": 6
+        }
+      ]
+    },
+    {
+      "name": "it is renamed to the same words in other capitals",
+      "files": {
+        "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: START SCAN\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+        "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+      },
+      "broken": []
+    },
+    {
+      "name": "it goes but the other way keeps the label",
+      "files": {
+        "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n  - from: management\n    to: ui\n    label: start scan\n",
+        "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+      },
+      "broken": []
+    },
+    {
+      "name": "it loses its label",
+      "files": {
+        "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+        "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+      },
+      "broken": [
+        {
+          "flow": "rides",
+          "step": 0
+        },
+        {
+          "flow": "rides",
+          "step": 6
+        }
+      ]
+    }
+  ],
+  "before": {
+    "model.yaml": "name: Pairs\npairs: separate\npayloads:\n  scan-request:\n    name: Scan request\n    about: What the screen sends to start a scan.\nobjects:\n  ui:\n    type: system\n    name: UI\n  screen:\n    type: app\n    in: ui\n    name: Screen\n  banner:\n    type: app\n    in: ui\n    name: Banner\n  management:\n    type: system\n    name: Management\n  agent:\n    type: app\n    in: management\n    name: Agent\n  linux:\n    type: system\n    name: Linux\n  cloud:\n    type: system\n    name: Cloud\n  bus:\n    type: system\n    name: Bus\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n    payloads:\n      - scan-request\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: screen\n    to: agent\n    label: Ask\n  - from: banner\n    to: agent\n    label: Banner\n  - from: management\n    to: cloud\n    label: Fetch update\n    kind: request\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: agent\n    to: linux\n    label: Apply config\n    kind: request\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n",
+    "flows/rides.yaml": "name: Rides\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: \" start SCAN \"\n  - from: ui\n    to: management\n    text: The screen sends its request\n    payload: scan-request\n  - from: banner\n    to: agent\n    text: The banner asks the agent\n  - from: ui\n    to: agent\n    text: Nothing says which line\n  - from: ui\n    to: management\n    text: The screen names a line that is not there\n    via: Nope\n  - from: management\n    to: ui\n    text: Results reach the screen\n  - from: management\n    to: ui\n    text: The first results come back\n    via: Start scan\n  - from: cloud\n    to: management\n    text: The update comes back\n  - from: bus\n    to: management\n    text: Nothing returns on a publish\n  - from: management\n    to: linux\n    text: The config is applied\n"
+  }
+}
