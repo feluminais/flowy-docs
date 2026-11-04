@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import type { Flow, Model, Step } from '../../src/core/model.ts'
-import { animationOf } from '../../src/core/animation.ts'
+import { animationOf, beatsFor, followsLanding } from '../../src/core/animation.ts'
 import { dotPayload, motionOf } from '../../src/core/payloads.ts'
 import { channelsAt, kindsOf } from '../../src/core/channels.ts'
 import { captionOf, progressOf } from '../../src/core/captions.ts'
@@ -15,6 +15,9 @@ import type { Playing } from './graph.ts'
 import type { Recording } from './Recorder.tsx'
 import type { OpenChannel } from './Channels.tsx'
 import { takenBy } from './StepMotion.tsx'
+import type { PlayerClock } from './clock.ts'
+import { createPartStore, NO_PLANS, planOf } from './parts.ts'
+import type { PartPlan } from './parts.ts'
 import { stepKeyOf } from './usePlayer.ts'
 import type { Play } from './usePlayer.ts'
 
@@ -23,10 +26,11 @@ export const NO_MARKS: Record<string, StateMark> = {} // the same object every t
 /**
  * What is on screen for the flow that plays on one canvas: its stops, the stop shown, the states at it, the `Playing` the graph is built from, the steps that move and
  * the caption. `flow` is undefined when no flow plays on this canvas (while editing, or while Performance or Failures is open); `recording` is the flow being
- * recorded in edit mode, whose steps so far are drawn the same way.
+ * recorded in edit mode, whose steps so far are drawn the same way. `clock` is the player's: the lines of a pair that a step rides open away from it by the clock's time
+ * (`parts`, see parts.ts), so the canvas provides that store to its lines.
  */
-export function useFlowStage({ model, view, flow, playing, replays, recording }: {
-  model: Model; view: string; flow: Flow | undefined; playing: Play | undefined; replays: number; recording?: Recording
+export function useFlowStage({ model, view, flow, playing, replays, recording, clock }: {
+  model: Model; view: string; flow: Flow | undefined; playing: Play | undefined; replays: number; recording?: Recording; clock: PlayerClock
 }) {
   // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
   const stops = useMemo(() => (flow ? stopsOf(flow) : []), [flow])
@@ -64,6 +68,32 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
     const strands = laid === undefined ? undefined : ends.map((placed, i) => (placed ? strandOf(model, laid, steps[i], placed)?.id : undefined))
     return { ends, step: done.length, ...(strands === undefined ? {} : { strands }) }
   }, [model, view, laid, flow, stops, stopIndex, recording])
+  const stepKey = flow && playing ? stepKeyOf(playing.flow, stopIndex, replays) : ''
+  const strandsById = useMemo(() => (laid?.strands === undefined ? undefined : new Map(laid.strands.map(s => [s.id, s]))), [laid])
+  // Where a step rides one line of a pair of several, the others part around it (see parts.ts): for each such pair, which of its lines the stop lights, and when the earliest
+  // `part` beat of the stop's steps on it starts (a step with no motion parts at once).
+  const plans = useMemo<ReadonlyMap<string, PartPlan>>(() => {
+    if (!flow || !stop || laid?.strands === undefined || shown?.strands === undefined) return NO_PLANS
+    return planOf(laid.strands, stop.steps.map(i => {
+      const id = shown.strands![i]
+      const placed = shown.ends[i]
+      const animation = motionOf(model, flow.steps[i])
+      const lanes = id === undefined ? undefined : strandsById?.get(id)?.lanes
+      return { strand: id, ...(animation && placed && lanes !== undefined ? { beats: beatsFor(animation, { length: 0, afterLanding: stop.before.some(j => followsLanding(shown.ends[j], placed)), lanes }).beats } : {}) }
+    }))
+  }, [model, flow, stop, laid, shown, strandsById])
+  // The store the lines of this canvas read their parting from, and a new plan for it at every stop. The clock begins the stop first (the step's motions and the player say it too,
+  // and the same key again does nothing), so the plan starts from the stop's first moment. Another flow, or a stop other than the next or the one before, is a jump.
+  const parts = useMemo(() => createPartStore(clock), [clock])
+  useEffect(() => parts.attach(), [parts]) // hears the clock only while mounted; an effect run again after a cleanup (StrictMode) attaches it again
+  const last = useRef<{ flow: string; stop: number }>(undefined)
+  const planned = JSON.stringify([...plans])
+  useLayoutEffect(() => {
+    const before = last.current
+    const jump = before !== undefined && playing !== undefined && (before.flow !== playing.flow || Math.abs(before.stop - stopIndex) > 1)
+    parts.set(stepKey, plans, { jump, still: matchMedia('(prefers-reduced-motion: reduce)').matches })
+    last.current = stepKey === '' || playing === undefined ? undefined : { flow: playing.flow, stop: stopIndex }
+  }, [parts, stepKey, planned])
   // Every step of the stop that moves, with where it lands in this view. A step the view can't show doesn't move. Its dots say what its payloads are called.
   const animated = flow && stop ? stop.steps.flatMap(i => {
     const a = motionOf(model, flow.steps[i])
@@ -71,7 +101,9 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
     // What its dots carry: the reply on the answer's way back, the payload on every other dot (see DotCard).
     const lane = shown?.strands?.[i]
     const slot = lane === undefined ? undefined : slots?.get(lane)
-    return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p), strand: lane !== undefined && slot !== undefined ? { id: lane, slot } : undefined, sends: dotPayload(model, flow.steps[i]), reply: dotPayload(model, flow.steps[i], 'reply') }] : []
+    const pair = lane === undefined ? undefined : strandsById?.get(lane)?.pair
+    const strand = lane !== undefined && slot !== undefined ? { id: lane, slot, ...(pair === undefined ? {} : { pair }), ...(pair !== undefined && plans.get(pair) !== undefined ? { lit: plans.get(pair)!.lit } : {}) } : undefined
+    return a && p ? [{ i, animation: a, placed: p, by: takenBy(model, view, a, p), strand, sends: dotPayload(model, flow.steps[i]), reply: dotPayload(model, flow.steps[i], 'reply') }] : []
   }) : []
   const moving = animated.length > 0
   // What the flow has left open by this stop, with where it lands in this view. A stream and a listener need two boxes of the view; a job needs only the one it runs on.
@@ -82,15 +114,18 @@ export function useFlowStage({ model, view, flow, playing, replays, recording }:
     // The step whose motion decides when it appears or goes: the one that opens it, or the one in this stop that closes it.
     const by = channel.opening ? channel.step : stop.steps.find(i => animationOf(flow.steps[i])?.closes === channel.name)
     const motion = by === undefined ? undefined : animationOf(flow.steps[by])
-    return [{ channel, placed, ...(motion === undefined ? {} : { motion }) }]
+    // Where each connection is a line of its own, a stream and a listener belong to the line of the step that opened them.
+    const lane = shown?.strands?.[channel.step]
+    const ref = lane === undefined ? undefined : strandsById?.get(lane)
+    const slot = lane === undefined ? undefined : slots?.get(lane)
+    return [{ channel, placed, ...(motion === undefined ? {} : { motion }), ...(lane !== undefined && slot !== undefined && ref !== undefined ? { strand: { id: lane, slot, pair: ref.pair } } : {}) }]
   }) : []
   const channelKinds = kindsOf(open.map(o => o.channel))
-  const stepKey = flow && playing ? stepKeyOf(playing.flow, stopIndex, replays) : ''
   const caption = flow && stop ? captionOf(flow, stop) : undefined
   const progress = useMemo(() => (flow ? progressOf(flow, stops) : undefined), [flow, stops])
   const marks = flow && stop && caption ? stop.steps.flatMap((i, n) => {
     const p = shown?.ends[i]
     return p && stop.kind && caption.marks[n] !== '' ? [{ ends: p, text: caption.marks[n], kind: stop.kind }] : []
   }) : []
-  return { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds }
+  return { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds, parts }
 }

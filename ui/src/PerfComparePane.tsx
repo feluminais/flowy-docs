@@ -17,7 +17,8 @@ import { edgeUnder, lineOf } from './lanehit.ts'
 import type { CanvasPoint } from './lanehit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
-import { LabelSpots, Line, LineStyleContext, LineWidthsContext, labelSpots } from './Line.tsx'
+import { LabelSpots, Line, LineStyleContext, LineWidthsContext } from './Line.tsx'
+import { spotsFor } from './labelspots.ts'
 import { PerfBody } from './Performance.tsx'
 import type { PerfProps } from './Performance.tsx'
 import { stepFrom, dialTop, top } from './perfview.ts'
@@ -79,7 +80,7 @@ export function usePaneRun({ model, runs, runId, view, problems, selectedBox, se
   const frame = inner.length === 0 ? [] : [frameNode(nameOf(model, view), inner.map(n => ({ ...n.position, ...sizeOf(n) })))]
   const edges = useMemo(() => focusEdges(graph.edges, { box: selectedBox, line: selectedLine, hover: hovered }), [graph, selectedBox, selectedLine, hovered])
   const placedAt = nodes.map(n => `${n.position.x},${n.position.y},${n.measured?.width},${n.measured?.height}`).join(' ')
-  const spots = useMemo(() => labelSpots(lines, edges, nodes), [lines, edges, placedAt])
+  const spots = useMemo(() => spotsFor(lines, edges, nodes), [lines, edges, placedAt])
   const onNodesChange = (changes: NodeChange<BoxNode | FrameNode>[]) => {
     for (const c of changes) if (c.type === 'dimensions' && c.dimensions) sizes.current.set(c.id, c.dimensions)
   }

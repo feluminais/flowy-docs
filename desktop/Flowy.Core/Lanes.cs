@@ -253,6 +253,143 @@ public static class Lanes
         return (spread - 1) * pose.S * offset + gap * parted;
     }
 
+    /// <summary>
+    /// The clear space left on each side of a lit lane in the middle of its pair while a step plays on it: the usual pitch plus the gap <see cref="Displacement"/> opens (18 px at most). The most
+    /// the marks of an outcome (a bar, a clock, a puff) may reach is held to what the gap there leaves (see <see cref="MarkReach"/>).
+    /// </summary>
+    public const double PartClear = 30;
+
+    /// <summary>How long the lanes take to move from one lit lane to another, or to close when the stop is left (ms), and to part from wherever they are when the player jumps (ms).</summary>
+    public const double ShiftMs = 195;
+
+    public const double JumpMs = 225;
+
+    /// <summary>How faded the lines of a pair are that the step does not ride, while a step plays on the pair: more than the lines of other pairs (0.15), less than the lanes of the flow's other branches (0.55).</summary>
+    public const double KinOpacity = 0.35;
+
+    /// <summary>How much of its strength a lit lane keeps once its step has timed out, where it has neighbours: never fainter than they are (0.35), so more than the 0.25 a lone line fades to.</summary>
+    public const double LitFloorLanes = 0.5;
+
+    /// <summary>The easings of a parting: <c>Out</c> is a cubic that starts fast and settles, <c>Smooth</c> the smoothstep.</summary>
+    public enum PartEasing { Out, Smooth }
+
+    /// <summary>
+    /// How a pair's lanes go from one pose to the next over a stop: <c>From</c> and <c>To</c> say how lit each lane is (the <c>Lam</c> of a pose; 1 for a lane a step rides) when the stop begins and
+    /// once it has settled. Between <c>At</c> and <c>At + Dur</c> ms of the stop they move from one to the other, <c>Out</c> slowing down towards the end (a first parting), <c>Smooth</c> slow at both
+    /// ends (from one lit lane to another, or back to rest). The pair holds <c>To</c> from then until the stop is left, through every rest of a repeat. The pose is a pure function of this
+    /// and of the player's clock (see <see cref="PoseAt"/>), so pausing, scrubbing and the speed all work, and a fixture can pin any moment.
+    /// </summary>
+    public sealed record Parting(IReadOnlyList<double> From, IReadOnlyList<double> To, double At, double Dur, PartEasing Ease);
+
+    /// <summary>How far an ease has come at <paramref name="p"/> (0 to 1). Multiplications only.</summary>
+    public static double PartEase(PartEasing kind, double p)
+    {
+        if (kind == PartEasing.Out)
+        {
+            var q = 1 - p;
+            return 1 - q * q * q;
+        }
+        return p * p * (3 - 2 * p);
+    }
+
+    /// <summary>The pose of a pair <paramref name="clock"/> ms into the stop: how lit each lane is, between <c>From</c> and <c>To</c>. Never spread (a step playing on a pair wins over its selection).</summary>
+    public static LanePose PoseAt(Parting parting, double clock)
+    {
+        var p = parting.Dur <= 0 ? 1 : Math.Min(1, Math.Max(0, (clock - parting.At) / parting.Dur));
+        var e = PartEase(parting.Ease, p);
+        var n = Math.Max(parting.From.Count, parting.To.Count);
+        var lam = new double[n];
+        for (var j = 0; j < n; j++)
+        {
+            var (before, after) = (j < parting.From.Count ? parting.From[j] : 0, j < parting.To.Count ? parting.To[j] : 0);
+            lam[j] = Round3(before + (after - before) * e);
+        }
+        return lam.All(l => l == 0) ? LanePose.Rest : new LanePose(0, lam);
+    }
+
+    private static bool Unlit(IReadOnlyList<double> lam) => lam.All(l => l == 0);
+
+    /// <summary>
+    /// How the lanes of a pair go from how lit they are (<paramref name="before"/>, what is on screen now) to how lit the stop on show wants them (<paramref name="lit"/>).
+    /// <paramref name="jump"/>: the player went somewhere other than the next stop or the one before (a scrub, another flow): from where they are, over <see cref="JumpMs"/>, easing out, from the start of the stop.
+    /// From rest to a lit lane: at the step's <c>part</c> beat (<paramref name="beat"/>; at once when it has none), over its length, easing out.
+    /// Otherwise (from one lit lane to another, or back to rest): at the start of the stop, over <see cref="ShiftMs"/>, smooth. The pair never closes between two steps that ride it.
+    /// </summary>
+    public static Parting PartingFor(IReadOnlyList<double> before, IReadOnlyList<double> lit, (double At, double Dur)? beat = null, bool jump = false)
+    {
+        if (jump) return new Parting(before, lit, 0, JumpMs, PartEasing.Out);
+        if (Unlit(before) && !Unlit(lit)) return new Parting(before, lit, beat?.At ?? 0, beat?.Dur ?? JumpMs, PartEasing.Out);
+        return new Parting(before, lit, 0, ShiftMs, PartEasing.Smooth);
+    }
+
+    /// <summary>
+    /// For each pair that has several lines and one that a step of the stop rides (<paramref name="lit"/> lists the ids of the strands the stop's steps ride), how lit each of its lanes is: 1 for a
+    /// lane a step rides, 0 for the others. Every lit lane of a stop is lit at once, so an event to several subscribers on one pair opens the gaps for all of them together.
+    /// </summary>
+    public static OrderedDictionary<string, double[]> LitLanes(IReadOnlyList<Strand> strands, IEnumerable<string> lit)
+    {
+        var made = new OrderedDictionary<string, double[]>();
+        var riding = lit.ToHashSet();
+        foreach (var s in strands)
+        {
+            if (s.Lanes < 2 || !riding.Contains(s.Id)) continue;
+            if (!made.TryGetValue(s.Pair, out var lam)) made[s.Pair] = lam = new double[s.Lanes];
+            lam[s.Lane] = 1;
+        }
+        return made;
+    }
+
+    /// <summary>The pitch and the distance between the shapes of a pair of boxes the lane <paramref name="slot"/> is among: what a pose and the marks need to say where the neighbours of a lane are.</summary>
+    private static (double Pitch, double Length) LayoutOf(LaneBox source, LaneBox target, LaneSlot slot)
+    {
+        var f = FrameOf(source, target);
+        var half = Math.Min(HalfRoom(f.A, f.N), HalfRoom(f.B, f.N));
+        return (PitchFor(half, slot), f.Length);
+    }
+
+    /// <summary>
+    /// The distance across, at fraction <paramref name="t"/> (0 to 1) of the way along a lane, from the lane <paramref name="slot"/> to the nearest of its neighbours in <paramref name="pose"/>, in
+    /// pixels: the pitch at both ends and more in the middle where a lit lane has opened a gap beside it (<see cref="PartClear"/> beside a lit lane). Infinity for a lane with no neighbour. The marks
+    /// of an outcome use it to stay clear of the lines beside.
+    /// </summary>
+    public static double GapBeside(LaneBox source, LaneBox target, LaneSlot slot, LanePose pose, double t)
+    {
+        if (slot.Lanes < 2) return double.PositiveInfinity;
+        var (pitch, length) = LayoutOf(source, target, slot);
+        double At(int lane)
+        {
+            var mine = slot with { Lane = lane };
+            return OffsetOf(mine, pitch) + Bulge(t) * Displacement(mine, pose, length, pitch);
+        }
+        var here = At(slot.Lane);
+        var gap = double.PositiveInfinity;
+        if (slot.Lane > 0) gap = Math.Min(gap, here - At(slot.Lane - 1));
+        if (slot.Lane < slot.Lanes - 1) gap = Math.Min(gap, At(slot.Lane + 1) - here);
+        return Round3(gap);
+    }
+
+    /// <summary>
+    /// How far a mark may reach from the lane it sits on, given the <paramref name="gap"/> to the nearest neighbour there: its own half-extent <paramref name="half"/> (a bar's 22, a clock's 24, a puff's 40)
+    /// held to what the gap leaves, less 3 px of air, and never below 6 so it stays a mark. A lane with no neighbour (a gap of Infinity) keeps its whole extent.
+    /// </summary>
+    public static double MarkReach(double half, double gap) => double.IsPositiveInfinity(gap) ? half : Round3(Math.Min(half, Math.Max(6, gap - 3)));
+
+    /// <summary>
+    /// How far from the lit lane a mark that hangs off it (the marker of whoever takes an intercepted request) must stand to clear every other lane of the bundle: the widest lane offset from the
+    /// middle plus the gap a lit lane opens. 0 for a lane with no neighbours.
+    /// </summary>
+    public static double BundleReach(LaneBox source, LaneBox target, LaneSlot slot)
+    {
+        if (slot.Lanes < 2) return 0;
+        var (pitch, length) = LayoutOf(source, target, slot);
+        var widest = 0.0;
+        for (var k = 0; k < slot.Lanes; k++) widest = Math.Max(widest, Math.Abs(OffsetOf(slot with { Lane = k }, pitch)));
+        return Round3(widest + Math.Min(18, 0.2 * length));
+    }
+
+    /// <summary>How far ahead of the pattern, in pixels, the dots of a stream on a lane start: lane * 12.1 / lanes, so the streams of neighbouring lanes do not march in step (the pattern repeats every 12 px).</summary>
+    public static double DashPhase(int lane, int lanes) => Round3(lane * 12.1 / lanes);
+
     private static (double Distance, Pt Point) NearestOn(IReadOnlyList<Pt> points, Pt at)
     {
         var best = (Distance: double.PositiveInfinity, Point: points[0]);

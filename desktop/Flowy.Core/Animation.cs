@@ -22,7 +22,9 @@ public sealed record StepAnimation(string Kind, string Trigger, string? Carries,
 /// One thing to draw, in the order beats are listed. <c>Do</c> is pipe, blob, ring, flash, gulp, wait, drop, fade (the lit line dims and stays dim) or stack
 /// (the pile of ghost cards a recursion leaves under its shape; <c>Level</c> is how many show from then on), or one of
 /// the five the outcomes added: pop (a puff where a request is lost), bar (a bar at the receiver's door), clock, note (a few words beside where something happens)
-/// and marker (the dashed marker of whoever takes a request). <c>On</c> is from, to, line or by (the one who takes a request);
+/// and marker (the dashed marker of whoever takes a request). Where a project draws a line for each connection and the step's pair has several, there is one more:
+/// part (the other lines of the pair part around the lit one, see <see cref="Animations.PartOf"/>); its <c>Dur</c> is how long they take to open, and they stay open until the stop is left.
+/// <c>On</c> is from, to, line or by (the one who takes a request);
 /// times are milliseconds from the start of the step. Dir, Glyph, Tone (reply, or fail for a blob or flash in the danger colour) and Label are set only where
 /// they mean something. <c>Start</c> and <c>End</c> are the fractions of the route a blob runs between, <c>Tint</c> a slot of <see cref="Animations.Tints"/>,
 /// <c>Ring</c> a ring around a blob, <c>Along</c> where along the route a pop, bar, clock, note or marker sits, and <c>Text</c> a note's reason or a marker's name.
@@ -501,11 +503,19 @@ public static class Animations
     /// <summary>One request of the step: whether it meets the outcome, the word it carries, and, in a burst, the colour and ring of one that does. <c>Fade</c> is whether a timeout dims the line after it.</summary>
     private sealed record Req(bool Hit, string? Label = null, int? Tint = null, bool? Ring = null, bool Fade = true);
 
+    /// <summary>How long the lines of a pair take to part around a lit one, and how far ahead of the first dot they start, so they are open when it leaves.</summary>
+    public const int PartMs = 225;
+
+    public const int PartLead = 250;
+
     /// <summary>
     /// The step as beats, with the tube first and how long the whole thing lasts. They are listed request by request, and each request in the order its beats start.
     /// A step with a share plays a burst (see <see cref="BurstOf"/>): the hits are named r1, r2, ... or by carries, coloured and ringed; the rest are ordinary deliveries.
+    /// <paramref name="lanes"/> is how many lines the step's pair has side by side (a project that draws a line for each connection). With more than one, a <c>part</c> beat follows the tube: it
+    /// starts <see cref="PartLead"/> before the first dot leaves (or at 0) and takes <see cref="PartMs"/>, inside the lead-ins every step has already, so the total is what it was without it.
+    /// A recursion is a loop on a shape, with no pair, so it never has one.
     /// </summary>
-    public static (List<Beat> Beats, int Total) BeatsFor(StepAnimation a, double length, bool afterLanding)
+    public static (List<Beat> Beats, int Total) BeatsFor(StepAnimation a, double length, bool afterLanding, int lanes = 1)
     {
         var t = Travel(length);
         int Ms(double fraction) => (int)Math.Floor(t * fraction + 0.5);
@@ -680,9 +690,14 @@ public static class Animations
         var total = body.Max(b => b.At + b.Dur);
         // Whoever takes an intercepted request is drawn for the whole step, a shape by a dashed outline and a party that is not in the model by a dashed marker with its name.
         List<Beat> marker = a.Outcome == "intercepted" && a.By is not null ? [new Beat("marker", "by", 0, total, Along: WaitAt, Text: a.By.Name)] : [];
-        List<Beat> all = [new Beat("pipe", "line", 0, total), .. marker, .. body];
+        var blobs = body.Where(b => b.Do == "blob").Select(b => b.At).ToList();
+        List<Beat> part = lanes > 1 && a.Kind != "recurse" && blobs.Count > 0 ? [new Beat("part", "line", Math.Max(0, blobs.Min() - PartLead), PartMs)] : [];
+        List<Beat> all = [new Beat("pipe", "line", 0, total), .. marker, .. part, .. body];
         return (all, total);
     }
+
+    /// <summary>When the lines of a step's pair part around its lit line: the <c>part</c> beat's start and length, or null for a step that has none.</summary>
+    public static (int At, int Dur)? PartOf(IEnumerable<Beat> beats) => beats.FirstOrDefault(b => b.Do == "part") is { } b ? (b.At, b.Dur) : null;
 
     /// <summary>
     /// A recursion: the shape calls itself <c>depth - 1</c> times, each call piling a card onto the stack under it. A flag marks the base case,

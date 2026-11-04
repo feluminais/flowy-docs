@@ -255,6 +255,130 @@ export function displacement(slot: Slot, pose: Pose, length: number, pitch: numb
   return (spread - 1) * pose.s * offset + gap * parted
 }
 
+/**
+ * The clear space left on each side of a lit lane in the middle of its pair while a step plays on it: the usual pitch plus the gap `displacement` opens (18 px at most). The most
+ * the marks of an outcome (a bar, a clock, a puff) may reach is held to what the gap there leaves (see markReach).
+ */
+export const PART_CLEAR = 30
+
+/** How long the lanes take to move from one lit lane to another, or to close when the stop is left (ms), and to part from wherever they are when the player jumps (ms). */
+export const SHIFT_MS = 195
+export const JUMP_MS = 225
+
+/** How faded the lines of a pair are that the step does not ride, while a step plays on the pair: more than the lines of other pairs (0.15), less than the lanes of the flow's other branches (0.55). */
+export const KIN_OPACITY = 0.35
+
+/** How much of its strength a lit lane keeps once its step has timed out, where it has neighbours: never fainter than they are (0.35), so more than the 0.25 a lone line fades to. */
+export const LIT_FLOOR_LANES = 0.5
+
+/**
+ * How a pair's lanes go from one pose to the next over a stop: `from` and `to` say how lit each lane is (the `lam` of a pose; 1 for a lane a step rides) when the stop begins and
+ * once it has settled. Between `at` and `at + dur` ms of the stop they move from one to the other, `out` slowing down towards the end (a first parting), `smooth` slow at both
+ * ends (from one lit lane to another, or back to rest). The pair holds `to` from then until the stop is left, through every rest of a repeat. The pose is a pure function of this
+ * and of the player's clock (see poseAt), so pausing, scrubbing and the speed all work, and a fixture can pin any moment.
+ */
+export type Parting = { readonly from: readonly number[]; readonly to: readonly number[]; readonly at: number; readonly dur: number; readonly ease: 'out' | 'smooth' }
+
+/** How far an ease has come at `p` (0 to 1): `out` is a cubic that starts fast and settles, `smooth` the smoothstep. Multiplications only. */
+export const partEase = (kind: Parting['ease'], p: number): number => {
+  if (kind === 'out') {
+    const q = 1 - p
+    return 1 - q * q * q
+  }
+  return p * p * (3 - 2 * p)
+}
+
+/** The pose of a pair `clock` ms into the stop: how lit each lane is, between `from` and `to`. Never spread (a step playing on a pair wins over its selection). */
+export function poseAt(parting: Parting, clock: number): Pose {
+  const p = parting.dur <= 0 ? 1 : Math.min(1, Math.max(0, (clock - parting.at) / parting.dur))
+  const e = partEase(parting.ease, p)
+  const n = Math.max(parting.from.length, parting.to.length)
+  const lam: number[] = []
+  for (let j = 0; j < n; j++) {
+    const [before, after] = [parting.from[j] ?? 0, parting.to[j] ?? 0]
+    lam.push(round3(before + (after - before) * e))
+  }
+  return lam.every(l => l === 0) ? REST : { s: 0, lam }
+}
+
+/** Whether every lane is unlit. */
+const unlit = (lam: readonly number[]): boolean => lam.every(l => l === 0)
+
+/**
+ * How the lanes of a pair go from how lit they are (`before`, what is on screen now) to how lit the stop on show wants them (`lit`).
+ * - `jump`: the player went somewhere other than the next stop or the one before (a scrub, another flow): from where they are, over JUMP_MS, easing out, from the start of the stop.
+ * - From rest to a lit lane: at the step's `part` beat (when it has one; else at once), over its length, easing out.
+ * - Otherwise (from one lit lane to another, or back to rest): at the start of the stop, over SHIFT_MS, smooth. The pair never closes between two steps that ride it.
+ */
+export function partingFor(before: readonly number[], lit: readonly number[], how: { beat?: { at: number; dur: number }; jump?: boolean } = {}): Parting {
+  if (how.jump === true) return { from: before, to: lit, at: 0, dur: JUMP_MS, ease: 'out' }
+  if (unlit(before) && !unlit(lit)) return { from: before, to: lit, at: how.beat?.at ?? 0, dur: how.beat?.dur ?? JUMP_MS, ease: 'out' }
+  return { from: before, to: lit, at: 0, dur: SHIFT_MS, ease: 'smooth' }
+}
+
+/**
+ * For each pair that has several lines and one that a step of the stop rides (`lit` lists the ids of the strands the stop's steps ride), how lit each of its lanes is: 1 for a
+ * lane a step rides, 0 for the others. Every lit lane of a stop is lit at once, so an event to several subscribers on one pair opens the gaps for all of them together.
+ */
+export function litLanes(strands: readonly Strand[], lit: readonly string[]): Map<string, number[]> {
+  const out = new Map<string, number[]>()
+  const riding = new Set(lit)
+  for (const s of strands) {
+    if (s.lanes < 2 || !riding.has(s.id)) continue
+    const lam = out.get(s.pair) ?? Array.from({ length: s.lanes }, () => 0)
+    lam[s.lane] = 1
+    out.set(s.pair, lam)
+  }
+  return out
+}
+
+/** The pitch and the distance between the shapes of a pair of boxes the lane `slot` is among: what a pose and the marks need to say where the neighbours of a lane are. */
+function layoutOf(source: LaneBox, target: LaneBox, slot: Slot): { pitch: number; length: number } {
+  const frame = frameOf(source, target)
+  const half = Math.min(halfRoom(frame.a, frame.n), halfRoom(frame.b, frame.n))
+  return { pitch: pitchFor(half, slot), length: frame.length }
+}
+
+/**
+ * The distance across, at fraction `t` (0 to 1) of the way along a lane, from the lane `slot` to the nearest of its neighbours in `pose`, in pixels: the pitch at both ends and
+ * more in the middle where a lit lane has opened a gap beside it (PART_CLEAR beside a lit lane). Infinity for a lane with no neighbour. The marks of an outcome use it to stay
+ * clear of the lines beside.
+ */
+export function gapBeside(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose, t: number): number {
+  if (slot.lanes < 2) return Infinity
+  const { pitch, length } = layoutOf(source, target, slot)
+  const at = (lane: number): number => {
+    const mine = { ...slot, lane }
+    return offsetOf(mine, pitch) + bulge(t) * displacement(mine, pose, length, pitch)
+  }
+  const here = at(slot.lane)
+  let gap = Infinity
+  if (slot.lane > 0) gap = Math.min(gap, here - at(slot.lane - 1))
+  if (slot.lane < slot.lanes - 1) gap = Math.min(gap, at(slot.lane + 1) - here)
+  return round3(gap)
+}
+
+/**
+ * How far a mark may reach from the lane it sits on, given the `gap` to the nearest neighbour there: its own half-extent `half` (a bar's 22, a clock's 24, a puff's 40) held to
+ * what the gap leaves, less 3 px of air, and never below 6 so it stays a mark. A lane with no neighbour (a gap of Infinity) keeps its whole extent.
+ */
+export const markReach = (half: number, gap: number): number => (gap === Infinity ? half : round3(Math.min(half, Math.max(6, gap - 3))))
+
+/**
+ * How far from the lit lane a mark that hangs off it (the marker of whoever takes an intercepted request) must stand to clear every other lane of the bundle: the widest lane
+ * offset from the middle plus the gap a lit lane opens. 0 for a lane with no neighbours.
+ */
+export function bundleReach(source: LaneBox, target: LaneBox, slot: Slot): number {
+  if (slot.lanes < 2) return 0
+  const { pitch, length } = layoutOf(source, target, slot)
+  let widest = 0
+  for (let k = 0; k < slot.lanes; k++) widest = Math.max(widest, Math.abs(offsetOf({ ...slot, lane: k }, pitch)))
+  return round3(widest + Math.min(18, 0.2 * length))
+}
+
+/** How far ahead of the pattern, in pixels, the dots of a stream on lane `slot` start: lane * 12.1 / lanes, so the streams of neighbouring lanes do not march in step (the pattern repeats every 12 px). */
+export const dashPhase = (slot: { lane: number; lanes: number }): number => round3((slot.lane * 12.1) / slot.lanes)
+
 /** A lane to be hit-tested: the points of its path at the pose on show, and the pair and the place among the pair's lanes it belongs to. */
 export type HitLane = { id: string; pair: string; lane: number; points: readonly Point[] }
 

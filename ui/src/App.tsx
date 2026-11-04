@@ -29,6 +29,7 @@ import { ComparePicker } from './ComparePicker.tsx'
 import { firstErrorAt, modeCount, modeIn } from './failuresview.ts'
 import { FailuresBody } from './Failures.tsx'
 import { createHoverStore, LabelSpots, Line, LineHover, LineMarksContext, LineStyleContext, LineWidthsContext } from './Line.tsx'
+import { PartsContext } from './parts.ts'
 import { TrafficLayer } from './TrafficLayer.tsx'
 import { clampWidth, widestFor } from './navstate.ts'
 import { compareRowAttr, DetailsRail, Explorer, FlowsTab, NavPanel, NavRail, NavTitle, Sash } from './Navigator.tsx'
@@ -187,7 +188,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const { compare, setCompare, setCompareStart, compareRef, compareStart, draft, onDraft, dirtyRef, asking, setAsking, comparing, flowsCompared, unlessDraft, discardNote } = useCompare({ model, runs, editing, perfOpen, failuresOpen, setNotice })
   // A flow that was playing waits behind the Performance and Failures tabs and a comparison, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen || comparing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
-  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds } = useFlowStage({ model, view, flow, playing, replays, recording })
+  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds, parts } = useFlowStage({ model, view, flow, playing, replays, recording, clock })
   // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. A pane of a comparison of runs draws its run the same way (see useRunDrawing).
   const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
   const stateMarks = flow ? flowMarks : runMarks
@@ -226,7 +227,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const { graph, marksHere, nodes, flowNodes, shapes, edges, spots, sizes } = useCanvasGraph({ model, view, shown, problems, stateMarks, loadTraffic, failMarks, scrubbing, moved, pickedSet, litClass, usedClass, lit, openLevel, animated, still, selectedBox, selectedLine, focusedLine, lines })
   const onScreen = useMemo(() => kindsOnScreen(edges), [edges]) // the kinds the lines are drawn as, for the key at the foot
   const { motion, go, goNow, jumpTo, back, zoomInto, openFlow, openLinked, goBack, showFlow } = useNavigation({ model, view, canvas, canOpen, editing, setViewId, playing, setPlaying, stopIndex, setCompare, setSide, show, session, cancelOpen: wait.cancelOpen, unlessDraft, setNotice, closeFailures })
-  const events = useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, edges, lines, setFocusedLine, members: graph.members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait })
+  const events = useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, edges, lines, setFocusedLine, members: graph.members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait, parts })
   const { copyMermaid, createRun, copyFailures } = useCopyOut({ model, view, flow, playing, analysis, setNotice })
   const { askDelete, remove } = useDelete({ model, view, side, chosen, run, setSide, setNotice, announce, close })
   const rowCompare = { off: compareOff(model, editing), open: rowPicking?.flow, onCompare: compareRow }
@@ -355,6 +356,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
               <LineWidthsContext value={widths}>
               <LineMarksContext value={lineMarks}>
               <LineHover value={hover}>
+              <PartsContext value={parts}>
               <LabelSpots spots={spots}>
               <ReactFlow
                 key={view} // a fresh canvas per view
@@ -398,6 +400,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 {flow && <GroupMarks marks={marks} />}
               </ReactFlow>
               </LabelSpots>
+              </PartsContext>
               </LineHover>
               </LineMarksContext>
               </LineWidthsContext>

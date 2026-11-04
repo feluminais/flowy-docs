@@ -1,7 +1,7 @@
 import { createContext, memo, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
 import { BaseEdge, EdgeLabelRenderer, useInternalNode, useStore } from '@xyflow/react'
-import type { Edge, EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
+import type { EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import type { Mark } from '../../src/core/failures.ts'
 import { endsOfPath, HEAD_PATH, headMatrix, headScale } from '../../src/core/heads.ts'
 import type { Point } from '../../src/core/heads.ts'
@@ -10,17 +10,19 @@ import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { ChangeMarksContext, FailBadge } from './Box.tsx'
 import { changeAt } from './compare.ts'
-import { inPair, loopAround, pairOf, sizeOf } from './graph.ts'
-import { clip, placeLabels, SAMPLE } from './labels.ts'
-import { boxEnd, laneOf } from './lanehit.ts'
+import { inPair, loopAround, sizeOf } from './graph.ts'
+import { clip, SAMPLE } from './labels.ts'
+import { laneOf } from './lanehit.ts'
 import { lanes, REST, SPREAD } from './lanes.ts'
-import type { LaneEnd, Slot } from './lanes.ts'
+import type { LaneEnd, Pose, Slot } from './lanes.ts'
 import type { Spot } from './labels.ts'
+import type { SpotsFor } from './labelspots.ts'
 import { marksOf, markScale } from './kindkey.ts'
 import { LookSwatch, MarkPath } from './kinds.tsx'
 import { labelOffset } from './motion.ts'
+import { PartsContext } from './parts.ts'
 import { useEasedSpread } from './spread.ts'
-import type { BoxData, BoxNode, Outline, Rect } from './graph.ts'
+import type { BoxData, Outline, Rect } from './graph.ts'
 
 /** How lines are drawn: the project's style, or this reader's own. App provides it. */
 export const LineStyleContext = createContext<LineStyle>('straight')
@@ -90,12 +92,20 @@ function createSpotStore(first: ReadonlyMap<string, Spot>) {
   }
 }
 
-/** Provides where the labels go (see labelSpots) to the lines inside. */
-export function LabelSpots({ spots, children }: { spots: ReadonlyMap<string, Spot>; children: ReactNode }) {
+/**
+ * Provides where the labels go (see spotsFor) to the lines inside. The labels are placed from the lines as they are drawn, and while a flow plays the lines of a pair part around the lit
+ * ones (see parts.ts), so they are placed again each time the pair changes: this reads the flow's part store from PartsContext, which is why it sits inside it.
+ */
+export function LabelSpots({ spots, children }: { spots: SpotsFor; children: ReactNode }) {
+  const parts = useContext(PartsContext)
   const store = useRef<ReturnType<typeof createSpotStore>>(undefined)
-  store.current ??= createSpotStore(spots)
+  store.current ??= createSpotStore(spots(parts.lam))
   const current = store.current
-  useLayoutEffect(() => current.set(spots), [current, spots])
+  useLayoutEffect(() => {
+    const place = () => current.set(spots(parts.lam))
+    place()
+    return parts.subscribe(place)
+  }, [current, spots, parts])
   return <LabelSpotsContext value={current}>{children}</LabelSpotsContext>
 }
 
@@ -107,38 +117,7 @@ const nameOfNode = (n: InternalNode, id: string): string => (n.data as BoxData).
 export const outline = (n: InternalNode): Outline => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].edge
 
 /** A box as the end of a lane (see lanes.ts). */
-const endOf = (n: InternalNode): LaneEnd => ({ id: n.id, rect: rect(n), edge: outline(n) })
-
-/**
- * Where the labels on show go: each line's, in the given style, kept clear of the boxes and of one another (see placeLabels). A lit line's
- * label and the label of a line a pipe plays along stay at the middle of the line, and the others are placed round them. The label of a line that has
- * other lines beside it also keeps clear of their lines.
- */
-export function labelSpots(style: LineStyle, edges: Edge[], nodes: BoxNode[]): Map<string, Spot> {
-  const at = new Map(nodes.map(n => [n.id, n]))
-  const boxes = nodes.map(n => ({ ...n.position, ...sizeOf(n) }))
-  const laneAt = (e: Edge) => {
-    const [a, b] = [at.get(e.source), at.get(e.target)]
-    if (!a || !b) return undefined
-    const { slot, pose } = laneOf(e.data)
-    return lanes.laneFor(e.id, style, boxEnd(a), boxEnd(b), pose, slot)
-  }
-  // The lines of each pair that has several, so a label can keep off the others'.
-  const sides = new Map<string, Edge[]>()
-  for (const e of edges) if (typeof e.data?.lanes === 'number' && e.data.lanes > 1) sides.set(pairOf(e), [...(sides.get(pairOf(e)) ?? []), e])
-  const items = edges.flatMap(e => {
-    if (typeof e.label !== 'string' || e.label === '') return []
-    const lane = laneAt(e)
-    if (!lane) return []
-    const { path, x, y } = lane
-    const across = sides.get(pairOf(e))?.filter(o => o.id !== e.id).flatMap(o => {
-      const points = laneAt(o)?.points
-      return points ? [points] : []
-    })
-    return [{ id: e.id, path, mid: { x, y }, chars: clip(e.label).length, pinned: e.className?.includes('active') || e.data?.lift === true, ...(across === undefined ? {} : { across, extra: SAMPLE }) }]
-  })
-  return placeLabels(items, boxes)
-}
+export const endOf = (n: InternalNode): LaneEnd => ({ id: n.id, rect: rect(n), edge: outline(n) })
 
 /** The middle of the line between two boxes in the given style, where its label sits. `strand` is the id of the line, where the caller knows it (see lanes.ts). */
 export function labelPoint(style: LineStyle, a: InternalNode, b: InternalNode, strand?: LaneRef): XYPosition {
@@ -146,11 +125,18 @@ export function labelPoint(style: LineStyle, a: InternalNode, b: InternalNode, s
   return { x, y }
 }
 
-/** A line of a pair of shapes that has several, as a pipe or a stream asks for it: its id, and its place among its pair's lines. */
-export type LaneRef = { id: string; slot: Slot }
+/**
+ * A line of a pair of shapes that has several, as a pipe or a stream asks for it: its id, its place among its pair's lines, the pair's id and, while a step of the stop rides a
+ * line of the pair, how lit each of the pair's lines is (1 for a line a step rides, see parts.ts). A lit line that has another lit line beside it is moved by the gap the pair
+ * opens around them, so what runs along it is laid out on the line as it stands once the pair has parted.
+ */
+export type LaneRef = { id: string; slot: Slot; pair?: string; lit?: readonly number[] }
+
+/** The pose a line is in once its pair has parted: the lit lanes of `strand`, or at rest. */
+const partedPose = (strand: LaneRef | undefined): Pose => (strand?.lit === undefined ? REST : { s: 0, lam: strand.lit })
 
 /** The path of the line between two boxes in the given style, for a step's pipe to follow. `strand` is the line, where the caller knows it (see lanes.ts); without it the path is the pair's one line. */
-export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode, strand?: LaneRef): string => lanes.laneFor(strand?.id, style, endOf(a), endOf(b), REST, strand?.slot).path
+export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode, strand?: LaneRef): string => lanes.laneFor(strand?.id, style, endOf(a), endOf(b), partedPose(strand), strand?.slot).path
 
 /** The path of a recursion's loop pipe for one box, out of its right side and back in (the same in every line style). */
 export const loopPath = (n: InternalNode): string => loopAround(rect(n), outline(n))
@@ -208,6 +194,9 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   const hot = pointed === 'line' || pointed === 'lane'
   const mate = pointed === 'mate'
   const spreadNow = useEasedSpread(data?.spread === true) // how far the pair has gone towards spread, eased (see useEasedSpread)
+  // How lit each lane of the pair is while a step plays on it: the others part around the lit one (see parts.ts). Read by the pair, so only its lines draw again as it changes.
+  const parts = useContext(PartsContext)
+  const lit = useSyncExternalStore(parts.subscribe, () => (several ? parts.lam(pair) : undefined))
   const spots = useContext(LabelSpotsContext)
   const spot = useSyncExternalStore(spots.subscribe, () => spots.get(id))
   const change = changeAt(useContext(ChangeMarksContext)?.lines, pair)
@@ -219,7 +208,7 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   const b = useInternalNode(target)
   if (!a || !b) return null
   const { slot } = laneOf(data)
-  const pose = spreadNow === 0 ? REST : spreadNow === 1 ? SPREAD : { s: spreadNow, lam: [] }
+  const pose = lit === undefined ? (spreadNow === 0 ? REST : spreadNow === 1 ? SPREAD : { s: spreadNow, lam: [] }) : { s: spreadNow, lam: lit }
   const { path, x, y } = lanes.laneFor(id, style, endOf(a), endOf(b), pose, slot)
   // A step that moves runs a blob along this line, so its label steps aside instead of sitting under the blob.
   const [ra, rb] = [rect(a), rect(b)]

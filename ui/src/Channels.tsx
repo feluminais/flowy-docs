@@ -1,16 +1,22 @@
-import { useContext, useLayoutEffect, useRef, useState } from 'react'
+import { useContext, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { CSSProperties } from 'react'
 import { useInternalNode, ViewportPortal } from '@xyflow/react'
 import { beatsFor } from '../../src/core/animation.ts'
 import type { Animation, ChannelKind } from '../../src/core/animation.ts'
 import { CHANNEL_LABELS } from '../../src/core/channels.ts'
+import { dashPhase } from '../../src/core/lanes.ts'
 import type { Channel } from '../../src/core/channels.ts'
 import { LineStyleContext, pathBetween, rect } from './Line.tsx'
+import type { LaneRef } from './Line.tsx'
+import { PartsContext } from './parts.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { runKeyOf } from './usePlayer.ts'
 
-/** A channel open at the stop on show, with the boxes its ends are in this view, and the motion of the step that opens or closes it (the mark waits for it to land). */
-export type OpenChannel = { channel: Channel; placed: [string, string]; motion?: Animation }
+/**
+ * A channel open at the stop on show, with the boxes its ends are in this view, and the motion of the step that opens or closes it (the mark waits for it to land).
+ * Where a project draws a line for each connection, `strand` is the line of the step that opened it: the dots and the tether run along that line, not the pair's middle.
+ */
+export type OpenChannel = { channel: Channel; placed: [string, string]; motion?: Animation; strand?: LaneRef }
 
 // Tabler's bell and the arc of a spinner on a 24-unit grid; the same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs).
 const BELL = 'M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6M9 17v1a3 3 0 0 0 6 0v-1'
@@ -18,6 +24,9 @@ const ARC = 'M12 3a9 9 0 1 0 9 9'
 /** The disc of a listener or a job, which sits on the top edge of the box it points at, and how far apart a box's discs stand. */
 const DISC = 11
 const GAP = 4
+/** The dots of a stream are a dash every 12 px (see .stream-dots in style.css) and a loop of them takes 0.7 s: a phase in px is that many 12ths of a loop. */
+const DASH_PERIOD = 12
+const LOOP_S = 0.7
 
 /** The drawing inside a disc: a bell for a listener, a turning arc for a job. Centred on the origin. */
 function Glyph({ kind }: { kind: Exclude<ChannelKind, 'stream'> }) {
@@ -50,7 +59,11 @@ function OneChannel({ open, slot }: { open: OpenChannel; slot: number }) {
   const to = useInternalNode(placed[1])
   const route = useRef<SVGPathElement>(null)
   const [laid, setLaid] = useState<{ x: number; y: number; after: number }>()
-  const d = from && to && from !== to ? pathBetween(style, from, to) : ''
+  // Its line moves when a step plays on a line beside it: the pair parts around the lit line (see parts.ts), and the dots follow their line.
+  const parts = useContext(PartsContext)
+  const pair = open.strand?.pair
+  const lit = useSyncExternalStore(parts.subscribe, () => (pair === undefined ? undefined : parts.lam(pair)))
+  const d = from && to && from !== to ? pathBetween(style, from, to, open.strand === undefined ? undefined : { ...open.strand, ...(lit === undefined ? {} : { lit }) }) : ''
 
   useLayoutEffect(() => {
     const path = route.current
@@ -65,8 +78,9 @@ function OneChannel({ open, slot }: { open: OpenChannel; slot: number }) {
   const at = c.end === 'to' ? to : from
   const r = rect(at)
   const badge = { x: r.x + r.width - DISC - GAP - slot * (2 * DISC + GAP), y: r.y }
-  const classes = ['channels', c.kind, c.end === 'from' ? 'reverse' : '', c.opening ? 'opening' : '', c.closing ? 'closing' : ''].filter(Boolean).join(' ')
-  const wait = { '--after': `${laid?.after ?? 0}ms` } as CSSProperties
+  const among = open.strand !== undefined && open.strand.slot.lanes > 1 // one of several lines side by side: the tether is thicker, and the dots of neighbouring streams do not march in step
+  const classes = ['channels', c.kind, c.end === 'from' ? 'reverse' : '', c.opening ? 'opening' : '', c.closing ? 'closing' : '', among ? 'bundled' : ''].filter(Boolean).join(' ')
+  const wait = { '--after': `${laid?.after ?? 0}ms`, ...(among ? { '--phase': `${-Math.round((dashPhase(open.strand!.slot) / DASH_PERIOD) * LOOP_S * 1000) / 1000}s` } : {}) } as CSSProperties
   return (
     <ViewportPortal>
       <svg className={classes} style={wait} aria-hidden="true" data-channel={c.name ?? c.kind}>

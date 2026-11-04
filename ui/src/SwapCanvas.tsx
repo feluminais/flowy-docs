@@ -17,6 +17,7 @@ import type { BoxNode, FrameNode } from './graph.ts'
 import { edgeUnder, lineOf } from './lanehit.ts'
 import type { CanvasPoint } from './lanehit.ts'
 import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
+import { PartsContext } from './parts.ts'
 import { PaneMotions, PanePlayer } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
 import { FADE_MS, planSwap, SWAP_MS, swapDuration } from './swap.ts'
@@ -155,6 +156,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
       <h2 className="pane-title" title={name}>{name}</h2>
       <div className="pane-canvas">
         <LineStyleContext value={lines}>
+          <PartsContext value={target.parts}>
           <LabelSpots spots={spots}>
             <ChangeMarksContext value={marks?.[index]}>
               <ReactFlow
@@ -177,9 +179,9 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
                   if (node.type === 'box') onPick({ kind: 'object', id: node.id })
                 }}
                 onEdgeClick={(event, hit) => {
-                  if (!isStepLine(hit.id)) onPick(lineOf(edgeUnder(canvasAt.current, event, edges, boxes, lines, hit), target.view)) // of the lines of a pair side by side, the one nearest the pointer
+                  if (!isStepLine(hit.id)) onPick(lineOf(edgeUnder(canvasAt.current, event, edges, boxes, lines, hit, target.parts.lam), target.view)) // of the lines of a pair side by side, the one nearest the pointer
                 }}
-                onEdgeMouseEnter={(event, hit) => target.setHovered(edgeUnder(canvasAt.current, event, edges, boxes, lines, hit).id)}
+                onEdgeMouseEnter={(event, hit) => target.setHovered(edgeUnder(canvasAt.current, event, edges, boxes, lines, hit, target.parts.lam).id)}
                 onEdgeMouseLeave={() => target.setHovered(undefined)}
                 onPaneClick={onEmpty}
                 onInit={instance => {
@@ -194,6 +196,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
               </ReactFlow>
             </ChangeMarksContext>
           </LabelSpots>
+          </PartsContext>
         </LineStyleContext>
         <KindKey {...kindsOnScreen(edges)} />
       </div>

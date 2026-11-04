@@ -166,12 +166,18 @@ internal sealed class PaneFlow
         _canvas.SetMarks(marks);
 
         // The motion of the step on show starts once for each step and replay: a hover, a theme or a change on disk redraws without starting it again.
-        if (!_playback.Begin(_flowId, index, out var key)) return;
+        var plans = shown is not null ? FlowStage.PartsAt(model, view, flow, stops, index, shown) : FlowStage.NoPlans;
+        if (!_playback.Begin(_flowId, index, out var key))
+        {
+            _canvas.PartStop(_flowId, index, plans); // the same plan again does nothing; a change on disk can change the lines the step rides
+            return;
+        }
         _canvas.StopStep();
         _canvas.RestartChannels();
+        _canvas.PartStop(_flowId, index, plans);
         if (shown is not null)
         {
-            var runs = FlowStage.RunsOf(model, view, flow, stops, index, shown);
+            var runs = FlowStage.RunsOf(model, view, flow, stops, index, shown, plans);
             if (runs.Count > 0) _canvas.PlaySteps(runs, () => _playback.Settled(key));
         }
         _playback.ArmAuto();

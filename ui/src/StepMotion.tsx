@@ -4,12 +4,13 @@ import { useInternalNode, ViewportPortal } from '@xyflow/react'
 import type { InternalNode } from '@xyflow/react'
 import { beatsFor, shortLabel } from '../../src/core/animation.ts'
 import type { Animation, Beat, Glyph } from '../../src/core/animation.ts'
+import { bundleReach, gapBeside, LIT_FLOOR_LANES, markReach } from '../../src/core/lanes.ts'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { Model } from '../../src/core/model.ts'
 import { nameOf, placeStep } from '../../src/core/views.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
-import { LineStyleContext, loopPath, pathBetween, rect } from './Line.tsx'
+import { endOf, LineStyleContext, loopPath, pathBetween, rect } from './Line.tsx'
 import type { LaneRef } from './Line.tsx'
 import type { PlayerClock } from './clock.ts'
 import { active, bump, cardBox, cardsAt, cyclePeriod, distance, DWELL, ease, effectPose, entryPoint, keepsPlaying, litOpacity, markerSize, markerSpot, momentOf, noteSpot, pillText, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
@@ -28,6 +29,10 @@ const FLASH = 0.55
 const TICKS = 6
 /** How far the dashed outline around a box that takes a request stands off it. */
 const HALO = 6
+/** How far from the line the marks of an outcome reach at their widest: the bar's 22 each way, the clock's dial, and the puff's outermost tick (see drawPop). */
+const BAR_HALF = 22
+const CLOCK_HALF = 24
+const POP_HALF = 40
 
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 /** The drawn tile of a box on the canvas, which a gulp squashes. Looked for in this canvas: two flows side by side can hold a box of the same name. */
@@ -199,7 +204,7 @@ function writePill(pill: Element, box: Rect, text: string) {
 type Props = {
   /** The boxes the step lands on in this view (ids of nodes on the canvas), in the step's direction. */
   ends: [string, string]
-  /** The line of its pair the step rides, where a project draws a line for each connection; the pipe runs along it. */
+  /** The line of its pair the step rides, where a project draws a line for each connection; the pipe runs along it, as it stands once the pair has parted around the lit lines. */
   strand?: LaneRef
   animation: Animation
   /** Whether the step before ended at this step's source (see followsLanding). */
@@ -289,23 +294,31 @@ export function StepMotion({ ends, strand, animation, afterLanding, repeat, by, 
       if (taker.name === undefined) return undefined
       const size = markerSize(taker.name)
       const s = spotAt(markerAt)
-      const o = markerSpot(s.dx, s.dy, size)
+      const o = markerSpot(s.dx, s.dy, size, strand && strand.slot.lanes > 1 ? bundleReach(endOf(from), endOf(to), strand.slot) : 0)
       return { x: s.x + o.x - size.width / 2, y: s.y + o.y - size.height / 2, ...size }
     })()
     // Where the blob leaves the line for the one who takes it, and the edge of it that it runs to.
     const depart = (beat: Beat) => spotAt(beat.start ?? 0)
     const arrive = (beat: Beat) => (takerBox ? entryPoint(depart(beat), takerBox) : depart(beat))
 
+    // Among the lines of a pair the marks stay clear of the lines beside: how much of its size a mark of half-extent `half` keeps at `along` the line, once the pair has parted
+    // (a bar is 44 px across, a clock 48, a puff about 80; the gap beside a lit lane is 30 in the middle and 12 near the ends).
+    const kept = (along: number, half: number): number => {
+      if (!strand || strand.slot.lanes < 2) return 1
+      return Math.min(1, markReach(half, gapBeside(endOf(from), endOf(to), strand.slot, { s: 0, lam: strand.lit ?? [] }, along)) / half)
+    }
     // The marks of an outcome stand where they belong from the start; the frame loop only shows them and moves what moves.
     beats.forEach((beat, i) => {
       const node = nodes[i]
       if (!node) return
       if (beat.do === 'pop' || beat.do === 'clock') {
         const s = spotAt(beat.along!)
-        node.setAttribute('transform', `translate(${s.x} ${s.y})`)
+        const k = kept(beat.along!, beat.do === 'pop' ? POP_HALF : CLOCK_HALF)
+        node.setAttribute('transform', k === 1 ? `translate(${s.x} ${s.y})` : `translate(${s.x} ${s.y}) scale(${k})`)
       } else if (beat.do === 'bar') {
         const s = spotAt(beat.along!)
-        node.setAttribute('transform', `translate(${s.x} ${s.y}) rotate(${(Math.atan2(s.dy, s.dx) * 180) / Math.PI})`)
+        const k = kept(beat.along!, BAR_HALF)
+        node.setAttribute('transform', `translate(${s.x} ${s.y}) rotate(${(Math.atan2(s.dy, s.dx) * 180) / Math.PI})${k === 1 ? '' : ` scale(1 ${k})`}`)
       } else if (beat.do === 'note') {
         if (beat.on === 'by') {
           if (takerBox) node.setAttribute('transform', `translate(${takerBox.x + takerBox.width / 2} ${takerBox.y + takerBox.height + HALO + 12})`)
@@ -413,6 +426,7 @@ export function StepMotion({ ends, strand, animation, afterLanding, repeat, by, 
         if (el) squashTile(el, who[side], squash[side])
       }
       canvas?.style.setProperty('--lit', String(litOpacity(beats, t)))
+      canvas?.style.setProperty('--lit-several', String(litOpacity(beats, t, LIT_FLOOR_LANES)))
       return drawn
     }
 
@@ -453,6 +467,7 @@ export function StepMotion({ ends, strand, animation, afterLanding, repeat, by, 
       undeclare()
       cancelAnimationFrame(frameId)
       canvas?.style.removeProperty('--lit')
+      canvas?.style.removeProperty('--lit-several')
       for (const side of ['from', 'to'] as const) {
         const el = tiles[side]
         if (el) squashTile(el, who[side], 0)

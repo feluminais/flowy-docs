@@ -10,12 +10,14 @@ import { join } from 'node:path'
  */
 const css = readFileSync(join(import.meta.dirname, '../ui/src/style.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
 
-test('the rule that reads --lit leaves faint and dim edges to their own fade', () => {
-  const rules = [...css.matchAll(/([^{}]+)\{[^{}]*var\(--lit[^{}]*\}/g)].map(m => m[1].trim())
-  assert.equal(rules.length, 1, 'one rule reads --lit')
-  const selectors = rules[0].split(/,(?![^(]*\))/).map(s => s.trim())
-  assert.deepEqual(selectors.map(s => s.replace(/:not\([^)]*\)/g, '')), ['.react-flow__edge.active', '.react-flow__edge.step'])
-  for (const selector of selectors) {
+test('the rules that read --lit leave faint and dim edges to their own fade', () => {
+  const rules = [...css.matchAll(/([^{}]+)\{[^{}]*var\((--lit(?:-several)?)[,)][^{}]*\}/g)].map(m => ({ selector: m[1].trim(), property: m[2] }))
+  assert.deepEqual(rules.map(r => r.property), ['--lit', '--lit-several'], 'one rule reads --lit and one reads --lit-several')
+  const [plain, several] = rules.map(r => r.selector.split(/,(?![^(]*\))/).map(s => s.trim()))
+  assert.deepEqual(plain.map(s => s.replace(/:not\([^)]*\)/g, '')), ['.react-flow__edge.active', '.react-flow__edge.step'])
+  // A lit line among the other lines of its pair fades to half (LIT_FLOOR_LANES), through its own property; the first rule keeps the quarter every other line fades to.
+  assert.deepEqual(several.map(s => s.replace(/:not\([^)]*\)/g, '')), ['.react-flow__edge.active.several'])
+  for (const selector of [...plain, ...several]) {
     const not = selector.match(/:not\(([^)]*)\)/)?.[1] ?? ''
     for (const cls of ['.faint', '.dim']) assert.ok(not.includes(cls), `${selector} must leave ${cls} edges alone`)
   }
