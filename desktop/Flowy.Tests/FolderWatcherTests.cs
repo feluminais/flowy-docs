@@ -11,7 +11,8 @@ public class FolderWatcherTests
 
     /// <summary>
     /// Whether saving <paramref name="file"/> wakes a new watcher. A system can take a moment to start reporting after a watcher is made, and a save before that goes
-    /// unheard, so the save is made again, up to five times, a second apart.
+    /// unheard, so the save is made again, up to five times, a second apart. Then it waits out <see cref="Patience"/>: a heard save can still
+    /// be reported late, after a busy thread pool has had seconds to get to it.
     /// </summary>
     private static bool NoticedWhenSaved(TempDir temp, string file)
     {
@@ -23,7 +24,7 @@ public class FolderWatcherTests
             temp.Write(file, $"name: Save {attempt}{'\n'}");
             if (seen.Wait(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken)) return true;
         }
-        return false;
+        return seen.Wait(Patience, TestContext.Current.CancellationToken);
     }
 
     [Fact]
