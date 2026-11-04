@@ -296,11 +296,16 @@ test('the label of a line of a pair side by side sits beside its own line, and t
   })
 })
 
+/** A vertical pair of lanes `xs` apart between two shapes `gap` apart, the lines of the labels given. */
+function vertical(xs: number[], gap: number, chars: number[]) {
+  const [a, b] = [{ x: 0, y: 0, width: 200, height: 72 }, { x: 0, y: 72 + gap, width: 200, height: 72 }]
+  const end = 72 + gap
+  const lines = xs.map((x, i) => ({ id: `l${i}`, path: `M${x} 72L${x} ${end}`, mid: { x, y: 72 + gap / 2 }, chars: chars[i] ?? 14, pair: 'a b', across: xs.filter((_, j) => j !== i).map(o => [{ x: o, y: 72 }, { x: o, y: end }]), extra: 34 }))
+  return { lines, spots: placeLabels(lines, [a, b]), end }
+}
+
 test('the labels of a crowded pair find rows beside their lines, and those that find none are left out', () => {
-  const [a, b] = [{ x: 0, y: 0, width: 200, height: 72 }, { x: 0, y: 72 + 110, width: 200, height: 72 }]
-  const xs = [34, 56, 78, 100, 122, 144, 166, 188]
-  const lines = xs.map((x, i) => ({ id: `l${i}`, path: `M${x} 72L${x} 182`, mid: { x, y: 127 }, chars: 14, across: xs.filter((_, j) => j !== i).map(o => [{ x: o, y: 72 }, { x: o, y: 182 }]), extra: 34 }))
-  const spots = placeLabels(lines, [a, b])
+  const { lines, spots, end } = vertical([34, 56, 78, 100, 122, 144, 166, 188], 60, [])
   const shown = lines.filter(l => !spots.get(l.id)!.hidden)
   assert.ok(shown.length >= 4 && shown.length < lines.length, `some are shown (${shown.length}) and the crowd is not`)
   shown.forEach((l, i) => shown.forEach((m, j) => {
@@ -310,8 +315,32 @@ test('the labels of a crowded pair find rows beside their lines, and those that 
   }))
   for (const l of shown) {
     const p = spots.get(l.id)!
-    assert.ok(p.y - 9 >= 72 && p.y + 9 <= 182, `${l.id} is between the shapes`)
+    assert.ok(p.y - 9 >= 72 && p.y + 9 <= end, `${l.id} is between the shapes`)
   }
+})
+
+test('the labels of the 7 lanes of a pair in a 92 px gap are all drawn, 3 rows one side and 4 the other, and 8 lanes fit the same gap', () => {
+  for (const xs of [[88, 100, 112, 124, 136, 148, 160], [76, 88, 100, 112, 124, 136, 148, 160]]) {
+    const { lines, spots, end } = vertical(xs, 92, [18, 19, 18, 24, 20, 21, 29, 20])
+    assert.deepEqual(lines.filter(l => spots.get(l.id)!.hidden).map(l => l.id), [], `${xs.length} lanes: every label has a place`)
+    const rows = (side: number) => lines.map(l => spots.get(l.id)!).filter(p => p.side === side).map(p => p.y).sort((p, q) => p - q)
+    for (const side of [-1, 1]) {
+      const ys = rows(side)
+      ys.forEach((y, i) => {
+        assert.ok(y - 9 >= 72 + 6 && y + 9 <= end - 6, `${xs.length} lanes: a row is clear of the heads`)
+        if (i > 0) assert.ok(y - ys[i - 1] >= 20 - 1e-9, `${xs.length} lanes: rows are a label and a gap apart`)
+      })
+    }
+  }
+})
+
+test('a label that would lie on the lines of a pair that runs up and down is not drawn, and one on a pair that runs across stays', () => {
+  // Two lanes with no room beside them: the gap holds one row and the label of the second lane would have to sit on the lines.
+  const { lines, spots } = vertical([100, 112], 24, [10, 10])
+  const labelled = lines.filter(l => !spots.get(l.id)!.hidden)
+  labelled.forEach(l => assert.ok(spots.get(l.id)!.side !== undefined, `${l.id} is drawn beside its line, not on it`))
+  const level = [{ id: 'one', path: 'M0 100L300 100', mid: { x: 150, y: 100 }, chars: 10, pair: 'a b', across: [[{ x: 0, y: 112 }, { x: 300, y: 112 }]], extra: 34 }]
+  assert.equal(placeLabels(level, []).get('one')!.hidden, undefined, 'a pair that runs across keeps its label on its line')
 })
 
 test('a lone label is not moved by lines beside it that it cannot get clear of', () => {

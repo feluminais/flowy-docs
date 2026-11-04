@@ -978,6 +978,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         DidSomethingElse();
         _side = new Side.Line(from, to);
         Refresh();
+        _canvas.RevealLabels(_panels.DetailsWidth, _panels.NavInset);
         if (focusLabel is { } connection && Editing) Avalonia.Threading.Dispatcher.UIThread.Post(() => _panel.CurrentLineEditor?.FocusLabel(connection), Avalonia.Threading.DispatcherPriority.Loaded);
     }
 

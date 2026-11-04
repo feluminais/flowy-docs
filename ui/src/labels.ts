@@ -22,8 +22,9 @@ export type Spot = { x: number; y: number; side?: -1 | 1; hidden?: true }
  * `across`: the other lines of the pair this line is one of, as the points they are made of; the label keeps off them if it can.
  * `extra`: width in pixels the label has besides its text (the sample of its line that starts the label of a line of a pair side by side).
  * `clear`: for a lit line of a pair side by side, the clear space its label keeps from the line (a step's pipe is wider than the line, see PIPE_CLEAR); 4 when left out.
+ * `pair`: which pair of shapes the line is one of, so the labels that run to one side of the pair can share its rows (see rowsFor).
  */
-export type LabelItem = { id: string; path: string; mid: Spot; chars: number; pinned?: boolean; across?: readonly (readonly Spot[])[]; extra?: number; clear?: number }
+export type LabelItem = { id: string; path: string; mid: Spot; chars: number; pinned?: boolean; across?: readonly (readonly Spot[])[]; extra?: number; clear?: number; pair?: string }
 
 /** The clear space between a lit line and its label where a step's pipe runs along the line: the pipe's half thickness and a little air (see labelOffset in motion.ts). */
 export const PIPE_CLEAR = 21
@@ -37,6 +38,8 @@ const PAD = 10
 const HEIGHT = 18
 /** The clear space kept between two labels, one above the other. */
 const APART = 3
+/** The same between two labels beside the lines of a pair: 2, so that four rows of them fit in the 90 px a pair of eight lanes has between its shapes (4 labels of 18 and 3 gaps of 2 make 78, and the heads take 6 from each end). */
+const ROW_APART = 2
 /**
  * The clear space kept between two labels side by side, about four characters with the padding: closer, two labels on one row read as one
  * sentence ("reads menus 5 connections").
@@ -84,8 +87,13 @@ const ON_LIT = 1e4
  */
 const BESIDE = 20
 const PER_ROW = 5
-/** How many rows beside the lines are tried each way from the middle, and the rows in the order tried. */
-const ROWS = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8]
+/**
+ * The rows beside the lines tried each way from the middle, in label heights from it and in the order tried. Where the labels that run to one side are an odd number the rows are WHOLE (one on the middle,
+ * the rest above and below it), and where they are an even number the rows are HALF (none on the middle, half a row off it each way), so the labels of one side pack into the fewest rows centred on the lines
+ * and a side of four fills a gap that holds four.
+ */
+const ROWS_WHOLE = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8]
+const ROWS_HALF = [0.5, -0.5, 1.5, -1.5, 2.5, -2.5, 3.5, -3.5, 4.5, -4.5, 5.5, -5.5, 6.5, -6.5, 7.5, -7.5, 8.5, -8.5]
 /** The clear space between a label beside a line and the line, and between a lit line and its label by default. */
 export const NEXT_TO = 4
 /** How far from each end of its line a label beside it stays, so it is clear of the heads and of the shape. */
@@ -128,6 +136,9 @@ function near(box: Box, points: readonly Spot[]): boolean {
   }
   return false
 }
+
+const minOf = (points: readonly Spot[], axis: 'x' | 'y') => Math.min(...points.map(p => p[axis]))
+const maxOf = (points: readonly Spot[], axis: 'x' | 'y') => Math.max(...points.map(p => p[axis]))
 
 /** The points a line's path is made of. */
 function pointsOf(path: string): Spot[] {
@@ -212,13 +223,21 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
     spots.set(item.id, spot)
     placed.push(around(spot, item.chars, item.extra))
   }
-  const movable = items.filter(i => !i.pinned).sort((a, b) => b.chars - a.chars)
+  // The labels of lines alone go first, widest first (the hardest to fit). The labels of the lines of a pair side by side follow in the order the lines came, whatever their widths: a reader that
+  // measures its text gets other widths than one that counts characters, and the two must leave out the same lines of a crowded pair.
+  const free = items.filter(i => !i.pinned)
+  const movable = [...free.filter(i => i.across === undefined).sort((a, b) => b.chars - a.chars), ...free.filter(i => i.across !== undefined)]
+  // How many labels run to each side of each pair, to tell whether they share whole rows or half rows (see ROWS_WHOLE).
+  const crowd = new Map<string, number>()
+  const crowdKey = (item: LabelItem, side: -1 | 1) => `${item.pair ?? ''}|${side}`
+  for (const item of movable) if (item.across !== undefined) crowd.set(crowdKey(item, outward(item)), (crowd.get(crowdKey(item, outward(item))) ?? 0) + 1)
   // The lit lines of the pairs side by side: the label of another line of a pair keeps off them, and has no place at all where that is the only way.
   const lit = items.filter(i => i.pinned && i.across !== undefined).map(i => pointsOf(i.path))
   const onLit = (label: Box, item: LabelItem) => (item.across === undefined ? [] : lit.filter(l => touches(label, l)))
   for (const item of movable) {
     const line = flatten(item.path)
     const points = pointsOf(item.path)
+    const apart = item.across === undefined ? APART : ROW_APART
     const candidates: { at: Spot; cost: number }[] = []
     ALONG.forEach(s => {
       const [x, y] = s === 0.5 ? [item.mid.x, item.mid.y] : pointAt(line, s)
@@ -230,14 +249,15 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
       // Beside the line only where the line runs up and down enough for a label to sit by it: a label on a line that runs across would still be on it.
       const side = outward(item)
       const { width } = sizeOf(item.chars, item.extra)
-      for (const k of ROWS) {
+      const [minY, maxY] = [Math.min(...points.map(p => p.y)), Math.max(...points.map(p => p.y))]
+      for (const k of (crowd.get(crowdKey(item, side)) ?? 0) % 2 === 0 ? ROWS_HALF : ROWS_WHOLE) {
         // Each row is by the line where the line is level with it (a line that slants has its rows shifted along it).
-        const level = k === 0 ? item.mid : abreast(points, item.mid.y + k * (HEIGHT + APART), item.mid.x, side)
+        const level = k === 0 ? item.mid : abreast(points, item.mid.y + k * (HEIGHT + ROW_APART), item.mid.x, side)
         if (level === undefined) continue
         const at = next(level, width, side, NEXT_TO)
         const label = around(at, item.chars, item.extra)
         // Level with the line and clear of the heads at its ends, or at the middle where the line is too short for rows.
-        const inRange = k === 0 || (label.y >= Math.min(...points.map(p => p.y)) + HEAD_ROOM && label.y + label.height <= Math.max(...points.map(p => p.y)) - HEAD_ROOM)
+        const inRange = k === 0 || (label.y >= minY + HEAD_ROOM && label.y + label.height <= maxY - HEAD_ROOM)
         if (inRange && !touches(label, points)) candidates.push({ at, cost: BESIDE + Math.abs(k) * PER_ROW })
       }
     }
@@ -247,7 +267,7 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
       const label = around(c.at, item.chars, item.extra)
       const cost = c.cost
         + boxes.reduce((sum, b) => sum + (overlap(label, b) > 0 ? ON_BOX : 0), 0)
-        + placed.reduce((sum, p) => sum + overlap(label, p, ROW_GAP, APART), 0)
+        + placed.reduce((sum, p) => sum + overlap(label, p, ROW_GAP, apart), 0)
         + (item.across ?? []).reduce((sum, other) => sum + (touches(label, other) ? ON_LANE : 0), 0)
         + onLit(label, item).length * ON_LIT
       if (cost < bestCost) {
@@ -256,9 +276,12 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
       }
       if (cost === c.cost) break // clear: the first such place is the one nearest the middle
     }
-    // A line of a pair side by side whose label finds no place clear of the boxes, of the labels placed and of the lit line of its pair, or none near its own line, has no label drawn: the lines of a crowded pair are in its panel, and one pointed at shows its own.
+    // A line of a pair side by side has no label drawn where its label finds no place clear of the boxes, of the labels placed and of the lit line of its pair, none near its own line, or, where the pair runs
+    // up and down, only a place on the lines (over its own line and its neighbours' lines, which is where a crowded pair's labels piled up before): the lines of a crowded pair are in its panel, and one pointed at shows its own.
     const label = around(best.at, item.chars, item.extra)
-    if (item.across !== undefined && (boxes.some(b => overlap(label, b) > 0) || placed.some(p => overlap(label, p, ROW_GAP, APART) > 0) || onLit(label, item).length > 0 || !near(label, points))) {
+    const beside = best.at.side !== undefined
+    const upAndDown = maxOf(points, 'y') - minOf(points, 'y') > maxOf(points, 'x') - minOf(points, 'x')
+    if (item.across !== undefined && (boxes.some(b => overlap(label, b) > 0) || placed.some(p => overlap(label, p, ROW_GAP, apart) > 0) || onLit(label, item).length > 0 || !near(label, points) || (upAndDown && !beside && item.across.some(other => touches(label, other))))) {
       spots.set(item.id, { ...best.at, hidden: true })
       continue
     }

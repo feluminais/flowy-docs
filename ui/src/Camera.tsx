@@ -11,8 +11,10 @@ import { fitOptions, panIntoView, sizeOf } from './graph.ts'
  * changes it pans just far enough that this box isn't hidden under the details panel, `panel` wide (it opens for the box), or under the
  * navigator, `nav` wide (0 while it is closed). With `refitOnResize` false (a pane of a comparison, which a panel opening beside it narrows) a resize leaves the view where the
  * reader put it: it fits once the boxes are measured and again only when `fitKey` changes.
+ * When `labels` changes (the line or pair picked) it pans just far enough that the labels of the lines of a pair side by side, which run out to each side of the pair past its shapes, are clear of the
+ * details panel too: a fit counts the shapes only.
  */
-export function Camera({ fitKey, count, player, reveal, panel, nav, fitPanel = 0, refitOnResize = true }: { fitKey: string; count: number; player: boolean | number; reveal?: string; panel: number; nav: number; fitPanel?: number; refitOnResize?: boolean }) {
+export function Camera({ fitKey, count, player, reveal, labels, panel, nav, fitPanel = 0, refitOnResize = true }: { fitKey: string; count: number; player: boolean | number; reveal?: string; labels?: string; panel: number; nav: number; fitPanel?: number; refitOnResize?: boolean }) {
   const { fitView, getInternalNode, getViewport, setViewport } = useReactFlow()
   const store = useStoreApi()
   // Not useNodesInitialized: it stays false when the nodes are controlled and nobody stores their measurements.
@@ -52,6 +54,18 @@ export function Camera({ fitKey, count, player, reveal, panel, nav, fitPanel = 0
     if (to) void setViewport(to, { duration: animate ? 200 : 0 })
   }
 
+  // The labels of a pair side by side (their pills are on the page while the pair is spread) come into the room beside the panels, as a box does in `show`.
+  const showLabels = () => {
+    const dom = store.getState().domNode
+    const pills = dom ? [...dom.querySelectorAll('.lane-pill:not(.revealed)')].map(p => p.getBoundingClientRect()) : []
+    if (!dom || pills.length === 0) return
+    const [canvas, view, { width, height }] = [dom.getBoundingClientRect(), getViewport(), store.getState()]
+    const [left, top] = [Math.min(...pills.map(p => p.left)), Math.min(...pills.map(p => p.top))]
+    const rect = { x: (left - canvas.left - view.x) / view.zoom, y: (top - canvas.top - view.y) / view.zoom, width: (Math.max(...pills.map(p => p.right)) - left) / view.zoom, height: (Math.max(...pills.map(p => p.bottom)) - top) / view.zoom }
+    const to = panIntoView(rect, view, { width, height }, panel, 24, Math.min(nav, width))
+    if (to) void setViewport(to, { duration: 200 })
+  }
+
   const room = `${nav} ${fitPanel} ${player}` // `player` is the pixels the player's card takes, when it is known: a card that grows or shrinks fits again
   const fitting = useRef(false) // a fit is under way, so the view is still the one it makes
   const fit = (duration = 0) => {
@@ -84,6 +98,12 @@ export function Camera({ fitKey, count, player, reveal, panel, nav, fitPanel = 0
   }, [ready, fitKey, refitOnResize ? size : '', room])
 
   useEffect(() => show(ready ? reveal : undefined, true), [reveal])
+  // After the panel has opened and the pair has spread, so the pills are where they will stay.
+  useEffect(() => {
+    if (!ready || labels === undefined) return
+    const timer = setTimeout(showLabels, 80)
+    return () => clearTimeout(timer)
+  }, [labels, ready])
 
   return null
 }

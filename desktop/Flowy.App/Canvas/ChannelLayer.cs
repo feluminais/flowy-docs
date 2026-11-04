@@ -105,6 +105,18 @@ internal static class ChannelDraw
         context.DrawEllipse(null, new Pen(accent, 1.8 * grow), new Point(0, 0), Disc * grow, Disc * grow);
     }
 
+    /// <summary>How far the name of a stream stands from a line that runs up and down, so the dots do not run through the word (the browser's NAME_GAP in Channels.tsx). Over a line that runs across it stands 16 above.</summary>
+    public const double NameGap = 12;
+
+    /// <summary>
+    /// Where the name of a stream is centred, given the line's middle <paramref name="mid"/> and the points 2 px before and after it: above the middle where the line runs across, and beside it where it runs up and down, <paramref name="side"/> (-1 left, 1 right) of it.
+    /// </summary>
+    public static Point NameAt(Point before, Point mid, Point after, double textWidth, int side) =>
+        Math.Abs(after.Y - before.Y) > Math.Abs(after.X - before.X) ? new Point(mid.X + side * (textWidth / 2 + NameGap), mid.Y) : new Point(mid.X, mid.Y - 16);
+
+    /// <summary>How wide the name of a channel is drawn (12 px, semi-bold).</summary>
+    public static double NameWidth(string name) => new FormattedText(name, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, Brushes.Black).Width;
+
     /// <summary>The name of a channel, centred on <paramref name="centre"/>, in the canvas colour's outline so it reads over a line.</summary>
     public static void Label(DrawingContext context, string name, Point centre, IBrush fg, IBrush bg)
     {
@@ -351,7 +363,14 @@ internal sealed class ChannelLayer : Control
         {
             var ahead = item.Spec.Slot is { Lanes: > 1 } slot ? Lanes.DashPhase(slot.Lane, slot.Lanes) : 0;
             ChannelDraw.Dots(context, flow, ChannelDraw.DotsAt(item.Length, since, c.End == "from", reduced, ahead), bg, accent);
-            if (c.Name is { } name && flow.TryGetPointAtDistance(item.Length / 2, out var mid)) ChannelDraw.Label(context, name, new Point(mid.X, mid.Y - 16), fg, bg);
+            if (c.Name is { } name && flow.TryGetPointAtDistance(item.Length / 2, out var mid))
+            {
+                var around = (Math.Max(0, item.Length / 2 - 2), Math.Min(item.Length, item.Length / 2 + 2));
+                flow.TryGetPointAtDistance(around.Item1, out var before);
+                flow.TryGetPointAtDistance(around.Item2, out var after);
+                var side = item.Spec.Slot is { Lanes: > 1 } placed && placed.Lane * 2 < placed.Lanes - 1 ? -1 : 1;
+                ChannelDraw.Label(context, name, ChannelDraw.NameAt(before, mid, after, ChannelDraw.NameWidth(name), side), fg, bg);
+            }
             return;
         }
         if (c.Kind == "listener" && item.Line is { } tether) ChannelDraw.Tether(context, tether, item.Length, Brush("MutedBrush"), item.Spec.Among);

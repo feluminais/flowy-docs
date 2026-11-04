@@ -19,7 +19,7 @@ import type { LaneEnd, Pose, Slot } from './lanes.ts'
 import type { Spot } from './labels.ts'
 import type { SpotsFor } from './labelspots.ts'
 import { marksOf, markScale } from './kindkey.ts'
-import { LookSwatch, MarkPath, TrunkChip } from './kinds.tsx'
+import { chipStagger, LookSwatch, MarkPath, TrunkChip } from './kinds.tsx'
 import { labelOffset } from './motion.ts'
 import { PartsContext } from './parts.ts'
 import { useEasedSpread } from './spread.ts'
@@ -234,13 +234,13 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
         {change && <path className="change-line" data-change={change} d={path} fill="none" />}
         {trunkStep && [1, 2].map(k => <path key={k} className={hot ? 'trunk-hair hot' : 'trunk-hair'} d={path} fill="none" transform={`translate(${round3(trunkStep.x * HAIRLINE_GAP * k)} ${round3(trunkStep.y * HAIRLINE_GAP * k)})`} />)}
         <BaseEdge id={id} path={path} className={[hot && 'hot', pointed === 'lane' && 'raised', look?.pattern === 'dashdot' && 'dashdot'].filter(Boolean).join(' ') || undefined} label={sampled ? undefined : text} labelX={labelX} labelY={labelY} interactionWidth={interactionWidth === undefined ? undefined : interactionWidth / stripZoom} style={width === undefined ? undefined : { strokeWidth: width }} />
-        {trunk && !(hot && text !== undefined) && <TrunkChip size={trunk.size} at={{ x, y }} />}
+        {trunk && !(hot && text !== undefined) && <TrunkChip size={trunk.size} at={{ x, y: y + chipStagger(slot?.lane ?? 0, typeof data?.lanes === 'number' ? data.lanes : 1) }} />}
         <Ends path={path} both={data?.both === true} hot={hot} width={width} look={look} lanes={typeof data?.lanes === 'number' ? data.lanes : 1} />
       </g>
       {sampled && !(spot?.hidden === true && pointed !== 'lane') && (
         <EdgeLabelRenderer>
           {/* The label of a line among others starts with a sample of the line (its pattern and marks), so it is tied to its own line with no leader line. It takes no clicks. */}
-          <div className={['lane-pill', mate && 'lane-mate', spot?.side === -1 && 'flip'].filter(Boolean).join(' ')} aria-hidden="true" style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}>
+          <div className={['lane-pill', mate && 'lane-mate', spot?.side === -1 && 'flip', spot?.hidden === true && 'revealed'].filter(Boolean).join(' ')} aria-hidden="true" style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}>
             <LookSwatch look={look} width={SAMPLE - 6} height={12} />
             <span>{text}</span>
           </div>

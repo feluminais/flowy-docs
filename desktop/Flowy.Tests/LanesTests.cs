@@ -215,7 +215,7 @@ public class LanesTests
         foreach (var c in cases)
         {
             var items = c!["items"]!.AsArray().Select(i => new LabelItem(i!["id"]!.GetValue<string>(), i["path"]!.GetValue<string>(), new Pt(D(i["mid"]!["x"]), D(i["mid"]!["y"])), D(i["width"]), D(i["height"]),
-                i["pinned"]!.GetValue<bool>(), i["across"]!.AsArray().Select(line => (IReadOnlyList<Pt>)line!.AsArray().Select(p => new Pt(D(p!["x"]), D(p["y"]))).ToList()).ToList(), D(i["extra"]), D(i["clear"]))).ToList();
+                i["pinned"]!.GetValue<bool>(), i["across"]!.AsArray().Select(line => (IReadOnlyList<Pt>)line!.AsArray().Select(p => new Pt(D(p!["x"]), D(p["y"]))).ToList()).ToList(), D(i["extra"]), D(i["clear"]), i["pair"]?.GetValue<string>())).ToList();
             var spots = LineLabels.PlaceSpots(items, c["boxes"]!.AsArray().Select(r => new Rect(D(r!["x"]), D(r["y"]), D(r["width"]), D(r["height"]))).ToList());
             var want = c["spots"]!.AsArray();
             for (var i = 0; i < items.Count; i++)

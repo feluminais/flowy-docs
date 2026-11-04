@@ -348,3 +348,43 @@ test('the labels of a pair with many lines sit in rows beside their lines, none 
     await s.close()
   }
 })
+
+test('the 7 lines of a pair in a short gap are all labelled, and the labels are clear of the details panel, which the view pans for', async ({ page }) => {
+  const out = ['applies the config', 'starts a radio scan', 'calls vendor hooks', 'announces config changes']
+  const back = ['publishes link state', 'publishes link events', 'publishes the current network']
+  const connections = [...out.map(label => ({ from: 'a', to: 'b', label })), ...back.map(label => ({ from: 'b', to: 'a', label }))]
+  const s = await serveModel(systems(['a', 'b'], connections, { pairs: 'separate' }), 'flowy-pairs-seven-')
+  try {
+    await page.setViewportSize({ width: 1200, height: 1000 })
+    await page.goto(s.url)
+    await page.locator('.react-flow__node').filter({ hasText: 'A' }).first().click()
+    await expect(page.locator('.lane-pill').first()).toBeVisible()
+    await page.waitForTimeout(900) // the pair spreads, and the camera pans once it has
+    const { pills, panel } = await page.evaluate(() => ({
+      pills: [...document.querySelectorAll('.lane-pill')].map(el => el.getBoundingClientRect().right),
+      panel: document.querySelector('.panel')?.getBoundingClientRect().left ?? Infinity,
+    }))
+    expect(pills).toHaveLength(7) // every line has its label
+    for (const right of pills) expect(right, 'a label stops short of the details panel').toBeLessThanOrEqual(panel)
+  } finally {
+    await s.close()
+  }
+})
+
+test('the chips of the trunks of a pair do not touch', async ({ page }) => {
+  const kinds = ['request', 'stream', 'publish', 'cached', 'object'] as const
+  const connections = kinds.flatMap(kind => [1, 2, 3].map(n => ({ from: 'a', to: 'b', label: `${kind} ${n}`, kind })))
+  const s = await serveModel(systems(['a', 'b'], connections, { pairs: 'separate' }), 'flowy-pairs-trunks-')
+  try {
+    await page.goto(s.url)
+    await expect(page.locator('.trunk-chip').first()).toBeVisible()
+    const chips = await page.evaluate(() => [...document.querySelectorAll('.trunk-chip rect')].map(el => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom } }))
+    expect(chips.length).toBeGreaterThanOrEqual(3)
+    chips.forEach((p, i) => chips.forEach((q, j) => {
+      if (i < j) expect(p.left >= q.right || q.left >= p.right || p.top >= q.bottom || q.top >= p.bottom, `chips ${i} and ${j} do not overlap`).toBe(true)
+    }))
+    for (let i = 1; i < chips.length; i++) expect(Math.abs(chips[i].top - chips[i - 1].top), 'neighbouring chips sit at other heights').toBeGreaterThan(8)
+  } finally {
+    await s.close()
+  }
+})
