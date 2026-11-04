@@ -65,6 +65,6 @@ public static class Tidy
     public static OrderedDictionary<string, Pt> TidySpots(Model model, string view)
     {
         var v = Views.Compute(model, view);
-        return SceneBuilder.PlaceCached(v.Members.ToList(), v.Outsiders.ToList(), v.Edges, NeighbourSides(model, view, v.Outsiders));
+        return SceneBuilder.PlaceCached(v.Members.ToList(), v.Outsiders.ToList(), v.Edges, NeighbourSides(model, view, v.Outsiders), Layout.LaneCounts(v));
     }
 }

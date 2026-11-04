@@ -8,7 +8,7 @@ import { placeEnds } from '../../src/core/views.ts'
 import { DOUBLE_CLICK, isStepLine } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import type { SaveEdit } from './forms.tsx'
-import { hitStrand } from './lanehit.ts'
+import { hitStrand, pickedStrand } from './lanehit.ts'
 import type { PartStore } from './parts.ts'
 import type { HoverStore } from './Line.tsx'
 import type { Recording } from './Recorder.tsx'
@@ -126,13 +126,14 @@ export function useCanvasEvents({ model, view, editing, recording, side, chosen,
       // Where each connection is a line of its own, a click on a line picks the step's ends and the line it rides (its `via`).
       if (recording.id && typeof e.data?.pair === 'string') {
         const { via: _, ...rest } = recording
-        const label = typeof e.data?.label === 'string' ? e.data.label : typeof e.label === 'string' ? e.label : ''
+        // (a trunk stands for several lines and has no label of its own to name one)
+        const label = e.data?.trunk !== undefined ? '' : typeof e.data?.label === 'string' ? e.data.label : typeof e.label === 'string' ? e.label : ''
         setSide({ ...rest, from: e.source, to: e.target, ...(label === '' ? {} : { via: label }) })
       }
       return
     }
     if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
-    else show({ kind: 'line', from: e.source, to: e.target, ...(typeof e.data?.pair === 'string' ? { strand: e.id } : {}) })
+    else show({ kind: 'line', from: e.source, to: e.target, ...(typeof e.data?.pair === 'string' ? { strand: pickedStrand(e) } : {}) })
   })
   const onEdgeMouseEnter = useLatest((event: ReactMouseEvent, hit: Edge) => hover.set(edgeAt(event, hit).id))
   const onEdgeMouseLeave = useLatest(() => hover.set(undefined))

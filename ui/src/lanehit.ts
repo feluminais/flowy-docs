@@ -4,6 +4,7 @@ import { nearestStrand } from '../../src/core/lanes.ts'
 import type { HitLane, Slot } from '../../src/core/lanes.ts'
 import { shapeOf, SHAPE_DEFS } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
+import type { Trunk } from '../../src/core/views.ts'
 import { pairOf, sizeOf } from './graph.ts'
 import type { BoxNode } from './graph.ts'
 import { lanes, REST, SPREAD } from './lanes.ts'
@@ -54,6 +55,12 @@ export function edgeUnder(instance: CanvasPoint | undefined, event: { clientX: n
   return id === hit.id ? hit : edges.find(e => e.id === id) ?? hit
 }
 
+/**
+ * The line a click on `e` picks, as the id the panel knows it by: where each connection has a line of its own, the line's own id. A trunk is several lines stacked as one: a click on
+ * it picks the first of them, which opens its pair (and the trunk with it), and the panel on that connection.
+ */
+export const pickedStrand = (e: Edge): string => (e.data?.trunk as Trunk | undefined)?.members[0] ?? e.id
+
 /** What a click on a line in a pane picks: the line's two shapes and the view the pane draws, and where each connection has a line of its own, the line of the pair that was clicked (see Side). */
 export const lineOf = (e: Edge, view: string): { kind: 'line'; from: string; to: string; view: string; strand?: string } =>
-  ({ kind: 'line', from: e.source, to: e.target, view, ...(typeof e.data?.pair === 'string' ? { strand: e.id } : {}) })
+  ({ kind: 'line', from: e.source, to: e.target, view, ...(typeof e.data?.pair === 'string' ? { strand: pickedStrand(e) } : {}) })

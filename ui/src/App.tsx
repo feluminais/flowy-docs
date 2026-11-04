@@ -188,7 +188,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const { compare, setCompare, setCompareStart, compareRef, compareStart, draft, onDraft, dirtyRef, asking, setAsking, comparing, flowsCompared, unlessDraft, discardNote } = useCompare({ model, runs, editing, perfOpen, failuresOpen, setNotice })
   // A flow that was playing waits behind the Performance and Failures tabs and a comparison, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen || comparing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
-  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds, parts } = useFlowStage({ model, view, flow, playing, replays, recording, clock })
+  const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds, parts } = useFlowStage({ model, view, flow, playing, replays, recording, clock, lines })
   // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. A pane of a comparison of runs draws its run the same way (see useRunDrawing).
   const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
   const stateMarks = flow ? flowMarks : runMarks

@@ -189,7 +189,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
                 CloseDetails(); // its panel is already open: a second click closes it
                 return;
             }
-            _side = new Side.Line(edge.From, edge.To, Strand: edge.Pair is null ? null : edge.Id);
+            _side = new Side.Line(edge.From, edge.To, Strand: edge.Pair is null ? null : edge.PickedId); // a trunk picks the first of its lines, which opens its pair
             Refresh();
         };
         _canvas.EdgeHovered += id => SetHover(id);
@@ -639,14 +639,14 @@ internal sealed partial class ReaderView : Grid, IDisposable
         var model = folder.Model;
         var near = Views.Compute(model, view).Members.Where(CanOpen).Take(MaxWarmViews).ToList();
         if (view != Names.Root) near.Add(Views.ParentOf(model, view));
-        if (near.Count > 0) _ = WarmViews(folder, view, near);
+        if (near.Count > 0) _ = WarmViews(folder, view, near, LineStyle);
     }
 
     private const int MaxWarmViews = 8;
 
-    private async Task WarmViews(Folder folder, string view, List<string> near)
+    private async Task WarmViews(Folder folder, string view, List<string> near, string lineStyle)
     {
-        var scenes = await Task.Run(() => near.Select(v => SceneBuilder.Build(folder.Model, v, null, folder.Problems)).ToList());
+        var scenes = await Task.Run(() => near.Select(v => SceneBuilder.Build(folder.Model, v, null, folder.Problems, null, new SceneDrawing(lineStyle))).ToList());
         if (ReferenceEquals(folder, _warmedFolder) && view == _warmedView && !Comparing) _canvas.Prewarm(scenes);
     }
 
@@ -655,17 +655,17 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         var model = folder.Model;
         Playing? shown = null;
-        if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index);
-        else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec);
+        if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index, LineStyle);
+        else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec, LineStyle);
         var line = _side is Side.Line l ? l.Id : null;
-        var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
+        var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover), new SceneDrawing(LineStyle, line)); // the line picked opens the trunks of its pair
         _canvas.KindKeyBesidePlayer = flow is not null; // a flow's card lies over the middle of the foot
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
         // Where shapes stand at this stop, folded from the flow's start and the steps up to it: nothing is stored, so stepping back needs no undo.
         // While the Performance panel is open a run over time sets the states instead (a flow waits behind the panel).
         _canvas.ShowStates(flow is { } playing ? States.Marks(model, States.At(playing.Flow, StopsOf(playing.Flow), index)) : RunMarks(model));
         // What the flow has left open by this stop is worked out the same way, so stepping back needs no undo.
-        _canvas.ShowChannels(flow is { } open ? FlowStage.OpenAt(model, view, open.Flow, StopsOf(open.Flow), index) : null);
+        _canvas.ShowChannels(flow is { } open ? FlowStage.OpenAt(model, view, open.Flow, StopsOf(open.Flow), index, LineStyle) : null);
         return shown;
     }
 

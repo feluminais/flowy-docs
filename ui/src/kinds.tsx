@@ -2,6 +2,7 @@ import { DASHES, KINDS, MARKS, PLAIN_LOOK, PLAIN_NAME, markPath } from '../../sr
 import type { KindId, LineLook, MarkShape } from '../../src/core/kinds.ts'
 import { HEAD_PATH, headMatrix } from '../../src/core/heads.ts'
 import type { Point } from '../../src/core/heads.ts'
+import { HAIRLINE_GAP, LANE_KEY } from '../../src/core/lanes.ts'
 import { marksOf } from './kindkey.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 
@@ -40,17 +41,52 @@ export function LookSwatch({ look, width = 56, height = 18, className, both = fa
   )
 }
 
+/** The number of connections a trunk holds, on a chip on the middle of its line. It is part of the line (it fades with it and takes its colour) and takes no clicks. */
+export function TrunkChip({ size, at }: { size: number; at: Point }) {
+  const width = Math.max(CHIP_HEIGHT, 8 + 6 * String(size).length)
+  return (
+    <g className="trunk-chip" aria-hidden="true" transform={`translate(${at.x} ${at.y})`}>
+      <rect x={-width / 2} y={-CHIP_HEIGHT / 2} width={width} height={CHIP_HEIGHT} rx={CHIP_HEIGHT / 2} />
+      <text textAnchor="middle" dominantBaseline="central">{size}</text>
+    </g>
+  )
+}
+
+/** How tall the chip of a trunk is (and the least it is wide). */
+export const CHIP_HEIGHT = 16
+
+/** A lane a step plays on, as the canvas draws it: in the accent colour, a little thicker, with its head. */
+function InUseSwatch() {
+  return <LookSwatch look={undefined} className="in-use" />
+}
+
+/** A trunk as the canvas draws it: a line with two hairlines behind it and the chip with a number on its middle. */
+function StackedSwatch() {
+  const [width, height, y] = [56, 22, 7]
+  return (
+    <svg className="look-swatch" width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+      {[1, 2].map(k => <line key={k} className="trunk-hair" x1={3} y1={y + HAIRLINE_GAP * k} x2={width - 3} y2={y + HAIRLINE_GAP * k} />)}
+      <line className="look-line" x1={3} y1={y} x2={width - 3} y2={y} />
+      <path className="kmark fill" d={HEAD_PATH} transform={`matrix(${headMatrix({ x: width - 3, y }, { x: 1, y: 0 }).join(' ')})`} />
+      <TrunkChip size={3} at={{ x: width / 2, y }} />
+    </svg>
+  )
+}
+
 /**
- * The key of the kinds on the canvas, at its foot: one swatch and name for each kind drawn now, in the order of the list, and the plain line when one is drawn too.
- * Nothing when no line has a kind. With a flow's card at the foot of the canvas (`underPlayer`) the key keeps to the space left of it.
+ * The key of the lines on the canvas, at its foot: one swatch and name for each kind drawn now, in the order of the list, and the plain line when one is drawn too; then, where the
+ * canvas draws them, a trunk (`stacked`: "Stacked lines") and a lane a step plays on among others (`inUse`: "In use"). Nothing when there is none of these. With a flow's card at the
+ * foot of the canvas (`underPlayer`) the key keeps to the space left of it.
  */
-export function KindKey({ kinds, plain, underPlayer }: { kinds: readonly KindId[]; plain: boolean; underPlayer?: boolean }) {
-  if (kinds.length === 0) return null
+export function KindKey({ kinds, plain, stacked = false, inUse = false, underPlayer }: { kinds: readonly KindId[]; plain: boolean; stacked?: boolean; inUse?: boolean; underPlayer?: boolean }) {
+  if (kinds.length === 0 && !stacked && !inUse) return null
   return (
     <div className={underPlayer ? 'kind-key beside-player' : 'kind-key'}>
       <KeyRow>
         {kinds.map(id => <KeyItem key={id} swatch={<LookSwatch look={KINDS[id].look} />}>{KINDS[id].name}</KeyItem>)}
-        {plain && <KeyItem swatch={<LookSwatch look={PLAIN_LOOK} />}>{PLAIN_NAME}</KeyItem>}
+        {plain && kinds.length > 0 && <KeyItem swatch={<LookSwatch look={PLAIN_LOOK} />}>{PLAIN_NAME}</KeyItem>}
+        {stacked && <KeyItem swatch={<StackedSwatch />}>{LANE_KEY.stacked}</KeyItem>}
+        {inUse && <KeyItem swatch={<InUseSwatch />}>{LANE_KEY.inUse}</KeyItem>}
       </KeyRow>
     </div>
   )

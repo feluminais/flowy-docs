@@ -25,6 +25,7 @@ import { dumpMermaid } from './mermaid.ts'
 import { dumpNumbers } from './numbers.ts'
 import { dumpOutline } from './outline.ts'
 import { dumpPairs } from './pairs.ts'
+import { dumpLayoutLanes, dumpTrunks } from './trunks.ts'
 import { dumpPerf, dumpPerfView } from './perf.ts'
 import { dumpStates } from './states.ts'
 import { dumpCaptions, dumpStops } from './structure.ts'
@@ -86,6 +87,8 @@ await write('lanes/parts', await dumpParts())
 await writeCompact('lanes/curves', dumpCurves())
 await writeCompact('lanes/curve-poses', dumpCurvePoses())
 await writeCompact('lanes/curve-labels', dumpCurveLabels())
+await writeCompact('trunks', await dumpTrunks())
+await write('layout-lanes', await dumpLayoutLanes())
 await write('drafts', dumpNewDrafts())
 await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())

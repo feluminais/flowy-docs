@@ -3,13 +3,18 @@ import type { HeadShape, KindId, LineLook, TailShape } from '../../src/core/kind
 import { isStepLine } from './graph.ts'
 
 /**
- * The kinds the lines on the canvas are drawn as, for the key: the kinds in the order of the list, and whether a plain line is on show as well.
+ * What the key at the canvas foot shows: the kinds the lines on the canvas are drawn as, in the order of the list, and whether a plain line is on show as well; and whether a trunk
+ * is on show (`stacked`: several lines of a pair stacked as one) and a lane a step plays on among the lanes of its pair (`inUse`).
  * `lines` are the canvas's lines; one a step added (the dashed step line) is not a connection and does not count. Lines drawn as no kind (a mixed line) count as plain.
+ * A plain line is only worth a key item when a kind is on show too, which the key decides.
  */
-export function kindsOnScreen(lines: readonly { id: string; data?: Record<string, unknown> }[]): { kinds: KindId[]; plain: boolean } {
-  const looks: (LineLook | undefined)[] = lines.filter(l => !isStepLine(l.id)).map(l => l.data?.look as LineLook | undefined)
+export function kindsOnScreen(lines: readonly { id: string; className?: string; data?: Record<string, unknown> }[]): { kinds: KindId[]; plain: boolean; stacked: boolean; inUse: boolean } {
+  const drawn = lines.filter(l => !isStepLine(l.id))
+  const looks: (LineLook | undefined)[] = drawn.map(l => l.data?.look as LineLook | undefined)
   const kinds = KIND_IDS.filter(id => looks.some(look => look !== undefined && sameLook(look, KINDS[id].look)))
-  return { kinds, plain: looks.some(look => look === undefined) }
+  const stacked = drawn.some(l => l.data?.trunk !== undefined)
+  const inUse = drawn.some(l => typeof l.data?.lanes === 'number' && l.data.lanes > 1 && l.className?.split(' ').includes('active') === true)
+  return { kinds, plain: looks.some(look => look === undefined), stacked, inUse }
 }
 
 /** Marks on a line that is one of several side by side (`data.lanes` above 1) are drawn no bigger than this, so a head stays within the gap between neighbours. */

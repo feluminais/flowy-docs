@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react'
 import type { Edge, XYPosition } from '@xyflow/react'
 import type { LineStyle, Model } from '../../src/core/model.ts'
-import { ROOT } from '../../src/core/model.ts'
+import { pairMode, ROOT } from '../../src/core/model.ts'
 import type { Problem } from '../../src/core/problem.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { leavesMarks } from '../../src/core/animation.ts'
@@ -30,7 +30,9 @@ export function useCanvasGraph({ model, view, shown, problems, stateMarks, loadT
   // it hasn't seen, which every render here is, and its lines have nowhere to land until the browser
   // has measured it again: they'd blink away for a frame on every drag, click and hover.
   const sizes = useRef(new Map<string, { width: number; height: number }>())
-  const graph = useMemo(() => toGraph(model, view, shown, problems, stateMarks), [model, view, shown, problems, stateMarks])
+  // Where a project draws a line for each connection, a selected line opens the trunks of its pair, so the selection is one of what the graph is made of there.
+  const opened = pairMode(model) === 'separate' ? selectedLine : undefined
+  const graph = useMemo(() => toGraph(model, view, shown, problems, stateMarks, { style: lines, opened }), [model, view, shown, problems, stateMarks, lines, opened])
   // The states on the canvas now, for the key: a shape on another view that is in one is not drawn here.
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   // Nodes are controlled: selection and drag positions only show through these props, applied on every render after the memoized graph.

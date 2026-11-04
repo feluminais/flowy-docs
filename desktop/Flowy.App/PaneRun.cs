@@ -134,7 +134,7 @@ internal sealed class PaneRun
         if (_canvas is null || _folder is not { } folder) return;
         var box = _selection is ReaderView.Side.Box b ? b.Id : null;
         var line = _selection is ReaderView.Side.Line l ? l.Id : null;
-        _canvas.SetScene(SceneBuilder.Build(folder.Model, _view, null, folder.Problems, new Focus(box, line, _hover)), _lineStyle, box is null ? [] : [box]);
+        _canvas.SetScene(SceneBuilder.Build(folder.Model, _view, null, folder.Problems, new Focus(box, line, _hover), new SceneDrawing(_lineStyle, line)), _lineStyle, box is null ? [] : [box]);
     }
 
     /// <summary>The load at the run's place on the canvas, and the panel moved to it, without building either again: what a ramp's step or a key changes.</summary>
@@ -154,7 +154,7 @@ internal sealed class PaneRun
 
     /// <summary>The line with this id on the canvas, as the side the Details panel shows it with: the two shapes it joins and the level the comparison draws them in.</summary>
     public ReaderView.Side? LineSide(string edgeId) =>
-        _canvas?.Scene?.Edges.FirstOrDefault(e => e.Id == edgeId) is { } edge ? new ReaderView.Side.Line(edge.From, edge.To, _view, edge.Pair is null ? null : edge.Id) : null;
+        _canvas?.Scene?.Edges.FirstOrDefault(e => e.Id == edgeId) is { } edge ? new ReaderView.Side.Line(edge.From, edge.To, _view, edge.Pair is null ? null : edge.PickedId) : null;
 
     // ---- what the keys do ---------------------------------------------------------------------------------------
 

@@ -17,7 +17,14 @@ public sealed record Edge(string From, string To, string Label, int Count, bool 
 /// one when a zoomed-out view folds connections with the same ends and label into one). <c>Lane</c> counts from 0 among the <c>Lanes</c> strands of the pair: the strands that run from the pair's later
 /// id to its earlier come first, then the others, each in the order of the file. <c>Kind</c> and <c>Look</c> are the ones all its connections share, null for none.
 /// </summary>
-public sealed record Strand(string Id, string Pair, string From, string To, string Label, IReadOnlyList<int> Connections, int Lane, int Lanes, string? Kind = null, LineLook? Look = null);
+public sealed record Strand(string Id, string Pair, string From, string To, string Label, IReadOnlyList<int> Connections, int Lane, int Lanes, string? Kind = null, LineLook? Look = null, Trunk? Trunk = null);
+
+/// <summary>
+/// What a strand is when it stands for several lines of its pair that did not all fit across the shapes (see <see cref="Trunks.FoldPair"/>): <c>Size</c> is the connections it holds (the number its
+/// chip shows) and <c>Members</c> the ids of the strands it folded, in the order of the file. Such a strand is a trunk: one lane with two hairlines behind it.
+/// <see cref="Views.Compute"/> never makes one; a reader that draws a pair with more lines than fit across its shapes folds them.
+/// </summary>
+public sealed record Trunk(int Size, IReadOnlyList<string> Members);
 
 /// <summary>What one level shows: the boxes inside it, the boxes elsewhere that its lines reach, and the lines. <c>Strands</c> is there only when the project draws a line for each connection; otherwise null.</summary>
 public sealed record View(string Id, IReadOnlyList<string> Members, IReadOnlyList<string> Outsiders, IReadOnlyList<Edge> Edges, IReadOnlyList<Strand>? Strands = null);

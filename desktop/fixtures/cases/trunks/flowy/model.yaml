@@ -1,0 +1,64 @@
+name: Trunks
+pairs: separate
+objects:
+  hub: { type: system, name: Hub }
+  ui: { type: system, name: UI }
+  store: { type: system, name: Store }
+  cloud: { type: system, name: Cloud }
+  sensor: { type: system, name: Sensor }
+  bus: { type: system, name: Bus }
+  diam: { type: system, name: Diamond, shape: diamond }
+connections:
+  - { from: ui, to: hub, label: Query 1, kind: request }
+  - { from: ui, to: hub, label: Query 2, kind: request }
+  - { from: ui, to: hub, label: Query 3, kind: request }
+  - { from: ui, to: hub, label: Query 4, kind: request }
+  - { from: ui, to: hub, label: Query 5, kind: request }
+  - { from: hub, to: ui, label: Event 1, kind: publish }
+  - { from: hub, to: ui, label: Event 2, kind: publish }
+  - { from: hub, to: ui, label: Event 3, kind: publish }
+  - { from: hub, to: ui, label: Event 4, kind: publish }
+  - { from: hub, to: store, label: Write 1 }
+  - { from: hub, to: store, label: Write 2 }
+  - { from: hub, to: store, label: Write 3 }
+  - { from: hub, to: store, label: Write 4 }
+  - { from: hub, to: store, label: Write 5 }
+  - { from: hub, to: store, label: Write 6 }
+  - { from: hub, to: cloud, label: Sync 1, kind: request }
+  - { from: hub, to: cloud, label: Sync 2, kind: request }
+  - { from: hub, to: cloud, label: Sync 3, kind: request }
+  - { from: cloud, to: hub, label: Alert 1, kind: publish }
+  - { from: cloud, to: hub, label: Alert 2, kind: publish }
+  - { from: sensor, to: hub, label: Reading 1, kind: request }
+  - { from: sensor, to: hub, label: Reading 2, kind: request }
+  - { from: sensor, to: hub, label: Reading 3, kind: request }
+  - { from: sensor, to: hub, label: Reading 4, kind: stream }
+  - { from: sensor, to: hub, label: Reading 5, kind: stream }
+  - { from: sensor, to: hub, label: Reading 6, kind: stream }
+  - { from: hub, to: sensor, label: Poll 1, kind: publish }
+  - { from: hub, to: sensor, label: Poll 2, kind: publish }
+  - { from: hub, to: sensor, label: Poll 3, kind: publish }
+  - { from: hub, to: sensor, label: Poll 4, kind: cached }
+  - { from: hub, to: sensor, label: Poll 5, kind: cached }
+  - { from: hub, to: sensor, label: Poll 6, kind: cached }
+  - { from: hub, to: bus, label: Beat 1, kind: publish }
+  - { from: hub, to: bus, label: Beat 2, kind: publish }
+  - { from: hub, to: bus, label: Beat 3, kind: publish }
+  - { from: hub, to: bus, label: Beat 4, kind: publish }
+  - { from: hub, to: bus, label: Beat 5, kind: publish }
+  - { from: hub, to: bus, label: Beat 6, kind: publish }
+  - { from: hub, to: bus, label: Beat 7, kind: publish }
+  - { from: hub, to: bus, label: Beat 8, kind: publish }
+  - { from: hub, to: bus, label: Beat 9, kind: publish }
+  - { from: hub, to: bus, label: Beat 10, kind: publish }
+  - { from: hub, to: bus, label: Beat 11, kind: publish }
+  - { from: hub, to: bus, label: Beat 12, kind: publish }
+  - { from: hub, to: bus, label: Beat 13, kind: publish }
+  - { from: hub, to: bus, label: Beat 14, kind: publish }
+  - { from: diam, to: hub, label: Ask, kind: request }
+  - { from: diam, to: hub, label: Follow, kind: stream }
+  - { from: diam, to: hub, label: Announce, kind: publish }
+  - { from: diam, to: hub, label: Keep, kind: cached }
+  - { from: diam, to: hub, label: Track, kind: object }
+  - { from: diam, to: hub, label: Plug in, kind: extension }
+  - { from: diam, to: hub, label: Plain }

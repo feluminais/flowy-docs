@@ -4,6 +4,16 @@ namespace Flowy.Core;
 public sealed record LineMarks(string Head, bool HeadAtStart, string? Tail);
 
 /// <summary>
+/// What the key at the canvas foot shows: the kinds the lines on the canvas are drawn as, in the order of the list, and whether a plain line is on show as well; and whether a trunk is on show
+/// (<c>Stacked</c>: several lines of a pair stacked as one) and a lane a step plays on among the lanes of its pair (<c>InUse</c>).
+/// </summary>
+public sealed record KeyItems(IReadOnlyList<string> Kinds, bool Plain, bool Stacked, bool InUse)
+{
+    /// <summary>The kinds and the plain line alone, for what only they decide.</summary>
+    public void Deconstruct(out IReadOnlyList<string> kinds, out bool plain) => (kinds, plain) = (Kinds, Plain);
+}
+
+/// <summary>
 /// What the key of the kinds and the drawing of a line's marks work out from the lines on show: a port of ui/src/kindkey.ts. The key lists the kinds the lines
 /// are drawn as; a line wears its kind's head and tail.
 /// </summary>
@@ -13,14 +23,16 @@ public static class KindKey
     public const double LaneMarkScale = 1.2;
 
     /// <summary>
-    /// The kinds the lines on the canvas are drawn as, for the key: the kinds in the order of the list, and whether a plain line is on show as well. A line a step
-    /// added (the dashed step line) is not a connection and does not count. A line drawn as no kind (a mixed line) counts as plain.
+    /// What the key at the canvas foot shows for the lines on the canvas: the kinds they are drawn as, in the order of the list, and whether a plain line is on show as well; and whether a trunk
+    /// is on show and a lane a step plays on among the lanes of its pair. A line a step added (the dashed step line) is not a connection and does not count. A line drawn as no kind (a mixed line)
+    /// counts as plain. A plain line is only worth a key item when a kind is on show too, which the key decides.
     /// </summary>
-    public static (IReadOnlyList<string> Kinds, bool Plain) OnScreen(IEnumerable<SceneEdge> lines)
+    public static KeyItems OnScreen(IEnumerable<SceneEdge> lines)
     {
-        var looks = lines.Where(l => !SceneBuilder.IsStepLine(l.Id)).Select(l => l.Look).ToList();
+        var drawn = lines.Where(l => !SceneBuilder.IsStepLine(l.Id)).ToList();
+        var looks = drawn.Select(l => l.Look).ToList();
         var kinds = Kinds.All.Where(k => looks.Any(look => look is not null && Kinds.SameLook(look, k.Look))).Select(k => k.Id).ToList();
-        return (kinds, looks.Any(look => look is null));
+        return new KeyItems(kinds, looks.Any(look => look is null), drawn.Any(l => l.Trunk is not null), drawn.Any(l => l.Lanes > 1 && l.Flags.HasFlag(EdgeFlags.Active)));
     }
 
     /// <summary>The scale a line's marks are drawn at: the head scale for its width, and no more than <see cref="LaneMarkScale"/> when it is one of several lines side by side.</summary>

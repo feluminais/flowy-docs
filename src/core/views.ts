@@ -14,8 +14,15 @@ export type Edge = { from: string; to: string; label: string; count: number; bot
  * everything about a pair keeps using; `from` and `to` are the way the connection runs there; `connections` are the indexes in `model.connections` that land here (more than
  * one when a zoomed-out view folds connections with the same ends and label into one). `lane` counts from 0 among the `lanes` strands of the pair: the strands that run from the
  * pair's later id to its earlier come first, then the others, each in the order of the file. `kind` and `look` are the ones all its connections share, left out for none.
+ * computeView makes strands of single connections (or of connections with the same ends and label); a reader that draws a pair with more lines than fit across its shapes folds them
+ * into trunks (`trunk`, see trunks.ts), which stand for several strands.
  */
-export type Strand = { id: string; pair: string; from: string; to: string; label: string; connections: number[]; lane: number; lanes: number; kind?: KindId; look?: LineLook }
+export type Strand = { id: string; pair: string; from: string; to: string; label: string; connections: number[]; lane: number; lanes: number; kind?: KindId; look?: LineLook; trunk?: Trunk }
+/**
+ * What a strand is when it stands for several lines of its pair that did not all fit across the shapes (see foldPair in trunks.ts): `size` is the connections it holds (the number its
+ * chip shows) and `members` the ids of the strands it folded, in the order of the file. Such a strand is a trunk: one lane with two hairlines behind it.
+ */
+export type Trunk = { size: number; members: string[] }
 /** `strands` is there only when the project draws a line for each connection; without it a reader draws the edges, one for each pair. */
 export type View = { id: string; members: string[]; outsiders: string[]; edges: Edge[]; strands?: Strand[] }
 
