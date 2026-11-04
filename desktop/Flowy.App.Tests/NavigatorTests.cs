@@ -506,7 +506,8 @@ public class NavigatorTests
         var yaml = reader.Navigator.Yaml;
         await EditModeTests.Until(() => !yaml.Reading);
         var tab = yaml.TabButton("failures/ordering.yaml")!;
-        Assert.True(tab.Focus(NavigationMethod.Tab));
+        Assert.True(tab.Focus(NavigationMethod.Tab), $"the tab took no focus: visible {tab.IsEffectivelyVisible}, enabled {tab.IsEffectivelyEnabled}, " +
+            $"focusable {tab.Focusable}, in this window {TopLevel.GetTopLevel(tab) == window}, window active {window.IsActive}, focused {window.FocusManager?.GetFocusedElement()}");
         yaml.PickFile("failures/ordering.yaml");
         reader.OpenFlowById("deliver-order"); // a step on the flow: the panel is shown again
         Dispatcher.UIThread.RunJobs();

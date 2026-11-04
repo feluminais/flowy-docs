@@ -24,6 +24,9 @@ internal sealed class Hljs(TimeSpan load, TimeSpan snippet, TimeSpan pattern)
     private Engine? _engine;
     private bool _broken;
 
+    /// <summary>Why the last answer was null when it was not for a missing grammar, so a test that gets null can say why.</summary>
+    internal Exception? LastError { get; private set; }
+
     private Engine? Start()
     {
         if (_engine is not null || _broken) return _engine;
@@ -41,6 +44,7 @@ internal sealed class Hljs(TimeSpan load, TimeSpan snippet, TimeSpan pattern)
         catch (Exception e) when (e is not OutOfMemoryException)
         {
             _broken = true;
+            LastError = e;
             return null;
         }
     }
@@ -61,6 +65,7 @@ internal sealed class Hljs(TimeSpan load, TimeSpan snippet, TimeSpan pattern)
             }
             catch (Exception e) when (e is not OutOfMemoryException)
             {
+                LastError = e;
                 return null;
             }
         }

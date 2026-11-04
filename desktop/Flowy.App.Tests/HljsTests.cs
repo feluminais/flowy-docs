@@ -17,13 +17,17 @@ public class HljsTests
     /// </summary>
     private static readonly Hljs Patient = new(TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(1));
 
+    /// <summary>The patient answer, which a test needs: when there is none, the failure names the language and what the script threw.</summary>
+    private static string Answer(string text, string language) =>
+        Patient.Html(text, language) ?? throw new Xunit.Sdk.XunitException($"{language}: no answer. {Patient.LastError?.GetType().Name}: {Patient.LastError?.Message}");
+
     [Fact]
     public void Each_language_is_coloured_with_the_same_HTML_the_canvas_gets()
     {
         var snippets = Expected()["snippets"]!.AsArray();
         Assert.True(snippets.Count >= 20);
         foreach (var s in snippets)
-            Assert.Equal(s!["html"]!.GetValue<string>(), Patient.Html(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()));
+            Assert.Equal(s!["html"]!.GetValue<string>(), Answer(s["text"]!.GetValue<string>(), s["language"]!.GetValue<string>()));
     }
 
     [Fact]
@@ -42,7 +46,7 @@ public class HljsTests
         foreach (var s in Expected()["snippets"]!.AsArray())
         {
             var text = s!["text"]!.GetValue<string>();
-            var runs = CodeRuns.FromHtml(Patient.Html(text, s["language"]!.GetValue<string>())!);
+            var runs = CodeRuns.FromHtml(Answer(text, s["language"]!.GetValue<string>()));
             Assert.Equal(text, string.Concat(runs.Select(r => r.Text)));
             Assert.Contains(runs, r => r.Kind is not null);
         }
@@ -51,7 +55,7 @@ public class HljsTests
     [Fact]
     public void Colours_follow_the_kinds_highlight_js_gives()
     {
-        var runs = CodeRuns.FromHtml(Patient.Html("const fee = 2 // later", "typescript")!);
+        var runs = CodeRuns.FromHtml(Answer("const fee = 2 // later", "typescript"));
         Assert.Contains(new CodeRun("const", TokenKind.Keyword), runs);
         Assert.Contains(new CodeRun("2", TokenKind.Number), runs);
         Assert.Contains(runs, r => r.Kind == TokenKind.Comment && r.Text.StartsWith("// later"));
