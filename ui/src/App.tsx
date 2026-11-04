@@ -150,6 +150,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const session = useEditSession({ edit, undo, redo, restore, readOnly })
   const { editing, notice, setNotice, announce, undoable, moved, run, takeBack, bringBack, restoreVersion, clearMoved, didSomethingElse } = session
   const [hover] = useState(createHoverStore) // the line the pointer is on: not state of this page (see HoverStore)
+  const [focusedLine, setFocusedLine] = useState<string>() // the line keyboard focus is on, so its pair spreads (see focusEdges)
   const [searching, setSearching] = useState(false)
   const [shortcuts, setShortcuts] = useState(false) // the list ? opens
   const [tidied, setTidied] = useState(0) // Tidy counts up, so the camera fits the new layout
@@ -164,7 +165,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const flowsHere = Object.entries(model.flows).filter(([, f]) => f.view === view && (editing || f.steps.length > 0))
   // The Performance and Failures tabs are always there: with nothing to show, their panels say how to make a run or an analysis.
   const canPerf = !editing // while editing the tab lists the runs to link and shows no numbers: they would sit on a model that is changing
-  const selectedLine = side?.kind === 'line' ? lineId(side.from, side.to) : undefined
+  const selectedLine = side?.kind === 'line' ? side.strand ?? lineId(side.from, side.to) : undefined // the id of the line, or of the pair when none of its lines is the one
   const selectedBox = side?.kind === 'object' ? side.id : undefined
   const manyPicked = side?.kind === 'objects' // several shapes picked: a bar at the foot of the canvas, no panel over them
   const chosen = side?.kind === 'objects' ? side.ids : side?.kind === 'object' ? [side.id] : [] // the shapes picked for editing, one or several
@@ -222,10 +223,10 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   }
   const openLevelStable = useLatest(() => openLevelNow?.())
   const openLevel = openLevelNow && openLevelStable
-  const { graph, marksHere, nodes, flowNodes, shapes, edges, spots, sizes } = useCanvasGraph({ model, view, shown, problems, stateMarks, loadTraffic, failMarks, scrubbing, moved, pickedSet, litClass, usedClass, lit, openLevel, animated, still, selectedBox, selectedLine, lines })
+  const { graph, marksHere, nodes, flowNodes, shapes, edges, spots, sizes } = useCanvasGraph({ model, view, shown, problems, stateMarks, loadTraffic, failMarks, scrubbing, moved, pickedSet, litClass, usedClass, lit, openLevel, animated, still, selectedBox, selectedLine, focusedLine, lines })
   const onScreen = useMemo(() => kindsOnScreen(edges), [edges]) // the kinds the lines are drawn as, for the key at the foot
   const { motion, go, goNow, jumpTo, back, zoomInto, openFlow, openLinked, goBack, showFlow } = useNavigation({ model, view, canvas, canOpen, editing, setViewId, playing, setPlaying, stopIndex, setCompare, setSide, show, session, cancelOpen: wait.cancelOpen, unlessDraft, setNotice, closeFailures })
-  const events = useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, members: graph.members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait })
+  const events = useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, edges, lines, setFocusedLine, members: graph.members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait })
   const { copyMermaid, createRun, copyFailures } = useCopyOut({ model, view, flow, playing, analysis, setNotice })
   const { askDelete, remove } = useDelete({ model, view, side, chosen, run, setSide, setNotice, announce, close })
   const rowCompare = { off: compareOff(model, editing), open: rowPicking?.flow, onCompare: compareRow }
@@ -380,6 +381,8 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 onEdgeClick={events.onEdgeClick}
                 onEdgeMouseEnter={events.onEdgeMouseEnter}
                 onEdgeMouseLeave={events.onEdgeMouseLeave}
+                onFocus={events.onFocus}
+                onBlur={events.onBlur}
                 onPaneClick={events.onPaneClick}
               >
                 <Camera count={shapes} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} fitPanel={detailsOpen ? detailsWidth : 0} nav={nav ? navWidth : 0} />
@@ -388,7 +391,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
                 {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
                 {flow && stop && animated.map(m => (
-                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
+                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} strand={m.strand} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
                     onDots={d => setDotsBy(by => ({ ...by, [m.i]: d }))} />
                 ))}
                 {flow && stop && <DotCard dots={carrying} clock={clock} stepKey={stepKey} />}

@@ -80,11 +80,14 @@ internal sealed class LookSwatch : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        var ink = AppTheme.Brush(this, "EdgeBrush");
-        var ground = AppTheme.Brush(this, "BgBrush");
-        var (x0, x1, y) = (Pad, Width - Pad, Height / 2);
-        context.DrawLine(new Pen(ink, Thickness, KindMarks.Dash(Kinds.Dashes(_look.Pattern), Thickness), PenLineCap.Flat), new Point(x0, y), new Point(x1, y));
-        var marks = Marks;
+        Sketch(context, _look, _both, AppTheme.Brush(this, "EdgeBrush"), AppTheme.Brush(this, "BgBrush"), Pad, Width - Pad, Height / 2);
+    }
+
+    /// <summary>A line drawn small from (<paramref name="x0"/>, <paramref name="y"/>) to (<paramref name="x1"/>, <paramref name="y"/>) with its pattern and marks: what a swatch is, and the sample that starts the label of a line among others on the canvas.</summary>
+    internal static void Sketch(DrawingContext context, LineLook look, bool both, IBrush ink, IBrush ground, double x0, double x1, double y)
+    {
+        context.DrawLine(new Pen(ink, Thickness, KindMarks.Dash(Kinds.Dashes(look.Pattern), Thickness), PenLineCap.Flat), new Point(x0, y), new Point(x1, y));
+        var marks = KindKey.MarksOf(look, both);
         if (marks.Tail is { } tail) KindMarks.Draw(context, tail, ink, ground, new CorePt(x0, y), new CorePt(-1, 0));
         KindMarks.Draw(context, marks.Head, ink, ground, new CorePt(x1, y), new CorePt(1, 0));
         if (marks.HeadAtStart) KindMarks.Draw(context, marks.Head, ink, ground, new CorePt(x0, y), new CorePt(-1, 0));

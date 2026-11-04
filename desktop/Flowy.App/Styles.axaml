@@ -430,6 +430,10 @@
     <Setter Property="BorderThickness" Value="2,0,0,0" />
     <Setter Property="Padding" Value="14,2,0,2" />
   </Style>
+  <!-- The connection that is the line picked on the canvas, where each connection is a line of its own. -->
+  <Style Selector="Border.inset.current">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
   <!-- A callout beside the text, like a quote: what is wrong with a box or a line. -->
   <Style Selector="Border.callout">
     <Setter Property="Background" Value="{DynamicResource WarnTintBrush}" />

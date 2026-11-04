@@ -199,6 +199,34 @@ public static partial class EditOps
         return d;
     }
 
+    /// <summary>
+    /// Move connections to just before the connection at <paramref name="before"/> (the number of connections for the end), keeping the order they have among themselves. The order of the
+    /// connections in the file is the order of the lines of a pair side by side, which is the one thing a reader can change about where they run. <paramref name="indexes"/> are places in the
+    /// model's connections; a move that leaves the order as it is returns the document itself. Nothing else about a connection changes, so no step's <c>via</c>, failure mode or payload is
+    /// touched. The twin of <c>reorderConnections</c> in src/core/ops.ts.
+    /// </summary>
+    public static EditDoc ReorderConnections(EditDoc doc, IReadOnlyList<double> indexes, double before)
+    {
+        var count = doc.Connections.Count;
+        static bool Ok(double n, int last) => n == Math.Floor(n) && n >= 0 && n <= last;
+        if (indexes.Count == 0 || !indexes.All(i => Ok(i, count - 1)) || indexes.Distinct().Count() != indexes.Count)
+            throw new OpError($"connections to move must be places from 0 to {count - 1}, each once");
+        if (!Ok(before, count)) throw new OpError($"a connection can go before a place from 0 to {count}");
+        var moving = indexes.Select(i => (int)i).Order().ToList();
+        var staying = Enumerable.Range(0, count).Where(i => !moving.Contains(i)).ToList();
+        var at = Enumerable.Range(0, (int)before).Count(i => !moving.Contains(i));
+        var order = staying.Take(at).Concat(moving).Concat(staying.Skip(at)).ToList();
+        if (order.Select((n, i) => n == i).All(same => same)) return doc;
+        var d = doc.Clone();
+        var items = d.Connections.ToList();
+        d.Connections.Clear();
+        d.Connections.AddRange(order.Select(i => items[i]));
+        return d;
+    }
+
+    /// <summary><see cref="ReorderConnections(EditDoc, IReadOnlyList{double}, double)"/> for places that are whole numbers, as the panel's Move up and Move down give them.</summary>
+    public static EditDoc ReorderConnections(EditDoc doc, IReadOnlyList<int> indexes, int before) => ReorderConnections(doc, [.. indexes.Select(i => (double)i)], before);
+
     /// <summary>Give one connection (the first that matches) a kind, in place. "" removes it. It keeps its place among the connection's keys, and a new kind goes after the label.</summary>
     public static EditDoc SetKind(EditDoc doc, ConnectionInput which, string kind)
     {
@@ -253,13 +281,14 @@ public static partial class EditOps
             return edit(d, flow, steps);
         });
 
-    /// <summary>A step: from, optionally to, the text, and optionally the longer detail. A blank detail is no detail.</summary>
-    public static OrderedDictionary<string, object?> NewStep(string from, string? to, string text, string? description = null)
+    /// <summary>A step: from, optionally to, the text, and optionally the longer detail and the label of the connection it rides (<c>via</c>). A blank detail is no detail.</summary>
+    public static OrderedDictionary<string, object?> NewStep(string from, string? to, string text, string? description = null, string? via = null)
     {
         var step = new OrderedDictionary<string, object?> { ["from"] = from };
         if (to is not null) step["to"] = to;
         step["text"] = text;
         if (description is not null && !JsCompat.Blank(description)) step["description"] = description;
+        if (via is not null) step["via"] = via;
         return step;
     }
 

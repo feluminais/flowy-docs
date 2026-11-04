@@ -1,0 +1,2920 @@
+{
+  "words": {
+    "up": "Move up",
+    "down": "Move down",
+    "first": "Already first",
+    "last": "Already last",
+    "alone": "Only line this way"
+  },
+  "spots": [
+    {
+      "id": "ui",
+      "x": 0,
+      "y": 0,
+      "shape": "rectangle"
+    },
+    {
+      "id": "management",
+      "x": 420,
+      "y": 0,
+      "shape": "rectangle"
+    },
+    {
+      "id": "linux",
+      "x": 420,
+      "y": 330,
+      "shape": "diamond"
+    },
+    {
+      "id": "cloud",
+      "x": 840,
+      "y": 0,
+      "shape": "ellipse"
+    },
+    {
+      "id": "bus",
+      "x": 420,
+      "y": -260,
+      "shape": "rectangle"
+    },
+    {
+      "id": "sensor",
+      "x": 0,
+      "y": 330,
+      "shape": "rectangle"
+    }
+  ],
+  "slots": [
+    {
+      "id": "management ui|ui>management|Request and reply",
+      "slot": {
+        "lane": 0,
+        "lanes": 5,
+        "back": 3
+      }
+    },
+    {
+      "id": "management ui|ui>management|Start scan",
+      "slot": {
+        "lane": 1,
+        "lanes": 5,
+        "back": 3
+      }
+    },
+    {
+      "id": "management ui|ui>management|Set country",
+      "slot": {
+        "lane": 2,
+        "lanes": 5,
+        "back": 3
+      }
+    },
+    {
+      "id": "management ui|management>ui|Scan results",
+      "slot": {
+        "lane": 3,
+        "lanes": 5,
+        "back": 3
+      }
+    },
+    {
+      "id": "management ui|management>ui|Radio state",
+      "slot": {
+        "lane": 4,
+        "lanes": 5,
+        "back": 3
+      }
+    },
+    {
+      "id": "linux management|management>linux|Apply config",
+      "slot": {
+        "lane": 0,
+        "lanes": 2,
+        "back": 1
+      }
+    },
+    {
+      "id": "linux management|linux>management|Link state",
+      "slot": {
+        "lane": 1,
+        "lanes": 2,
+        "back": 1
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Fetch update",
+      "slot": {
+        "lane": 0,
+        "lanes": 3,
+        "back": 3
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Report",
+      "slot": {
+        "lane": 1,
+        "lanes": 3,
+        "back": 3
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Heartbeat",
+      "slot": {
+        "lane": 2,
+        "lanes": 3,
+        "back": 3
+      }
+    },
+    {
+      "id": "bus management|management>bus|Events",
+      "slot": {
+        "lane": 0,
+        "lanes": 1,
+        "back": 1
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 1",
+      "slot": {
+        "lane": 0,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 2",
+      "slot": {
+        "lane": 1,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 3",
+      "slot": {
+        "lane": 2,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 4",
+      "slot": {
+        "lane": 3,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 5",
+      "slot": {
+        "lane": 4,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 6",
+      "slot": {
+        "lane": 5,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 1",
+      "slot": {
+        "lane": 6,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 2",
+      "slot": {
+        "lane": 7,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 3",
+      "slot": {
+        "lane": 8,
+        "lanes": 10,
+        "back": 6
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 4",
+      "slot": {
+        "lane": 9,
+        "lanes": 10,
+        "back": 6
+      }
+    }
+  ],
+  "names": [
+    {
+      "id": "management ui|ui>management|Request and reply",
+      "pair": "management ui",
+      "name": "1 of 5, from UI to Management, Request and reply, Request and reply"
+    },
+    {
+      "id": "management ui|ui>management|Start scan",
+      "pair": "management ui",
+      "name": "2 of 5, from UI to Management, Start scan, Request then stream"
+    },
+    {
+      "id": "management ui|ui>management|Set country",
+      "pair": "management ui",
+      "name": "3 of 5, from UI to Management, Set country"
+    },
+    {
+      "id": "management ui|management>ui|Scan results",
+      "pair": "management ui",
+      "name": "4 of 5, from Management to UI, Scan results, Publish and subscribe"
+    },
+    {
+      "id": "management ui|management>ui|Radio state",
+      "pair": "management ui",
+      "name": "5 of 5, from Management to UI, Radio state, Cached publish"
+    },
+    {
+      "id": "linux management|management>linux|Apply config",
+      "pair": "linux management",
+      "name": "1 of 2, from Management to Linux, Apply config, Request and reply"
+    },
+    {
+      "id": "linux management|linux>management|Link state",
+      "pair": "linux management",
+      "name": "2 of 2, from Linux to Management, Link state, Cached publish"
+    },
+    {
+      "id": "cloud management|management>cloud|Fetch update",
+      "pair": "cloud management",
+      "name": "1 of 3, from Management to Cloud, Fetch update"
+    },
+    {
+      "id": "cloud management|management>cloud|Report",
+      "pair": "cloud management",
+      "name": "2 of 3, from Management to Cloud, Report"
+    },
+    {
+      "id": "cloud management|management>cloud|Heartbeat",
+      "pair": "cloud management",
+      "name": "3 of 3, from Management to Cloud, Heartbeat, Publish and subscribe"
+    },
+    {
+      "id": "bus management|management>bus|Events",
+      "pair": "bus management",
+      "name": "Management to Bus, Events, Publish and subscribe"
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 1",
+      "pair": "management sensor",
+      "name": "1 of 10, from Sensor to Management, Reading 1"
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 2",
+      "pair": "management sensor",
+      "name": "2 of 10, from Sensor to Management, Reading 2"
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 3",
+      "pair": "management sensor",
+      "name": "3 of 10, from Sensor to Management, Reading 3"
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 4",
+      "pair": "management sensor",
+      "name": "4 of 10, from Sensor to Management, Reading 4"
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 5",
+      "pair": "management sensor",
+      "name": "5 of 10, from Sensor to Management, Reading 5"
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 6",
+      "pair": "management sensor",
+      "name": "6 of 10, from Sensor to Management, Reading 6"
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 1",
+      "pair": "management sensor",
+      "name": "7 of 10, from Management to Sensor, Poll 1"
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 2",
+      "pair": "management sensor",
+      "name": "8 of 10, from Management to Sensor, Poll 2"
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 3",
+      "pair": "management sensor",
+      "name": "9 of 10, from Management to Sensor, Poll 3"
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 4",
+      "pair": "management sensor",
+      "name": "10 of 10, from Management to Sensor, Poll 4"
+    }
+  ],
+  "rest": [
+    {
+      "id": "management ui|ui>management|Request and reply",
+      "slot": {
+        "lane": 0,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M100 26L320 26",
+        "anchor": [
+          210,
+          26
+        ],
+        "points": [
+          [
+            100,
+            26
+          ],
+          [
+            320,
+            26
+          ]
+        ],
+        "head": {
+          "at": [
+            320,
+            26
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            26
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|ui>management|Start scan",
+      "slot": {
+        "lane": 1,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M100 14.5L320 14.5",
+        "anchor": [
+          210,
+          14.5
+        ],
+        "points": [
+          [
+            100,
+            14.5
+          ],
+          [
+            320,
+            14.5
+          ]
+        ],
+        "head": {
+          "at": [
+            320,
+            14.5
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            14.5
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|ui>management|Set country",
+      "slot": {
+        "lane": 2,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 2,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M100 3L320 3",
+        "anchor": [
+          210,
+          3
+        ],
+        "points": [
+          [
+            100,
+            3
+          ],
+          [
+            320,
+            3
+          ]
+        ],
+        "head": {
+          "at": [
+            320,
+            3
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            3
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|management>ui|Scan results",
+      "slot": {
+        "lane": 3,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 3,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M320 -14.5L100 -14.5",
+        "anchor": [
+          210,
+          -14.5
+        ],
+        "points": [
+          [
+            320,
+            -14.5
+          ],
+          [
+            100,
+            -14.5
+          ]
+        ],
+        "head": {
+          "at": [
+            100,
+            -14.5
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            320,
+            -14.5
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|management>ui|Radio state",
+      "slot": {
+        "lane": 4,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 4,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M320 -26L100 -26",
+        "anchor": [
+          210,
+          -26
+        ],
+        "points": [
+          [
+            320,
+            -26
+          ],
+          [
+            100,
+            -26
+          ]
+        ],
+        "head": {
+          "at": [
+            100,
+            -26
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            320,
+            -26
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "linux management|management>linux|Apply config",
+      "slot": {
+        "lane": 0,
+        "lanes": 2,
+        "back": 1
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 2,
+          "back": 1
+        },
+        "path": "M411 36L411 298.182",
+        "anchor": [
+          411,
+          167.091
+        ],
+        "points": [
+          [
+            411,
+            36
+          ],
+          [
+            411,
+            298.182
+          ]
+        ],
+        "head": {
+          "at": [
+            411,
+            298.182
+          ],
+          "dir": [
+            0,
+            1
+          ]
+        },
+        "tail": {
+          "at": [
+            411,
+            36
+          ],
+          "dir": [
+            0,
+            -1
+          ]
+        }
+      }
+    },
+    {
+      "id": "linux management|linux>management|Link state",
+      "slot": {
+        "lane": 1,
+        "lanes": 2,
+        "back": 1
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 2,
+          "back": 1
+        },
+        "path": "M429 298.182L429 36",
+        "anchor": [
+          429,
+          167.091
+        ],
+        "points": [
+          [
+            429,
+            298.182
+          ],
+          [
+            429,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            429,
+            36
+          ],
+          "dir": [
+            0,
+            -1
+          ]
+        },
+        "tail": {
+          "at": [
+            429,
+            298.182
+          ],
+          "dir": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Fetch update",
+      "slot": {
+        "lane": 0,
+        "lanes": 3,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 3,
+          "back": 3
+        },
+        "path": "M520 12L747.345 12",
+        "anchor": [
+          633.673,
+          12
+        ],
+        "points": [
+          [
+            520,
+            12
+          ],
+          [
+            747.345,
+            12
+          ]
+        ],
+        "head": {
+          "at": [
+            747.345,
+            12
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            520,
+            12
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Report",
+      "slot": {
+        "lane": 1,
+        "lanes": 3,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 3,
+          "back": 3
+        },
+        "path": "M520 0L741 0",
+        "anchor": [
+          630.5,
+          0
+        ],
+        "points": [
+          [
+            520,
+            0
+          ],
+          [
+            741,
+            0
+          ]
+        ],
+        "head": {
+          "at": [
+            741,
+            0
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            520,
+            0
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Heartbeat",
+      "slot": {
+        "lane": 2,
+        "lanes": 3,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 2,
+          "lanes": 3,
+          "back": 3
+        },
+        "path": "M520 -12L747.345 -12",
+        "anchor": [
+          633.673,
+          -12
+        ],
+        "points": [
+          [
+            520,
+            -12
+          ],
+          [
+            747.345,
+            -12
+          ]
+        ],
+        "head": {
+          "at": [
+            747.345,
+            -12
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            520,
+            -12
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "bus management|management>bus|Events",
+      "slot": {
+        "lane": 0,
+        "lanes": 1,
+        "back": 1
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 1,
+          "back": 1
+        },
+        "path": "M420 -36L420 -224",
+        "anchor": [
+          420,
+          -130
+        ],
+        "points": [
+          [
+            420,
+            -36
+          ],
+          [
+            420,
+            -224
+          ]
+        ],
+        "head": {
+          "at": [
+            420,
+            -224
+          ],
+          "dir": [
+            0,
+            -1
+          ]
+        },
+        "tail": {
+          "at": [
+            420,
+            -36
+          ],
+          "dir": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 1",
+      "slot": {
+        "lane": 0,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M100 296.936L432.1 36",
+        "anchor": [
+          266.05,
+          166.468
+        ],
+        "points": [
+          [
+            100,
+            296.936
+          ],
+          [
+            432.1,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            432.1,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            296.936
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 2",
+      "slot": {
+        "lane": 1,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M91.945 294L420.308 36",
+        "anchor": [
+          256.126,
+          165
+        ],
+        "points": [
+          [
+            91.945,
+            294
+          ],
+          [
+            420.308,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            420.308,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            91.945,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 3",
+      "slot": {
+        "lane": 2,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 2,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M80.153 294L408.517 36",
+        "anchor": [
+          244.335,
+          165
+        ],
+        "points": [
+          [
+            80.153,
+            294
+          ],
+          [
+            408.517,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            408.517,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            80.153,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 4",
+      "slot": {
+        "lane": 3,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 3,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M68.361 294L396.725 36",
+        "anchor": [
+          232.543,
+          165
+        ],
+        "points": [
+          [
+            68.361,
+            294
+          ],
+          [
+            396.725,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            396.725,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            68.361,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 5",
+      "slot": {
+        "lane": 4,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 4,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M56.57 294L384.933 36",
+        "anchor": [
+          220.752,
+          165
+        ],
+        "points": [
+          [
+            56.57,
+            294
+          ],
+          [
+            384.933,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            384.933,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            56.57,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 6",
+      "slot": {
+        "lane": 5,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 5,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M44.778 294L373.142 36",
+        "anchor": [
+          208.96,
+          165
+        ],
+        "points": [
+          [
+            44.778,
+            294
+          ],
+          [
+            373.142,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            373.142,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            44.778,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 1",
+      "slot": {
+        "lane": 6,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 6,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M351.639 36L23.275 294",
+        "anchor": [
+          187.457,
+          165
+        ],
+        "points": [
+          [
+            351.639,
+            36
+          ],
+          [
+            23.275,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            23.275,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            351.639,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 2",
+      "slot": {
+        "lane": 7,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 7,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M339.847 36L11.483 294",
+        "anchor": [
+          175.665,
+          165
+        ],
+        "points": [
+          [
+            339.847,
+            36
+          ],
+          [
+            11.483,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            11.483,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            339.847,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 3",
+      "slot": {
+        "lane": 8,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 8,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M328.055 36L-0.308 294",
+        "anchor": [
+          163.874,
+          165
+        ],
+        "points": [
+          [
+            328.055,
+            36
+          ],
+          [
+            -0.308,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            -0.308,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            328.055,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 4",
+      "slot": {
+        "lane": 9,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 9,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M320 33.064L-12.1 294",
+        "anchor": [
+          153.95,
+          163.532
+        ],
+        "points": [
+          [
+            320,
+            33.064
+          ],
+          [
+            -12.1,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            -12.1,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            320,
+            33.064
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    }
+  ],
+  "spread": [
+    {
+      "id": "management ui|ui>management|Request and reply",
+      "slot": {
+        "lane": 0,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M100 26Q109.167 26.606 113.75 27.411Q118.333 28.216 122.917 29.38Q127.5 30.544 132.084 31.935Q136.667 33.327 141.25 34.829Q145.833 36.332 150.416 37.843Q155 39.353 159.584 40.783Q164.167 42.212 168.75 43.485Q173.333 44.757 177.916 45.811Q182.5 46.864 187.084 47.652Q191.667 48.439 196.25 48.925Q200.833 49.411 205.416 49.575Q210 49.739 214.584 49.575Q219.167 49.411 223.75 48.925Q228.333 48.439 232.916 47.652Q237.5 46.864 242.084 45.811Q246.667 44.757 251.25 43.485Q255.833 42.212 260.416 40.783Q265 39.353 269.583 37.843Q274.167 36.332 278.75 34.829Q283.333 33.327 287.917 31.935Q292.5 30.544 297.083 29.38Q301.667 28.216 306.25 27.411Q310.833 26.606 315.417 26.303L320 26",
+        "anchor": [
+          210,
+          49.739
+        ],
+        "points": [
+          [
+            100,
+            26
+          ],
+          [
+            109.167,
+            26.606
+          ],
+          [
+            118.333,
+            28.216
+          ],
+          [
+            127.5,
+            30.544
+          ],
+          [
+            136.667,
+            33.327
+          ],
+          [
+            145.833,
+            36.332
+          ],
+          [
+            155,
+            39.353
+          ],
+          [
+            164.167,
+            42.212
+          ],
+          [
+            173.333,
+            44.757
+          ],
+          [
+            182.5,
+            46.864
+          ],
+          [
+            191.667,
+            48.439
+          ],
+          [
+            200.833,
+            49.411
+          ],
+          [
+            210,
+            49.739
+          ],
+          [
+            219.167,
+            49.411
+          ],
+          [
+            228.333,
+            48.439
+          ],
+          [
+            237.5,
+            46.864
+          ],
+          [
+            246.667,
+            44.757
+          ],
+          [
+            255.833,
+            42.212
+          ],
+          [
+            265,
+            39.353
+          ],
+          [
+            274.167,
+            36.332
+          ],
+          [
+            283.333,
+            33.327
+          ],
+          [
+            292.5,
+            30.544
+          ],
+          [
+            301.667,
+            28.216
+          ],
+          [
+            310.833,
+            26.606
+          ],
+          [
+            320,
+            26
+          ]
+        ],
+        "head": {
+          "at": [
+            320,
+            26
+          ],
+          "dir": [
+            0.998,
+            -0.066
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            26
+          ],
+          "dir": [
+            -0.998,
+            -0.066
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|ui>management|Start scan",
+      "slot": {
+        "lane": 1,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M100 14.5Q109.167 14.838 113.75 15.287Q118.333 15.736 122.917 16.385Q127.5 17.034 132.084 17.81Q136.667 18.586 141.25 19.424Q145.833 20.262 150.416 21.105Q155 21.947 159.584 22.744Q164.167 23.541 168.75 24.251Q173.333 24.961 177.916 25.548Q182.5 26.136 187.084 26.575Q191.667 27.014 196.25 27.285Q200.833 27.556 205.416 27.648Q210 27.739 214.584 27.648Q219.167 27.556 223.75 27.285Q228.333 27.014 232.916 26.575Q237.5 26.136 242.084 25.548Q246.667 24.961 251.25 24.251Q255.833 23.541 260.416 22.744Q265 21.947 269.583 21.105Q274.167 20.262 278.75 19.424Q283.333 18.586 287.917 17.81Q292.5 17.034 297.083 16.385Q301.667 15.736 306.25 15.287Q310.833 14.838 315.417 14.669L320 14.5",
+        "anchor": [
+          210,
+          27.739
+        ],
+        "points": [
+          [
+            100,
+            14.5
+          ],
+          [
+            109.167,
+            14.838
+          ],
+          [
+            118.333,
+            15.736
+          ],
+          [
+            127.5,
+            17.034
+          ],
+          [
+            136.667,
+            18.586
+          ],
+          [
+            145.833,
+            20.262
+          ],
+          [
+            155,
+            21.947
+          ],
+          [
+            164.167,
+            23.541
+          ],
+          [
+            173.333,
+            24.961
+          ],
+          [
+            182.5,
+            26.136
+          ],
+          [
+            191.667,
+            27.014
+          ],
+          [
+            200.833,
+            27.556
+          ],
+          [
+            210,
+            27.739
+          ],
+          [
+            219.167,
+            27.556
+          ],
+          [
+            228.333,
+            27.014
+          ],
+          [
+            237.5,
+            26.136
+          ],
+          [
+            246.667,
+            24.961
+          ],
+          [
+            255.833,
+            23.541
+          ],
+          [
+            265,
+            21.947
+          ],
+          [
+            274.167,
+            20.262
+          ],
+          [
+            283.333,
+            18.586
+          ],
+          [
+            292.5,
+            17.034
+          ],
+          [
+            301.667,
+            15.736
+          ],
+          [
+            310.833,
+            14.838
+          ],
+          [
+            320,
+            14.5
+          ]
+        ],
+        "head": {
+          "at": [
+            320,
+            14.5
+          ],
+          "dir": [
+            0.999,
+            -0.037
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            14.5
+          ],
+          "dir": [
+            -0.999,
+            -0.037
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|ui>management|Set country",
+      "slot": {
+        "lane": 2,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 2,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M100 3Q109.167 3.07 113.75 3.163Q118.333 3.256 122.917 3.39Q127.5 3.524 132.084 3.685Q136.667 3.845 141.25 4.019Q145.833 4.192 150.416 4.367Q155 4.541 159.584 4.706Q164.167 4.871 168.75 5.018Q173.333 5.164 177.916 5.286Q182.5 5.407 187.084 5.498Q191.667 5.589 196.25 5.645Q200.833 5.701 205.416 5.72Q210 5.739 214.584 5.72Q219.167 5.701 223.75 5.645Q228.333 5.589 232.916 5.498Q237.5 5.407 242.084 5.286Q246.667 5.164 251.25 5.018Q255.833 4.871 260.416 4.706Q265 4.541 269.583 4.367Q274.167 4.192 278.75 4.019Q283.333 3.845 287.917 3.685Q292.5 3.524 297.083 3.39Q301.667 3.256 306.25 3.163Q310.833 3.07 315.417 3.035L320 3",
+        "anchor": [
+          210,
+          5.739
+        ],
+        "points": [
+          [
+            100,
+            3
+          ],
+          [
+            109.167,
+            3.07
+          ],
+          [
+            118.333,
+            3.256
+          ],
+          [
+            127.5,
+            3.524
+          ],
+          [
+            136.667,
+            3.845
+          ],
+          [
+            145.833,
+            4.192
+          ],
+          [
+            155,
+            4.541
+          ],
+          [
+            164.167,
+            4.871
+          ],
+          [
+            173.333,
+            5.164
+          ],
+          [
+            182.5,
+            5.407
+          ],
+          [
+            191.667,
+            5.589
+          ],
+          [
+            200.833,
+            5.701
+          ],
+          [
+            210,
+            5.739
+          ],
+          [
+            219.167,
+            5.701
+          ],
+          [
+            228.333,
+            5.589
+          ],
+          [
+            237.5,
+            5.407
+          ],
+          [
+            246.667,
+            5.164
+          ],
+          [
+            255.833,
+            4.871
+          ],
+          [
+            265,
+            4.541
+          ],
+          [
+            274.167,
+            4.192
+          ],
+          [
+            283.333,
+            3.845
+          ],
+          [
+            292.5,
+            3.524
+          ],
+          [
+            301.667,
+            3.256
+          ],
+          [
+            310.833,
+            3.07
+          ],
+          [
+            320,
+            3
+          ]
+        ],
+        "head": {
+          "at": [
+            320,
+            3
+          ],
+          "dir": [
+            1,
+            -0.008
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            3
+          ],
+          "dir": [
+            -1,
+            -0.008
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|management>ui|Scan results",
+      "slot": {
+        "lane": 3,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 3,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M320 -14.5Q310.833 -14.838 306.25 -15.287Q301.667 -15.736 297.083 -16.385Q292.5 -17.034 287.917 -17.81Q283.333 -18.586 278.75 -19.424Q274.167 -20.262 269.583 -21.104Q265 -21.947 260.416 -22.744Q255.833 -23.541 251.25 -24.251Q246.667 -24.961 242.084 -25.548Q237.5 -26.136 232.916 -26.575Q228.333 -27.014 223.75 -27.285Q219.167 -27.556 214.584 -27.647Q210 -27.739 205.416 -27.647Q200.833 -27.556 196.25 -27.285Q191.667 -27.014 187.084 -26.575Q182.5 -26.136 177.916 -25.548Q173.333 -24.961 168.75 -24.251Q164.167 -23.541 159.584 -22.744Q155 -21.947 150.416 -21.104Q145.833 -20.262 141.25 -19.424Q136.667 -18.586 132.084 -17.81Q127.5 -17.034 122.917 -16.385Q118.333 -15.736 113.75 -15.287Q109.167 -14.838 104.584 -14.669L100 -14.5",
+        "anchor": [
+          210,
+          -27.739
+        ],
+        "points": [
+          [
+            320,
+            -14.5
+          ],
+          [
+            310.833,
+            -14.838
+          ],
+          [
+            301.667,
+            -15.736
+          ],
+          [
+            292.5,
+            -17.034
+          ],
+          [
+            283.333,
+            -18.586
+          ],
+          [
+            274.167,
+            -20.262
+          ],
+          [
+            265,
+            -21.947
+          ],
+          [
+            255.833,
+            -23.541
+          ],
+          [
+            246.667,
+            -24.961
+          ],
+          [
+            237.5,
+            -26.136
+          ],
+          [
+            228.333,
+            -27.014
+          ],
+          [
+            219.167,
+            -27.556
+          ],
+          [
+            210,
+            -27.739
+          ],
+          [
+            200.833,
+            -27.556
+          ],
+          [
+            191.667,
+            -27.014
+          ],
+          [
+            182.5,
+            -26.136
+          ],
+          [
+            173.333,
+            -24.961
+          ],
+          [
+            164.167,
+            -23.541
+          ],
+          [
+            155,
+            -21.947
+          ],
+          [
+            145.833,
+            -20.262
+          ],
+          [
+            136.667,
+            -18.586
+          ],
+          [
+            127.5,
+            -17.034
+          ],
+          [
+            118.333,
+            -15.736
+          ],
+          [
+            109.167,
+            -14.838
+          ],
+          [
+            100,
+            -14.5
+          ]
+        ],
+        "head": {
+          "at": [
+            100,
+            -14.5
+          ],
+          "dir": [
+            -0.999,
+            0.037
+          ]
+        },
+        "tail": {
+          "at": [
+            320,
+            -14.5
+          ],
+          "dir": [
+            0.999,
+            0.037
+          ]
+        }
+      }
+    },
+    {
+      "id": "management ui|management>ui|Radio state",
+      "slot": {
+        "lane": 4,
+        "lanes": 5,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 4,
+          "lanes": 5,
+          "back": 3
+        },
+        "path": "M320 -26Q310.833 -26.606 306.25 -27.411Q301.667 -28.216 297.083 -29.38Q292.5 -30.544 287.917 -31.935Q283.333 -33.327 278.75 -34.829Q274.167 -36.332 269.583 -37.842Q265 -39.353 260.416 -40.782Q255.833 -42.212 251.25 -43.484Q246.667 -44.757 242.084 -45.81Q237.5 -46.864 232.916 -47.651Q228.333 -48.439 223.75 -48.925Q219.167 -49.411 214.584 -49.575Q210 -49.739 205.416 -49.575Q200.833 -49.411 196.25 -48.925Q191.667 -48.439 187.084 -47.651Q182.5 -46.864 177.916 -45.81Q173.333 -44.757 168.75 -43.484Q164.167 -42.212 159.584 -40.782Q155 -39.353 150.416 -37.842Q145.833 -36.332 141.25 -34.829Q136.667 -33.327 132.084 -31.935Q127.5 -30.544 122.917 -29.38Q118.333 -28.216 113.75 -27.411Q109.167 -26.606 104.584 -26.303L100 -26",
+        "anchor": [
+          210,
+          -49.739
+        ],
+        "points": [
+          [
+            320,
+            -26
+          ],
+          [
+            310.833,
+            -26.606
+          ],
+          [
+            301.667,
+            -28.216
+          ],
+          [
+            292.5,
+            -30.544
+          ],
+          [
+            283.333,
+            -33.327
+          ],
+          [
+            274.167,
+            -36.332
+          ],
+          [
+            265,
+            -39.353
+          ],
+          [
+            255.833,
+            -42.212
+          ],
+          [
+            246.667,
+            -44.757
+          ],
+          [
+            237.5,
+            -46.864
+          ],
+          [
+            228.333,
+            -48.439
+          ],
+          [
+            219.167,
+            -49.411
+          ],
+          [
+            210,
+            -49.739
+          ],
+          [
+            200.833,
+            -49.411
+          ],
+          [
+            191.667,
+            -48.439
+          ],
+          [
+            182.5,
+            -46.864
+          ],
+          [
+            173.333,
+            -44.757
+          ],
+          [
+            164.167,
+            -42.212
+          ],
+          [
+            155,
+            -39.353
+          ],
+          [
+            145.833,
+            -36.332
+          ],
+          [
+            136.667,
+            -33.327
+          ],
+          [
+            127.5,
+            -30.544
+          ],
+          [
+            118.333,
+            -28.216
+          ],
+          [
+            109.167,
+            -26.606
+          ],
+          [
+            100,
+            -26
+          ]
+        ],
+        "head": {
+          "at": [
+            100,
+            -26
+          ],
+          "dir": [
+            -0.998,
+            0.066
+          ]
+        },
+        "tail": {
+          "at": [
+            320,
+            -26
+          ],
+          "dir": [
+            0.998,
+            0.066
+          ]
+        }
+      }
+    },
+    {
+      "id": "linux management|management>linux|Apply config",
+      "slot": {
+        "lane": 0,
+        "lanes": 2,
+        "back": 1
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 2,
+          "back": 1
+        },
+        "path": "M411 36L411 298.182",
+        "anchor": [
+          411,
+          167.091
+        ],
+        "points": [
+          [
+            411,
+            36
+          ],
+          [
+            411,
+            298.182
+          ]
+        ],
+        "head": {
+          "at": [
+            411,
+            298.182
+          ],
+          "dir": [
+            0,
+            1
+          ]
+        },
+        "tail": {
+          "at": [
+            411,
+            36
+          ],
+          "dir": [
+            0,
+            -1
+          ]
+        }
+      }
+    },
+    {
+      "id": "linux management|linux>management|Link state",
+      "slot": {
+        "lane": 1,
+        "lanes": 2,
+        "back": 1
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 2,
+          "back": 1
+        },
+        "path": "M429 298.182L429 36",
+        "anchor": [
+          429,
+          167.091
+        ],
+        "points": [
+          [
+            429,
+            298.182
+          ],
+          [
+            429,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            429,
+            36
+          ],
+          "dir": [
+            0,
+            -1
+          ]
+        },
+        "tail": {
+          "at": [
+            429,
+            298.182
+          ],
+          "dir": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Fetch update",
+      "slot": {
+        "lane": 0,
+        "lanes": 3,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 3,
+          "back": 3
+        },
+        "path": "M520 12L747.345 12",
+        "anchor": [
+          633.673,
+          12
+        ],
+        "points": [
+          [
+            520,
+            12
+          ],
+          [
+            747.345,
+            12
+          ]
+        ],
+        "head": {
+          "at": [
+            747.345,
+            12
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            520,
+            12
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Report",
+      "slot": {
+        "lane": 1,
+        "lanes": 3,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 3,
+          "back": 3
+        },
+        "path": "M520 0L741 0",
+        "anchor": [
+          630.5,
+          0
+        ],
+        "points": [
+          [
+            520,
+            0
+          ],
+          [
+            741,
+            0
+          ]
+        ],
+        "head": {
+          "at": [
+            741,
+            0
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            520,
+            0
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "cloud management|management>cloud|Heartbeat",
+      "slot": {
+        "lane": 2,
+        "lanes": 3,
+        "back": 3
+      },
+      "lane": {
+        "slot": {
+          "lane": 2,
+          "lanes": 3,
+          "back": 3
+        },
+        "path": "M520 -12L747.345 -12",
+        "anchor": [
+          633.673,
+          -12
+        ],
+        "points": [
+          [
+            520,
+            -12
+          ],
+          [
+            747.345,
+            -12
+          ]
+        ],
+        "head": {
+          "at": [
+            747.345,
+            -12
+          ],
+          "dir": [
+            1,
+            0
+          ]
+        },
+        "tail": {
+          "at": [
+            520,
+            -12
+          ],
+          "dir": [
+            -1,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "id": "bus management|management>bus|Events",
+      "slot": {
+        "lane": 0,
+        "lanes": 1,
+        "back": 1
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 1,
+          "back": 1
+        },
+        "path": "M420 -36L420 -224",
+        "anchor": [
+          420,
+          -130
+        ],
+        "points": [
+          [
+            420,
+            -36
+          ],
+          [
+            420,
+            -224
+          ]
+        ],
+        "head": {
+          "at": [
+            420,
+            -224
+          ],
+          "dir": [
+            0,
+            -1
+          ]
+        },
+        "tail": {
+          "at": [
+            420,
+            -36
+          ],
+          "dir": [
+            0,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 1",
+      "slot": {
+        "lane": 0,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 0,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M100 296.936L432.1 36",
+        "anchor": [
+          266.05,
+          166.468
+        ],
+        "points": [
+          [
+            100,
+            296.936
+          ],
+          [
+            432.1,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            432.1,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            100,
+            296.936
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 2",
+      "slot": {
+        "lane": 1,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 1,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M91.945 294L420.308 36",
+        "anchor": [
+          256.126,
+          165
+        ],
+        "points": [
+          [
+            91.945,
+            294
+          ],
+          [
+            420.308,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            420.308,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            91.945,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 3",
+      "slot": {
+        "lane": 2,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 2,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M80.153 294L408.517 36",
+        "anchor": [
+          244.335,
+          165
+        ],
+        "points": [
+          [
+            80.153,
+            294
+          ],
+          [
+            408.517,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            408.517,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            80.153,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 4",
+      "slot": {
+        "lane": 3,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 3,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M68.361 294L396.725 36",
+        "anchor": [
+          232.543,
+          165
+        ],
+        "points": [
+          [
+            68.361,
+            294
+          ],
+          [
+            396.725,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            396.725,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            68.361,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 5",
+      "slot": {
+        "lane": 4,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 4,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M56.57 294L384.933 36",
+        "anchor": [
+          220.752,
+          165
+        ],
+        "points": [
+          [
+            56.57,
+            294
+          ],
+          [
+            384.933,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            384.933,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            56.57,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|sensor>management|Reading 6",
+      "slot": {
+        "lane": 5,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 5,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M44.778 294L373.142 36",
+        "anchor": [
+          208.96,
+          165
+        ],
+        "points": [
+          [
+            44.778,
+            294
+          ],
+          [
+            373.142,
+            36
+          ]
+        ],
+        "head": {
+          "at": [
+            373.142,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            44.778,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 1",
+      "slot": {
+        "lane": 6,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 6,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M351.639 36L23.275 294",
+        "anchor": [
+          187.457,
+          165
+        ],
+        "points": [
+          [
+            351.639,
+            36
+          ],
+          [
+            23.275,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            23.275,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            351.639,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 2",
+      "slot": {
+        "lane": 7,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 7,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M339.847 36L11.483 294",
+        "anchor": [
+          175.665,
+          165
+        ],
+        "points": [
+          [
+            339.847,
+            36
+          ],
+          [
+            11.483,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            11.483,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            339.847,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 3",
+      "slot": {
+        "lane": 8,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 8,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M328.055 36L-0.308 294",
+        "anchor": [
+          163.874,
+          165
+        ],
+        "points": [
+          [
+            328.055,
+            36
+          ],
+          [
+            -0.308,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            -0.308,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            328.055,
+            36
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    },
+    {
+      "id": "management sensor|management>sensor|Poll 4",
+      "slot": {
+        "lane": 9,
+        "lanes": 10,
+        "back": 6
+      },
+      "lane": {
+        "slot": {
+          "lane": 9,
+          "lanes": 10,
+          "back": 6
+        },
+        "path": "M320 33.064L-12.1 294",
+        "anchor": [
+          153.95,
+          163.532
+        ],
+        "points": [
+          [
+            320,
+            33.064
+          ],
+          [
+            -12.1,
+            294
+          ]
+        ],
+        "head": {
+          "at": [
+            -12.1,
+            294
+          ],
+          "dir": [
+            -0.786,
+            0.618
+          ]
+        },
+        "tail": {
+          "at": [
+            320,
+            33.064
+          ],
+          "dir": [
+            0.786,
+            -0.618
+          ]
+        }
+      }
+    }
+  ],
+  "rides": [
+    {
+      "flow": "scan",
+      "step": 0,
+      "strand": "management ui|ui>management|Start scan"
+    },
+    {
+      "flow": "scan",
+      "step": 1,
+      "strand": "management ui|management>ui|Scan results"
+    },
+    {
+      "flow": "scan",
+      "step": 2,
+      "strand": "management ui|management>ui|Radio state"
+    },
+    {
+      "flow": "scan",
+      "step": 3,
+      "strand": "linux management|management>linux|Apply config"
+    },
+    {
+      "flow": "scan",
+      "step": 4,
+      "strand": "linux management|linux>management|Link state"
+    },
+    {
+      "flow": "scan",
+      "step": 5,
+      "strand": "bus management|management>bus|Events"
+    }
+  ]
+}

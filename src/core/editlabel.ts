@@ -145,6 +145,13 @@ const linesChanged: Detector = (before, after) => {
   return `Removed ${gone.length} lines`
 }
 
+/** The same connections in another order: the lines of a pair that has several run in the order of the file. */
+const linesReordered: Detector = (before, after) => {
+  if (before.connections.length !== after.connections.length || canon(before.connections) === canon(after.connections)) return undefined
+  const [gone, came] = [surplus(tally(before.connections), tally(after.connections)), surplus(tally(after.connections), tally(before.connections))]
+  return gone.length === 0 && came.length === 0 ? 'Reordered connections' : undefined
+}
+
 /**
  * What a change of the `compare` tag of the flow `id` (the newer, which holds it) did, in a few words: linked, unlinked or noted. `was` and `now` are the tag before and after;
  * `nameOf` gives the name the flow goes by. Undefined when the tag did not change.
@@ -308,7 +315,7 @@ const settingsChanged: Detector = (before, after) => {
 /** In the order the first sentence is picked. */
 const DETECTORS: readonly Detector[] = [
   shapesAdded, shapesDeleted, shapesRenamed, shapesReparented, shapesChanged,
-  linesChanged, flowsChanged,
+  linesChanged, linesReordered, flowsChanged,
   analysesAdded, analysesDeleted, analysesRenamed, modesAdded, modesDeleted, modesChanged, analysesChanged,
   positionsChanged, payloadsChanged, settingsChanged,
 ]

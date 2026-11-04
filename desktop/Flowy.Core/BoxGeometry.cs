@@ -22,17 +22,24 @@ public static class BoxGeometry
     public const double BoxHeight = 72;
 
     /// <summary>
-    /// Where a ray from the centre of <paramref name="r"/> towards (<paramref name="dx"/>, <paramref name="dy"/>) meets the shape's outline: the
-    /// rectangle's border when <paramref name="edge"/> is empty, else the first side of the polygon it crosses (ShapeDef.Edge, x0, y0, x1, y1, …).
+    /// Where a ray from <paramref name="from"/> (the centre of <paramref name="r"/> when left out) towards (<paramref name="dx"/>, <paramref name="dy"/>) meets the shape's outline: the
+    /// rectangle's border when <paramref name="edge"/> is empty, else the first side of the polygon it crosses (ShapeDef.Edge, x0, y0, x1, y1, …). The ray starts inside the shape.
+    /// A port of leaveAt in src/core/lanes.ts.
     /// </summary>
-    public static Pt LeaveAt(Rect r, double[]? edge, double dx, double dy)
+    public static Pt LeaveAt(Rect r, double[]? edge, double dx, double dy, Pt? from = null)
     {
-        var cx = r.X + r.Width / 2;
-        var cy = r.Y + r.Height / 2;
+        var cx = from?.X ?? r.X + r.Width / 2;
+        var cy = from?.Y ?? r.Y + r.Height / 2;
         if (edge is null || edge.Length == 0)
         {
-            // How far along the line the box's border is. Dividing by zero gives infinity, which Min ignores.
-            var k = Math.Min(r.Width / 2 / Math.Abs(dx), r.Height / 2 / Math.Abs(dy));
+            if (from is null)
+            {
+                // How far along the line the box's border is. Dividing by zero gives infinity, which Min ignores.
+                var whole = Math.Min(r.Width / 2 / Math.Abs(dx), r.Height / 2 / Math.Abs(dy));
+                return new Pt(cx + dx * whole, cy + dy * whole);
+            }
+            static double Reach(double low, double high, double at, double step) => step > 0 ? (high - at) / step : step < 0 ? (low - at) / step : double.PositiveInfinity;
+            var k = Math.Min(Reach(r.X, r.X + r.Width, cx, dx), Reach(r.Y, r.Y + r.Height, cy, dy));
             return new Pt(cx + dx * k, cy + dy * k);
         }
         var best = double.PositiveInfinity;

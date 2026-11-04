@@ -12,8 +12,10 @@ import { KindKey } from './kinds.tsx'
 import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
-import { BOX, FRAME, fitOptions, isStepLine, lineId } from './graph.ts'
+import { BOX, FRAME, fitOptions, isStepLine, lineId, pairOf } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
+import { edgeUnder, lineOf } from './lanehit.ts'
+import type { CanvasPoint } from './lanehit.ts'
 import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { PaneMotions, PanePlayer } from './ComparePane.tsx'
 import type { PaneHandle } from './ComparePane.tsx'
@@ -24,7 +26,7 @@ import { useCssClock } from './cssClock.ts'
 const nodeTypes = { box: Box, frame: Frame }
 const edgeTypes = { line: Line }
 
-type Shown = { kind: string; id?: string; from?: string; to?: string; view?: string }
+type Shown = { kind: string; id?: string; from?: string; to?: string; view?: string; strand?: string }
 
 /** Where a swap is: `out` while the lines fade (the boxes wait), `glide` while the boxes move, fade and the camera fits the incoming flow, `settled` once it is over. */
 type Phase = 'out' | 'glide' | 'settled'
@@ -76,7 +78,7 @@ type Props = {
 export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, onPick, onClosePanel, onEmpty, fitKey, colorMode, problems, lines, still, ref }: Props) {
   const own = (i: 0 | 1) => index === i
   const selectedBox = shown?.kind === 'object' ? shown.id : undefined
-  const selectedLine = shown?.kind === 'line' && shown.from !== undefined && shown.to !== undefined ? lineId(shown.from, shown.to) : undefined
+  const selectedLine = shown?.kind === 'line' && shown.from !== undefined && shown.to !== undefined ? shown.strand ?? lineId(shown.from, shown.to) : undefined // the line of the pair that was picked, else the pair
   const startAt = (i: 0 | 1) => (start?.flow === flows[i] && !(i === 1 && flows[0] === flows[1]) ? start.step : undefined)
   const a = usePaneFlow({ model, flowId: flows[0], startAt: startAt(0), problems, selectedBox: own(0) ? selectedBox : undefined, selectedLine: own(0) ? selectedLine : undefined, lines, still })
   const b = usePaneFlow({ model, flowId: flows[1], startAt: startAt(1), problems, selectedBox: own(1) ? selectedBox : undefined, selectedLine: own(1) ? selectedLine : undefined, lines, still })
@@ -113,7 +115,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
     left.setPlaying(p => p && { ...p, auto: false })
     const there = (id: string) => target.graph.nodes.some(n => n.id === id)
     if (shown?.kind === 'object' && shown.id !== undefined && !there(shown.id)) onClosePanel()
-    if (shown?.kind === 'line' && (shown.view !== target.view || !target.graph.edges.some(e => e.id === selectedLine))) onClosePanel()
+    if (shown?.kind === 'line' && (shown.view !== target.view || !target.graph.edges.some(e => e.id === selectedLine || pairOf(e) === selectedLine))) onClosePanel()
   }, [index])
 
   const prev = now.prev === undefined ? undefined : both[now.prev]
@@ -141,6 +143,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
   const edges = (prev && out ? prev : target).edges
   const spots = (prev && out ? prev : target).spots
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
+  const canvasAt = useRef<CanvasPoint>(undefined) // to turn the pointer's place on the screen into a place on the canvas
   const fit = () => fitNow.current?.({ ...fitOptions(0, true), duration: 300 })
   useImperativeHandle(ref, () => ({ ...target.keys, fit, inside: () => false, up: () => undefined }))
   const name = target.flow?.name || flows[index]
@@ -173,13 +176,14 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
                 onNodeClick={(_, node) => {
                   if (node.type === 'box') onPick({ kind: 'object', id: node.id })
                 }}
-                onEdgeClick={(_, e) => {
-                  if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view: target.view })
+                onEdgeClick={(event, hit) => {
+                  if (!isStepLine(hit.id)) onPick(lineOf(edgeUnder(canvasAt.current, event, edges, boxes, lines, hit), target.view)) // of the lines of a pair side by side, the one nearest the pointer
                 }}
-                onEdgeMouseEnter={(_, e) => target.setHovered(e.id)}
+                onEdgeMouseEnter={(event, hit) => target.setHovered(edgeUnder(canvasAt.current, event, edges, boxes, lines, hit).id)}
                 onEdgeMouseLeave={() => target.setHovered(undefined)}
                 onPaneClick={onEmpty}
                 onInit={instance => {
+                  canvasAt.current = instance
                   fitNow.current = options => void instance.fitView(options)
                 }}
               >

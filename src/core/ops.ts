@@ -452,6 +452,23 @@ function withVia(step: Step, label: string): Step {
   return { ...step, via: label }
 }
 
+/**
+ * Move connections to just before the connection at `before` (`connections.length` for the end), keeping the order they have among themselves. The order of the connections in
+ * the file is the order of the lines of a pair side by side, which is the one thing a reader can change about where they run. `indexes` are places in `model.connections`; a
+ * move that leaves the order as it is returns the model itself. Nothing else about a connection changes, so no step's `via`, failure mode or payload is touched.
+ */
+export function reorderConnections(model: Model, indexes: number[], before: number): Model {
+  const count = model.connections.length
+  const ok = (n: number, last: number) => Number.isInteger(n) && n >= 0 && n <= last
+  if (indexes.length === 0 || !indexes.every(i => ok(i, count - 1)) || new Set(indexes).size !== indexes.length) throw new OpError(`connections to move must be places from 0 to ${count - 1}, each once`)
+  if (!ok(before, count)) throw new OpError(`a connection can go before a place from 0 to ${count}`)
+  const moving = [...indexes].sort((a, b) => a - b)
+  const staying = model.connections.filter((_, i) => !moving.includes(i))
+  const at = model.connections.slice(0, before).filter((_, i) => !moving.includes(i)).length
+  const connections = [...staying.slice(0, at), ...moving.map(i => model.connections[i]), ...staying.slice(at)]
+  return connections.every((c, i) => c === model.connections[i]) ? model : { ...model, connections }
+}
+
 /** Give one connection (the first that matches) a kind, in place. "" removes it. It keeps its place among the connection's keys, and a new kind goes after the label. */
 export function setKind(model: Model, which: ConnectionInput, kind: string): Model {
   const i = findConnection(model, which)

@@ -262,8 +262,8 @@
     "depthIn",
     "fitOptions",
     "frameNode",
+    "inPair",
     "isStepLine",
-    "leaveAt",
     "lineId",
     "lineName",
     "sizeOf"

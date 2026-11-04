@@ -6,7 +6,7 @@ import type { Problem } from '../../src/core/problem.ts'
 import type { StateMark } from '../../src/core/states.ts'
 import { leavesMarks } from '../../src/core/animation.ts'
 import { nameOf } from '../../src/core/views.ts'
-import { focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
+import { focusEdges, frameNode, lineId, pairOf, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode, Playing } from './graph.ts'
 import { labelSpots } from './Line.tsx'
 import { keepSame, nothingKept } from './stable.ts'
@@ -19,11 +19,11 @@ import type { useRunDrawing } from './useRunDrawing.ts'
  * The graph the canvas draws: the shapes and lines of the view, dressed for what is on show (the states, the traffic of a run, the failure marks, the picked shapes), and handed to React
  * Flow as the same objects as last time wherever they say the same.
  */
-export function useCanvasGraph({ model, view, shown, problems, stateMarks, loadTraffic, failMarks, scrubbing, moved, pickedSet, litClass, usedClass, lit, openLevel, animated, still, selectedBox, selectedLine, lines }: {
+export function useCanvasGraph({ model, view, shown, problems, stateMarks, loadTraffic, failMarks, scrubbing, moved, pickedSet, litClass, usedClass, lit, openLevel, animated, still, selectedBox, selectedLine, focusedLine, lines }: {
   model: Model; view: string; shown: Playing | undefined; problems: Problem[]; stateMarks: Record<string, StateMark>; loadTraffic: ReturnType<typeof useRunDrawing>['loadTraffic']
   failMarks: ReturnType<typeof useFailuresView>['failMarks']; scrubbing: boolean; moved: ReadonlyMap<string, XYPosition>; pickedSet: ReadonlySet<string | undefined>
   litClass: (id: string) => string | undefined; usedClass: (id: string) => string | undefined; lit: ReturnType<typeof useFailuresView>['lit']
-  openLevel: (() => void) | undefined; animated: ReturnType<typeof useFlowStage>['animated']; still: boolean; selectedBox: string | undefined; selectedLine: string | undefined
+  openLevel: (() => void) | undefined; animated: ReturnType<typeof useFlowStage>['animated']; still: boolean; selectedBox: string | undefined; selectedLine: string | undefined; focusedLine: string | undefined
   lines: LineStyle
 }) {
   // What each box measured. React Flow throws a box's measurements away when it gets a node object
@@ -54,10 +54,10 @@ export function useCanvasGraph({ model, view, shown, problems, stateMarks, loadT
   const keptEdges = useRef<Kept<Edge>>(nothingKept)
   const edgesNow = useMemo(() => {
     const lifted = new Set(pipes === '' ? [] : pipes.split('\n'))
-    const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine }).map(e => (lifted.has(e.id) ? { ...e, data: { ...e.data, lift: true } } : e))
-    // A picked failure mode outlines its line and fades every other.
-    return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, e.id === lit.failsLine ? `fails band-${lit.band}` : 'dim'].filter(Boolean).join(' ') }))
-  }, [graph, selectedBox, selectedLine, pipes, lit])
+    const drawn = focusEdges(graph.edges, { box: selectedBox, line: selectedLine, focused: focusedLine }).map(e => (lifted.has(pairOf(e)) && (e.data?.pair === undefined || e.className?.includes('active')) ? { ...e, data: { ...e.data, lift: true } } : e)) // of a pair of several lines, only the one the step rides
+    // A picked failure mode outlines its line and fades every other. A failure mode is on a pair, so it outlines all the lines of the pair.
+    return lit === undefined ? drawn : drawn.map(e => ({ ...e, className: [e.className, pairOf(e) === lit.failsLine ? `fails band-${lit.band}` : 'dim'].filter(Boolean).join(' ') }))
+  }, [graph, selectedBox, selectedLine, focusedLine, pipes, lit])
   keptEdges.current = keepSame(keptEdges.current, edgesNow)
   const edges = keptEdges.current.list as Edge[] // a hover changes one or two lines, and only those draw again
   // Labels that would overlap (the lines of a selected shape) are spread along their lines. They follow the boxes, so a drag moves them.

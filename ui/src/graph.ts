@@ -9,7 +9,11 @@ import type { KindId } from '../../src/core/kinds.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
 import { childCount, computeView, nameOf, placeEnds } from '../../src/core/views.ts'
+import type { Strand } from '../../src/core/views.ts'
+import { strandCandidates } from '../../src/core/strands.ts'
 import { BOX, arrange, membersOf, spotsOf, tangle, untangle } from '../../src/core/layout.ts'
+import { HIT_WIDTH, leaveAt, slotsOf } from '../../src/core/lanes.ts'
+import type { Outline, Rect } from '../../src/core/lanes.ts'
 import type { Region } from '../../src/core/layout.ts'
 
 // The layout moved to src/core so the MCP server can run it too; the page keeps importing it from here.
@@ -37,9 +41,10 @@ export type BoxNode = Node<BoxData, 'box'>
  * A flow on the canvas: where each step lands in the view (placeEnds, null if it can't be shown), and
  * the step to light up. Without `step` or `steps` the flow's boxes are there but nothing is lit or dimmed.
  * `steps` lights several at once (a parallel stop); `faint` draws steps as dashed, faint lanes (the lanes of a
- * branch this stop is not in) without lighting their boxes.
+ * branch this stop is not in) without lighting their boxes. `strands`, where a project draws a line for each connection, is the line each step rides (the id of
+ * its strand, see strandOf; undefined for a step that rides none); without it a step rides the first line that runs its way.
  */
-export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?: number[]; faint?: number[]; also?: string[] }
+export type Playing = { ends: ([string, string] | null)[]; step?: number; steps?: number[]; faint?: number[]; also?: string[]; strands?: (string | undefined)[] }
 
 /** Whether an edge is one a flow step added (it has no connection of its own), so a click on it opens no panel. */
 export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(id)
@@ -50,6 +55,15 @@ export const isStepLine = (id: string): boolean => /^(step|lane)(-\d+)?$/.test(i
  */
 export const lineName = (model: Model, from: string, to: string, label?: string, both?: boolean, kind?: KindId): string =>
   `${nameOf(model, from)} ${both ? 'and' : 'to'} ${nameOf(model, to)}${label ? `, ${label}` : ''}${kind === undefined ? '' : `, ${kindName(kind)}`}`
+
+/**
+ * What a screen reader says for a line of a pair that has several ("2 of 5, from Management to UI, Scan results, Request and reply"): its place among them, the way it runs, its label
+ * and its kind. A line alone between its two shapes is named as lineName names it.
+ */
+export function strandName(model: Model, s: Strand): string {
+  if (s.lanes < 2) return lineName(model, s.from, s.to, s.label, false, s.kind)
+  return `${s.lane + 1} of ${s.lanes}, from ${nameOf(model, s.from)} to ${nameOf(model, s.to)}${s.label ? `, ${s.label}` : ''}${s.kind === undefined ? '' : `, ${kindName(s.kind)}`}`
+}
 
 /** The core's lineKey; App.tsx still calls it lineId. */
 export const lineId = lineKey
@@ -73,10 +87,8 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   const stepsLit = playing?.steps ?? (playing?.step === undefined ? undefined : [playing.step])
   const dimming = stepsLit !== undefined
   const placedAt = (i: number) => playing?.ends[i] ?? undefined
-  const litEnds = (stepsLit ?? []).flatMap(i => {
-    const e = placedAt(i)
-    return e ? [e] : []
-  })
+  const litSteps = (stepsLit ?? []).filter(i => placedAt(i) !== undefined)
+  const litEnds = litSteps.map(i => placedAt(i)!)
   const litBoxes = new Set([...litEnds.flat(), ...(playing?.also ?? [])]) // `also`: a shape that takes a request off a line is lit with the step
   const at = spotsOf(model, view, computed, boxes)
 
@@ -86,16 +98,27 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const ends = c && placeEnds(model, view, c.from, c.to)
     return ends ? [lineKey(...ends)] : []
   }))
+  // Where a project draws a line for each connection, a step rides one of the pair's lines: the one it names (see strandOf), else the first that runs its way.
+  const strands = computed.strands
+  const strandAt = (i: number): string | undefined => {
+    if (strands === undefined) return undefined
+    if (playing?.strands !== undefined) return playing.strands[i]
+    const e = placedAt(i)
+    return e ? strandCandidates(computed, e)[0]?.id : undefined
+  }
   // A step rides a line that runs its way, or one with connections both ways. Against a one-way line it gets a dashed one, so no arrow points against it.
   const runs = new Set(edges.flatMap(e => (e.both ? [`${e.from}>${e.to}`, `${e.to}>${e.from}`] : [`${e.from}>${e.to}`])))
-  const rides = ([from, to]: [string, string]) => runs.has(`${from}>${to}`)
-  const litLines = new Set(litEnds.filter(rides).map(e => lineKey(...e)))
+  const rides = ([from, to]: [string, string], i: number) => (strands === undefined ? runs.has(`${from}>${to}`) : strandAt(i) !== undefined)
+  const litLines = new Set(litSteps.filter(i => rides(placedAt(i)!, i)).map(i => lineKey(...placedAt(i)!)))
   const isLit = (from: string, to: string) => litLines.has(lineKey(from, to))
+  const litStrands = new Set(litSteps.flatMap(i => strandAt(i) ?? []))
   const faintSteps = (playing?.faint ?? []).flatMap(i => {
     const e = placedAt(i)
     return e ? [{ i, e }] : []
   })
-  const faintLines = new Set(faintSteps.filter(f => rides(f.e)).map(f => lineKey(...f.e)))
+  const faintLines = new Set(faintSteps.filter(f => rides(f.e, f.i)).map(f => lineKey(...f.e)))
+  const faintStrands = new Set(faintSteps.flatMap(f => strandAt(f.i) ?? []))
+  const badConnections = new Set(problems.flatMap(p => (p.connection === undefined ? [] : [p.connection])))
   const isFaint = (from: string, to: string) => faintLines.has(lineKey(from, to))
   const inView = new Set(members)
   const nodes = boxes.map((id): BoxNode => ({
@@ -107,7 +130,24 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   }))
   // A lit line draws over the faded boxes (zIndex). Its arrowheads are drawn by Line, in the line's own colour in every state.
   const litLine = { zIndex: 1 } as const
-  const lines: Edge[] = edges.map(e => {
+  const slots = strands === undefined ? undefined : slotsOf(strands)
+  const lines: Edge[] = strands !== undefined ? strands.map(s => {
+    const lit = dimming && litStrands.has(s.id)
+    return {
+      id: s.id,
+      type: 'line',
+      source: s.from,
+      target: s.to,
+      label: s.label || undefined,
+      ariaLabel: strandName(model, s),
+      // The lanes of a pair are a hit strip each, as wide as they are apart (a lone line keeps React Flow's usual strip).
+      ...(s.lanes > 1 ? { interactionWidth: HIT_WIDTH } : {}),
+      // `pair` is the id of the pair's one merged line, which everything about a pair (traffic, failure marks, a compared flow) keeps using; `slot` is the place among the lanes.
+      data: { pair: s.pair, lanes: s.lanes, slot: slots!.get(s.id), ...(s.look ? { look: s.look } : {}) },
+      className: classes(dimming && (lit ? 'active' : faintStrands.has(s.id) ? 'lane' : 'dim'), s.connections.some(i => badConnections.has(i)) && 'problem'),
+      ...(lit ? litLine : {}),
+    }
+  }) : edges.map(e => {
     const lit = dimming && isLit(e.from, e.to)
     return {
       id: lineKey(e.from, e.to),
@@ -126,13 +166,13 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   const drawn = new Set<string>()
   litEnds.forEach((e, n) => {
     const id = lineKey(e[0], e[1])
-    if (e[0] === e[1] || rides(e) || drawn.has(id)) return
+    if (e[0] === e[1] || rides(e, litSteps[n]) || drawn.has(id)) return
     drawn.add(id)
     lines.push({ id: n === 0 ? 'step' : `step-${n}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'step', ...litLine })
   })
   for (const { i, e } of faintSteps) {
     const id = lineKey(e[0], e[1])
-    if (e[0] === e[1] || rides(e) || drawn.has(id)) continue
+    if (e[0] === e[1] || rides(e, i) || drawn.has(id)) continue
     drawn.add(id)
     lines.push({ id: `lane-${i}`, type: 'line', source: e[0], target: e[1], ariaLabel: lineName(model, e[0], e[1]), className: 'lane' })
   }
@@ -140,54 +180,48 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
 }
 
 /**
+ * The pair a line belongs to: the id of the pair's one merged line, which is the line's own id except where a project draws a line for each connection (its `data.pair`).
+ * Everything about a pair (the widths of traffic, the failure marks, the halo of a compared flow) is kept by it.
+ */
+export const pairOf = (e: { id: string; data?: Record<string, unknown> }): string => (typeof e.data?.pair === 'string' ? e.data.pair : e.id)
+
+/** Whether `id` is the id of a line of the pair `pair`: a strand's id starts with its pair's, then a bar (see strandsOf in src/core/views.ts). */
+export const inPair = (id: string, pair: string): boolean => id.startsWith(`${pair}|`)
+
+/**
  * Lines stay quiet. A label shows only on a line you point at or select, on the lines of the
  * selected box, and on the line a flow has lit. When a box is selected its lines stand out and
  * the others fade (class "faint"). The line pointed at, on the canvas or in a box's panel, stands
  * out from those too (class "hover").
+ *
+ * Where a pair has several lines side by side, the pair is spread (`data.spread`: the lanes widen so every label fits) while it is selected, or a line of it, or a box
+ * on it, or keyboard focus is on one of its lines (`focus.focused`); a step playing on the pair wins over all of those. The label of every line of a spread pair shows. A line
+ * pointed at shows its own label, and its pair does not move under the pointer. `focus.line` is the line selected: the id of a line, or of a pair (all its lines are selected).
  */
-export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; hover?: string }): Edge[] {
+export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; hover?: string; focused?: string }): Edge[] {
+  const pairIn = (id: string | undefined) => (id === undefined ? undefined : pairOf(edges.find(e => e.id === id) ?? { id }))
+  const [selectedPair, focusedPair] = [pairIn(focus.line), pairIn(focus.focused)]
+  const playingOn = new Set(edges.filter(e => e.className?.includes('active')).map(pairOf))
   return edges.map(e => {
     const touches = e.source === focus.box || e.target === focus.box
-    const shown = touches || e.id === focus.line || e.id === focus.hover || e.className?.includes('active')
+    const pair = pairOf(e)
+    const several = typeof e.data?.lanes === 'number' && e.data.lanes > 1
+    const together = touches || (e.data?.pair !== undefined && (pair === selectedPair || pair === focusedPair))
+    const hovered = e.id === focus.hover || (e.data?.pair !== undefined && pair === focus.hover)
+    const shown = together || e.id === focus.line || hovered || e.className?.includes('active')
     return {
       ...e,
       label: shown ? e.label : undefined,
-      data: { ...e.data, label: e.label }, // what a line shows when it is pointed at (see Line)
-      selected: e.id === focus.line,
-      className: classes(e.className, focus.box !== undefined && !touches && 'faint', e.id === focus.hover && 'hover'),
+      data: { ...e.data, label: e.label, ...(several && together && !playingOn.has(pair) ? { spread: true } : {}) }, // what a line shows when it is pointed at (see Line)
+      selected: e.id === focus.line || (e.data?.pair !== undefined && focus.line === pair),
+      className: classes(e.className, focus.box !== undefined && !touches && 'faint', hovered && 'hover'),
     }
   })
 }
 
-export type Rect = XYPosition & { width: number; height: number }
-
-/** A shape's outline as a convex polygon in the box's own 200×72 area, or empty for the rectangle (see ShapeDef.edge). */
-export type Outline = readonly (readonly [number, number])[]
-
-/**
- * Where a ray from the centre of `r` towards (dx, dy) meets the shape's outline: the rectangle's border when `edge` is empty,
- * else the first side of the polygon it crosses. Dividing by zero gives infinity, which Math.min ignores.
- */
-export function leaveAt(r: Rect, edge: Outline, dx: number, dy: number): XYPosition {
-  const cx = r.x + r.width / 2
-  const cy = r.y + r.height / 2
-  if (edge.length === 0) {
-    const k = Math.min(r.width / 2 / Math.abs(dx), r.height / 2 / Math.abs(dy)) // how far along the line the box's border is
-    return { x: cx + dx * k, y: cy + dy * k }
-  }
-  let best = Infinity
-  edge.forEach(([px, py], i) => {
-    const [qx, qy] = edge[(i + 1) % edge.length]
-    const ex = qx - px
-    const ey = qy - py
-    const den = dx * ey - dy * ex
-    if (den === 0) return // the ray runs along this side
-    const t = ((r.x + px - cx) * ey - (r.y + py - cy) * ex) / den
-    const s = ((r.x + px - cx) * dy - (r.y + py - cy) * dx) / den
-    if (t > 0 && s >= 0 && s <= 1 && t < best) best = t
-  })
-  return best === Infinity ? { x: cx, y: cy } : { x: cx + dx * best, y: cy + dy * best }
-}
+// Where a line leaves a shape moved to src/core/lanes.ts, which lays out the lines of a pair side by side and needs it too; the page keeps importing it from here.
+export { leaveAt }
+export type { Outline, Rect }
 
 /** Where a straight line between the centres of two shapes leaves one and enters the other. A shape without an `edge` is the box itself. */
 export function lineEnds(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline = []): [XYPosition, XYPosition] {

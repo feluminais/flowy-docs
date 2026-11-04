@@ -10,6 +10,7 @@ import { nameOf, placeStep } from '../../src/core/views.ts'
 import { BOX } from './graph.ts'
 import type { BoxData, Rect } from './graph.ts'
 import { LineStyleContext, loopPath, pathBetween, rect } from './Line.tsx'
+import type { LaneRef } from './Line.tsx'
 import type { PlayerClock } from './clock.ts'
 import { active, bump, cardBox, cardsAt, cyclePeriod, distance, DWELL, ease, effectPose, entryPoint, keepsPlaying, litOpacity, markerSize, markerSpot, momentOf, noteSpot, pillText, progress, squashTile, tintColor, tubeOpacity } from './motion.ts'
 
@@ -198,6 +199,8 @@ function writePill(pill: Element, box: Rect, text: string) {
 type Props = {
   /** The boxes the step lands on in this view (ids of nodes on the canvas), in the step's direction. */
   ends: [string, string]
+  /** The line of its pair the step rides, where a project draws a line for each connection; the pipe runs along it. */
+  strand?: LaneRef
   animation: Animation
   /** Whether the step before ended at this step's source (see followsLanding). */
   afterLanding: boolean
@@ -229,7 +232,7 @@ const halfOf = (b: Beat): { halfWidth: number; halfHeight: number } =>
  * When the system asks for less motion nothing moves: it draws only where the outcome happened (a cross, a bar, a marker, a clock, the reason)
  * or how deep a recursion went, and reports that it is done after a moment.
  */
-export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, stepKey, onDone, onDots }: Props) {
+export function StepMotion({ ends, strand, animation, afterLanding, repeat, by, clock, stepKey, onDone, onDots }: Props) {
   const style = useContext(LineStyleContext)
   const from = useInternalNode(ends[0])
   const to = useInternalNode(ends[1])
@@ -458,7 +461,7 @@ export function StepMotion({ ends, animation, afterLanding, repeat, by, clock, s
   }, [svg])
 
   if (!from || !to) return null
-  const d = recursing ? loopPath(from) : pathBetween(style, from, to)
+  const d = recursing ? loopPath(from) : pathBetween(style, from, to, strand)
   const [a, b] = [rect(from), rect(to)]
   const shapePath = SHAPE_DEFS[shapeOf((from.data as BoxData).object)].path
   return (

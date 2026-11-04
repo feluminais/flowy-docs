@@ -33,5 +33,6 @@
   "recurse": "desktop/fixtures/cases/recurse/flowy",
   "payloads": "desktop/fixtures/cases/payloads/flowy",
   "pairs": "desktop/fixtures/cases/pairs/flowy",
-  "bad-pairs": "desktop/fixtures/cases/bad-pairs/flowy"
+  "bad-pairs": "desktop/fixtures/cases/bad-pairs/flowy",
+  "draft-lanes": "desktop/fixtures/cases/draft-lanes/flowy"
 }

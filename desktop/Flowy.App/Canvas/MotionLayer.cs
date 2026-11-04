@@ -47,7 +47,7 @@ internal sealed class MotionLayer : Control
     }
 
     /// <summary>One step to draw: its animation, whether it follows a landing, the line style, the two boxes (with the outline each shape has), and who takes it when it is intercepted.</summary>
-    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, string FromId, string ToId, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null, Taker? By = null);
+    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, string FromId, string ToId, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null, Taker? By = null, string? Strand = null, LaneSlot? Slot = null);
 
     private IReadOnlyList<(IReadOnlyList<Beat> Beats, int Total)> Prepare(IReadOnlyList<RunSpec> specs)
     {
@@ -65,7 +65,7 @@ internal sealed class MotionLayer : Control
             }
             else
             {
-                var lane = _lanes.PathFor(null, s.Style, new LaneEnd(s.FromId, s.From, s.OutlineFrom), new LaneEnd(s.ToId, s.To, s.OutlineTo));
+                var lane = _lanes.PathFor(s.Strand, s.Style, new LaneEnd(s.FromId, s.From, s.OutlineFrom), new LaneEnd(s.ToId, s.To, s.OutlineTo), null, s.Slot);
                 (data, line) = (lane.Path.Data, lane.Geometry);
             }
             var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding);

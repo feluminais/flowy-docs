@@ -5,18 +5,19 @@ import type { Problem } from '../../src/core/problem.ts'
 import type { DataInput } from '../../src/core/data.ts'
 import { lineKey } from '../../src/core/failures.ts'
 import { kindName, kindOf, lookOf, mergedLook, PLAIN_NAME } from '../../src/core/kinds.ts'
+import { MOVE_WORDS } from '../../src/core/lanes.ts'
 import { getObject, isExternal, linksOf, pairMode, projectAbout, projectName, ROOT } from '../../src/core/model.ts'
 import { parseData } from '../../src/core/data.ts'
 import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } from '../../src/core/model.ts'
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, setGroupKind, setKind, setLinePayloads, setPairs, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, reorderConnections, setGroupKind, setKind, setLinePayloads, setPairs, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInputInline } from '../../src/core/ops.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, takesOption } from '../../src/core/structure.ts'
-import { nameOf, parentOf, placeEnds } from '../../src/core/views.ts'
+import { computeView, nameOf, parentOf, placeEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { CarriedRows, idsOf, NewPayload, PayloadForm, payloadChoices, PayloadRow } from './Payloads.tsx'
 import { LineKindPicker, PairsPicker, PayloadPicker } from './Pickers.tsx'
@@ -114,6 +115,11 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
   // Read once for the shape: the panel draws again on every change elsewhere, and what steps send scans every flow.
   const { out, in: incoming } = useMemo(() => linesOf(model, id), [model, id])
   const extras = useMemo(() => carriedOn(model, id, [...out, ...incoming]), [model, id, out, incoming])
+  // Where a project draws a line for each connection, pointing at a connection lights its own line, not the whole pair.
+  const drawn = useMemo(() => {
+    const strands = pairMode(model) === 'separate' ? computeView(model, parentOf(model, id)).strands : undefined
+    return new Map((strands ?? []).flatMap(s => s.connections.map(i => [model.connections[i], s.id] as const)))
+  }, [model, id])
   if (out.length + incoming.length === 0) return null
   const view = parentOf(model, id)
   const label = (c: Connection) => c.label || <span className="muted">no label</span>
@@ -124,8 +130,9 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
   }
   const row = (line: BoxLine, Arrow: typeof ArrowRight) => {
     const other = getObject(model, line.other)
+    const own = line.connections.length === 1 ? drawn.get(line.connections[0]) : undefined
     return (
-    <li key={lineKey(line.from, line.to)} className="row" onMouseEnter={() => onHover(lineKey(line.from, line.to))} onMouseLeave={() => onHover(undefined)}>
+    <li key={lineKey(line.from, line.to)} className="row" onMouseEnter={() => onHover(own ?? lineKey(line.from, line.to))} onMouseLeave={() => onHover(undefined)}>
       <span className="dirn" aria-hidden="true"><Arrow size={14} /></span>
       <div>
         <div className="other">
@@ -142,7 +149,7 @@ function LineList({ model, id, onPick, onHover }: { model: Model; id: string; on
           <details>
             <summary>{line.connections.length} connections</summary>
             <ul>
-              {line.connections.map((c, i) => <li key={i}><div>{label(c)}</div><div className="muted">{inside(model, c, line)}</div>{carried(c, line)}</li>)}
+              {line.connections.map((c, i) => <li key={i} onMouseEnter={() => onHover(drawn.get(c) ?? lineKey(line.from, line.to))}><div>{label(c)}</div><div className="muted">{inside(model, c, line)}</div>{carried(c, line)}</li>)}
             </ul>
           </details>
         )}
@@ -235,10 +242,15 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
  * The connections one line stands for (a zoomed-out line can merge several), each with its label. A view draws one line between two shapes,
  * so when connections run both ways they are listed under one heading per way.
  */
-export function LinePanel({ model, view, from, to, editing, problems, run, onClose, onDelete, focusLabel }: Common & { onDelete: Delete; view: string; from: string; to: string; editing: boolean; problems: Problem[]; focusLabel?: number }) {
+export function LinePanel({ model, view, from, to, strand, editing, problems, run, onClose, onDelete, onHover, focusLabel }: Common & { onDelete: Delete; onHover?: (line?: string) => void; view: string; from: string; to: string; strand?: string; editing: boolean; problems: Problem[]; focusLabel?: number }) {
   // A payload made from a name in the picker, until its first About saves it (see NewPayload): which connection, and its name.
   const [fresh, setFresh] = useState<{ index: number; name: string }>()
   const lines = connectionsOf(model, view, from, to)
+  // Where a project draws a line for each connection, each connection is a line of its own: the id of the one each card is, to light it on the canvas and to show which one was picked.
+  const strands = useMemo(() => {
+    const drawn = pairMode(model) === 'separate' ? computeView(model, view).strands : undefined
+    return new Map((drawn ?? []).flatMap(s => s.connections.map(i => [i, s.id] as const)))
+  }, [model, view])
   if (lines.length === 0) return null
   const ahead = lines.filter(l => !l.back)
   const back = lines.filter(l => l.back)
@@ -246,12 +258,31 @@ export function LinePanel({ model, view, from, to, editing, problems, run, onClo
   // The line as drawn (a shared look shows, a mixed one is plain, see mergedLook), and whether any connection has a kind: only then does each card say what its own is.
   const look = mergedLook(lines.map(l => lookOf(l.connection)), both)
   const kinded = lines.some(l => kindOf(l.connection) !== undefined)
-  const card = ({ index, connection: c }: (typeof lines)[number], a: string, b: string) => {
+  const separate = strands.size > 0
+  /** The lines that run the same way as `l`, in the order of the file, which is the order of the lanes. Move up and Move down swap `l` with its neighbour among them. */
+  const group = (l: (typeof lines)[number]) => lines.filter(o => o.back === l.back)
+  const move = (l: (typeof lines)[number], by: -1 | 1) => {
+    const others = group(l)
+    const next = others[others.indexOf(l) + by]
+    if (next) void run(m => reorderConnections(m, [l.index], by < 0 ? next.index : next.index + 1))
+  }
+  const card = (l: (typeof lines)[number], a: string, b: string) => {
+    const { index, connection: c } = l
     const which = { from: c.from, to: c.to, label: c.label ?? '' }
+    const id = strands.get(index)
+    const neighbours = group(l)
     return (
-      <section key={index} className="line card">
+      <section key={index} className={id !== undefined && id === strand ? 'line card current' : 'line card'} aria-current={id !== undefined && id === strand ? 'true' : undefined}
+        onMouseEnter={id === undefined ? undefined : () => onHover?.(id)} onMouseLeave={id === undefined ? undefined : () => onHover?.(undefined)}>
         {(c.from !== a || c.to !== b) && <p className="muted">{nameOf(model, c.from)} → {nameOf(model, c.to)}</p>}
-        {kinded && !editing && <p className="kind-row muted"><LookSwatch look={lookOf(c)} width={44} height={16} />{kindOf(c) === undefined ? PLAIN_NAME : kindName(kindOf(c)!)}</p>}
+        {(kinded || separate) && !editing && <p className="kind-row muted"><LookSwatch look={lookOf(c)} width={44} height={16} />{kindOf(c) === undefined ? PLAIN_NAME : kindName(kindOf(c)!)}</p>}
+        {editing && separate && (
+          // Never hidden: a connection with no other going its way greys both buttons out and says why on each.
+          <div className="move-row">
+            <button type="button" disabled={neighbours[0] === l} title={neighbours[0] !== l ? undefined : neighbours.length < 2 ? MOVE_WORDS.alone : MOVE_WORDS.first} onClick={() => move(l, -1)}><ArrowUp size={14} />{MOVE_WORDS.up}</button>
+            <button type="button" disabled={neighbours.at(-1) === l} title={neighbours.at(-1) !== l ? undefined : neighbours.length < 2 ? MOVE_WORDS.alone : MOVE_WORDS.last} onClick={() => move(l, 1)}><ArrowDown size={14} />{MOVE_WORDS.down}</button>
+          </div>
+        )}
         {editing ? (
           <form className="form" onSubmit={e => e.preventDefault()}>
             <Field label="Label" value={c.label ?? ''} autoFocus={index === focusLabel} onSave={label => run(m => relabel(m, which, label))} />

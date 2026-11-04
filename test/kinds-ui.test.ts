@@ -1,5 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { headScale } from '../src/core/heads.ts'
 import { KINDS, PLAIN_LOOK } from '../src/core/kinds.ts'
 import type { Model } from '../src/core/model.ts'
 import { toGraph } from '../ui/src/graph.ts'
@@ -70,4 +71,12 @@ test('one of several lines side by side wears marks no bigger than 1.2, a lone l
   assert.equal(markScale(1.55, 1), 1.55)
   assert.equal(markScale(1.55, 3), 1.2)
   assert.equal(markScale(1, 3), 1)
+})
+
+test('traffic that widens a line past the cap is held to 1.2 only on one of several lines, as the desktop holds it', () => {
+  const full = headScale(6) // the thickest a load makes a line
+  assert.ok(full > LANE_MARK_SCALE)
+  assert.equal(markScale(full, 3), LANE_MARK_SCALE)
+  assert.equal(markScale(full, 1), full)
+  assert.equal(markScale(headScale(1.5), 3), 1) // no load: the usual head, under the cap
 })

@@ -280,7 +280,7 @@ internal sealed class CanvasView : Border
     public sealed record TakenBy(string? Node = null, string? Name = null);
 
     /// <summary>One step of a stop to play: its animation, its two boxes, whether the stop before it ended at its source, and who takes it if it is intercepted.</summary>
-    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null, Payloads.Shown? Sends = null, Payloads.Shown? Reply = null);
+    public sealed record StepRun(StepAnimation Animation, string From, string To, bool AfterLanding, TakenBy? By = null, Payloads.Shown? Sends = null, Payloads.Shown? Reply = null, string? Strand = null, LaneSlot? Slot = null);
 
     // The payload card on a paused dot (see DotCard): the steps playing, whose dots the pointer can find, the card, and the moment before it goes once the pointer has left.
     private const double DotSlack = 6;
@@ -398,7 +398,7 @@ internal sealed class CanvasView : Border
             : by.Node is { } id && _scene!.Boxes.FirstOrDefault(x => x.Id == id) is { } box ? new MotionLayer.Taker(box.Rect, Look.DefOf(box.Object).Path)
             : by.Name is { } name ? new MotionLayer.Taker(Name: name) : null;
         _back.LiftLabels(playing.Where(r => Animations.LeavesMarks(r.Animation)).Select(r => (r.From, r.To)));
-        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, r.From, r.To, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By))).ToList();
+        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, r.From, r.To, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By), r.Strand, r.Slot)).ToList();
         if (MotionSettings.Reduced)
         {
             _motion.StartStill(specs);

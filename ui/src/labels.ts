@@ -14,8 +14,13 @@ export type Spot = { x: number; y: number }
 /**
  * `path`: the line as SVG path data. `mid`: the middle of it, where its label sits unless moved. `chars`: how long its label is.
  * `pinned`: the label stays at `mid` and the others keep clear of it (a lit line's label, which a step's marks and pipe are placed by).
+ * `across`: the other lines of the pair this line is one of, as the points they are made of; the label keeps off them if it can.
+ * `extra`: width in pixels the label has besides its text (the sample of its line that starts the label of a line of a pair side by side).
  */
-export type LabelItem = { id: string; path: string; mid: Spot; chars: number; pinned?: boolean }
+export type LabelItem = { id: string; path: string; mid: Spot; chars: number; pinned?: boolean; across?: readonly (readonly Spot[])[]; extra?: number }
+
+/** The width of the sample of a line (its pattern and marks) that starts the label of a line of a pair side by side, with the space after it. */
+export const SAMPLE = 34
 
 /** How wide one character of a label is and the padding round the text, and how tall it is, as drawn at the 10px of React Flow's edge text, bold lit lines included. */
 const CHAR = 6.2
@@ -41,7 +46,7 @@ const STACKED = [1, -1, 2, -2]
 export const MAX_LABEL = 42
 export const clip = (label: string): string => (label.length > MAX_LABEL ? `${label.slice(0, MAX_LABEL - 1).trimEnd()}…` : label)
 
-const sizeOf = (chars: number) => ({ width: chars * CHAR + PAD, height: HEIGHT })
+const sizeOf = (chars: number, extra = 0) => ({ width: chars * CHAR + PAD + extra, height: HEIGHT })
 
 /** How much of `a` lies within `b`, with `gapX` added to each side of `b` and `gapY` above and below it. */
 function overlap(a: Box, b: Box, gapX = 0, gapY = 0): number {
@@ -51,8 +56,8 @@ function overlap(a: Box, b: Box, gapX = 0, gapY = 0): number {
 }
 
 /** A label of `chars` characters centred on `at`. */
-const around = (at: Spot, chars: number): Box => {
-  const { width, height } = sizeOf(chars)
+const around = (at: Spot, chars: number, extra = 0): Box => {
+  const { width, height } = sizeOf(chars, extra)
   return { x: at.x - width / 2, y: at.y - height / 2, width, height }
 }
 
@@ -60,6 +65,29 @@ const around = (at: Spot, chars: number): Box => {
 const ON_BOX = 1e6
 const PER_STEP = 10
 const PER_STACK = 50
+/** The cost of a label over the line of another of its pair: dear, but a pair of lines side by side leaves a label no place clear of the others' lines, and then the middle is the best of them. */
+const ON_LANE = 200
+
+/** Whether the line through `points` passes through `box` (the ends of its segments count). */
+function touches(box: Box, points: readonly Spot[]): boolean {
+  const [x0, y0, x1, y1] = [box.x, box.y, box.x + box.width, box.y + box.height]
+  for (let i = 0; i + 1 < points.length; i++) {
+    // Liang-Barsky: the part of the segment, as a fraction of it, that lies inside each of the box's four sides; the segment touches the box when some part lies inside all four.
+    const [p, q] = [points[i], points[i + 1]]
+    const dx = q.x - p.x
+    const dy = q.y - p.y
+    let [low, high] = [0, 1]
+    let inside = true
+    for (const [step, room] of [[-dx, p.x - x0], [dx, x1 - p.x], [-dy, p.y - y0], [dy, y1 - p.y]]) {
+      if (step === 0) {
+        if (room < 0) inside = false
+      } else if (step < 0) low = Math.max(low, room / step)
+      else high = Math.min(high, room / step)
+    }
+    if (inside && low <= high) return true
+  }
+  return false
+}
 
 /**
  * The spot for each label, by line id. Pinned ones stay put. The rest go longest first (the hardest to fit), each at the first
@@ -71,7 +99,7 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
   for (const item of items) {
     if (!item.pinned) continue
     spots.set(item.id, item.mid)
-    placed.push(around(item.mid, item.chars))
+    placed.push(around(item.mid, item.chars, item.extra))
   }
   const movable = items.filter(i => !i.pinned).sort((a, b) => b.chars - a.chars)
   for (const item of movable) {
@@ -81,14 +109,16 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
       const [x, y] = s === 0.5 ? [item.mid.x, item.mid.y] : pointAt(line, s)
       candidates.push({ at: { x, y }, cost: Math.abs(s - 0.5) * PER_STEP })
     })
-    for (const k of STACKED) candidates.push({ at: { x: item.mid.x, y: item.mid.y + k * (HEIGHT + APART) }, cost: Math.abs(k) * PER_STACK })
+    // A label of a line with others beside it slides along its own line and no further: stacked above or below, it would sit on another line's place.
+    if (item.across === undefined) for (const k of STACKED) candidates.push({ at: { x: item.mid.x, y: item.mid.y + k * (HEIGHT + APART) }, cost: Math.abs(k) * PER_STACK })
     let best = candidates[0]
     let bestCost = Infinity
     for (const c of candidates) {
-      const label = around(c.at, item.chars)
+      const label = around(c.at, item.chars, item.extra)
       const cost = c.cost
         + boxes.reduce((sum, b) => sum + (overlap(label, b) > 0 ? ON_BOX : 0), 0)
         + placed.reduce((sum, p) => sum + overlap(label, p, ROW_GAP, APART), 0)
+        + (item.across ?? []).reduce((sum, other) => sum + (touches(label, other) ? ON_LANE : 0), 0)
       if (cost < bestCost) {
         best = c
         bestCost = cost
@@ -96,7 +126,7 @@ export function placeLabels(items: LabelItem[], boxes: Box[]): Map<string, Spot>
       if (cost === c.cost) break // clear: the first such place is the one nearest the middle
     }
     spots.set(item.id, best.at)
-    placed.push(around(best.at, item.chars))
+    placed.push(around(best.at, item.chars, item.extra))
   }
   return spots
 }

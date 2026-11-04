@@ -1,0 +1,789 @@
+{
+  "usable": [
+    {
+      "half": 10,
+      "usable": 0
+    },
+    {
+      "half": 20,
+      "usable": 20
+    },
+    {
+      "half": 36,
+      "usable": 52
+    },
+    {
+      "half": 50,
+      "usable": 80
+    },
+    {
+      "half": 100,
+      "usable": 180
+    },
+    {
+      "half": 140,
+      "usable": 260
+    }
+  ],
+  "capacity": [
+    {
+      "half": 10,
+      "oneWay": 1,
+      "bothWays": 1
+    },
+    {
+      "half": 20,
+      "oneWay": 2,
+      "bothWays": 2
+    },
+    {
+      "half": 36,
+      "oneWay": 5,
+      "bothWays": 4
+    },
+    {
+      "half": 50,
+      "oneWay": 7,
+      "bothWays": 7
+    },
+    {
+      "half": 100,
+      "oneWay": 8,
+      "bothWays": 8
+    },
+    {
+      "half": 140,
+      "oneWay": 8,
+      "bothWays": 8
+    }
+  ],
+  "offsets": [
+    {
+      "lanes": 1,
+      "back": 0,
+      "at": [
+        0
+      ]
+    },
+    {
+      "lanes": 1,
+      "back": 1,
+      "at": [
+        0
+      ]
+    },
+    {
+      "lanes": 2,
+      "back": 0,
+      "at": [
+        -6,
+        6
+      ]
+    },
+    {
+      "lanes": 2,
+      "back": 1,
+      "at": [
+        -9,
+        9
+      ]
+    },
+    {
+      "lanes": 3,
+      "back": 0,
+      "at": [
+        -12,
+        0,
+        12
+      ]
+    },
+    {
+      "lanes": 3,
+      "back": 3,
+      "at": [
+        -12,
+        0,
+        12
+      ]
+    },
+    {
+      "lanes": 3,
+      "back": 1,
+      "at": [
+        -15,
+        3,
+        15
+      ]
+    },
+    {
+      "lanes": 5,
+      "back": 2,
+      "at": [
+        -27,
+        -15,
+        3,
+        15,
+        27
+      ]
+    },
+    {
+      "lanes": 5,
+      "back": 0,
+      "at": [
+        -24,
+        -12,
+        0,
+        12,
+        24
+      ]
+    },
+    {
+      "lanes": 8,
+      "back": 0,
+      "at": [
+        -42,
+        -30,
+        -18,
+        -6,
+        6,
+        18,
+        30,
+        42
+      ]
+    },
+    {
+      "lanes": 8,
+      "back": 4,
+      "at": [
+        -45,
+        -33,
+        -21,
+        -9,
+        9,
+        21,
+        33,
+        45
+      ]
+    },
+    {
+      "lanes": 9,
+      "back": 4,
+      "at": [
+        -51,
+        -39,
+        -27,
+        -15,
+        3,
+        15,
+        27,
+        39,
+        51
+      ]
+    }
+  ],
+  "pitches": [
+    {
+      "half": 20,
+      "lanes": 1,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 20,
+      "lanes": 1,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 20,
+      "lanes": 2,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 20,
+      "lanes": 2,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 20,
+      "lanes": 3,
+      "back": 0,
+      "pitch": 10
+    },
+    {
+      "half": 20,
+      "lanes": 3,
+      "back": 3,
+      "pitch": 10
+    },
+    {
+      "half": 20,
+      "lanes": 3,
+      "back": 1,
+      "pitch": 7
+    },
+    {
+      "half": 20,
+      "lanes": 5,
+      "back": 2,
+      "pitch": 3.5
+    },
+    {
+      "half": 20,
+      "lanes": 5,
+      "back": 0,
+      "pitch": 5
+    },
+    {
+      "half": 20,
+      "lanes": 8,
+      "back": 0,
+      "pitch": 2.857
+    },
+    {
+      "half": 20,
+      "lanes": 8,
+      "back": 4,
+      "pitch": 2
+    },
+    {
+      "half": 20,
+      "lanes": 9,
+      "back": 4,
+      "pitch": 1.75
+    },
+    {
+      "half": 36,
+      "lanes": 1,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 1,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 2,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 2,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 3,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 3,
+      "back": 3,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 3,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 5,
+      "back": 2,
+      "pitch": 11.5
+    },
+    {
+      "half": 36,
+      "lanes": 5,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 36,
+      "lanes": 8,
+      "back": 0,
+      "pitch": 7.429
+    },
+    {
+      "half": 36,
+      "lanes": 8,
+      "back": 4,
+      "pitch": 6.571
+    },
+    {
+      "half": 36,
+      "lanes": 9,
+      "back": 4,
+      "pitch": 5.75
+    },
+    {
+      "half": 100,
+      "lanes": 1,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 1,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 2,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 2,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 3,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 3,
+      "back": 3,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 3,
+      "back": 1,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 5,
+      "back": 2,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 5,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 8,
+      "back": 0,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 8,
+      "back": 4,
+      "pitch": 12
+    },
+    {
+      "half": 100,
+      "lanes": 9,
+      "back": 4,
+      "pitch": 12
+    }
+  ],
+  "constants": {
+    "PITCH": 12,
+    "GUTTER": 6,
+    "MARGIN": 10,
+    "MOST": 8,
+    "SAMPLES": 24,
+    "SPREAD_PITCH": 22,
+    "REACH": 7,
+    "HIT_WIDTH": 14,
+    "SAMPLE": 34
+  },
+  "leaveAt": [
+    {
+      "name": "the box, from its centre",
+      "shape": "rectangle",
+      "from": null,
+      "rays": [
+        {
+          "dx": 1,
+          "dy": 0,
+          "at": [
+            150,
+            30
+          ]
+        },
+        {
+          "dx": -1,
+          "dy": 0,
+          "at": [
+            -50,
+            30
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": 1,
+          "at": [
+            50,
+            66
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": -1,
+          "at": [
+            50,
+            -6
+          ]
+        },
+        {
+          "dx": 0.6,
+          "dy": 0.8,
+          "at": [
+            77,
+            66
+          ]
+        },
+        {
+          "dx": -0.6,
+          "dy": -0.8,
+          "at": [
+            23,
+            -6
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the box, from a point off its centre",
+      "shape": "rectangle",
+      "from": [
+        50,
+        40
+      ],
+      "rays": [
+        {
+          "dx": 1,
+          "dy": 0,
+          "at": [
+            150,
+            40
+          ]
+        },
+        {
+          "dx": -1,
+          "dy": 0,
+          "at": [
+            -50,
+            40
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": 1,
+          "at": [
+            50,
+            66
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": -1,
+          "at": [
+            50,
+            -6
+          ]
+        },
+        {
+          "dx": 0.6,
+          "dy": 0.8,
+          "at": [
+            69.5,
+            66
+          ]
+        },
+        {
+          "dx": -0.6,
+          "dy": -0.8,
+          "at": [
+            15.5,
+            -6
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the box, from a point on the line along its edge",
+      "shape": "rectangle",
+      "from": [
+        -50,
+        0
+      ],
+      "rays": [
+        {
+          "dx": 1,
+          "dy": 0,
+          "at": [
+            150,
+            0
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": 1,
+          "at": [
+            -50,
+            66
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": -1,
+          "at": [
+            -50,
+            -6
+          ]
+        },
+        {
+          "dx": -1,
+          "dy": 0,
+          "at": [
+            -50,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a diamond, from its centre",
+      "shape": "diamond",
+      "from": null,
+      "rays": [
+        {
+          "dx": 1,
+          "dy": 0,
+          "at": [
+            149,
+            30
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": 1,
+          "at": [
+            50,
+            65
+          ]
+        },
+        {
+          "dx": 0.6,
+          "dy": 0.8,
+          "at": [
+            70.749,
+            57.665
+          ]
+        },
+        {
+          "dx": -0.6,
+          "dy": 0.8,
+          "at": [
+            29.251,
+            57.665
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a diamond, from a point off its centre",
+      "shape": "diamond",
+      "from": [
+        50,
+        40
+      ],
+      "rays": [
+        {
+          "dx": 1,
+          "dy": 0,
+          "at": [
+            120.714,
+            40
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": 1,
+          "at": [
+            50,
+            65
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": -1,
+          "at": [
+            50,
+            -5
+          ]
+        },
+        {
+          "dx": -1,
+          "dy": 0,
+          "at": [
+            -20.714,
+            40
+          ]
+        },
+        {
+          "dx": 0.6,
+          "dy": 0.8,
+          "at": [
+            64.82,
+            59.76
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an ellipse, from a point off its centre",
+      "shape": "ellipse",
+      "from": [
+        50,
+        20
+      ],
+      "rays": [
+        {
+          "dx": 1,
+          "dy": 0,
+          "at": [
+            144.375,
+            20
+          ]
+        },
+        {
+          "dx": -1,
+          "dy": 0,
+          "at": [
+            -44.375,
+            20
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": 1,
+          "at": [
+            50,
+            65
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": -1,
+          "at": [
+            50,
+            -5
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a pill, from a point off its centre",
+      "shape": "pill",
+      "from": [
+        30,
+        30
+      ],
+      "rays": [
+        {
+          "dx": 1,
+          "dy": 0,
+          "at": [
+            149,
+            30
+          ]
+        },
+        {
+          "dx": -1,
+          "dy": 0,
+          "at": [
+            -49,
+            30
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": 1,
+          "at": [
+            30,
+            65
+          ]
+        },
+        {
+          "dx": 0,
+          "dy": -1,
+          "at": [
+            30,
+            -5
+          ]
+        }
+      ]
+    }
+  ],
+  "round3": [
+    {
+      "value": 0,
+      "rounded": 0
+    },
+    {
+      "value": 0.0004,
+      "rounded": 0
+    },
+    {
+      "value": 0.0005,
+      "rounded": 0.001
+    },
+    {
+      "value": -0.0004,
+      "rounded": 0
+    },
+    {
+      "value": -0.0005,
+      "rounded": 0
+    },
+    {
+      "value": -0.0015,
+      "rounded": -0.001
+    },
+    {
+      "value": 0.3333333333333333,
+      "rounded": 0.333
+    },
+    {
+      "value": 0.6666666666666666,
+      "rounded": 0.667
+    },
+    {
+      "value": 100.1235,
+      "rounded": 100.124
+    },
+    {
+      "value": -7.5555,
+      "rounded": -7.555
+    },
+    {
+      "value": 1e-7,
+      "rounded": 0
+    }
+  ]
+}

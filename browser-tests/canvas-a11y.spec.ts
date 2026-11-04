@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
+import { serveModel, systems } from './serve.ts'
 
 // What a reader gets from the canvas and the navigator without the picture: names for connections, regions and the current level, the nesting of folders, which flow a pair
 // mark compares with, a state key whose marks are drawn small, and a view fitted to the room beside the open navigator. Over Plum.
@@ -112,4 +113,40 @@ test('opening Details fits the view beside it, and closing it fits the window ag
   await page.locator('.react-flow__node[data-id="support"]').click()
   await expect(details).toBeVisible()
   await expect.poll(rightOf).toBeLessThanOrEqual(left)
+})
+
+test('the lines of a pair side by side are named by their place, visited by Tab in lane order, and keyboard focus spreads the pair', async ({ page }) => {
+  const s = await serveModel(systems(['a', 'b'], [
+    { from: 'a', to: 'b', label: 'One', kind: 'request' }, { from: 'a', to: 'b', label: 'Two' }, { from: 'b', to: 'a', label: 'Back', kind: 'publish' },
+  ], { pairs: 'separate' }))
+  try {
+    await page.goto(s.url)
+    await page.locator('.react-flow__node').first().waitFor()
+    // Back runs from the later id, so it is the first lane; then the other two in the order of the file.
+    const names = await page.locator('.react-flow__edge').evaluateAll(els => els.map(e => e.getAttribute('aria-label')))
+    expect(names).toEqual([
+      '1 of 3, from B to A, Back, Publish and subscribe', '2 of 3, from A to B, One, Request and reply', '3 of 3, from A to B, Two',
+    ])
+    const lane = (place: string) => page.getByRole('group', { name: new RegExp(`^${place} of 3, `) })
+    const path = (place: string) => lane(place).locator('.react-flow__edge-path')
+    const rest = [await path('1').getAttribute('d'), await path('2').getAttribute('d'), await path('3').getAttribute('d')]
+    expect(rest.every(d => d !== null && !d.includes('Q'))).toBe(true) // straight at rest
+    await lane('1').focus()
+    await expect(lane('1')).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(lane('2')).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(lane('3')).toBeFocused()
+    // Keyboard focus on a line spreads its pair: the outer lanes bend away from the middle one, and every line shows its label.
+    await expect(path('3')).toHaveAttribute('d', /Q/)
+    await expect(page.locator('.lane-pill')).toHaveText(['Back', 'One', 'Two'])
+    await page.keyboard.press('Shift+Tab')
+    await expect(lane('2')).toBeFocused()
+    // Away from the lines the pair is at rest again.
+    await page.locator('.react-flow__pane').click({ position: { x: 5, y: 5 } })
+    await expect(path('3')).not.toHaveAttribute('d', /Q/)
+    await expect(page.locator('.lane-pill')).toHaveCount(0)
+  } finally {
+    await s.close()
+  }
 })

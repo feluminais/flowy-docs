@@ -76,6 +76,37 @@ internal static class Anim
         return follow;
     }
 
+    /// <summary>
+    /// Calls <paramref name="step"/> on every animation frame with the milliseconds since the one before (0 on the first) for as long as it returns true: an animation that has no fixed end,
+    /// like a pair of lines that is turned round half way. Disposing the result stops it.
+    /// </summary>
+    public static IDisposable Frames(Control host, Func<double, bool> step)
+    {
+        var loop = new FrameLoop(TopLevel.GetTopLevel(host), step);
+        loop.Ask();
+        return loop;
+    }
+
+    private sealed class FrameLoop(TopLevel? top, Func<double, bool> step) : IDisposable
+    {
+        private double? _last;
+        private bool _stopped;
+
+        public void Ask() => NextFrame(top, Tick);
+
+        private void Tick()
+        {
+            if (_stopped) return;
+            var now = Now();
+            var ms = _last is { } last ? Math.Max(0, now - last) : 0;
+            _last = now;
+            if (step(ms) && !_stopped) Ask();
+            else _stopped = true;
+        }
+
+        public void Dispose() => _stopped = true;
+    }
+
     /// <summary>Asks for one frame: the window's next, or a timer's for a control that isn't in a window.</summary>
     private static void NextFrame(TopLevel? top, Action step)
     {

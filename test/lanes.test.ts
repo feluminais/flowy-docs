@@ -7,7 +7,7 @@ import { SHAPE_DEFS } from '../src/core/look.ts'
 import type { LineStyle } from '../src/core/model.ts'
 import { lineEnds, lineId, ports } from '../ui/src/graph.ts'
 import type { Outline, Rect } from '../ui/src/graph.ts'
-import { createLaneStore, lanes, REST } from '../ui/src/lanes.ts'
+import { createLaneStore, lanes, REST, SPREAD } from '../ui/src/lanes.ts'
 import type { LaneEnd } from '../ui/src/lanes.ts'
 
 const STYLES: LineStyle[] = ['straight', 'curved', 'angled']
@@ -124,6 +124,40 @@ test('a pose is part of the question; only the rest pose is drawn so far, so a p
   assert.deepEqual([spread.path, part.path], [rest.path, rest.path])
   // A pose with nothing in it is the rest pose.
   assert.equal(store.laneFor('x', 'straight', a, b, { s: 0, lam: [] }), rest)
+})
+
+test('a line alone between its shapes, with a slot of one lane, is drawn exactly as before in every style', () => {
+  const store = createLaneStore()
+  for (const style of STYLES) {
+    for (const [a, b] of PAIRS) {
+      const [path, x, y] = before(style, a.rect, b.rect, a.edge, b.edge)
+      const lane = store.laneFor('a|b|only', style, a, b, REST, { lane: 0, lanes: 1, back: 0 })
+      assert.deepEqual([lane.path, lane.x, lane.y], [path, x, y], style)
+      // Spread or lit, a lone line has nothing to spread or part.
+      assert.equal(store.laneFor('a|b|only', style, a, b, { s: 1, lam: [] }, { lane: 0, lanes: 1, back: 0 }).path, path, style)
+    }
+  }
+})
+
+test('a line of a pair of several is a straight lane beside the others in every style, and a pose and a slot are part of the question', () => {
+  const store = createLaneStore()
+  const [a, b] = [box('a', -100, -36), box('b', 300, -36)]
+  const slot = { lane: 1, lanes: 2, back: 1 }
+  for (const style of STYLES) {
+    const lane = store.laneFor('x', style, a, b, REST, slot)
+    assert.equal(lane.path, 'M100 9L300 9')
+    assert.deepEqual([lane.x, lane.y], [200, 9])
+    assert.deepEqual(lane.points, [{ x: 100, y: 9 }, { x: 300, y: 9 }])
+  }
+  const rest = store.laneFor('x', 'straight', a, b, REST, slot)
+  assert.equal(store.laneFor('x', 'curved', a, b, REST, { ...slot }), store.laneFor('x', 'curved', a, b, REST, slot)) // asked again: the same lane
+  const spread = store.laneFor('x', 'straight', a, b, SPREAD, slot)
+  assert.notEqual(spread, rest)
+  assert.ok(spread.path.includes('Q'))
+  assert.equal(spread.points?.length, 25)
+  assert.notEqual(store.laneFor('x', 'straight', a, b, REST, { lane: 0, lanes: 2, back: 1 }).path, rest.path)
+  // A shape that moved gives another lane.
+  assert.notEqual(store.laneFor('x', 'straight', a, { ...b, rect: { ...b.rect, y: b.rect.y + 40 } }, REST, slot).path, rest.path)
 })
 
 test('the store that starts again after too many lanes still answers right', () => {

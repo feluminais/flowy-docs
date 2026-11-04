@@ -29,8 +29,15 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
         public sealed record Boxes(IReadOnlyList<string> Ids) : Side;
 
-        /// <summary>A line of a view. <c>View</c> is the view of the pane of a comparison it was clicked in (two flows can sit on different views); null: the view the reader is in.</summary>
-        public sealed record Line(string From, string To, string? View = null) : Side;
+        /// <summary>
+        /// A line of a view. <c>View</c> is the view of the pane of a comparison it was clicked in (two flows can sit on different views); null: the view the reader is in. <c>Strand</c> is the id of the
+        /// line of the pair that was picked, where a project draws a line for each connection (see <see cref="Strand"/>): the pair's panel opens on that connection. Null: the pair's one line.
+        /// </summary>
+        public sealed record Line(string From, string To, string? View = null, string? Strand = null) : Side
+        {
+            /// <summary>The id of the line on the canvas this picks: the line of the pair that was picked, else the pair's one line.</summary>
+            public string Id => Strand ?? Views.LineKey(From, To);
+        }
 
         public sealed record Add : Side;
 
@@ -170,12 +177,19 @@ internal sealed partial class ReaderView : Grid, IDisposable
             Interacted();
             var edge = Scene()?.Edges.FirstOrDefault(e => e.Id == id);
             if (edge is null) return;
-            if (_side is Side.Line line && Views.LineKey(line.From, line.To) == edge.Id)
+            if (Recording is { } rec)
+            {
+                // While a flow is recorded a click on a line is part of the recording: it picks the step's ends and the line, and the panel stays the recorder.
+                var strand = edge.Pair is null ? null : Views.Compute(_folder.Model, CurrentView()).Strands?.FirstOrDefault(s => s.Id == edge.Id);
+                _gestures.PickLine(rec, edge, strand?.Label ?? "");
+                return;
+            }
+            if (_side is Side.Line line && line.Id == edge.Id)
             {
                 CloseDetails(); // its panel is already open: a second click closes it
                 return;
             }
-            _side = new Side.Line(edge.From, edge.To);
+            _side = new Side.Line(edge.From, edge.To, Strand: edge.Pair is null ? null : edge.Id);
             Refresh();
         };
         _canvas.EdgeHovered += id => SetHover(id);
@@ -643,7 +657,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         Playing? shown = null;
         if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index);
         else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec);
-        var line = _side is Side.Line l ? SceneBuilder.LineId(l.From, l.To) : null;
+        var line = _side is Side.Line l ? l.Id : null;
         var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
         _canvas.KindKeyBesidePlayer = flow is not null; // a flow's card lies over the middle of the foot
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
@@ -718,11 +732,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
             case Side.Box { Id: var id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
-            case Side.Line { From: var from, To: var to } when Editing:
-                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseDetails, AskDelete);
+            case Side.Line { From: var from, To: var to, Strand: var strand } when Editing:
+                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseDetails, AskDelete, strand, SetHover);
                 break;
-            case Side.Line { From: var from, To: var to, View: var lineView }:
-                _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems);
+            case Side.Line { From: var from, To: var to, View: var lineView, Strand: var strand }:
+                _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems, strand, SetHover);
                 break;
             case Side.Add when Editing:
                 _panel.ShowAdd(model, view, RunAsync, OpenObject);
@@ -878,7 +892,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         Interacted();
         if (Recording is { } rec)
         {
-            _side = new Side.Flow(rec with { From = null, To = null });
+            _side = new Side.Flow(rec with { From = null, To = null, Via = null });
             Refresh();
             return;
         }

@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setPairs, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, reorderConnections, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setPairs, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInput } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -283,6 +283,19 @@ export const PAIRS_STEPS: Spec[] = [
   { op: 'relabel', from: 'ui', to: 'management', which: 'Start scan', label: 'Begin scan' },
   { op: 'relabel', from: 'ui', to: 'management', which: 'Begin scan', label: '' },
   { op: 'putFlow', id: 'named', name: 'Named', view: 'root', steps: [{ from: 'ui', to: 'management', text: 'Asks', via: 'Nothing like it' }] },
+  // The order of the connections is the order of the lines of a pair: a connection goes before another one, several keep their order among themselves, and a move that changes nothing writes nothing.
+  { op: 'reorderConnections', indexes: [2], before: 0 },
+  { op: 'reorderConnections', indexes: [0], before: 2 },
+  { op: 'reorderConnections', indexes: [1], before: 2 },
+  { op: 'reorderConnections', indexes: [3, 1], before: 0 },
+  { op: 'reorderConnections', indexes: [0, 1], before: 4 },
+  { op: 'reorderConnections', indexes: [0], before: 99 },
+  { op: 'reorderConnections', indexes: [1], before: -1 },
+  { op: 'reorderConnections', indexes: [], before: 0 },
+  { op: 'reorderConnections', indexes: [2, 2], before: 0 },
+  { op: 'reorderConnections', indexes: [99], before: 0 },
+  { op: 'reorderConnections', indexes: [-1], before: 0 },
+  { op: 'reorderConnections', indexes: [0.5], before: 0 },
 ]
 
 /** Deleting what other parts depend on, from a folder with flows, groups, states and a failure analysis (desktop/fixtures/cases/delete). Each edit starts from what the one before left. */
@@ -424,6 +437,7 @@ function apply(model: Model, s: Spec): Model {
     case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }), ...(s.groups === undefined ? {} : { groups: s.groups }) })
     case 'swapSteps': return swapSteps(model, s.id, s.index, s.other)
     case 'removeStep': return removeStep(model, s.id, s.index)
+    case 'reorderConnections': return reorderConnections(model, s.indexes, s.before)
     case 'putGroup': return putGroup(model, s.id, s.group, s.options)
     case 'removeGroup': return removeGroup(model, s.id, s.group)
     case 'setStepGroup': return setStepGroup(model, s.id, s.index, s.group)

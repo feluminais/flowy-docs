@@ -186,7 +186,7 @@ internal sealed class PaneFlow
         var shown = FlowStage.PlayingAt(model, view, flow, stops, StopNow);
         var box = _selection is ReaderView.Side.Box b ? b.Id : null;
         // A line is the same two shapes joined in this view only: another pane on another view is not outlined for it.
-        var line = _selection is ReaderView.Side.Line l && l.View == view ? SceneBuilder.LineId(l.From, l.To) : null;
+        var line = _selection is ReaderView.Side.Line l && l.View == view ? l.Id : null;
         var scene = SceneBuilder.Build(model, view, shown, _folder.Problems, new Focus(box, line, _hover));
         return new FlowFrame(scene, shown, box is null ? [] : [box]);
     }
@@ -215,7 +215,7 @@ internal sealed class PaneFlow
     public ReaderView.Side? LineSide(string edgeId)
     {
         if (_canvas.Scene?.Edges.FirstOrDefault(e => e.Id == edgeId) is not { } edge || _folder is null) return null;
-        return new ReaderView.Side.Line(edge.From, edge.To, Level);
+        return new ReaderView.Side.Line(edge.From, edge.To, Level, edge.Pair is null ? null : edge.Id);
     }
 
     // ---- what the keys and the card do --------------------------------------------------------------------------
