@@ -37,14 +37,17 @@ internal sealed class MotionLayer : Control
     private bool _still;
     private (CoreRect Rect, int Depth)? _rest; // a recursion's counter at rest: where its box is and how deep it went
 
-    public MotionLayer()
+    private readonly LaneStore _lanes;
+
+    public MotionLayer(LaneStore lanes)
     {
+        _lanes = lanes;
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
     /// <summary>One step to draw: its animation, whether it follows a landing, the line style, the two boxes (with the outline each shape has), and who takes it when it is intercepted.</summary>
-    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null, Taker? By = null);
+    public sealed record RunSpec(StepAnimation Animation, bool AfterLanding, string Style, string FromId, string ToId, CoreRect From, CoreRect To, double[]? OutlineFrom = null, double[]? OutlineTo = null, string? ShapeFrom = null, string? ShapeTo = null, Taker? By = null);
 
     private IReadOnlyList<(IReadOnlyList<Beat> Beats, int Total)> Prepare(IReadOnlyList<RunSpec> specs)
     {
@@ -53,8 +56,18 @@ internal sealed class MotionLayer : Control
         foreach (var s in specs)
         {
             // A recursion's pipe is a loop out of its one box and back in; every other kind runs along the line between two boxes.
-            var data = s.Animation.Kind == "recurse" ? BoxGeometry.LoopAround(s.From, s.OutlineFrom) : LinePaths.Build(s.Style, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data;
-            var line = Geometry.Parse(data);
+            string data;
+            Geometry line;
+            if (s.Animation.Kind == "recurse")
+            {
+                data = BoxGeometry.LoopAround(s.From, s.OutlineFrom);
+                line = Geometry.Parse(data);
+            }
+            else
+            {
+                var lane = _lanes.PathFor(null, s.Style, new LaneEnd(s.FromId, s.From, s.OutlineFrom), new LaneEnd(s.ToId, s.To, s.OutlineTo));
+                (data, line) = (lane.Path.Data, lane.Geometry);
+            }
             var (beats, total) = Animations.BeatsFor(s.Animation, line.ContourLength, s.AfterLanding);
             // Whoever takes the request: its box, or the dashed marker that hangs below the line where the request leaves it.
             var by = s.By ?? (s.Animation.By is { } given ? new Taker(Name: given.Name ?? given.Shape) : null);

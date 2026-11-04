@@ -20,10 +20,11 @@ internal sealed class CanvasView : Border
 
     private static readonly Cursor HandCursor = new(StandardCursorType.Hand);
 
-    private readonly BackLayer _back = new();
-    private readonly MotionLayer _motion = new();
+    private readonly LaneStore _lanes = new(); // the one place a line's path is made: the layers below all ask it
+    private readonly BackLayer _back;
+    private readonly MotionLayer _motion;
     private readonly CardsLayer _cards = new(); // a recursion's pile of cards, under the boxes
-    private readonly ChannelLayer _channels = new();
+    private readonly ChannelLayer _channels;
     private IReadOnlyList<OpenChannel> _open = []; // the channels the stop on show has left open, with the shapes they are on
     private readonly MarksLayer _marks = new();
     private readonly TrafficLayer _traffic = new();
@@ -104,6 +105,9 @@ internal sealed class CanvasView : Border
 
     public CanvasView()
     {
+        _back = new BackLayer(_lanes);
+        _motion = new MotionLayer(_lanes);
+        _channels = new ChannelLayer(_lanes);
         Clock = new PlayerClock(timer: (ms, then) => Anim.Wait(this, ms, then));
         Clock.SetRate(PlayerClock.Kept);
         _channels.Clock = Clock;
@@ -394,7 +398,7 @@ internal sealed class CanvasView : Border
             : by.Node is { } id && _scene!.Boxes.FirstOrDefault(x => x.Id == id) is { } box ? new MotionLayer.Taker(box.Rect, Look.DefOf(box.Object).Path)
             : by.Name is { } name ? new MotionLayer.Taker(Name: name) : null;
         _back.LiftLabels(playing.Where(r => Animations.LeavesMarks(r.Animation)).Select(r => (r.From, r.To)));
-        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By))).ToList();
+        var specs = playing.Select(r => new MotionLayer.RunSpec(r.Animation, r.AfterLanding, LineStyle, r.From, r.To, RectOf(r.From)!.Value, RectOf(r.To)!.Value, outline(r.From), outline(r.To), shape(r.From), shape(r.To), Taker(r.By))).ToList();
         if (MotionSettings.Reduced)
         {
             _motion.StartStill(specs);
@@ -480,8 +484,8 @@ internal sealed class CanvasView : Border
         foreach (var m in marks)
         {
             if (RectOf(m.From) is not { } a || RectOf(m.To) is not { } b) continue;
-            var (x, y) = m.From == m.To ? (a.X + a.Width - 24, a.Y) : (LinePaths.Build(LineStyle, a, b, outline(m.From), outline(m.To)).Label.X, LinePaths.Build(LineStyle, a, b, outline(m.From), outline(m.To)).Label.Y);
-            at.Add(new MarkSpec(m.Text, m.Kind, x, y));
+            var spot = m.From == m.To ? new CorePt(a.X + a.Width - 24, a.Y) : _lanes.PathFor(null, LineStyle, new LaneEnd(m.From, a, outline(m.From)), new LaneEnd(m.To, b, outline(m.To))).Path.Label;
+            at.Add(new MarkSpec(m.Text, m.Kind, spot.X, spot.Y));
         }
         _marks.Set(at);
     }
@@ -773,10 +777,11 @@ internal sealed class CanvasView : Border
             if ((o.Channel.Opening || o.Channel.Closing) && o.Motion is { } motion)
             {
                 var (a, b) = RectOf(o.MotionFrom ?? o.FromBox) is { } mf && RectOf(o.MotionTo ?? o.ToBox) is { } mt ? (mf, mt) : (from, to);
-                var line = Geometry.Parse(LinePaths.Build(LineStyle, a, b, outline(o.MotionFrom ?? o.FromBox), outline(o.MotionTo ?? o.ToBox)).Data);
+                var (fromId, toId) = (o.MotionFrom ?? o.FromBox, o.MotionTo ?? o.ToBox);
+                var line = _lanes.PathFor(null, LineStyle, new LaneEnd(fromId, a, outline(fromId)), new LaneEnd(toId, b, outline(toId))).Geometry;
                 after = Animations.BeatsFor(motion, line.ContourLength, false).Total;
             }
-            specs.Add(new ChannelLayer.Spec(ChannelLayer.KeyOf(o.Channel), o.Channel, from, to, outline(o.FromBox), outline(o.ToBox), o.Channel.End == "to" ? o.ToBox : o.FromBox, after));
+            specs.Add(new ChannelLayer.Spec(ChannelLayer.KeyOf(o.Channel), o.Channel, o.FromBox, o.ToBox, from, to, outline(o.FromBox), outline(o.ToBox), o.Channel.End == "to" ? o.ToBox : o.FromBox, after));
         }
         _channels.Set(specs, LineStyle);
     }
@@ -863,7 +868,7 @@ internal sealed class CanvasView : Border
     {
         if (_scene is null || RectOf(line.From) is not { } a || RectOf(line.To) is not { } b) return null;
         double[]? Outline(string id) => Look.DefOf(_scene.Boxes.First(x => x.Id == id).Object).Edge;
-        var path = PathPoints.Flatten(LinePaths.Build(LineStyle, a, b, Outline(line.From), Outline(line.To)).Data);
+        var path = PathPoints.Flatten(_lanes.PathFor(null, LineStyle, new LaneEnd(line.From, a, Outline(line.From)), new LaneEnd(line.To, b, Outline(line.To))).Path.Data);
         // A line that ends at a shape that opens runs on into it, and one that starts at one comes out of it. Its traffic is drawn only outside the shapes at both its ends (see Particles.CutBy).
         var (fromBox, toBox) = (_scene.Boxes.First(x => x.Id == line.From), _scene.Boxes.First(x => x.Id == line.To));
         TrafficLayer.ShapeCover Cover(SceneBox box) => new(box.Id, box.Rect, Look.DefOf(box.Object).Edge);

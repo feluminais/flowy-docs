@@ -119,7 +119,7 @@ internal static class ChannelDraw
 internal sealed class ChannelLayer : Control
 {
     /// <summary>One channel to draw: where its two shapes are (with their outlines, which the line meets), the shape it points at, and how long the step's motion takes before it comes or goes.</summary>
-    internal sealed record Spec(string Key, Channel Channel, CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string AtBox, double AfterMs);
+    internal sealed record Spec(string Key, Channel Channel, string FromId, string ToId, CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string AtBox, double AfterMs);
 
     /// <summary>A channel as the layer has it: for the tests, and for the key.</summary>
     internal sealed record Shown(string Kind, string? Name, string AtBox, int Slot, bool Opening, bool Closing, double AfterMs, double Length);
@@ -133,8 +133,11 @@ internal sealed class ChannelLayer : Control
     private double _now;
     private bool _running;
 
-    public ChannelLayer()
+    private readonly LaneStore _lanes;
+
+    public ChannelLayer(LaneStore lanes)
     {
+        _lanes = lanes;
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
@@ -193,7 +196,7 @@ internal sealed class ChannelLayer : Control
             double length = 0;
             if (s.Channel.Kind != "job" && s.From != s.To)
             {
-                line = Geometry.Parse(LinePaths.Build(lineStyle, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data);
+                line = _lanes.PathFor(null, lineStyle, new LaneEnd(s.FromId, s.From, s.OutlineFrom), new LaneEnd(s.ToId, s.To, s.OutlineTo)).Geometry;
                 length = line.ContourLength;
             }
             var slot = 0;

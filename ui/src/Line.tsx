@@ -1,6 +1,6 @@
 import { createContext, memo, useContext, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import type { ReactNode } from 'react'
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, getSmoothStepPath, getStraightPath, Position, useInternalNode } from '@xyflow/react'
+import { BaseEdge, EdgeLabelRenderer, useInternalNode } from '@xyflow/react'
 import type { Edge, EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import type { Mark } from '../../src/core/failures.ts'
 import { endsOfPath, HEAD_PATH, headMatrix, headScale } from '../../src/core/heads.ts'
@@ -10,8 +10,10 @@ import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
 import type { LineStyle } from '../../src/core/model.ts'
 import { ChangeMarksContext, FailBadge } from './Box.tsx'
 import { changeAt } from './compare.ts'
-import { lineEnds, loopAround, ports, sizeOf } from './graph.ts'
+import { loopAround, sizeOf } from './graph.ts'
 import { clip, placeLabels } from './labels.ts'
+import { lanes } from './lanes.ts'
+import type { LaneEnd } from './lanes.ts'
 import type { Spot } from './labels.ts'
 import { marksOf, markScale } from './kindkey.ts'
 import { MarkPath } from './kinds.tsx'
@@ -95,8 +97,6 @@ export function LabelSpots({ spots, children }: { spots: ReadonlyMap<string, Spo
   return <LabelSpotsContext value={current}>{children}</LabelSpotsContext>
 }
 
-const SIDES = { top: Position.Top, right: Position.Right, bottom: Position.Bottom, left: Position.Left }
-
 export const rect = (n: InternalNode): Rect => ({ ...n.internals.positionAbsolute, ...sizeOf(n) })
 /** The outline a line meets: the shape's own, so it never ends in the air beside a diamond's corner. */
 /** What a box is called, for the words a badge on a line says. */
@@ -104,21 +104,8 @@ const nameOfNode = (n: InternalNode, id: string): string => (n.data as BoxData).
 
 export const outline = (n: InternalNode): Outline => SHAPE_DEFS[shapeOf((n.data as BoxData).object)].edge
 
-/** The SVG path and the label's place for one line in the given style. */
-function draw(style: LineStyle, a: Rect, b: Rect, edgeA: Outline, edgeB: Outline): [string, number, number] {
-  if (style === 'straight') {
-    const [from, to] = lineEnds(a, b, edgeA, edgeB)
-    const [path, x, y] = getStraightPath({ sourceX: from.x, sourceY: from.y, targetX: to.x, targetY: to.y })
-    return [path, x, y]
-  }
-  const p = ports(a, b, edgeA, edgeB)
-  const ends = {
-    sourceX: p.from.x, sourceY: p.from.y, sourcePosition: SIDES[p.fromSide],
-    targetX: p.to.x, targetY: p.to.y, targetPosition: SIDES[p.toSide],
-  }
-  const [path, x, y] = style === 'curved' ? getBezierPath(ends) : getSmoothStepPath({ ...ends, borderRadius: 8 })
-  return [path, x, y]
-}
+/** A box as the end of a lane (see lanes.ts). */
+const endOf = (n: InternalNode): LaneEnd => ({ id: n.id, rect: rect(n), edge: outline(n) })
 
 /**
  * Where the labels on show go: each line's, in the given style, kept clear of the boxes and of one another (see placeLabels). A lit line's
@@ -130,21 +117,21 @@ export function labelSpots(style: LineStyle, edges: Edge[], nodes: BoxNode[]): M
   const items = edges.flatMap(e => {
     const [a, b] = [at.get(e.source), at.get(e.target)]
     if (typeof e.label !== 'string' || e.label === '' || !a || !b) return []
-    const edgeOf = (n: BoxNode) => SHAPE_DEFS[shapeOf(n.data.object)].edge
-    const [path, x, y] = draw(style, { ...a.position, ...sizeOf(a) }, { ...b.position, ...sizeOf(b) }, edgeOf(a), edgeOf(b))
+    const endOfBox = (n: BoxNode): LaneEnd => ({ id: n.id, rect: { ...n.position, ...sizeOf(n) }, edge: SHAPE_DEFS[shapeOf(n.data.object)].edge })
+    const { path, x, y } = lanes.laneFor(e.id, style, endOfBox(a), endOfBox(b))
     return [{ id: e.id, path, mid: { x, y }, chars: clip(e.label).length, pinned: e.className?.includes('active') || e.data?.lift === true }]
   })
   return placeLabels(items, boxes)
 }
 
-/** The middle of the line between two boxes in the given style, where its label sits. */
-export function labelPoint(style: LineStyle, a: InternalNode, b: InternalNode): XYPosition {
-  const [, x, y] = draw(style, rect(a), rect(b), outline(a), outline(b))
+/** The middle of the line between two boxes in the given style, where its label sits. `strand` is the id of the line, where the caller knows it (see lanes.ts). */
+export function labelPoint(style: LineStyle, a: InternalNode, b: InternalNode, strand?: string): XYPosition {
+  const { x, y } = lanes.laneFor(strand, style, endOf(a), endOf(b))
   return { x, y }
 }
 
-/** The path of the line between two boxes in the given style, for a step's pipe to follow. */
-export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode): string => draw(style, rect(a), rect(b), outline(a), outline(b))[0]
+/** The path of the line between two boxes in the given style, for a step's pipe to follow. `strand` is the id of the line, where the caller knows it (see lanes.ts). */
+export const pathBetween = (style: LineStyle, a: InternalNode, b: InternalNode, strand?: string): string => lanes.laneFor(strand, style, endOf(a), endOf(b)).path
 
 /** The path of a recursion's loop pipe for one box, out of its right side and back in (the same in every line style). */
 export const loopPath = (n: InternalNode): string => loopAround(rect(n), outline(n))
@@ -196,7 +183,7 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   const a = useInternalNode(source)
   const b = useInternalNode(target)
   if (!a || !b) return null
-  const [path, x, y] = draw(style, rect(a), rect(b), outline(a), outline(b))
+  const { path, x, y } = lanes.laneFor(id, style, endOf(a), endOf(b))
   // A step that moves runs a blob along this line, so its label steps aside instead of sitting under the blob.
   const [ra, rb] = [rect(a), rect(b)]
   // A label shows on a line that is pointed at, as on one that is selected: the line itself says so, since pointing re-draws no page. The label it holds back is in its data.

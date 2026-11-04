@@ -31,8 +31,11 @@ internal sealed class BackLayer : Control
     private Scene? _scene;
     private Viewport _viewport = new(0, 0, 1);
 
-    public BackLayer()
+    private readonly LaneStore _lanes;
+
+    public BackLayer(LaneStore lanes)
     {
+        _lanes = lanes;
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
@@ -61,10 +64,9 @@ internal sealed class BackLayer : Control
                 if (before.TryGetValue(e.Id, out var was) && was.Made.From == made.Item1 && was.Made.To == made.Item2 && ReferenceEquals(was.Made.OutlineFrom, made.Item3) && ReferenceEquals(was.Made.OutlineTo, made.Item4)
                     && was.Edge.Label == e.Label && (e.Label is null || (e.Flags & EdgeFlags.Active) == (was.Edge.Flags & EdgeFlags.Active)))
                     return was with { Edge = e };
-                var path = LinePaths.Build(style, made.Item1, made.Item2, made.Item3, made.Item4);
-                var label = e.Label is { Length: > 0 } ? LabelBox(path, Format(e, LineLabels.Clip(e.Label), Brushes.Black)) : (CoreRect?)null;
-                var geometry = Geometry.Parse(path.Data);
-                return new Drawn(e, path, geometry, made, label, geometry.Bounds);
+                var lane = _lanes.PathFor(e.Id, style, new LaneEnd(e.From, made.Item1, made.Item3), new LaneEnd(e.To, made.Item2, made.Item4));
+                var label = e.Label is { Length: > 0 } ? LabelBox(lane.Path, Format(e, LineLabels.Clip(e.Label), Brushes.Black)) : (CoreRect?)null;
+                return new Drawn(e, lane.Path, lane.Geometry, made, label, lane.Geometry.Bounds);
             }).ToList();
         PlaceLabels();
         InvalidateVisual();
