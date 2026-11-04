@@ -139,25 +139,35 @@ test('a line alone between its shapes, with a slot of one lane, is drawn exactly
   }
 })
 
-test('a line of a pair of several is a straight lane beside the others in every style, and a pose and a slot are part of the question', () => {
+test('a line of a pair of several is a lane beside the others in the line style, and a pose and a slot are part of the question', () => {
   const store = createLaneStore()
   const [a, b] = [box('a', -100, -36), box('b', 300, -36)]
   const slot = { lane: 1, lanes: 2, back: 1 }
+  // Side by side on one level: straight lanes, a curve that is a straight run, and a staircase with no run, which is straight too.
+  assert.equal(store.laneFor('x', 'straight', a, b, REST, slot).path, 'M100 9L300 9')
+  assert.equal(store.laneFor('x', 'angled', a, b, REST, slot).path, 'M100 9L300 9')
+  const curved = store.laneFor('x', 'curved', a, b, REST, slot)
+  assert.equal(curved.path, 'M100 9C200 9 200 9 300 9')
   for (const style of STYLES) {
     const lane = store.laneFor('x', style, a, b, REST, slot)
-    assert.equal(lane.path, 'M100 9L300 9')
     assert.deepEqual([lane.x, lane.y], [200, 9])
-    assert.deepEqual(lane.points, [{ x: 100, y: 9 }, { x: 300, y: 9 }])
   }
+  assert.deepEqual(store.laneFor('x', 'straight', a, b, REST, slot).points, [{ x: 100, y: 9 }, { x: 300, y: 9 }])
+  assert.equal(curved.points?.length, 25)
   const rest = store.laneFor('x', 'straight', a, b, REST, slot)
   assert.equal(store.laneFor('x', 'curved', a, b, REST, { ...slot }), store.laneFor('x', 'curved', a, b, REST, slot)) // asked again: the same lane
   const spread = store.laneFor('x', 'straight', a, b, SPREAD, slot)
   assert.notEqual(spread, rest)
   assert.ok(spread.path.includes('Q'))
   assert.equal(spread.points?.length, 25)
+  assert.ok(store.laneFor('x', 'curved', a, b, SPREAD, slot).path.includes('Q'))
   assert.notEqual(store.laneFor('x', 'straight', a, b, REST, { lane: 0, lanes: 2, back: 1 }).path, rest.path)
   // A shape that moved gives another lane.
   assert.notEqual(store.laneFor('x', 'straight', a, { ...b, rect: { ...b.rect, y: b.rect.y + 40 } }, REST, slot).path, rest.path)
+  // One level lower, a staircase has a run to be a staircase with.
+  const lower = { ...b, rect: { ...b.rect, y: b.rect.y + 80 } }
+  assert.match(store.laneFor('x', 'angled', a, lower, REST, slot).path, /Q/)
+  assert.notEqual(store.laneFor('x', 'angled', a, lower, REST, slot).path, store.laneFor('x', 'straight', a, lower, REST, slot).path)
 })
 
 test('the store that starts again after too many lanes still answers right', () => {

@@ -18,7 +18,7 @@ import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
 import { dumpKinds } from './kinds.ts'
-import { dumpCapacity, dumpDraftLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpParts, dumpPoses } from './lanes.ts'
+import { dumpCapacity, dumpCurveLabels, dumpCurvePoses, dumpCurves, dumpDraftLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpParts, dumpPoses } from './lanes.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
@@ -36,6 +36,15 @@ import { dumpNavigation, dumpScenes } from './scene.ts'
 const write = async (name: string, data: unknown) => {
   await mkdir(dirname(expectedPath(name)), { recursive: true })
   await writeFile(expectedPath(name), `${JSON.stringify(data, null, 2)}\n`)
+  console.log(`wrote ${name}`)
+}
+
+/** Like write, with an array of numbers (a point of a lane) on one line: the dumps of lanes have thousands of them. */
+const writeCompact = async (name: string, data: unknown) => {
+  await mkdir(dirname(expectedPath(name)), { recursive: true })
+  const text = JSON.stringify(data, null, 2).replace(/\[\s*(-?[\d.e+-]+(?:,\s*-?[\d.e+-]+)*)\s*\]/g, (_, numbers: string) => `[${numbers.replace(/\s+/g, '')}]`)
+  await writeFile(expectedPath(name), `${text}
+`)
   console.log(`wrote ${name}`)
 }
 
@@ -74,6 +83,9 @@ await write('lanes/hits', dumpHits())
 await write('lanes/labels', dumpLaneLabels())
 await write('lanes/draft', await dumpDraftLanes())
 await write('lanes/parts', await dumpParts())
+await writeCompact('lanes/curves', dumpCurves())
+await writeCompact('lanes/curve-poses', dumpCurvePoses())
+await writeCompact('lanes/curve-labels', dumpCurveLabels())
 await write('drafts', dumpNewDrafts())
 await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())

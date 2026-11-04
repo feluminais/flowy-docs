@@ -277,8 +277,11 @@ public class LanesViewTests
         var b = new LaneEnd("b", new CoreRect(400, 120, 200, 72), null);
         var slot = new LaneSlot(1, 3, 0);
         var lane = store.PathFor("a>b|x", "curved", a, b, null, slot);
-        var made = Lanes.LaneGeometry(new LaneBox("a", a.Rect, null), new LaneBox("b", b.Rect, null), slot);
-        Assert.Equal(made.Path, lane.Path.Data); // straight in every style
+        var made = Lanes.LaneGeometry(new LaneBox("a", a.Rect, null), new LaneBox("b", b.Rect, null), slot, null, "curved");
+        Assert.Equal(made.Path, lane.Path.Data); // the lane it is among them, in the project's style
+        Assert.Contains('C', made.Path);
+        Assert.NotEqual(Lanes.LaneGeometry(new LaneBox("a", a.Rect, null), new LaneBox("b", b.Rect, null), slot).Path, made.Path);
+        Assert.Equal(Lanes.LaneGeometry(new LaneBox("a", a.Rect, null), new LaneBox("b", b.Rect, null), slot).Path, store.PathFor("a>b|s", "straight", a, b, null, slot).Path.Data);
         Assert.Equal(made.Points, lane.Points);
         Assert.Same(lane, store.PathFor("a>b|x", "curved", a, b, null, slot));
         Assert.NotSame(lane, store.PathFor("a>b|y", "curved", a, b, null, new LaneSlot(2, 3, 0)));

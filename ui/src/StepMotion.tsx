@@ -294,7 +294,7 @@ export function StepMotion({ ends, strand, animation, afterLanding, repeat, by, 
       if (taker.name === undefined) return undefined
       const size = markerSize(taker.name)
       const s = spotAt(markerAt)
-      const o = markerSpot(s.dx, s.dy, size, strand && strand.slot.lanes > 1 ? bundleReach(endOf(from), endOf(to), strand.slot) : 0)
+      const o = markerSpot(s.dx, s.dy, size, strand && strand.slot.lanes > 1 ? bundleReach(endOf(from), endOf(to), strand.slot, style) : 0)
       return { x: s.x + o.x - size.width / 2, y: s.y + o.y - size.height / 2, ...size }
     })()
     // Where the blob leaves the line for the one who takes it, and the edge of it that it runs to.
@@ -305,7 +305,7 @@ export function StepMotion({ ends, strand, animation, afterLanding, repeat, by, 
     // (a bar is 44 px across, a clock 48, a puff about 80; the gap beside a lit lane is 30 in the middle and 12 near the ends).
     const kept = (along: number, half: number): number => {
       if (!strand || strand.slot.lanes < 2) return 1
-      return Math.min(1, markReach(half, gapBeside(endOf(from), endOf(to), strand.slot, { s: 0, lam: strand.lit ?? [] }, along)) / half)
+      return Math.min(1, markReach(half, gapBeside(endOf(from), endOf(to), strand.slot, { s: 0, lam: strand.lit ?? [] }, along, style)) / half)
     }
     // The marks of an outcome stand where they belong from the start; the frame loop only shows them and moves what moves.
     beats.forEach((beat, i) => {

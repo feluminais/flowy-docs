@@ -19,8 +19,9 @@ export type { Pose, Slot }
  * second and the middle of the line, where its label sits. Both stay the same object while the shapes stay where they are, so a reader that asks on every draw gets the same
  * lane back and has nothing new to work out.
  *
- * A line that is one of several of a pair (it has a `slot`, see View.strands and src/core/lanes.ts) is a straight lane beside the others, in every line style; a line that is
- * alone between its two shapes is drawn as it always was. A pose says how far the lanes of its pair are spread; the lanes of a pair parted around a lit lane are the same question
+ * A line that is one of several of a pair (it has a `slot`, see View.strands and src/core/lanes.ts) is a lane beside the others, in the project's line style (straight, curved or
+ * right-angled; a pair whose shapes do not face each other with room between them has straight lanes in every style); a line that is alone between its two shapes is drawn as it
+ * always was. A pose says how far the lanes of its pair are spread; the lanes of a pair parted around a lit lane are the same question
  * with the lit lane in the pose. A lone line has nothing to spread, so every pose gives its rest path.
  */
 
@@ -68,7 +69,7 @@ const MOST = 20000
 export type LaneStore = {
   /**
    * The lane for `strand` (undefined where the caller has no strand id: the pair's own id, which is also the id of the line the reader draws for the pair) in `style`, in `pose`. A line that runs
-   * the other way between the same two shapes is another lane: its path starts at the other shape. With a `slot` of a pair of two lines or more the lane is the straight lane it is among them.
+   * the other way between the same two shapes is another lane: its path starts at the other shape. With a `slot` of a pair of two lines or more the lane is the one it is among them, in `style`.
    */
   laneFor(strand: string | undefined, style: LineStyle, from: LaneEnd, to: LaneEnd, pose?: Pose, slot?: Slot): Lane
 }
@@ -81,7 +82,7 @@ export function createLaneStore(): LaneStore {
       const found = held.get(key)
       if (found && sameRect(found.a, from.rect) && sameRect(found.b, to.rect) && found.edgeA === from.edge && found.edgeB === to.edge) return found.lane
       if (held.size >= MOST) held = new Map()
-      const lane = slot !== undefined && slot.lanes > 1 ? laneGeometry(from, to, slot, pose) : draw(style, from.rect, to.rect, from.edge, to.edge)
+      const lane = slot !== undefined && slot.lanes > 1 ? laneGeometry(from, to, slot, pose, style) : draw(style, from.rect, to.rect, from.edge, to.edge)
       // The rects are copied: a caller may go on moving the object it passed.
       held.set(key, { a: { ...from.rect }, b: { ...to.rect }, edgeA: from.edge, edgeB: to.edge, lane })
       return lane

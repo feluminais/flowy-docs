@@ -154,26 +154,27 @@ function canvas(model: Model, focus: Parameters<typeof focusEdges>[1] = {}) {
   return { nodes, edges: focusEdges(edges, focus) }
 }
 
-test('the lanes of a pair are straight, a pitch apart, centred between the shapes, in every line style', () => {
+test('the lanes of a pair follow the line style: straight, curved or right-angled, all four told apart', () => {
   const { nodes, edges } = canvas(wlan())
   const at = new Map(nodes.map(n => [n.id, n]))
-  for (const style of ['straight', 'curved', 'angled'] as const) {
-    const paths = edges.filter(e => pairOf(e) === 'management ui').map(e => {
-      const { slot, pose } = laneOf(e.data)
-      return lanes.laneFor(e.id, style, boxEnd(at.get(e.source)!), boxEnd(at.get(e.target)!), pose, slot)
-    })
-    assert.equal(paths.length, 4)
-    for (const lane of paths) assert.match(lane.path, /^M[-\d.]+ [-\d.]+L[-\d.]+ [-\d.]+$/, style)
-    // The same four lanes in each style.
-    assert.deepEqual(paths.map(p => p.path), edges.filter(e => pairOf(e) === 'management ui').map(e => {
-      const { slot, pose } = laneOf(e.data)
-      return lanes.laneFor(e.id, 'straight', boxEnd(at.get(e.source)!), boxEnd(at.get(e.target)!), pose, slot).path
-    }))
-  }
+  const pair = edges.filter(e => pairOf(e) === 'management ui')
+  const laneIn = (style: 'straight' | 'curved' | 'angled') => pair.map(e => {
+    const { slot, pose } = laneOf(e.data)
+    return lanes.laneFor(e.id, style, boxEnd(at.get(e.source)!), boxEnd(at.get(e.target)!), pose, slot)
+  })
+  const straight = laneIn('straight')
+  assert.equal(straight.length, 4)
+  for (const lane of straight) assert.match(lane.path, /^M[-\d.]+ [-\d.]+L[-\d.]+ [-\d.]+$/)
+  // Management is below and to the left of the UI, with room between them: a curve and a staircase for each lane.
+  const curved = laneIn('curved')
+  for (const lane of curved) assert.match(lane.path, /^M[-\d.]+ [-\d.]+C[-\d.]+ [-\d.]+ [-\d.]+ [-\d.]+ [-\d.]+ [-\d.]+$/)
+  const angled = laneIn('angled')
+  for (const lane of angled) assert.match(lane.path, /Q/)
+  for (const set of [straight, curved, angled]) assert.equal(new Set(set.map(l => l.path)).size, 4)
   // A lone line keeps the style.
   const lone = edges.find(e => e.id === IDS.apply)!
-  const curved = lanes.laneFor(lone.id, 'curved', boxEnd(at.get(lone.source)!), boxEnd(at.get(lone.target)!), REST, laneOf(lone.data).slot)
-  assert.match(curved.path, /C/)
+  const loneCurved = lanes.laneFor(lone.id, 'curved', boxEnd(at.get(lone.source)!), boxEnd(at.get(lone.target)!), REST, laneOf(lone.data).slot)
+  assert.match(loneCurved.path, /C/)
 })
 
 test('the pointer means the nearest line of the pair, at rest and when the pair is spread', () => {

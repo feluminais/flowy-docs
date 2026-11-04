@@ -28,7 +28,7 @@ public sealed record LaneLine(string Path, double X, double Y, IReadOnlyList<Pt>
     /// <summary>The lane as the canvas draws any line: its path, where its label sits, and where it ends and which way it points there, for the arrowheads.</summary>
     public LinePath AsLinePath()
     {
-        var ends = Heads.EndsOfPath(Path) ?? throw new InvalidOperationException("a lane is made of M, L and Q");
+        var ends = Heads.EndsOfPath(Path) ?? throw new InvalidOperationException("a lane is made of M, L, Q and C");
         return new LinePath(Path, new Pt(X, Y), ends.End, ends.EndDir) { Start = ends.Start, StartDirection = ends.StartDir };
     }
 }
@@ -39,7 +39,11 @@ public sealed record HitLane(string Id, string Pair, int Lane, IReadOnlyList<Pt>
 /// <summary>
 /// The lines of one pair of shapes where a project draws a line for each connection (<c>pairs: separate</c>, see <see cref="View.Strands"/>): where each one runs. They run as parallel
 /// lanes, <see cref="Pitch"/> apart and centred on the line between the two shapes, from nothing but the order of the connections in the file and the geometry of the two shapes.
-/// A port of src/core/lanes.ts, which both readers draw from. Only straight lanes so far.
+/// A port of src/core/lanes.ts, which both readers draw from.
+///
+/// Lanes follow the project's line style (<c>"straight"</c>, <c>"curved"</c> or <c>"angled"</c>). Straight lanes run parallel to the line between the shapes. Curved lanes are the curve a lone
+/// line of the pair would be (React Flow's cubic between the middles of the two facing sides), moved along the sides. Angled lanes are the staircase a lone line would be, nested. Where a pair
+/// has no such curve or staircase (its sides do not face each other, or there is no room between them), its lanes are straight in every style. A pair with one line is drawn as it always was.
 ///
 /// The module uses <c>+ - * /</c>, <c>Sqrt</c> and comparisons only, and every number it hands out is rounded with <see cref="Round3"/>, so it lands on the browser's numbers: no hypot,
 /// trigonometry or pow (a test looks for them).
@@ -60,6 +64,40 @@ public static class Lanes
 
     /// <summary>Number of segments a lane that is displaced is drawn in (it has one more point than that).</summary>
     public const int Samples = 24;
+
+    /// <summary>
+    /// The least room, along the way two facing sides look, between the middles of the two sides for a pair to run curved or right-angled; with less (or sides that do not face each other)
+    /// its lanes run straight. A curve that short has no middle to speak of, and a staircase has no room for its turns.
+    /// </summary>
+    public const double MinRouteGap = 24;
+
+    /// <summary>The most the lanes of a curved pair are moved along the sides, as a multiple of their offset: where the curve is steep it takes more than the offset to be a pitch apart across it.</summary>
+    public const double KappaMax = 1.3;
+
+    /// <summary>
+    /// The least share of a pitch the lanes of a curved pair may be apart across the curve, which is in the middle, where the curve is steepest against the sides. With <see cref="KappaMax"/> it says how
+    /// steep a curve may be: at least <c>GapLeast / KappaMax</c> of its middle must run the way out of the sides. A curve that runs nearly along the sides cannot be moved along them to make room,
+    /// since its lanes would lie on top of one another, so the pair runs straight.
+    /// </summary>
+    public const double GapLeast = 0.4;
+
+    /// <summary>The shortest run across (the middle leg of a staircase) a right-angled pair has: with less its lanes run straight.</summary>
+    public const double AngleRun = 24;
+
+    /// <summary>The corner radius of a right-angled lane before its offset is added or taken, at least.</summary>
+    public const double Corner = 8;
+
+    /// <summary>How much more than the widest offset of a pair the radius is, if that is more than <see cref="Corner"/>: the corner on the inside of the turn keeps at least this.</summary>
+    public const double CornerAir = 6;
+
+    /// <summary>The smallest radius a corner is rounded to; a corner between legs that are shorter is rounded to half the shorter.</summary>
+    public const double CornerLeast = 2;
+
+    /// <summary>How near the end of a side the outermost lane of a curved pair may be moved to: kappa is held to what leaves this much room.</summary>
+    public const double SideAir = 3;
+
+    /// <summary>How much of each leg a right-angled pair keeps for itself when its runs are squeezed together to fit across it: a run never gets nearer a shape than this.</summary>
+    public const double LegAir = 6;
 
     /// <summary>The pitch in the middle of a pair that is spread, at most.</summary>
     public const double SpreadPitch = 22;
@@ -148,11 +186,78 @@ public static class Lanes
         return Math.Min(Along(1), Along(-1));
     }
 
-    /// <summary>The smaller half-room of the two shapes of a pair across their lanes: how far each outline is from the line between the centres, along its normal, the nearer side of the nearer shape.</summary>
-    public static double RoomOf(LaneBox one, LaneBox other)
+    /// <summary>The step out of a side of a shape: where a curved or right-angled line heads when it leaves by that side.</summary>
+    private static Pt Out(Side side) => side switch
+    {
+        Side.Top => new Pt(0, -1),
+        Side.Bottom => new Pt(0, 1),
+        Side.Left => new Pt(-1, 0),
+        _ => new Pt(1, 0),
+    };
+
+    /// <summary>
+    /// The curve of a lone line between the middles of two facing sides: the first control point leaves the side straight out for half the gap, and the second arrives the same way.
+    /// (React Flow's cubic with its curvature of 0.25: the control offset is half the distance when the other end is ahead.)
+    /// </summary>
+    private static (Pt P0, Pt P1, Pt P2, Pt P3) CurveOf(Pt from, Pt to, Side sideA, Side sideB, double gap)
+    {
+        var (outA, outB) = (Out(sideA), Out(sideB));
+        var reach = gap / 2;
+        return (from, new Pt(from.X + outA.X * reach, from.Y + outA.Y * reach), new Pt(to.X + outB.X * reach, to.Y + outB.Y * reach), to);
+    }
+
+    /// <summary>
+    /// How much of the curve's middle runs along the way out of the sides (0 to 1): the component of its unit tangent there, 3/4 of (P3 + P2 - P1 - P0), along that way. 1 is a straight
+    /// run between two sides; the smaller it is, the more of the middle runs along the sides, where the lanes are moved.
+    /// </summary>
+    private static double CurveSteepness(Pt from, Pt to, Side sideA, Side sideB, double gap)
+    {
+        var (p0, p1, p2, p3) = CurveOf(from, to, sideA, sideB, gap);
+        var tx = 0.75 * (p3.X + p2.X - p1.X - p0.X);
+        var ty = 0.75 * (p3.Y + p2.Y - p1.Y - p0.Y);
+        return Math.Abs(Out(sideA).Y == 0 ? tx : ty) / Math.Sqrt(tx * tx + ty * ty);
+    }
+
+    /// <summary>
+    /// How a pair of curved or right-angled lanes runs: between the middles of the two sides that face each other (<c>From</c> on the shape with the smaller id, <c>To</c> on the other), <c>Gap</c> apart
+    /// along the way the sides look, and moved along the sides (<c>Lateral</c>, a unit step along them, to the same side as the pair's normal) to make room for the lanes side by side.
+    /// </summary>
+    private sealed record Route(Pt From, Pt To, Side SideA, Side SideB, double Gap, bool Horizontal, Pt Lateral);
+
+    /// <summary>
+    /// The route curved or angled lanes take between the shapes of <paramref name="f"/>, or null when they run straight: in the straight style, when the sides that face each other are not
+    /// opposite or are less than <see cref="MinRouteGap"/> apart, and, for a right-angled pair, when the run across is shorter than <see cref="AngleRun"/>.
+    /// </summary>
+    private static Route? RouteOf(Frame f, string style)
+    {
+        if (style == "straight") return null;
+        var p = BoxGeometry.PortsBetween(f.A.Rect, f.B.Rect, f.A.Edge, f.B.Edge);
+        var (outward, back) = (Out(p.FromSide), Out(p.ToSide));
+        if (outward.X + back.X != 0 || outward.Y + back.Y != 0) return null;
+        var gap = (p.To.X - p.From.X) * outward.X + (p.To.Y - p.From.Y) * outward.Y;
+        if (gap < MinRouteGap) return null;
+        var horizontal = outward.Y == 0;
+        if (style == "angled" && (horizontal ? Math.Abs(p.To.Y - p.From.Y) : Math.Abs(p.To.X - p.From.X)) < AngleRun) return null;
+        if (style == "curved" && CurveSteepness(p.From, p.To, p.FromSide, p.ToSide, gap) * KappaMax < GapLeast) return null;
+        var lateral = horizontal ? new Pt(0, f.N.Y >= 0 ? 1 : -1) : new Pt(f.N.X >= 0 ? 1 : -1, 0);
+        return new Route(p.From, p.To, p.FromSide, p.ToSide, gap, horizontal, lateral);
+    }
+
+    /// <summary>The smaller half-room of the two shapes across the lanes of <paramref name="f"/>: along the normal for straight lanes, along the sides for the lanes of a route.</summary>
+    private static double SpanOf(Frame f, Route? route)
+    {
+        var across = route?.Lateral ?? f.N;
+        return Math.Min(HalfRoom(f.A, across), HalfRoom(f.B, across));
+    }
+
+    /// <summary>
+    /// The smaller half-room of the two shapes of a pair across their lanes: how far each outline is from the line between the centres, along its normal, the nearer side of the nearer shape.
+    /// In the curved and angled styles, where the pair has a curve or a staircase, the same measured along the sides the lanes are moved along.
+    /// </summary>
+    public static double RoomOf(LaneBox one, LaneBox other, string style = "straight")
     {
         var f = FrameOf(one, other);
-        return Math.Min(HalfRoom(f.A, f.N), HalfRoom(f.B, f.N));
+        return SpanOf(f, RouteOf(f, style));
     }
 
     /// <summary>The gutter between the lanes of the two directions: only where there are lanes both ways.</summary>
@@ -194,18 +299,34 @@ public static class Lanes
 
     private static Pt Rounded(double x, double y) => new(Round3(x), Round3(y));
 
+    /// <summary>The path through <paramref name="points"/>: short curves through their midpoints, so the lane is smooth and passes where the displaced line was sampled.</summary>
+    private static string Chain(IReadOnlyList<Pt> points)
+    {
+        var last = points.Count - 1;
+        var path = $"M{PointText(points[0])}";
+        for (var i = 1; i < last; i++)
+        {
+            var next = points[i + 1];
+            path += $"Q{PointText(points[i])} {PointText(Rounded((points[i].X + next.X) / 2, (points[i].Y + next.Y) / 2))}";
+        }
+        return $"{path}L{PointText(points[last])}";
+    }
+
     /// <summary>
-    /// The lane <paramref name="slot"/> of the pair between <paramref name="source"/> and <paramref name="target"/>, drawn from <paramref name="source"/> to <paramref name="target"/>, in <paramref name="pose"/>.
-    /// A lane at rest is the straight line between the two points where its line (parallel to the line between the centres) meets the two outlines. A lane in another pose is the same line moved
-    /// sideways by a field that is 0 at both ends and largest in the middle, written as 24 short curves, so the shapes and the heads never move. Every lane is moved by the same field in its own
+    /// The lane <paramref name="slot"/> of the pair between <paramref name="source"/> and <paramref name="target"/>, drawn from <paramref name="source"/> to <paramref name="target"/>, in <paramref name="pose"/> and in a line
+    /// <paramref name="style"/>. A lane at rest is the straight line between the two points where its line (parallel to the line between the centres) meets the two outlines. A lane in another pose is the same
+    /// line moved sideways by a field that is 0 at both ends and largest in the middle, written as 24 short curves, so the shapes and the heads never move. Every lane is moved by the same field in its own
     /// place, and the offset and the second term only grow with the lane's place, so the lanes keep their order: they never cross.
+    /// In the curved and angled styles a pair whose sides face each other with room between them has curved or right-angled lanes instead (see <see cref="CurvedLane"/> and <see cref="AngledLane"/>); otherwise its
+    /// lanes are straight, whatever the style.
     /// </summary>
-    public static LaneLine LaneGeometry(LaneBox source, LaneBox target, LaneSlot slot, LanePose? pose = null)
+    public static LaneLine LaneGeometry(LaneBox source, LaneBox target, LaneSlot slot, LanePose? pose = null, string style = "straight")
     {
         pose ??= LanePose.Rest;
         var f = FrameOf(source, target);
-        var half = Math.Min(HalfRoom(f.A, f.N), HalfRoom(f.B, f.N));
-        var pitch = PitchFor(half, slot);
+        var route = RouteOf(f, style);
+        if (route is not null) return style == "curved" ? CurvedLane(f, route, source, slot, pose) : AngledLane(f, route, source, slot, pose);
+        var pitch = PitchFor(SpanOf(f, null), slot);
         var offset = OffsetOf(slot, pitch);
         var exitA = BoxGeometry.LeaveAt(f.A.Rect, f.A.Edge, f.U.X, f.U.Y, new Pt(f.Ca.X + f.N.X * offset, f.Ca.Y + f.N.Y * offset));
         var exitB = BoxGeometry.LeaveAt(f.B.Rect, f.B.Edge, -f.U.X, -f.U.Y, new Pt(f.Cb.X + f.N.X * offset, f.Cb.Y + f.N.Y * offset));
@@ -223,18 +344,168 @@ public static class Lanes
             var moved = Bulge(t) * sideways;
             points[i] = i == 0 ? start : i == Samples ? end : Rounded(start.X + (end.X - start.X) * t + f.N.X * moved, start.Y + (end.Y - start.Y) * t + f.N.Y * moved);
         }
-        var path = $"M{PointText(points[0])}";
-        for (var i = 1; i < Samples; i++)
-        {
-            var next = points[i + 1];
-            path += $"Q{PointText(points[i])} {PointText(Rounded((points[i].X + next.X) / 2, (points[i].Y + next.Y) / 2))}";
-        }
-        path += $"L{PointText(points[Samples])}";
         var middle = points[Samples / 2];
-        return new LaneLine(path, middle.X, middle.Y, points);
+        return new LaneLine(Chain(points), middle.X, middle.Y, points);
+    }
+
+    /// <summary>A point of the cubic through <paramref name="p0"/>, <paramref name="c1"/>, <paramref name="c2"/>, <paramref name="p3"/> at <paramref name="t"/>.</summary>
+    private static Pt CubicAt(double t, Pt p0, Pt c1, Pt c2, Pt p3)
+    {
+        var u = 1 - t;
+        var (w0, w1, w2, w3) = (u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t);
+        return new Pt(w0 * p0.X + w1 * c1.X + w2 * c2.X + w3 * p3.X, w0 * p0.Y + w1 * c1.Y + w2 * c2.Y + w3 * p3.Y);
+    }
+
+    /// <summary>
+    /// A lane of a curved pair. The curve a lone line of the pair would be is React Flow's cubic between the middles of the two facing sides, leaving each side straight out for half the gap
+    /// between them. Lane k is that curve with all four points moved along the sides, to the lane's side of the pair, by <c>offset * kappa</c>, where <c>kappa = min(KappaMax, 1 / |m|)</c> and <c>|m|</c>
+    /// is how far the curve runs along the way out of the sides in its middle, which makes the lanes a pitch apart across the curve there, however steep it is. Where a shape's outline is not
+    /// straight across the side the moved end is in the air or inside the shape, so the lane is joined to the outline by a short straight stub along the way out, and the curve itself stays
+    /// the moved copy of the one curve.
+    /// A pair that is not at rest moves each lane along the sides too, by the field of <see cref="LaneGeometry"/> (0 at both ends, so the ends and the stubs do not move).
+    /// </summary>
+    private static LaneLine CurvedLane(Frame f, Route route, LaneBox source, LaneSlot slot, LanePose pose)
+    {
+        var span = SpanOf(f, route);
+        var pitch = PitchFor(span, slot);
+        var offset = OffsetOf(slot, pitch);
+        var (outA, outB) = (Out(route.SideA), Out(route.SideB));
+        var widest = WidestOf(slot, pitch);
+        var kappa = Math.Min(Math.Min(KappaMax, 1 / CurveSteepness(route.From, route.To, route.SideA, route.SideB, route.Gap)), widest == 0 ? double.PositiveInfinity : (span - SideAir) / widest);
+        Pt Along(Pt c, double by) => new(c.X + route.Lateral.X * by, c.Y + route.Lateral.Y * by);
+        var (c0, c1, c2, c3) = CurveOf(route.From, route.To, route.SideA, route.SideB, route.Gap);
+        var (p0, p1, p2, p3) = (Along(c0, offset * kappa), Along(c1, offset * kappa), Along(c2, offset * kappa), Along(c3, offset * kappa));
+        var (q0, q1, q2, q3) = (Rounded(p0.X, p0.Y), Rounded(p1.X, p1.Y), Rounded(p2.X, p2.Y), Rounded(p3.X, p3.Y));
+        // Where the lane meets the outlines: the ray out of the shape from the lane's side of its middle. On a straight side that is the end of the curve itself.
+        var exitA = BoxGeometry.LeaveAt(f.A.Rect, f.A.Edge, outA.X, outA.Y, Along(f.Ca, offset * kappa));
+        var exitB = BoxGeometry.LeaveAt(f.B.Rect, f.B.Edge, outB.X, outB.Y, Along(f.Cb, offset * kappa));
+        var (e0, e3) = (Rounded(exitA.X, exitA.Y), Rounded(exitB.X, exitB.Y));
+        var (stubA, stubB) = (e0 != q0, e3 != q3);
+        var sideways = Displacement(slot, pose, f.Length, pitch) * kappa;
+        var samples = new Pt[Samples + 1];
+        for (var i = 0; i <= Samples; i++)
+        {
+            double t = (double)i / Samples;
+            var at = CubicAt(t, q0, q1, q2, q3);
+            var away = Bulge(t) * sideways;
+            samples[i] = i == 0 ? q0 : i == Samples ? q3 : Rounded(at.X + route.Lateral.X * away, at.Y + route.Lateral.Y * away);
+        }
+        // From the shape with the smaller id to the other; the lane runs the other way when it starts at the other shape.
+        var forward = ReferenceEquals(source, f.A);
+        var ordered = new List<Pt>();
+        if (stubA) ordered.Add(e0);
+        ordered.AddRange(samples);
+        if (stubB) ordered.Add(e3);
+        if (!forward) ordered.Reverse();
+        if (sideways != 0)
+        {
+            var middle = samples[Samples / 2];
+            return new LaneLine(Chain(ordered), middle.X, middle.Y, ordered);
+        }
+        Pt? head, tail;
+        Pt from, first, second, to;
+        if (forward) (head, from, first, second, to, tail) = (stubA ? e0 : null, q0, q1, q2, q3, stubB ? e3 : null);
+        else (head, from, first, second, to, tail) = (stubB ? e3 : null, q3, q2, q1, q0, stubA ? e0 : null);
+        var path = $"M{PointText(head ?? from)}{(head is not null ? $"L{PointText(from)}" : "")}C{PointText(first)} {PointText(second)} {PointText(to)}{(tail is { } t2 ? $"L{PointText(t2)}" : "")}";
+        return new LaneLine(path, Round3((q0.X + 3 * q1.X + 3 * q2.X + q3.X) / 8), Round3((q0.Y + 3 * q1.Y + 3 * q2.Y + q3.Y) / 8), ordered);
+    }
+
+    /// <summary>
+    /// The path through the corners of a right-angled lane, <c>radii[i - 1]</c> the radius of the corner at <c>vertices[i]</c>: straight legs, and each turn rounded by a quadratic curve that starts and
+    /// ends that far from the corner (no more than half of either leg, and not under <see cref="CornerLeast"/>). A turn between two legs on a line is no turn. The points are the lane flattened.
+    /// </summary>
+    private static (string Path, List<Pt> Points) Staircase(IReadOnlyList<Pt> vertices, IReadOnlyList<double> radii)
+    {
+        var last = vertices.Count - 1;
+        var path = $"M{PointText(vertices[0])}";
+        var points = new List<Pt> { vertices[0] };
+        for (var i = 1; i < last; i++)
+        {
+            var (p, b, q) = (vertices[i - 1], vertices[i], vertices[i + 1]);
+            var (before, after) = (Math.Abs(b.X - p.X) + Math.Abs(b.Y - p.Y), Math.Abs(q.X - b.X) + Math.Abs(q.Y - b.Y));
+            var radius = Math.Min(Math.Min(Math.Max(radii[i - 1], CornerLeast), before / 2), after / 2);
+            if ((p.X == b.X && b.X == q.X) || (p.Y == b.Y && b.Y == q.Y) || !(radius > 0))
+            {
+                path += $"L{PointText(b)}";
+                points.Add(b);
+                continue;
+            }
+            var enter = Rounded(b.X - Sign(b.X - p.X) * radius, b.Y - Sign(b.Y - p.Y) * radius);
+            var leave = Rounded(b.X + Sign(q.X - b.X) * radius, b.Y + Sign(q.Y - b.Y) * radius);
+            path += $"L{PointText(enter)}Q{PointText(b)} {PointText(leave)}";
+            points.Add(enter);
+            foreach (var t in new[] { 0.25, 0.5, 0.75 })
+            {
+                var u = 1 - t;
+                points.Add(Rounded(u * u * enter.X + 2 * u * t * b.X + t * t * leave.X, u * u * enter.Y + 2 * u * t * b.Y + t * t * leave.Y));
+            }
+            points.Add(leave);
+        }
+        points.Add(vertices[last]);
+        return ($"{path}L{PointText(vertices[last])}", points);
+    }
+
+    /// <summary>
+    /// A lane of a right-angled pair. The staircase a lone line of the pair would be goes out of the middle of one side, across to the middle of the way between the shapes, along the
+    /// run, and across to the middle of the other side. Lane k leaves its side <c>offset</c> along it, to the lane's side of the pair, and its run is moved the same
+    /// distance the other way (across the legs), so the lanes are nested staircases the same gap apart that never cross; where the legs are too short for that, the runs are squeezed
+    /// together by the same factor, which keeps their order. A pair that is not at rest moves only the run, by the displacement of <see cref="LaneGeometry"/>, so the ends and the legs stay where they
+    /// were. The corners are rounded to concentric arcs: the radius of the outer corner is the radius of the inner one plus the gap between them.
+    /// </summary>
+    private static LaneLine AngledLane(Frame f, Route route, LaneBox source, LaneSlot slot, LanePose pose)
+    {
+        var pitch = PitchFor(SpanOf(f, route), slot);
+        var offset = OffsetOf(slot, pitch);
+        var (outA, outB) = (Out(route.SideA), Out(route.SideB));
+        Pt Moved(Pt c) => new(c.X + route.Lateral.X * offset, c.Y + route.Lateral.Y * offset);
+        var exitA = BoxGeometry.LeaveAt(f.A.Rect, f.A.Edge, outA.X, outA.Y, Moved(f.Ca));
+        var exitB = BoxGeometry.LeaveAt(f.B.Rect, f.B.Edge, outB.X, outB.Y, Moved(f.Cb));
+        var (s, t) = (Rounded(exitA.X, exitA.Y), Rounded(exitB.X, exitB.Y));
+        // Where the run of each lane is among the others: its offset and what the pose adds; all of them at once, to know how much room they need.
+        var runs = Enumerable.Range(0, slot.Lanes).Select(lane => OffsetOf(slot with { Lane = lane }, pitch) + Displacement(slot with { Lane = lane }, pose, f.Length, pitch)).ToArray();
+        var widestRun = runs.Aggregate(0.0, (most, r) => Math.Max(most, Math.Abs(r)));
+        var room = route.Gap / 2 - LegAir;
+        var squeeze = widestRun <= room ? 1 : Math.Max(0, room) / widestRun;
+        var run = squeeze * runs[slot.Lane];
+        var (hx, hy) = (Sign(route.To.X - route.From.X), Sign(route.To.Y - route.From.Y));
+        var radius = Math.Max(Corner, WidestOf(slot, pitch) + CornerAir);
+        // The first and the second corner, by the gap between the lane's corner and the lone line's: the corner on the inside of a turn has the smaller radius.
+        var turn = hx * hy * offset;
+        Pt[] vertices;
+        double[] radii;
+        Pt anchor;
+        if (route.Horizontal)
+        {
+            var x = Round3((route.From.X + route.To.X) / 2 - hy * run);
+            vertices = [s, new Pt(x, s.Y), new Pt(x, t.Y), t];
+            radii = [radius - turn, radius + turn];
+            anchor = new Pt(x, Round3((s.Y + t.Y) / 2));
+        }
+        else
+        {
+            var y = Round3((route.From.Y + route.To.Y) / 2 + hx * run);
+            vertices = [s, new Pt(s.X, y), new Pt(t.X, y), t];
+            radii = [radius + turn, radius - turn];
+            anchor = new Pt(Round3((s.X + t.X) / 2), y);
+        }
+        if (!ReferenceEquals(source, f.A))
+        {
+            Array.Reverse(vertices);
+            Array.Reverse(radii);
+        }
+        var (path, points) = Staircase(vertices, radii);
+        return new LaneLine(path, anchor.X, anchor.Y, points);
     }
 
     private static double Sign(double x) => x > 0 ? 1 : x < 0 ? -1 : 0;
+
+    /// <summary>How far the outermost lane of a pair is from the line between the centres. The lanes are centred, so it is the same either side.</summary>
+    private static double WidestOf(LaneSlot slot, double pitch)
+    {
+        var widest = 0.0;
+        for (var k = 0; k < slot.Lanes; k++) widest = Math.Max(widest, Math.Abs(OffsetOf(slot with { Lane = k }, pitch)));
+        return widest;
+    }
 
     /// <summary>
     /// How far the middle of lane <c>slot.Lane</c> is moved along <c>n</c> in <paramref name="pose"/>, for a pair whose shapes are <paramref name="length"/> apart and whose lanes are
@@ -244,9 +515,7 @@ public static class Lanes
     {
         if (slot.Lanes < 2 && pose.Lam.All(l => l == 0)) return 0;
         var offset = OffsetOf(slot, pitch);
-        var widest = 0.0;
-        for (var k = 0; k < slot.Lanes; k++) widest = Math.Max(widest, Math.Abs(OffsetOf(slot with { Lane = k }, pitch)));
-        var spread = Math.Min(SpreadPitch / pitch, 1 + 0.2 * length / (widest + Pitch));
+        var spread = Math.Min(SpreadPitch / pitch, 1 + 0.2 * length / (WidestOf(slot, pitch) + Pitch));
         var gap = Math.Min(18, 0.2 * length);
         var parted = 0.0;
         for (var j = 0; j < pose.Lam.Count; j++) parted += pose.Lam[j] * Sign(slot.Lane - j);
@@ -340,11 +609,10 @@ public static class Lanes
     }
 
     /// <summary>The pitch and the distance between the shapes of a pair of boxes the lane <paramref name="slot"/> is among: what a pose and the marks need to say where the neighbours of a lane are.</summary>
-    private static (double Pitch, double Length) LayoutOf(LaneBox source, LaneBox target, LaneSlot slot)
+    private static (double Pitch, double Length) LayoutOf(LaneBox source, LaneBox target, LaneSlot slot, string style)
     {
         var f = FrameOf(source, target);
-        var half = Math.Min(HalfRoom(f.A, f.N), HalfRoom(f.B, f.N));
-        return (PitchFor(half, slot), f.Length);
+        return (PitchFor(SpanOf(f, RouteOf(f, style)), slot), f.Length);
     }
 
     /// <summary>
@@ -352,10 +620,10 @@ public static class Lanes
     /// pixels: the pitch at both ends and more in the middle where a lit lane has opened a gap beside it (<see cref="PartClear"/> beside a lit lane). Infinity for a lane with no neighbour. The marks
     /// of an outcome use it to stay clear of the lines beside.
     /// </summary>
-    public static double GapBeside(LaneBox source, LaneBox target, LaneSlot slot, LanePose pose, double t)
+    public static double GapBeside(LaneBox source, LaneBox target, LaneSlot slot, LanePose pose, double t, string style = "straight")
     {
         if (slot.Lanes < 2) return double.PositiveInfinity;
-        var (pitch, length) = LayoutOf(source, target, slot);
+        var (pitch, length) = LayoutOf(source, target, slot, style);
         double At(int lane)
         {
             var mine = slot with { Lane = lane };
@@ -378,13 +646,11 @@ public static class Lanes
     /// How far from the lit lane a mark that hangs off it (the marker of whoever takes an intercepted request) must stand to clear every other lane of the bundle: the widest lane offset from the
     /// middle plus the gap a lit lane opens. 0 for a lane with no neighbours.
     /// </summary>
-    public static double BundleReach(LaneBox source, LaneBox target, LaneSlot slot)
+    public static double BundleReach(LaneBox source, LaneBox target, LaneSlot slot, string style = "straight")
     {
         if (slot.Lanes < 2) return 0;
-        var (pitch, length) = LayoutOf(source, target, slot);
-        var widest = 0.0;
-        for (var k = 0; k < slot.Lanes; k++) widest = Math.Max(widest, Math.Abs(OffsetOf(slot with { Lane = k }, pitch)));
-        return Round3(widest + Math.Min(18, 0.2 * length));
+        var (pitch, length) = LayoutOf(source, target, slot, style);
+        return Round3(WidestOf(slot, pitch) + Math.Min(18, 0.2 * length));
     }
 
     /// <summary>How far ahead of the pattern, in pixels, the dots of a stream on a lane start: lane * 12.1 / lanes, so the streams of neighbouring lanes do not march in step (the pattern repeats every 12 px).</summary>
