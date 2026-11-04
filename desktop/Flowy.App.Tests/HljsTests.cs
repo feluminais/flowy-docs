@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using System.Text.Json.Nodes;
 using Flowy.Core;
 using Jint;
@@ -71,6 +72,19 @@ public class HljsTests
         Assert.Equal(2, engine.Evaluate("1 + 1").AsNumber()); // a run after a pause longer than the limit still gets the whole limit
         budget.Limit = TimeSpan.FromSeconds(30);
         Assert.Equal(3, engine.Evaluate("let n = 0; for (let i = 0; i < 3; i++) n++; n").AsNumber());
+    }
+
+    [Fact]
+    public void A_pattern_the_script_builds_is_stopped_at_the_engine_limit_not_at_5_s()
+    {
+        // Jint 4.17 gives a `new RegExp` 5 s whatever the engine says; Hljs.BoundPatterns gives it the engine's limit. If this fails after a Jint
+        // update, check whether the release reads RegexTimeoutInterval itself (sebastienros/jint#3443) and drop BoundPatterns if so.
+        var engine = new Engine(o => o.RegexTimeoutInterval(TimeSpan.FromMilliseconds(300)));
+        Assert.True(Hljs.BoundPatterns(engine, TimeSpan.FromMilliseconds(300)), "Jint no longer has the private _defaultParser field");
+        engine.Execute(Engine.PrepareScript("function crawl(s) { return new RegExp('^(a+)+$').test(s) }"));
+        var clock = Stopwatch.StartNew();
+        Assert.Throws<RegexMatchTimeoutException>(() => engine.Invoke("crawl", new string('a', 40) + "!"));
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(3), $"took {clock.Elapsed}");
     }
 
     [Fact]
