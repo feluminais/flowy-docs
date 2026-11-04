@@ -3,12 +3,16 @@ namespace Flowy.Core;
 /// <summary>
 /// A flow on the canvas: where each step lands in the view (null if it can't be shown), and the step to light up. Without a step or steps nothing is
 /// lit or dimmed. <c>Steps</c> lights several at once (a parallel stop); <c>Faint</c> draws steps as dashed, faint lanes (the lanes of a branch this stop
-/// is not in) without lighting their boxes.
+/// is not in) without lighting their boxes. <c>Strands</c>, where a project draws a line for each connection, is the line each step rides (the id of its strand,
+/// see <see cref="Strands.StrandOf"/>; null for a step that rides none); without it a step rides the first line that runs its way.
 /// </summary>
-public sealed record Playing(IReadOnlyList<(string From, string To)?> Ends, int? Step = null, IReadOnlyList<int>? Steps = null, IReadOnlyList<int>? Faint = null, IReadOnlyList<string>? Also = null);
+public sealed record Playing(IReadOnlyList<(string From, string To)?> Ends, int? Step = null, IReadOnlyList<int>? Steps = null, IReadOnlyList<int>? Faint = null, IReadOnlyList<string>? Also = null, IReadOnlyList<string?>? Strands = null);
 
-/// <summary>What the reader is pointing at: the selected box, the selected line, and the line the pointer is on (on the canvas, or in a box's panel).</summary>
-public sealed record Focus(string? Box = null, string? Line = null, string? Hover = null);
+/// <summary>
+/// What the reader is pointing at: the selected box, the selected line (the id of a line, or of a pair: all its lines are selected), the line the pointer is on (on the canvas, or in a box's
+/// panel; the id of a line or of a pair), and the line keyboard focus is on, so its pair spreads.
+/// </summary>
+public sealed record Focus(string? Box = null, string? Line = null, string? Hover = null, string? Focused = null);
 
 public enum BoxMode { Normal, Lit, Dim }
 
@@ -34,8 +38,23 @@ public enum EdgeFlags
 /// <summary>
 /// <c>Label</c> is null unless the line should show it now. <c>Both</c>: connections run both ways, so it has an arrowhead at each end. <c>Look</c> is how the line is
 /// drawn when it is not the plain line (the pattern and the marks of the kind its connections share, see <see cref="Kinds.MergedLook"/>), else null; a step's line has none.
+/// Where a project draws a line for each connection, <c>Id</c> is the line's own (what hit tests and animation read) and <c>Pair</c> the id of the pair's one merged line, which everything
+/// about a pair (traffic, failure marks, a compared flow) keeps using; <c>Slot</c> is the line's place among its pair's lanes and <c>Lanes</c> how many there are; <c>Spread</c> is set while
+/// the pair is spread so every label fits. All four are null (<c>Lanes</c> 1, <c>Spread</c> false) for a line that stands for its whole pair.
 /// </summary>
-public sealed record SceneEdge(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Selected, bool Both = false, LineLook? Look = null);
+public sealed record SceneEdge(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Selected, bool Both = false, LineLook? Look = null)
+{
+    public string? Pair { get; init; }
+
+    public LaneSlot? Slot { get; init; }
+
+    public int Lanes { get; init; } = 1;
+
+    public bool Spread { get; init; }
+
+    /// <summary>The id of the pair's one merged line: the line's own id except where the project draws a line for each connection.</summary>
+    public string PairId => Pair ?? Id;
+}
 
 /// <summary>Everything the canvas draws for one view: boxes with places, lines, and the frame around the members when you are inside a box.</summary>
 public sealed record Scene(string View, string FrameName, IReadOnlyList<SceneBox> Boxes, IReadOnlyList<SceneEdge> Edges, Rect? Frame, IReadOnlyList<string> Members);
@@ -52,6 +71,32 @@ public static class SceneBuilder
     }
 
     private const double Gap = 30;
+
+    /// <summary>A line before the focus has been put on it: what the model and the flow make of it.</summary>
+    private sealed record Drawn(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Both, LineLook? Look, string? Pair = null, LaneSlot? Slot = null, int Lanes = 1)
+    {
+        public string PairId => Pair ?? Id;
+    }
+
+    /// <summary>
+    /// The pair a line belongs to: the id of the pair's one merged line, which is the line's own id except where a project draws a line for each connection (<see cref="SceneEdge.Pair"/>).
+    /// Everything about a pair (the widths of traffic, the failure marks, the halo of a compared flow) is kept by it. A port of pairOf in ui/src/graph.ts.
+    /// </summary>
+    public static string PairOf(SceneEdge e) => e.PairId;
+
+    /// <summary>
+    /// What a screen reader says for a line of a pair that has several ("2 of 5, from Management to UI, Scan results, Request and reply"): its place among them, the way it runs, its label and its kind.
+    /// A line alone between its two shapes is named as <see cref="LineName"/> names it. A port of strandName in ui/src/graph.ts.
+    /// </summary>
+    public static string StrandName(Model model, Strand s)
+    {
+        if (s.Lanes < 2) return LineName(model, s.From, s.To, s.Label, false, s.Kind);
+        return $"{s.Lane + 1} of {s.Lanes}, from {Views.NameOf(model, s.From)} to {Views.NameOf(model, s.To)}{(s.Label != "" ? $", {s.Label}" : "")}{(s.Kind is null ? "" : $", {Kinds.NameOf(s.Kind)}")}";
+    }
+
+    /// <summary>What a screen reader says for a line: "A to B" ("A and B" when it runs both ways), then its label and its kind when it has them. A port of lineName in ui/src/graph.ts.</summary>
+    public static string LineName(Model model, string from, string to, string? label = null, bool both = false, string? kind = null) =>
+        $"{Views.NameOf(model, from)} {(both ? "and" : "to")} {Views.NameOf(model, to)}{(string.IsNullOrEmpty(label) ? "" : $", {label}")}{(kind is null ? "" : $", {Kinds.NameOf(kind)}")}";
 
     public static string LineId(string from, string to) => Views.LineKey(from, to);
 
@@ -124,7 +169,8 @@ public static class SceneBuilder
         IReadOnlyList<int>? stepsLit = playing?.Steps ?? (playing?.Step is { } one ? [one] : null);
         var dimming = stepsLit is not null;
         (string From, string To)? PlacedAt(int i) => playing is not null && i >= 0 && i < playing.Ends.Count ? playing.Ends[i] : null;
-        var litEnds = (stepsLit ?? []).Select(PlacedAt).Where(e => e is not null).Select(e => e!.Value).ToList();
+        var litSteps = (stepsLit ?? []).Where(i => PlacedAt(i) is not null).ToList();
+        var litEnds = litSteps.Select(i => PlacedAt(i)!.Value).ToList();
         var litBoxes = litEnds.SelectMany(e => new[] { e.From, e.To }).Concat(playing?.Also ?? []).ToHashSet(); // Also: a shape that takes a request off a line is lit with the step
         var faintSteps = (playing?.Faint ?? []).Select(i => (I: i, E: PlacedAt(i))).Where(f => f.E is not null).Select(f => (f.I, E: f.E!.Value)).ToList();
         var at = SpotsOf(model, view, computed, boxes);
@@ -137,49 +183,90 @@ public static class SceneBuilder
         }).Where(id => id is not null).ToHashSet();
 
         var inside = Views.ChildCounts(model);
+        // Where a project draws a line for each connection, a step rides one of the pair's lines: the one it names (see Strands.StrandOf), else the first that runs its way.
+        var strands = computed.Strands;
+        string? StrandAt(int i)
+        {
+            if (strands is null) return null;
+            if (playing?.Strands is { } listed) return i >= 0 && i < listed.Count ? listed[i] : null;
+            return PlacedAt(i) is { } e ? Strands.Candidates(computed, e).FirstOrDefault()?.Id : null;
+        }
         // A step rides a line that runs its way, or one with connections both ways. Against a one-way line it gets a dashed one, so no arrow points against it.
         var runs = computed.Edges.SelectMany(e => e.Both ? new[] { (e.From, e.To), (e.To, e.From) } : new[] { (e.From, e.To) }).ToHashSet();
-        bool Rides((string From, string To) e) => runs.Contains((e.From, e.To));
-        var litLines = litEnds.Where(Rides).Select(e => LineId(e.From, e.To)).ToHashSet();
-        var faintLines = faintSteps.Where(f => Rides(f.E)).Select(f => LineId(f.E.From, f.E.To)).ToHashSet();
+        bool Rides((string From, string To) e, int i) => strands is null ? runs.Contains((e.From, e.To)) : StrandAt(i) is not null;
+        var litLines = litSteps.Where(i => Rides(PlacedAt(i)!.Value, i)).Select(i => LineId(PlacedAt(i)!.Value.From, PlacedAt(i)!.Value.To)).ToHashSet();
+        var litStrands = litSteps.Select(StrandAt).OfType<string>().ToHashSet();
+        var faintLines = faintSteps.Where(f => Rides(f.E, f.I)).Select(f => LineId(f.E.From, f.E.To)).ToHashSet();
+        var faintStrands = faintSteps.Select(f => StrandAt(f.I)).OfType<string>().ToHashSet();
+        var badConnections = problems.Where(p => p.Connection is not null).Select(p => p.Connection!.Value).ToHashSet();
         bool IsLit(string from, string to) => litLines.Contains(LineId(from, to));
         bool IsFaint(string from, string to) => faintLines.Contains(LineId(from, to));
         var sceneBoxes = boxes.Select(id => new SceneBox(
             id, model.Objects[id], new Rect(at[id].X, at[id].Y, BoxGeometry.BoxWidth, BoxGeometry.BoxHeight), inside.GetValueOrDefault(id),
             !isMember.Contains(id),
             !dimming ? BoxMode.Normal : litBoxes.Contains(id) ? BoxMode.Lit : BoxMode.Dim,
-            badBoxes.Contains(id)) { Icon = Look.IconData(model, model.Objects[id]) }).ToList();
+            badBoxes.Contains(id))
+        { Icon = Look.IconData(model, model.Objects[id]) }).ToList();
 
-        var lines = new List<(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Both, LineLook? Look)>();
-        foreach (var e in computed.Edges)
+        var lines = new List<Drawn>();
+        if (strands is not null)
         {
-            var flags = EdgeFlags.None;
-            if (dimming) flags |= IsLit(e.From, e.To) ? EdgeFlags.Active : IsFaint(e.From, e.To) ? EdgeFlags.Lane : EdgeFlags.Dim;
-            if (badLines.Contains(LineId(e.From, e.To))) flags |= EdgeFlags.Problem;
-            lines.Add((LineId(e.From, e.To), e.From, e.To, e.Label == "" ? null : e.Label, flags, e.Both, e.Look));
+            var slots = Lanes.SlotsOf(strands);
+            foreach (var s in strands)
+            {
+                var flags = EdgeFlags.None;
+                if (dimming) flags |= litStrands.Contains(s.Id) ? EdgeFlags.Active : faintStrands.Contains(s.Id) ? EdgeFlags.Lane : EdgeFlags.Dim;
+                if (s.Connections.Any(badConnections.Contains)) flags |= EdgeFlags.Problem;
+                lines.Add(new Drawn(s.Id, s.From, s.To, s.Label == "" ? null : s.Label, flags, false, s.Look, s.Pair, slots[s.Id], s.Lanes));
+            }
+        }
+        else
+        {
+            foreach (var e in computed.Edges)
+            {
+                var flags = EdgeFlags.None;
+                if (dimming) flags |= IsLit(e.From, e.To) ? EdgeFlags.Active : IsFaint(e.From, e.To) ? EdgeFlags.Lane : EdgeFlags.Dim;
+                if (badLines.Contains(LineId(e.From, e.To))) flags |= EdgeFlags.Problem;
+                lines.Add(new Drawn(LineId(e.From, e.To), e.From, e.To, e.Label == "" ? null : e.Label, flags, e.Both, e.Look));
+            }
         }
         // A one-box step lights its box, no line. A step with no line it can ride gets a dashed line, and so does a faint one.
         var drawn = new HashSet<string>();
         for (var n = 0; n < litEnds.Count; n++)
         {
             var e = litEnds[n];
-            if (e.From == e.To || Rides(e) || !drawn.Add(LineId(e.From, e.To))) continue;
-            lines.Add((n == 0 ? "step" : $"step-{n}", e.From, e.To, null, EdgeFlags.Step, false, null));
+            if (e.From == e.To || Rides(e, litSteps[n]) || !drawn.Add(LineId(e.From, e.To))) continue;
+            lines.Add(new Drawn(n == 0 ? "step" : $"step-{n}", e.From, e.To, null, EdgeFlags.Step, false, null));
         }
         foreach (var (i, e) in faintSteps)
         {
-            if (e.From == e.To || Rides(e) || !drawn.Add(LineId(e.From, e.To))) continue;
-            lines.Add(($"lane-{i}", e.From, e.To, null, EdgeFlags.Lane, false, null));
+            if (e.From == e.To || Rides(e, i) || !drawn.Add(LineId(e.From, e.To))) continue;
+            lines.Add(new Drawn($"lane-{i}", e.From, e.To, null, EdgeFlags.Lane, false, null));
         }
 
+        // Where a pair has several lines side by side, the pair is spread (the lanes widen so every label fits) while it is selected, or a line of it, or a box on it, or keyboard focus is on one
+        // of its lines; a step playing on the pair wins over all of those. The label of every line of a spread pair shows. A line pointed at shows its own label, and its pair does not move under the pointer.
+        string? PairIn(string? id) => id is null ? null : lines.FirstOrDefault(l => l.Id == id)?.PairId ?? id;
+        var (selectedPair, focusedPair) = (PairIn(focus.Line), PairIn(focus.Focused));
+        var playingOn = lines.Where(l => l.Flags.HasFlag(EdgeFlags.Active)).Select(l => l.PairId).ToHashSet();
         var edges = lines.Select(e =>
         {
             var touches = e.From == focus.Box || e.To == focus.Box;
-            var shown = touches || e.Id == focus.Line || e.Id == focus.Hover || e.Flags.HasFlag(EdgeFlags.Active);
+            var pair = e.PairId;
+            var several = e.Lanes > 1;
+            var together = touches || (e.Pair is not null && (pair == selectedPair || pair == focusedPair));
+            var hovered = e.Id == focus.Hover || (e.Pair is not null && pair == focus.Hover);
+            var shown = together || e.Id == focus.Line || hovered || e.Flags.HasFlag(EdgeFlags.Active);
             var flags = e.Flags;
             if (focus.Box is not null && !touches) flags |= EdgeFlags.Faint;
-            if (e.Id == focus.Hover) flags |= EdgeFlags.Hover;
-            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line, e.Both, e.Look);
+            if (hovered) flags |= EdgeFlags.Hover;
+            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line || (e.Pair is not null && focus.Line == pair), e.Both, e.Look)
+            {
+                Pair = e.Pair,
+                Slot = e.Slot,
+                Lanes = e.Lanes,
+                Spread = several && together && !playingOn.Contains(pair),
+            };
         }).ToList();
 
         var inner = sceneBoxes.Where(b => isMember.Contains(b.Id)).Select(b => b.Rect).ToList();

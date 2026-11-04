@@ -2,9 +2,11 @@ namespace Flowy.Core;
 
 /// <summary>
 /// One line's label to place. <c>Path</c>: the line as SVG path data. <c>Mid</c>: the middle of it, where the label sits unless moved. <c>Width</c> and
-/// <c>Height</c>: the label's box with its padding. <c>Pinned</c>: the label stays at <c>Mid</c> and the others keep clear of it (a lit line's label).
+/// <c>Height</c>: the label's box with its padding. <c>Pinned</c>: the label stays at <c>Mid</c> and the others keep clear of it (a lit line's label). <c>Across</c>: the other lines of the pair
+/// this line is one of, as the points they are made of; the label keeps off them if it can, and is never stacked above or below the middle. <c>Extra</c>: width in pixels the label has besides
+/// its text (the sample of its line that starts the label of a line of a pair side by side, see <see cref="LineLabels.Sample"/>).
 /// </summary>
-public sealed record LabelItem(string Id, string Path, Pt Mid, double Width, double Height, bool Pinned = false);
+public sealed record LabelItem(string Id, string Path, Pt Mid, double Width, double Height, bool Pinned = false, IReadOnlyList<IReadOnlyList<Pt>>? Across = null, double Extra = 0);
 
 /// <summary>
 /// Where each line's label goes, so labels that would sit on top of each other, or side by side close enough to read as one sentence, are read one by
@@ -36,6 +38,38 @@ public static class LineLabels
     private const double PerStep = 10;
     private const double PerStack = 50;
 
+    /// <summary>The cost of a label over the line of another of its pair: dear, but a pair of lines side by side leaves a label no place clear of the others' lines, and then the middle is the best of them.</summary>
+    private const double OnLane = 200;
+
+    /// <summary>The width of the sample of a line (its pattern and marks) that starts the label of a line of a pair side by side, with the space after it.</summary>
+    public const double Sample = 34;
+
+    /// <summary>Whether the line through <paramref name="points"/> passes through <paramref name="box"/> (the ends of its segments count).</summary>
+    private static bool Touches(Rect box, IReadOnlyList<Pt> points)
+    {
+        double x0 = box.X, y0 = box.Y, x1 = box.X + box.Width, y1 = box.Y + box.Height;
+        for (var i = 0; i + 1 < points.Count; i++)
+        {
+            // Liang-Barsky: the part of the segment, as a fraction of it, that lies inside each of the box's four sides; the segment touches the box when some part lies inside all four.
+            var (p, q) = (points[i], points[i + 1]);
+            var dx = q.X - p.X;
+            var dy = q.Y - p.Y;
+            double low = 0, high = 1;
+            var inside = true;
+            foreach (var (step, room) in new[] { (-dx, p.X - x0), (dx, x1 - p.X), (-dy, p.Y - y0), (dy, y1 - p.Y) })
+            {
+                if (step == 0)
+                {
+                    if (room < 0) inside = false;
+                }
+                else if (step < 0) low = Math.Max(low, room / step);
+                else high = Math.Min(high, room / step);
+            }
+            if (inside && low <= high) return true;
+        }
+        return false;
+    }
+
     /// <summary>How much of <paramref name="a"/> lies within <paramref name="b"/>, with <paramref name="gapX"/> added to each side of it and <paramref name="gapY"/> above and below.</summary>
     private static double Overlap(Rect a, Rect b, double gapX = 0, double gapY = 0)
     {
@@ -45,7 +79,7 @@ public static class LineLabels
     }
 
     /// <summary>The box of an item's label centred on <paramref name="at"/>.</summary>
-    public static Rect Around(Pt at, LabelItem item) => new(at.X - item.Width / 2, at.Y - item.Height / 2, item.Width, item.Height);
+    public static Rect Around(Pt at, LabelItem item) => new(at.X - (item.Width + item.Extra) / 2, at.Y - item.Height / 2, item.Width + item.Extra, item.Height);
 
     /// <summary>
     /// The spot for each label, by line id. Pinned ones stay put. The rest go widest first (the hardest to fit), each at the first place along its line,
@@ -70,7 +104,9 @@ public static class LineLabels
                 var (x, y) = s == 0.5 ? (item.Mid.X, item.Mid.Y) : PathPoints.PointAt(line, s);
                 candidates.Add((new Pt(x, y), Math.Abs(s - 0.5) * PerStep));
             }
-            foreach (var k in Stacked) candidates.Add((new Pt(item.Mid.X, item.Mid.Y + k * (item.Height + Apart)), Math.Abs(k) * PerStack));
+            // A label of a line with others beside it slides along its own line and no further: stacked above or below, it would sit on another line's place.
+            if (item.Across is null)
+                foreach (var k in Stacked) candidates.Add((new Pt(item.Mid.X, item.Mid.Y + k * (item.Height + Apart)), Math.Abs(k) * PerStack));
             var best = candidates[0];
             var bestCost = double.PositiveInfinity;
             foreach (var c in candidates)
@@ -81,7 +117,9 @@ public static class LineLabels
                 foreach (var b in boxes) onBoxes += Overlap(label, b) > 0 ? OnBox : 0;
                 var onLabels = 0.0;
                 foreach (var p in placed) onLabels += Overlap(label, p, RowGap, Apart);
-                var cost = c.Cost + onBoxes + onLabels;
+                var onLanes = 0.0;
+                foreach (var other in item.Across ?? []) onLanes += Touches(label, other) ? OnLane : 0;
+                var cost = c.Cost + onBoxes + onLabels + onLanes;
                 if (cost < bestCost)
                 {
                     best = c;

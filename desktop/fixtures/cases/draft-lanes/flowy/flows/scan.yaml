@@ -1,0 +1,9 @@
+name: Scan
+view: root
+steps:
+  - { from: ui, to: management, text: The screen starts a scan, via: Start scan }
+  - { from: management, to: ui, text: The first results come back }
+  - { from: management, to: ui, text: The radio says it is on, via: radio state }
+  - { from: management, to: linux, text: The config is applied }
+  - { from: linux, to: management, text: Linux answers }
+  - { from: management, to: bus, text: Nothing returns on a publish }

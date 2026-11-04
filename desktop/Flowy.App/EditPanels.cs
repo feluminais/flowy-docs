@@ -350,12 +350,17 @@ internal sealed class LineEditor : StackPanel
     private sealed class Row
     {
         public int Index;
+        public string? Line;
         public ConnectionInput Which = new("", "");
         public required FieldBox Label;
         public required Chooser Kind;
         public required StackPanel Problems;
         public required Control Inside;
         public required StackPanel Payloads;
+        public required Border Card;
+        public required StackPanel Move;
+        public required Button Up;
+        public required Button Down;
         public string PayloadSignature = "\u0000";
     }
 
@@ -371,13 +376,14 @@ internal sealed class LineEditor : StackPanel
     private readonly EditRun _run;
     private readonly Action _closed;
     private readonly Action<IReadOnlyList<Target>, Action?> _askDelete;
+    private readonly Action<string?>? _hover;
     private readonly StackPanel _header = new();
     private readonly StackPanel _rows = new() { Spacing = 12 };
     private readonly List<Row> _live = [];
 
-    public LineEditor(SidePanel owner, string from, string to, EditRun run, Action closed, Action<IReadOnlyList<Target>, Action?> askDelete)
+    public LineEditor(SidePanel owner, string from, string to, EditRun run, Action closed, Action<IReadOnlyList<Target>, Action?> askDelete, Action<string?>? hover = null)
     {
-        (_owner, _from, _to, _run, _closed, _askDelete) = (owner, from, to, run, closed, askDelete);
+        (_owner, _from, _to, _run, _closed, _askDelete, _hover) = (owner, from, to, run, closed, askDelete, hover);
         Spacing = 12;
         Children.Add(_header);
         Children.Add(_rows);
@@ -396,7 +402,13 @@ internal sealed class LineEditor : StackPanel
     /// <summary>The kind tiles of each connection's form, in order, for tests.</summary>
     internal IReadOnlyList<Chooser> KindChoices => _live.Select(r => r.Kind).ToList();
 
-    public void Update(Model model, string view, IReadOnlyList<Problem> problems)
+    /// <summary>The Move up and Move down buttons of each connection's form, in order, for tests.</summary>
+    internal IReadOnlyList<(Button Up, Button Down, bool Shown)> MoveButtons => _live.Select(r => (r.Up, r.Down, r.Move.IsVisible)).ToList();
+
+    /// <summary>The forms that are the card of the line picked on the canvas, for tests.</summary>
+    internal IReadOnlyList<int> CurrentConnections => _live.Where(r => r.Card.Classes.Contains("current")).Select(r => r.Index).ToList();
+
+    public void Update(Model model, string view, IReadOnlyList<Problem> problems, string? strand = null)
     {
         // As the panel a reader sees: one heading per way when connections run both ways (see SidePanel.Ways).
         var ways = SidePanel.Ways(model, _from, _to, Navigation.ConnectionsOf(model, view, _from, _to));
@@ -413,11 +425,27 @@ internal sealed class LineEditor : StackPanel
                 foreach (var (index, _, _) in way.Lines) _rows.Children.Add(Build(index));
             }
         }
+        // Where a project draws a line for each connection, each connection is a line of its own: the id of the one each form is, to light it on the canvas and to show which one was picked.
+        var drawn = SidePanel.StrandsOf(model, view);
         for (var i = 0; i < lines.Count; i++)
         {
             var (index, c, wayFrom, wayTo) = lines[i];
             var row = _live[i];
             row.Which = new ConnectionInput(c.From ?? "", c.To ?? "", c.Label ?? "");
+            // The connections that run the same way, in the order of the file, which is the order of the lanes: Move up and Move down swap this one with its neighbour among them.
+            var neighbours = ways.Groups.First(w => w.Lines.Any(l => l.Index == index)).Lines;
+            var place = neighbours.FindIndex(l => l.Index == index);
+            // Never hidden where each connection has a line of its own: a connection with no other going its way greys both buttons out and says why on each.
+            row.Move.IsVisible = drawn is not null;
+            row.Up.IsEnabled = place > 0;
+            ToolTip.SetTip(row.Up, place > 0 ? null : neighbours.Count < 2 ? Lanes.OnlyLineThisWay : Lanes.AlreadyFirst);
+            row.Down.IsEnabled = place >= 0 && place < neighbours.Count - 1;
+            ToolTip.SetTip(row.Down, row.Down.IsEnabled ? null : neighbours.Count < 2 ? Lanes.OnlyLineThisWay : Lanes.AlreadyLast);
+            row.Up.Tag = place > 0 ? new[] { index, neighbours[place - 1].Index } : null;
+            row.Down.Tag = row.Down.IsEnabled ? new[] { index, neighbours[place + 1].Index + 1 } : null;
+            row.Line = drawn is not null && drawn.TryGetValue(c, out var own) ? own : null;
+            if (row.Line is not null && row.Line == strand) row.Card.Classes.Add("current");
+            else row.Card.Classes.Remove("current");
             row.Label.Sync(c.Label ?? "");
             row.Kind.Show(Kinds.KindOf(c) ?? "");
             row.Inside.IsVisible = c.From != wayFrom || c.To != wayTo;
@@ -487,14 +515,41 @@ internal sealed class LineEditor : StackPanel
         var inside = _owner.Muted("");
         var problems = new StackPanel();
         var payloads = new StackPanel { Spacing = 8 };
-        row = new Row { Index = index, Label = label, Kind = kind, Problems = problems, Inside = inside, Payloads = payloads };
+        var up = MoveButton(Icons.ArrowUp, Lanes.MoveUp);
+        var down = MoveButton(Icons.ArrowDown, Lanes.MoveDown);
+        var move = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, IsVisible = false, Children = { up, down } };
+        var card = Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, move, label, kind, payloads, problems } });
+        row = new Row { Index = index, Label = label, Kind = kind, Problems = problems, Inside = inside, Payloads = payloads, Card = card, Move = move, Up = up, Down = down };
+        // The first connection of the form on its way up, or the last on its way down, cannot move: the buttons are greyed out with the reason. Each carries the places to swap.
+        up.Click += (_, _) => Move(up);
+        down.Click += (_, _) => Move(down);
+        card.PointerEntered += (_, _) => _hover?.Invoke(row.Line);
+        card.PointerExited += (_, _) => _hover?.Invoke(null);
         var delete = new Button { HorizontalAlignment = HorizontalAlignment.Left };
         delete.Classes.Add("tool");
         delete.Classes.Add("danger");
         Chrome.Fill(delete, Icons.Trash, "Delete");
         delete.Click += (_, _) => _askDelete([new Target(Line: new LineTarget(row.Which.From, row.Which.To, row.Which.Label ?? ""))], _live.Count <= 1 ? _closed : null);
         _live.Add(row);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, label, kind, payloads, problems, delete } });
+        ((StackPanel)card.Child!).Children.Add(delete);
+        return card;
+    }
+
+    private static Button MoveButton(string icon, string words)
+    {
+        var button = new Button { HorizontalAlignment = HorizontalAlignment.Left };
+        button.Classes.Add("tool");
+        Chrome.Fill(button, icon, words);
+        // The reason a button is greyed out (set when the form syncs) has to show on the disabled button, which Avalonia does not do by default.
+        ToolTip.SetShowOnDisabled(button, true);
+        return button;
+    }
+
+    /// <summary>Swaps a connection with its neighbour: it goes before the connection the button was given (<c>Tag</c>: the place to move, and the place it goes before).</summary>
+    private void Move(Button button)
+    {
+        if (button.Tag is not int[] { Length: 2 } move) return;
+        _ = _run(d => EditOps.ReorderConnections(d, [move[0]], move[1]));
     }
 }
 

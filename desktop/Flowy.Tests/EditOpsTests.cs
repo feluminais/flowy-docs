@@ -70,6 +70,7 @@ public class EditOpsTests
             case "removeConnection": return EditOps.RemoveConnection(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")));
             case "relabel": return EditOps.Relabel(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "label")!);
             case "setKind": return EditOps.SetKind(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "which")), Str(s, "kind")!);
+            case "reorderConnections": return EditOps.ReorderConnections(doc, s["indexes"]!.AsArray().Select(i => i!.GetValue<double>()).ToList(), s["before"]!.GetValue<double>());
             case "putFlow": return EditOps.PutFlow(doc, Str(s, "id")!, Str(s, "name")!, Str(s, "view")!, Steps(s["steps"]), Groups(s["groups"]), Groups(s["states"]), Str(s, "folder"), Tags(s["tags"]));
             case "moveFlow": return EditOps.MoveFlow(doc, Str(s, "id")!, Str(s, "folder")!);
             case "setFlowTags": return EditOps.SetFlowTags(doc, Str(s, "id")!, Tags(s["tags"])!);

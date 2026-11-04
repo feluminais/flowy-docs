@@ -34577,6 +34577,7287 @@
       ]
     },
     {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "step": 0,
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "step": 1,
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "step": 2,
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "step": 3,
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": "Apply config",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "step": 4,
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": "Link state",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "step": 5,
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": "Events",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "step": 1,
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {
+        "line": "management ui|ui>management|Set country"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": "Request and reply",
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [
+            "dim"
+          ],
+          "selected": true,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": {
+        "ends": [
+          [
+            "ui",
+            "management"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "ui"
+          ],
+          [
+            "management",
+            "linux"
+          ],
+          [
+            "linux",
+            "management"
+          ],
+          [
+            "management",
+            "bus"
+          ]
+        ],
+        "steps": [
+          0,
+          3
+        ],
+        "strands": [
+          "management ui|ui>management|Start scan",
+          "management ui|management>ui|Scan results",
+          "management ui|management>ui|Radio state",
+          "linux management|management>linux|Apply config",
+          "linux management|linux>management|Link state",
+          "bus management|management>bus|Events"
+        ]
+      },
+      "focus": {},
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [
+            "lit"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [
+            "dim"
+          ],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": "Apply config",
+          "classes": [
+            "active"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "line": "management ui|ui>management|Request and reply"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": "Request and reply",
+          "classes": [],
+          "selected": true,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "line": "management ui"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": "Request and reply",
+          "classes": [],
+          "selected": true,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [],
+          "selected": true,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [],
+          "selected": true,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [],
+          "selected": true,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [],
+          "selected": true,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "hover": "management ui|ui>management|Set country"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [
+            "hover"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "hover": "management ui"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": "Request and reply",
+          "classes": [
+            "hover"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [
+            "hover"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [
+            "hover"
+          ],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [
+            "hover"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [
+            "hover"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "focused": "management ui|ui>management|Request and reply"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": "Request and reply",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "box": "management"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": "Request and reply",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": "Apply config",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          },
+          "spread": true
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": "Link state",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          },
+          "spread": true
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": "Fetch update",
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": "Report",
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": "Heartbeat",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": "Events",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": "Reading 1",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": "Reading 2",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": "Reading 3",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": "Reading 4",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": "Reading 5",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": "Reading 6",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": "Poll 1",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": "Poll 2",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": "Poll 3",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": "Poll 4",
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          },
+          "spread": true
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "box": "cloud",
+        "line": "management ui|ui>management|Set country"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": "Request and reply",
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": "Start scan",
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": "Set country",
+          "classes": [
+            "faint"
+          ],
+          "selected": true,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": "Scan results",
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": "Radio state",
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": "Fetch update",
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": "Report",
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": "Heartbeat",
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          },
+          "spread": true
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "view": "root",
+      "playing": null,
+      "focus": {
+        "line": "nowhere"
+      },
+      "boxes": [
+        {
+          "id": "ui",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "management",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "linux",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "cloud",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "bus",
+          "classes": [],
+          "inside": 0
+        },
+        {
+          "id": "sensor",
+          "classes": [],
+          "inside": 0
+        }
+      ],
+      "edges": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 0,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 1,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "source": "ui",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 2,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 3,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "source": "management",
+          "target": "ui",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "management ui",
+          "lanes": 5,
+          "slot": {
+            "lane": 4,
+            "lanes": 5,
+            "back": 3
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "source": "management",
+          "target": "linux",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 0,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "source": "linux",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          },
+          "pair": "linux management",
+          "lanes": 2,
+          "slot": {
+            "lane": 1,
+            "lanes": 2,
+            "back": 1
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 0,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 1,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "source": "management",
+          "target": "cloud",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "cloud management",
+          "lanes": 3,
+          "slot": {
+            "lane": 2,
+            "lanes": 3,
+            "back": 3
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "source": "management",
+          "target": "bus",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          },
+          "pair": "bus management",
+          "lanes": 1,
+          "slot": {
+            "lane": 0,
+            "lanes": 1,
+            "back": 1
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 0,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 1,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 2,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 3,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 4,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "source": "sensor",
+          "target": "management",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 5,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 6,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 7,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 8,
+            "lanes": 10,
+            "back": 6
+          }
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "source": "management",
+          "target": "sensor",
+          "label": null,
+          "classes": [],
+          "selected": false,
+          "pair": "management sensor",
+          "lanes": 10,
+          "slot": {
+            "lane": 9,
+            "lanes": 10,
+            "back": 6
+          }
+        }
+      ],
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ]
+    },
+    {
       "folder": "docs/demo/flowy",
       "view": "ordering",
       "playing": null,

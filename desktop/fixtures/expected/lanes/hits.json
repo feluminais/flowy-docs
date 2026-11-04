@@ -1,0 +1,2090 @@
+[
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 1,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 3,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 0.5,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 3,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 2,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 3,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 1,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 4,
+    "back": 2,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l3"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l0"
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 0.5,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 4,
+    "back": 2,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l3"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l0"
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 2,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 4,
+    "back": 2,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l3"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l0"
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 1,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 1,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 0.5,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 1,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "rest",
+    "s": 0,
+    "zoom": 2,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 1,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 1,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 3,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l0"
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 0.5,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 3,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l0"
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 2,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 3,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l0"
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 1,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 4,
+    "back": 2,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": "l3"
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l1"
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 0.5,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 4,
+    "back": 2,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": "l3"
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": "l1"
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 2,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 4,
+    "back": 2,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": "l1"
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": "l3"
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l2"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 1,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 1,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 0.5,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 1,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  },
+  {
+    "pose": "spread",
+    "s": 1,
+    "zoom": 2,
+    "a": {
+      "id": "a",
+      "shape": "rectangle",
+      "x": -100,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "b": {
+      "id": "b",
+      "shape": "rectangle",
+      "x": 300,
+      "y": -36,
+      "width": 200,
+      "height": 72
+    },
+    "lanes": 1,
+    "back": 0,
+    "probes": [
+      {
+        "at": [
+          200,
+          -12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          0
+        ],
+        "strand": "l0"
+      },
+      {
+        "at": [
+          200,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          5.9
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          6.1
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -20
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -30
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          40
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          120,
+          11
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          90,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          310,
+          12
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          22
+        ],
+        "strand": null
+      },
+      {
+        "at": [
+          200,
+          -22
+        ],
+        "strand": null
+      }
+    ]
+  }
+]

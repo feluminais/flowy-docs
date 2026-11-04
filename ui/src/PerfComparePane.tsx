@@ -13,6 +13,8 @@ import { KindKey } from './kinds.tsx'
 import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
 import type { Picked } from './compare.ts'
+import { edgeUnder, lineOf } from './lanehit.ts'
+import type { CanvasPoint } from './lanehit.ts'
 import { fitOptions, focusEdges, frameNode, lineId, sizeOf, toGraph } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import { LabelSpots, Line, LineStyleContext, LineWidthsContext, labelSpots } from './Line.tsx'
@@ -133,6 +135,7 @@ type PaneProps = {
 function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFocus, onPick, onEmpty, selection, fitKey, colorMode, lines, still, alone, ref }: PaneProps) {
   const { perf, drawing, view, nodes, frame, edges, spots } = p
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
+  const canvasAt = useRef<CanvasPoint>(undefined) // to turn the pointer's place on the screen into a place on the canvas
   const fit = () => fitNow.current?.({ ...fitOptions(0, false), duration: 300 })
   useImperativeHandle(ref, () => ({ ...p.keys, fit }))
   const classes = ['pane', 'run-pane', alone && 'alone', focused && 'focused', drawing.loadTraffic && 'loaded', drawing.timeEvents && 'states', perf.scrubbing && 'scrubbing'].filter(Boolean).join(' ')
@@ -161,14 +164,15 @@ function RunPane({ model, runs, p, leaving, paneId, title, label, focused, onFoc
                   onNodeClick={(_, node) => {
                     if (node.type === 'box') onPick({ kind: 'object', id: node.id })
                   }}
-                  onEdgeClick={(_, e) => onPick({ kind: 'line', from: e.source, to: e.target, view })}
-                  onEdgeMouseEnter={(_, e) => p.setHovered(e.id)}
+                  onEdgeClick={(event, hit) => onPick(lineOf(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit), view))} // of the lines of a pair side by side, the one nearest the pointer
+                  onEdgeMouseEnter={(event, hit) => p.setHovered(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit).id)}
                   onEdgeMouseLeave={() => p.setHovered(undefined)}
                   onPaneClick={() => {
                     onFocus()
                     onEmpty() // as on the single canvas, a click on nothing closes the panel
                   }}
                   onInit={instance => {
+                    canvasAt.current = instance
                     fitNow.current = options => void instance.fitView(options)
                   }}
                 >
@@ -199,13 +203,13 @@ type CommonProps = Pick<PaneProps, 'paneId' | 'focused' | 'onFocus' | 'onPick' |
   view: string
   problems: Problem[]
   /** What the shared Details panel shows, as `{ kind, id }` or `{ kind, from, to }`. */
-  shown: { kind: string; id?: string; from?: string; to?: string } | undefined
+  shown: { kind: string; id?: string; from?: string; to?: string; strand?: string } | undefined
 }
 
 /** The Details panel's pick as the shape or line a run's canvas outlines and its panel reads out. */
 function pickedBy(shown: CommonProps['shown']): { box?: string; line?: string; selection?: Shown } {
   if (shown?.kind === 'object' && shown.id !== undefined) return { box: shown.id, selection: { kind: 'object', id: shown.id } }
-  if (shown?.kind === 'line' && shown.from !== undefined && shown.to !== undefined) return { line: lineId(shown.from, shown.to), selection: { kind: 'line', from: shown.from, to: shown.to } }
+  if (shown?.kind === 'line' && shown.from !== undefined && shown.to !== undefined) return { line: shown.strand ?? lineId(shown.from, shown.to), selection: { kind: 'line', from: shown.from, to: shown.to } }
   return {}
 }
 

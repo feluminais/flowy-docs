@@ -57,6 +57,15 @@ public class CanvasLoadTests
     }
 
     [AvaloniaFact]
+    public void A_head_on_one_of_several_lines_is_held_to_the_lane_cap_however_wide_the_traffic_makes_it()
+    {
+        Assert.Equal(1.549, BackLayer.MarkScaleOf(6, 1)); // a line of its own: the full head
+        Assert.Equal(KindKey.LaneMarkScale, BackLayer.MarkScaleOf(6, 3)); // one of three: capped so the head stays inside the 12 px pitch
+        Assert.Equal(1, BackLayer.MarkScaleOf(null, 3)); // no load: the usual head, under the cap
+        Assert.Equal(1, BackLayer.MarkScaleOf(1.2, 3)); // a quiet line keeps the usual head
+    }
+
+    [AvaloniaFact]
     public void A_load_outlines_the_shapes_it_measured_and_numbers_the_queue_and_leaves_the_rest_plain()
     {
         var (canvas, folder) = Open();

@@ -28,7 +28,7 @@ const MARKS_KEY = 'flowy.compare.marks'
  */
 export type CompareHandle = { focused(): PaneHandle | null; focusedRun(): RunPaneHandle | null; swap(): void }
 
-type Shown = { kind: string; id?: string; from?: string; to?: string; view?: string }
+type Shown = { kind: string; id?: string; from?: string; to?: string; view?: string; strand?: string }
 
 type Props = {
   model: Model
@@ -140,7 +140,7 @@ export function CompareView({ model, runs, view, compare, problems, colorMode, l
             return (
               <ComparePane key={keys[slot]} ref={refs[slot]} model={model} paneId={`${id.replace(/[^A-Za-z0-9_-]/g, '_')}-${again(slot)}`} flowId={id} title={model.flows[id].name || id}
                 label={again(slot) ? `${model.flows[id].name || id} (2)` : undefined} startAt={start?.flow === id && !again(slot) ? start.step : undefined} onEmpty={onEmpty} focused={focused === slot} onFocus={() => setFocusKey(keys[slot])}
-                onPick={p => pick(keys[slot], p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? lineId(own.from!, own.to!) : undefined}
+                onPick={p => pick(keys[slot], p)} selectedBox={own?.kind === 'object' ? own.id : undefined} selectedLine={own?.kind === 'line' ? own.strand ?? lineId(own.from!, own.to!) : undefined}
                 marks={marksOf(id)} fitKey={compare.mode} colorMode={colorMode} problems={problems} lines={lines} still={still} />
             )
           })}

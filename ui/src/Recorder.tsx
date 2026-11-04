@@ -24,8 +24,8 @@ import { KindPicker, PartnerPicker, SketchPicker, StatePicker, TagPicker } from 
 import type { PartnerTile, Sketch } from './Pickers.tsx'
 import { ArrowDown, ArrowUp, ArrowsSplit, Check, Columns, GitFork, Play, Plus, Repeat, Route, Text, Trash } from './icons.tsx'
 
-/** The flow being recorded. While `id` is "", it still needs a name. `from` and `to` are the step being picked. */
-export type Recording = { id: string; name: string; folder?: string; from?: string; to?: string }
+/** The flow being recorded. While `id` is "", it still needs a name. `from` and `to` are the step being picked, and `via` the label of the line of the pair a click on that line picked (see Step.via). */
+export type Recording = { id: string; name: string; folder?: string; from?: string; to?: string; via?: string }
 
 /** The step with this detail, or with none when it's blank. */
 function withDescription(step: Step, description: string): Step {
@@ -299,7 +299,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
     e.preventDefault()
     const text = String(new FormData(e.currentTarget).get('text')).trim()
     if (!text || !rec.from || !rec.to) return
-    const step: Step = rec.to === rec.from ? { from: rec.from, text } : { from: rec.from, to: rec.to, text }
+    const step: Step = rec.to === rec.from ? { from: rec.from, text } : { from: rec.from, to: rec.to, text, ...(rec.via ? { via: rec.via } : {}) }
     // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
     const saved = await run(m => (Object.hasOwn(m.flows, rec.id)
       ? updateFlow(m, rec.id, { steps: [...onScreen(m), step] })
@@ -359,7 +359,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
       {rec.from && rec.to ? (
         <form className="form" onSubmit={addStep}>
           <label>
-            {ends(rec.from, rec.to)}
+            {ends(rec.from, rec.to)}{rec.via && rec.to !== rec.from ? `, ${rec.via}` : ''}
             <input name="text" autoFocus placeholder="What happens? Press Enter" onKeyDown={e => e.key === 'Escape' && onChange({ id: rec.id, name: rec.name, ...(rec.folder === undefined ? {} : { folder: rec.folder }) })} />
           </label>
         </form>

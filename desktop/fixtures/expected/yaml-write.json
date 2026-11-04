@@ -11696,6 +11696,201 @@
       "text": "name: Ask\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen asks\n    via: Ask\n  - from: ui\n    to: management\n    text: The screen asks again\n    via: Tell\n  - from: ui\n    to: management\n    text: A via with no text\n    via:\n  - from: ui\n    to: management\n    text: A blank via\n    via: \"   \"\n"
     },
     {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "rel": "model.yaml",
+      "data": {
+        "name": "Draft lanes",
+        "pairs": "separate",
+        "objects": {
+          "ui": {
+            "type": "system",
+            "name": "UI"
+          },
+          "management": {
+            "type": "system",
+            "name": "Management"
+          },
+          "linux": {
+            "type": "system",
+            "name": "Linux",
+            "shape": "diamond"
+          },
+          "cloud": {
+            "type": "system",
+            "name": "Cloud",
+            "shape": "ellipse"
+          },
+          "bus": {
+            "type": "system",
+            "name": "Bus"
+          },
+          "sensor": {
+            "type": "system",
+            "name": "Sensor"
+          }
+        },
+        "connections": [
+          {
+            "from": "ui",
+            "to": "management",
+            "label": "Request and reply",
+            "kind": "request"
+          },
+          {
+            "from": "ui",
+            "to": "management",
+            "label": "Start scan",
+            "kind": "stream"
+          },
+          {
+            "from": "management",
+            "to": "ui",
+            "label": "Scan results",
+            "kind": "publish"
+          },
+          {
+            "from": "management",
+            "to": "ui",
+            "label": "Radio state",
+            "kind": "cached"
+          },
+          {
+            "from": "ui",
+            "to": "management",
+            "label": "Set country"
+          },
+          {
+            "from": "management",
+            "to": "linux",
+            "label": "Apply config",
+            "kind": "request"
+          },
+          {
+            "from": "linux",
+            "to": "management",
+            "label": "Link state",
+            "kind": "cached"
+          },
+          {
+            "from": "management",
+            "to": "cloud",
+            "label": "Fetch update"
+          },
+          {
+            "from": "management",
+            "to": "cloud",
+            "label": "Report"
+          },
+          {
+            "from": "management",
+            "to": "cloud",
+            "label": "Heartbeat",
+            "kind": "publish"
+          },
+          {
+            "from": "management",
+            "to": "bus",
+            "label": "Events",
+            "kind": "publish"
+          },
+          {
+            "from": "sensor",
+            "to": "management",
+            "label": "Reading 1"
+          },
+          {
+            "from": "sensor",
+            "to": "management",
+            "label": "Reading 2"
+          },
+          {
+            "from": "management",
+            "to": "sensor",
+            "label": "Poll 1"
+          },
+          {
+            "from": "sensor",
+            "to": "management",
+            "label": "Reading 3"
+          },
+          {
+            "from": "management",
+            "to": "sensor",
+            "label": "Poll 2"
+          },
+          {
+            "from": "sensor",
+            "to": "management",
+            "label": "Reading 4"
+          },
+          {
+            "from": "management",
+            "to": "sensor",
+            "label": "Poll 3"
+          },
+          {
+            "from": "sensor",
+            "to": "management",
+            "label": "Reading 5"
+          },
+          {
+            "from": "management",
+            "to": "sensor",
+            "label": "Poll 4"
+          },
+          {
+            "from": "sensor",
+            "to": "management",
+            "label": "Reading 6"
+          }
+        ]
+      },
+      "text": "name: Draft lanes\npairs: separate\nobjects:\n  ui:\n    type: system\n    name: UI\n  management:\n    type: system\n    name: Management\n  linux:\n    type: system\n    name: Linux\n    shape: diamond\n  cloud:\n    type: system\n    name: Cloud\n    shape: ellipse\n  bus:\n    type: system\n    name: Bus\n  sensor:\n    type: system\n    name: Sensor\nconnections:\n  - from: ui\n    to: management\n    label: Request and reply\n    kind: request\n  - from: ui\n    to: management\n    label: Start scan\n    kind: stream\n  - from: management\n    to: ui\n    label: Scan results\n    kind: publish\n  - from: management\n    to: ui\n    label: Radio state\n    kind: cached\n  - from: ui\n    to: management\n    label: Set country\n  - from: management\n    to: linux\n    label: Apply config\n    kind: request\n  - from: linux\n    to: management\n    label: Link state\n    kind: cached\n  - from: management\n    to: cloud\n    label: Fetch update\n  - from: management\n    to: cloud\n    label: Report\n  - from: management\n    to: cloud\n    label: Heartbeat\n    kind: publish\n  - from: management\n    to: bus\n    label: Events\n    kind: publish\n  - from: sensor\n    to: management\n    label: Reading 1\n  - from: sensor\n    to: management\n    label: Reading 2\n  - from: management\n    to: sensor\n    label: Poll 1\n  - from: sensor\n    to: management\n    label: Reading 3\n  - from: management\n    to: sensor\n    label: Poll 2\n  - from: sensor\n    to: management\n    label: Reading 4\n  - from: management\n    to: sensor\n    label: Poll 3\n  - from: sensor\n    to: management\n    label: Reading 5\n  - from: management\n    to: sensor\n    label: Poll 4\n  - from: sensor\n    to: management\n    label: Reading 6\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/draft-lanes/flowy",
+      "rel": "flows/scan.yaml",
+      "data": {
+        "name": "Scan",
+        "view": "root",
+        "steps": [
+          {
+            "from": "ui",
+            "to": "management",
+            "text": "The screen starts a scan",
+            "via": "Start scan"
+          },
+          {
+            "from": "management",
+            "to": "ui",
+            "text": "The first results come back"
+          },
+          {
+            "from": "management",
+            "to": "ui",
+            "text": "The radio says it is on",
+            "via": "radio state"
+          },
+          {
+            "from": "management",
+            "to": "linux",
+            "text": "The config is applied"
+          },
+          {
+            "from": "linux",
+            "to": "management",
+            "text": "Linux answers"
+          },
+          {
+            "from": "management",
+            "to": "bus",
+            "text": "Nothing returns on a publish"
+          }
+        ]
+      },
+      "text": "name: Scan\nview: root\nsteps:\n  - from: ui\n    to: management\n    text: The screen starts a scan\n    via: Start scan\n  - from: management\n    to: ui\n    text: The first results come back\n  - from: management\n    to: ui\n    text: The radio says it is on\n    via: radio state\n  - from: management\n    to: linux\n    text: The config is applied\n  - from: linux\n    to: management\n    text: Linux answers\n  - from: management\n    to: bus\n    text: Nothing returns on a publish\n"
+    },
+    {
       "folder": "docs/demo/flowy",
       "rel": "model.yaml",
       "data": {

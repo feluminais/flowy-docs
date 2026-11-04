@@ -1,7 +1,7 @@
 import { KIND_IDS } from '../../src/core/kinds.ts'
 import * as ops from '../../src/core/ops.ts'
 import { OBJECT_TYPES } from '../../src/core/model.ts'
-import type { Model, Step } from '../../src/core/model.ts'
+import type { Model, PairMode, Step } from '../../src/core/model.ts'
 import { STATE_NAMES } from '../../src/core/states.ts'
 import { GROUP_KINDS } from '../../src/core/structure.ts'
 import { isView, memberIds, placeEnds } from '../../src/core/views.ts'
@@ -216,7 +216,9 @@ export const MAKERS: Record<string, Maker> = {
     return { op: 'setGroupKind', label: `setGroupKind ${id} ${group} ${kind}`, run: model => ops.setGroupKind(model, id, group, kind) }
   },
   putGroup: (m, rng) => {
-    const id = flow(m, rng)
+    // A group that is not declared by any step is refused, so the group to replace has to be one that is there: mostly the group of a flow that has some.
+    const grouped = flowIds(m).filter(f => groupsOf(m, f).length > 0)
+    const id = grouped.length > 0 && rng.chance(0.6) ? rng.pick(grouped) : flow(m, rng)
     const group = among(rng, groupsOf(m, id), fresh(rng, 'g'))
     const input = rng.pick<ops.GroupInput>([{ kind: 'repeat', times: 3 }, { kind: 'branch', text: 'Either' }, { kind: 'parallel' }, { kind: 'repeat', times: 500 }])
     return { op: 'putGroup', label: `putGroup ${id} ${group} ${JSON.stringify(input)}`, run: model => ops.putGroup(model, id, group, input) }
@@ -274,6 +276,25 @@ export const MAKERS: Record<string, Maker> = {
   setLines: (_, rng) => {
     const style = rng.pick<'straight' | 'curved' | 'angled' | undefined>(['straight', 'curved', 'angled', undefined])
     return { op: 'setLines', label: `setLines ${style}`, run: model => ops.setLines(model, style) }
+  },
+  setPairs: (_, rng) => {
+    // Mostly a mode that exists; now and then a word that is none, which is refused.
+    const mode = rng.chance(0.1) ? rng.pick(HOSTILE) : rng.pick<string | undefined>(['merged', 'separate', undefined])
+    return {
+      op: 'setPairs', label: `setPairs ${mode}`, run: model => ops.setPairs(model, mode as PairMode | undefined),
+      expect: (_, after) => (mode === 'separate' ? (after.meta.pairs === 'separate' ? undefined : 'pairs was not set') : after.meta.pairs === undefined ? undefined : 'pairs is still set'),
+    }
+  },
+  reorderConnections: (m, rng) => {
+    // A few places in the file, mostly real ones, and a place to put them before; now and then one that is outside the list, which is refused.
+    const count = m.connections.length
+    const indexes = [...new Set(Array.from({ length: 1 + rng.int(3) }, () => indexIn(rng, count)))]
+    const before = indexIn(rng, count + 1)
+    return {
+      op: 'reorderConnections', label: `reorderConnections ${indexes.join(',')} before ${before}`, run: model => ops.reorderConnections(model, indexes, before),
+      // Only the order changes: the same connections, each once, and nothing else about the model.
+      expect: (was, after) => (after.connections.length === was.connections.length && was.connections.every(c => after.connections.includes(c)) && after.objects === was.objects && after.flows === was.flows ? undefined : 'a connection was lost or changed'),
+    }
   },
   putIcon: (_, rng) => {
     const name = fresh(rng, 'icon')

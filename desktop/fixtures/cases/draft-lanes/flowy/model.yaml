@@ -1,0 +1,31 @@
+name: Draft lanes
+pairs: separate
+objects:
+  ui: { type: system, name: UI }
+  management: { type: system, name: Management }
+  linux: { type: system, name: Linux, shape: diamond }
+  cloud: { type: system, name: Cloud, shape: ellipse }
+  bus: { type: system, name: Bus }
+  sensor: { type: system, name: Sensor }
+connections:
+  - { from: ui, to: management, label: Request and reply, kind: request }
+  - { from: ui, to: management, label: Start scan, kind: stream }
+  - { from: management, to: ui, label: Scan results, kind: publish }
+  - { from: management, to: ui, label: Radio state, kind: cached }
+  - { from: ui, to: management, label: Set country }
+  - { from: management, to: linux, label: Apply config, kind: request }
+  - { from: linux, to: management, label: Link state, kind: cached }
+  - { from: management, to: cloud, label: Fetch update }
+  - { from: management, to: cloud, label: Report }
+  - { from: management, to: cloud, label: Heartbeat, kind: publish }
+  - { from: management, to: bus, label: Events, kind: publish }
+  - { from: sensor, to: management, label: Reading 1 }
+  - { from: sensor, to: management, label: Reading 2 }
+  - { from: management, to: sensor, label: Poll 1 }
+  - { from: sensor, to: management, label: Reading 3 }
+  - { from: management, to: sensor, label: Poll 2 }
+  - { from: sensor, to: management, label: Reading 4 }
+  - { from: management, to: sensor, label: Poll 3 }
+  - { from: sensor, to: management, label: Reading 5 }
+  - { from: management, to: sensor, label: Poll 4 }
+  - { from: sensor, to: management, label: Reading 6 }

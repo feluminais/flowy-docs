@@ -483,6 +483,10 @@ svg { flex: none; }
 /* React Flow colours a picked or keyboard-focused line with --xy-edge-stroke-selected (set to the accent above), which beats the rules above; the head follows. */
 .react-flow__edge.selectable:focus .head, .react-flow__edge.selectable:focus-visible .head { fill: var(--xy-edge-stroke-selected, var(--accent)); }
 .react-flow__edge.selectable:focus .kmark, .react-flow__edge.selectable:focus-visible .kmark { --c: var(--xy-edge-stroke-selected, var(--accent)); }
+/* Of the lines of a pair side by side, the one pointed at is drawn above the others and the others fade a little (SIBLING_OPACITY in src/core/lanes.ts). React Flow stacks every line's svg by
+   z-index, and a lit line has 1, so the svg of the raised line is lifted over that. The strips are 14px on a 12px pitch, so without it the one pointed at could lie under its neighbour. */
+.react-flow__edges svg:has(.react-flow__edge-path.raised) { z-index: 2 !important; }
+.lane-mate { opacity: 0.85; }
 
 .problems { position: relative; }
 .problems summary { color: var(--warn-fg); font-weight: 600; list-style: none; }
@@ -1509,3 +1513,17 @@ details.payload .code-block, .dot-card .code-block { max-height: 240px; overflow
 .canvas.nav .kind-key.beside-player { max-width: max(190px, calc(50% - 230px - 16px - 60px - var(--nav-w))); }
 .pane .kind-key { top: 8px; left: 8px; bottom: auto; max-width: calc(100% - 16px); padding: 5px 10px; } /* a compared pane's player sits at its foot, so its key sits at the top */
 .kind-row { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 12.5px; }
+/* The lines of a pair side by side, as cards in a panel: the one picked on the canvas is ringed in the accent colour, and a card has two buttons to move its line in the order. */
+.line.card.current { border-left-color: var(--accent); }
+.move-row { display: flex; gap: 6px; margin: 0 0 6px; }
+.panel .move-row button { font-size: 12px; }
+/* The label of a line among others: a sample of the line, then its words, on the label background of the canvas. It sits on its line, takes no clicks, and the lines it covers stay readable round it. */
+.lane-pill {
+  position: absolute; display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 4px; pointer-events: none; white-space: nowrap;
+  background: var(--xy-edge-label-background-color, var(--xy-edge-label-background-color-default)); color: var(--xy-edge-label-color, var(--xy-edge-label-color-default)); font-size: 10px;
+}
+/* A pair spreads over 160ms (SPREAD_MS in src/core/lanes.ts) and its labels fade in over the same time, since they sit where the lanes are going to be. */
+@media (prefers-reduced-motion: no-preference) {
+  .lane-pill { animation: lane-pill-in 160ms ease-out; }
+  @keyframes lane-pill-in { from { opacity: 0; } }
+}

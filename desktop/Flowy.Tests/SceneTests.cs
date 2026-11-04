@@ -351,16 +351,18 @@ public class SceneParityTests
         var scenes = ScenesJson()["scenes"]!.AsArray();
         Assert.True(scenes.Count > 30);
         Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["look"] is not null)); // the kinds case: a line's look is part of what the scene decides
+        Assert.Contains(scenes, s => s!["edges"]!.AsArray().Any(e => e!["spread"] is not null)); // the draft-lanes case: a pair of lines side by side spreads while it is picked
         foreach (var s in scenes)
         {
             var folder = Load(s!["folder"]!.GetValue<string>());
             var view = s["view"]!.GetValue<string>();
             Playing? playing = s["playing"] is { } p
                 ? new Playing(p["ends"]!.AsArray().Select(e => e is null ? ((string, string)?)null : (e[0]!.GetValue<string>(), e[1]!.GetValue<string>())).ToList(), p["step"]?.GetValue<int>(),
-                    p["steps"]?.AsArray().Select(i => i!.GetValue<int>()).ToList(), p["faint"]?.AsArray().Select(i => i!.GetValue<int>()).ToList())
+                    p["steps"]?.AsArray().Select(i => i!.GetValue<int>()).ToList(), p["faint"]?.AsArray().Select(i => i!.GetValue<int>()).ToList(),
+                    Strands: p["strands"]?.AsArray().Select(i => i?.GetValue<string>()).ToList())
                 : null;
             var f = s["focus"]!;
-            var focus = new Focus(f["box"]?.GetValue<string>(), f["line"]?.GetValue<string>(), f["hover"]?.GetValue<string>());
+            var focus = new Focus(f["box"]?.GetValue<string>(), f["line"]?.GetValue<string>(), f["hover"]?.GetValue<string>(), f["focused"]?.GetValue<string>());
             var what = $"{s["folder"]} {view} {s["playing"]?.ToJsonString()} {f.ToJsonString()}";
 
             var scene = SceneBuilder.Build(folder.Model, view, playing, folder.Problems, focus);
@@ -384,6 +386,12 @@ public class SceneParityTests
                 Assert.Equal(want["both"]?.GetValue<bool>() ?? false, got.Both);
                 Assert.Equal(want["look"] is { } look ? new LineLook(look["pattern"]!.GetValue<string>(), look["head"]!.GetValue<string>(), look["tail"]!.GetValue<string>()) : null, got.Look);
                 Assert.True(Tokens(want["classes"]!).SequenceEqual(Tokens(SceneBuilder.Classes(got))), $"{what}: classes of line {got.Id}");
+                // Where a project draws a line for each connection, a line also knows its pair, its place among the pair's lines, and whether the pair is spread.
+                Assert.Equal(want["pair"]?.GetValue<string>(), got.Pair);
+                Assert.Equal(want["pair"]?.GetValue<string>() ?? got.Id, SceneBuilder.PairOf(got));
+                Assert.Equal(want["lanes"]?.GetValue<int>() ?? 1, got.Lanes);
+                Assert.Equal(want["slot"] is { } slot ? new LaneSlot(slot["lane"]!.GetValue<int>(), slot["lanes"]!.GetValue<int>(), slot["back"]!.GetValue<int>()) : null, got.Slot);
+                Assert.Equal(want["spread"]?.GetValue<bool>() ?? false, got.Spread);
             }
         }
     }

@@ -19,6 +19,8 @@ import { paneInside, paneLevel, paneUp } from './compare.ts'
 import type { Picked } from './compare.ts'
 import { DOUBLE_CLICK, fitOptions, isStepLine } from './graph.ts'
 import { GroupMarks } from './GroupMarks.tsx'
+import { edgeUnder, lineOf } from './lanehit.ts'
+import type { CanvasPoint } from './lanehit.ts'
 import { ChevronRight, Home } from './icons.tsx'
 import { LabelSpots, Line, LineStyleContext } from './Line.tsx'
 import { Player } from './Player.tsx'
@@ -99,6 +101,7 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
   const cancelOpen = () => clearTimeout(opening.current)
   useEffect(() => cancelOpen, [])
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined)
+  const canvasAt = useRef<CanvasPoint>(undefined) // to turn the pointer's place on the screen into a place on the canvas
   const fit = () => fitNow.current?.({ ...fitOptions(0, true), duration: 300 })
   useImperativeHandle(ref, () => ({ ...p.keys, fit, inside: () => paneInside(level, flowView), up: () => setZoomed(paneUp(model, level)) }))
 
@@ -145,16 +148,17 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
                   if (selectedBox !== undefined || selectedLine !== undefined) onEmpty() // the zoom replaces the panel this pane had open
                   setZoomed(node.id)
                 }}
-                onEdgeClick={(_, e) => {
-                  if (!isStepLine(e.id)) onPick({ kind: 'line', from: e.source, to: e.target, view })
+                onEdgeClick={(event, hit) => {
+                  if (!isStepLine(hit.id)) onPick(lineOf(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit), view)) // of the lines of a pair side by side, the one nearest the pointer
                 }}
-                onEdgeMouseEnter={(_, e) => p.setHovered(e.id)}
+                onEdgeMouseEnter={(event, hit) => p.setHovered(edgeUnder(canvasAt.current, event, edges, nodes, lines, hit).id)}
                 onEdgeMouseLeave={() => p.setHovered(undefined)}
                 onPaneClick={() => {
                   onFocus()
                   onEmpty() // as on the single canvas, a click on nothing closes the panel
                 }}
                 onInit={instance => {
+                  canvasAt.current = instance
                   fitNow.current = options => void instance.fitView(options)
                 }}
               >
@@ -181,7 +185,7 @@ export function PaneMotions({ p }: { p: PaneFlow }) {
     <>
       {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
       {flow && stop && animated.map(m => (
-        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
+        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} strand={m.strand} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
           onDots={d => setDotsBy(by => ({ ...by, [m.i]: d }))} />
       ))}
       {flow && stop && <DotCard dots={carrying} clock={clock} stepKey={stepKey} />}

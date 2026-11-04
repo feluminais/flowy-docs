@@ -11,8 +11,11 @@ using Flowy.Core;
 
 namespace Flowy.App;
 
-/// <summary>The flow being recorded. While <see cref="Id"/> is "", it still needs a name. <see cref="From"/> and <see cref="To"/> are the step being picked.</summary>
-internal sealed record Recording(string Id, string Name, string? From = null, string? To = null, string? Folder = null);
+/// <summary>
+/// The flow being recorded. While <see cref="Id"/> is "", it still needs a name. <see cref="From"/> and <see cref="To"/> are the step being picked, and <see cref="Via"/> the label of the line of the
+/// pair that a click on that line picked (see <see cref="Step.Via"/>); a click on a box takes it off.
+/// </summary>
+internal sealed record Recording(string Id, string Name, string? From = null, string? To = null, string? Folder = null, string? Via = null);
 
 /// <summary>
 /// The panel for a flow in edit mode: a name for a new one, then its steps (each with its text, a detail a reader can open, the group it is in,
@@ -194,8 +197,8 @@ internal sealed class Recorder : StackPanel
 
     internal TextBox? FolderBox { get; private set; }
 
-    private static string Ends(Model model, string? from, string? to) =>
-        string.IsNullOrEmpty(to) || to == from ? $"{Views.NameOf(model, from ?? "")}, on its own" : $"{Views.NameOf(model, from ?? "")} → {Views.NameOf(model, to)}";
+    private static string Ends(Model model, string? from, string? to, string? via = null) =>
+        string.IsNullOrEmpty(to) || to == from ? $"{Views.NameOf(model, from ?? "")}, on its own" : $"{Views.NameOf(model, from ?? "")} → {Views.NameOf(model, to)}{(string.IsNullOrEmpty(via) ? "" : $", {via}")}";
 
     private static string? Field(OrderedDictionary<string, object?> s, string key) => s.TryGetValue(key, out var v) ? v as string : null;
 
@@ -302,7 +305,7 @@ internal sealed class Recorder : StackPanel
         {
             // The same pair as before: a refresh (a rename, a saved step) must not take what was typed out from under the reader.
             _stepRec = rec;
-            _stepCaption!.Text = Ends(model, rec.From, rec.To);
+            _stepCaption!.Text = Ends(model, rec.From, rec.To, rec.Via);
             _submitStep = () => AddStepAsync(model, view, rec, steps, kept.Text ?? "");
         }
         else if (rec.From is not null && rec.To is not null)
@@ -310,7 +313,7 @@ internal sealed class Recorder : StackPanel
             _pick.Children.Clear();
             _stepFor = (rec.Id, rec.From, rec.To);
             _stepRec = rec;
-            var caption = _stepCaption = new TextBlock { Text = Ends(model, rec.From, rec.To), FontWeight = Avalonia.Media.FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
+            var caption = _stepCaption = new TextBlock { Text = Ends(model, rec.From, rec.To, rec.Via), FontWeight = Avalonia.Media.FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap };
             var pickCard = new StackPanel { Spacing = 8 };
             _stepBox = new TextBox { PlaceholderText = "What happens? Press Enter" };
             Avalonia.Automation.AutomationProperties.SetName(_stepBox, "What happens");
@@ -489,14 +492,15 @@ internal sealed class Recorder : StackPanel
         if (text == "" || rec.From is null || rec.To is null) return;
         var from = rec.From;
         var to = rec.To == rec.From ? null : rec.To;
+        var via = to is null || string.IsNullOrEmpty(rec.Via) ? null : rec.Via; // the line a click on a line of the pair picked: only a step between two shapes rides one
         // The first step creates the file: a flow with no steps is a problem, so it can't be saved before.
         var saved = await _run(d =>
         {
-            if (!d.Flows.ContainsKey(rec.Id)) return EditOps.PutFlow(d, rec.Id, rec.Name, view, [EditOps.NewStep(from, to, text)], folder: rec.Folder);
+            if (!d.Flows.ContainsKey(rec.Id)) return EditOps.PutFlow(d, rec.Id, rec.Name, view, [EditOps.NewStep(from, to, text, via: via)], folder: rec.Folder);
             var copy = d.Clone();
             var steps = StepsOf(copy, rec.Id);
             FlowForm.RequireShown(steps, _shownSigs);
-            steps.Add(EditOps.NewStep(from, to, text));
+            steps.Add(EditOps.NewStep(from, to, text, via: via));
             return EditOps.UpdateFlow(d, rec.Id, steps: steps);
         });
         if (saved) _change(new Recording(rec.Id, rec.Name, Folder: rec.Folder));

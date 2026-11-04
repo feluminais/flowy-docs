@@ -18,7 +18,7 @@ internal sealed class BackLayer : Control
     /// A line as drawn. `Made` is what its path was made from: the two boxes and their outlines, so a line whose boxes stayed where they were keeps its path, its geometry and its label.
     /// `Label` is the label's box at the middle of the line, as measured; where it is drawn is in `_labelAt`.
     /// </summary>
-    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds);
+    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds, IReadOnlyList<CorePt>? Points = null, double S = 0);
 
     private string _style = "";
 
@@ -32,6 +32,13 @@ internal sealed class BackLayer : Control
     private Viewport _viewport = new(0, 0, 1);
 
     private readonly LaneStore _lanes;
+
+    /// <summary>How far each pair of lines side by side is on its way to spread (0 is rest, 1 is spread; linear), by pair id, and where it is going. The pose the lanes are drawn in is its eased value.</summary>
+    private readonly Dictionary<string, (double Progress, double Goal)> _spread = [];
+
+    private IDisposable? _easing; // the frames that move the pairs that are on their way
+    private IReadOnlySet<string> _raised = new HashSet<string>(); // the lines pointed at among the lines of their pair: drawn above them
+    private IReadOnlySet<string> _mates = new HashSet<string>(); // the other lines of a pair when one of them is pointed at: drawn a little faded
 
     public BackLayer(LaneStore lanes)
     {
@@ -51,6 +58,58 @@ internal sealed class BackLayer : Control
     public void SetScene(Scene scene, string style)
     {
         _scene = scene;
+        AimSpread(scene);
+        Build(scene, style);
+        if (_spread.Values.Any(p => p.Progress != p.Goal)) _easing ??= Anim.Frames(this, EaseSpread);
+    }
+
+    /// <summary>
+    /// Points each pair of lines side by side towards where the scene wants it: spread while it is selected or focused (see <see cref="SceneEdge.Spread"/>), else at rest. A pair seen for the first
+    /// time starts there, so opening a view moves nothing; one that is already on screen eases over <see cref="Lanes.SpreadMs"/>, and with reduced motion it snaps.
+    /// </summary>
+    private void AimSpread(Scene scene)
+    {
+        var goals = scene.Edges.Where(e => e.Pair is not null && e.Lanes > 1).GroupBy(e => e.Pair!).ToDictionary(g => g.Key, g => g.Any(e => e.Spread) ? 1.0 : 0.0);
+        foreach (var gone in _spread.Keys.Where(k => !goals.ContainsKey(k)).ToList()) _spread.Remove(gone);
+        foreach (var (pair, goal) in goals)
+            _spread[pair] = _spread.TryGetValue(pair, out var was) && !MotionSettings.Reduced ? (was.Progress, goal) : (goal, goal);
+    }
+
+    /// <summary>One frame of the ease: the pairs on their way go on by <paramref name="ms"/>, and the lines they hold are made again. False once every pair is where it is going.</summary>
+    private bool EaseSpread(double ms)
+    {
+        foreach (var (pair, (progress, goal)) in _spread.ToList())
+            if (progress != goal) _spread[pair] = (Lanes.SpreadProgress(progress, goal, ms), goal);
+        if (_scene is { } scene) Build(scene, _style);
+        var moving = _spread.Values.Any(p => p.Progress != p.Goal);
+        if (!moving) _easing = null;
+        return moving;
+    }
+
+    /// <summary>Lets time go by in the ease of the pairs, without frames: for the tests, which move the clock by hand.</summary>
+    internal void Ease(double ms) => EaseSpread(ms);
+
+    /// <summary>The <c>s</c> of the pose a line is drawn in: 0 for a line alone between its shapes and for a pair at rest, 1 for one that is spread, between while it eases (for tests).</summary>
+    internal double SpreadOf(string edgeId) => _lines.FirstOrDefault(l => l.Edge.Id == edgeId)?.S ?? 0;
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        _easing?.Dispose();
+        _easing = null;
+        foreach (var (pair, (_, goal)) in _spread.ToList()) _spread[pair] = (goal, goal); // a layer that is back later shows the pairs where they were going
+    }
+
+    /// <summary>
+    /// The pose's <c>s</c> of a line now: the eased progress of its pair, cut to 32 steps (what the lane store keeps a path for, so an ease is a handful of paths and not one for each frame).
+    /// </summary>
+    private double SpreadNow(SceneEdge e) =>
+        e.Pair is { } pair && e.Lanes > 1 && _spread.TryGetValue(pair, out var p) ? Math.Round(Lanes.EasedSpread(p.Progress) * 32) / 32 : 0;
+
+    private static LanePose PoseAt(double s) => s == 0 ? LanePose.Rest : s == 1 ? LanePose.Spread : new LanePose(s, []);
+
+    private void Build(Scene scene, string style)
+    {
         var rects = scene.Boxes.ToDictionary(b => b.Id, b => b.Rect);
         var outlines = scene.Boxes.ToDictionary(b => b.Id, b => Look.DefOf(b.Object).Edge); // where a line meets each shape
         // Dragging a box moves it and the lines at it; every other line is as it was, and is not worked out again (a path parsed, a label measured).
@@ -62,15 +121,51 @@ internal sealed class BackLayer : Control
             {
                 var made = (rects[e.From], rects[e.To], outlines[e.From], outlines[e.To], style);
                 if (before.TryGetValue(e.Id, out var was) && was.Made.From == made.Item1 && was.Made.To == made.Item2 && ReferenceEquals(was.Made.OutlineFrom, made.Item3) && ReferenceEquals(was.Made.OutlineTo, made.Item4)
-                    && was.Edge.Label == e.Label && (e.Label is null || (e.Flags & EdgeFlags.Active) == (was.Edge.Flags & EdgeFlags.Active)))
+                    && was.Edge.Label == e.Label && was.Edge.Slot == e.Slot && was.Edge.Spread == e.Spread && was.S == SpreadNow(e) && (e.Label is null || (e.Flags & EdgeFlags.Active) == (was.Edge.Flags & EdgeFlags.Active)))
                     return was with { Edge = e };
-                var lane = _lanes.PathFor(e.Id, style, new LaneEnd(e.From, made.Item1, made.Item3), new LaneEnd(e.To, made.Item2, made.Item4));
+                var s = SpreadNow(e);
+                var lane = _lanes.PathFor(e.Id, style, new LaneEnd(e.From, made.Item1, made.Item3), new LaneEnd(e.To, made.Item2, made.Item4), PoseAt(s), e.Slot);
                 var label = e.Label is { Length: > 0 } ? LabelBox(lane.Path, Format(e, LineLabels.Clip(e.Label), Brushes.Black)) : (CoreRect?)null;
-                return new Drawn(e, lane.Path, lane.Geometry, made, label, lane.Geometry.Bounds);
+                return new Drawn(e, lane.Path, lane.Geometry, made, label, lane.Geometry.Bounds, lane.Points, s);
             }).ToList();
+        PointedAt(scene);
         PlaceLabels();
         InvalidateVisual();
     }
+
+    /// <summary>
+    /// Of the lines of a pair side by side, the ones pointed at when the pointer is on some of them and not on the whole pair: those are drawn above the rest of their pair, and the rest of
+    /// the pair fades a little (<see cref="Lanes.SiblingOpacity"/>). The browser does the same (<c>raised</c> and <c>lane-mate</c> in ui/src/Line.tsx).
+    /// </summary>
+    private void PointedAt(Scene scene)
+    {
+        var raised = new HashSet<string>();
+        var mates = new HashSet<string>();
+        foreach (var pair in scene.Edges.Where(e => e.Pair is not null && e.Lanes > 1).GroupBy(e => e.Pair!))
+        {
+            var hot = pair.Where(e => e.Flags.HasFlag(EdgeFlags.Hover)).ToList();
+            if (hot.Count == 0 || hot.Count == pair.Count()) continue;
+            raised.UnionWith(hot.Select(e => e.Id));
+            mates.UnionWith(pair.Where(e => !e.Flags.HasFlag(EdgeFlags.Hover)).Select(e => e.Id));
+        }
+        (_raised, _mates) = (raised, mates);
+    }
+
+    /// <summary>How strong a line is drawn: as <see cref="Fade"/>, and a little less where it is a line of a pair when another line of the pair is pointed at.</summary>
+    private double OpacityOf(SceneEdge e) => Fade(e) * (_mates.Contains(e.Id) ? Lanes.SiblingOpacity : 1);
+
+    /// <summary>How strong the line with this id is drawn, or null if it is not on the canvas (for tests).</summary>
+    internal double? OpacityOf(string edgeId) => _lines.FirstOrDefault(l => l.Edge.Id == edgeId) is { } line ? OpacityOf(line.Edge) : null;
+
+    /// <summary>
+    /// The lines in the order they are drawn, the last on top: a lit line draws over the others, and a line pointed at among the lines of its pair draws over everything, so a strip of one
+    /// line is never under its neighbour's.
+    /// </summary>
+    private IEnumerable<Drawn> InDrawOrder() =>
+        _lines.OrderBy(l => _raised.Contains(l.Edge.Id) ? 2 : l.Edge.Flags.HasFlag(EdgeFlags.Active) || l.Edge.Flags.HasFlag(EdgeFlags.Step) ? 1 : 0);
+
+    /// <summary>The ids of the lines in the order they are drawn, the last on top (for tests).</summary>
+    internal IReadOnlyList<string> DrawOrder() => InDrawOrder().Select(l => l.Edge.Id).ToList();
 
     /// <summary>
     /// Where the labels on show go, as the browser places them: each slides along its line to the first place clear of the boxes and of the labels placed
@@ -81,8 +176,12 @@ internal sealed class BackLayer : Control
         var items = _lines.Where(l => l.Label is not null).Select(l =>
         {
             var box = l.Label!.Value;
-            var pinned = l.Edge.Flags.HasFlag(EdgeFlags.Active) || _lifted.Contains((l.Edge.From, l.Edge.To));
-            return new LabelItem(l.Edge.Id, l.Path.Data, new CorePt(box.X + box.Width / 2, box.Y + box.Height / 2), box.Width, box.Height, pinned);
+            var pinned = l.Edge.Flags.HasFlag(EdgeFlags.Active) || IsLifted(l.Edge);
+            // The label of a line that has others beside it starts with a sample of the line, and keeps clear of their lines.
+            var across = l.Edge.Lanes > 1 && l.Edge.Pair is not null
+                ? _lines.Where(o => o.Edge.Id != l.Edge.Id && o.Edge.Pair == l.Edge.Pair && o.Points is not null).Select(o => o.Points!).ToList()
+                : null;
+            return new LabelItem(l.Edge.Id, l.Path.Data, new CorePt(box.X + box.Width / 2, box.Y + box.Height / 2), box.Width, box.Height, pinned, across, across is null ? 0 : LineLabels.Sample);
         }).ToList();
         var spots = LineLabels.Place(items, _scene?.Boxes.Select(b => b.Rect).ToList() ?? []);
         _labelAt = items.ToDictionary(i => i.Id, i => LineLabels.Around(spots[i.Id], i));
@@ -90,6 +189,11 @@ internal sealed class BackLayer : Control
     }
 
     private IReadOnlySet<(string From, string To)> _lifted = new HashSet<(string, string)>();
+
+    /// <summary>Whether a line's label is lifted: for a line alone between its shapes, when a step with marks plays along it; of the lines of a pair side by side, only the one the step rides.</summary>
+    private bool IsLifted(SceneEdge e) => e.Pair is null
+        ? _lifted.Contains((e.From, e.To))
+        : e.Flags.HasFlag(EdgeFlags.Active) && _lifted.Any(l => SceneBuilder.LineId(l.From, l.To) == e.Pair);
 
     /// <summary>
     /// The lit lines whose labels move aside, to the upper side of the line as the browser does for a step that plays: a step that leaves marks beside its
@@ -136,7 +240,7 @@ internal sealed class BackLayer : Control
     /// <summary>The kind a line is marked as, or null (for tests).</summary>
     internal Change? ChangeOf(string from, string to) => _changes is not null && _changes.TryGetValue(SceneBuilder.LineId(from, to), out var kind) ? kind : null;
 
-    private Change? ChangeOf(SceneEdge e) => _changes is not null && _changes.TryGetValue(e.Id, out var kind) ? kind : null;
+    private Change? ChangeOf(SceneEdge e) => _changes is not null && _changes.TryGetValue(e.PairId, out var kind) ? kind : null;
 
     /// <summary>The badge a line wears now, or null (for tests).</summary>
     internal FailureMark? FailureOn(string from, string to) =>
@@ -151,7 +255,11 @@ internal sealed class BackLayer : Control
     /// <summary>How thick a line is drawn: what a load's traffic gives it, which outranks being picked, hovered or lit as the browser's inline width does; else lit 3, picked or hovered 2, any other 1.5.</summary>
     internal static double ThicknessOf(bool lit, bool picked, double? traffic) => traffic ?? (lit ? 2.5 : picked ? 2 : 1.5);
 
-    /// <summary>The line under a point of this control, if any (within a few pixels of it), for pointing at and clicking lines.</summary>
+    /// <summary>
+    /// The line under a point of this control, if any (within a few pixels of it), for pointing at and clicking lines. Where a pair has several lines side by side their strips overlap and the
+    /// lines move when the pair is spread, so the line is the one of the pair nearest the pointer as the core says (<see cref="Lanes.NearestStrand"/>, which measures in screen pixels, so the same click picks the same line at any zoom, as in the browser), not the one
+    /// whose stroke was found first.
+    /// </summary>
     public string? EdgeAt(Point screen)
     {
         var world = _viewport.ToWorld(new CorePt(screen.X, screen.Y));
@@ -163,7 +271,12 @@ internal sealed class BackLayer : Control
             var line = _lines[i];
             if (!line.Bounds.Inflate(reach).Contains(at) || SceneBuilder.IsStepLine(line.Edge.Id)) continue;
             pen ??= new Pen(Brushes.Black, 14 / _viewport.Zoom);
-            if (line.Geometry.StrokeContains(pen, at)) return line.Edge.Id;
+            // A lane is a polyline the core made, so how near the pointer is to it is plain arithmetic; any other line is asked of its geometry.
+            if (line.Points is { } points ? Lanes.DistanceTo(points, new CorePt(world.X, world.Y)) > reach : !line.Geometry.StrokeContains(pen, at)) continue;
+            if (line.Edge.Pair is not { } pair || line.Edge.Lanes < 2) return line.Edge.Id;
+            var near = _lines.Where(o => o.Edge.Pair == pair && o.Edge.Slot is not null && o.Points is not null)
+                .Select(o => new HitLane(o.Edge.Id, pair, o.Edge.Slot!.Value.Lane, o.Points!)).ToList();
+            return Lanes.NearestStrand(near, new CorePt(world.X, world.Y), _viewport.Zoom) ?? line.Edge.Id;
         }
         return null;
     }
@@ -235,14 +348,14 @@ internal sealed class BackLayer : Control
             context.DrawText(title, at);
         }
 
-        // A lit line draws over the others.
-        foreach (var line in _lines.OrderBy(l => l.Edge.Flags.HasFlag(EdgeFlags.Active) || l.Edge.Flags.HasFlag(EdgeFlags.Step) ? 1 : 0))
+        foreach (var line in InDrawOrder())
             DrawLine(context, line, accent);
         foreach (var line in _lines)
             if (line.Edge.Label is { Length: > 0 } label) DrawLabel(context, line, label);
         if (_failures is { Lines.Count: > 0 })
             foreach (var line in _lines)
-                if (_failures.Lines.TryGetValue(Failures.LineKey(line.Edge.From, line.Edge.To), out var mark)) DrawFailBadge(context, line, mark);
+                // A failure mode is on a pair, so the badge of a pair of lines side by side is drawn once, on the first, at the middle of the pair.
+                if (line.Edge.Slot is not { Lane: > 0 } && _failures.Lines.TryGetValue(Failures.LineKey(line.Edge.From, line.Edge.To), out var mark)) DrawFailBadge(context, line, mark);
     }
 
     /// <summary>
@@ -257,11 +370,21 @@ internal sealed class BackLayer : Control
             new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.Bold), 11, Brush(unrated ? "FgBrush" : "BgBrush"));
         var width = Math.Max(20, text.Width + 12);
         var (x, y) = _labelAt.TryGetValue(line.Edge.Id, out var label) ? (label.X - width + 6, label.Y + label.Height / 2) : (line.Path.Label.X - width / 2, line.Path.Label.Y);
-        var rect = new Avalonia.Rect(x, y - 10, width, 20);
+        var rect = line.Edge.Lanes > 1 ? PairBadgeRect(PairCentre(line), width) : new Avalonia.Rect(x, y - 10, width, 20);
         var fill = Brush(mark.Band switch { RiskBand.High => "DangerBrush", RiskBand.Medium => "WarnBrush", RiskBand.Low => "MutedBrush", _ => "BgBrush" });
         context.DrawRectangle(fill, unrated ? new Pen(Brush("LineBrush"), 1) : null, rect, 10, 10);
         context.DrawText(text, new Point(rect.X + (width - text.Width) / 2, rect.Y + (20 - text.Height) / 2));
     }
+
+    /// <summary>
+    /// Where the badge of a pair of lines side by side goes: its top 30 px above the middle of the pair, as the browser puts it (<c>translate(-50%, -150%)</c> of a badge 20 px high), so it does not cover
+    /// the lane that runs through the middle.
+    /// </summary>
+    internal static Avalonia.Rect PairBadgeRect(CorePt centre, double width) => new(centre.X - width / 2, centre.Y - 30, width, 20);
+
+    /// <summary>The middle of the pair a line is one of: where the line between the two shapes would have its label.</summary>
+    private CorePt PairCentre(Drawn line) =>
+        _lanes.PathFor(line.Edge.PairId, "straight", new LaneEnd(line.Edge.From, line.Made.From, line.Made.OutlineFrom), new LaneEnd(line.Edge.To, line.Made.To, line.Made.OutlineTo)).Path.Label;
 
     private void DrawLine(DrawingContext context, Drawn line, IBrush accent)
     {
@@ -269,14 +392,14 @@ internal sealed class BackLayer : Control
         var lit = e.Flags.HasFlag(EdgeFlags.Active) || e.Flags.HasFlag(EdgeFlags.Step);
         var emphasised = lit || e.Selected || e.Flags.HasFlag(EdgeFlags.Hover);
         var brush = e.Flags.HasFlag(EdgeFlags.Problem) && !lit ? Brush("WarnBrush") : emphasised ? accent : Brush("EdgeBrush");
-        var thickness = ThicknessOf(lit, e.Selected || e.Flags.HasFlag(EdgeFlags.Hover), WidthOf(e.Id));
+        var thickness = ThicknessOf(lit, e.Selected || e.Flags.HasFlag(EdgeFlags.Hover), WidthOf(e.PairId));
         if (_failures?.LightOfLine(e.From, e.To) == FailLight.Fails) // the line a picked failure mode fails, in the colour of the mode's band
         {
             brush = Brush(_failures.LitBand switch { RiskBand.High => "DangerBrush", RiskBand.Medium => "WarnBrush", _ => "MutedBrush" });
             thickness = 2.5;
         }
         var dash = KindMarks.Dash(DashesOf(e.Flags, e.Look, _widths is not null), thickness);
-        using var opacity = context.PushOpacity(Fade(e));
+        using var opacity = context.PushOpacity(OpacityOf(e));
         if (ChangeOf(e) is { } change)
         {
             // The halo: 8 px wide in the kind's colour at 30%, dashed for Removed (6 and 4 px, in widths of the pen), as the browser's .change-line.
@@ -289,7 +412,7 @@ internal sealed class BackLayer : Control
         // The marks are Flowy's own shapes (Heads, Kinds.Marks), in the line's colour, as big as the browser draws them: scaled by the traffic width alone, which being picked or lit
         // does not change. A plain line has a filled head on its end (and on its start when connections run both ways); a line with a kind has the kind's head and, running one way,
         // its tail on the start.
-        var scale = KindKey.MarkScale(HeadScaleOf(WidthOf(e.Id)), 1);
+        var scale = MarkScaleOf(WidthOf(e.PairId), e.Lanes);
         var ground = Brush("BgBrush");
         var marks = KindKey.MarksOf(e.Look, e.Both);
         KindMarks.Draw(context, marks.Head, brush, ground, line.Path.End, line.Path.Direction, scale);
@@ -313,6 +436,9 @@ internal sealed class BackLayer : Control
     /// <summary>How much bigger than usual a head is on a line a load's traffic gave this width (null: the usual 1.5 thick, scale 1), as the browser's Ends in Line.tsx.</summary>
     internal static double HeadScaleOf(double? traffic) => Heads.Scale(traffic ?? 1.5);
 
+    /// <summary>The scale a line's marks are drawn at: the head scale for its traffic width, held to <see cref="KindKey.LaneMarkScale"/> when the line is one of several side by side, as the browser's Ends in Line.tsx.</summary>
+    internal static double MarkScaleOf(double? traffic, int lanes) => KindKey.MarkScale(HeadScaleOf(traffic), lanes);
+
     private static FormattedText Format(SceneEdge e, string text, IBrush brush) =>
         new(text, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight,
             new Typeface(FontFamily.Default, FontStyle.Normal, e.Flags.HasFlag(EdgeFlags.Active) ? FontWeight.SemiBold : FontWeight.Normal), 11, brush);
@@ -323,17 +449,22 @@ internal sealed class BackLayer : Control
 
     private void DrawLabel(DrawingContext context, Drawn line, string text)
     {
-        using var opacity = context.PushOpacity(Fade(line.Edge));
+        using var opacity = context.PushOpacity(OpacityOf(line.Edge));
         text = LineLabels.Clip(text);
         var formatted = Format(line.Edge, text, Brush("FgBrush"));
-        var box = _labelAt.TryGetValue(line.Edge.Id, out var placed) ? placed : LabelBox(line.Path, formatted);
-        if (_lifted.Contains((line.Edge.From, line.Edge.To)) && _scene is { } s
+        // The label of a line among others starts with a sample of the line (its pattern and marks), so it is tied to its own line with no leader line.
+        var sampled = line.Edge.Lanes > 1 && line.Edge.Pair is not null;
+        var sample = sampled ? LineLabels.Sample : 0;
+        var box = _labelAt.TryGetValue(line.Edge.Id, out var placed) ? placed : LabelBox(line.Path, formatted) with { Width = formatted.Width + 8 + sample };
+        if (sampled && !_labelAt.ContainsKey(line.Edge.Id)) box = box with { X = line.Path.Label.X - box.Width / 2 };
+        if (IsLifted(line.Edge) && _scene is { } s
             && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.From) is { } a && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.To) is { } b)
         {
             var (x, y) = MotionMath.LabelOffset(b.Rect.X + b.Rect.Width / 2 - (a.Rect.X + a.Rect.Width / 2), b.Rect.Y + b.Rect.Height / 2 - (a.Rect.Y + a.Rect.Height / 2), text.Length);
             box = box with { X = box.X + x, Y = box.Y + y };
         }
         context.DrawRectangle(Brush("BgBrush"), null, new Avalonia.Rect(box.X, box.Y, box.Width, box.Height), 2, 2);
-        context.DrawText(formatted, new Point(box.X + 4, box.Y + 2));
+        if (sampled) LookSwatch.Sketch(context, line.Edge.Look ?? Kinds.PlainLook, false, Brush("EdgeBrush"), Brush("BgBrush"), box.X + 4, box.X + sample - 6, box.Y + box.Height / 2);
+        context.DrawText(formatted, new Point(box.X + 4 + sample, box.Y + 2));
     }
 }

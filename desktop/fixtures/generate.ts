@@ -18,6 +18,7 @@ import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
 import { dumpKinds } from './kinds.ts'
+import { dumpCapacity, dumpDraftLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpPoses } from './lanes.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
@@ -66,6 +67,12 @@ await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
 await write('kinds', dumpKinds())
 await write('pair-lines', await dumpPairs())
+await write('lanes/rest', dumpLanes())
+await write('lanes/poses', dumpPoses())
+await write('lanes/capacity', dumpCapacity())
+await write('lanes/hits', dumpHits())
+await write('lanes/labels', dumpLaneLabels())
+await write('lanes/draft', await dumpDraftLanes())
 await write('drafts', dumpNewDrafts())
 await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())
