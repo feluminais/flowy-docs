@@ -266,8 +266,9 @@ public class EditSessionTests
         var heard = 0;
         watcher.Changed += () => Interlocked.Increment(ref heard);
         Assert.Equal(EditResult.Ok, session.Apply(d => EditOps.PutObject(d, Fresh)));
-        // A busy runner can be slow to deliver the event, so wait for it, then give a second one time to show up.
-        SpinWait.SpinUntil(() => Volatile.Read(ref heard) > 0, TimeSpan.FromSeconds(10));
+        // A busy runner can be slow to deliver the event (the watcher's events and its timer wait for the thread pool, which the tests running
+        // beside this one can keep busy for seconds), so wait for it, then give a second one time to show up.
+        SpinWait.SpinUntil(() => Volatile.Read(ref heard) > 0, TimeSpan.FromSeconds(30));
         Thread.Sleep(300);
         Assert.Equal(1, saves);
         Assert.Equal(1, Volatile.Read(ref heard));
