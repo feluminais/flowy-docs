@@ -40,6 +40,7 @@ with no value, and the file can't be saved again. `flowy check` reports that. A 
 | `name` | Text | What the system is called. The Overview's heading |
 | `about` | Markdown | What the system is for and who uses it, a paragraph or two. The Overview shows it |
 | `lines` | How the canvas draws lines: `straight` (the default, so leave it out), `curved` or `angled` |
+| `pairs` | How the canvas draws two shapes with several connections between them: `merged` (the default, so leave it out) is one line, `separate` is a line for each connection, side by side. A draft starts as `separate`; the model leaves it out |
 | `icons` | Your own icons: a mapping of name to SVG path data on a 24 by 24 grid ([the guide](guide/shapes.md#icons)) |
 | `payloads` | The data lines carry and steps send: a mapping of payload id to payload (below), at most 200 |
 
@@ -132,6 +133,7 @@ under `payloads:`, whatever its name.
 | `group` | The id of a group under `groups` |
 | `lane` | In a branch or parallel group: starts a lane here, named in plain words |
 | `flow` | The id of another flow that tells what happens next. It must exist |
+| `via` | Where `pairs` is `separate`: the `label` of the connection the step rides, whatever its case. Leave it out when the payload or the direction already say which one. It has to match a connection between the step's two shapes |
 | `states` | The objects this step changes: object id to a state |
 | `payload` | What the step sends: a payload id, or a payload written in place with a `name` ([Payloads](#payloads)). Needs a `to`, except on a `recurse` |
 | `reply` | What comes back, the same way: only on a `call`, a `callback` or a `recurse` |
@@ -219,11 +221,11 @@ one entry and leaves the rest of the file as it is), and a tool that writes a ru
 | To change | Use |
 | --- | --- |
 | An object and everything on it (`type`, `name`, `in`, `external`, `shape`, `color`, `opacity`, `icon`, `tech`, `description`, `code`, `links`, `snippets`, `data`) | `put_object` |
-| The system's `name` and `about` | `put_project` |
+| The system's `name`, `about` and `pairs` | `put_project` |
 | A custom icon | `put_icon` |
 | A connection, its `kind`, and the `payloads` it carries | `connect`, `disconnect`, `set_kind`, `set_payloads` |
 | A payload under `payloads` | `put_payload`, `delete_payload` |
-| A flow, with its groups, states, animations and each step's `payload` and `reply` | `put_flow` |
+| A flow, with its groups, states, animations and each step's `payload`, `reply` and `via` | `put_flow` |
 | A failure analysis, or one mode of it | `put_failures`, `put_failure` |
 | The `compare` of a flow, or of a run | `set_compare` (a run is otherwise not written over MCP) |
 | `lines`, the rest of `perf/`, `layout.yaml` | Not over MCP: write the file, or use the canvas |

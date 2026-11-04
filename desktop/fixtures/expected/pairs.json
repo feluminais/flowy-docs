@@ -1,0 +1,609 @@
+{
+  "lineStyle": "straight",
+  "pairs": "separate",
+  "projectName": "Pairs",
+  "projectAbout": "",
+  "objects": [
+    {
+      "id": "ui",
+      "type": "system",
+      "name": "UI"
+    },
+    {
+      "id": "screen",
+      "type": "app",
+      "name": "Screen",
+      "in": "ui"
+    },
+    {
+      "id": "banner",
+      "type": "app",
+      "name": "Banner",
+      "in": "ui"
+    },
+    {
+      "id": "management",
+      "type": "system",
+      "name": "Management"
+    },
+    {
+      "id": "agent",
+      "type": "app",
+      "name": "Agent",
+      "in": "management"
+    },
+    {
+      "id": "linux",
+      "type": "system",
+      "name": "Linux"
+    },
+    {
+      "id": "cloud",
+      "type": "system",
+      "name": "Cloud"
+    },
+    {
+      "id": "bus",
+      "type": "system",
+      "name": "Bus"
+    }
+  ],
+  "payloads": {
+    "scan-request": {
+      "name": "Scan request",
+      "about": "What the screen sends to start a scan."
+    }
+  },
+  "connections": [
+    {
+      "from": "ui",
+      "to": "management",
+      "label": "Request and reply"
+    },
+    {
+      "from": "ui",
+      "to": "management",
+      "label": "Start scan",
+      "payloads": [
+        "scan-request"
+      ],
+      "carries": [
+        "Scan request"
+      ]
+    },
+    {
+      "from": "management",
+      "to": "ui",
+      "label": "Scan results"
+    },
+    {
+      "from": "management",
+      "to": "ui",
+      "label": "Radio state"
+    },
+    {
+      "from": "screen",
+      "to": "agent",
+      "label": "Ask"
+    },
+    {
+      "from": "banner",
+      "to": "agent",
+      "label": "Banner"
+    },
+    {
+      "from": "management",
+      "to": "cloud",
+      "label": "Fetch update"
+    },
+    {
+      "from": "management",
+      "to": "bus",
+      "label": "Events"
+    },
+    {
+      "from": "agent",
+      "to": "linux",
+      "label": "Apply config"
+    },
+    {
+      "from": "management",
+      "to": "linux",
+      "label": "Apply config"
+    },
+    {
+      "from": "linux",
+      "to": "management"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "rides",
+      "name": "Rides",
+      "view": "root",
+      "steps": [
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "The screen starts a scan",
+          "via": " start SCAN ",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management",
+          "rides": "management ui|ui>management|Start scan"
+        },
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "The screen sends its request",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management",
+          "rides": "management ui|ui>management|Start scan",
+          "payload": "scan-request",
+          "sends": "Scan request",
+          "dots": {
+            "out": "Scan request"
+          }
+        },
+        {
+          "from": "banner",
+          "to": "agent",
+          "text": "The banner asks the agent",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "Banner in UI → Agent in Management",
+          "rides": "management ui|ui>management|Banner"
+        },
+        {
+          "from": "ui",
+          "to": "agent",
+          "text": "Nothing says which line",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Agent in Management",
+          "rides": "management ui|ui>management|Request and reply"
+        },
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "The screen names a line that is not there",
+          "via": "Nope",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management",
+          "rides": "management ui|ui>management|Request and reply"
+        },
+        {
+          "from": "management",
+          "to": "ui",
+          "text": "Results reach the screen",
+          "placed": [
+            "management",
+            "ui"
+          ],
+          "ends": "Management → UI",
+          "rides": "management ui|management>ui|Scan results"
+        },
+        {
+          "from": "management",
+          "to": "ui",
+          "text": "The first results come back",
+          "via": "Start scan",
+          "placed": [
+            "management",
+            "ui"
+          ],
+          "ends": "Management → UI",
+          "rides": "management ui|ui>management|Start scan"
+        },
+        {
+          "from": "cloud",
+          "to": "management",
+          "text": "The update comes back",
+          "placed": [
+            "cloud",
+            "management"
+          ],
+          "ends": "Cloud → Management",
+          "rides": "cloud management|management>cloud|Fetch update"
+        },
+        {
+          "from": "bus",
+          "to": "management",
+          "text": "Nothing returns on a publish",
+          "placed": [
+            "bus",
+            "management"
+          ],
+          "ends": "Bus → Management"
+        },
+        {
+          "from": "management",
+          "to": "linux",
+          "text": "The config is applied",
+          "placed": [
+            "management",
+            "linux"
+          ],
+          "ends": "Management → Linux",
+          "rides": "linux management|management>linux|Apply config"
+        }
+      ]
+    }
+  ],
+  "problems": [
+    {
+      "file": "flows/rides.yaml",
+      "message": "step 5: \"via\" \"Nope\" matches no connection from ui to management",
+      "step": 4
+    }
+  ],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "ui",
+          "to": "management",
+          "label": "6 connections",
+          "count": 6,
+          "both": true,
+          "carries": [
+            {
+              "name": "Scan request",
+              "back": false,
+              "own": true,
+              "steps": [
+                {
+                  "flow": "rides",
+                  "step": 1,
+                  "reply": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "from": "management",
+          "to": "cloud",
+          "label": "Fetch update",
+          "count": 1,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "from": "management",
+          "to": "bus",
+          "label": "Events",
+          "count": 1,
+          "kind": "publish",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "from": "management",
+          "to": "linux",
+          "label": "3 connections",
+          "count": 3,
+          "both": true
+        }
+      ],
+      "strands": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "pair": "management ui",
+          "from": "ui",
+          "to": "management",
+          "label": "Request and reply",
+          "connections": [
+            0
+          ],
+          "lane": 0,
+          "lanes": 6,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "pair": "management ui",
+          "from": "ui",
+          "to": "management",
+          "label": "Start scan",
+          "connections": [
+            1
+          ],
+          "lane": 1,
+          "lanes": 6,
+          "kind": "stream",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        },
+        {
+          "id": "management ui|ui>management|Ask",
+          "pair": "management ui",
+          "from": "ui",
+          "to": "management",
+          "label": "Ask",
+          "connections": [
+            4
+          ],
+          "lane": 2,
+          "lanes": 6
+        },
+        {
+          "id": "management ui|ui>management|Banner",
+          "pair": "management ui",
+          "from": "ui",
+          "to": "management",
+          "label": "Banner",
+          "connections": [
+            5
+          ],
+          "lane": 3,
+          "lanes": 6
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "pair": "management ui",
+          "from": "management",
+          "to": "ui",
+          "label": "Scan results",
+          "connections": [
+            2
+          ],
+          "lane": 4,
+          "lanes": 6,
+          "kind": "publish",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "pair": "management ui",
+          "from": "management",
+          "to": "ui",
+          "label": "Radio state",
+          "connections": [
+            3
+          ],
+          "lane": 5,
+          "lanes": 6,
+          "kind": "cached",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "pair": "cloud management",
+          "from": "management",
+          "to": "cloud",
+          "label": "Fetch update",
+          "connections": [
+            6
+          ],
+          "lane": 0,
+          "lanes": 1,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "pair": "bus management",
+          "from": "management",
+          "to": "bus",
+          "label": "Events",
+          "connections": [
+            7
+          ],
+          "lane": 0,
+          "lanes": 1,
+          "kind": "publish",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "pair": "linux management",
+          "from": "management",
+          "to": "linux",
+          "label": "Apply config",
+          "connections": [
+            8,
+            9
+          ],
+          "lane": 0,
+          "lanes": 2,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "linux management|linux>management|",
+          "pair": "linux management",
+          "from": "linux",
+          "to": "management",
+          "label": "",
+          "connections": [
+            10
+          ],
+          "lane": 1,
+          "lanes": 2
+        }
+      ]
+    },
+    "ui": {
+      "id": "ui",
+      "members": [
+        "screen",
+        "banner"
+      ],
+      "outsiders": [
+        "management"
+      ],
+      "edges": [
+        {
+          "from": "screen",
+          "to": "management",
+          "label": "Ask",
+          "count": 1
+        },
+        {
+          "from": "banner",
+          "to": "management",
+          "label": "Banner",
+          "count": 1
+        }
+      ],
+      "strands": [
+        {
+          "id": "management screen|screen>management|Ask",
+          "pair": "management screen",
+          "from": "screen",
+          "to": "management",
+          "label": "Ask",
+          "connections": [
+            4
+          ],
+          "lane": 0,
+          "lanes": 1
+        },
+        {
+          "id": "banner management|banner>management|Banner",
+          "pair": "banner management",
+          "from": "banner",
+          "to": "management",
+          "label": "Banner",
+          "connections": [
+            5
+          ],
+          "lane": 0,
+          "lanes": 1
+        }
+      ]
+    },
+    "management": {
+      "id": "management",
+      "members": [
+        "agent"
+      ],
+      "outsiders": [
+        "ui",
+        "linux"
+      ],
+      "edges": [
+        {
+          "from": "ui",
+          "to": "agent",
+          "label": "2 connections",
+          "count": 2
+        },
+        {
+          "from": "agent",
+          "to": "linux",
+          "label": "Apply config",
+          "count": 1,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        }
+      ],
+      "strands": [
+        {
+          "id": "agent ui|ui>agent|Ask",
+          "pair": "agent ui",
+          "from": "ui",
+          "to": "agent",
+          "label": "Ask",
+          "connections": [
+            4
+          ],
+          "lane": 0,
+          "lanes": 2
+        },
+        {
+          "id": "agent ui|ui>agent|Banner",
+          "pair": "agent ui",
+          "from": "ui",
+          "to": "agent",
+          "label": "Banner",
+          "connections": [
+            5
+          ],
+          "lane": 1,
+          "lanes": 2
+        },
+        {
+          "id": "agent linux|agent>linux|Apply config",
+          "pair": "agent linux",
+          "from": "agent",
+          "to": "linux",
+          "label": "Apply config",
+          "connections": [
+            8
+          ],
+          "lane": 0,
+          "lanes": 1,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        }
+      ]
+    }
+  }
+}

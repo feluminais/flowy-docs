@@ -45,7 +45,7 @@ test('a new draft copies the shapes it names, what they sit in and the lines bet
   const draft = newDraft(home(), { name: 'LAN', about: 'Packets on the LAN.', copy: ['router', 'laptop'] })
   assert.deepEqual(Object.keys(draft.objects), ['house', 'router', 'laptop'])
   assert.deepEqual(draft.connections, [{ from: 'laptop', to: 'router', label: 'sends packets' }])
-  assert.deepEqual(draft.meta, { name: 'LAN', about: 'Packets on the LAN.', icons: { plug: 'M4 4h16' }, lines: 'curved' })
+  assert.deepEqual(draft.meta, { name: 'LAN', about: 'Packets on the LAN.', pairs: 'separate', icons: { plug: 'M4 4h16' }, lines: 'curved' })
   assert.deepEqual(draft.flows, {})
 })
 

@@ -31,7 +31,7 @@ export function splitDraftModelId(served: string): { model: string; id: string }
 const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
 /**
- * A new draft's model: `name` and `about`, and a copy of the shapes `copy` names with the shapes they sit in (so each keeps its place)
+ * A new draft's model: `name` and `about`, `pairs: separate` (a line for each connection, where the model draws one line between two shapes), and a copy of the shapes `copy` names with the shapes they sit in (so each keeps its place)
  * and the lines between any two of them. The model's own icons, payloads and line style come along, since the copies may use them. Throws when
  * `copy` names a shape the model doesn't have.
  */
@@ -39,6 +39,7 @@ export function newDraft(model: Model, { name, about, copy = [] }: { name: strin
   const draft = emptyModel()
   draft.meta.name = name
   if (about !== undefined && about.trim() !== '') draft.meta.about = about
+  draft.meta.pairs = 'separate' // before the early return: an empty draft gets a line for each connection too
   if (copy.length === 0) return draft
   const missing = copy.filter(id => getObject(model, id) === undefined)
   if (missing.length > 0) throw new Error(`The model has no shape ${missing.map(id => `"${id}"`).join(', ')}.`)

@@ -62,21 +62,21 @@ notes in an object's `description` instead.
 | `get_mermaid` | One view as a flowchart, or one flow as a sequence diagram |
 | `get_failures` | The failure analyses as tables, worst first, with coverage; `format: csv` for a spreadsheet |
 | `put_object`, `delete_object` | A shape and everything on it ([the file format](../format.md#an-object)), or removes one, with its lines. A shape with shapes inside it, or one a flow step, a flow view or a failure mode names, is refused with a row for each of those and the actions that settle it. Called again with `resolve`, one entry for each row, it settles them and deletes in one edit, or saves nothing |
-| `connect`, `disconnect` | Adds a line from one shape to another, or removes it. A line a failure mode is on is refused the same way, and `resolve` removes the mode with it. `connect` also takes the `kind` of the line and the `payloads` it carries |
+| `connect`, `disconnect` | Adds a line from one shape to another, or removes it. A line a failure mode is on is refused the same way, and `resolve` removes the mode with it. Where each connection is a line of its own (`pairs: separate`), `disconnect` with no label is refused when several run between the two shapes, and lists their labels. `connect` also takes the `kind` of the line and the `payloads` it carries |
 | `set_kind` | Sets the kind of one line (`request`, `stream`, `publish`, `cached`, `object` or `extension`), or takes it off with `""` ([the file format](../format.md#a-connection)) |
 | `put_payload`, `delete_payload` | A payload: the data a line carries or a step sends, with an about, a shape and an example ([the file format](../format.md#payloads)), or removes one. A payload a line or a step names is refused, and the refusal lists them |
 | `set_payloads` | Sets the payloads one line carries, by id or written in place; `[]` takes them all off |
-| `put_flow`, `delete_flow` | A flow with its groups, states, animations and the payload and reply of each step, and answers with how each step reads on its view, or removes it. `folder` and `tags` file and label it; left out, a replaced flow keeps both |
+| `put_flow`, `delete_flow` | A flow with its groups, states, animations and the payload, reply and `via` (the connection it rides) of each step, and answers with how each step reads on its view, or removes it. `folder` and `tags` file and label it; left out, a replaced flow keeps both |
 | `move_flow` | Moves a flow's file into a folder under `flows/`, or back to the top with `""`. The flow keeps its id |
 | `tag_flow` | Sets a flow's tags to exactly the words given, such as `happy path`, `error path`, `edge case` or `recovery`; `[]` takes them all out |
 | `put_failures`, `delete_failures` | A whole failure analysis, or removes it |
 | `put_failure`, `delete_failure` | One mode of an analysis, or removes it. `run` must be one of the runs `get_model` lists |
-| `put_project` | The system's name and what it is, the first thing Details shows when nothing is picked. `""` removes one |
+| `put_project` | The system's name and what it is, the first thing Details shows when nothing is picked. `""` removes one. `pairs` is `separate` for a line for each connection, or `merged` for one line between two shapes |
 | `put_icon`, `delete_icon` | Your own icon, or removes one nothing uses |
 | `tidy_layout` | Puts the faded shapes of each view on the side they have in the view above, so zooming across never leads the same way twice, and saves it in `layout.yaml`. A view that already agrees is left as it is. `view` limits it to one view, and `check: true` only lists what is on the wrong side. Ask for it once, when the shapes and connections are in |
 | `set_compare` | The `compare` of a flow or a run: the older one it is compared with, and a note. Leave `with` out to remove it |
 | `get_drafts` | The drafts of the model, with their ids and names |
-| `new_draft`, `delete_draft` | A draft in `drafts/<id>/`, empty or starting with copies of the shapes `copy` names, the shapes they sit in and the lines between them; or removes one with every file in it. The model is not touched |
+| `new_draft`, `delete_draft` | A draft in `drafts/<id>/`, empty or starting with copies of the shapes `copy` names, the shapes they sit in and the lines between them, drawn with a line for each connection; or removes one with every file in it. The model is not touched |
 
 Not over MCP: the project's `lines:`, the load-test runs in `perf/` (a tool writes those, and `set_compare` is the one thing over MCP that changes a run) and the positions you drag, which are the canvas's. `tidy_layout` is the one thing over MCP that writes `layout.yaml`.
 

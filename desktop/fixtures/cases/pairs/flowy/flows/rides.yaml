@@ -1,0 +1,13 @@
+name: Rides
+view: root
+steps:
+  - { from: ui, to: management, text: The screen starts a scan, via: ' start SCAN ' }
+  - { from: ui, to: management, text: The screen sends its request, payload: scan-request }
+  - { from: banner, to: agent, text: The banner asks the agent }
+  - { from: ui, to: agent, text: Nothing says which line }
+  - { from: ui, to: management, text: The screen names a line that is not there, via: Nope }
+  - { from: management, to: ui, text: Results reach the screen }
+  - { from: management, to: ui, text: The first results come back, via: Start scan }
+  - { from: cloud, to: management, text: The update comes back }
+  - { from: bus, to: management, text: Nothing returns on a publish }
+  - { from: management, to: linux, text: The config is applied }

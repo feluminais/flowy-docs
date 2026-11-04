@@ -1,3 +1,4 @@
+using System.Text.Json.Nodes;
 using Flowy.Core;
 using Xunit;
 
@@ -148,16 +149,31 @@ public class DraftsTests
         Assert.Equal(expected, FolderLayout.IsPartOfModel(rel));
 
     [Fact]
-    public void A_new_draft_is_a_model_yaml_with_its_name_and_nothing_in_it()
+    public void A_new_draft_is_a_model_yaml_with_its_name_separate_lines_and_nothing_in_it()
     {
         using var temp = new TempDir();
         var model = Setup(temp);
         var dir = Drafts.Create(model, "Split the bill");
         Assert.Equal(Drafts.DirOf(model, "split-the-bill"), dir);
-        Assert.Equal("name: Split the bill\nobjects: {}\nconnections: []\n", File.ReadAllText(Path.Combine(dir, "model.yaml")).Replace("\r\n", "\n"));
+        Assert.Equal("name: Split the bill\npairs: separate\nobjects: {}\nconnections: []\n", File.ReadAllText(Path.Combine(dir, "model.yaml")).Replace("\r\n", "\n"));
         var folder = FolderLoader.Load(dir);
         Assert.Equal("Split the bill", folder.Model.ProjectName);
         Assert.Empty(folder.Model.Objects);
+    }
+
+    /// <summary>The file the browser and MCP write for a new empty draft (newDraft in src/core/drafts.ts) is the one the desktop writes, so a draft starts the same wherever it is made.</summary>
+    [Fact]
+    public void A_new_draft_starts_as_the_same_file_the_typescript_core_makes()
+    {
+        var expected = JsonNode.Parse(File.ReadAllText(Path.Combine(Repo.Root, "desktop", "fixtures", "expected", "drafts.json")))!.AsArray();
+        Assert.NotEmpty(expected);
+        foreach (var entry in expected)
+        {
+            using var temp = new TempDir();
+            var model = Setup(temp);
+            var dir = Drafts.Create(model, entry!["name"]!.GetValue<string>());
+            Assert.Equal(entry["file"]!.GetValue<string>(), File.ReadAllText(Path.Combine(dir, "model.yaml")).Replace("\r\n", "\n"));
+        }
     }
 
     [Fact]

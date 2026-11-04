@@ -23,6 +23,7 @@ const PAIRS: [string, string][] = [
   ['base', 'same'], ['base', 'base'], ['base', 'appended'], ['base', 'inserted'], ['base', 'removed'], ['base', 'retexted'], ['appended', 'base'],
   ['anim-pulse', 'anim-flash'], ['anim-pulse', 'anim-kind-pulse'], ['anim-order-1', 'anim-order-2'], ['desc-1', 'desc-2'], ['payload-1', 'payload-2'], ['payload-1', 'reply-2'], ['inline-1', 'inline-2'],
   ['cross-old', 'cross-new'], ['base', 'apart'], ['alone-old', 'alone-new'], ['proto-old', 'proto-new'], ['dup-old', 'dup-new'],
+  ['via-old', 'via-new'], ['via-old', 'via-case'], ['via-old', 'via-none'], ['via-none', 'via-none'],
 ]
 
 /** Keys sorted by UTF-16 code unit (what an ordinal sort gives in C#), so the dump does not depend on insertion order. */

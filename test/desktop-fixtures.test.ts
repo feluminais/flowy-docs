@@ -14,6 +14,7 @@ import { dumpKinds } from '../desktop/fixtures/kinds.ts'
 import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
+import { dumpPairs } from '../desktop/fixtures/pairs.ts'
 import { dumpPerf, dumpPerfView } from '../desktop/fixtures/perf.ts'
 import { dumpStates } from '../desktop/fixtures/states.ts'
 import { dumpCaptions, dumpStops } from '../desktop/fixtures/structure.ts'
@@ -133,6 +134,11 @@ test('desktop edit labels still match the TypeScript ones', async () => {
 test('the kinds of a connection still match what the desktop is held to', async () => {
   const expected: unknown = JSON.parse(await readFile(expectedPath('kinds'), 'utf8'))
   assert.deepEqual(JSON.parse(JSON.stringify(dumpKinds())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('the lines between two shapes still match what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('pair-lines'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpPairs())), expected, 'run: node desktop/fixtures/generate.ts')
 })
 
 test('the sample history trail is what openHistory writes, byte for byte', async () => {

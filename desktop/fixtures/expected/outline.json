@@ -65942,6 +65942,2568 @@
         }
       ]
     },
+    "pairs": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 5,
+              "shapes": 8,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "5 inside · 1 flow",
+              "words": "5 inside, 8 in all, 1 flow"
+            }
+          ]
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 5,
+              "shapes": 8,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 1,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bus",
+              "kind": "shape",
+              "id": "bus",
+              "parent": "root",
+              "depth": 1,
+              "name": "Bus",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cloud",
+              "kind": "shape",
+              "id": "cloud",
+              "parent": "root",
+              "depth": 1,
+              "name": "Cloud",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:linux",
+              "kind": "shape",
+              "id": "linux",
+              "parent": "root",
+              "depth": 1,
+              "name": "Linux",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rides",
+              "kind": "flow",
+              "id": "rides",
+              "parent": "root",
+              "depth": 1,
+              "name": "Rides",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "5 inside · 1 flow",
+              "words": "5 inside, 8 in all, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "1 inside",
+              "words": "1 inside"
+            },
+            {
+              "key": "shape:ui",
+              "short": "2 inside",
+              "words": "2 inside"
+            },
+            {
+              "key": "shape:bus",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:cloud",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:linux",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:rides",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root",
+            "ui"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 5,
+              "shapes": 8,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 1,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:banner",
+              "kind": "shape",
+              "id": "banner",
+              "parent": "ui",
+              "depth": 2,
+              "name": "Banner",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:screen",
+              "kind": "shape",
+              "id": "screen",
+              "parent": "ui",
+              "depth": 2,
+              "name": "Screen",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bus",
+              "kind": "shape",
+              "id": "bus",
+              "parent": "root",
+              "depth": 1,
+              "name": "Bus",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cloud",
+              "kind": "shape",
+              "id": "cloud",
+              "parent": "root",
+              "depth": 1,
+              "name": "Cloud",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:linux",
+              "kind": "shape",
+              "id": "linux",
+              "parent": "root",
+              "depth": 1,
+              "name": "Linux",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rides",
+              "kind": "flow",
+              "id": "rides",
+              "parent": "root",
+              "depth": 1,
+              "name": "Rides",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "5 inside · 1 flow",
+              "words": "5 inside, 8 in all, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "1 inside",
+              "words": "1 inside"
+            },
+            {
+              "key": "shape:ui",
+              "short": "2 inside",
+              "words": "2 inside"
+            },
+            {
+              "key": "shape:banner",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:screen",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:bus",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:cloud",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:linux",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:rides",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "ui",
+            "screen",
+            "banner",
+            "management",
+            "agent",
+            "linux",
+            "cloud",
+            "bus"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 5,
+              "shapes": 8,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 1,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:agent",
+              "kind": "shape",
+              "id": "agent",
+              "parent": "management",
+              "depth": 2,
+              "name": "Agent",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:banner",
+              "kind": "shape",
+              "id": "banner",
+              "parent": "ui",
+              "depth": 2,
+              "name": "Banner",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:screen",
+              "kind": "shape",
+              "id": "screen",
+              "parent": "ui",
+              "depth": 2,
+              "name": "Screen",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bus",
+              "kind": "shape",
+              "id": "bus",
+              "parent": "root",
+              "depth": 1,
+              "name": "Bus",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cloud",
+              "kind": "shape",
+              "id": "cloud",
+              "parent": "root",
+              "depth": 1,
+              "name": "Cloud",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:linux",
+              "kind": "shape",
+              "id": "linux",
+              "parent": "root",
+              "depth": 1,
+              "name": "Linux",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rides",
+              "kind": "flow",
+              "id": "rides",
+              "parent": "root",
+              "depth": 1,
+              "name": "Rides",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "5 inside · 1 flow",
+              "words": "5 inside, 8 in all, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "1 inside",
+              "words": "1 inside"
+            },
+            {
+              "key": "shape:agent",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "2 inside",
+              "words": "2 inside"
+            },
+            {
+              "key": "shape:banner",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:screen",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:bus",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:cloud",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:linux",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:rides",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "ui",
+            "screen",
+            "banner",
+            "management",
+            "agent",
+            "linux",
+            "cloud",
+            "bus"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 5,
+              "shapes": 8,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 1,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:agent",
+              "kind": "shape",
+              "id": "agent",
+              "parent": "management",
+              "depth": 2,
+              "name": "Agent",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:banner",
+              "kind": "shape",
+              "id": "banner",
+              "parent": "ui",
+              "depth": 2,
+              "name": "Banner",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:screen",
+              "kind": "shape",
+              "id": "screen",
+              "parent": "ui",
+              "depth": 2,
+              "name": "Screen",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bus",
+              "kind": "shape",
+              "id": "bus",
+              "parent": "root",
+              "depth": 1,
+              "name": "Bus",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cloud",
+              "kind": "shape",
+              "id": "cloud",
+              "parent": "root",
+              "depth": 1,
+              "name": "Cloud",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:linux",
+              "kind": "shape",
+              "id": "linux",
+              "parent": "root",
+              "depth": 1,
+              "name": "Linux",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rides",
+              "kind": "flow",
+              "id": "rides",
+              "parent": "root",
+              "depth": 1,
+              "name": "Rides",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "5 inside · 1 flow",
+              "words": "5 inside, 8 in all, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "1 inside",
+              "words": "1 inside"
+            },
+            {
+              "key": "shape:agent",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "2 inside",
+              "words": "2 inside"
+            },
+            {
+              "key": "shape:banner",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:screen",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:bus",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:cloud",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:linux",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:rides",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 5,
+              "shapes": 8,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 1,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:agent",
+              "kind": "shape",
+              "id": "agent",
+              "parent": "management",
+              "depth": 2,
+              "name": "Agent",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:banner",
+              "kind": "shape",
+              "id": "banner",
+              "parent": "ui",
+              "depth": 2,
+              "name": "Banner",
+              "type": "app",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "5 inside · 1 flow",
+              "words": "5 inside, 8 in all, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "1 inside",
+              "words": "1 inside"
+            },
+            {
+              "key": "shape:agent",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "2 inside",
+              "words": "2 inside"
+            },
+            {
+              "key": "shape:banner",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": []
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 5,
+              "shapes": 8,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 1,
+              "shapes": 1,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 0,
+              "problem": false,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:bus",
+              "kind": "shape",
+              "id": "bus",
+              "parent": "root",
+              "depth": 1,
+              "name": "Bus",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:cloud",
+              "kind": "shape",
+              "id": "cloud",
+              "parent": "root",
+              "depth": 1,
+              "name": "Cloud",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:linux",
+              "kind": "shape",
+              "id": "linux",
+              "parent": "root",
+              "depth": 1,
+              "name": "Linux",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:rides",
+              "kind": "flow",
+              "id": "rides",
+              "parent": "root",
+              "depth": 1,
+              "name": "Rides",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 10,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 8,
+            "flows": 1,
+            "problems": 1
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "5 inside · 1 flow",
+              "words": "5 inside, 8 in all, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "1 inside",
+              "words": "1 inside"
+            },
+            {
+              "key": "shape:ui",
+              "short": "2 inside",
+              "words": "2 inside"
+            },
+            {
+              "key": "shape:bus",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:cloud",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:linux",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:rides",
+              "short": "",
+              "words": ""
+            }
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "name": "plain",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:rides",
+                "flow": {
+                  "id": "rides",
+                  "name": "Rides",
+                  "steps": 10,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "editing",
+          "editing": true,
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:rides",
+                "flow": {
+                  "id": "rides",
+                  "name": "Rides",
+                  "steps": 10,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "query-a",
+          "query": "a",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "query-pay",
+          "query": "PAY",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "query-blank",
+          "query": "   ",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:rides",
+                "flow": {
+                  "id": "rides",
+                  "name": "Rides",
+                  "steps": 10,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "query-nothing",
+          "query": "zzzz no flow has this",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag",
+          "tags": [
+            "HAPPY PATH"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tags-and-query",
+          "tags": [
+            "happy path",
+            "error path"
+          ],
+          "query": "er",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag-nobody-has",
+          "tags": [
+            "no such tag"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "first-folder-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:rides",
+                "flow": {
+                  "id": "rides",
+                  "name": "Rides",
+                  "steps": 10,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "all-folders-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:rides",
+                "flow": {
+                  "id": "rides",
+                  "name": "Rides",
+                  "steps": 10,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "closed-and-filtered",
+          "closed": [],
+          "query": "a",
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "ui",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "ui",
+          "self": true,
+          "opened": [
+            "root",
+            "ui"
+          ]
+        },
+        {
+          "id": "screen",
+          "self": false,
+          "opened": [
+            "root",
+            "ui"
+          ]
+        },
+        {
+          "id": "screen",
+          "self": true,
+          "opened": [
+            "root",
+            "screen",
+            "ui"
+          ]
+        },
+        {
+          "id": "banner",
+          "self": false,
+          "opened": [
+            "root",
+            "ui"
+          ]
+        },
+        {
+          "id": "banner",
+          "self": true,
+          "opened": [
+            "banner",
+            "root",
+            "ui"
+          ]
+        },
+        {
+          "id": "management",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "management",
+          "self": true,
+          "opened": [
+            "management",
+            "root"
+          ]
+        },
+        {
+          "id": "agent",
+          "self": false,
+          "opened": [
+            "management",
+            "root"
+          ]
+        },
+        {
+          "id": "agent",
+          "self": true,
+          "opened": [
+            "agent",
+            "management",
+            "root"
+          ]
+        },
+        {
+          "id": "linux",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "linux",
+          "self": true,
+          "opened": [
+            "linux",
+            "root"
+          ]
+        },
+        {
+          "id": "cloud",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "cloud",
+          "self": true,
+          "opened": [
+            "cloud",
+            "root"
+          ]
+        },
+        {
+          "id": "bus",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "bus",
+          "self": true,
+          "opened": [
+            "bus",
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
+    "bad-pairs": {
+      "outlines": [
+        {
+          "name": "collapsed",
+          "expanded": [],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "2 inside · 1 flow",
+              "words": "2 inside, 1 flow"
+            }
+          ]
+        },
+        {
+          "name": "top",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ask",
+              "kind": "flow",
+              "id": "ask",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ask",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "2 inside · 1 flow",
+              "words": "2 inside, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:ask",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "branch",
+          "expanded": [
+            "root"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ask",
+              "kind": "flow",
+              "id": "ask",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ask",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "2 inside · 1 flow",
+              "words": "2 inside, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:ask",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "all",
+          "expanded": [
+            "root",
+            "ui",
+            "management"
+          ],
+          "filter": "",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ask",
+              "kind": "flow",
+              "id": "ask",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ask",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "2 inside · 1 flow",
+              "words": "2 inside, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:ask",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "all-editing",
+          "expanded": [
+            "root",
+            "ui",
+            "management"
+          ],
+          "filter": "",
+          "editing": true,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ask",
+              "kind": "flow",
+              "id": "ask",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ask",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "2 inside · 1 flow",
+              "words": "2 inside, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:ask",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "filter-a",
+          "expanded": [],
+          "filter": "a",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": false
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ask",
+              "kind": "flow",
+              "id": "ask",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ask",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "2 inside · 1 flow",
+              "words": "2 inside, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:ask",
+              "short": "",
+              "words": ""
+            }
+          ]
+        },
+        {
+          "name": "filter-web",
+          "expanded": [
+            "root"
+          ],
+          "filter": "WEB",
+          "editing": false,
+          "rows": [],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": []
+        },
+        {
+          "name": "filter-blank",
+          "expanded": [
+            "root"
+          ],
+          "filter": "  ",
+          "editing": false,
+          "rows": [
+            {
+              "key": "shape:root",
+              "kind": "shape",
+              "id": "root",
+              "depth": 0,
+              "name": "Overview",
+              "external": false,
+              "inside": 2,
+              "shapes": 2,
+              "flows": 1,
+              "problem": true,
+              "expandable": true,
+              "expanded": true,
+              "match": true
+            },
+            {
+              "key": "shape:management",
+              "kind": "shape",
+              "id": "management",
+              "parent": "root",
+              "depth": 1,
+              "name": "Management",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:ui",
+              "kind": "shape",
+              "id": "ui",
+              "parent": "root",
+              "depth": 1,
+              "name": "UI",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:ask",
+              "kind": "flow",
+              "id": "ask",
+              "parent": "root",
+              "depth": 1,
+              "name": "Ask",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 4,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            }
+          ],
+          "totals": {
+            "shapes": 2,
+            "flows": 1,
+            "problems": 2
+          },
+          "counts": [
+            {
+              "key": "shape:root",
+              "short": "2 inside · 1 flow",
+              "words": "2 inside, 1 flow"
+            },
+            {
+              "key": "shape:management",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:ui",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:ask",
+              "short": "",
+              "words": ""
+            }
+          ]
+        }
+      ],
+      "lists": [
+        {
+          "name": "plain",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:ask",
+                "flow": {
+                  "id": "ask",
+                  "name": "Ask",
+                  "steps": 4,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "editing",
+          "editing": true,
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:ask",
+                "flow": {
+                  "id": "ask",
+                  "name": "Ask",
+                  "steps": 4,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "query-a",
+          "query": "a",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:ask",
+                "flow": {
+                  "id": "ask",
+                  "name": "Ask",
+                  "steps": 4,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "query-pay",
+          "query": "PAY",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "query-blank",
+          "query": "   ",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:ask",
+                "flow": {
+                  "id": "ask",
+                  "name": "Ask",
+                  "steps": 4,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "query-nothing",
+          "query": "zzzz no flow has this",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag",
+          "tags": [
+            "HAPPY PATH"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tags-and-query",
+          "tags": [
+            "happy path",
+            "error path"
+          ],
+          "query": "er",
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "tag-nobody-has",
+          "tags": [
+            "no such tag"
+          ],
+          "closed": [],
+          "result": {
+            "rows": [],
+            "tags": [],
+            "total": 1,
+            "shown": 0
+          }
+        },
+        {
+          "name": "first-folder-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:ask",
+                "flow": {
+                  "id": "ask",
+                  "name": "Ask",
+                  "steps": 4,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "all-folders-closed",
+          "closed": [],
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:ask",
+                "flow": {
+                  "id": "ask",
+                  "name": "Ask",
+                  "steps": 4,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        },
+        {
+          "name": "closed-and-filtered",
+          "closed": [],
+          "query": "a",
+          "result": {
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:ask",
+                "flow": {
+                  "id": "ask",
+                  "name": "Ask",
+                  "steps": 4,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
+            "tags": [],
+            "total": 1,
+            "shown": 1
+          }
+        }
+      ],
+      "expandTo": [
+        {
+          "id": "root",
+          "self": false,
+          "opened": []
+        },
+        {
+          "id": "root",
+          "self": true,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "ui",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "ui",
+          "self": true,
+          "opened": [
+            "root",
+            "ui"
+          ]
+        },
+        {
+          "id": "management",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "management",
+          "self": true,
+          "opened": [
+            "management",
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "nope",
+          "self": true,
+          "opened": [
+            "nope",
+            "root"
+          ]
+        }
+      ]
+    },
     "flowdiff": {
       "outlines": [
         {
@@ -65959,7 +68521,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 27,
+              "flows": 31,
               "problem": true,
               "expandable": true,
               "expanded": false,
@@ -65968,14 +68530,14 @@
           ],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside · 27 flows",
-              "words": "6 inside, 27 flows"
+              "short": "6 inside · 31 flows",
+              "words": "6 inside, 31 flows"
             }
           ]
         },
@@ -65996,7 +68558,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 27,
+              "flows": 31,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -66589,18 +69151,90 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:via-case",
+              "kind": "flow",
+              "id": "via-case",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-case",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-new",
+              "kind": "flow",
+              "id": "via-new",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-new",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-none",
+              "kind": "flow",
+              "id": "via-none",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-none",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-old",
+              "kind": "flow",
+              "id": "via-old",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-old",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside · 27 flows",
-              "words": "6 inside, 27 flows"
+              "short": "6 inside · 31 flows",
+              "words": "6 inside, 31 flows"
             },
             {
               "key": "shape:a",
@@ -66764,6 +69398,26 @@
             },
             {
               "key": "flow:same",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-case",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-new",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-none",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-old",
               "short": "",
               "words": ""
             }
@@ -66786,7 +69440,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 27,
+              "flows": 31,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -67379,18 +70033,90 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:via-case",
+              "kind": "flow",
+              "id": "via-case",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-case",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-new",
+              "kind": "flow",
+              "id": "via-new",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-new",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-none",
+              "kind": "flow",
+              "id": "via-none",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-none",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-old",
+              "kind": "flow",
+              "id": "via-old",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-old",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside · 27 flows",
-              "words": "6 inside, 27 flows"
+              "short": "6 inside · 31 flows",
+              "words": "6 inside, 31 flows"
             },
             {
               "key": "shape:a",
@@ -67554,6 +70280,26 @@
             },
             {
               "key": "flow:same",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-case",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-new",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-none",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-old",
               "short": "",
               "words": ""
             }
@@ -67582,7 +70328,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 27,
+              "flows": 31,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -68175,18 +70921,90 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:via-case",
+              "kind": "flow",
+              "id": "via-case",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-case",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-new",
+              "kind": "flow",
+              "id": "via-new",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-new",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-none",
+              "kind": "flow",
+              "id": "via-none",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-none",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-old",
+              "kind": "flow",
+              "id": "via-old",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-old",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside · 27 flows",
-              "words": "6 inside, 27 flows"
+              "short": "6 inside · 31 flows",
+              "words": "6 inside, 31 flows"
             },
             {
               "key": "shape:a",
@@ -68350,6 +71168,26 @@
             },
             {
               "key": "flow:same",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-case",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-new",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-none",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-old",
               "short": "",
               "words": ""
             }
@@ -68378,7 +71216,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 27,
+              "flows": 31,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -68971,18 +71809,90 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:via-case",
+              "kind": "flow",
+              "id": "via-case",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-case",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-new",
+              "kind": "flow",
+              "id": "via-new",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-new",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-none",
+              "kind": "flow",
+              "id": "via-none",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-none",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-old",
+              "kind": "flow",
+              "id": "via-old",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-old",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside · 27 flows",
-              "words": "6 inside, 27 flows"
+              "short": "6 inside · 31 flows",
+              "words": "6 inside, 31 flows"
             },
             {
               "key": "shape:a",
@@ -69148,6 +72058,26 @@
               "key": "flow:same",
               "short": "",
               "words": ""
+            },
+            {
+              "key": "flow:via-case",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-new",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-none",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-old",
+              "short": "",
+              "words": ""
             }
           ]
         },
@@ -69166,7 +72096,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 27,
+              "flows": 31,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -69422,18 +72352,90 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:via-case",
+              "kind": "flow",
+              "id": "via-case",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-case",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-new",
+              "kind": "flow",
+              "id": "via-new",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-new",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-none",
+              "kind": "flow",
+              "id": "via-none",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-none",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-old",
+              "kind": "flow",
+              "id": "via-old",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-old",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside · 27 flows",
-              "words": "6 inside, 27 flows"
+              "short": "6 inside · 31 flows",
+              "words": "6 inside, 31 flows"
             },
             {
               "key": "shape:a",
@@ -69504,6 +72506,26 @@
               "key": "flow:same",
               "short": "",
               "words": ""
+            },
+            {
+              "key": "flow:via-case",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-new",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-none",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-old",
+              "short": "",
+              "words": ""
             }
           ]
         },
@@ -69517,7 +72539,7 @@
           "rows": [],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": []
@@ -69539,7 +72561,7 @@
               "external": false,
               "inside": 6,
               "shapes": 6,
-              "flows": 27,
+              "flows": 31,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -70132,18 +73154,90 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:via-case",
+              "kind": "flow",
+              "id": "via-case",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-case",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-new",
+              "kind": "flow",
+              "id": "via-new",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-new",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-none",
+              "kind": "flow",
+              "id": "via-none",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-none",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "flow:via-old",
+              "kind": "flow",
+              "id": "via-old",
+              "parent": "root",
+              "depth": 1,
+              "name": "via-old",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": false,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
             "shapes": 6,
-            "flows": 27,
+            "flows": 31,
             "problems": 7
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside · 27 flows",
-              "words": "6 inside, 27 flows"
+              "short": "6 inside · 31 flows",
+              "words": "6 inside, 31 flows"
             },
             {
               "key": "shape:a",
@@ -70307,6 +73401,26 @@
             },
             {
               "key": "flow:same",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-case",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-new",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-none",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:via-old",
               "short": "",
               "words": ""
             }
@@ -70723,11 +73837,71 @@
                   "tags": []
                 },
                 "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-case",
+                "flow": {
+                  "id": "via-case",
+                  "name": "via-case",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-new",
+                "flow": {
+                  "id": "via-new",
+                  "name": "via-new",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-none",
+                "flow": {
+                  "id": "via-none",
+                  "name": "via-none",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-old",
+                "flow": {
+                  "id": "via-old",
+                  "name": "via-old",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 31,
+            "shown": 31
           }
         },
         {
@@ -71140,11 +74314,71 @@
                   "tags": []
                 },
                 "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-case",
+                "flow": {
+                  "id": "via-case",
+                  "name": "via-case",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-new",
+                "flow": {
+                  "id": "via-new",
+                  "name": "via-new",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-none",
+                "flow": {
+                  "id": "via-none",
+                  "name": "via-none",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-old",
+                "flow": {
+                  "id": "via-old",
+                  "name": "via-old",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 31,
+            "shown": 31
           }
         },
         {
@@ -71347,11 +74581,71 @@
                   "tags": []
                 },
                 "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-case",
+                "flow": {
+                  "id": "via-case",
+                  "name": "via-case",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-new",
+                "flow": {
+                  "id": "via-new",
+                  "name": "via-new",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-none",
+                "flow": {
+                  "id": "via-none",
+                  "name": "via-none",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-old",
+                "flow": {
+                  "id": "via-old",
+                  "name": "via-old",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 13
+            "total": 31,
+            "shown": 17
           }
         },
         {
@@ -71392,7 +74686,7 @@
               }
             ],
             "tags": [],
-            "total": 27,
+            "total": 31,
             "shown": 2
           }
         },
@@ -71806,11 +75100,71 @@
                   "tags": []
                 },
                 "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-case",
+                "flow": {
+                  "id": "via-case",
+                  "name": "via-case",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-new",
+                "flow": {
+                  "id": "via-new",
+                  "name": "via-new",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-none",
+                "flow": {
+                  "id": "via-none",
+                  "name": "via-none",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-old",
+                "flow": {
+                  "id": "via-old",
+                  "name": "via-old",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 31,
+            "shown": 31
           }
         },
         {
@@ -71820,7 +75174,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 31,
             "shown": 0
           }
         },
@@ -71833,7 +75187,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 31,
             "shown": 0
           }
         },
@@ -71848,7 +75202,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 31,
             "shown": 0
           }
         },
@@ -71861,7 +75215,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 27,
+            "total": 31,
             "shown": 0
           }
         },
@@ -72274,11 +75628,71 @@
                   "tags": []
                 },
                 "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-case",
+                "flow": {
+                  "id": "via-case",
+                  "name": "via-case",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-new",
+                "flow": {
+                  "id": "via-new",
+                  "name": "via-new",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-none",
+                "flow": {
+                  "id": "via-none",
+                  "name": "via-none",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-old",
+                "flow": {
+                  "id": "via-old",
+                  "name": "via-old",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 31,
+            "shown": 31
           }
         },
         {
@@ -72690,11 +76104,71 @@
                   "tags": []
                 },
                 "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-case",
+                "flow": {
+                  "id": "via-case",
+                  "name": "via-case",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-new",
+                "flow": {
+                  "id": "via-new",
+                  "name": "via-new",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-none",
+                "flow": {
+                  "id": "via-none",
+                  "name": "via-none",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-old",
+                "flow": {
+                  "id": "via-old",
+                  "name": "via-old",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 27
+            "total": 31,
+            "shown": 31
           }
         },
         {
@@ -72897,11 +76371,71 @@
                   "tags": []
                 },
                 "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-case",
+                "flow": {
+                  "id": "via-case",
+                  "name": "via-case",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-new",
+                "flow": {
+                  "id": "via-new",
+                  "name": "via-new",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-none",
+                "flow": {
+                  "id": "via-none",
+                  "name": "via-none",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              },
+              {
+                "kind": "flow",
+                "key": "flow:via-old",
+                "flow": {
+                  "id": "via-old",
+                  "name": "via-old",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
               }
             ],
             "tags": [],
-            "total": 27,
-            "shown": 13
+            "total": 31,
+            "shown": 17
           }
         }
       ],

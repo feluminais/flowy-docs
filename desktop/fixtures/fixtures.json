@@ -31,5 +31,7 @@
   "bad-tags": "desktop/fixtures/cases/bad-tags/flowy",
   "channels": "desktop/fixtures/cases/channels/flowy",
   "recurse": "desktop/fixtures/cases/recurse/flowy",
-  "payloads": "desktop/fixtures/cases/payloads/flowy"
+  "payloads": "desktop/fixtures/cases/payloads/flowy",
+  "pairs": "desktop/fixtures/cases/pairs/flowy",
+  "bad-pairs": "desktop/fixtures/cases/bad-pairs/flowy"
 }

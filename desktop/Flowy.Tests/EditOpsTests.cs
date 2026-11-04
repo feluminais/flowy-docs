@@ -94,7 +94,8 @@ public class EditOpsTests
             case "placeBoxes":
                 return EditOps.PlaceBoxes(doc, Str(s, "view")!, s["boxes"]!.AsObject().Select(b => (b.Key, b.Value![0]!.GetValue<double>(), b.Value![1]!.GetValue<double>())));
             case "setLines": return EditOps.SetLines(doc, Str(s, "style"));
-            case "setProject": return EditOps.SetProject(doc, Str(s, "name"), Str(s, "about"));
+            case "setPairs": return EditOps.SetPairs(doc, Str(s, "mode"));
+            case "setProject": return EditOps.SetProject(doc, Str(s, "name"), Str(s, "about"), Str(s, "pairs"));
             case "forgetLayout": return EditOps.ForgetLayout(doc, Str(s, "view")!);
             default: throw new InvalidOperationException($"unknown op {Str(s, "op")}");
         }
@@ -187,6 +188,16 @@ public class EditOpsTests
         Assert.True(Differences(initial, files) == "", Differences(initial, files));
         Assert.DoesNotContain(files.Keys, k => k.Contains(".drafts", StringComparison.Ordinal) || k.Contains("a#b", StringComparison.Ordinal) || k.EndsWith(".yml", StringComparison.Ordinal)); // a file the loader leaves out is never written
         RunScript(Start("folders"), edit["results"]!.AsArray(), 30);
+    }
+
+    [Fact]
+    public void The_lines_between_two_shapes_write_what_the_typescript_ops_write_and_a_via_follows_its_connection()
+    {
+        var edit = Expected()["pairsEdit"]!;
+        var files = Start("pairs").ToFiles();
+        var initial = Files(edit["initial"]!);
+        Assert.True(Differences(initial, files) == "", Differences(initial, files));
+        RunScript(Start("pairs"), edit["results"]!.AsArray(), 20);
     }
 
     [Fact]

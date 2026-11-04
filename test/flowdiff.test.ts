@@ -150,3 +150,13 @@ test('a step whose payload or reply changed is changed on both sides, and the sa
   const inline = { name: 'Cart', about: 'The basket.' }
   assert.deepEqual(diffFlows(flow(sent({ ...inline })), flow(sent({ about: 'The basket.', name: 'Cart' }))).newer.steps, {})
 })
+
+test('a step that rides another connection is changed on both sides, and a via written in another case or with space around it is not', () => {
+  const ride = (via?: string): Step[] => [{ from: 'a', to: 'b', text: 'one', ...(via === undefined ? {} : { via }) }]
+  assert.deepEqual(diffFlows(flow(ride('Fast path')), flow(ride('Slow path'))).older.steps, { 0: 'changed' })
+  assert.deepEqual(diffFlows(flow(ride('Fast path')), flow(ride('Slow path'))).newer.steps, { 0: 'changed' })
+  assert.deepEqual(diffFlows(flow(ride()), flow(ride('Fast path'))).newer.steps, { 0: 'changed' })
+  assert.deepEqual(diffFlows(flow(ride('Fast path')), flow(ride(' fast PATH '))).newer.steps, {})
+  // A via that is empty or only space names nothing, so it equals none.
+  assert.deepEqual(diffFlows(flow(ride()), flow(ride('  '))).newer.steps, {})
+})

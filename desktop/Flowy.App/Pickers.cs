@@ -97,6 +97,24 @@ internal static class Pick
         return chooser;
     }
 
+    /// <summary>
+    /// How a pair of shapes is drawn, as two tiles: one line between two boxes (Merged) or a line for each connection (Separate). A pick is a mode word. Twin of PairsPicker in ui/src/Pickers.tsx.
+    /// </summary>
+    public static Chooser PairTiles(string chosen, Func<string, Task<bool>> picked)
+    {
+        var chooser = new Chooser(Names.PairsField, new UniformGrid { Columns = 2 }, picked, Names.PairName);
+        foreach (var mode in Names.PairModes)
+        {
+            var name = Names.PairName(mode);
+            var swatch = new PairsSwatch(mode) { HorizontalAlignment = HorizontalAlignment.Center };
+            var cell = chooser.Add(mode, name, new StackPanel { Spacing = 5, Children = { swatch, new TextBlock { Text = name, FontSize = 11, HorizontalAlignment = HorizontalAlignment.Center } } });
+            cell.HorizontalAlignment = HorizontalAlignment.Stretch;
+            cell.HorizontalContentAlignment = HorizontalAlignment.Center;
+        }
+        chooser.Show(chosen);
+        return chooser;
+    }
+
     /// <summary>One thing to pick: a soft tile, ringed once it is the chosen one.</summary>
     public static Button Cell(string name, Control content, params string[] classes)
     {

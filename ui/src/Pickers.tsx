@@ -3,8 +3,8 @@ import type { CSSProperties, ReactNode } from 'react'
 import { ICON_GROUPS, ICONS } from '../../src/core/icons.ts'
 import { COLORS, COLOR_NAMES, colorPair, customIcons, fillOpacity, iconData, isColorName, isOpacity, SHAPE_DEFS, SHAPES, shapeOf, typeColor } from '../../src/core/look.ts'
 import type { Shape } from '../../src/core/look.ts'
-import type { FlowyObject, Model, ObjectType } from '../../src/core/model.ts'
-import { isExternal, isValidTag, MAX_TAG_LENGTH, SUGGESTED_TAGS, tagKey } from '../../src/core/model.ts'
+import type { FlowyObject, Model, ObjectType, PairMode } from '../../src/core/model.ts'
+import { isExternal, isValidTag, MAX_TAG_LENGTH, PAIR_MODES, PAIR_NAMES, PAIRS_FIELD, SUGGESTED_TAGS, tagKey } from '../../src/core/model.ts'
 import { STATE_LABELS, STATE_NAMES } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { KIND_IDS, KINDS, PLAIN_LOOK, PLAIN_NAME } from '../../src/core/kinds.ts'
@@ -327,6 +327,32 @@ export function LineKindPicker({ value, onPick }: { value: KindId | undefined; o
     <div className="pick-field">
       <Head label="Kind" value={value === undefined ? PLAIN_NAME : KINDS[value].name} />
       <div className="pick-grid linekinds" role="radiogroup" aria-label="Kind">{['', ...KIND_IDS].map(id => cell(id as KindId | ''))}</div>
+    </div>
+  )
+}
+
+/** What a mode of the lines between two shapes looks like: two boxes and one line (merged) or three lines side by side (separate). */
+const PAIR_SKETCHES: Record<PairMode, { lines: readonly number[] }> = { merged: { lines: [12] }, separate: { lines: [7, 12, 17] } }
+
+/**
+ * How a pair of shapes is drawn, as two tiles: one line between two boxes (Merged) or a line for each connection (Separate). The tile of the mode the project has is ringed.
+ * Twin of Pick.PairTiles in desktop/Flowy.App/Pickers.cs.
+ */
+export function PairsPicker({ value, onPick }: { value: PairMode; onPick: (mode: PairMode) => void }) {
+  return (
+    <div className="pick-field">
+      <Head label={PAIRS_FIELD} value={PAIR_NAMES[value]} />
+      <div className="pick-grid sketches" role="radiogroup" aria-label={PAIRS_FIELD}>
+        {PAIR_MODES.map(mode => (
+          <button key={mode} type="button" role="radio" aria-checked={mode === value} aria-label={PAIR_NAMES[mode]} title={PAIR_NAMES[mode]} className="pick sketch" onClick={() => mode !== value && onPick(mode)}>
+            <svg viewBox="0 0 44 24" aria-hidden="true">
+              <rect x="2" y="3" width="8" height="18" rx="2" /><rect x="34" y="3" width="8" height="18" rx="2" />
+              {PAIR_SKETCHES[mode].lines.map(y => <path key={y} d={`M10 ${y}H34`} />)}
+            </svg>
+            <span>{PAIR_NAMES[mode]}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

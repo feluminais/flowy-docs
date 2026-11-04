@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setPairs, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInput } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -254,6 +254,37 @@ export const STEPS: Spec[] = [
   { op: 'deleteObjects', ids: ['shop', 'api', 'web', 'db', 'checkout'] }, // a box with what is inside it, the inner ones first
 ]
 
+/** The lines between two shapes, from a folder that draws a line for each connection and has steps that name one with `via` (desktop/fixtures/cases/pairs). Each edit starts from what the one before left. */
+export const PAIRS_STEPS: Spec[] = [
+  // The setting: merged takes the key off, a new one goes after `lines:` or the name, and a word that is neither is refused.
+  { op: 'setPairs', mode: 'merged' },
+  { op: 'setPairs', mode: 'separate' },
+  { op: 'setPairs', mode: 'bundled' },
+  { op: 'setPairs' },
+  { op: 'setPairs', mode: 'separate' },
+  { op: 'setLines', style: 'curved' },
+  { op: 'setPairs', mode: 'merged' },
+  { op: 'setPairs', mode: 'separate' },
+  { op: 'setProject', name: 'Wireless', pairs: 'merged' },
+  { op: 'setProject', pairs: 'separate' },
+  { op: 'setProject', pairs: 'every' },
+  { op: 'setProject', about: 'Scans.' },
+  // A step's via keeps naming a connection: a connection a via names cannot go, unless another connection with that label is left between the two shapes.
+  { op: 'removeConnection', from: 'ui', to: 'management', which: 'Start scan' },
+  { op: 'removeConnection', from: 'ui', to: 'management', which: 'Request and reply' },
+  { op: 'connect', from: 'management', to: 'ui', label: 'start scan', kind: 'publish' },
+  { op: 'removeConnection', from: 'ui', to: 'management', which: 'Start scan' },
+  { op: 'removeConnection', from: 'management', to: 'ui', which: 'start scan' },
+  // Renaming a connection renames the vias that named it, and no label leaves them naming nothing.
+  { op: 'relabel', from: 'management', to: 'ui', which: 'Scan results', label: 'Results' },
+  { op: 'relabel', from: 'cloud', to: 'management', which: 'Fetch update', label: 'Fetch update' },
+  { op: 'relabel', from: 'management', to: 'cloud', which: 'Fetch update', label: 'FETCH UPDATE' },
+  { op: 'putFlow', id: 'named', name: 'Named', view: 'root', steps: [{ from: 'ui', to: 'management', text: 'Asks', via: 'Start scan' }, { from: 'management', to: 'ui', text: 'Answers', via: '  ' }] },
+  { op: 'relabel', from: 'ui', to: 'management', which: 'Start scan', label: 'Begin scan' },
+  { op: 'relabel', from: 'ui', to: 'management', which: 'Begin scan', label: '' },
+  { op: 'putFlow', id: 'named', name: 'Named', view: 'root', steps: [{ from: 'ui', to: 'management', text: 'Asks', via: 'Nothing like it' }] },
+]
+
 /** Deleting what other parts depend on, from a folder with flows, groups, states and a failure analysis (desktop/fixtures/cases/delete). Each edit starts from what the one before left. */
 export const DELETE_STEPS: Spec[] = [
   { op: 'swapSteps', id: 'pay', index: 0, other: 1 },
@@ -409,7 +440,8 @@ function apply(model: Model, s: Spec): Model {
     case 'updateAnalysis': return updateAnalysis(model, s.id, s.changes)
     case 'placeBoxes': return placeBoxes(model, s.view, s.boxes)
     case 'setLines': return setLines(model, s.style)
-    case 'setProject': return setProject(model, { name: s.name, about: s.about })
+    case 'setPairs': return setPairs(model, s.mode)
+    case 'setProject': return setProject(model, { name: s.name, about: s.about, ...(s.pairs === undefined ? {} : { pairs: s.pairs }) })
     case 'forgetLayout': return forgetLayout(model, s.view)
     default: throw new Error(`unknown op ${s.op}`)
   }
@@ -447,5 +479,5 @@ export async function dumpOps(): Promise<unknown> {
   const ids = names.flatMap(name => [[], ['orders-db', 'orders-db-2', 'API']].map(taken => ({ name, taken, id: newId(name, taken, 'component') })))
   const start: Model = modelOf(state)
   const types = [ROOT, ...Object.keys(start.objects), 'nowhere'].map(view => ({ view, types: typesIn(start, view) }))
-  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS, {}), folderEdit: await run(join(root, 'desktop/fixtures/cases/folders/flowy'), FOLDER_STEPS) }
+  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS, {}), folderEdit: await run(join(root, 'desktop/fixtures/cases/folders/flowy'), FOLDER_STEPS), pairsEdit: await run(join(root, 'desktop/fixtures/cases/pairs/flowy'), PAIRS_STEPS) }
 }

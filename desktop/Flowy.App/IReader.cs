@@ -95,7 +95,7 @@ internal interface IReader
 
     void DismissNotice();
 
-    void OpenLine(string from, string to);
+    void OpenLine(string from, string to, int? focusLabel = null);
 
     void FitNow();
 }

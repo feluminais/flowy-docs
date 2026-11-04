@@ -65,7 +65,7 @@ public static class Drafts
     }
 
     /// <summary>
-    /// Makes an empty draft called <paramref name="name"/> in the model folder <paramref name="modelDir"/>: <c>drafts/&lt;id&gt;/model.yaml</c> with the name, no shapes and no lines. The id is made from the name
+    /// Makes an empty draft called <paramref name="name"/> in the model folder <paramref name="modelDir"/>: <c>drafts/&lt;id&gt;/model.yaml</c> with the name, <c>pairs: separate</c> (a line for each connection, as in src/core/drafts.ts <c>newDraft</c>), no shapes and no lines. The id is made from the name
     /// (see <see cref="Navigation.NewId"/>) and is never one that has a folder already. Returns the draft's folder. Throws <see cref="OpError"/> with the reason when it can't be made.
     /// </summary>
     public static string Create(string modelDir, string name)
@@ -75,7 +75,7 @@ public static class Drafts
         var drafts = Path.Combine(Path.GetFullPath(modelDir), Folder);
         var taken = Directory.Exists(drafts) ? Directory.EnumerateDirectories(drafts).Select(Path.GetFileName).OfType<string>().ToList() : [];
         var dir = DirOf(modelDir, Navigation.NewId(name, taken, "draft"));
-        var text = YamlWriter.Write(new OrderedDictionary<string, object?> { ["name"] = name, ["objects"] = new OrderedDictionary<string, object?>(), ["connections"] = new List<object?>() });
+        var text = YamlWriter.Write(new OrderedDictionary<string, object?> { ["name"] = name, ["pairs"] = "separate", ["objects"] = new OrderedDictionary<string, object?>(), ["connections"] = new List<object?>() });
         try
         {
             Directory.CreateDirectory(dir);
