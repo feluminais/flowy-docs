@@ -63,7 +63,7 @@ export function usePaneRun({ model, runs, runId, view, problems, selectedBox, se
   const perf = usePerfRun({ runs, named: () => ({ run: runId }), still })
   const drawing = useRunDrawing({ model, runs, perf, view, shown: true })
   const { loadTraffic, runMarks } = drawing
-  const graph = useMemo(() => toGraph(model, view, undefined, problems, runMarks), [model, view, problems, runMarks])
+  const graph = useMemo(() => toGraph(model, view, undefined, problems, runMarks, { style: lines, opened: selectedLine }), [model, view, problems, runMarks, lines, selectedLine])
   // The states on the canvas now, for the panel's key: a shape on another view that is in one is not drawn here.
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   const sizes = useRef(new Map<string, { width: number; height: number }>()) // what each box measured (see Reader: React Flow forgets it on every new node object)

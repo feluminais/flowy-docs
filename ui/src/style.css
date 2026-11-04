@@ -270,6 +270,15 @@ svg { flex: none; }
 .react-flow__edge.active .kmark, .react-flow__edge.step .kmark { --c: var(--accent); }
 .react-flow__edge.step .react-flow__edge-path { stroke-dasharray: 8 5; }
 /* The other lanes of a branch: where it might have gone, faint and dashed, and not lit. */
+/* A trunk, several lines stacked as one when a pair has more than fit across its shapes (Line.tsx, and its swatch in the key): two hairlines behind its line, on its outer side, and a chip with the number of connections on its middle. They take the line's colour in each state. */
+.trunk-hair { stroke: var(--edge); stroke-width: 1; opacity: 0.6; pointer-events: none; }
+.trunk-chip { pointer-events: none; }
+.trunk-chip rect { fill: var(--box); stroke: var(--edge); stroke-width: 1; }
+.trunk-chip text { fill: var(--fg); stroke: none; font-size: 10px; }
+.react-flow__edge.selected .trunk-hair, .react-flow__edge.hover .trunk-hair, .react-flow__edge .trunk-hair.hot, .react-flow__edge.active .trunk-hair, .react-flow__edge.step .trunk-hair { stroke: var(--accent); }
+.react-flow__edge.selected .trunk-chip rect, .react-flow__edge.hover .trunk-chip rect, .react-flow__edge.active .trunk-chip rect { stroke: var(--accent); }
+.react-flow__edge.problem .trunk-hair, .react-flow__edge.problem .trunk-chip rect { stroke: var(--warn); }
+.react-flow__edge.fails .trunk-hair, .react-flow__edge.fails .trunk-chip rect { stroke: var(--fc); }
 .react-flow__edge.lane { opacity: 0.55; }
 .react-flow__edge.kin { opacity: 0.35; } /* the other lines of a pair that a step rides on one of them: more there than a line of another pair (.dim), less than a lane of the flow's other branches */
 .react-flow__edge.lane .react-flow__edge-path { stroke-dasharray: 4 5; }
@@ -1506,6 +1515,8 @@ details.payload .code-block, .dot-card .code-block { max-height: 240px; overflow
 /* A kind drawn small: the key at the canvas foot, the picker's tiles and the mark beside a connection in a panel. The line and marks use the same colours as on the canvas. */
 .look-swatch { display: block; flex: none; overflow: visible; }
 .look-swatch .look-line { stroke: var(--edge); stroke-width: 1.5; }
+.look-swatch.in-use .look-line { stroke: var(--accent); stroke-width: 2.5; } /* a lane a step plays on, as .react-flow__edge.active draws it */
+.look-swatch.in-use .kmark { --c: var(--accent); }
 .kind-key {
   position: absolute; left: 60px; bottom: 16px; z-index: 4; max-width: min(640px, calc(100% - 76px)); box-sizing: border-box; padding: 7px 12px;
   border: 1px solid var(--line); border-radius: 10px; background: var(--box);

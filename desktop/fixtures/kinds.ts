@@ -104,6 +104,12 @@ const MARK_LOOKS = ['none', 'plain', ...KIND_IDS, ...Object.keys(ODD)]
 /** The head scales markScale is asked about, with a number of lines side by side: a quiet line, a thick one, one of three, the cap itself. */
 const MARK_SCALES: [number, number][] = [[1, 1], [headScale(6), 1], [headScale(6), 2], [1, 3], [1.1, 2], [LANE_MARK_SCALE, 4], [1.5, 0]]
 
+/** The kinds and the plain line of the key: what the desktop is held to here (a trunk and a lane in use are pinned in trunks.json). */
+const onScreen = (lines: Parameters<typeof kindsOnScreen>[0]) => {
+  const { kinds, plain } = kindsOnScreen(lines)
+  return { kinds, plain }
+}
+
 export function dumpKinds(): unknown {
   return {
     ids: [...KIND_IDS],
@@ -133,7 +139,7 @@ export function dumpKinds(): unknown {
       laneMarkScale: LANE_MARK_SCALE,
       onScreen: ON_SCREEN.map(({ name, lines }) => ({
         name, lines: lines.map(l => ({ id: l.id, look: l.look === undefined ? null : named(l.look) })),
-        result: kindsOnScreen(lines.map(l => ({ id: l.id, data: l.look === undefined ? undefined : { look: named(l.look) } }))),
+        result: onScreen(lines.map(l => ({ id: l.id, data: l.look === undefined ? undefined : { look: named(l.look) } }))),
       })),
       marksOf: MARK_LOOKS.flatMap(look => [false, true].map(both => {
         const { head, headAtStart, tail } = marksOf(look === 'none' ? undefined : named(look), both)

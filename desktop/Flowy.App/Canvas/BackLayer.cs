@@ -18,7 +18,7 @@ internal sealed class BackLayer : Control
     /// A line as drawn. `Made` is what its path was made from: the two boxes and their outlines, so a line whose boxes stayed where they were keeps its path, its geometry and its label.
     /// `Label` is the label's box at the middle of the line, as measured; where it is drawn is in `_labelAt`.
     /// </summary>
-    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds, IReadOnlyList<CorePt>? Points = null, LanePose? Pose = null)
+    private sealed record Drawn(SceneEdge Edge, LinePath Path, Geometry Geometry, (CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string Style) Made, CoreRect? Label, Avalonia.Rect Bounds, IReadOnlyList<CorePt>? Points = null, LanePose? Pose = null, CorePt? Step = null)
     {
         /// <summary>The <c>s</c> of the pose it is drawn in: how far its pair is spread.</summary>
         public double S => Pose?.S ?? 0;
@@ -156,7 +156,9 @@ internal sealed class BackLayer : Control
                 var pose = PoseOf(e);
                 var lane = _lanes.PathFor(e.Id, style, new LaneEnd(e.From, made.Item1, made.Item3), new LaneEnd(e.To, made.Item2, made.Item4), pose, e.Slot);
                 var label = e.Label is { Length: > 0 } ? LabelBox(lane.Path, Format(e, LineLabels.Clip(e.Label), Brushes.Black)) : (CoreRect?)null;
-                return new Drawn(e, lane.Path, lane.Geometry, made, label, lane.Geometry.Bounds, lane.Points, pose);
+                // The hairlines of a trunk lie behind it on its outer side, a fixed step along the normal of the pair (see Lanes.StackStep).
+                CorePt? step = e.Trunk is not null && e.Slot is { } slot ? Lanes.StackStep(new LaneBox(e.From, made.Item1, made.Item3), new LaneBox(e.To, made.Item2, made.Item4), slot) : null;
+                return new Drawn(e, lane.Path, lane.Geometry, made, label, lane.Geometry.Bounds, lane.Points, pose, step);
             }).ToList();
         PointedAt(scene);
         PlaceLabels();
@@ -403,7 +405,7 @@ internal sealed class BackLayer : Control
         if (_failures is { Lines.Count: > 0 })
             foreach (var line in _lines)
                 // A failure mode is on a pair, so the badge of a pair of lines side by side is drawn once, on the first, at the middle of the pair.
-                if (line.Edge.Slot is not { Lane: > 0 } && _failures.Lines.TryGetValue(Failures.LineKey(line.Edge.From, line.Edge.To), out var mark)) DrawFailBadge(context, line, mark);
+                if (line.Edge.Slot is not ({ Lane: > 0 } or { Within: > 0 }) && _failures.Lines.TryGetValue(Failures.LineKey(line.Edge.From, line.Edge.To), out var mark)) DrawFailBadge(context, line, mark);
     }
 
     /// <summary>
@@ -455,7 +457,10 @@ internal sealed class BackLayer : Control
             var halo = Brush(change switch { Change.New => "AccentBrush", Change.Removed => "DangerBrush", _ => "WarnBrush" });
             context.DrawGeometry(null, new Pen(halo, 8, change == Change.Removed ? new DashStyle([6.0 / 8, 4.0 / 8], 0) : null, PenLineCap.Flat), line.Geometry);
         }
+        // A trunk, several lines stacked as one: two hairlines behind its line, on its outer side, and a chip with the number of connections on its middle (not while its label shows there).
+        if (line.Step is { } step) TrunkMarks.Hairlines(context, line.Geometry, brush, step);
         context.DrawGeometry(null, new Pen(brush, thickness, dash, PenLineCap.Flat), line.Geometry);
+        if (e.Trunk is { } trunk && !(e.Flags.HasFlag(EdgeFlags.Hover) && e.Label is not null)) TrunkMarks.Chip(context, trunk.Size, line.Path.Label, brush, Brush("BoxBrush"), Brush("FgBrush"));
 
         // The marks are Flowy's own shapes (Heads, Kinds.Marks), in the line's colour, as big as the browser draws them: scaled by the traffic width alone, which being picked or lit
         // does not change. A plain line has a filled head on its end (and on its start when connections run both ways); a line with a kind has the kind's head and, running one way,

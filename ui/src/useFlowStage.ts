@@ -9,7 +9,8 @@ import type { StateMark } from '../../src/core/states.ts'
 import { otherLaneSteps, stopsOf } from '../../src/core/structure.ts'
 import { slotsOf } from '../../src/core/lanes.ts'
 import { pairMode } from '../../src/core/model.ts'
-import { strandOf } from '../../src/core/strands.ts'
+import type { LineStyle } from '../../src/core/model.ts'
+import { drawnStrandOf, drawnView } from '../../src/core/trunks.ts'
 import { computeView, placeStep } from '../../src/core/views.ts'
 import type { Playing } from './graph.ts'
 import type { Recording } from './Recorder.tsx'
@@ -29,8 +30,10 @@ export const NO_MARKS: Record<string, StateMark> = {} // the same object every t
  * recorded in edit mode, whose steps so far are drawn the same way. `clock` is the player's: the lines of a pair that a step rides open away from it by the clock's time
  * (`parts`, see parts.ts), so the canvas provides that store to its lines.
  */
-export function useFlowStage({ model, view, flow, playing, replays, recording, clock }: {
+export function useFlowStage({ model, view, flow, playing, replays, recording, clock, lines = 'straight' }: {
   model: Model; view: string; flow: Flow | undefined; playing: Play | undefined; replays: number; recording?: Recording; clock: PlayerClock
+  /** How lines are drawn here: where a pair has more lines than fit across its shapes they are folded into trunks, which depends on it (see drawnView). */
+  lines?: LineStyle
 }) {
   // The player moves through stops, not steps: a stop is what is on screen at once (see structure.ts). `playing.step` is a stop.
   const stops = useMemo(() => (flow ? stopsOf(flow) : []), [flow])
@@ -39,9 +42,12 @@ export function useFlowStage({ model, view, flow, playing, replays, recording, c
   // Where shapes stand at this stop: the flow's start and each step's changes up to it (nothing is stored, so stepping back needs no undo).
   const flowMarks = useMemo(() => (flow && stop ? marksOf(model, statesAt(flow, stops, stopIndex)) : NO_MARKS), [model, flow, stop, stops, stopIndex])
 
-  // Where a project draws a line for each connection, the view's lines (strands) and their places among the lines of their pairs: a step rides one of them.
+  // Where a project draws a line for each connection, the view's lines (strands) and their places among the lines of their pairs: a step rides one of them. A pair with more lines than fit
+  // across its shapes draws them as trunks, and a step that rides one of those rides its trunk (`drawn.stands`); the places are those of the lines as drawn, trunks shut.
   const laid = useMemo(() => (pairMode(model) === 'separate' ? computeView(model, view) : undefined), [model, view])
-  const slots = useMemo(() => (laid?.strands === undefined ? undefined : slotsOf(laid.strands)), [laid])
+  const drawn = useMemo(() => (laid === undefined ? undefined : drawnView(model, view, lines, laid)), [model, view, laid, lines])
+  const slots = useMemo(() => (drawn?.view.strands === undefined ? undefined : slotsOf(drawn.view.strands)), [drawn])
+  const ridden = (placed: [string, string], step: Step): string | undefined => (drawn === undefined ? undefined : drawnStrandOf(model, drawn, step, placed))
 
   // A drag re-renders on every mouse move, and dagre takes tens of ms on a big view, so the graph is
   // rebuilt only when what it is built from changes. `flow`, `recording` and `model` keep their identity between renders.
@@ -55,7 +61,7 @@ export function useFlowStage({ model, view, flow, playing, replays, recording, c
         return at ? [at[0]] : []
       })
       const ends = placeSteps(flow.steps)
-      const strands = laid === undefined ? undefined : ends.map((placed, i) => (placed ? strandOf(model, laid, flow.steps[i], placed)?.id : undefined))
+      const strands = laid === undefined ? undefined : ends.map((placed, i) => (placed ? ridden(placed, flow.steps[i]) : undefined))
       return { ends, steps: stops[stopIndex].steps, faint: otherLaneSteps(stops, stopIndex), ...(also.length > 0 ? { also } : {}), ...(strands === undefined ? {} : { strands }) }
     }
     if (!recording) return undefined
@@ -65,23 +71,23 @@ export function useFlowStage({ model, view, flow, playing, replays, recording, c
     const ends = [...done, placeStep(model, view, next)]
     // Where each connection is a line of its own, the lines the steps so far ride, and the one the click on a line picked for the step being recorded.
     const steps = [...(Object.hasOwn(model.flows, recording.id) ? model.flows[recording.id].steps : []), next]
-    const strands = laid === undefined ? undefined : ends.map((placed, i) => (placed ? strandOf(model, laid, steps[i], placed)?.id : undefined))
+    const strands = laid === undefined ? undefined : ends.map((placed, i) => (placed ? ridden(placed, steps[i]) : undefined))
     return { ends, step: done.length, ...(strands === undefined ? {} : { strands }) }
-  }, [model, view, laid, flow, stops, stopIndex, recording])
+  }, [model, view, laid, drawn, flow, stops, stopIndex, recording])
   const stepKey = flow && playing ? stepKeyOf(playing.flow, stopIndex, replays) : ''
-  const strandsById = useMemo(() => (laid?.strands === undefined ? undefined : new Map(laid.strands.map(s => [s.id, s]))), [laid])
+  const strandsById = useMemo(() => (drawn?.view.strands === undefined ? undefined : new Map(drawn.view.strands.map(s => [s.id, s]))), [drawn])
   // Where a step rides one line of a pair of several, the others part around it (see parts.ts): for each such pair, which of its lines the stop lights, and when the earliest
   // `part` beat of the stop's steps on it starts (a step with no motion parts at once).
   const plans = useMemo<ReadonlyMap<string, PartPlan>>(() => {
-    if (!flow || !stop || laid?.strands === undefined || shown?.strands === undefined) return NO_PLANS
-    return planOf(laid.strands, stop.steps.map(i => {
+    if (!flow || !stop || drawn?.view.strands === undefined || shown?.strands === undefined) return NO_PLANS
+    return planOf(drawn.view.strands, stop.steps.map(i => {
       const id = shown.strands![i]
       const placed = shown.ends[i]
       const animation = motionOf(model, flow.steps[i])
       const lanes = id === undefined ? undefined : strandsById?.get(id)?.lanes
       return { strand: id, ...(animation && placed && lanes !== undefined ? { beats: beatsFor(animation, { length: 0, afterLanding: stop.before.some(j => followsLanding(shown.ends[j], placed)), lanes }).beats } : {}) }
     }))
-  }, [model, flow, stop, laid, shown, strandsById])
+  }, [model, flow, stop, drawn, shown, strandsById])
   // The store the lines of this canvas read their parting from, and a new plan for it at every stop. The clock begins the stop first (the step's motions and the player say it too,
   // and the same key again does nothing), so the plan starts from the stop's first moment. Another flow, or a stop other than the next or the one before, is a jump.
   const parts = useMemo(() => createPartStore(clock), [clock])

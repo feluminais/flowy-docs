@@ -1,0 +1,10 @@
+name: Tour
+view: root
+steps:
+  - { from: hub, to: ui, text: The hub announces an event, via: Event 2 }
+  - { from: ui, to: hub, text: The screen asks, via: Query 3 }
+  - { from: hub, to: store, text: The hub writes }
+  - { from: sensor, to: hub, text: A reading comes in }
+  - { from: hub, to: cloud, text: The hub syncs, via: Sync 2 }
+  - { from: cloud, to: hub, text: The cloud alerts }
+  - { from: hub, to: bus, text: The hub beats }

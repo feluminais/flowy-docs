@@ -3,8 +3,20 @@ namespace Flowy.Core;
 /// <summary>A box with the id its lane belongs to: the lanes of a pair are laid out from the shape with the smaller id (the way <see cref="Views.LineKey"/> orders a pair). <c>Edge</c> is the shape's outline (x0, y0, x1, y1, …), empty or null for the rectangle.</summary>
 public sealed record LaneBox(string Id, Rect Rect, double[]? Edge);
 
-/// <summary>Where a line sits among the lines of its pair: <c>Lane</c> counts from 0 of <c>Lanes</c>, and the first <c>Back</c> of them run from the pair's later id to its earlier.</summary>
-public readonly record struct LaneSlot(int Lane, int Lanes, int Back);
+/// <summary>
+/// Where a line sits among the lines of its pair: <c>Lane</c> counts from 0 of <c>Lanes</c>, and the first <c>Back</c> of them run from the pair's later id to its earlier.
+/// <c>Stack</c> lists the lanes that are trunks (several lines stacked as one, drawn with two hairlines behind them, so each takes <see cref="Lanes.TrunkExtra"/> more room), and
+/// <c>Fan</c> how many lines are drawn at each lane: 1, or more for a trunk that is open, whose lines then fan out of its place (<c>Within</c> is the place of this line among them).
+/// The three are null when a pair has none, so a pair of plain lanes is <c>(Lane, Lanes, Back)</c> as it always was. Two slots with the same numbers are the same slot.
+/// </summary>
+public readonly record struct LaneSlot(int Lane, int Lanes, int Back, IReadOnlyList<int>? Stack = null, IReadOnlyList<int>? Fan = null, int? Within = null)
+{
+    private static bool Same(IReadOnlyList<int>? a, IReadOnlyList<int>? b) => a is null || b is null ? a is null && b is null : a.SequenceEqual(b);
+
+    public bool Equals(LaneSlot other) => Lane == other.Lane && Lanes == other.Lanes && Back == other.Back && Within == other.Within && Same(Stack, other.Stack) && Same(Fan, other.Fan);
+
+    public override int GetHashCode() => HashCode.Combine(Lane, Lanes, Back, Within, Stack?.Count, Fan?.Count);
+}
 
 /// <summary>
 /// What a pair of lanes is doing: <c>S</c> is how far it is spread (0 to 1), and <c>Lam[j]</c> how lit its lane j is (0 to 1; the lane around which the others part).
@@ -59,8 +71,25 @@ public static class Lanes
     /// <summary>How far inside a shape's outline the outermost lane stays.</summary>
     public const double Margin = 10;
 
-    /// <summary>Most lanes drawn for one pair; more are folded into trunks by direction and kind (a later phase).</summary>
+    /// <summary>Most lanes drawn for one pair; more are folded into trunks by direction and kind (see <see cref="Trunks.FoldPair"/>).</summary>
     public const int Most = 8;
+
+    /// <summary>The room a trunk (several lines stacked as one, see <see cref="Trunks"/>) takes beyond a lane's pitch: its two hairlines lie 3 px and 6 px behind it, on its outer side.</summary>
+    public const double TrunkExtra = 6;
+
+    /// <summary>How far behind a trunk the first of its two hairlines lies; the second lies twice as far.</summary>
+    public const double HairlineGap = 3;
+
+    /// <summary>Most lines a trunk opens into when its pair is selected; a trunk of more stays shut, and the panel lists its connections.</summary>
+    public const int OpenMost = 12;
+
+    /// <summary>The least lines of a pair at which they might not all fit across the shapes (three lanes need 30 px, which every shape has), so no pair with fewer is folded.</summary>
+    public const int FoldFrom = 4;
+
+    /// <summary>The words of the two items the key at the canvas foot has for lines side by side: a lane a step plays on among the others of its pair, and a trunk. Both readers say them.</summary>
+    public const string KeyInUse = "In use";
+
+    public const string KeyStacked = "Stacked lines";
 
     /// <summary>Number of segments a lane that is displaced is drawn in (it has one more point than that).</summary>
     public const int Samples = 24;
@@ -145,14 +174,45 @@ public static class Lanes
     /// <summary>A number to three decimals, the way both readers round: half up, whatever the sign (<c>Math.round</c> and C#'s <c>Math.Round</c> differ on halves).</summary>
     public static double Round3(double x) => Math.Floor(x * 1000 + 0.5) / 1000;
 
-    /// <summary>The slot of each strand of a view, by strand id, in the order View.Strands has them. <c>Back</c> is how many strands of the pair run from its later id to its earlier.</summary>
+    /// <summary>Whether lines are drawn as lanes beside others: a slot of a pair of several lanes, or of a lane whose trunk is open and fans out into several lines.</summary>
+    public static bool IsLaned(LaneSlot? slot) => slot is { } s && (s.Lanes > 1 || s.Fan is not null);
+
+    /// <summary>
+    /// The slot of each strand of a view, by strand id, in the order View.Strands has them. <c>Back</c> is how many lanes of the pair run from its later id to its earlier. A trunk
+    /// (<see cref="Strand.Trunk"/>) is a lane that takes <see cref="TrunkExtra"/> more room (the <c>Stack</c> of its pair), and so is a lane that several strands share, which is a trunk that is
+    /// open: its strands each have the lane of the trunk and fan out of it (the <c>Fan</c> of the pair, and the place of the strand among them, <c>Within</c>).
+    /// </summary>
     public static OrderedDictionary<string, LaneSlot> SlotsOf(IReadOnlyList<Strand> strands)
     {
-        var back = new Dictionary<string, int>();
+        var back = new Dictionary<string, SortedSet<int>>();
+        var counts = new Dictionary<string, int[]>();
+        var within = new Dictionary<string, int>();
+        var stacked = new Dictionary<string, SortedSet<int>>();
         foreach (var s in strands)
-            if (string.CompareOrdinal(s.From, s.To) > 0) back[s.Pair] = back.GetValueOrDefault(s.Pair) + 1;
+        {
+            if (string.CompareOrdinal(s.From, s.To) > 0)
+            {
+                if (!back.TryGetValue(s.Pair, out var lanes)) back[s.Pair] = lanes = [];
+                lanes.Add(s.Lane);
+            }
+            if (!counts.TryGetValue(s.Pair, out var here)) counts[s.Pair] = here = new int[s.Lanes];
+            within[s.Id] = here[s.Lane]++;
+            if (s.Trunk is not null)
+            {
+                if (!stacked.TryGetValue(s.Pair, out var lanes)) stacked[s.Pair] = lanes = [];
+                lanes.Add(s.Lane);
+            }
+        }
         var slots = new OrderedDictionary<string, LaneSlot>();
-        foreach (var s in strands) slots[s.Id] = new LaneSlot(s.Lane, s.Lanes, back.GetValueOrDefault(s.Pair));
+        foreach (var s in strands)
+        {
+            var fan = counts[s.Pair];
+            var open = fan.Any(n => n > 1);
+            var stack = new SortedSet<int>(stacked.GetValueOrDefault(s.Pair) ?? []);
+            for (var lane = 0; lane < fan.Length; lane++)
+                if (fan[lane] > 1) stack.Add(lane);
+            slots[s.Id] = new LaneSlot(s.Lane, s.Lanes, back.TryGetValue(s.Pair, out var b) ? b.Count : 0, stack.Count == 0 ? null : [.. stack], open ? fan : null, open ? within[s.Id] : null);
+        }
         return slots;
     }
 
@@ -266,26 +326,67 @@ public static class Lanes
     /// <summary>The room for lanes across a pair: twice the smaller half-room of the two shapes along <c>n</c>, less the margin each side.</summary>
     public static double UsableOf(double half) => 2 * (half - Margin);
 
-    /// <summary>How many lanes fit across <paramref name="half"/> (the smaller half-room of the two shapes), at the usual pitch, and no more than <see cref="Most"/>. At least one.</summary>
-    public static int LaneCapacity(double half, bool bothWays)
+    /// <summary>
+    /// How many lanes fit across <paramref name="half"/> (the smaller half-room of the two shapes), at the usual pitch, and no more than <see cref="Most"/>. At least one. <paramref name="trunks"/> of them
+    /// are trunks, which take <see cref="TrunkExtra"/> more room each: <c>min(8, floor((usable - gutter - 6 * trunks) / pitch) + 1)</c>.
+    /// </summary>
+    public static int LaneCapacity(double half, bool bothWays, int trunks = 0)
     {
-        var fit = (int)Math.Floor((UsableOf(half) - (bothWays ? Gutter : 0)) / Pitch) + 1;
+        var fit = (int)Math.Floor((UsableOf(half) - (bothWays ? Gutter : 0) - TrunkExtra * trunks) / Pitch) + 1;
         return Math.Max(1, Math.Min(Most, fit));
     }
 
-    /// <summary>The pitch for a pair: the usual one, or less when more lanes than fit across <paramref name="half"/> are drawn, so every lane still meets the outline (until trunks fold them).</summary>
+    /// <summary>The pitch for a pair: the usual one, or less when more lanes than fit across <paramref name="half"/> are drawn, so every lane still meets the outline (until trunks fold them, see <see cref="Trunks.FoldPair"/>).</summary>
     public static double PitchFor(double half, LaneSlot slot)
     {
         if (slot.Lanes < 2) return Pitch;
-        return Math.Max(0, Math.Min(Pitch, (UsableOf(half) - GutterOf(slot)) / (slot.Lanes - 1)));
+        return Math.Max(0, Math.Min(Pitch, (UsableOf(half) - GutterOf(slot) - TrunkExtra * (slot.Stack?.Count ?? 0)) / (slot.Lanes - 1)));
     }
 
-    /// <summary>How far lane <c>slot.Lane</c> sits to the right of the line between the centres (along <c>n</c>): the lanes are centred on it, in two groups with the gutter between.</summary>
-    public static double OffsetOf(LaneSlot slot, double pitch = Pitch)
+    /// <summary>
+    /// How far every lane of a pair sits to the right of the line between the centres (along <c>n</c>): the lanes are centred on it, in two groups with the gutter between. A trunk takes
+    /// <see cref="TrunkExtra"/> more room on its outer side (the side away from the line between the centres; the right-hand one for a trunk on it), where its hairlines lie, so each lane beyond a trunk
+    /// is moved that far out, and the bundle is centred again.
+    /// </summary>
+    public static double[] OffsetsOf(LaneSlot slot, double pitch = Pitch)
     {
         var gutter = GutterOf(slot);
-        var side = gutter == 0 ? 0 : slot.Lane < slot.Back ? -gutter / 2 : gutter / 2;
-        return (slot.Lane - (slot.Lanes - 1) / 2.0) * pitch + side;
+        var raw = new double[slot.Lanes];
+        for (var lane = 0; lane < slot.Lanes; lane++) raw[lane] = (lane - (slot.Lanes - 1) / 2.0) * pitch + (gutter == 0 ? 0 : lane < slot.Back ? -gutter / 2 : gutter / 2);
+        if (slot.Stack is not { Count: > 0 } stack) return raw;
+        var moved = new double[slot.Lanes];
+        for (var lane = 0; lane < slot.Lanes; lane++)
+        {
+            var by = 0.0;
+            foreach (var t in stack)
+                if (t != lane) by += raw[t] >= 0 ? (lane > t ? TrunkExtra : 0) : lane < t ? -TrunkExtra : 0;
+            moved[lane] = raw[lane] + by;
+        }
+        var middle = (moved.Max() + moved.Min()) / 2;
+        return [.. moved.Select(o => o - middle)];
+    }
+
+    /// <summary>How far lane <c>slot.Lane</c> sits to the right of the line between the centres (along <c>n</c>), see <see cref="OffsetsOf"/>.</summary>
+    public static double OffsetOf(LaneSlot slot, double pitch = Pitch)
+    {
+        if (slot.Stack is not { Count: > 0 })
+        {
+            var gutter = GutterOf(slot);
+            var side = gutter == 0 ? 0 : slot.Lane < slot.Back ? -gutter / 2 : gutter / 2;
+            return (slot.Lane - (slot.Lanes - 1) / 2.0) * pitch + side;
+        }
+        return OffsetsOf(slot, pitch)[slot.Lane];
+    }
+
+    /// <summary>
+    /// The way a trunk's hairlines lie behind it: the unit step, along the normal of the pair, towards its outer side (see <see cref="OffsetsOf"/>), which the first hairline is <see cref="HairlineGap"/> out
+    /// and the second twice as far. A trunk on the line between the centres lies towards the right-hand side. Rounded as the lanes are.
+    /// </summary>
+    public static Pt StackStep(LaneBox source, LaneBox target, LaneSlot slot)
+    {
+        var f = FrameOf(source, target);
+        var outward = OffsetOf(slot) >= 0 ? 1 : -1;
+        return new Pt(Round3(f.N.X * outward + 0), Round3(f.N.Y * outward + 0)); // + 0 turns a -0 into 0
     }
 
     /// <summary>How far the middle of a lane is moved at fraction <paramref name="t"/> of the way along: 1 in the middle, and 0 with no slope at both ends, so nothing near a shape moves.</summary>
@@ -462,11 +563,16 @@ public static class Lanes
         var exitB = BoxGeometry.LeaveAt(f.B.Rect, f.B.Edge, outB.X, outB.Y, Moved(f.Cb));
         var (s, t) = (Rounded(exitA.X, exitA.Y), Rounded(exitB.X, exitB.Y));
         // Where the run of each lane is among the others: its offset and what the pose adds; all of them at once, to know how much room they need.
-        var runs = Enumerable.Range(0, slot.Lanes).Select(lane => OffsetOf(slot with { Lane = lane }, pitch) + Displacement(slot with { Lane = lane }, pose, f.Length, pitch)).ToArray();
+        // (an open trunk's lines each have a run of their own: lane by lane, and within a lane, line by line)
+        var runs = Enumerable.Range(0, slot.Lanes).SelectMany(lane => Enumerable.Range(0, slot.Fan?[lane] ?? 1).Select(within =>
+        {
+            var there = slot with { Lane = lane, Within = slot.Fan is null ? slot.Within : within };
+            return OffsetOf(there, pitch) + Displacement(there, pose, f.Length, pitch);
+        })).ToArray();
         var widestRun = runs.Aggregate(0.0, (most, r) => Math.Max(most, Math.Abs(r)));
         var room = route.Gap / 2 - LegAir;
         var squeeze = widestRun <= room ? 1 : Math.Max(0, room) / widestRun;
-        var run = squeeze * runs[slot.Lane];
+        var run = squeeze * (offset + Displacement(slot, pose, f.Length, pitch));
         var (hx, hy) = (Sign(route.To.X - route.From.X), Sign(route.To.Y - route.From.Y));
         var radius = Math.Max(Corner, WidestOf(slot, pitch) + CornerAir);
         // The first and the second corner, by the gap between the lane's corner and the lone line's: the corner on the inside of a turn has the smaller radius.
@@ -513,13 +619,27 @@ public static class Lanes
     /// </summary>
     public static double Displacement(LaneSlot slot, LanePose pose, double length, double pitch)
     {
-        if (slot.Lanes < 2 && pose.Lam.All(l => l == 0)) return 0;
+        if (slot.Lanes < 2 && slot.Fan is null && pose.Lam.All(l => l == 0)) return 0;
         var offset = OffsetOf(slot, pitch);
         var spread = Math.Min(SpreadPitch / pitch, 1 + 0.2 * length / (WidestOf(slot, pitch) + Pitch));
         var gap = Math.Min(18, 0.2 * length);
         var parted = 0.0;
         for (var j = 0; j < pose.Lam.Count; j++) parted += pose.Lam[j] * Sign(slot.Lane - j);
-        return (spread - 1) * pose.S * offset + gap * parted;
+        return (spread - 1) * pose.S * offset + gap * parted + Fanned(slot);
+    }
+
+    /// <summary>
+    /// How far an open trunk moves the middle of a lane along <c>n</c>: its own lines fan out of its place, a <see cref="Pitch"/> apart and centred on it (the line's <c>Within</c> among the <c>Fan</c> of the lane),
+    /// and the lanes beside it are moved away by the half of the fan on their side. A pair with no open trunk has none. The ends of every lane stay where they were, so the lines of an open
+    /// trunk meet at its ends, and the field is monotone in the lane, so nothing crosses.
+    /// </summary>
+    private static double Fanned(LaneSlot slot)
+    {
+        if (slot.Fan is not { } fan) return 0;
+        var by = ((slot.Within ?? 0) - (fan[slot.Lane] - 1) / 2.0) * Pitch;
+        for (var j = 0; j < fan.Count; j++)
+            if (j != slot.Lane) by += Sign(slot.Lane - j) * (fan[j] - 1) * Pitch / 2;
+        return by;
     }
 
     /// <summary>

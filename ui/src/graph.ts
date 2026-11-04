@@ -9,8 +9,10 @@ import type { KindId } from '../../src/core/kinds.ts'
 import { iconData } from '../../src/core/look.ts'
 import type { FlowyObject, Model } from '../../src/core/model.ts'
 import { childCount, computeView, nameOf, placeEnds } from '../../src/core/views.ts'
-import type { Strand } from '../../src/core/views.ts'
+import type { Strand, Trunk } from '../../src/core/views.ts'
 import { strandCandidates } from '../../src/core/strands.ts'
+import { drawnView, openTrunks, pairsOpenedBy } from '../../src/core/trunks.ts'
+import type { LineStyle } from '../../src/core/model.ts'
 import { BOX, arrange, membersOf, spotsOf, tangle, untangle } from '../../src/core/layout.ts'
 import { HIT_WIDTH, leaveAt, ports, slotsOf } from '../../src/core/lanes.ts'
 import type { Outline, PortSide, Rect } from '../../src/core/lanes.ts'
@@ -58,11 +60,13 @@ export const lineName = (model: Model, from: string, to: string, label?: string,
 
 /**
  * What a screen reader says for a line of a pair that has several ("2 of 5, from Management to UI, Scan results, Request and reply"): its place among them, the way it runs, its label
- * and its kind. A line alone between its two shapes is named as lineName names it.
+ * and its kind. A trunk (several lines stacked as one) says how many connections it holds in place of a label. A line alone between its two shapes is named as lineName names it.
+ * `at` is its place among the lines drawn for the pair when that is not its lane (the lines of an open trunk share one).
  */
-export function strandName(model: Model, s: Strand): string {
-  if (s.lanes < 2) return lineName(model, s.from, s.to, s.label, false, s.kind)
-  return `${s.lane + 1} of ${s.lanes}, from ${nameOf(model, s.from)} to ${nameOf(model, s.to)}${s.label ? `, ${s.label}` : ''}${s.kind === undefined ? '' : `, ${kindName(s.kind)}`}`
+export function strandName(model: Model, s: Strand, at: { index: number; of: number } = { index: s.lane, of: s.lanes }): string {
+  if (at.of < 2 && s.trunk === undefined) return lineName(model, s.from, s.to, s.label, false, s.kind)
+  const what = s.trunk === undefined ? s.label : `${s.trunk.size} connections`
+  return `${at.of < 2 ? '' : `${at.index + 1} of ${at.of}, `}from ${nameOf(model, s.from)} to ${nameOf(model, s.to)}${what ? `, ${what}` : ''}${s.kind === undefined ? '' : `, ${kindName(s.kind)}`}`
 }
 
 /** The core's lineKey; App.tsx still calls it lineId. */
@@ -78,9 +82,16 @@ const classes = (...names: (string | false | undefined)[]) => names.filter(Boole
  * is dimmed. A step with no line that runs its way gets a dashed one. Boxes only the flow uses join for the
  * whole flow, as outsiders, so nothing moves between steps. Boxes and lines with problems get the
  * class "problem". Boxes in `states` (the marks of the stop on show, see marksOf) carry their state. Lines keep their labels here; focusEdges decides which to show.
+ *
+ * Where a project draws a line for each connection and a pair has more than fit across its shapes, its lines are folded into trunks (see drawnView, which needs the `style` the lines are
+ * drawn in). `drawing.opened` is the line selected, the id of a line or of a pair: the trunks of its pair are drawn as the lines they stand for (see openTrunks), unless a step
+ * plays on the pair.
  */
-export function toGraph(model: Model, view: string, playing?: Playing, problems: Problem[] = [], states: Record<string, StateMark> = {}): { nodes: BoxNode[]; edges: Edge[]; members: string[] } {
+export type Drawing = { style?: LineStyle; opened?: string }
+
+export function toGraph(model: Model, view: string, playing?: Playing, problems: Problem[] = [], states: Record<string, StateMark> = {}, drawing: Drawing = {}): { nodes: BoxNode[]; edges: Edge[]; members: string[] } {
   const computed = computeView(model, view)
+  const folding = drawnView(model, view, drawing.style, computed)
   const { members, outsiders, edges } = computed
   const flowBoxes = (playing?.ends ?? []).flatMap(e => e ?? [])
   const boxes = [...new Set([...members, ...outsiders, ...flowBoxes])]
@@ -98,22 +109,23 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
     const ends = c && placeEnds(model, view, c.from, c.to)
     return ends ? [lineKey(...ends)] : []
   }))
-  // Where a project draws a line for each connection, a step rides one of the pair's lines: the one it names (see strandOf), else the first that runs its way.
-  const strands = computed.strands
+  // Where a project draws a line for each connection, a step rides one of the pair's lines: the one it names (see strandOf), else the first that runs its way. A line folded into a trunk is the trunk.
+  const folded = folding.view.strands
   const strandAt = (i: number): string | undefined => {
-    if (strands === undefined) return undefined
-    if (playing?.strands !== undefined) return playing.strands[i]
+    if (folded === undefined) return undefined
+    if (playing?.strands !== undefined) return playing.strands[i] === undefined ? undefined : folding.stands.get(playing.strands[i]!) ?? playing.strands[i]
     const e = placedAt(i)
-    return e ? strandCandidates(computed, e)[0]?.id : undefined
+    const id = e ? strandCandidates(computed, e)[0]?.id : undefined
+    return id === undefined ? undefined : folding.stands.get(id) ?? id
   }
   // A step rides a line that runs its way, or one with connections both ways. Against a one-way line it gets a dashed one, so no arrow points against it.
   const runs = new Set(edges.flatMap(e => (e.both ? [`${e.from}>${e.to}`, `${e.to}>${e.from}`] : [`${e.from}>${e.to}`])))
-  const rides = ([from, to]: [string, string], i: number) => (strands === undefined ? runs.has(`${from}>${to}`) : strandAt(i) !== undefined)
+  const rides = ([from, to]: [string, string], i: number) => (folded === undefined ? runs.has(`${from}>${to}`) : strandAt(i) !== undefined)
   const litLines = new Set(litSteps.filter(i => rides(placedAt(i)!, i)).map(i => lineKey(...placedAt(i)!)))
   const isLit = (from: string, to: string) => litLines.has(lineKey(from, to))
   const litStrands = new Set(litSteps.flatMap(i => strandAt(i) ?? []))
   // The pairs of several lines that a step rides: their other lines are its kin, faded a little less than the lines of other pairs (see KIN_OPACITY).
-  const litPairs = new Set((strands ?? []).filter(s => s.lanes > 1 && litStrands.has(s.id)).map(s => s.pair))
+  const litPairs = new Set((folded ?? []).filter(s => s.lanes > 1 && litStrands.has(s.id)).map(s => s.pair))
   const faintSteps = (playing?.faint ?? []).flatMap(i => {
     const e = placedAt(i)
     return e ? [{ i, e }] : []
@@ -132,23 +144,37 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
   }))
   // A lit line draws over the faded boxes (zIndex). Its arrowheads are drawn by Line, in the line's own colour in every state.
   const litLine = { zIndex: 1 } as const
+  // The lines to draw: the trunks as they are, but a selected pair's open into the lines they stand for (and not while a step plays on the pair, which wins over its selection).
+  const playingPairs = new Set((folded ?? []).filter(s => litStrands.has(s.id) || faintStrands.has(s.id)).map(s => s.pair))
+  const opened = pairsOpenedBy(computed.strands ?? [], drawing.opened)
+  for (const pair of playingPairs) opened.delete(pair)
+  const strands = folded === undefined ? undefined : openTrunks(folded, new Map((computed.strands ?? []).map(s => [s.id, s])), opened)
   const slots = strands === undefined ? undefined : slotsOf(strands)
+  // How many lines are drawn for each pair, and the place of each among them.
+  const shown = new Map<string, number>()
+  const place = new Map<string, number>()
+  for (const s of strands ?? []) {
+    place.set(s.id, shown.get(s.pair) ?? 0)
+    shown.set(s.pair, (shown.get(s.pair) ?? 0) + 1)
+  }
   const lines: Edge[] = strands !== undefined ? strands.map(s => {
     const lit = dimming && litStrands.has(s.id)
+    const several = shown.get(s.pair)! > 1
     return {
       id: s.id,
       type: 'line',
       source: s.from,
       target: s.to,
       label: s.label || undefined,
-      ariaLabel: strandName(model, s),
+      ariaLabel: strandName(model, s, { index: place.get(s.id)!, of: shown.get(s.pair)! }),
       // The lanes of a pair are a hit strip each, as wide as they are apart (a lone line keeps React Flow's usual strip).
-      ...(s.lanes > 1 ? { interactionWidth: HIT_WIDTH } : {}),
-      // `pair` is the id of the pair's one merged line, which everything about a pair (traffic, failure marks, a compared flow) keeps using; `slot` is the place among the lanes.
-      data: { pair: s.pair, lanes: s.lanes, slot: slots!.get(s.id), ...(s.look ? { look: s.look } : {}) },
+      ...(several ? { interactionWidth: HIT_WIDTH } : {}),
+      // `pair` is the id of the pair's one merged line, which everything about a pair (traffic, failure marks, a compared flow) keeps using; `slot` is the place among the lanes. `lanes` is
+      // how many lines are drawn for the pair. A trunk says what it holds (`trunk`: how many connections, and the ids of its lines, which a pointer on one of them lights it by).
+      data: { pair: s.pair, lanes: shown.get(s.pair), slot: slots!.get(s.id), ...(s.look ? { look: s.look } : {}), ...(s.trunk ? { trunk: s.trunk } : {}) },
       // How much a line stays: the line a step rides (`active`) over a line of the flow's other branches (`lane`, 0.55), over the other lines of the pair a step rides (`kin`, 0.35), over the rest (`dim`, 0.15).
       // A lit line with neighbours is `several`, which has its own floor when its step times out.
-      className: classes(dimming && (lit ? 'active' : faintStrands.has(s.id) ? 'lane' : litPairs.has(s.pair) ? 'kin' : 'dim'), lit && s.lanes > 1 && 'several', s.connections.some(i => badConnections.has(i)) && 'problem'),
+      className: classes(dimming && (lit ? 'active' : faintStrands.has(s.id) ? 'lane' : litPairs.has(s.pair) ? 'kin' : 'dim'), lit && several && 'several', s.connections.some(i => badConnections.has(i)) && 'problem'),
       ...(lit ? litLine : {}),
     }
   }) : edges.map(e => {
@@ -189,6 +215,9 @@ export function toGraph(model: Model, view: string, playing?: Playing, problems:
  */
 export const pairOf = (e: { id: string; data?: Record<string, unknown> }): string => (typeof e.data?.pair === 'string' ? e.data.pair : e.id)
 
+/** Whether the line `e` is a trunk that stands for the line `id`. */
+export const inTrunk = (e: { data?: Record<string, unknown> }, id: string | undefined): boolean => id !== undefined && (e.data?.trunk as Trunk | undefined)?.members.includes(id) === true
+
 /** Whether `id` is the id of a line of the pair `pair`: a strand's id starts with its pair's, then a bar (see strandsOf in src/core/views.ts). */
 export const inPair = (id: string, pair: string): boolean => id.startsWith(`${pair}|`)
 
@@ -201,9 +230,10 @@ export const inPair = (id: string, pair: string): boolean => id.startsWith(`${pa
  * Where a pair has several lines side by side, the pair is spread (`data.spread`: the lanes widen so every label fits) while it is selected, or a line of it, or a box
  * on it, or keyboard focus is on one of its lines (`focus.focused`); a step playing on the pair wins over all of those. The label of every line of a spread pair shows. A line
  * pointed at shows its own label, and its pair does not move under the pointer. `focus.line` is the line selected: the id of a line, or of a pair (all its lines are selected).
+ * A trunk (see Trunk) is pointed at and selected by any of the lines it stands for, since a panel names those.
  */
 export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; hover?: string; focused?: string }): Edge[] {
-  const pairIn = (id: string | undefined) => (id === undefined ? undefined : pairOf(edges.find(e => e.id === id) ?? { id }))
+  const pairIn = (id: string | undefined) => (id === undefined ? undefined : pairOf(edges.find(e => e.id === id || inTrunk(e, id)) ?? { id }))
   const [selectedPair, focusedPair] = [pairIn(focus.line), pairIn(focus.focused)]
   const playingOn = new Set(edges.filter(e => e.className?.includes('active')).map(pairOf))
   return edges.map(e => {
@@ -211,13 +241,13 @@ export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; 
     const pair = pairOf(e)
     const several = typeof e.data?.lanes === 'number' && e.data.lanes > 1
     const together = touches || (e.data?.pair !== undefined && (pair === selectedPair || pair === focusedPair))
-    const hovered = e.id === focus.hover || (e.data?.pair !== undefined && pair === focus.hover)
-    const shown = together || e.id === focus.line || hovered || e.className?.includes('active')
+    const hovered = e.id === focus.hover || inTrunk(e, focus.hover) || (e.data?.pair !== undefined && pair === focus.hover)
+    const shown = together || e.id === focus.line || inTrunk(e, focus.line) || hovered || e.className?.includes('active')
     return {
       ...e,
       label: shown ? e.label : undefined,
       data: { ...e.data, label: e.label, ...(several && together && !playingOn.has(pair) ? { spread: true } : {}) }, // what a line shows when it is pointed at (see Line)
-      selected: e.id === focus.line || (e.data?.pair !== undefined && focus.line === pair),
+      selected: e.id === focus.line || inTrunk(e, focus.line) || (e.data?.pair !== undefined && focus.line === pair),
       className: classes(e.className, focus.box !== undefined && !touches && 'faint', hovered && 'hover'),
     }
   })

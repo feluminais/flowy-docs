@@ -39,9 +39,9 @@ test('a mixed line is drawn plain and names no kind; connections of one kind bot
 
 test('the key lists the kinds drawn now, in the order of the list, and the plain line only when one is drawn too', () => {
   const alone = toGraph(pair({ kind: 'cached' }), 'shop').edges
-  assert.deepEqual(kindsOnScreen(alone), { kinds: ['cached'], plain: false })
+  assert.deepEqual(kindsOnScreen(alone), { kinds: ['cached'], plain: false, stacked: false, inUse: false })
   const beside = toGraph(pair({ kind: 'cached' }, { from: 'api', to: 'db' }), 'shop').edges
-  assert.deepEqual(kindsOnScreen(beside), { kinds: ['cached'], plain: true })
+  assert.deepEqual(kindsOnScreen(beside), { kinds: ['cached'], plain: true, stacked: false, inUse: false })
   const everyKind = {
     ...shop(),
     connections: [
@@ -49,12 +49,12 @@ test('the key lists the kinds drawn now, in the order of the list, and the plain
       { from: 'api', to: 'mail', kind: 'publish' },
     ],
   } as Model
-  assert.deepEqual(kindsOnScreen(toGraph(everyKind, 'shop').edges), { kinds: ['request', 'publish', 'object', 'extension'], plain: false })
-  assert.deepEqual(kindsOnScreen(toGraph(shop(), 'shop').edges), { kinds: [], plain: true })
+  assert.deepEqual(kindsOnScreen(toGraph(everyKind, 'shop').edges), { kinds: ['request', 'publish', 'object', 'extension'], plain: false, stacked: false, inUse: false })
+  assert.deepEqual(kindsOnScreen(toGraph(shop(), 'shop').edges), { kinds: [], plain: true, stacked: false, inUse: false })
 })
 
 test('a step line is not a connection: it does not put the plain line in the key', () => {
-  assert.deepEqual(kindsOnScreen([{ id: 'step' }, { id: 'lane-2' }, { id: 'a|b', data: { look: KINDS.stream.look } }]), { kinds: ['stream'], plain: false })
+  assert.deepEqual(kindsOnScreen([{ id: 'step' }, { id: 'lane-2' }, { id: 'a|b', data: { look: KINDS.stream.look } }]), { kinds: ['stream'], plain: false, stacked: false, inUse: false })
 })
 
 test('the marks of a line: the kind head on the end, the tail on the start, and no tail when the line runs both ways', () => {

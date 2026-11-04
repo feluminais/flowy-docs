@@ -14,6 +14,12 @@ public sealed record Playing(IReadOnlyList<(string From, string To)?> Ends, int?
 /// </summary>
 public sealed record Focus(string? Box = null, string? Line = null, string? Hover = null, string? Focused = null);
 
+/// <summary>
+/// How the lines of a scene are drawn, which decides where a pair has more lines than fit across its shapes (they are folded into trunks, see <see cref="Trunks.Draw"/>): the line <c>Style</c>, and
+/// <c>Opened</c>, the line selected (the id of a line or of a pair), whose pair draws its trunks as the lines they stand for (see <see cref="Trunks.OpenTrunks"/>), unless a step plays on the pair.
+/// </summary>
+public sealed record SceneDrawing(string Style = "straight", string? Opened = null);
+
 public enum BoxMode { Normal, Lit, Dim }
 
 public sealed record SceneBox(string Id, FlowyObject Object, Rect Rect, int Inside, bool Outsider, BoxMode Mode, bool Problem)
@@ -54,6 +60,15 @@ public sealed record SceneEdge(string Id, string From, string To, string? Label,
 
     public bool Spread { get; init; }
 
+    /// <summary>What a trunk holds (how many connections, and the ids of its lines, which a pointer on one of them lights it by); null for a line that is not a trunk.</summary>
+    public Trunk? Trunk { get; init; }
+
+    /// <summary>The id of the line a click on this line picks, as the panel knows it: where each connection has a line of its own, the line's own id; a trunk is several lines stacked as one, and a click on it picks the first of them, which opens its pair (and the trunk with it).</summary>
+    public string PickedId => Trunk?.Members[0] ?? Id;
+
+    /// <summary>Whether this line is a trunk that stands for the line <paramref name="id"/>.</summary>
+    public bool Stands(string? id) => id is not null && Trunk is { } t && t.Members.Contains(id);
+
     /// <summary>The id of the pair's one merged line: the line's own id except where the project draws a line for each connection.</summary>
     public string PairId => Pair ?? Id;
 }
@@ -75,9 +90,11 @@ public static class SceneBuilder
     private const double Gap = 30;
 
     /// <summary>A line before the focus has been put on it: what the model and the flow make of it.</summary>
-    private sealed record Drawn(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Both, LineLook? Look, string? Pair = null, LaneSlot? Slot = null, int Lanes = 1)
+    private sealed record Drawn(string Id, string From, string To, string? Label, EdgeFlags Flags, bool Both, LineLook? Look, string? Pair = null, LaneSlot? Slot = null, int Lanes = 1, Trunk? Trunk = null)
     {
         public string PairId => Pair ?? Id;
+
+        public bool Stands(string? id) => id is not null && Trunk is { } t && t.Members.Contains(id);
     }
 
     /// <summary>
@@ -88,12 +105,15 @@ public static class SceneBuilder
 
     /// <summary>
     /// What a screen reader says for a line of a pair that has several ("2 of 5, from Management to UI, Scan results, Request and reply"): its place among them, the way it runs, its label and its kind.
-    /// A line alone between its two shapes is named as <see cref="LineName"/> names it. A port of strandName in ui/src/graph.ts.
+    /// A trunk (several lines stacked as one) says how many connections it holds in place of a label. A line alone between its two shapes is named as <see cref="LineName"/> names it.
+    /// <paramref name="at"/> is its place among the lines drawn for the pair when that is not its lane (the lines of an open trunk share one). A port of strandName in ui/src/graph.ts.
     /// </summary>
-    public static string StrandName(Model model, Strand s)
+    public static string StrandName(Model model, Strand s, (int Index, int Of)? at = null)
     {
-        if (s.Lanes < 2) return LineName(model, s.From, s.To, s.Label, false, s.Kind);
-        return $"{s.Lane + 1} of {s.Lanes}, from {Views.NameOf(model, s.From)} to {Views.NameOf(model, s.To)}{(s.Label != "" ? $", {s.Label}" : "")}{(s.Kind is null ? "" : $", {Kinds.NameOf(s.Kind)}")}";
+        var (index, of) = at ?? (s.Lane, s.Lanes);
+        if (of < 2 && s.Trunk is null) return LineName(model, s.From, s.To, s.Label, false, s.Kind);
+        var what = s.Trunk is null ? s.Label : $"{s.Trunk.Size} connections";
+        return $"{(of < 2 ? "" : $"{index + 1} of {of}, ")}from {Views.NameOf(model, s.From)} to {Views.NameOf(model, s.To)}{(what != "" ? $", {what}" : "")}{(s.Kind is null ? "" : $", {Kinds.NameOf(s.Kind)}")}";
     }
 
     /// <summary>What a screen reader says for a line: "A to B" ("A and B" when it runs both ways), then its label and its kind when it has them. A port of lineName in ui/src/graph.ts.</summary>
@@ -107,11 +127,12 @@ public static class SceneBuilder
     // toGraph runs again on every flow step and selection change, so placements are kept by what they're made from.
     private static readonly BoundedCache<string, OrderedDictionary<string, Pt>> Placements = new(50);
 
-    public static OrderedDictionary<string, Pt> PlaceCached(List<string> members, List<string> around, IReadOnlyList<Edge> edges, IReadOnlyDictionary<string, Region>? fixedSides = null)
+    public static OrderedDictionary<string, Pt> PlaceCached(List<string> members, List<string> around, IReadOnlyList<Edge> edges, IReadOnlyDictionary<string, Region>? fixedSides = null, IReadOnlyDictionary<string, int>? lanes = null)
     {
         fixedSides ??= new Dictionary<string, Region>();
-        var key = $"{string.Join('\u0001', members)}\u0002{string.Join('\u0001', around)}\u0002{string.Join('\u0001', edges.Select(e => e.From + "\u0003" + e.To))}\u0002{string.Join('\u0001', fixedSides.Select(f => f.Key + "\u0003" + f.Value))}";
-        return Placements.GetOrAdd(key, _ => Layout.Place(members, around, edges, fixedSides));
+        lanes ??= new Dictionary<string, int>();
+        var key = $"{string.Join('\u0001', members)}\u0002{string.Join('\u0001', around)}\u0002{string.Join('\u0001', edges.Select(e => e.From + "\u0003" + e.To))}\u0002{string.Join('\u0001', fixedSides.Select(f => f.Key + "\u0003" + f.Value))}\u0002{string.Join('\u0001', lanes.Select(l => l.Key + "\u0003" + l.Value))}";
+        return Placements.GetOrAdd(key, _ => Layout.Place(members, around, edges, fixedSides, lanes));
     }
 
     /// <summary>
@@ -127,7 +148,7 @@ public static class SceneBuilder
         if (at.Count == boxes.Count) return at; // every box has its place: the layout is the slow part and would be thrown away
         var members = computed.Members.ToList();
         var isMember = members.ToHashSet();
-        var placed = PlaceCached(members, boxes.Where(id => !isMember.Contains(id)).ToList(), computed.Edges);
+        var placed = PlaceCached(members, boxes.Where(id => !isMember.Contains(id)).ToList(), computed.Edges, null, Layout.LaneCounts(computed));
         var taken = at.Values.ToList();
         foreach (var id in boxes)
         {
@@ -159,11 +180,13 @@ public static class SceneBuilder
     /// Boxes only the flow uses join for the whole flow, as outsiders, so nothing moves between steps. A line shows its label only when the
     /// reader points at it or selects it, on the lines of the selected box, and on the line a flow has lit.
     /// </summary>
-    public static Scene Build(Model model, string view, Playing? playing = null, IReadOnlyList<Problem>? problems = null, Focus? focus = null)
+    public static Scene Build(Model model, string view, Playing? playing = null, IReadOnlyList<Problem>? problems = null, Focus? focus = null, SceneDrawing? drawing = null)
     {
         problems ??= [];
         focus ??= new Focus();
+        drawing ??= new SceneDrawing();
         var computed = Views.Compute(model, view);
+        var folding = Trunks.Draw(model, view, drawing.Style, computed);
         var members = computed.Members.ToList();
         var isMember = members.ToHashSet();
         var flowBoxes = (playing?.Ends ?? []).SelectMany(e => e is { } p ? new[] { p.From, p.To } : []);
@@ -185,21 +208,22 @@ public static class SceneBuilder
         }).Where(id => id is not null).ToHashSet();
 
         var inside = Views.ChildCounts(model);
-        // Where a project draws a line for each connection, a step rides one of the pair's lines: the one it names (see Strands.StrandOf), else the first that runs its way.
-        var strands = computed.Strands;
+        // Where a project draws a line for each connection, a step rides one of the pair's lines: the one it names (see Strands.StrandOf), else the first that runs its way. A line folded into a trunk is the trunk.
+        var folded = folding.View.Strands;
+        string Stand(string id) => folding.Stands.TryGetValue(id, out var trunk) ? trunk : id;
         string? StrandAt(int i)
         {
-            if (strands is null) return null;
-            if (playing?.Strands is { } listed) return i >= 0 && i < listed.Count ? listed[i] : null;
-            return PlacedAt(i) is { } e ? Strands.Candidates(computed, e).FirstOrDefault()?.Id : null;
+            if (folded is null) return null;
+            if (playing?.Strands is { } listed) return i >= 0 && i < listed.Count && listed[i] is { } ridden ? Stand(ridden) : null;
+            return PlacedAt(i) is { } e && Strands.Candidates(computed, e).FirstOrDefault()?.Id is { } id ? Stand(id) : null;
         }
         // A step rides a line that runs its way, or one with connections both ways. Against a one-way line it gets a dashed one, so no arrow points against it.
         var runs = computed.Edges.SelectMany(e => e.Both ? new[] { (e.From, e.To), (e.To, e.From) } : new[] { (e.From, e.To) }).ToHashSet();
-        bool Rides((string From, string To) e, int i) => strands is null ? runs.Contains((e.From, e.To)) : StrandAt(i) is not null;
+        bool Rides((string From, string To) e, int i) => folded is null ? runs.Contains((e.From, e.To)) : StrandAt(i) is not null;
         var litLines = litSteps.Where(i => Rides(PlacedAt(i)!.Value, i)).Select(i => LineId(PlacedAt(i)!.Value.From, PlacedAt(i)!.Value.To)).ToHashSet();
         var litStrands = litSteps.Select(StrandAt).OfType<string>().ToHashSet();
         // The pairs of several lines that a step rides: their other lines are its kin, faded a little less than the lines of other pairs (see Lanes.KinOpacity).
-        var litPairs = (strands ?? []).Where(s => s.Lanes > 1 && litStrands.Contains(s.Id)).Select(s => s.Pair).ToHashSet();
+        var litPairs = (folded ?? []).Where(s => s.Lanes > 1 && litStrands.Contains(s.Id)).Select(s => s.Pair).ToHashSet();
         var faintLines = faintSteps.Where(f => Rides(f.E, f.I)).Select(f => LineId(f.E.From, f.E.To)).ToHashSet();
         var faintStrands = faintSteps.Select(f => StrandAt(f.I)).OfType<string>().ToHashSet();
         var badConnections = problems.Where(p => p.Connection is not null).Select(p => p.Connection!.Value).ToHashSet();
@@ -213,19 +237,27 @@ public static class SceneBuilder
         { Icon = Look.IconData(model, model.Objects[id]) }).ToList();
 
         var lines = new List<Drawn>();
-        if (strands is not null)
+        if (folded is not null)
         {
+            // The lines to draw: the trunks as they are, but a selected pair's open into the lines they stand for (and not while a step plays on the pair, which wins over its selection).
+            var playingPairs = folded.Where(s => litStrands.Contains(s.Id) || faintStrands.Contains(s.Id)).Select(s => s.Pair).ToHashSet();
+            var opened = Trunks.PairsOpenedBy(computed.Strands ?? [], drawing.Opened);
+            opened.ExceptWith(playingPairs);
+            var strands = Trunks.OpenTrunks(folded, (computed.Strands ?? []).ToDictionary(s => s.Id), opened);
             var slots = Lanes.SlotsOf(strands);
+            // How many lines are drawn for each pair.
+            var shown = strands.GroupBy(s => s.Pair).ToDictionary(g => g.Key, g => g.Count());
             foreach (var s in strands)
             {
+                var several = shown[s.Pair] > 1;
                 var flags = EdgeFlags.None;
                 // How much a line stays: the line a step rides (Active) over a line of the flow's other branches (Lane), over the other lines of the pair a step rides (Kin), over the rest (Dim).
                 // A lit line with neighbours is Several, which has its own floor when its step times out.
                 var lit = dimming && litStrands.Contains(s.Id);
                 if (dimming) flags |= lit ? EdgeFlags.Active : faintStrands.Contains(s.Id) ? EdgeFlags.Lane : litPairs.Contains(s.Pair) ? EdgeFlags.Kin : EdgeFlags.Dim;
-                if (lit && s.Lanes > 1) flags |= EdgeFlags.Several;
+                if (lit && several) flags |= EdgeFlags.Several;
                 if (s.Connections.Any(badConnections.Contains)) flags |= EdgeFlags.Problem;
-                lines.Add(new Drawn(s.Id, s.From, s.To, s.Label == "" ? null : s.Label, flags, false, s.Look, s.Pair, slots[s.Id], s.Lanes));
+                lines.Add(new Drawn(s.Id, s.From, s.To, s.Label == "" ? null : s.Label, flags, false, s.Look, s.Pair, slots[s.Id], shown[s.Pair], s.Trunk));
             }
         }
         else
@@ -254,7 +286,7 @@ public static class SceneBuilder
 
         // Where a pair has several lines side by side, the pair is spread (the lanes widen so every label fits) while it is selected, or a line of it, or a box on it, or keyboard focus is on one
         // of its lines; a step playing on the pair wins over all of those. The label of every line of a spread pair shows. A line pointed at shows its own label, and its pair does not move under the pointer.
-        string? PairIn(string? id) => id is null ? null : lines.FirstOrDefault(l => l.Id == id)?.PairId ?? id;
+        string? PairIn(string? id) => id is null ? null : lines.FirstOrDefault(l => l.Id == id || l.Stands(id))?.PairId ?? id;
         var (selectedPair, focusedPair) = (PairIn(focus.Line), PairIn(focus.Focused));
         var playingOn = lines.Where(l => l.Flags.HasFlag(EdgeFlags.Active)).Select(l => l.PairId).ToHashSet();
         var edges = lines.Select(e =>
@@ -263,17 +295,18 @@ public static class SceneBuilder
             var pair = e.PairId;
             var several = e.Lanes > 1;
             var together = touches || (e.Pair is not null && (pair == selectedPair || pair == focusedPair));
-            var hovered = e.Id == focus.Hover || (e.Pair is not null && pair == focus.Hover);
-            var shown = together || e.Id == focus.Line || hovered || e.Flags.HasFlag(EdgeFlags.Active);
+            var hovered = e.Id == focus.Hover || e.Stands(focus.Hover) || (e.Pair is not null && pair == focus.Hover);
+            var shown = together || e.Id == focus.Line || e.Stands(focus.Line) || hovered || e.Flags.HasFlag(EdgeFlags.Active);
             var flags = e.Flags;
             if (focus.Box is not null && !touches) flags |= EdgeFlags.Faint;
             if (hovered) flags |= EdgeFlags.Hover;
-            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line || (e.Pair is not null && focus.Line == pair), e.Both, e.Look)
+            return new SceneEdge(e.Id, e.From, e.To, shown ? e.Label : null, flags, e.Id == focus.Line || e.Stands(focus.Line) || (e.Pair is not null && focus.Line == pair), e.Both, e.Look)
             {
                 Pair = e.Pair,
                 Slot = e.Slot,
                 Lanes = e.Lanes,
                 Spread = several && together && !playingOn.Contains(pair),
+                Trunk = e.Trunk,
             };
         }).ToList();
 

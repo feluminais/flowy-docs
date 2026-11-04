@@ -29,13 +29,17 @@ internal sealed record Lane(LinePath Path, StreamGeometry Geometry, IReadOnlyLis
 /// of lines, the shapes at its two ends, a pose and, for a line that is one of several of its pair, its slot. The answer stays the same object while the shapes stay where they are,
 /// so a layer that asks on every draw gets the same lane back and has nothing new to work out, and the path is parsed into a geometry once, not on every frame.
 ///
-/// A line that is one of several of a pair (it has a slot of two lanes or more, see <see cref="Strand"/>) is a lane beside the others, in the project's line style (straight, curved or
+/// A line that is one of several of a pair (it has a slot of two lanes or more, or is a line of an open trunk, see <see cref="Strand"/>) is a lane beside the others, in the project's line style (straight, curved or
 /// right-angled; a pair whose shapes do not face each other with room between them has straight lanes in every style); a line that is alone between its two shapes is drawn as it always was. A pose says how far the lanes of its pair are spread, and which are lit; a lone line has nothing to spread, so every pose gives its rest path.
 ///
 /// One store belongs to one canvas and is used from the UI thread only.
 /// </summary>
 internal sealed class LaneStore
 {
+    /// <summary>How a slot is told from another in the store's keys: its place among the lanes, where the trunks are and how many lines each lane holds (a trunk that is open fans out into several).</summary>
+    private static string SlotKey(LaneSlot slot) =>
+        $"{slot.Lane}/{slot.Lanes}/{slot.Back}{(slot.Stack is null ? "" : $"/s{string.Join('.', slot.Stack)}")}{(slot.Fan is null ? "" : $"/f{string.Join('.', slot.Fan)}/{slot.Within ?? 0}")}";
+
     /// <summary>What a lane was worked out from: it stays good for as long as all of this is the same.</summary>
     private sealed record Held(CoreRect A, CoreRect B, double[]? EdgeA, double[]? EdgeB, Lane Lane);
 
@@ -53,8 +57,8 @@ internal sealed class LaneStore
     /// </summary>
     public Lane PathFor(string? strand, string style, LaneEnd from, LaneEnd to, LanePose? pose = null, LaneSlot? slot = null)
     {
-        var several = slot is { Lanes: > 1 };
-        var key = $"{strand ?? SceneBuilder.LineId(from.Id, to.Id)}\u0001{from.Id}\u0001{to.Id}\u0001{style}\u0001{(pose ?? LanePose.Rest).Bucket()}\u0001{(several ? $"{slot!.Value.Lane}/{slot.Value.Lanes}/{slot.Value.Back}" : "")}";
+        var several = Lanes.IsLaned(slot);
+        var key = $"{strand ?? SceneBuilder.LineId(from.Id, to.Id)}\u0001{from.Id}\u0001{to.Id}\u0001{style}\u0001{(pose ?? LanePose.Rest).Bucket()}\u0001{(several ? SlotKey(slot!.Value) : "")}";
         if (_slots.TryGetValue(key, out var found) && found.A == from.Rect && found.B == to.Rect && ReferenceEquals(found.EdgeA, from.Edge) && ReferenceEquals(found.EdgeB, to.Edge)) return found.Lane;
         if (_slots.Count >= Most) _slots = [];
         Lane lane;

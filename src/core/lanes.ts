@@ -84,8 +84,16 @@ export const PITCH = 12
 export const GUTTER = 6
 /** How far inside a shape's outline the outermost lane stays. */
 export const MARGIN = 10
-/** Most lanes drawn for one pair; more are folded into trunks by direction and kind (a later phase). */
+/** Most lanes drawn for one pair; more are folded into trunks by direction and kind (see foldPair in trunks.ts). */
 export const MOST = 8
+/** The room a trunk (several lines stacked as one, see trunks.ts) takes beyond a lane's pitch: its two hairlines lie 3 px and 6 px behind it, on its outer side. */
+export const TRUNK_EXTRA = 6
+/** How far behind a trunk the first of its two hairlines lies; the second lies twice as far. */
+export const HAIRLINE_GAP = 3
+/** Most lines a trunk opens into when its pair is selected; a trunk of more stays shut, and the panel lists its connections. */
+export const OPEN_MOST = 12
+/** The least lines of a pair at which they might not all fit across the shapes (three lanes need 30 px, which every shape has), so no pair with fewer is folded. */
+export const FOLD_FROM = 4
 /** Number of segments a lane that is displaced is drawn in (it has one more point than that). */
 export const SAMPLES = 24
 /**
@@ -125,6 +133,12 @@ export const REACH = 7
 export const MOVE_WORDS = { up: 'Move up', down: 'Move down', first: 'Already first', last: 'Already last', alone: 'Only line this way' } as const
 
 /**
+ * The words of the two items the key at the canvas foot has for lines side by side: a lane a step plays on among the others of its pair (a lane in the accent colour), and a trunk, several
+ * lines of a pair stacked as one (a line with two hairlines behind it and a chip with a number). The key shows an item only while the canvas draws it. Both readers say them.
+ */
+export const LANE_KEY = { inUse: 'In use', stacked: 'Stacked lines' } as const
+
+/**
  * The width, in screen pixels, of the strip a line takes clicks in where its pair has several lines: the reach on each side of it. A lone line keeps React Flow's usual 20.
  * It is 14, not the 12 of the lanes' rest pitch: the strip only says which lines to ask `nearestStrand` about, and that function accepts a pointer up to `REACH` from a lane, so
  * a 12 px strip would turn away pointers 6 to 7 px off a lane that the desktop (which has no strips, only `nearestStrand`) accepts.
@@ -161,17 +175,44 @@ export const SPREAD: Pose = Object.freeze({ s: 1, lam: Object.freeze([]) })
 /** A box with the id its lane belongs to: the lanes of a pair are laid out from the shape with the smaller id (the way `lineKey` orders a pair). */
 export type LaneBox = { id: string; rect: Rect; edge: Outline }
 
-/** Where a line sits among the lines of its pair: `lane` counts from 0 of `lanes`, and the first `back` of them run from the pair's later id to its earlier. */
-export type Slot = { lane: number; lanes: number; back: number }
+/**
+ * Where a line sits among the lines of its pair: `lane` counts from 0 of `lanes`, and the first `back` of them run from the pair's later id to its earlier.
+ * `stack` lists the lanes that are trunks (several lines stacked as one, drawn with two hairlines behind them, so each takes `TRUNK_EXTRA` more room), and
+ * `fan` how many lines are drawn at each lane: 1, or more for a trunk that is open, whose lines then fan out of its place (`within` is the place of this line among them).
+ * The three are left out when a pair has none, so a pair of plain lanes is `{ lane, lanes, back }` as it always was.
+ */
+export type Slot = { lane: number; lanes: number; back: number; stack?: readonly number[]; fan?: readonly number[]; within?: number }
+
+/** Whether lines are drawn as lanes beside others: a slot of a pair of several lanes, or of a lane whose trunk is open and fans out into several lines. */
+export const isLaned = (slot: Slot | undefined): slot is Slot => slot !== undefined && (slot.lanes > 1 || slot.fan !== undefined)
 
 /**
  * The slot of each strand of a view, by strand id. The lanes of a pair come in the order View.strands has them: first the ones that run from the pair's later id to its
- * earlier, then the others, so `back` is how many of the first kind there are.
+ * earlier, then the others, so `back` is how many of the first kind there are. A trunk (`Strand.trunk`) is a lane that takes `TRUNK_EXTRA` more room (the `stack` of its pair), and
+ * so is a lane that several strands share, which is a trunk that is open: its strands each have the lane of the trunk and fan out of it (the `fan` of the pair, and the place of
+ * the strand among them, `within`).
  */
 export function slotsOf(strands: readonly Strand[]): Map<string, Slot> {
-  const back = new Map<string, number>()
-  for (const s of strands) if (s.from > s.to) back.set(s.pair, (back.get(s.pair) ?? 0) + 1)
-  return new Map(strands.map(s => [s.id, { lane: s.lane, lanes: s.lanes, back: back.get(s.pair) ?? 0 }]))
+  const back = new Map<string, Set<number>>()
+  const counts = new Map<string, number[]>()
+  const within = new Map<string, number>()
+  const stacked = new Map<string, Set<number>>()
+  for (const s of strands) {
+    if (s.from > s.to) back.set(s.pair, (back.get(s.pair) ?? new Set()).add(s.lane))
+    const here = counts.get(s.pair) ?? Array.from({ length: s.lanes }, () => 0)
+    within.set(s.id, here[s.lane]++)
+    counts.set(s.pair, here)
+    if (s.trunk !== undefined) stacked.set(s.pair, (stacked.get(s.pair) ?? new Set()).add(s.lane))
+  }
+  return new Map(strands.map(s => {
+    const fan = counts.get(s.pair)!
+    const open = fan.some(n => n > 1)
+    const stack = [...new Set([...(stacked.get(s.pair) ?? []), ...fan.flatMap((n, lane) => (n > 1 ? [lane] : []))])].sort((a, b) => a - b)
+    return [s.id, {
+      lane: s.lane, lanes: s.lanes, back: back.get(s.pair)?.size ?? 0,
+      ...(stack.length === 0 ? {} : { stack }), ...(open ? { fan, within: within.get(s.id)! } : {}),
+    }]
+  }))
 }
 
 /** The centre of a box. */
@@ -270,23 +311,58 @@ export function usableOf(half: number): number {
   return 2 * (half - MARGIN)
 }
 
-/** How many lanes fit across `half` (the smaller half-room of the two shapes), at the usual pitch, and no more than `MOST`. At least one. */
-export function laneCapacity(half: number, bothWays: boolean): number {
-  const fit = Math.floor((usableOf(half) - (bothWays ? GUTTER : 0)) / PITCH) + 1
+/**
+ * How many lanes fit across `half` (the smaller half-room of the two shapes), at the usual pitch, and no more than `MOST`. At least one. `trunks` of them are trunks, which take
+ * `TRUNK_EXTRA` more room each: `min(8, floor((usable - gutter - 6 * trunks) / pitch) + 1)`.
+ */
+export function laneCapacity(half: number, bothWays: boolean, trunks = 0): number {
+  const fit = Math.floor((usableOf(half) - (bothWays ? GUTTER : 0) - TRUNK_EXTRA * trunks) / PITCH) + 1
   return Math.max(1, Math.min(MOST, fit))
 }
 
-/** The pitch for a pair: the usual one, or less when more lanes than fit across `half` are drawn, so every lane still meets the outline (until trunks fold them, see MOST). */
+/** The pitch for a pair: the usual one, or less when more lanes than fit across `half` are drawn, so every lane still meets the outline (until trunks fold them, see foldPair in trunks.ts). */
 export function pitchFor(half: number, slot: Slot): number {
   if (slot.lanes < 2) return PITCH
-  return Math.max(0, Math.min(PITCH, (usableOf(half) - gutterOf(slot)) / (slot.lanes - 1)))
+  return Math.max(0, Math.min(PITCH, (usableOf(half) - gutterOf(slot) - TRUNK_EXTRA * (slot.stack?.length ?? 0)) / (slot.lanes - 1)))
 }
 
-/** How far lane `slot.lane` sits to the right of the line between the centres (along `n`): the lanes are centred on it, in two groups with the gutter between. */
-export function offsetOf(slot: Slot, pitch = PITCH): number {
+/**
+ * How far every lane of a pair sits to the right of the line between the centres (along `n`): the lanes are centred on it, in two groups with the gutter between. A trunk takes
+ * `TRUNK_EXTRA` more room on its outer side (the side away from the line between the centres; the right-hand one for a trunk on it), where its hairlines lie, so each lane beyond a trunk
+ * is moved that far out, and the bundle is centred again.
+ */
+export function offsetsOf(slot: Slot, pitch = PITCH): number[] {
   const gutter = gutterOf(slot)
-  const side = gutter === 0 ? 0 : slot.lane < slot.back ? -gutter / 2 : gutter / 2
-  return (slot.lane - (slot.lanes - 1) / 2) * pitch + side
+  const raw = Array.from({ length: slot.lanes }, (_, lane) => (lane - (slot.lanes - 1) / 2) * pitch + (gutter === 0 ? 0 : lane < slot.back ? -gutter / 2 : gutter / 2))
+  const stack = slot.stack
+  if (stack === undefined || stack.length === 0) return raw
+  const moved = raw.map((o, lane) => {
+    let by = 0
+    for (const t of stack) if (t !== lane) by += raw[t] >= 0 ? (lane > t ? TRUNK_EXTRA : 0) : lane < t ? -TRUNK_EXTRA : 0
+    return o + by
+  })
+  const middle = (Math.max(...moved) + Math.min(...moved)) / 2
+  return moved.map(o => o - middle)
+}
+
+/** How far lane `slot.lane` sits to the right of the line between the centres (along `n`), see offsetsOf. */
+export function offsetOf(slot: Slot, pitch = PITCH): number {
+  if (slot.stack === undefined || slot.stack.length === 0) {
+    const gutter = gutterOf(slot)
+    const side = gutter === 0 ? 0 : slot.lane < slot.back ? -gutter / 2 : gutter / 2
+    return (slot.lane - (slot.lanes - 1) / 2) * pitch + side
+  }
+  return offsetsOf(slot, pitch)[slot.lane]
+}
+
+/**
+ * The way a trunk's hairlines lie behind it: the unit step, along the normal of the pair, towards its outer side (see offsetsOf), which the first hairline is `HAIRLINE_GAP` out and
+ * the second twice as far. A trunk on the line between the centres lies towards the right-hand side. Rounded as the lanes are.
+ */
+export function stackStep(source: LaneBox, target: LaneBox, slot: Slot): Point {
+  const { n } = frameOf(source, target)
+  const out = offsetOf(slot) >= 0 ? 1 : -1
+  return { x: round3(n.x * out + 0), y: round3(n.y * out + 0) } // + 0 turns a -0 into 0
 }
 
 /** How far the middle of a lane is moved at fraction `t` of the way along: 1 in the middle, and 0 with no slope at both ends, so nothing near a shape moves. */
@@ -450,11 +526,15 @@ function angledLane(frame: Frame, route: Route, source: LaneBox, slot: Slot, pos
   const exitB = leaveAt(b.rect, b.edge, outB[0], outB[1], moved(cb))
   const [s, t] = [roundedPoint(exitA.x, exitA.y), roundedPoint(exitB.x, exitB.y)]
   // Where the run of each lane is among the others: its offset and what the pose adds; all of them at once, to know how much room they need.
-  const runs = Array.from({ length: slot.lanes }, (_, lane) => offsetOf({ ...slot, lane }, pitch) + displacement({ ...slot, lane }, pose, frame.length, pitch))
+  // (an open trunk's lines each have a run of their own: lane by lane, and within a lane, line by line)
+  const runs = Array.from({ length: slot.lanes }, (_, lane) => Array.from({ length: slot.fan?.[lane] ?? 1 }, (__, within) => {
+    const there = { ...slot, lane, ...(slot.fan === undefined ? {} : { within }) }
+    return offsetOf(there, pitch) + displacement(there, pose, frame.length, pitch)
+  })).flat()
   const widestRun = runs.reduce((most, r) => Math.max(most, Math.abs(r)), 0)
   const room = route.gap / 2 - LEG_AIR
   const squeeze = widestRun <= room ? 1 : Math.max(0, room) / widestRun
-  const run = squeeze * runs[slot.lane]
+  const run = squeeze * (offset + displacement(slot, pose, frame.length, pitch))
   const [hx, hy] = [sign(route.to.x - route.from.x), sign(route.to.y - route.from.y)]
   const radius = Math.max(CORNER, widestOf(slot, pitch) + CORNER_AIR)
   // The first and the second corner, by the gap between the lane's corner and the lone line's: the corner on the inside of a turn has the smaller radius.
@@ -496,7 +576,7 @@ function widestOf(slot: Slot, pitch: number): number {
  * pair plus the gap opened beside each lit lane. 0 for a pair at rest, and for a single line.
  */
 export function displacement(slot: Slot, pose: Pose, length: number, pitch: number): number {
-  if (slot.lanes < 2 && pose.lam.every(l => l === 0)) return 0
+  if (slot.lanes < 2 && slot.fan === undefined && pose.lam.every(l => l === 0)) return 0
   const offset = offsetOf(slot, pitch)
   const spread = Math.min(SPREAD_PITCH / pitch, 1 + (0.2 * length) / (widestOf(slot, pitch) + PITCH))
   const gap = Math.min(18, 0.2 * length)
@@ -504,7 +584,22 @@ export function displacement(slot: Slot, pose: Pose, length: number, pitch: numb
   pose.lam.forEach((lit, j) => {
     parted += lit * sign(slot.lane - j)
   })
-  return (spread - 1) * pose.s * offset + gap * parted
+  return (spread - 1) * pose.s * offset + gap * parted + fanned(slot)
+}
+
+/**
+ * How far an open trunk moves the middle of a lane along `n`: its own lines fan out of its place, a `PITCH` apart and centred on it (the line's `within` among the `fan` of the lane),
+ * and the lanes beside it are moved away by the half of the fan on their side. A pair with no open trunk has none. The ends of every lane stay where they were, so the lines of an open
+ * trunk meet at its ends, and the field is monotone in the lane, so nothing crosses.
+ */
+function fanned(slot: Slot): number {
+  const fan = slot.fan
+  if (fan === undefined) return 0
+  let by = ((slot.within ?? 0) - (fan[slot.lane] - 1) / 2) * PITCH
+  fan.forEach((count, j) => {
+    if (j !== slot.lane) by += (sign(slot.lane - j) * (count - 1) * PITCH) / 2
+  })
+  return by
 }
 
 /**

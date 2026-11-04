@@ -1,6 +1,7 @@
 import { Graph, layout } from '@dagrejs/dagre'
+import { MOST, PITCH } from './lanes.ts'
 import type { Model } from './model.ts'
-import { computeView, meeting, nameOf } from './views.ts'
+import { computeView, lineKey, meeting, nameOf } from './views.ts'
 import type { Edge, View } from './views.ts'
 
 /** A place on the canvas: the top-left corner of a box. */
@@ -16,10 +17,14 @@ const PER_ROW = 4 // outsiders that only start lines wait above the members, thi
 const overlaps = (a: Point, b: Point) => Math.abs(a.x - b.x) < BOX.width && Math.abs(a.y - b.y) < BOX.height
 
 type Spots = Map<string, Point>
-type Ends = { from: string; to: string }
+/** A line between two boxes. `lanes`, where a project draws a line for each connection (`pairs: separate`), is how many lines run side by side between them (1 when left out). */
+type Ends = { from: string; to: string; lanes?: number }
+
+/** How much room, in pixels, on each side of the line between the centres, the lanes of a bundle of `lanes` take besides the line itself: half their span and 6 more. 0 for a single line. */
+const reachOf = (lanes: number): number => (lanes > 1 ? ((lanes - 1) * PITCH) / 2 + 6 : 0)
 
 /** A line from (ax, ay) to (bx, by), between the centres of two boxes. Plain numbers: tangle runs often. */
-type Segment = { ax: number; ay: number; bx: number; by: number }
+type Segment = { ax: number; ay: number; bx: number; by: number; lanes: number }
 
 /** Which side of the line through p and q the point (rx, ry) is on: 1, -1, or 0 when it's on the line. */
 const turn = (px: number, py: number, qx: number, qy: number, rx: number, ry: number) => Math.sign((qx - px) * (ry - py) - (qy - py) * (rx - px))
@@ -33,9 +38,11 @@ function crosses(s: Segment, cx: number, cy: number, dx: number, dy: number): bo
 /**
  * Whether segment s runs through the box at p. Its ends sit outside the box, so it does exactly when
  * it crosses one of the box's diagonals. The box is shrunk by 4px so a line grazing a corner doesn't count.
+ * A bundle of lanes is as wide as its lanes are spread: the box is widened by that (half the span plus 6, see reachOf), since a lane beside the line between the centres may run through it.
  */
 function runsThrough(s: Segment, p: Point): boolean {
-  const [l, t, r, b] = [p.x + 4, p.y + 4, p.x + BOX.width - 4, p.y + BOX.height - 4]
+  const reach = reachOf(s.lanes)
+  const [l, t, r, b] = [p.x + 4 - reach, p.y + 4 - reach, p.x + BOX.width - 4 + reach, p.y + BOX.height - 4 + reach]
   return crosses(s, l, t, r, b) || crosses(s, r, t, l, b)
 }
 
@@ -44,12 +51,14 @@ function runsThrough(s: Segment, p: Point): boolean {
  * each time a line runs through a box that isn't one of its ends. Lines are taken centre to centre.
  * With `moved`, it counts only what involves those boxes, which is all a move of them can change:
  * the move's effect is `tangle(after, edges, moved) - tangle(before, edges, moved)`.
+ * A line with `lanes` is a bundle: a crossing of two bundles counts every lane of one against every lane of the other (N times M), and a bundle runs through a box sooner than a
+ * single line, since its outer lanes are `reachOf` away from it.
  */
 export function tangle(at: Spots, edges: Ends[], moved?: ReadonlySet<string>): number {
   const half = { x: BOX.width / 2, y: BOX.height / 2 }
   const lines = edges.filter(e => e.from !== e.to && at.has(e.from) && at.has(e.to)).map(e => {
     const [a, b] = [at.get(e.from)!, at.get(e.to)!]
-    return { from: e.from, to: e.to, ax: a.x + half.x, ay: a.y + half.y, bx: b.x + half.x, by: b.y + half.y, moves: !moved || moved.has(e.from) || moved.has(e.to) }
+    return { from: e.from, to: e.to, lanes: e.lanes ?? 1, ax: a.x + half.x, ay: a.y + half.y, bx: b.x + half.x, by: b.y + half.y, moves: !moved || moved.has(e.from) || moved.has(e.to) }
   })
   const boxes = [...at]
   const movedBoxes = moved ? boxes.filter(([id]) => moved.has(id)) : boxes
@@ -61,7 +70,7 @@ export function tangle(at: Spots, edges: Ends[], moved?: ReadonlySet<string>): n
       const m = lines[j]
       if (j === i || (m.moves && j < i)) continue
       const shared = m.from === l.from || m.from === l.to || m.to === l.from || m.to === l.to
-      if (!shared && crosses(l, m.ax, m.ay, m.bx, m.by)) score++
+      if (!shared && crosses(l, m.ax, m.ay, m.bx, m.by)) score += l.lanes * m.lanes // a crossing of bundles is every lane of one over every lane of the other
     }
     for (const [id, p] of l.moves ? boxes : movedBoxes) if (id !== l.from && id !== l.to && runsThrough(l, p)) score++
   }
@@ -252,8 +261,8 @@ function shuffled(ids: string[], seed: number): string[] {
  * while that helps (settle), then boxes trade places (untangle). The least tangled wins, the first on a
  * tie, so a clean view keeps its side columns.
  */
-function place(members: string[], around: string[], edges: Edge[], fixed: ReadonlyMap<string, Region>): Spots {
-  const lines = edges.map(e => ({ from: e.from, to: e.to }))
+function place(members: string[], around: string[], edges: Edge[], fixed: ReadonlyMap<string, Region>, lanes: ReadonlyMap<string, number>): Spots {
+  const lines = edges.map(e => ({ from: e.from, to: e.to, ...(lanes.has(lineKey(e.from, e.to)) ? { lanes: lanes.get(lineKey(e.from, e.to)) } : {}) }))
   const degree = (id: string) => lines.filter(e => e.from === id || e.to === id).length
   // Known limit: a big view tries one starting order with fewer passes, so it still opens without a pause;
   // a time budget would let it try more where the machine is fast
@@ -292,13 +301,24 @@ function place(members: string[], around: string[], edges: Edge[], fixed: Readon
   return best!
 }
 
+/**
+ * How many lines run side by side between the boxes of each pair of a view that draws a line for each connection (by lineKey): its strands, no more than `MOST`, which is what a pair
+ * draws before it folds its lines into trunks (where that happens depends on the room between the shapes, which is not known before they are placed). Pairs with a single line are left
+ * out, and a view that draws one line for each pair has none, so a project that does not draw lines apart is placed as it always was.
+ */
+export function laneCounts(view: View): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const s of view.strands ?? []) counts.set(s.pair, (counts.get(s.pair) ?? 0) + 1)
+  return new Map([...counts].filter(([, n]) => n > 1).map(([pair, n]) => [pair, Math.min(n, MOST)]))
+}
+
 // toGraph runs again on every flow step and selection change, so placements are kept by what they're made from.
 const placements = new Map<string, Spots>()
-export function placeCached(members: string[], around: string[], edges: Edge[], fixed: ReadonlyMap<string, Region> = new Map()): Spots {
-  const key = JSON.stringify([members, around, edges.map(e => [e.from, e.to]), [...fixed]])
+export function placeCached(members: string[], around: string[], edges: Edge[], fixed: ReadonlyMap<string, Region> = new Map(), lanes: ReadonlyMap<string, number> = new Map()): Spots {
+  const key = JSON.stringify([members, around, edges.map(e => [e.from, e.to]), [...fixed], [...lanes]])
   let at = placements.get(key)
   if (!at) {
-    at = place(members, around, edges, fixed)
+    at = place(members, around, edges, fixed, lanes)
     if (placements.size >= 50) placements.delete(placements.keys().next().value!)
     placements.set(key, at)
   }
@@ -316,7 +336,7 @@ export function spotsOf(model: Model, view: string, computed: View, boxes: strin
   for (const id of boxes) if (Object.hasOwn(saved, id)) at.set(id, { x: saved[id][0], y: saved[id][1] })
   if (at.size === boxes.length) return at // every box has its place: auto layout is the slow part and would be thrown away
   const inView = new Set(members)
-  const placed = placeCached(members, boxes.filter(id => !inView.has(id)), edges)
+  const placed = placeCached(members, boxes.filter(id => !inView.has(id)), edges, new Map(), laneCounts(computed))
   const taken: Point[] = [...at.values()]
   for (const id of boxes) {
     if (at.has(id)) continue
@@ -390,7 +410,7 @@ export function sideProblems(model: Model, view: string): SideProblem[] {
 /** Where Tidy puts every box of a view: each outsider on the side neighbourSides gives, wherever boxes were dragged before. */
 export function tidySpots(model: Model, view: string): Spots {
   const v = computeView(model, view)
-  return placeCached(v.members, v.outsiders, v.edges, neighbourSides(model, view, v.outsiders))
+  return placeCached(v.members, v.outsiders, v.edges, neighbourSides(model, view, v.outsiders), laneCounts(v))
 }
 
 /** What tidy_layout and `flowy tidy` say about the views they found with a neighbour on the wrong side, one line each. `fixed`: they are put right now, else they are only listed. */

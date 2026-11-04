@@ -16,6 +16,7 @@ import { dumpLayout } from '../desktop/fixtures/layout.ts'
 import { dumpMermaid } from '../desktop/fixtures/mermaid.ts'
 import { dumpOutline } from '../desktop/fixtures/outline.ts'
 import { dumpPairs } from '../desktop/fixtures/pairs.ts'
+import { dumpLayoutLanes, dumpTrunks } from '../desktop/fixtures/trunks.ts'
 import { dumpPerf, dumpPerfView } from '../desktop/fixtures/perf.ts'
 import { dumpStates } from '../desktop/fixtures/states.ts'
 import { dumpCaptions, dumpStops } from '../desktop/fixtures/structure.ts'
@@ -148,6 +149,16 @@ for (const [name, dump] of [['rest', dumpLanes], ['poses', dumpPoses], ['capacit
     assert.deepEqual(JSON.parse(JSON.stringify(await dump())), expected, 'run: node desktop/fixtures/generate.ts')
   })
 }
+
+test('the lanes, folding and trunks of a pair with many lines still match what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('trunks'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpTrunks())), expected, 'run: node desktop/fixtures/generate.ts')
+})
+
+test('what the layout makes of a bundle still matches what the desktop is held to', async () => {
+  const expected: unknown = JSON.parse(await readFile(expectedPath('layout-lanes'), 'utf8'))
+  assert.deepEqual(JSON.parse(JSON.stringify(await dumpLayoutLanes())), expected, 'run: node desktop/fixtures/generate.ts')
+})
 
 test('the sample history trail is what openHistory writes, byte for byte', async () => {
   const folder = join(dirname(expectedPath('history')), 'history-trail')

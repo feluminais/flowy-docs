@@ -166,7 +166,7 @@ internal sealed class PaneFlow
         _canvas.SetMarks(marks);
 
         // The motion of the step on show starts once for each step and replay: a hover, a theme or a change on disk redraws without starting it again.
-        var plans = shown is not null ? FlowStage.PartsAt(model, view, flow, stops, index, shown) : FlowStage.NoPlans;
+        var plans = shown is not null ? FlowStage.PartsAt(model, view, flow, stops, index, shown, _lineStyle) : FlowStage.NoPlans;
         if (!_playback.Begin(_flowId, index, out var key))
         {
             _canvas.PartStop(_flowId, index, plans); // the same plan again does nothing; a change on disk can change the lines the step rides
@@ -177,7 +177,7 @@ internal sealed class PaneFlow
         _canvas.PartStop(_flowId, index, plans);
         if (shown is not null)
         {
-            var runs = FlowStage.RunsOf(model, view, flow, stops, index, shown, plans);
+            var runs = FlowStage.RunsOf(model, view, flow, stops, index, shown, plans, _lineStyle);
             if (runs.Count > 0) _canvas.PlaySteps(runs, () => _playback.Settled(key));
         }
         _playback.ArmAuto();
@@ -189,11 +189,11 @@ internal sealed class PaneFlow
         if (_folder is null || StopsNow() is not { } stops || !_folder.Model.Flows.TryGetValue(_flowId, out var flow)) return null;
         var model = _folder.Model;
         var view = Level;
-        var shown = FlowStage.PlayingAt(model, view, flow, stops, StopNow);
+        var shown = FlowStage.PlayingAt(model, view, flow, stops, StopNow, _lineStyle);
         var box = _selection is ReaderView.Side.Box b ? b.Id : null;
         // A line is the same two shapes joined in this view only: another pane on another view is not outlined for it.
         var line = _selection is ReaderView.Side.Line l && l.View == view ? l.Id : null;
-        var scene = SceneBuilder.Build(model, view, shown, _folder.Problems, new Focus(box, line, _hover));
+        var scene = SceneBuilder.Build(model, view, shown, _folder.Problems, new Focus(box, line, _hover), new SceneDrawing(_lineStyle, line));
         return new FlowFrame(scene, shown, box is null ? [] : [box]);
     }
 
@@ -205,7 +205,7 @@ internal sealed class PaneFlow
         _canvas.SetScene(frame.Scene, _lineStyle, frame.Selected);
         _canvas.ShowChanges(Changes);
         _canvas.ShowStates(States.Marks(_folder.Model, States.At(flow, stops, StopNow)));
-        _canvas.ShowChannels(FlowStage.OpenAt(_folder.Model, Level, flow, stops, StopNow));
+        _canvas.ShowChannels(FlowStage.OpenAt(_folder.Model, Level, flow, stops, StopNow, _lineStyle));
         return frame.Shown;
     }
 
@@ -221,7 +221,7 @@ internal sealed class PaneFlow
     public ReaderView.Side? LineSide(string edgeId)
     {
         if (_canvas.Scene?.Edges.FirstOrDefault(e => e.Id == edgeId) is not { } edge || _folder is null) return null;
-        return new ReaderView.Side.Line(edge.From, edge.To, Level, edge.Pair is null ? null : edge.Id);
+        return new ReaderView.Side.Line(edge.From, edge.To, Level, edge.Pair is null ? null : edge.PickedId);
     }
 
     // ---- what the keys and the card do --------------------------------------------------------------------------

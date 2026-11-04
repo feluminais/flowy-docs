@@ -52,8 +52,11 @@ public class LanesViewTests
     {
         var folder = Load();
         var scene = SceneOf(folder);
-        var strands = Views.Compute(folder.Model, "root").Strands!;
+        // The lines as drawn: the nine connections of Management and Sensor are more than a pair draws side by side, so they are folded into trunks (see TrunksViewTests).
+        var strands = Trunks.Draw(folder.Model, "root").View.Strands!;
         Assert.Equal(strands.Select(s => s.Id), scene.Edges.Select(e => e.Id));
+        Assert.Equal(Views.Compute(folder.Model, "root").Strands!.Count(s => s.Pair != Views.LineKey("management", "sensor")), scene.Edges.Count(e => e.Pair != Views.LineKey("management", "sensor")));
+        Assert.All(scene.Edges.Where(e => e.Pair == Views.LineKey("management", "sensor")), e => Assert.NotNull(e.Trunk));
         Assert.All(scene.Edges, e => Assert.NotNull(e.Pair));
         var pair = scene.Edges.Where(e => e.Pair == Views.LineKey("ui", "management")).ToList();
         Assert.Equal(5, pair.Count);

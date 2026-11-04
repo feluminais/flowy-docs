@@ -1,7 +1,7 @@
 import { getBezierPath, getSmoothStepPath, getStraightPath, Position } from '@xyflow/react'
 import type { LineStyle } from '../../src/core/model.ts'
 import type { Point } from '../../src/core/heads.ts'
-import { laneGeometry, REST, SPREAD } from '../../src/core/lanes.ts'
+import { isLaned, laneGeometry, REST, SPREAD } from '../../src/core/lanes.ts'
 import type { LaneBox, Pose, Slot } from '../../src/core/lanes.ts'
 import { lineEnds, lineId, ports } from './graph.ts'
 import type { Outline, Rect } from './graph.ts'
@@ -55,8 +55,9 @@ function draw(style: LineStyle, a: Rect, b: Rect, edgeA: Outline, edgeB: Outline
 /** How a pose is told from another in the store's keys. */
 const poseKey = (pose: Pose): string => (pose === REST || (pose.s === 0 && pose.lam.every(l => l === 0)) ? '' : `${pose.s}:${pose.lam.join(',')}`)
 
-/** How a slot is told from another in the store's keys. A lone line has none. */
-const slotKey = (slot: Slot | undefined): string => (slot === undefined || slot.lanes < 2 ? '' : `${slot.lane}/${slot.lanes}/${slot.back}`)
+/** How a slot is told from another in the store's keys. A lone line has none; a trunk and the lines of an open one add where the trunks are and how many lines each lane holds. */
+const slotKey = (slot: Slot | undefined): string =>
+  slot === undefined || !isLaned(slot) ? '' : `${slot.lane}/${slot.lanes}/${slot.back}${slot.stack ? `/s${slot.stack.join('.')}` : ''}${slot.fan ? `/f${slot.fan.join('.')}/${slot.within ?? 0}` : ''}`
 
 const sameRect = (a: Rect, b: Rect): boolean => a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
 
@@ -82,7 +83,7 @@ export function createLaneStore(): LaneStore {
       const found = held.get(key)
       if (found && sameRect(found.a, from.rect) && sameRect(found.b, to.rect) && found.edgeA === from.edge && found.edgeB === to.edge) return found.lane
       if (held.size >= MOST) held = new Map()
-      const lane = slot !== undefined && slot.lanes > 1 ? laneGeometry(from, to, slot, pose, style) : draw(style, from.rect, to.rect, from.edge, to.edge)
+      const lane = isLaned(slot) ? laneGeometry(from, to, slot, pose, style) : draw(style, from.rect, to.rect, from.edge, to.edge)
       // The rects are copied: a caller may go on moving the object it passed.
       held.set(key, { a: { ...from.rect }, b: { ...to.rect }, edgeA: from.edge, edgeB: to.edge, lane })
       return lane

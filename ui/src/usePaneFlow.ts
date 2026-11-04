@@ -35,10 +35,10 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
   const view = level ?? flow?.view ?? ROOT
   const player = usePlayer({ initialFlow: () => flowId, initialStep: startAt })
   const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock, paused, speed, setSpeed } = player
-  const stage = useFlowStage({ model, view, flow, playing, replays, clock })
+  const stage = useFlowStage({ model, view, flow, playing, replays, clock, lines })
   const { stops, stopIndex, flowMarks, shown, animated, moving, stepKey } = stage
   const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays })
-  const graph = useMemo(() => toGraph(model, view, shown, problems, flowMarks), [model, view, shown, problems, flowMarks])
+  const graph = useMemo(() => toGraph(model, view, shown, problems, flowMarks, { style: lines, opened: selectedLine }), [model, view, shown, problems, flowMarks, lines, selectedLine])
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   const sizes = useRef(new Map<string, { width: number; height: number }>()) // what each box measured (see Reader: React Flow forgets it on every new node object)
   const [hovered, setHovered] = useState<string>()

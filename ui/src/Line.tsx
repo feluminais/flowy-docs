@@ -4,6 +4,7 @@ import { BaseEdge, EdgeLabelRenderer, useInternalNode, useStore } from '@xyflow/
 import type { EdgeProps, InternalNode, XYPosition } from '@xyflow/react'
 import type { Mark } from '../../src/core/failures.ts'
 import { endsOfPath, HEAD_PATH, headMatrix, headScale } from '../../src/core/heads.ts'
+import { HAIRLINE_GAP, isLaned, round3, stackStep } from '../../src/core/lanes.ts'
 import type { Point } from '../../src/core/heads.ts'
 import type { LineLook } from '../../src/core/kinds.ts'
 import { SHAPE_DEFS, shapeOf } from '../../src/core/look.ts'
@@ -18,11 +19,12 @@ import type { LaneEnd, Pose, Slot } from './lanes.ts'
 import type { Spot } from './labels.ts'
 import type { SpotsFor } from './labelspots.ts'
 import { marksOf, markScale } from './kindkey.ts'
-import { LookSwatch, MarkPath } from './kinds.tsx'
+import { LookSwatch, MarkPath, TrunkChip } from './kinds.tsx'
 import { labelOffset } from './motion.ts'
 import { PartsContext } from './parts.ts'
 import { useEasedSpread } from './spread.ts'
 import type { BoxData, Outline, Rect } from './graph.ts'
+import type { Trunk } from '../../src/core/views.ts'
 
 /** How lines are drawn: the project's style, or this reader's own. App provides it. */
 export const LineStyleContext = createContext<LineStyle>('straight')
@@ -184,10 +186,12 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   const hover = useContext(LineHoverContext)
   // What the pointer is on, as this line sees it: this line ('line'), this line among others of its pair ('lane': drawn above them), another line of its pair ('mate': faded a little), or none.
   const several = typeof data?.lanes === 'number' && data.lanes > 1
+  // A trunk stands for several lines (their ids are in `data.trunk`): pointing at one of them, say in the list of a panel, points at the trunk.
+  const trunk = data?.trunk as Trunk | undefined
   const pointed = useSyncExternalStore(hover.subscribe, () => {
     const now = hover.get()
     if (now === undefined) return 'none'
-    if (now === id) return several ? 'lane' : 'line'
+    if (now === id || trunk?.members.includes(now)) return several ? 'lane' : 'line'
     if (now === pair) return 'line'
     return several && inPair(now, pair) ? 'mate' : 'none'
   })
@@ -208,6 +212,8 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   const b = useInternalNode(target)
   if (!a || !b) return null
   const { slot } = laneOf(data)
+  // The hairlines of a trunk lie behind it on its outer side, a fixed step along the normal of the pair (see stackStep).
+  const trunkStep = trunk !== undefined && slot !== undefined ? stackStep(endOf(a), endOf(b), slot) : undefined
   const pose = lit === undefined ? (spreadNow === 0 ? REST : spreadNow === 1 ? SPREAD : { s: spreadNow, lam: [] }) : { s: spreadNow, lam: lit }
   const { path, x, y } = lanes.laneFor(id, style, endOf(a), endOf(b), pose, slot)
   // A step that moves runs a blob along this line, so its label steps aside instead of sitting under the blob.
@@ -217,15 +223,17 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   const text = typeof shown === 'string' ? clip(shown) : shown
   const aside = data?.lift === true && typeof text === 'string' ? labelOffset(rb.x + rb.width / 2 - (ra.x + ra.width / 2), rb.y + rb.height / 2 - (ra.y + ra.height / 2), text.length) : { x: 0, y: 0 }
   // The failure badge of a pair sits above the middle of the pair, not on one of its lines (the desktop's PairBadgeRect puts it in the same place).
-  const centre = slot !== undefined && slot.lanes > 1 ? lanes.laneFor(pair, 'straight', endOf(a), endOf(b)) : { x, y }
-  const sampled = typeof text === 'string' && slot !== undefined && slot.lanes > 1
+  const centre = isLaned(slot) ? lanes.laneFor(pair, 'straight', endOf(a), endOf(b)) : { x, y }
+  const sampled = typeof text === 'string' && isLaned(slot)
   const [labelX, labelY] = spot && data?.lift !== true ? [spot.x, spot.y] : [x + aside.x, y + aside.y]
   return (
     <>
       {/* The line pointed at among the lines of its pair is drawn above them (the stylesheet lifts the svg React Flow gives it, for `raised`), and they fade a little (`lane-mate`). */}
       <g className={mate ? 'lane-mate' : undefined}>
         {change && <path className="change-line" data-change={change} d={path} fill="none" />}
+        {trunkStep && [1, 2].map(k => <path key={k} className={hot ? 'trunk-hair hot' : 'trunk-hair'} d={path} fill="none" transform={`translate(${round3(trunkStep.x * HAIRLINE_GAP * k)} ${round3(trunkStep.y * HAIRLINE_GAP * k)})`} />)}
         <BaseEdge id={id} path={path} className={[hot && 'hot', pointed === 'lane' && 'raised', look?.pattern === 'dashdot' && 'dashdot'].filter(Boolean).join(' ') || undefined} label={sampled ? undefined : text} labelX={labelX} labelY={labelY} interactionWidth={interactionWidth === undefined ? undefined : interactionWidth / stripZoom} style={width === undefined ? undefined : { strokeWidth: width }} />
+        {trunk && !(hot && text !== undefined) && <TrunkChip size={trunk.size} at={{ x, y }} />}
         <Ends path={path} both={data?.both === true} hot={hot} width={width} look={look} lanes={typeof data?.lanes === 'number' ? data.lanes : 1} />
       </g>
       {sampled && (
@@ -237,7 +245,7 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
           </div>
         </EdgeLabelRenderer>
       )}
-      {mark && (slot === undefined || slot.lane === 0) && (
+      {mark && (slot === undefined || (slot.lane === 0 && (slot.within ?? 0) === 0)) && (
         <EdgeLabelRenderer>
           <FailBadge mark={mark} line={`${nameOfNode(a, source)} to ${nameOfNode(b, target)}`} className="line" style={{ transform: `translate(-50%, -150%) translate(${centre.x}px, ${centre.y}px)` }} />
         </EdgeLabelRenderer>

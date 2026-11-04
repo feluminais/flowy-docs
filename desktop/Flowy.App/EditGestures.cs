@@ -45,7 +45,7 @@ internal sealed class EditGestures
     /// What the canvas shows while recording: the flow's steps so far, and the step being picked lit. Where a project draws a line for each connection, the line each step rides comes with it,
     /// and for the step being picked the line a click on a line chose (<see cref="Recording.Via"/>), as the browser's useFlowStage does.
     /// </summary>
-    internal static Playing RecordingShown(Model model, string view, Recording rec)
+    internal static Playing RecordingShown(Model model, string view, Recording rec, string lineStyle = "straight")
     {
         var steps = (model.Flows.TryGetValue(rec.Id, out var flow) ? flow.Steps : []).ToList();
         var done = steps.Select(s => Views.PlaceStep(model, view, s.From, s.To)).ToList();
@@ -53,7 +53,7 @@ internal sealed class EditGestures
         var next = new Step(rec.From, rec.To == rec.From ? null : rec.To, "", null) { Via = rec.To == rec.From || string.IsNullOrEmpty(rec.Via) ? null : rec.Via };
         steps.Add(next);
         done.Add(Views.PlaceStep(model, view, next.From, next.To));
-        return new Playing(done, done.Count - 1, Strands: FlowStage.StrandsOf(model, view, new Flow(null, view, steps), done));
+        return new Playing(done, done.Count - 1, Strands: FlowStage.StrandsOf(model, view, new Flow(null, view, steps), done, lineStyle));
     }
 
     internal void OpenAdd()

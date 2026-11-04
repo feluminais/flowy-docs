@@ -199,14 +199,14 @@ internal sealed class CanvasView : Border
     /// <summary>Shows the key for the lines of <paramref name="scene"/>: one swatch and name for each kind drawn now, and the plain line when one is drawn too. Built again only when that changes.</summary>
     private void ShowKindKey(Scene scene)
     {
-        var (kinds, plain) = KindKey.OnScreen(scene.Edges);
-        var signature = $"{string.Join(',', kinds)}{(plain ? "+plain" : "")}";
+        var (kinds, plain, stacked, inUse) = KindKey.OnScreen(scene.Edges);
+        var signature = $"{string.Join(',', kinds)}{(plain ? "+plain" : "")}{(stacked ? "+stacked" : "")}{(inUse ? "+inuse" : "")}";
         if (signature == _kindKeyFor) return;
         _kindKeyFor = signature;
-        var key = KindKeyView.Of(kinds, plain);
+        var key = KindKeyView.Of(kinds, plain, stacked, inUse);
         _kindKey.Child = key;
         _kindKey.IsVisible = key is not null;
-        KindKeyWords = KindKeyView.Words(kinds, plain);
+        KindKeyWords = KindKeyView.Words(kinds, plain, stacked, inUse);
         ArrangeKindKey();
     }
 
