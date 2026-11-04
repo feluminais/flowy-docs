@@ -108,6 +108,18 @@ changes outlines what is New, Removed or Changed, and a note says why. Tag the n
 A store shows what it holds: its tables with a few sample rows, a short note where a design choice needs explaining, and how
 long the data is kept, so a reader sees what a row looks like without opening the schema. [More](docs/guide/data.md)
 
+## Sketches
+
+<p align="center">
+  <img alt="Embedded device in the desktop app: the Touch app and Controller pair selected, six lines side by side with a label and a kind mark each, and the pair's connections listed in the panel" src="docs/images/desktop-lanes.png" width="760">
+</p>
+
+Try a design before it is real. A sketch in `flowy/sketches/` is a model of its own, made from scratch or from copies of the shapes in yours.
+It can draw each connection between two shapes as a line of its own (`pairs: separate`), laid out from the YAML alone, so a pair that
+talks six ways stays readable. A connection can take a kind, and its line is drawn to match: request and reply, a stream, publish,
+cached publish, object updates or an extension point. A flow step can name the line it rides. Open Embedded device in Plum to see all six.
+[More](docs/guide/sketches.md), [kinds](docs/guide/kinds.md)
+
 ## Edit
 
 <p align="center">
@@ -137,8 +149,6 @@ Another MCP client runs `node /path/to/flowy-docs/dist/cli.js mcp` over stdio. T
 - **Source links.** A shape lists the files it lives in, and a path that no longer exists is reported. [More](docs/guide/canvas.md#read-it)
 - **Share.** Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request. [More](docs/guide/share.md)
 - **Search and history.** Ctrl+K finds a shape anywhere, and in the browser version the YAML tab keeps the last 300 changes to the files. [More](docs/guide/canvas.md#yaml-and-history)
-- **Connection kinds.** A connection can say how two shapes talk, and its line is drawn to match: request and reply, a stream, publish, cached publish, object updates or an extension point. [More](docs/guide/kinds.md)
-- **Sketches.** Sketch a system or a flow in `flowy/sketches/` without touching the model, from scratch or from copies of its shapes, with a line for each connection. [More](docs/guide/sketches.md)
 
 ## Install
 
