@@ -38,6 +38,7 @@ updates:
 
   - package-ecosystem: nuget
     directories:
+      - / # .config/dotnet-tools.json: dotnet-sonarscanner, which the sonar job in ci.yml runs
       - /desktop/Flowy.Core
       - /desktop/Flowy.App
       - /desktop/Flowy.Tests
@@ -49,6 +50,9 @@ updates:
     ignore:
       # xunit.v3 4 runs on Microsoft.Testing.Platform, which .NET 10 only runs through a new dotnet test setup (and a new coverage collector).
       - dependency-name: xunit.v3
+        update-types: ["version-update:semver-major"]
+      # JunitXml.TestLogger 8 is built against Microsoft.Testing.Platform 2, and xunit.v3 3 brings 1.9: the test projects stop compiling (CS1705).
+      - dependency-name: JunitXml.TestLogger
         update-types: ["version-update:semver-major"]
     groups:
       nuget-minor-and-patch:

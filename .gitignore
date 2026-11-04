@@ -8,5 +8,8 @@ desktop/releases/
 vscode/media/
 vscode/*.vsix
 desktop/coverage/
+desktop/test-results/
+/coverage/
+.sonarqube/
 browser-tests/results/
 browser-tests/report/
