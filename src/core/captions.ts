@@ -25,7 +25,7 @@ export const LEGEND: LegendRow[] = [
   { kind: 'branch', title: 'Branch', text: 'Only one lane happens. Each row of the bar is a lane, named for what decides it. The lanes you are not in are hollow on the bar and dashed on the canvas.' },
   { kind: 'parallel', title: 'Same time', text: "Lanes that run together. Each stop lights the next step of every lane." },
   { kind: null, title: 'The bar', text: 'One cell for each stop, and a row for each lane of a branch. A box holds the stops of each group, and the line under it says what the group is. Point at one for more.' },
-  { kind: null, title: 'The label on a line', text: 'Which lane, or which repeat, the step is in.' },
+  { kind: null, title: 'The label on a line', text: 'How often a repeat runs, or which lane of a same-time group the step is in.' },
 ]
 
 /**
@@ -53,7 +53,7 @@ export function captionOf(flow: Flow, stop: Stop): Caption {
     return { ...none, chip: words === '' ? 'Repeats' : `Repeats ${words}`, text, marks: stop.steps.map(() => mark) }
   }
   if (stop.kind === 'branch') {
-    return { ...none, chip: labels.length > 1 ? `One of ${labels.length}` : 'Only if', text, tabs: labels, tab: stop.lanes?.[0] ?? -1, marks: stop.steps.map((_, i) => laneOf(i)) }
+    return { ...none, chip: labels.length > 1 ? `One of ${labels.length}` : 'Only if', text, tabs: labels, tab: stop.lanes?.[0] ?? -1 }
   }
   const lanes = stop.steps.map((_, i) => laneOf(i))
   return { ...none, chip: labels.length > 1 ? `At the same time, ${labels.length} lanes` : 'At the same time', text, lanes, marks: lanes }

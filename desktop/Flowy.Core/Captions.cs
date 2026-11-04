@@ -31,7 +31,7 @@ public static class Captions
         new("branch", "Branch", "Only one lane happens. Each row of the bar is a lane, named for what decides it. The lanes you are not in are hollow on the bar and dashed on the canvas."),
         new("parallel", "Same time", "Lanes that run together. Each stop lights the next step of every lane."),
         new(null, "The bar", "One cell for each stop, and a row for each lane of a branch. A box holds the stops of each group, and the line under it says what the group is. Point at one for more."),
-        new(null, "The label on a line", "Which lane, or which repeat, the step is in."),
+        new(null, "The label on a line", "How often a repeat runs, or which lane of a same-time group the step is in."),
     ];
 
     /// <summary>What a repeat does, in words. <c>times</c> alone is a rule: "3 times". With <c>until</c> it is a limit that may not be reached: "up to 3 times, until it works". <c>until</c> alone is "until it works", and "" says neither. A heading that starts the line asks for <paramref name="capital"/>.</summary>
@@ -65,7 +65,6 @@ public static class Captions
                 Text = text,
                 Tabs = labels,
                 Tab = stop.Lanes is { Count: > 0 } l ? l[0] : -1,
-                Marks = stop.Steps.Select((_, i) => LaneOf(i)).ToList(),
             };
         var named = stop.Steps.Select((_, i) => LaneOf(i)).ToList();
         return none with { Chip = labels.Count > 1 ? $"At the same time, {labels.Count} lanes" : "At the same time", Text = text, Lanes = named, Marks = named };
