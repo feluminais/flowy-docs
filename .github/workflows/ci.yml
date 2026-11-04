@@ -99,7 +99,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 45 # the whole suite with coverage takes 27 to 30 minutes on windows-latest, and 30 cut it off
     permissions:
       contents: read
       id-token: write # Codecov, as in the web job
