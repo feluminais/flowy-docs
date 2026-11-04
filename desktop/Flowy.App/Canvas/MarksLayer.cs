@@ -10,7 +10,7 @@ namespace Flowy.App.Canvas;
 internal sealed record MarkSpec(string Text, string Kind, double X, double Y);
 
 /// <summary>
-/// What a group says about the steps lit at this stop, as small pills above their lines: how often a repeat runs, or which lane it is.
+/// What a group says about the steps lit at this stop, as small pills above their lines: how often a repeat runs, or which lane of a parallel group it is.
 /// Static, so it shows with motion off. It sits over the boxes in the same camera and takes no pointer.
 /// </summary>
 internal sealed class MarksLayer : Control
