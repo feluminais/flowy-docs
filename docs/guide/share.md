@@ -58,6 +58,8 @@ from the command line, or for an AI through MCP (`get_mermaid`):
 node /path/to/flowy-docs/dist/cli.js mermaid --view ordering
 ```
 
+A connection's kind is only partly kept: an extension point comes out as a dotted line, a line with a mark at its start has an arrowhead at both ends, and the kind's name is not added to the label.
+
 `--flow <id>` prints a flow as a sequence diagram instead. A step one shape does on its own is a note over it, except a recursion
 (`animation: recurse`), which is an arrow from the shape back to itself. A flow's repeats, branches and parallel lanes come out as `loop`, `alt` and
 `par` blocks ([above](flows.md#repeats-branches-and-parallel-steps)). This is Customer places an order, from `mermaid --flow place-order`:

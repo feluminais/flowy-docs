@@ -18,11 +18,12 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   are the payloads it carries, each a row with an arrow for the way it goes that opens to what it is about, its
   shape and an example; a payload only a flow step sends sits under the line once, and its tooltip names the step.
   Click a line to see the connections it stands for, with a Payloads section under them and the first one open.
-- Two shapes have one line between them, whichever way their connections run. When they run both ways the line
+- In the model, two shapes have one line between them, whichever way their connections run. When they run both ways the line
   has an arrowhead at each end, and its panel lists each way under its own heading: in Plum, the line between
   Ordering and Back office lists "streams every event" under Ordering → Back office and three connections under
   Back office → Ordering. A flow step that goes against a one-way line plays on a dashed line of its own, so no
   arrowhead points against it.
+  A sketch can draw a line for each connection instead ([Sketches](sketches.md#several-lines-between-two-shapes)). A connection's kind shows on its line as a pattern and a mark at each end, and a key at the foot of the canvas names the ones drawn ([Connection kinds](kinds.md)).
 - Lines have no labels until you point at one. Click a shape and its lines show theirs while the
   others fade.
 - Lines (top bar) switches between straight, curved and right-angled lines for your own screen.
@@ -124,6 +125,7 @@ file again, so comments in it are not kept ([File format](../format.md#the-folde
   (http or https) or a path in the repo, relative to the folder that holds `flowy/`. Anything else
   is refused.
 - "Outside service" in a shape's panel marks it `external: true`, for things you use but don't own.
+- Click a line, and each connection's card has a **Kind**: a row of drawn tiles, one for each kind and one for the plain line, and the pick is saved as `kind:` ([Connection kinds](kinds.md)). Where a sketch draws a line for each connection, the card also has **Move up** and **Move down**, which change the order of the lines of the pair. With nothing picked, Details has **Lines between two shapes**, with **Merged** and **Separate**.
 - Click a line, and each connection's card has **Payloads**: a button for each payload in the model, pressed for the ones it carries.
   Type a name in New payload and press Enter to make one. It is saved, and put on the line, once its About is. Under the buttons, each
   payload the line carries has a form folded under its name: Name, About, and a Shape and an Example, each a language and the code, as
