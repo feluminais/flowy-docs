@@ -17,7 +17,7 @@ function Mark({ ends, text, kind }: GroupMark) {
   return <div className={`mark ${kind}`} style={{ left: at.x, top: at.y }}><Icon size={11} />{text}</div>
 }
 
-/** What a group says about the steps lit at this stop, drawn on their lines: how often it repeats, or which lane it is. Static, so it shows with motion off. */
+/** What a group says about the steps lit at this stop, drawn on their lines: how often a repeat runs, or which lane of a parallel group it is. Static, so it shows with motion off. */
 export function GroupMarks({ marks }: { marks: GroupMark[] }) {
   if (marks.length === 0) return null
   return <ViewportPortal>{marks.map((m, i) => <Mark key={i} {...m} />)}</ViewportPortal>

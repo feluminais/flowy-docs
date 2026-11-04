@@ -29,9 +29,9 @@ test('a repeat says how often, and what it has: times is a rule, until makes it 
 
 test('a branch says how many lanes it has and which one this stop is in', () => {
   const [a, b, c] = captions(example).slice(2, 5)
-  assert.deepEqual(a, { chip: 'One of 2', text: '', tabs: ['Card accepted', 'Card declined'], tab: 0, lanes: [], marks: ['Card accepted'] })
+  assert.deepEqual(a, { chip: 'One of 2', text: '', tabs: ['Card accepted', 'Card declined'], tab: 0, lanes: [], marks: [''] })
   assert.equal(b.tab, 0)
-  assert.deepEqual({ tab: c.tab, marks: c.marks }, { tab: 1, marks: ['Card declined'] })
+  assert.deepEqual({ tab: c.tab, marks: c.marks }, { tab: 1, marks: [''] })
   const one = captions(flowOf({ b: { kind: 'branch' } }, [step({ group: 'b', lane: 'A courier is wanted' })]))[0]
   assert.deepEqual({ chip: one.chip, tabs: one.tabs }, { chip: 'Only if', tabs: ['A courier is wanted'] })
 })

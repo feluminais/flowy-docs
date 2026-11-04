@@ -23,7 +23,7 @@
     {
       "kind": null,
       "title": "The label on a line",
-      "text": "Which lane, or which repeat, the step is in."
+      "text": "How often a repeat runs, or which lane of a same-time group the step is in."
     }
   ],
   "flows": [
@@ -79,7 +79,7 @@
           "tab": 0,
           "lanes": [],
           "marks": [
-            "A"
+            ""
           ]
         },
         {
@@ -149,7 +149,7 @@
           "tab": 1,
           "lanes": [],
           "marks": [
-            "A"
+            ""
           ]
         },
         {
@@ -163,7 +163,7 @@
           "tab": 2,
           "lanes": [],
           "marks": [
-            "A"
+            ""
           ]
         },
         {
@@ -532,7 +532,7 @@
           "tab": 0,
           "lanes": [],
           "marks": [
-            "ok"
+            ""
           ]
         },
         {
@@ -746,7 +746,7 @@
           "tab": 0,
           "lanes": [],
           "marks": [
-            "Card accepted"
+            ""
           ]
         },
         {
@@ -759,7 +759,7 @@
           "tab": 0,
           "lanes": [],
           "marks": [
-            "Card accepted"
+            ""
           ]
         },
         {
@@ -772,7 +772,7 @@
           "tab": 1,
           "lanes": [],
           "marks": [
-            "Card declined"
+            ""
           ]
         },
         {
@@ -949,7 +949,7 @@
           "tab": 0,
           "lanes": [],
           "marks": [
-            "A courier is wanted"
+            ""
           ]
         },
         {
@@ -991,7 +991,7 @@
           "tab": 0,
           "lanes": [],
           "marks": [
-            "Last"
+            ""
           ]
         }
       ],
