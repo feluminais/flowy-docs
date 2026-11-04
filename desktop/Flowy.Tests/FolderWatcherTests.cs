@@ -67,7 +67,15 @@ public class FolderWatcherTests
     }
 
     [Fact]
-    public void A_draft_made_in_drafts_is_noticed_too()
+    public void A_sketch_made_in_sketches_is_noticed_too()
+    {
+        using var temp = new TempDir();
+        Directory.CreateDirectory(Path.Combine(temp.Dir, "sketches", "group-orders"));
+        Assert.True(NoticedWhenSaved(temp, "sketches/group-orders/model.yaml"));
+    }
+
+    [Fact]
+    public void A_sketch_in_the_old_drafts_folder_is_noticed_too()
     {
         using var temp = new TempDir();
         Directory.CreateDirectory(Path.Combine(temp.Dir, "drafts", "group-orders"));

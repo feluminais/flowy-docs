@@ -1,9 +1,10 @@
 import { COLOR_NAMES, iconProblem, isColor, isKnownIcon, isOpacity, isShape, OBJECT_TYPE_INFO, SHAPES } from './look.ts'
-import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, LINE_STYLES, MAX_TAG_LENGTH, OBJECT_TYPES, ROOT, tagKey } from './model.ts'
+import { folderOf, FOLDER_RULE, getObject, ID_RULE, isValidFolder, isValidId, isValidTag, LINE_STYLES, MAX_TAG_LENGTH, OBJECT_TYPES, PAIR_MODES, ROOT, tagKey } from './model.ts'
 import type { Model, ObjectType } from './model.ts'
 import { animationProblem, interceptorProblem, RECURSE_HAS_TO } from './animation.ts'
 import { compareOf, compareProblem } from './compare.ts'
 import { dataProblems } from './data.ts'
+import { isKindId, KIND_LIST } from './kinds.ts'
 import { analysisProblems } from './failures.ts'
 import { FILE_KINDS, pathOf } from './filekinds.ts'
 import { isRepoPath, isWebAddress } from './paths.ts'
@@ -13,6 +14,8 @@ import { connectionPayloadProblems, modelPayloadProblems, stepPayloadProblems } 
 import { snippetProblems } from './snippets.ts'
 import { channelProblems } from './channels.ts'
 import { stateProblems } from './states.ts'
+import { pairLabels, viaProblem } from './strands.ts'
+import type { PairLabels } from './strands.ts'
 import { structureProblems, stopsOf } from './structure.ts'
 import { hasText, isMap } from './text.ts'
 import { isView, placeStep } from './views.ts'
@@ -67,6 +70,10 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
 
   if (model.meta.lines !== undefined && !LINE_STYLES.some(s => s === model.meta.lines))
     add('model.yaml', undefined, 'lines must be straight, curved or angled')
+
+  // Honoured in any folder, sketches or not: the check does not know which folder a model is in.
+  if (model.meta.pairs !== undefined && !PAIR_MODES.some(m => m === model.meta.pairs))
+    add('model.yaml', undefined, 'pairs can be merged or separate')
 
   for (const key of ['name', 'about'])
     if (model.meta[key] !== undefined && model.meta[key] !== '' && typeof model.meta[key] !== 'string') add('model.yaml', undefined, `${key} must be text`)
@@ -136,6 +143,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     checkEnds(p, c.from, c.to)
     for (const path of emptyKeys(c)) p(emptyKeyMessage(path))
     if (!missing(c.from) && c.from === c.to) p('connects an object to itself')
+    // A kind that is none of the six draws as the plain line; the problem is for whoever wrote it.
+    if (!missing(c.kind) && !isKindId(c.kind)) p(`unknown kind "${String(c.kind)}" (use ${KIND_LIST})`)
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
     seen.add(key)
@@ -168,6 +177,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     if (compareWhy !== undefined) p(compareWhy)
     else if (tag?.with === fid) p('compare points at this flow itself')
     else if (tag && !Object.hasOwn(model.flows, tag.with)) p(`compare "${tag.with}" is not a flow`)
+    // The labels of the connections on each pair of the view the flow plays on, for a step's `via`; worked out when a step has one.
+    let labels: PairLabels | undefined
     f.steps.forEach((s, i) => {
       const sp = (message: string) => at(message, i)
       for (const path of emptyKeys(s)) sp(emptyKeyMessage(path))
@@ -184,8 +195,15 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
         return
       }
       if (!missing(s.from) && s.from === s.to) sp('goes from an object to itself (leave out "to" for a step one shape does on its own)')
-      else if (viewOk && getObject(model, s.from) && getObject(model, s.to) && !placeStep(model, f.view, s))
-        sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
+      else if (viewOk && getObject(model, s.from) && getObject(model, s.to)) {
+        const placed = placeStep(model, f.view, s)
+        if (!placed) sp(`${s.from} → ${s.to} can't be shown in view "${f.view}"`)
+        else if (typeof s.via === 'string' && s.via.trim() !== '') {
+          labels ??= pairLabels(model, f.view)
+          const wrong = viaProblem(labels, s, placed)
+          if (wrong !== undefined) sp(wrong)
+        }
+      }
     })
     for (const sq of structureProblems(f, id => Object.hasOwn(model.flows, id))) at(sq.message, sq.step)
     for (const sq of stateProblems(f, stopsOf(f), id => getObject(model, id) !== undefined)) at(sq.message, sq.step)

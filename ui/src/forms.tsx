@@ -27,7 +27,7 @@ export function Panel({ onClose, children, label = 'Details' }: { onClose: () =>
  * A text field that saves when you leave it or press Enter, and shows the saved text again if saving fails. Esc puts the saved text back and leaves the field for its panel.
  * It stays where it is when the saved text changes under it (a reload): text being typed is kept, and a field not being typed in shows the new text.
  */
-export function Field({ label, value, multiline, list, placeholder, disabled, title, onSave }: { label: ReactNode; value: string; multiline?: boolean; list?: string; placeholder?: string; disabled?: boolean; title?: string; onSave: (value: string) => Promise<boolean> }) {
+export function Field({ label, value, multiline, list, placeholder, disabled, title, autoFocus, onSave }: { label: ReactNode; value: string; multiline?: boolean; list?: string; placeholder?: string; disabled?: boolean; title?: string; autoFocus?: boolean; onSave: (value: string) => Promise<boolean> }) {
   const input = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
   const seen = useRef(value) // the saved text the field was last in step with
   useEffect(() => {
@@ -59,8 +59,8 @@ export function Field({ label, value, multiline, list, placeholder, disabled, ti
     <label title={title}>
       {label}
       {multiline
-        ? <textarea ref={take} defaultValue={value} rows={8} disabled={disabled} onBlur={save} onKeyDown={keys} />
-        : <input ref={take} defaultValue={value} list={list} placeholder={placeholder} disabled={disabled} onBlur={save} onKeyDown={keys} />}
+        ? <textarea ref={take} defaultValue={value} rows={8} disabled={disabled} autoFocus={autoFocus} onBlur={save} onKeyDown={keys} />
+        : <input ref={take} defaultValue={value} list={list} placeholder={placeholder} disabled={disabled} autoFocus={autoFocus} onBlur={save} onKeyDown={keys} />}
     </label>
   )
 }

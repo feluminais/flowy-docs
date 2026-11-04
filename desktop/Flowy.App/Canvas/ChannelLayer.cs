@@ -57,11 +57,12 @@ internal static class ChannelDraw
 
     /// <summary>
     /// The distances along a line of <paramref name="length"/> at which a stream's dots are <paramref name="since"/> ms in. They run the way the data goes: on towards the end of the
-    /// line, or back towards its start when the channel points at <c>from</c>. <paramref name="still"/> (motion reduced) is where they stand to begin with.
+    /// line, or back towards its start when the channel points at <c>from</c>. <paramref name="still"/> (motion reduced) is where they stand to begin with. <paramref name="ahead"/> is how far, in pixels,
+    /// the pattern is ahead of the usual: among the lines of a pair the streams of neighbouring lines start out of step (see <see cref="Lanes.DashPhase"/>).
     /// </summary>
-    public static IEnumerable<double> DotsAt(double length, double since, bool towardsStart, bool still)
+    public static IEnumerable<double> DotsAt(double length, double since, bool towardsStart, bool still, double ahead = 0)
     {
-        var phase = still ? 0 : since / 1000 * Speed % Pitch;
+        var phase = still ? 0 : (since / 1000 * Speed + ahead) % Pitch;
         var start = towardsStart ? Pitch - phase : phase;
         for (var d = start % Pitch; d <= length; d += Pitch) yield return d;
     }
@@ -76,12 +77,16 @@ internal static class ChannelDraw
         foreach (var p in spots) context.DrawEllipse(ink, null, p, 2.8, 2.8);
     }
 
-    /// <summary>The dotted line from a listener to the shape it listens to.</summary>
-    public static void Tether(DrawingContext context, Geometry line, double length, IBrush muted)
+    /// <summary>The dotted line from a listener to the shape it listens to; <paramref name="bundled"/> when it runs among the lines of a pair.</summary>
+    public static void Tether(DrawingContext context, Geometry line, double length, IBrush muted, bool bundled = false)
     {
+        var radius = bundled ? BundledTetherRadius : 1;
         for (var d = 0.0; d <= length; d += TetherPitch)
-            if (line.TryGetPointAtDistance(d, out var p)) context.DrawEllipse(muted, null, p, 1, 1);
+            if (line.TryGetPointAtDistance(d, out var p)) context.DrawEllipse(muted, null, p, radius, radius);
     }
+
+    /// <summary>The radius of a tether's dots among the lines of a pair: 3 px across, not 2, so the dotted line reads against its neighbours (the browser's <c>.channels.bundled .tether</c>).</summary>
+    public const double BundledTetherRadius = 1.5;
 
     /// <summary>The disc with a bell or an arc in it, centred on the origin; <paramref name="turn"/> is the arc's angle in degrees.</summary>
     public static void Badge(DrawingContext context, string kind, double radius, double turn, IBrush bg, IBrush accent)
@@ -99,6 +104,18 @@ internal static class ChannelDraw
         using var fade = context.PushOpacity(0.55 * (1 - p));
         context.DrawEllipse(null, new Pen(accent, 1.8 * grow), new Point(0, 0), Disc * grow, Disc * grow);
     }
+
+    /// <summary>How far the name of a stream stands from a line that runs up and down, so the dots do not run through the word (the browser's NAME_GAP in Channels.tsx). Over a line that runs across it stands 16 above.</summary>
+    public const double NameGap = 12;
+
+    /// <summary>
+    /// Where the name of a stream is centred, given the line's middle <paramref name="mid"/> and the points 2 px before and after it: above the middle where the line runs across, and beside it where it runs up and down, <paramref name="side"/> (-1 left, 1 right) of it.
+    /// </summary>
+    public static Point NameAt(Point before, Point mid, Point after, double textWidth, int side) =>
+        Math.Abs(after.Y - before.Y) > Math.Abs(after.X - before.X) ? new Point(mid.X + side * (textWidth / 2 + NameGap), mid.Y) : new Point(mid.X, mid.Y - 16);
+
+    /// <summary>How wide the name of a channel is drawn (12 px, semi-bold).</summary>
+    public static double NameWidth(string name) => new FormattedText(name, CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), 12, Brushes.Black).Width;
 
     /// <summary>The name of a channel, centred on <paramref name="centre"/>, in the canvas colour's outline so it reads over a line.</summary>
     public static void Label(DrawingContext context, string name, Point centre, IBrush fg, IBrush bg)
@@ -119,28 +136,49 @@ internal static class ChannelDraw
 internal sealed class ChannelLayer : Control
 {
     /// <summary>One channel to draw: where its two shapes are (with their outlines, which the line meets), the shape it points at, and how long the step's motion takes before it comes or goes.</summary>
-    internal sealed record Spec(string Key, Channel Channel, CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string AtBox, double AfterMs);
+    internal sealed record Spec(string Key, Channel Channel, string FromId, string ToId, CoreRect From, CoreRect To, double[]? OutlineFrom, double[]? OutlineTo, string AtBox, double AfterMs,
+        string? StrandId = null, LaneSlot? Slot = null, string? Pair = null)
+    {
+        /// <summary>Whether the channel runs along one line of several between its two shapes: its dots start out of step with the other lines', and its tether is thicker.</summary>
+        public bool Among => Slot is { Lanes: > 1 };
+    }
 
     /// <summary>A channel as the layer has it: for the tests, and for the key.</summary>
     internal sealed record Shown(string Kind, string? Name, string AtBox, int Slot, bool Opening, bool Closing, double AfterMs, double Length);
 
-    private sealed record Item(Spec Spec, Geometry? Line, double Length, int Slot);
+    private sealed record Item(Spec Spec, Geometry? Line, double Length, int Slot, string? Path = null);
 
     private IReadOnlyList<Item> _items = [];
+    private IReadOnlyList<Spec> _specs = [];
     private readonly Dictionary<string, double> _started = [];
     private string _style = "straight";
     private readonly WindowFrames _frames = new();
     private double _now;
     private bool _running;
 
-    public ChannelLayer()
+    private readonly LaneStore _lanes;
+
+    /// <summary>Says how far the lines of a pair are parted around a lit one: a channel on one of them runs along its line as it stands (see <see cref="PartStore"/>).</summary>
+    internal PartStore? Parts { get; set; }
+
+    /// <summary>The lanes of some pair have moved: the lines of the channels are laid out again, and the marks keep their clocks.</summary>
+    internal void Reroute()
     {
+        if (_items.Count > 0) Set(_specs, _style);
+    }
+
+    public ChannelLayer(LaneStore lanes)
+    {
+        _lanes = lanes;
         IsHitTestVisible = false;
         ActualThemeVariantChanged += (_, _) => InvalidateVisual();
     }
 
     /// <summary>Whether the layer runs its clock.</summary>
     internal bool Running => _running;
+
+    /// <summary>The path data of the line each channel runs along (null for one that has none, a job), in the order they were opened: for the tests.</summary>
+    internal IReadOnlyList<string?> LinePaths => _items.Select(i => i.Path).ToList();
 
     /// <summary>The channels drawn now, in the order they were opened.</summary>
     internal IReadOnlyList<Shown> Marks => _items.Select(i => new Shown(i.Spec.Channel.Kind, i.Spec.Channel.Name, i.Spec.AtBox, i.Slot, i.Spec.Channel.Opening, i.Spec.Channel.Closing, i.Spec.AfterMs, i.Length)).ToList();
@@ -185,15 +223,20 @@ internal sealed class ChannelLayer : Control
     public void Set(IReadOnlyList<Spec>? specs, string lineStyle)
     {
         _style = lineStyle;
+        _specs = specs ?? [];
         var slots = new Dictionary<string, int>();
         var items = new List<Item>();
         foreach (var s in specs ?? [])
         {
             Geometry? line = null;
+            string? path = null;
             double length = 0;
             if (s.Channel.Kind != "job" && s.From != s.To)
             {
-                line = Geometry.Parse(LinePaths.Build(lineStyle, s.From, s.To, s.OutlineFrom, s.OutlineTo).Data);
+                // Where each connection is a line of its own, a stream and a listener belong to the line of the step that opened them, and move with it when its pair parts.
+                var pose = s.Pair is not null && Parts?.Lam(s.Pair) is { } lit ? new LanePose(0, lit) : null;
+                var lane = _lanes.PathFor(s.StrandId, lineStyle, new LaneEnd(s.FromId, s.From, s.OutlineFrom), new LaneEnd(s.ToId, s.To, s.OutlineTo), pose, s.Slot);
+                (line, path) = (lane.Geometry, lane.Path.Data);
                 length = line.ContourLength;
             }
             var slot = 0;
@@ -202,7 +245,7 @@ internal sealed class ChannelLayer : Control
                 slot = slots.GetValueOrDefault(s.AtBox);
                 slots[s.AtBox] = slot + 1;
             }
-            items.Add(new Item(s, line, length, slot));
+            items.Add(new Item(s, line, length, slot, path));
         }
         _items = items;
         var keys = items.Select(i => i.Spec.Key).ToHashSet();
@@ -318,11 +361,19 @@ internal sealed class ChannelLayer : Control
         var fg = Brush("FgBrush");
         if (c.Kind == "stream" && item.Line is { } flow)
         {
-            ChannelDraw.Dots(context, flow, ChannelDraw.DotsAt(item.Length, since, c.End == "from", reduced), bg, accent);
-            if (c.Name is { } name && flow.TryGetPointAtDistance(item.Length / 2, out var mid)) ChannelDraw.Label(context, name, new Point(mid.X, mid.Y - 16), fg, bg);
+            var ahead = item.Spec.Slot is { Lanes: > 1 } slot ? Lanes.DashPhase(slot.Lane, slot.Lanes) : 0;
+            ChannelDraw.Dots(context, flow, ChannelDraw.DotsAt(item.Length, since, c.End == "from", reduced, ahead), bg, accent);
+            if (c.Name is { } name && flow.TryGetPointAtDistance(item.Length / 2, out var mid))
+            {
+                var around = (Math.Max(0, item.Length / 2 - 2), Math.Min(item.Length, item.Length / 2 + 2));
+                flow.TryGetPointAtDistance(around.Item1, out var before);
+                flow.TryGetPointAtDistance(around.Item2, out var after);
+                var side = item.Spec.Slot is { Lanes: > 1 } placed && placed.Lane * 2 < placed.Lanes - 1 ? -1 : 1;
+                ChannelDraw.Label(context, name, ChannelDraw.NameAt(before, mid, after, ChannelDraw.NameWidth(name), side), fg, bg);
+            }
             return;
         }
-        if (c.Kind == "listener" && item.Line is { } tether) ChannelDraw.Tether(context, tether, item.Length, Brush("MutedBrush"));
+        if (c.Kind == "listener" && item.Line is { } tether) ChannelDraw.Tether(context, tether, item.Length, Brush("MutedBrush"), item.Spec.Among);
         var at = c.End == "to" ? item.Spec.To : item.Spec.From;
         var x = at.X + at.Width - ChannelDraw.Disc - ChannelDraw.Gap - item.Slot * (2 * ChannelDraw.Disc + ChannelDraw.Gap);
         using var place = context.PushTransform(Matrix.CreateTranslation(x, at.Y));

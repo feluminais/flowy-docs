@@ -448,6 +448,114 @@
           "a b": "changed"
         }
       }
+    },
+    {
+      "older": "via-old",
+      "newer": "via-new",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed"
+        },
+        "lines": {
+          "a b": "changed"
+        }
+      }
+    },
+    {
+      "older": "via-old",
+      "newer": "via-case",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "1": "changed"
+        },
+        "shapes": {
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {
+          "b c": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "1": "changed"
+        },
+        "shapes": {
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {
+          "b c": "changed"
+        }
+      }
+    },
+    {
+      "older": "via-old",
+      "newer": "via-none",
+      "related": true,
+      "olderMarks": {
+        "steps": {
+          "0": "changed",
+          "1": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {
+          "a b": "changed",
+          "b c": "changed"
+        }
+      },
+      "newerMarks": {
+        "steps": {
+          "0": "changed",
+          "1": "changed"
+        },
+        "shapes": {
+          "a": "changed",
+          "b": "changed",
+          "c": "changed"
+        },
+        "lines": {
+          "a b": "changed",
+          "b c": "changed"
+        }
+      }
+    },
+    {
+      "older": "via-none",
+      "newer": "via-none",
+      "related": true,
+      "olderMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      },
+      "newerMarks": {
+        "steps": {},
+        "shapes": {},
+        "lines": {}
+      }
     }
   ]
 }

@@ -1,0 +1,27 @@
+name: Pairs
+pairs: separate
+payloads:
+  scan-request:
+    name: Scan request
+    about: What the screen sends to start a scan.
+objects:
+  ui: { type: system, name: UI }
+  screen: { type: app, in: ui, name: Screen }
+  banner: { type: app, in: ui, name: Banner }
+  management: { type: system, name: Management }
+  agent: { type: app, in: management, name: Agent }
+  linux: { type: system, name: Linux }
+  cloud: { type: system, name: Cloud }
+  bus: { type: system, name: Bus }
+connections:
+  - { from: ui, to: management, label: Request and reply, kind: request }
+  - { from: ui, to: management, label: Start scan, kind: stream, payloads: [scan-request] }
+  - { from: management, to: ui, label: Scan results, kind: publish }
+  - { from: management, to: ui, label: Radio state, kind: cached }
+  - { from: screen, to: agent, label: Ask }
+  - { from: banner, to: agent, label: Banner }
+  - { from: management, to: cloud, label: Fetch update, kind: request }
+  - { from: management, to: bus, label: Events, kind: publish }
+  - { from: agent, to: linux, label: Apply config, kind: request }
+  - { from: management, to: linux, label: Apply config, kind: request }
+  - { from: linux, to: management }

@@ -45,10 +45,10 @@ test('a playing step lights its two boxes and its line, and dims the rest', () =
   assert.deepEqual(edges.map(e => [e.id, e.className]), [
     ['customer web', 'dim'], ['api web', 'active'], ['api db', 'dim'], ['api mail', 'dim'],
   ])
-  // The lit line draws over the faded boxes, with an arrowhead in its own colour.
+  // The lit line draws over the faded boxes. Its arrowhead is Line's own, coloured by the stylesheet, so no edge asks React Flow for a marker.
   const active = byId(edges)['api web']
   assert.equal(active.zIndex, 1)
-  assert.deepEqual(active.markerEnd, { type: 'arrowclosed', color: 'var(--accent)' })
+  for (const e of edges) assert.deepEqual([e.markerStart, e.markerEnd], [undefined, undefined], e.id)
 })
 
 test('connections both ways are one line with an arrowhead at each end, both lit when a step plays on it', () => {
@@ -56,12 +56,13 @@ test('connections both ways are one line with an arrowhead at each end, both lit
   m.connections.push({ from: 'api', to: 'web', label: 'pushes' })
   const quiet = byId(toGraph(m, 'shop').edges)['api web']
   assert.deepEqual([quiet.source, quiet.target, quiet.label], ['web', 'api', '2 connections'])
-  assert.deepEqual([quiet.markerStart, quiet.markerEnd], [{ type: 'arrowclosed' }, { type: 'arrowclosed' }])
+  assert.deepEqual(quiet.data, { both: true })
+  assert.deepEqual(focusEdges([quiet], { box: 'web' })[0].data, { both: true, label: '2 connections' }) // picking a box keeps it
   assert.equal(quiet.ariaLabel, 'Web app and API, 2 connections')
   const lit = byId(toGraph(m, 'shop', { ends: [['api', 'web']], step: 0 }).edges)['api web']
   assert.equal(lit.className, 'active')
-  assert.deepEqual([lit.markerStart, lit.markerEnd], [{ type: 'arrowclosed', color: 'var(--accent)' }, { type: 'arrowclosed', color: 'var(--accent)' }])
-  assert.equal(byId(toGraph(shop(), 'shop').edges)['api web'].markerStart, undefined)
+  assert.deepEqual(lit.data, { both: true })
+  assert.equal(byId(toGraph(shop(), 'shop').edges)['api web'].data, undefined)
 })
 
 test('an outsider in a playing step is lit like the rest of the step', () => {

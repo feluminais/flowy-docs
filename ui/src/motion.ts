@@ -111,10 +111,11 @@ export const LIT_FLOOR = 0.25
 
 /**
  * How strong the lit lines of a stop are at `t`: full until a `fade` beat starts, falling to LIT_FLOOR over it, and staying there after it
- * (the line is dim until the step is left). The strongest fade of several wins; beats with no `fade` leave it at 1.
+ * (the line is dim until the step is left). The strongest fade of several wins; beats with no `fade` leave it at 1. `floor` is how much it keeps at the end: a line among its pair's lines
+ * keeps LIT_FLOOR_LANES, so it never ends fainter than the lines beside it.
  */
-export const litOpacity = (beats: readonly (Span & { do: string })[], t: number): number =>
-  1 - (1 - LIT_FLOOR) * Math.max(0, ...beats.filter(b => b.do === 'fade').map(b => progress(b, t)))
+export const litOpacity = (beats: readonly (Span & { do: string })[], t: number, floor = LIT_FLOOR): number =>
+  1 - (1 - floor) * Math.max(0, ...beats.filter(b => b.do === 'fade').map(b => progress(b, t)))
 
 /**
  * How far along a line of length `len` a blob is at progress `p`, running forward or back. `span` is the stretch of the line it runs
@@ -156,10 +157,13 @@ export function noteSpot(dx: number, dy: number, chars: number): { x: number; y:
 export const markerSize = (name: string): { width: number; height: number } => ({ width: Math.round(name.length * 7.5 + 28), height: 28 })
 /** The clear space between the pipe and the marker beside it. */
 const MARKER_GAP = 26
-/** Where the middle of a marker of this size sits, from the point on the line it hangs from: on the lower side, clear of the blob that runs along the line. */
-export function markerSpot(dx: number, dy: number, size: { width: number; height: number }): { x: number; y: number } {
+/**
+ * Where the middle of a marker of this size sits, from the point on the line it hangs from: on the lower side, clear of the blob that runs along the line. Among the lines of a
+ * pair it hangs below the whole bundle: `clear` is how far the bundle reaches from the lit line (see bundleReach).
+ */
+export function markerSpot(dx: number, dy: number, size: { width: number; height: number }, clear = 0): { x: number; y: number } {
   const n = lowerSide(dx, dy)
-  const far = MARKER_GAP + Math.abs(n.x) * (size.width / 2) + Math.abs(n.y) * (size.height / 2)
+  const far = MARKER_GAP + clear + Math.abs(n.x) * (size.width / 2) + Math.abs(n.y) * (size.height / 2)
   return { x: n.x * far || 0, y: n.y * far || 0 }
 }
 

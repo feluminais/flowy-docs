@@ -28,6 +28,9 @@ public sealed record FlowyObject(string? Type, string? Name, string? In, string?
 
 public sealed record Connection(string? From, string? To, string? Label)
 {
+    /// <summary>The <c>kind</c> as the file wrote it: one of the six words of <see cref="Kinds"/> when it is a kind. Any other word draws the plain line, and the checks report it.</summary>
+    public string? Kind { get; init; }
+
     /// <summary>The <c>payloads</c> as the file held them: a list of payload ids and payloads written in place if it is well formed, which <see cref="Payloads"/> reads and the checks report on.</summary>
     public object? Payloads { get; init; }
 
@@ -47,6 +50,9 @@ public sealed record Step(string? From, string? To, string? Text, string? Descri
     public object? Payload { get; init; }
 
     public object? Reply { get; init; }
+
+    /// <summary>The step's <c>via</c>: the label of the connection it rides, where a pair of shapes draws a line for each connection (see <see cref="Strands"/>). Text when present.</summary>
+    public string? Via { get; init; }
 
     /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>), this step's own, down into its animation and states.</summary>
     public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
@@ -136,6 +142,9 @@ public sealed class Model
 
     /// <summary>The project's line style. Anything unknown draws straight; the checks report it.</summary>
     public string LineStyle => Meta.TryGetValue("lines", out var v) && v is string s && Names.LineStyles.Contains(s) ? s : "straight";
+
+    /// <summary>How the project draws a pair of shapes: <c>separate</c> for a line for each connection, else <c>merged</c>, one line between two shapes. The checks report any other word.</summary>
+    public string Pairs => Meta.TryGetValue("pairs", out var v) && v is string s && Names.PairModes.Contains(s) ? s : "merged";
 
     /// <summary>The project's name: the top-level <c>name:</c> in model.yaml. Empty when there is none (the checks report a value that isn't text).</summary>
     public string ProjectName => Meta.TryGetValue("name", out var v) && v is string s ? s.Trim() : "";

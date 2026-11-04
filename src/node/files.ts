@@ -20,7 +20,7 @@ import { parseRun } from '../core/perf/parse.ts'
 import type { Run } from '../core/perf/types.ts'
 import type { State } from '../core/state.ts'
 import { own } from '../core/text.ts'
-import { listDrafts, modelOfDraft, nameOfModel, repoOf } from './drafts.ts'
+import { listSketches, modelOfSketch, nameOfModel, repoOf } from './sketches.ts'
 import { codeBase } from './git.ts'
 
 /**
@@ -333,15 +333,15 @@ async function readState(dir: string): Promise<State> {
     const { model, versions, ignored, unusable, failureProblems: unread } = await loadDir(dir)
     const { flows, folders, layout, failures, ...rest } = model
     const base = await codeBase(repoOf(dir))
-    const owner = modelOfDraft(dir)
-    const drafts = owner === undefined ? await listDrafts(dir) : []
-    const draft = owner === undefined ? undefined : { of: await nameOfModel(owner) }
+    const owner = modelOfSketch(dir)
+    const sketches = owner === undefined ? await listSketches(dir) : []
+    const sketch = owner === undefined ? undefined : { of: await nameOfModel(owner) }
     // A flow file that isn't read is no part of the model, so it isn't a problem check() can see.
     const skipped = ignored.map(file => ignoredYml(FILE_KINDS.flow, file))
     const { runs, problems: runProblems, versions: runVersions } = await loadRuns(dir, model)
     const missing = missingPaths(dir, model)
     // Everything the answer below is made of: what the files say, which files are skipped, and which paths exist. The same again is the same answer.
-    const key = JSON.stringify([versions, runVersions, ignored, unusable, unread, runProblems, [...missing].sort(), drafts, draft])
+    const key = JSON.stringify([versions, runVersions, ignored, unusable, unread, runProblems, [...missing].sort(), sketches, sketch])
     const last = states.get(resolve(dir))
     if (last?.key === key) return last.state
     // A mode's run link needs the runs, which are not in the model, so it is checked here. The rest of an analysis is checked in check().
@@ -354,8 +354,8 @@ async function readState(dir: string): Promise<State> {
       ...(Object.keys(runs).length > 0 ? { runs } : {}),
       ...(runProblems.length > 0 ? { runProblems } : {}),
       ...(failureProblems.length > 0 ? { failureProblems } : {}),
-      ...(drafts.length > 0 ? { drafts } : {}),
-      ...(draft ? { draft } : {}),
+      ...(sketches.length > 0 ? { sketches } : {}),
+      ...(sketch ? { sketch } : {}),
     }
     states.set(resolve(dir), { key, state })
     return state

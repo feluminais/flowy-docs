@@ -15,11 +15,11 @@ namespace Flowy.App.Tests;
 /// <summary>Recording a flow, and editing one: pick the two boxes of a step with the pointer, type what happens, reorder, delete.</summary>
 public class RecorderTests
 {
-    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open(Action<string>? prepare = null)
+    private static (TempFolder Temp, string Dir, Window Window, ReaderView Reader) Open(Action<string>? prepare = null, string fixture = "edit")
     {
         var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
-        var source = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "edit", "flowy");
+        var source = Path.Combine(Repo.Root, "desktop", "fixtures", "cases", fixture, "flowy");
         foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
         {
             var target = Path.Combine(dir, Path.GetRelativePath(source, file));
@@ -120,6 +120,69 @@ public class RecorderTests
         Assert.Null(step.To);
         Assert.Equal("Waits for the receipt", step.Text);
         Assert.True(reader.CanUndo);
+    }
+
+    /// <summary>Where the middle of a line of a pair is on the window, from the places of the boxes the canvas shows and the pose the scene gives its pair.</summary>
+    private static Point MiddleOf(Window window, ReaderView reader, SceneEdge e)
+    {
+        var scene = reader.Canvas.Scene!;
+        Flowy.Core.LaneBox Box(string id)
+        {
+            var b = scene.Boxes.First(x => x.Id == id);
+            return new Flowy.Core.LaneBox(id, b.Rect, Look.DefOf(b.Object).Edge);
+        }
+        var lane = Lanes.LaneGeometry(Box(e.From), Box(e.To), e.Slot!.Value, e.Spread ? LanePose.Spread : LanePose.Rest);
+        var on = reader.Canvas.Viewport.ToScreen(new Pt(lane.X, lane.Y));
+        return reader.Canvas.TranslatePoint(new Point(on.X, on.Y), window)!.Value;
+    }
+
+    [AvaloniaFact]
+    public async Task Recording_a_flow_where_each_connection_has_a_line_a_click_on_a_line_picks_the_ends_and_the_line_the_step_rides_as_in_the_browser()
+    {
+        var (temp, dir, window, reader) = Open(fixture: "separate-lanes");
+        using var _ = temp;
+        Press(Labelled(reader, "New flow"));
+        reader.Panel.CurrentRecorder!.StartNamed("Scan again");
+        Settle(window);
+        // "Start scan" is the second line from UI to Management: a step with no via would ride the first, "Request and reply".
+        var lane = reader.Canvas.Scene!.Edges.Single(e => e.Id.EndsWith("|Start scan"));
+        var at = MiddleOf(window, reader, lane);
+        window.MouseDown(at, MouseButton.Left);
+        window.MouseUp(at, MouseButton.Left);
+        Settle(window);
+
+        var rec = reader.RecordingNow!;
+        Assert.Equal(("ui", "management", "Start scan"), (rec.From, rec.To, rec.Via)); // the panel is still the recorder's: the click did not turn into a pick of the line
+        Assert.Equal([lane.Id], reader.Canvas.Scene!.Edges.Where(e => e.Flags.HasFlag(EdgeFlags.Active)).Select(e => e.Id)); // the line the step will ride is lit
+        Assert.NotNull(reader.Panel.CurrentRecorder!.StepBox);
+        await reader.Panel.CurrentRecorder.SubmitStepAsync("Starts a scan");
+        await Until(() => File.Exists(Path.Combine(dir, "flows", "scan-again.yaml")));
+        Assert.Contains("steps:\n  - from: ui\n    to: management\n    text: Starts a scan\n    via: Start scan\n", FlowFile(dir, "scan-again"));
+        Assert.Null(reader.RecordingNow!.From);
+        Assert.Null(reader.RecordingNow!.Via);
+
+        // A box clicked after a line is not on that line: the step it starts has no via.
+        Click(window, reader, "ui");
+        Click(window, reader, "management");
+        Assert.Null(reader.RecordingNow!.Via);
+        await reader.Panel.CurrentRecorder!.SubmitStepAsync("Asks again");
+        await Until(() => reader.Folder!.Model.Flows["scan-again"].Steps.Count == 2);
+        Assert.Null(reader.Folder!.Model.Flows["scan-again"].Steps[1].Via);
+    }
+
+    [AvaloniaFact]
+    public void The_step_being_picked_rides_the_line_a_click_chose_or_else_the_first_that_runs_its_way()
+    {
+        var folder = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "separate-lanes", "flowy"));
+        var model = folder.Model;
+        var chosen = EditGestures.RecordingShown(model, "root", new Recording("scan-again", "Scan again", "ui", "management", Via: "Start scan"));
+        Assert.Equal("management ui|ui>management|Start scan", chosen.Strands![^1]);
+        Assert.Equal(chosen.Ends.Count - 1, chosen.Step);
+        var unnamed = EditGestures.RecordingShown(model, "root", new Recording("scan-again", "Scan again", "ui", "management"));
+        Assert.Equal("management ui|ui>management|Request and reply", unnamed.Strands![^1]);
+        Assert.Null(EditGestures.RecordingShown(model, "root", new Recording("scan-again", "Scan again", "ui")).Strands); // nothing picked yet, nothing lit
+        var alone = EditGestures.RecordingShown(model, "root", new Recording("scan-again", "Scan again", "ui", "ui", Via: "Start scan"));
+        Assert.Null(alone.Strands![^1]); // a step on a box alone rides no line
     }
 
     [AvaloniaFact]

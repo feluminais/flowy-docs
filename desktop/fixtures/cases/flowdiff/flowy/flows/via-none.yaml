@@ -1,0 +1,5 @@
+name: via-none
+view: root
+steps:
+  - { from: a, to: b, text: Ask }
+  - { from: b, to: c, text: Pass on }

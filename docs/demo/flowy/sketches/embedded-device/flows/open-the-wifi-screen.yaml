@@ -1,0 +1,25 @@
+name: Open the Wi-Fi screen
+view: root
+tags: [happy path]
+steps:
+  - { from: user, to: touch-app, text: Opens the Wi-Fi screen, animation: { kind: send, carries: tap } }
+  - from: touch-app
+    to: controller
+    text: Asks for the saved settings
+    animation: { kind: call, carries: settings }
+    via: reads and saves settings
+    reply: wifi-settings
+  - from: touch-app
+    to: controller
+    text: Subscribes to the radio state
+    animation: { kind: call, opens: listener, name: Radio state }
+    via: subscribes to radio state
+  - from: controller
+    to: touch-app
+    text: Hands over the last radio state at once
+    animation: { kind: event, carries: radio on }
+    via: publishes radio state
+    payload: radio-state
+    description: |
+      The Controller keeps the last value, so a screen that opens late is never blank. Later changes follow on the same line.
+  - { from: touch-app, to: user, text: Shows the radio as on, animation: { kind: send, carries: screen } }

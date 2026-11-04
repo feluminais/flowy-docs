@@ -35,6 +35,14 @@ test('the server offers the guide pages and the topic rules as resources, the pa
   assert.equal((read.contents[0] as { text: string }).text, await readFile('docs/format.md', 'utf8'))
 })
 
+test('the sketches guide still reads at its old address, the drafts guide, and a listing shows only the new one', async t => {
+  const client = await setup(t)
+  const listed = (await client.listResources()).resources.map(r => r.uri)
+  assert.ok(listed.includes('flowy://docs/guide/sketches.md') && !listed.includes('flowy://docs/guide/drafts.md'))
+  const old = await client.readResource({ uri: 'flowy://docs/guide/drafts.md' })
+  assert.equal((old.contents[0] as { text: string }).text, await readFile('docs/guide/sketches.md', 'utf8'))
+})
+
 test('the prompts hold the usual jobs, and the ones that take an argument put it in', async t => {
   const client = await setup(t)
   const names = (await client.listPrompts()).prompts.map(p => p.name)
@@ -77,7 +85,7 @@ test('the guide lists every tool, and SECURITY.md and the guide count them as th
   const security = await readFile('SECURITY.md', 'utf8')
   const table = guide.slice(guide.indexOf('**The tools.**'), guide.indexOf('Not over MCP:'))
   assert.deepEqual(tools.filter(name => !table.includes(`\`${name}\``)), [], 'tools missing from the guide table')
-  const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty']
+  const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty', 'thirty-one', 'thirty-two', 'thirty-three']
   assert.match(guide, new RegExp(`The server has ${words[tools.length]}\\.`))
   const reads = tools.filter(name => name.startsWith('get_')).length
   assert.match(security, new RegExp(`an AI client gets ${words[tools.length]} tools: ${words[reads]} read the model and ${words[tools.length - reads]} change`))

@@ -10,17 +10,22 @@ import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpFolderRules } from './folders.ts'
 import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
+import { dumpNewSketches } from './sketches.ts'
 import { dumpEditLabels } from './editlabel.ts'
 import { dumpFailures, dumpFailuresView } from './failures.ts'
 import { dumpUsedBy } from './usedby.ts'
 import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
+import { dumpKinds } from './kinds.ts'
+import { dumpCapacity, dumpCurveLabels, dumpCurvePoses, dumpCurves, dumpSeparateLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpParts, dumpPoses } from './lanes.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
 import { dumpNumbers } from './numbers.ts'
 import { dumpOutline } from './outline.ts'
+import { dumpPairs } from './pairs.ts'
+import { dumpLayoutLanes, dumpTrunks } from './trunks.ts'
 import { dumpPerf, dumpPerfView } from './perf.ts'
 import { dumpStates } from './states.ts'
 import { dumpCaptions, dumpStops } from './structure.ts'
@@ -32,6 +37,15 @@ import { dumpNavigation, dumpScenes } from './scene.ts'
 const write = async (name: string, data: unknown) => {
   await mkdir(dirname(expectedPath(name)), { recursive: true })
   await writeFile(expectedPath(name), `${JSON.stringify(data, null, 2)}\n`)
+  console.log(`wrote ${name}`)
+}
+
+/** Like write, with an array of numbers (a point of a lane) on one line: the dumps of lanes have thousands of them. */
+const writeCompact = async (name: string, data: unknown) => {
+  await mkdir(dirname(expectedPath(name)), { recursive: true })
+  const text = JSON.stringify(data, null, 2).replace(/\[\s*(-?[\d.e+-]+(?:,\s*-?[\d.e+-]+)*)\s*\]/g, (_, numbers: string) => `[${numbers.replace(/\s+/g, '')}]`)
+  await writeFile(expectedPath(name), `${text}
+`)
   console.log(`wrote ${name}`)
 }
 
@@ -61,6 +75,21 @@ await write('state-folds', await dumpStates())
 await write('channel-folds', await dumpChannels())
 await write('history', await dumpHistory())
 await write('editlabel', dumpEditLabels())
+await write('kinds', dumpKinds())
+await write('pair-lines', await dumpPairs())
+await write('lanes/rest', dumpLanes())
+await write('lanes/poses', dumpPoses())
+await write('lanes/capacity', dumpCapacity())
+await write('lanes/hits', dumpHits())
+await write('lanes/labels', dumpLaneLabels())
+await write('lanes/separate', await dumpSeparateLanes())
+await write('lanes/parts', await dumpParts())
+await writeCompact('lanes/curves', dumpCurves())
+await writeCompact('lanes/curve-poses', dumpCurvePoses())
+await writeCompact('lanes/curve-labels', dumpCurveLabels())
+await writeCompact('trunks', await dumpTrunks())
+await write('layout-lanes', await dumpLayoutLanes())
+await write('sketches', dumpNewSketches())
 await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())
 await write('flow-diffs', await dumpFlowDiffs())

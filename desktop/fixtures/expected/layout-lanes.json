@@ -1,0 +1,311 @@
+{
+  "crossings": [
+    {
+      "lanes": [
+        1,
+        1
+      ],
+      "score": 1
+    },
+    {
+      "lanes": [
+        3,
+        2
+      ],
+      "score": 6
+    },
+    {
+      "lanes": [
+        4,
+        1
+      ],
+      "score": 4
+    },
+    {
+      "lanes": [
+        1,
+        5
+      ],
+      "score": 5
+    },
+    {
+      "lanes": [
+        8,
+        8
+      ],
+      "score": 64
+    },
+    {
+      "lanes": [
+        2,
+        3
+      ],
+      "score": 6
+    }
+  ],
+  "through": [
+    {
+      "y": -47,
+      "lanes": null,
+      "score": 0
+    },
+    {
+      "y": -47,
+      "lanes": 1,
+      "score": 0
+    },
+    {
+      "y": -47,
+      "lanes": 2,
+      "score": 0
+    },
+    {
+      "y": -47,
+      "lanes": 3,
+      "score": 1
+    },
+    {
+      "y": -47,
+      "lanes": 4,
+      "score": 1
+    },
+    {
+      "y": -47,
+      "lanes": 8,
+      "score": 1
+    },
+    {
+      "y": -42,
+      "lanes": null,
+      "score": 0
+    },
+    {
+      "y": -42,
+      "lanes": 1,
+      "score": 0
+    },
+    {
+      "y": -42,
+      "lanes": 2,
+      "score": 1
+    },
+    {
+      "y": -42,
+      "lanes": 3,
+      "score": 1
+    },
+    {
+      "y": -42,
+      "lanes": 4,
+      "score": 1
+    },
+    {
+      "y": -42,
+      "lanes": 8,
+      "score": 1
+    },
+    {
+      "y": 42,
+      "lanes": null,
+      "score": 0
+    },
+    {
+      "y": 42,
+      "lanes": 1,
+      "score": 0
+    },
+    {
+      "y": 42,
+      "lanes": 2,
+      "score": 1
+    },
+    {
+      "y": 42,
+      "lanes": 3,
+      "score": 1
+    },
+    {
+      "y": 42,
+      "lanes": 4,
+      "score": 1
+    },
+    {
+      "y": 42,
+      "lanes": 8,
+      "score": 1
+    },
+    {
+      "y": 47,
+      "lanes": null,
+      "score": 0
+    },
+    {
+      "y": 47,
+      "lanes": 1,
+      "score": 0
+    },
+    {
+      "y": 47,
+      "lanes": 2,
+      "score": 0
+    },
+    {
+      "y": 47,
+      "lanes": 3,
+      "score": 1
+    },
+    {
+      "y": 47,
+      "lanes": 4,
+      "score": 1
+    },
+    {
+      "y": 47,
+      "lanes": 8,
+      "score": 1
+    },
+    {
+      "y": 300,
+      "lanes": null,
+      "score": 0
+    },
+    {
+      "y": 300,
+      "lanes": 1,
+      "score": 0
+    },
+    {
+      "y": 300,
+      "lanes": 2,
+      "score": 0
+    },
+    {
+      "y": 300,
+      "lanes": 3,
+      "score": 0
+    },
+    {
+      "y": 300,
+      "lanes": 4,
+      "score": 0
+    },
+    {
+      "y": 300,
+      "lanes": 8,
+      "score": 0
+    }
+  ],
+  "moved": {
+    "edges": [
+      {
+        "from": "a",
+        "to": "b",
+        "lanes": 3
+      },
+      {
+        "from": "c",
+        "to": "d",
+        "lanes": 2
+      },
+      {
+        "from": "a",
+        "to": "d"
+      }
+    ],
+    "before": [
+      [
+        "a",
+        {
+          "x": 0,
+          "y": 0
+        }
+      ],
+      [
+        "b",
+        {
+          "x": 600,
+          "y": 0
+        }
+      ],
+      [
+        "c",
+        {
+          "x": 300,
+          "y": -300
+        }
+      ],
+      [
+        "d",
+        {
+          "x": 300,
+          "y": 300
+        }
+      ]
+    ],
+    "after": [
+      [
+        "a",
+        {
+          "x": 0,
+          "y": 0
+        }
+      ],
+      [
+        "b",
+        {
+          "x": 600,
+          "y": 0
+        }
+      ],
+      [
+        "c",
+        {
+          "x": 300,
+          "y": 100
+        }
+      ],
+      [
+        "d",
+        {
+          "x": 300,
+          "y": 400
+        }
+      ]
+    ],
+    "whole": [
+      6,
+      0
+    ],
+    "onlyMoved": [
+      6,
+      0
+    ]
+  },
+  "counts": [
+    [
+      "hub ui",
+      8
+    ],
+    [
+      "hub store",
+      6
+    ],
+    [
+      "cloud hub",
+      5
+    ],
+    [
+      "hub sensor",
+      8
+    ],
+    [
+      "bus hub",
+      8
+    ],
+    [
+      "diam hub",
+      7
+    ]
+  ],
+  "mostLanes": 8
+}

@@ -1,0 +1,583 @@
+{
+  "lineStyle": "straight",
+  "pairs": "separate",
+  "projectName": "Separate lanes",
+  "projectAbout": "",
+  "objects": [
+    {
+      "id": "ui",
+      "type": "system",
+      "name": "UI"
+    },
+    {
+      "id": "management",
+      "type": "system",
+      "name": "Management"
+    },
+    {
+      "id": "linux",
+      "type": "system",
+      "name": "Linux",
+      "shape": "diamond"
+    },
+    {
+      "id": "cloud",
+      "type": "system",
+      "name": "Cloud",
+      "shape": "ellipse"
+    },
+    {
+      "id": "bus",
+      "type": "system",
+      "name": "Bus"
+    },
+    {
+      "id": "sensor",
+      "type": "system",
+      "name": "Sensor"
+    }
+  ],
+  "connections": [
+    {
+      "from": "ui",
+      "to": "management",
+      "label": "Request and reply"
+    },
+    {
+      "from": "ui",
+      "to": "management",
+      "label": "Start scan"
+    },
+    {
+      "from": "management",
+      "to": "ui",
+      "label": "Scan results"
+    },
+    {
+      "from": "management",
+      "to": "ui",
+      "label": "Radio state"
+    },
+    {
+      "from": "ui",
+      "to": "management",
+      "label": "Set country"
+    },
+    {
+      "from": "management",
+      "to": "linux",
+      "label": "Apply config"
+    },
+    {
+      "from": "linux",
+      "to": "management",
+      "label": "Link state"
+    },
+    {
+      "from": "management",
+      "to": "cloud",
+      "label": "Fetch update"
+    },
+    {
+      "from": "management",
+      "to": "cloud",
+      "label": "Report"
+    },
+    {
+      "from": "management",
+      "to": "cloud",
+      "label": "Heartbeat"
+    },
+    {
+      "from": "management",
+      "to": "bus",
+      "label": "Events"
+    },
+    {
+      "from": "sensor",
+      "to": "management",
+      "label": "Reading 1"
+    },
+    {
+      "from": "sensor",
+      "to": "management",
+      "label": "Reading 2"
+    },
+    {
+      "from": "management",
+      "to": "sensor",
+      "label": "Poll 1"
+    },
+    {
+      "from": "sensor",
+      "to": "management",
+      "label": "Reading 3"
+    },
+    {
+      "from": "management",
+      "to": "sensor",
+      "label": "Poll 2"
+    },
+    {
+      "from": "sensor",
+      "to": "management",
+      "label": "Reading 4"
+    },
+    {
+      "from": "management",
+      "to": "sensor",
+      "label": "Poll 3"
+    },
+    {
+      "from": "sensor",
+      "to": "management",
+      "label": "Reading 5"
+    },
+    {
+      "from": "management",
+      "to": "sensor",
+      "label": "Poll 4"
+    },
+    {
+      "from": "sensor",
+      "to": "management",
+      "label": "Reading 6"
+    }
+  ],
+  "layout": {},
+  "flows": [
+    {
+      "id": "scan",
+      "name": "Scan",
+      "view": "root",
+      "steps": [
+        {
+          "from": "ui",
+          "to": "management",
+          "text": "The screen starts a scan",
+          "via": "Start scan",
+          "placed": [
+            "ui",
+            "management"
+          ],
+          "ends": "UI → Management",
+          "rides": "management ui|ui>management|Start scan"
+        },
+        {
+          "from": "management",
+          "to": "ui",
+          "text": "The first results come back",
+          "placed": [
+            "management",
+            "ui"
+          ],
+          "ends": "Management → UI",
+          "rides": "management ui|management>ui|Scan results"
+        },
+        {
+          "from": "management",
+          "to": "ui",
+          "text": "The radio says it is on",
+          "via": "radio state",
+          "placed": [
+            "management",
+            "ui"
+          ],
+          "ends": "Management → UI",
+          "rides": "management ui|management>ui|Radio state"
+        },
+        {
+          "from": "management",
+          "to": "linux",
+          "text": "The config is applied",
+          "placed": [
+            "management",
+            "linux"
+          ],
+          "ends": "Management → Linux",
+          "rides": "linux management|management>linux|Apply config"
+        },
+        {
+          "from": "linux",
+          "to": "management",
+          "text": "Linux answers",
+          "placed": [
+            "linux",
+            "management"
+          ],
+          "ends": "Linux → Management",
+          "rides": "linux management|linux>management|Link state"
+        },
+        {
+          "from": "management",
+          "to": "bus",
+          "text": "Nothing returns on a publish",
+          "placed": [
+            "management",
+            "bus"
+          ],
+          "ends": "Management → Bus",
+          "rides": "bus management|management>bus|Events"
+        }
+      ]
+    }
+  ],
+  "problems": [],
+  "views": {
+    "root": {
+      "id": "root",
+      "members": [
+        "ui",
+        "management",
+        "linux",
+        "cloud",
+        "bus",
+        "sensor"
+      ],
+      "outsiders": [],
+      "edges": [
+        {
+          "from": "ui",
+          "to": "management",
+          "label": "5 connections",
+          "count": 5,
+          "both": true
+        },
+        {
+          "from": "management",
+          "to": "linux",
+          "label": "2 connections",
+          "count": 2,
+          "both": true
+        },
+        {
+          "from": "management",
+          "to": "cloud",
+          "label": "3 connections",
+          "count": 3
+        },
+        {
+          "from": "management",
+          "to": "bus",
+          "label": "Events",
+          "count": 1,
+          "kind": "publish",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "from": "sensor",
+          "to": "management",
+          "label": "10 connections",
+          "count": 10,
+          "both": true
+        }
+      ],
+      "strands": [
+        {
+          "id": "management ui|ui>management|Request and reply",
+          "pair": "management ui",
+          "from": "ui",
+          "to": "management",
+          "label": "Request and reply",
+          "connections": [
+            0
+          ],
+          "lane": 0,
+          "lanes": 5,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "management ui|ui>management|Start scan",
+          "pair": "management ui",
+          "from": "ui",
+          "to": "management",
+          "label": "Start scan",
+          "connections": [
+            1
+          ],
+          "lane": 1,
+          "lanes": 5,
+          "kind": "stream",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "double"
+          }
+        },
+        {
+          "id": "management ui|ui>management|Set country",
+          "pair": "management ui",
+          "from": "ui",
+          "to": "management",
+          "label": "Set country",
+          "connections": [
+            4
+          ],
+          "lane": 2,
+          "lanes": 5
+        },
+        {
+          "id": "management ui|management>ui|Scan results",
+          "pair": "management ui",
+          "from": "management",
+          "to": "ui",
+          "label": "Scan results",
+          "connections": [
+            2
+          ],
+          "lane": 3,
+          "lanes": 5,
+          "kind": "publish",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "management ui|management>ui|Radio state",
+          "pair": "management ui",
+          "from": "management",
+          "to": "ui",
+          "label": "Radio state",
+          "connections": [
+            3
+          ],
+          "lane": 4,
+          "lanes": 5,
+          "kind": "cached",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "linux management|management>linux|Apply config",
+          "pair": "linux management",
+          "from": "management",
+          "to": "linux",
+          "label": "Apply config",
+          "connections": [
+            5
+          ],
+          "lane": 0,
+          "lanes": 2,
+          "kind": "request",
+          "look": {
+            "pattern": "solid",
+            "head": "filled",
+            "tail": "open"
+          }
+        },
+        {
+          "id": "linux management|linux>management|Link state",
+          "pair": "linux management",
+          "from": "linux",
+          "to": "management",
+          "label": "Link state",
+          "connections": [
+            6
+          ],
+          "lane": 1,
+          "lanes": 2,
+          "kind": "cached",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "ring"
+          }
+        },
+        {
+          "id": "cloud management|management>cloud|Fetch update",
+          "pair": "cloud management",
+          "from": "management",
+          "to": "cloud",
+          "label": "Fetch update",
+          "connections": [
+            7
+          ],
+          "lane": 0,
+          "lanes": 3
+        },
+        {
+          "id": "cloud management|management>cloud|Report",
+          "pair": "cloud management",
+          "from": "management",
+          "to": "cloud",
+          "label": "Report",
+          "connections": [
+            8
+          ],
+          "lane": 1,
+          "lanes": 3
+        },
+        {
+          "id": "cloud management|management>cloud|Heartbeat",
+          "pair": "cloud management",
+          "from": "management",
+          "to": "cloud",
+          "label": "Heartbeat",
+          "connections": [
+            9
+          ],
+          "lane": 2,
+          "lanes": 3,
+          "kind": "publish",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "bus management|management>bus|Events",
+          "pair": "bus management",
+          "from": "management",
+          "to": "bus",
+          "label": "Events",
+          "connections": [
+            10
+          ],
+          "lane": 0,
+          "lanes": 1,
+          "kind": "publish",
+          "look": {
+            "pattern": "solid",
+            "head": "open",
+            "tail": "none"
+          }
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 1",
+          "pair": "management sensor",
+          "from": "sensor",
+          "to": "management",
+          "label": "Reading 1",
+          "connections": [
+            11
+          ],
+          "lane": 0,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 2",
+          "pair": "management sensor",
+          "from": "sensor",
+          "to": "management",
+          "label": "Reading 2",
+          "connections": [
+            12
+          ],
+          "lane": 1,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 3",
+          "pair": "management sensor",
+          "from": "sensor",
+          "to": "management",
+          "label": "Reading 3",
+          "connections": [
+            14
+          ],
+          "lane": 2,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 4",
+          "pair": "management sensor",
+          "from": "sensor",
+          "to": "management",
+          "label": "Reading 4",
+          "connections": [
+            16
+          ],
+          "lane": 3,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 5",
+          "pair": "management sensor",
+          "from": "sensor",
+          "to": "management",
+          "label": "Reading 5",
+          "connections": [
+            18
+          ],
+          "lane": 4,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|sensor>management|Reading 6",
+          "pair": "management sensor",
+          "from": "sensor",
+          "to": "management",
+          "label": "Reading 6",
+          "connections": [
+            20
+          ],
+          "lane": 5,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 1",
+          "pair": "management sensor",
+          "from": "management",
+          "to": "sensor",
+          "label": "Poll 1",
+          "connections": [
+            13
+          ],
+          "lane": 6,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 2",
+          "pair": "management sensor",
+          "from": "management",
+          "to": "sensor",
+          "label": "Poll 2",
+          "connections": [
+            15
+          ],
+          "lane": 7,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 3",
+          "pair": "management sensor",
+          "from": "management",
+          "to": "sensor",
+          "label": "Poll 3",
+          "connections": [
+            17
+          ],
+          "lane": 8,
+          "lanes": 10
+        },
+        {
+          "id": "management sensor|management>sensor|Poll 4",
+          "pair": "management sensor",
+          "from": "management",
+          "to": "sensor",
+          "label": "Poll 4",
+          "connections": [
+            19
+          ],
+          "lane": 9,
+          "lanes": 10
+        }
+      ]
+    }
+  }
+}

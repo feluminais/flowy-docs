@@ -29,8 +29,15 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
         public sealed record Boxes(IReadOnlyList<string> Ids) : Side;
 
-        /// <summary>A line of a view. <c>View</c> is the view of the pane of a comparison it was clicked in (two flows can sit on different views); null: the view the reader is in.</summary>
-        public sealed record Line(string From, string To, string? View = null) : Side;
+        /// <summary>
+        /// A line of a view. <c>View</c> is the view of the pane of a comparison it was clicked in (two flows can sit on different views); null: the view the reader is in. <c>Strand</c> is the id of the
+        /// line of the pair that was picked, where a project draws a line for each connection (see <see cref="Strand"/>): the pair's panel opens on that connection. Null: the pair's one line.
+        /// </summary>
+        public sealed record Line(string From, string To, string? View = null, string? Strand = null) : Side
+        {
+            /// <summary>The id of the line on the canvas this picks: the line of the pair that was picked, else the pair's one line.</summary>
+            public string Id => Strand ?? Views.LineKey(From, To);
+        }
 
         public sealed record Add : Side;
 
@@ -62,9 +69,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private Control? _zoomButtons;
     private IReadOnlyList<ModelEntry> _models = [];
     private Task _modelsLoaded = Task.CompletedTask;
-    private IReadOnlyList<DraftInfo> _drafts = [];
-    private Task _draftsLoaded = Task.CompletedTask;
-    private string? _draftOf; // the model folder this one is a draft of, or null when it is a model
+    private IReadOnlyList<SketchInfo> _sketches = [];
+    private Task _sketchesLoaded = Task.CompletedTask;
+    private string? _sketchOf; // the model folder this one is a sketch of, or null when it is a model
     private Task _codeBaseLoaded = Task.CompletedTask;
     private string? _dir;
 
@@ -127,9 +134,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _bar.ModelPicked += dir => ModelPicked?.Invoke(dir);
         _bar.OwnerClicked += () =>
         {
-            if (_draftOf is { } model) ModelPicked?.Invoke(model);
+            if (_sketchOf is { } model) ModelPicked?.Invoke(model);
         };
-        _nav.Explorer.Drafts.Opened += dir => ModelPicked?.Invoke(dir);
+        _nav.Explorer.Sketches.Opened += dir => ModelPicked?.Invoke(dir);
         _bar.LinesChosen += ChooseLines;
         _bar.SearchClicked += ToggleSearch;
         _bar.HelpClicked += ToggleShortcuts;
@@ -170,12 +177,19 @@ internal sealed partial class ReaderView : Grid, IDisposable
             Interacted();
             var edge = Scene()?.Edges.FirstOrDefault(e => e.Id == id);
             if (edge is null) return;
-            if (_side is Side.Line line && Views.LineKey(line.From, line.To) == edge.Id)
+            if (Recording is { } rec)
+            {
+                // While a flow is recorded a click on a line is part of the recording: it picks the step's ends and the line, and the panel stays the recorder.
+                var strand = edge.Pair is null ? null : Views.Compute(_folder.Model, CurrentView()).Strands?.FirstOrDefault(s => s.Id == edge.Id);
+                _gestures.PickLine(rec, edge, strand?.Label ?? "");
+                return;
+            }
+            if (_side is Side.Line line && line.Id == edge.Id)
             {
                 CloseDetails(); // its panel is already open: a second click closes it
                 return;
             }
-            _side = new Side.Line(edge.From, edge.To);
+            _side = new Side.Line(edge.From, edge.To, Strand: edge.Pair is null ? null : edge.PickedId); // a trunk picks the first of its lines, which opens its pair
             Refresh();
         };
         _canvas.EdgeHovered += id => SetHover(id);
@@ -204,6 +218,12 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Stop += Stop;
         _player.Play += _playback.TogglePlay;
         _player.Clock = _canvas.Clock;
+        // A fit leaves room at the foot for the player's card as tall as the card is (never less than the usual 200, never more than 60% of the canvas), and fits again when the card grows or shrinks.
+        _canvas.PlayerRoom = () => Math.Clamp(_player.Bounds.Height + 40, 200, Math.Max(200, _canvas.Bounds.Height * 0.6));
+        _player.SizeChanged += (_, e) =>
+        {
+            if (e.HeightChanged) _canvas.Refit();
+        };
         // The payload card on a paused dot keeps clear of the player card and the panels that lie over the canvas.
         _canvas.Avoid = () => [.. new Control[] { _player, _panel, _nav }
             .Where(c => c.IsEffectivelyVisible && c.Bounds.Width > 0 && c.Bounds.Height > 0)
@@ -309,10 +329,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _models = [];
         ShowCurrentModel();
         _modelsLoaded = LoadModels(dir);
-        _draftOf = Drafts.ModelOf(dir);
-        _bar.ShowDraft(_draftOf is null ? null : Drafts.NameOfModel(_draftOf) is { Length: > 0 } owner ? owner : "Model");
-        _drafts = [];
-        _draftsLoaded = LoadDrafts(dir);
+        _sketchOf = Sketches.ModelOf(dir);
+        _bar.ShowSketch(_sketchOf is null ? null : Sketches.NameOfModel(_sketchOf) is { Length: > 0 } owner ? owner : "Model");
+        _sketches = [];
+        _sketchesLoaded = LoadSketches(dir);
         WarmCode(folder);
         _edit.Open(dir, Reload, SetBanner);
         _view = Names.Root;
@@ -384,34 +404,34 @@ internal sealed partial class ReaderView : Grid, IDisposable
     }
 
     // How many lookups of each kind were started: only the latest one that finishes is shown, so a slow one can't put back what a newer one replaced.
-    private int _modelsAsked, _draftsAsked, _codeBaseAsked;
+    private int _modelsAsked, _sketchesAsked, _codeBaseAsked;
 
     private void ShowCurrentModel() => _bar.ShowModels(_models, _dir);
 
-    /// <summary>Looks for the model's drafts away from the UI thread (each is a file to read). A draft holds none.</summary>
-    private async Task LoadDrafts(string dir)
+    /// <summary>Looks for the model's sketches away from the UI thread (each is a file to read). A sketch holds none.</summary>
+    private async Task LoadSketches(string dir)
     {
-        if (_draftOf is not null) return;
-        var ticket = ++_draftsAsked;
+        if (_sketchOf is not null) return;
+        var ticket = ++_sketchesAsked;
         try
         {
-            var drafts = await Task.Run(() => Drafts.List(dir));
-            if (_dir != dir || ticket != _draftsAsked || drafts.SequenceEqual(_drafts)) return; // another folder was loaded, or a newer read began, while this one was being read; or nothing changed
-            _drafts = drafts;
-            ShowDrafts();
+            var sketches = await Task.Run(() => Sketches.List(dir));
+            if (_dir != dir || ticket != _sketchesAsked || sketches.SequenceEqual(_sketches)) return; // another folder was loaded, or a newer read began, while this one was being read; or nothing changed
+            _sketches = sketches;
+            ShowSketches();
         }
         catch (Exception e)
         {
-            if (_dir == dir && ticket == _draftsAsked) ShowNotice($"Couldn't list the drafts: {e.Message}", 6);
+            if (_dir == dir && ticket == _sketchesAsked) ShowNotice($"Couldn't list the sketches: {e.Message}", 6);
         }
     }
 
-    private void ShowDrafts() => _nav.Explorer.Drafts.Update(_dir, _drafts, _edit.SaveOff, _draftOf is not null);
+    private void ShowSketches() => _nav.Explorer.Sketches.Update(_dir, _sketches, _edit.SaveOff, _sketchOf is not null);
 
-    internal DraftsView DraftsGroup => _nav.Explorer.Drafts;
+    internal SketchesView SketchesGroup => _nav.Explorer.Sketches;
 
-    /// <summary>The name of the model this is a draft of, as the bar shows it, or null when this is a model.</summary>
-    internal string? DraftOwner => _bar.DraftOf;
+    /// <summary>The name of the model this is a sketch of, as the bar shows it, or null when this is a model.</summary>
+    internal string? SketchOwner => _bar.SketchOf;
 
     internal Button OwnerButtonForTest => _bar.OwnerButton;
 
@@ -422,7 +442,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     internal IReadOnlyList<ModelEntry> Models => _models;
 
     /// <summary>Done once what the folder last loaded looks up in the background is in and shown: the repo's other models and the code link.</summary>
-    internal Task Settled => Task.WhenAll(_modelsLoaded, _codeBaseLoaded, _draftsLoaded);
+    internal Task Settled => Task.WhenAll(_modelsLoaded, _codeBaseLoaded, _sketchesLoaded);
 
     private async Task LoadCodeBase(string dir)
     {
@@ -450,8 +470,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>A changed folder arrives: show it, keeping where the reader is as far as it still exists.</summary>
     public void Reload(Folder folder)
     {
-        // A draft added or taken away changes no file of the model, so the check below would pass it by: the list of drafts is read on its own.
-        if (_dir is { } dir) _draftsLoaded = LoadDrafts(dir);
+        // A sketch added or taken away changes no file of the model, so the check below would pass it by: the list of sketches is read on its own.
+        if (_dir is { } dir) _sketchesLoaded = LoadSketches(dir);
         // The folder read again is what is on show (the watch says so after the app's own save, which has been shown already): nothing to draw again.
         if (_folder is { } shown && !_banner.IsVisible && FolderSame.Is(shown, folder)) return;
         _folder = folder;
@@ -625,14 +645,14 @@ internal sealed partial class ReaderView : Grid, IDisposable
         var model = folder.Model;
         var near = Views.Compute(model, view).Members.Where(CanOpen).Take(MaxWarmViews).ToList();
         if (view != Names.Root) near.Add(Views.ParentOf(model, view));
-        if (near.Count > 0) _ = WarmViews(folder, view, near);
+        if (near.Count > 0) _ = WarmViews(folder, view, near, LineStyle);
     }
 
     private const int MaxWarmViews = 8;
 
-    private async Task WarmViews(Folder folder, string view, List<string> near)
+    private async Task WarmViews(Folder folder, string view, List<string> near, string lineStyle)
     {
-        var scenes = await Task.Run(() => near.Select(v => SceneBuilder.Build(folder.Model, v, null, folder.Problems)).ToList());
+        var scenes = await Task.Run(() => near.Select(v => SceneBuilder.Build(folder.Model, v, null, folder.Problems, null, new SceneDrawing(lineStyle))).ToList());
         if (ReferenceEquals(folder, _warmedFolder) && view == _warmedView && !Comparing) _canvas.Prewarm(scenes);
     }
 
@@ -641,16 +661,17 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         var model = folder.Model;
         Playing? shown = null;
-        if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index);
-        else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec);
-        var line = _side is Side.Line l ? SceneBuilder.LineId(l.From, l.To) : null;
-        var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover));
+        if (flow is { } f) shown = FlowStage.PlayingAt(model, view, f.Flow, StopsOf(f.Flow), index, LineStyle);
+        else if (Recording is { } rec) shown = EditGestures.RecordingShown(model, view, rec, LineStyle);
+        var line = _side is Side.Line l ? l.Id : null;
+        var scene = SceneBuilder.Build(model, view, shown, folder.Problems, new Focus(SelectedBox, line, _hover), new SceneDrawing(LineStyle, line)); // the line picked opens the trunks of its pair
+        _canvas.KindKeyBesidePlayer = flow is not null; // a flow's card lies over the middle of the foot
         _canvas.SetScene(scene, LineStyle, SelectedBoxes);
         // Where shapes stand at this stop, folded from the flow's start and the steps up to it: nothing is stored, so stepping back needs no undo.
         // While the Performance panel is open a run over time sets the states instead (a flow waits behind the panel).
         _canvas.ShowStates(flow is { } playing ? States.Marks(model, States.At(playing.Flow, StopsOf(playing.Flow), index)) : RunMarks(model));
         // What the flow has left open by this stop is worked out the same way, so stepping back needs no undo.
-        _canvas.ShowChannels(flow is { } open ? FlowStage.OpenAt(model, view, open.Flow, StopsOf(open.Flow), index) : null);
+        _canvas.ShowChannels(flow is { } open ? FlowStage.OpenAt(model, view, open.Flow, StopsOf(open.Flow), index, LineStyle) : null);
         return shown;
     }
 
@@ -717,11 +738,11 @@ internal sealed partial class ReaderView : Grid, IDisposable
             case Side.Box { Id: var id }:
                 _panel.ShowObject(model, id, _folder!.Problems, _codeBase, new LinkContext(_repoRoot!, () => CustomApp(), RunLink), OpenObject, SetHover, StateHere(id));
                 break;
-            case Side.Line { From: var from, To: var to } when Editing:
-                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseDetails, AskDelete);
+            case Side.Line { From: var from, To: var to, Strand: var strand } when Editing:
+                _panel.ShowLineEditor(model, view, from, to, _folder!.Problems, RunAsync, CloseDetails, AskDelete, strand, SetHover);
                 break;
-            case Side.Line { From: var from, To: var to, View: var lineView }:
-                _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems);
+            case Side.Line { From: var from, To: var to, View: var lineView, Strand: var strand }:
+                _panel.ShowLine(model, lineView ?? view, from, to, _folder!.Problems, strand, SetHover);
                 break;
             case Side.Add when Editing:
                 _panel.ShowAdd(model, view, RunAsync, OpenObject);
@@ -877,7 +898,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         Interacted();
         if (Recording is { } rec)
         {
-            _side = new Side.Flow(rec with { From = null, To = null });
+            _side = new Side.Flow(rec with { From = null, To = null, Via = null });
             Refresh();
             return;
         }
@@ -948,12 +969,17 @@ internal sealed partial class ReaderView : Grid, IDisposable
         else OpenObject(id);
     }
 
-    /// <summary>Shows the panel of a line of the current view.</summary>
-    public void OpenLine(string from, string to)
+    /// <summary>
+    /// Shows the panel of a line of the current view. <paramref name="focusLabel"/> is a connection (its place in the model) whose label field takes the cursor as the panel opens: the one a drag
+    /// just made, where each connection has a line of its own and a second one without a label would be a duplicate.
+    /// </summary>
+    public void OpenLine(string from, string to, int? focusLabel = null)
     {
         DidSomethingElse();
         _side = new Side.Line(from, to);
         Refresh();
+        _canvas.RevealLabels(_panels.DetailsWidth, _panels.NavInset);
+        if (focusLabel is { } connection && Editing) Avalonia.Threading.Dispatcher.UIThread.Post(() => _panel.CurrentLineEditor?.FocusLabel(connection), Avalonia.Threading.DispatcherPriority.Loaded);
     }
 
     // ---- flows -------------------------------------------------------------------------------------------------

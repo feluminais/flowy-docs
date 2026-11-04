@@ -1,12 +1,15 @@
 import { useRef } from 'react'
-import type { MouseEvent as ReactMouseEvent } from 'react'
+import type { FocusEvent as ReactFocusEvent, MouseEvent as ReactMouseEvent } from 'react'
 import type { Edge, FitViewOptions, NodeChange, ReactFlowInstance } from '@xyflow/react'
-import type { Model } from '../../src/core/model.ts'
+import { pairMode } from '../../src/core/model.ts'
+import type { LineStyle, Model } from '../../src/core/model.ts'
 import { connect, placeBoxes } from '../../src/core/ops.ts'
 import { placeEnds } from '../../src/core/views.ts'
 import { DOUBLE_CLICK, isStepLine } from './graph.ts'
 import type { BoxNode, FrameNode } from './graph.ts'
 import type { SaveEdit } from './forms.tsx'
+import { hitStrand, pickedStrand } from './lanehit.ts'
+import type { PartStore } from './parts.ts'
 import type { HoverStore } from './Line.tsx'
 import type { Recording } from './Recorder.tsx'
 import { addsToSelection, banded, toggled } from './selection.ts'
@@ -30,23 +33,27 @@ export function useClickWait() {
 /** A box clicked while recording: the first one starts the step, the second ends it (the same box again: a step it does on its own), a third starts over. */
 function pick(rec: Recording, id: string): Recording {
   if (!rec.id) return rec
-  if (!rec.from || rec.to) return { ...rec, from: id, to: undefined }
-  return { ...rec, to: id }
+  const { via: _, ...rest } = rec // a line picked before is not the line of a step between other shapes
+  if (!rest.from || rest.to) return { ...rest, from: id, to: undefined }
+  return { ...rest, to: id }
 }
 
 /**
  * What a click, a drag or a connection on the canvas does. The handlers of the canvas never change, and call the current ones: a new function for each would make React Flow take
  * them in again on every render.
  */
-export function useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait }: {
+export function useCanvasEvents({ model, view, editing, recording, side, chosen, selectedLine, nodes, edges, lines, setFocusedLine, members, sizes, session, run, show, setSide, closeDetails, canOpen, zoomInto, hover, wait, parts }: {
   model: Model; view: string; editing: boolean; recording: FlowSide | undefined; side: Side | undefined; chosen: string[]; selectedLine: string | undefined
-  nodes: BoxNode[]; members: string[]; sizes: ReturnType<typeof useCanvasGraph>['sizes']; session: ReturnType<typeof useEditSession>; run: SaveEdit
+  nodes: BoxNode[]; edges: Edge[]; lines: LineStyle; setFocusedLine: (id: string | undefined) => void; members: string[]; sizes: ReturnType<typeof useCanvasGraph>['sizes']; session: ReturnType<typeof useEditSession>; run: SaveEdit
   show: (s: Side | undefined) => void; setSide: (s: Side | undefined) => void; closeDetails: () => void; canOpen: (id: string) => boolean; zoomInto: (id: string) => void
   hover: HoverStore; wait: ReturnType<typeof useClickWait>
+  /** How far the lines of each pair are parted around a lit line (see parts.ts), so a click means the line it is on where the lines are now. */
+  parts?: PartStore
 }) {
   const { opening, openingBox, cancelOpen } = wait
   const { didSomethingElse } = session
   const fitNow = useRef<(options: Omit<FitViewOptions, 'nodes'>) => void>(undefined) // for F; set once each canvas is ready
+  const flow = useRef<ReactFlowInstance<BoxNode | FrameNode, Edge>>(undefined) // to turn the pointer's place on the screen into a place on the canvas
   const onSelectionStart = useLatest(() => {
     session.startBanding()
     cancelOpen()
@@ -71,8 +78,12 @@ export function useCanvasEvents({ model, view, editing, recording, side, chosen,
     })
   })
   const isValidConnection = useLatest((c: { source: string; target: string }) => placeEnds(model, view, c.source, c.target) !== null)
-  const onConnect = useLatest((c: { source: string; target: string }) => void run(m => connect(m, { from: c.source, to: c.target }))
-    .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target })))
+  const onConnect = useLatest((c: { source: string; target: string }) => {
+    // Where each connection has a line of its own, a second unlabelled connection the same way would be a duplicate, so its label field takes the focus as its panel opens.
+    const focusLabel = pairMode(model) === 'separate' ? model.connections.length : undefined
+    void run(m => connect(m, { from: c.source, to: c.target }))
+      .then(saved => saved && show({ kind: 'line', from: c.source, to: c.target, ...(focusLabel === undefined ? {} : { focusLabel }) }))
+  })
   const onNodeClick = useLatest((e: ReactMouseEvent, node: { id: string; type?: string }) => {
     if (node.type !== 'box') return // the frame takes no pointer events, this is a guard
     didSomethingElse()
@@ -98,20 +109,45 @@ export function useCanvasEvents({ model, view, editing, recording, side, chosen,
     zoomInto(node.id)
   })
   const onInit = useLatest((instance: ReactFlowInstance<BoxNode | FrameNode, Edge>) => {
+    flow.current = instance
     fitNow.current = options => void instance.fitView(options)
   })
-  const onEdgeClick = useLatest((_: ReactMouseEvent, e: Edge) => {
+  /** The line the pointer means: of the lines of a pair side by side, the nearest to the pointer (see hitStrand), not the one whose strip React Flow found first. */
+  const edgeAt = (event: ReactMouseEvent, hit: Edge): Edge => {
+    if (!flow.current || typeof hit.data?.pair !== 'string') return hit
+    const id = hitStrand(edges, nodes, lines, hit, flow.current.screenToFlowPosition({ x: event.clientX, y: event.clientY }), flow.current.getZoom(), parts?.lam)
+    return id === hit.id ? hit : edges.find(e => e.id === id) ?? hit
+  }
+  const onEdgeClick = useLatest((event: ReactMouseEvent, hit: Edge) => {
     didSomethingElse()
-    if (recording || isStepLine(e.id)) return
+    if (isStepLine(hit.id)) return
+    const e = edgeAt(event, hit)
+    if (recording) {
+      // Where each connection is a line of its own, a click on a line picks the step's ends and the line it rides (its `via`).
+      if (recording.id && typeof e.data?.pair === 'string') {
+        const { via: _, ...rest } = recording
+        // (a trunk stands for several lines and has no label of its own to name one)
+        const label = e.data?.trunk !== undefined ? '' : typeof e.data?.label === 'string' ? e.data.label : typeof e.label === 'string' ? e.label : ''
+        setSide({ ...rest, from: e.source, to: e.target, ...(label === '' ? {} : { via: label }) })
+      }
+      return
+    }
     if (selectedLine === e.id) closeDetails() // its panel is already open: a second click closes it
-    else show({ kind: 'line', from: e.source, to: e.target })
+    else show({ kind: 'line', from: e.source, to: e.target, ...(typeof e.data?.pair === 'string' ? { strand: pickedStrand(e) } : {}) })
   })
-  const onEdgeMouseEnter = useLatest((_: ReactMouseEvent, e: Edge) => hover.set(e.id))
+  const onEdgeMouseEnter = useLatest((event: ReactMouseEvent, hit: Edge) => hover.set(edgeAt(event, hit).id))
   const onEdgeMouseLeave = useLatest(() => hover.set(undefined))
   const onPaneClick = useLatest(() => {
     didSomethingElse()
     cancelOpen()
     setSide(recording ? { ...recording, from: undefined, to: undefined } : undefined)
   })
-  return { fitNow, onSelectionStart, onSelectionEnd, onNodesChange, isValidConnection, onConnect, onNodeClick, onNodeDoubleClick, onInit, onEdgeClick, onEdgeMouseEnter, onEdgeMouseLeave, onPaneClick }
+  // Keyboard focus on a line spreads its pair. A click also focuses the line, and that is no reason to move it, so only focus a keyboard put there counts.
+  const onFocus = useLatest((e: ReactFocusEvent) => {
+    const target = e.target instanceof Element ? e.target : undefined
+    const id = target?.matches(':focus-visible') ? target.closest('.react-flow__edge')?.getAttribute('data-id') : undefined
+    setFocusedLine(id ?? undefined)
+  })
+  const onBlur = useLatest(() => setFocusedLine(undefined))
+  return { fitNow, onFocus, onBlur, onSelectionStart, onSelectionEnd, onNodesChange, isValidConnection, onConnect, onNodeClick, onNodeDoubleClick, onInit, onEdgeClick, onEdgeMouseEnter, onEdgeMouseLeave, onPaneClick }
 }

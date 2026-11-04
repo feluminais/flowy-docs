@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setLinePayloads, setLines, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, reorderConnections, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setPairs, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInput } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -76,6 +76,27 @@ export const STEPS: Spec[] = [
   { op: 'relabel', from: 'web', to: 'api', which: 'missing', label: 'x' },
   { op: 'removeConnection', from: 'api', to: 'db', which: '' },
   { op: 'removeConnection', from: 'api', to: 'db', which: '' },
+  // A kind: written on a new connection, set where the connection is, changed in place, taken off, and refused when it is none of the six words.
+  { op: 'connect', from: 'api', to: 'pay', label: 'notifies', kind: 'publish' },
+  { op: 'connect', from: 'web', to: 'pay', label: 'pays', kind: 'cached', payloads: ['receipt'] },
+  { op: 'connect', from: 'web', to: 'db', label: 'asks', kind: '' },
+  { op: 'connect', from: 'web', to: 'db', label: 'asks again', kind: 'rpc' },
+  { op: 'connect', from: 'web', to: 'nowhere', kind: 'rpc' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'request' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'stream' },
+  { op: 'setKind', from: 'api', to: 'pay', which: 'charges', kind: 'extension' },
+  { op: 'setKind', from: 'customer', to: 'web', which: '', kind: 'object' }, // a connection with a key of its own: the kind goes before it
+  { op: 'setKind', from: 'web', to: 'pay', which: 'pays', kind: 'publish' }, // in place, between the label and the payloads
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'rpc' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: 'Request' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'nope', kind: 'rpc' }, // the missing connection comes first
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: '' },
+  { op: 'setKind', from: 'web', to: 'api', which: 'HTTP', kind: '' },
+  { op: 'setKind', from: 'api', to: 'pay', which: 'charges', kind: '' },
+  { op: 'setKind', from: 'customer', to: 'web', which: '', kind: '' },
+  { op: 'removeConnection', from: 'api', to: 'pay', which: 'notifies' },
+  { op: 'removeConnection', from: 'web', to: 'pay', which: 'pays' },
+  { op: 'removeConnection', from: 'web', to: 'db', which: 'asks' },
   { op: 'putFlow', id: 'pay', name: 'Customer pays', view: 'root', steps: [{ from: 'customer', to: 'pay', text: 'Pays' }, { from: 'customer', text: 'Waits', description: '   ' }, { from: 'pay', text: 'Confirms', description: 'It takes a second.' }] },
   { op: 'putFlow', id: 'Pay', name: 'Same name, other case', view: 'root', steps: [{ from: 'customer', text: 'x' }] },
   { op: 'putFlow', id: 'bad id', name: 'Bad', view: 'root', steps: [{ from: 'customer', text: 'x' }] },
@@ -233,6 +254,50 @@ export const STEPS: Spec[] = [
   { op: 'deleteObjects', ids: ['shop', 'api', 'web', 'db', 'checkout'] }, // a box with what is inside it, the inner ones first
 ]
 
+/** The lines between two shapes, from a folder that draws a line for each connection and has steps that name one with `via` (desktop/fixtures/cases/pairs). Each edit starts from what the one before left. */
+export const PAIRS_STEPS: Spec[] = [
+  // The setting: merged takes the key off, a new one goes after `lines:` or the name, and a word that is neither is refused.
+  { op: 'setPairs', mode: 'merged' },
+  { op: 'setPairs', mode: 'separate' },
+  { op: 'setPairs', mode: 'bundled' },
+  { op: 'setPairs' },
+  { op: 'setPairs', mode: 'separate' },
+  { op: 'setLines', style: 'curved' },
+  { op: 'setPairs', mode: 'merged' },
+  { op: 'setPairs', mode: 'separate' },
+  { op: 'setProject', name: 'Wireless', pairs: 'merged' },
+  { op: 'setProject', pairs: 'separate' },
+  { op: 'setProject', pairs: 'every' },
+  { op: 'setProject', about: 'Scans.' },
+  // A step's via keeps naming a connection: a connection a via names cannot go, unless another connection with that label is left between the two shapes.
+  { op: 'removeConnection', from: 'ui', to: 'management', which: 'Start scan' },
+  { op: 'removeConnection', from: 'ui', to: 'management', which: 'Request and reply' },
+  { op: 'connect', from: 'management', to: 'ui', label: 'start scan', kind: 'publish' },
+  { op: 'removeConnection', from: 'ui', to: 'management', which: 'Start scan' },
+  { op: 'removeConnection', from: 'management', to: 'ui', which: 'start scan' },
+  // Renaming a connection renames the vias that named it, and no label leaves them naming nothing.
+  { op: 'relabel', from: 'management', to: 'ui', which: 'Scan results', label: 'Results' },
+  { op: 'relabel', from: 'cloud', to: 'management', which: 'Fetch update', label: 'Fetch update' },
+  { op: 'relabel', from: 'management', to: 'cloud', which: 'Fetch update', label: 'FETCH UPDATE' },
+  { op: 'putFlow', id: 'named', name: 'Named', view: 'root', steps: [{ from: 'ui', to: 'management', text: 'Asks', via: 'Start scan' }, { from: 'management', to: 'ui', text: 'Answers', via: '  ' }] },
+  { op: 'relabel', from: 'ui', to: 'management', which: 'Start scan', label: 'Begin scan' },
+  { op: 'relabel', from: 'ui', to: 'management', which: 'Begin scan', label: '' },
+  { op: 'putFlow', id: 'named', name: 'Named', view: 'root', steps: [{ from: 'ui', to: 'management', text: 'Asks', via: 'Nothing like it' }] },
+  // The order of the connections is the order of the lines of a pair: a connection goes before another one, several keep their order among themselves, and a move that changes nothing writes nothing.
+  { op: 'reorderConnections', indexes: [2], before: 0 },
+  { op: 'reorderConnections', indexes: [0], before: 2 },
+  { op: 'reorderConnections', indexes: [1], before: 2 },
+  { op: 'reorderConnections', indexes: [3, 1], before: 0 },
+  { op: 'reorderConnections', indexes: [0, 1], before: 4 },
+  { op: 'reorderConnections', indexes: [0], before: 99 },
+  { op: 'reorderConnections', indexes: [1], before: -1 },
+  { op: 'reorderConnections', indexes: [], before: 0 },
+  { op: 'reorderConnections', indexes: [2, 2], before: 0 },
+  { op: 'reorderConnections', indexes: [99], before: 0 },
+  { op: 'reorderConnections', indexes: [-1], before: 0 },
+  { op: 'reorderConnections', indexes: [0.5], before: 0 },
+]
+
 /** Deleting what other parts depend on, from a folder with flows, groups, states and a failure analysis (desktop/fixtures/cases/delete). Each edit starts from what the one before left. */
 export const DELETE_STEPS: Spec[] = [
   { op: 'swapSteps', id: 'pay', index: 0, other: 1 },
@@ -354,7 +419,7 @@ function apply(model: Model, s: Spec): Model {
     case 'deleteObject': return deleteObject(model, s.id)
     case 'deleteObjects': return deleteObjects(model, s.ids)
     case 'deleteWith': return deleteWith(model, s.targets, s.resolutions)
-    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label, ...(s.payloads === undefined ? {} : { payloads: s.payloads }) })
+    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label, ...(s.kind === undefined ? {} : { kind: s.kind }), ...(s.payloads === undefined ? {} : { payloads: s.payloads }) })
     case 'putPayload': {
       const { op: _, ...input } = s
       return putPayload(model, input as PayloadInput)
@@ -364,6 +429,7 @@ function apply(model: Model, s: Spec): Model {
     case 'setStepPayload': return setStepPayload(model, s.id, s.index, s.key, s.value)
     case 'removeConnection': return removeConnection(model, { from: s.from, to: s.to, label: s.which })
     case 'relabel': return relabel(model, { from: s.from, to: s.to, label: s.which }, s.label)
+    case 'setKind': return setKind(model, { from: s.from, to: s.to, label: s.which }, s.kind)
     case 'putFlow': return putFlow(model, { id: s.id, name: s.name, view: s.view, steps: s.steps as Step[], ...(s.groups === undefined ? {} : { groups: s.groups }), ...(s.states === undefined ? {} : { states: s.states }), ...(s.folder === undefined ? {} : { folder: s.folder }), ...(s.tags === undefined ? {} : { tags: s.tags }) })
     case 'moveFlow': return moveFlow(model, s.id, s.folder)
     case 'setFlowTags': return setFlowTags(model, s.id, s.tags)
@@ -371,6 +437,7 @@ function apply(model: Model, s: Spec): Model {
     case 'updateFlow': return updateFlow(model, s.id, { ...(s.name === undefined ? {} : { name: s.name }), ...(s.steps === undefined ? {} : { steps: s.steps as Step[] }), ...(s.groups === undefined ? {} : { groups: s.groups }) })
     case 'swapSteps': return swapSteps(model, s.id, s.index, s.other)
     case 'removeStep': return removeStep(model, s.id, s.index)
+    case 'reorderConnections': return reorderConnections(model, s.indexes, s.before)
     case 'putGroup': return putGroup(model, s.id, s.group, s.options)
     case 'removeGroup': return removeGroup(model, s.id, s.group)
     case 'setStepGroup': return setStepGroup(model, s.id, s.index, s.group)
@@ -387,7 +454,8 @@ function apply(model: Model, s: Spec): Model {
     case 'updateAnalysis': return updateAnalysis(model, s.id, s.changes)
     case 'placeBoxes': return placeBoxes(model, s.view, s.boxes)
     case 'setLines': return setLines(model, s.style)
-    case 'setProject': return setProject(model, { name: s.name, about: s.about })
+    case 'setPairs': return setPairs(model, s.mode)
+    case 'setProject': return setProject(model, { name: s.name, about: s.about, ...(s.pairs === undefined ? {} : { pairs: s.pairs }) })
     case 'forgetLayout': return forgetLayout(model, s.view)
     default: throw new Error(`unknown op ${s.op}`)
   }
@@ -425,5 +493,5 @@ export async function dumpOps(): Promise<unknown> {
   const ids = names.flatMap(name => [[], ['orders-db', 'orders-db-2', 'API']].map(taken => ({ name, taken, id: newId(name, taken, 'component') })))
   const start: Model = modelOf(state)
   const types = [ROOT, ...Object.keys(start.objects), 'nowhere'].map(view => ({ view, types: typesIn(start, view) }))
-  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS, {}), folderEdit: await run(join(root, 'desktop/fixtures/cases/folders/flowy'), FOLDER_STEPS) }
+  return { initial, results, ids, types, remove: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), DELETE_STEPS), failuresEdit: await run(join(root, 'desktop/fixtures/cases/delete/flowy'), FAILURE_STEPS, {}), folderEdit: await run(join(root, 'desktop/fixtures/cases/folders/flowy'), FOLDER_STEPS), pairsEdit: await run(join(root, 'desktop/fixtures/cases/pairs/flowy'), PAIRS_STEPS) }
 }

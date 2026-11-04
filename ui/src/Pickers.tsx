@@ -3,14 +3,17 @@ import type { CSSProperties, ReactNode } from 'react'
 import { ICON_GROUPS, ICONS } from '../../src/core/icons.ts'
 import { COLORS, COLOR_NAMES, colorPair, customIcons, fillOpacity, iconData, isColorName, isOpacity, SHAPE_DEFS, SHAPES, shapeOf, typeColor } from '../../src/core/look.ts'
 import type { Shape } from '../../src/core/look.ts'
-import type { FlowyObject, Model, ObjectType } from '../../src/core/model.ts'
-import { isExternal, isValidTag, MAX_TAG_LENGTH, SUGGESTED_TAGS, tagKey } from '../../src/core/model.ts'
+import type { FlowyObject, Model, ObjectType, PairMode } from '../../src/core/model.ts'
+import { isExternal, isValidTag, MAX_TAG_LENGTH, PAIR_MODES, PAIR_NAMES, PAIRS_FIELD, SUGGESTED_TAGS, tagKey } from '../../src/core/model.ts'
 import { STATE_LABELS, STATE_NAMES } from '../../src/core/states.ts'
 import type { StateName } from '../../src/core/states.ts'
+import { KIND_IDS, KINDS, PLAIN_LOOK, PLAIN_NAME } from '../../src/core/kinds.ts'
+import type { KindId } from '../../src/core/kinds.ts'
 import { lookVars, TypeTile } from './Chrome.tsx'
 import type { FlowTile } from './compare.ts'
 import { ChevronRight, Close, Link, PathIcon, Route, Search as SearchIcon, Tag } from './icons.tsx'
 import type { IconProps } from './icons.tsx'
+import { LookSwatch } from './kinds.tsx'
 import { PlainSwatch, Swatch } from './states.tsx'
 
 /**
@@ -301,6 +304,55 @@ export function StatePicker({ label, value, onPick }: { label: string; value?: S
     <div className="pick-field">
       <Head label={label} value={value === undefined ? 'None' : STATE_LABELS[value]} />
       <div className="pick-grid states" role="radiogroup" aria-label={`State of ${label}`}>{['', ...STATE_NAMES].map(id => cell(id as StateName | ''))}</div>
+    </div>
+  )
+}
+
+/**
+ * The kind of a connection as tiles: the plain line first, then the six kinds, each a small drawing of the line with its pattern and marks and its name under it.
+ * The tile of the kind a connection has is ringed. `value` is undefined for a plain connection (or a word that is none of the six, which draws plain).
+ */
+export function LineKindPicker({ value, onPick }: { value: KindId | undefined; onPick: (kind: KindId | '') => void }) {
+  const cell = (id: KindId | '') => {
+    const name = id === '' ? PLAIN_NAME : KINDS[id].name
+    const on = id === (value ?? '')
+    return (
+      <button key={id} type="button" role="radio" aria-checked={on} aria-label={name} title={name} className="pick linekind" onClick={() => !on && onPick(id)}>
+        <LookSwatch look={id === '' ? PLAIN_LOOK : KINDS[id].look} width={44} height={24} />
+        <span>{name}</span>
+      </button>
+    )
+  }
+  return (
+    <div className="pick-field">
+      <Head label="Kind" value={value === undefined ? PLAIN_NAME : KINDS[value].name} />
+      <div className="pick-grid linekinds" role="radiogroup" aria-label="Kind">{['', ...KIND_IDS].map(id => cell(id as KindId | ''))}</div>
+    </div>
+  )
+}
+
+/** What a mode of the lines between two shapes looks like: two boxes and one line (merged) or three lines side by side (separate). */
+const PAIR_SKETCHES: Record<PairMode, { lines: readonly number[] }> = { merged: { lines: [12] }, separate: { lines: [7, 12, 17] } }
+
+/**
+ * How a pair of shapes is drawn, as two tiles: one line between two boxes (Merged) or a line for each connection (Separate). The tile of the mode the project has is ringed.
+ * Twin of Pick.PairTiles in desktop/Flowy.App/Pickers.cs.
+ */
+export function PairsPicker({ value, onPick }: { value: PairMode; onPick: (mode: PairMode) => void }) {
+  return (
+    <div className="pick-field">
+      <Head label={PAIRS_FIELD} value={PAIR_NAMES[value]} />
+      <div className="pick-grid sketches" role="radiogroup" aria-label={PAIRS_FIELD}>
+        {PAIR_MODES.map(mode => (
+          <button key={mode} type="button" role="radio" aria-checked={mode === value} aria-label={PAIR_NAMES[mode]} title={PAIR_NAMES[mode]} className="pick sketch" onClick={() => mode !== value && onPick(mode)}>
+            <svg viewBox="0 0 44 24" aria-hidden="true">
+              <rect x="2" y="3" width="8" height="18" rx="2" /><rect x="34" y="3" width="8" height="18" rx="2" />
+              {PAIR_SKETCHES[mode].lines.map(y => <path key={y} d={`M10 ${y}H34`} />)}
+            </svg>
+            <span>{PAIR_NAMES[mode]}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

@@ -166,7 +166,7 @@ svg { flex: none; }
 
 .canvas { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 .canvas .react-flow {
-  --xy-background-color: var(--bg); --xy-edge-stroke: var(--edge); --xy-edge-stroke-width: 1.5;
+  --xy-background-color: var(--bg); --xy-edge-stroke: var(--edge); --xy-edge-stroke-width: 1.5; --xy-edge-stroke-selected: var(--accent);
   --xy-controls-button-background-color: transparent; --xy-controls-button-background-color-hover: var(--hover);
   --xy-controls-button-color: var(--muted); --xy-controls-button-color-hover: var(--fg);
   --xy-controls-button-border-color: transparent; --xy-controls-box-shadow: none;
@@ -254,12 +254,35 @@ svg { flex: none; }
 .react-flow__node.lit { opacity: 1; }
 .react-flow__node.lit .shape { filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 70%, transparent)); }
 .react-flow__node.lit .shape path { stroke: var(--accent); stroke-width: 2; stroke-dasharray: none; }
+/* A line's arrowheads (Ends in Line.tsx) are filled paths, coloured by the same states as the line's own stroke, so a head is never a different colour from its line. */
+.react-flow__edge .head { fill: var(--edge); pointer-events: none; }
+/* The other marks of a line's kind (src/core/kinds.ts: an open head, a tail) take that colour as --c, set by the same states, and paint themselves in it: .fill filled, .stroke only an outline, .hollow an outline over the background. */
+.kmark, .react-flow__edge .kmark { --c: var(--edge); pointer-events: none; }
+.kmark.fill { fill: var(--c); stroke: none; }
+.kmark.stroke { fill: none; stroke: var(--c); stroke-linecap: round; stroke-linejoin: round; }
+.kmark.hollow { fill: var(--bg); stroke: var(--c); stroke-linecap: round; stroke-linejoin: round; }
+/* A kind's pattern: dash-dot for an extension point (the numbers are core's DASHES). A lit line is solid, except one of several side by side, which keeps its kind's pattern; a step's line, a lane and a line under a run's traffic keep their own. */
+/* 2 wide where the others are 1.5: a dash-dot line has about 6 tenths of the ink of a solid one, and on the dark ground it read dimmer than its neighbours (a picked or lit line is wider than this anyway). */
+.react-flow__edge-path.dashdot { stroke-dasharray: 11 3 2 3; stroke-width: 2; }
 .react-flow__edge.active .react-flow__edge-path, .react-flow__edge.step .react-flow__edge-path {
-  stroke: var(--accent); stroke-width: 2.5;
+  stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: none;
 }
+.react-flow__edge.active.several .react-flow__edge-path.dashdot { stroke-dasharray: 11 3 2 3; }
+.react-flow__edge.active .head, .react-flow__edge.step .head { fill: var(--accent); }
+.react-flow__edge.active .kmark, .react-flow__edge.step .kmark { --c: var(--accent); }
 .react-flow__edge.step .react-flow__edge-path { stroke-dasharray: 8 5; }
 /* The other lanes of a branch: where it might have gone, faint and dashed, and not lit. */
+/* A trunk, several lines stacked as one when a pair has more than fit across its shapes (Line.tsx, and its swatch in the key): two hairlines behind its line, on its outer side, and a chip with the number of connections on its middle. They take the line's colour in each state. */
+.trunk-hair { stroke: var(--edge); stroke-width: 1; opacity: 0.6; pointer-events: none; }
+.trunk-chip { pointer-events: none; }
+.trunk-chip rect { fill: var(--box); stroke: var(--edge); stroke-width: 1; }
+.trunk-chip text { fill: var(--fg); stroke: none; font-size: 10px; }
+.react-flow__edge.selected .trunk-hair, .react-flow__edge.hover .trunk-hair, .react-flow__edge .trunk-hair.hot, .react-flow__edge.active .trunk-hair, .react-flow__edge.step .trunk-hair { stroke: var(--accent); }
+.react-flow__edge.selected .trunk-chip rect, .react-flow__edge.hover .trunk-chip rect, .react-flow__edge.active .trunk-chip rect { stroke: var(--accent); }
+.react-flow__edge.problem .trunk-hair, .react-flow__edge.problem .trunk-chip rect { stroke: var(--warn); }
+.react-flow__edge.fails .trunk-hair, .react-flow__edge.fails .trunk-chip rect { stroke: var(--fc); }
 .react-flow__edge.lane { opacity: 0.55; }
+.react-flow__edge.kin { opacity: 0.35; } /* the other lines of a pair that a step rides on one of them: more there than a line of another pair (.dim), less than a lane of the flow's other branches */
 .react-flow__edge.lane .react-flow__edge-path { stroke-dasharray: 4 5; }
 .react-flow__edge.active .react-flow__edge-text, .react-flow__edge.step .react-flow__edge-text { font-weight: 600; }
 
@@ -438,7 +461,9 @@ svg { flex: none; }
 .progress .elbow .on { stroke: var(--accent); }
 .progress.forked > .stretch:not(.fork):not(.grp) { margin-top: 14px; }
 .progress.forked > .grp { margin-top: 8px; }
-.bracket { display: flex; justify-content: center; align-items: center; gap: 3px; font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.bracket { display: flex; justify-content: center; align-items: center; gap: 3px; padding: 0 3px; font-size: 10.5px; color: var(--muted); white-space: nowrap; overflow: hidden; } /* the 3px keeps the words off the box's edge; a name too long for the box is cut with an ellipsis, not at the edge */
+.bracket > svg { flex: none; }
+.bracket > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .player .help { margin-left: auto; padding: 2px; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; line-height: 0; }
 .player .help:hover, .player .help[aria-pressed='true'] { color: var(--accent); }
 /* Compare sits in the card's top row, at the right, so the buttons below keep their room. */
@@ -467,6 +492,15 @@ svg { flex: none; }
 
 .grow { flex: 1; }
 .react-flow__edge.selected .react-flow__edge-path, .react-flow__edge.hover .react-flow__edge-path, .react-flow__edge-path.hot { stroke: var(--accent); stroke-width: 2; }
+.react-flow__edge.selected .head, .react-flow__edge.hover .head, .react-flow__edge .head.hot { fill: var(--accent); }
+.react-flow__edge.selected .kmark, .react-flow__edge.hover .kmark, .react-flow__edge .kmark.hot { --c: var(--accent); }
+/* React Flow colours a picked or keyboard-focused line with --xy-edge-stroke-selected (set to the accent above), which beats the rules above; the head follows. */
+.react-flow__edge.selectable:focus .head, .react-flow__edge.selectable:focus-visible .head { fill: var(--xy-edge-stroke-selected, var(--accent)); }
+.react-flow__edge.selectable:focus .kmark, .react-flow__edge.selectable:focus-visible .kmark { --c: var(--xy-edge-stroke-selected, var(--accent)); }
+/* Of the lines of a pair side by side, the one pointed at is drawn above the others and the others fade a little (SIBLING_OPACITY in src/core/lanes.ts). React Flow stacks every line's svg by
+   z-index, and a lit line has 1, so the svg of the raised line is lifted over that. The strips are 14px on a 12px pitch, so without it the one pointed at could lie under its neighbour. */
+.react-flow__edges svg:has(.react-flow__edge-path.raised) { z-index: 2 !important; }
+.lane-mate { opacity: 0.85; }
 
 .problems { position: relative; }
 .problems summary { color: var(--warn-fg); font-weight: 600; list-style: none; }
@@ -484,6 +518,8 @@ svg { flex: none; }
   background: var(--warn); color: var(--on-warn); font: 700 12px/18px system-ui, sans-serif; text-align: center;
 }
 .react-flow__edge.problem .react-flow__edge-path { stroke: var(--warn); }
+.react-flow__edge.problem .head { fill: var(--warn); }
+.react-flow__edge.problem .kmark { --c: var(--warn); }
 
 /* Top left, so it never covers the side panel. */
 .notice {
@@ -520,6 +556,10 @@ svg { flex: none; }
 .pick-grid.types { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); }
 .pick-grid.shapes { grid-template-columns: repeat(4, 1fr); }
 .pick-grid.kinds { grid-template-columns: repeat(3, 1fr); }
+.pick-grid.linekinds { grid-template-columns: repeat(3, 1fr); }
+.panel button.pick.linekind { padding: 6px 2px 5px; font-size: 10.5px; }
+.pick.linekind .look-swatch { width: 100%; height: 24px; }
+.panel button.pick.linekind > span { white-space: normal; text-align: center; line-height: 1.15; } /* "Publish and subscribe" wraps instead of being cut */
 .pick-grid.sketches { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); }
 .panel button.pick.sketch { padding: 6px 2px 5px; font-size: 10.5px; }
 .pick.sketch svg { width: 100%; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -712,6 +752,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .motion .flash.fail { fill: var(--danger); }
 /* A step that times out dims the lines it lit: StepMotion sets --lit on the canvas while the fade runs, and the line stays dim until the step is left. */
 .react-flow__edge.active:not(.faint, .dim), .react-flow__edge.step:not(.faint, .dim) { opacity: var(--lit, 1); } /* a faint or dim line keeps its own fade, as on the desktop */
+.react-flow__edge.active.several:not(.faint, .dim) { opacity: var(--lit-several, 1); } /* a lit line among its pair's lines fades to half, not to a quarter: never fainter than its kin (0.35) */
 .motion .dots circle { fill: var(--accent); }
 .motion .glyph { fill: none; stroke: var(--bg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .motion .glyph.drop { stroke: var(--accent); stroke-width: 2.2; }
@@ -755,13 +796,14 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .channels .stream-back, .channel-swatch .stream-back { stroke: var(--bg); stroke-width: 9; stroke-dasharray: 0.1 12; }
 .channels .stream-dots, .channel-swatch .stream-dots { stroke: var(--accent); stroke-width: 5.5; stroke-dasharray: 0.1 12; }
 .channels .tether { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 0.1 7; }
+.channels.bundled .tether { stroke-width: 3; } /* among the lines of a pair the dotted line is a little thicker, so it reads against its neighbours */
 .channels .disc, .channel-swatch .disc { fill: var(--bg); stroke: var(--accent); stroke-width: 2; }
 .channels .glyph, .channel-swatch .glyph { stroke: var(--accent); stroke-width: 2.2; }
 .channels .ripple { fill: none; stroke: var(--accent); stroke-width: 1.8; opacity: 0; }
 .channels .label { fill: var(--fg); font-size: 12px; font-weight: 600; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
 .channel-swatch { display: block; width: 30px; height: 18px; overflow: visible; }
 @media (prefers-reduced-motion: no-preference) {
-  .channels .stream-back, .channels .stream-dots { animation: channel-flow 0.7s linear infinite; }
+  .channels .stream-back, .channels .stream-dots { animation: channel-flow 0.7s linear var(--phase, 0s) infinite; }
   .channels.reverse .stream-back, .channels.reverse .stream-dots { animation-direction: reverse; }
   .channels .ripple { transform-box: fill-box; transform-origin: center; animation: channel-ripple 2.4s ease-out infinite; }
   .channels .ripple.later { animation-delay: 1.2s; }
@@ -820,22 +862,22 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .panel .flow-row, .panel .group-head { width: 100%; justify-content: flex-start; min-height: 32px; text-align: left; }
 .panel .flow-row .name, .panel .group-head .name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .panel .flow-row { flex-wrap: wrap; row-gap: 0; align-content: center; }
-/* The Drafts group under the Explorer tree (Drafts.tsx), and the mark in the top bar of a draft. */
-.drafts { flex: none; max-height: 40%; overflow: auto; margin: 4px -4px 0; padding: 4px 4px 2px; border-top: 1px solid var(--line); }
-.drafts .navhead { justify-content: flex-start; gap: 6px; }
-.drafts .navhead .count { font-weight: 400; }
-.draft-row { display: flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 6px; border-radius: 6px; color: var(--fg); text-decoration: none; }
-.draft-row:hover { background: var(--hover); }
-.draft-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
-.draft-row .name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.panel .draft-add { margin-top: 4px; }
-.draft-new { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.draft-new input { flex: 1 1 120px; min-width: 0; }
-.draft-new .bad { flex-basis: 100%; margin: 0; color: var(--danger); font-size: 12px; }
-.draft-mark { display: flex; align-items: center; gap: 6px; margin-right: 4px; font-size: 13px; }
-.draft-mark a { color: var(--accent-ink); text-decoration: none; padding: 2px 4px; border-radius: 6px; }
-.draft-mark a:hover { background: var(--tint); }
-.draft-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border: 1px dashed var(--accent); border-radius: 999px; color: var(--accent-ink); font-weight: 600; }
+/* The Sketches group under the Explorer tree (Sketches.tsx), and the mark in the top bar of a sketch. */
+.sketches { flex: none; max-height: 40%; overflow: auto; margin: 4px -4px 0; padding: 4px 4px 2px; border-top: 1px solid var(--line); }
+.sketches .navhead { justify-content: flex-start; gap: 6px; }
+.sketches .navhead .count { font-weight: 400; }
+.sketch-row { display: flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 6px; border-radius: 6px; color: var(--fg); text-decoration: none; }
+.sketch-row:hover { background: var(--hover); }
+.sketch-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.sketch-row .name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel .sketch-add { margin-top: 4px; }
+.sketch-new { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.sketch-new input { flex: 1 1 120px; min-width: 0; }
+.sketch-new .bad { flex-basis: 100%; margin: 0; color: var(--danger); font-size: 12px; }
+.sketch-mark { display: flex; align-items: center; gap: 6px; margin-right: 4px; font-size: 13px; }
+.sketch-mark a { color: var(--accent-ink); text-decoration: none; padding: 2px 4px; border-radius: 6px; }
+.sketch-mark a:hover { background: var(--tint); }
+.sketch-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border: 1px dashed var(--accent); border-radius: 999px; color: var(--accent-ink); font-weight: 600; }
 .panel .flow-row .muted { font-size: 12px; white-space: nowrap; }
 .panel .flow-row[aria-current='true'] { background: var(--tint); color: var(--accent); }
 .panel .flow-row[aria-current='true'] svg { color: inherit; }
@@ -903,6 +945,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .box.strained .shape path { stroke: light-dark(hsl(calc(150 - 150 * var(--strain)) 70% 38%), hsl(calc(150 - 150 * var(--strain)) 75% 62%)); stroke-width: 3; transition: stroke 0.25s; }
 .box.strained .shape { filter: drop-shadow(0 0 calc(2px + 9px * var(--strain)) light-dark(hsl(calc(150 - 150 * var(--strain)) 70% 45% / 0.6), hsl(calc(150 - 150 * var(--strain)) 75% 60% / 0.6))); }
 @media (prefers-reduced-motion: reduce) { .canvas.loaded .react-flow__edge-path, .pane.loaded .react-flow__edge-path, .box.strained .shape path { transition: none; } }
+/* Under a run's traffic a kind's dash-dot is drawn solid, since the traffic paints on top of the line; the marks stay. */
+.canvas.loaded .react-flow__edge:not(.lane, .step) .react-flow__edge-path.dashdot, .pane.loaded .react-flow__edge:not(.lane, .step) .react-flow__edge-path.dashdot { stroke-dasharray: none; }
 .strain-pct { position: absolute; bottom: -9px; left: -7px; z-index: 2; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: var(--box); color: var(--fg); box-shadow: inset 0 0 0 1px var(--line); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; pointer-events: none; }
 .box.state-inside .strain-pct { left: 16px; } /* beside the glyph of a state it holds */
 .queue-badge { position: absolute; top: -9px; right: -7px; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 4px; background: var(--warn); color: var(--on-warn); font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -1087,6 +1131,8 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .react-flow__node.fails .shape path { stroke: var(--fc); stroke-width: 3; stroke-dasharray: none; }
 .react-flow__node.affected .shape path { stroke: color-mix(in srgb, var(--fc) 45%, transparent); stroke-width: 2; stroke-dasharray: none; }
 .react-flow__edge.fails .react-flow__edge-path { stroke: var(--fc); stroke-width: 2.5; }
+.react-flow__edge.fails .head { fill: var(--fc); }
+.react-flow__edge.fails .kmark { --c: var(--fc); }
 .canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: opacity 0.2s; }
 @media (prefers-reduced-motion: reduce) { .canvas.failing .react-flow__node, .canvas.failing .react-flow__edge { transition: none; } }
 /* The marks of the key and of the list, drawn the way the canvas draws them. */
@@ -1469,3 +1515,37 @@ details.payload .code-block, .dot-card .code-block { max-height: 240px; overflow
 }
 .dot-card h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 14px; }
 .dot-card .payload-body { margin-left: 0; }
+
+/* A kind drawn small: the key at the canvas foot, the picker's tiles and the mark beside a connection in a panel. The line and marks use the same colours as on the canvas. */
+.look-swatch { display: block; flex: none; overflow: visible; }
+.look-swatch .look-line { stroke: var(--edge); stroke-width: 1.5; }
+.look-swatch.in-use .look-line { stroke: var(--accent); stroke-width: 2.5; } /* a lane a step plays on, as .react-flow__edge.active draws it */
+.look-swatch.in-use .kmark { --c: var(--accent); }
+.kind-key {
+  position: absolute; left: 60px; bottom: 16px; z-index: 4; max-width: min(640px, calc(100% - 76px)); box-sizing: border-box; padding: 7px 12px;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--box);
+}
+/* With a flow's card at the foot (.player, 460 wide, in the middle) the key stops 16px short of it: from its left edge (60px in, or past the navigator) to half the canvas less the card's half. */
+.kind-key.beside-player { max-width: max(190px, calc(50% - 230px - 16px - 60px)); }
+.canvas.nav .kind-key { left: calc(var(--nav-w) + 60px); }
+.canvas.nav .kind-key.beside-player { max-width: max(190px, calc(50% - 230px - 16px - 60px - var(--nav-w))); }
+.pane .kind-key { top: 8px; left: 8px; bottom: auto; max-width: calc(100% - 16px); padding: 5px 10px; } /* a compared pane's player sits at its foot, so its key sits at the top */
+.kind-row { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 12.5px; }
+/* The lines of a pair side by side, as cards in a panel: the one picked on the canvas is ringed in the accent colour, and a card has two buttons to move its line in the order. */
+.line.card.current { border-left-color: var(--accent); }
+.move-row { display: flex; gap: 6px; margin: 0 0 6px; }
+.panel .move-row button { font-size: 12px; }
+/* The label of a line among others: a sample of the line, then its words, on the label background of the canvas. It sits on its line, takes no clicks, and the lines it covers stay readable round it. */
+.lane-pill {
+  position: absolute; display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 4px; pointer-events: none; white-space: nowrap;
+  background: var(--xy-edge-label-background-color, var(--xy-edge-label-background-color-default)); color: var(--xy-edge-label-color, var(--xy-edge-label-color-default)); font-size: 10px;
+}
+/* A label that sits left of its line starts with the sample at its right end, so the sample is by the line. */
+.lane-pill.flip { flex-direction: row-reverse; }
+/* The label of a line that had no place and is shown because the line is pointed at sits on the line, over the lines round it (the raised line's svg has z-index 2), outlined so it reads as its own. */
+.lane-pill.revealed { z-index: 3; box-shadow: 0 0 0 1px var(--line); }
+/* A pair spreads over 160ms (SPREAD_MS in src/core/lanes.ts) and its labels fade in over the same time, since they sit where the lanes are going to be. */
+@media (prefers-reduced-motion: no-preference) {
+  .lane-pill { animation: lane-pill-in 160ms ease-out; }
+  @keyframes lane-pill-in { from { opacity: 0; } }
+}

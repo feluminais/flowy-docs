@@ -233,6 +233,36 @@ public class GeometryParityTests
         Assert.Equal(p["ports"]!["toSide"]!.GetValue<string>(), ports.ToSide.ToString().ToLowerInvariant());
         Same(p["ports"]!["from"]!, ports.From, what + " port from");
         Same(p["ports"]!["to"]!, ports.To, what + " port to");
+
+        // Where the heads go: both ends of the line and the way each points out of it.
+        var heads = p["heads"]!;
+        Same(heads["start"]!, path.Start, what + " head start");
+        Same(heads["startDir"]!, path.StartDirection, what + " head start direction");
+        Same(heads["end"]!, path.End, what + " head end");
+        Same(heads["endDir"]!, path.Direction, what + " head end direction");
+    }
+
+    [Fact]
+    public void Arrowheads_are_the_shape_size_and_matrix_the_browser_draws()
+    {
+        var head = Expected()["head"]!;
+        Assert.Equal(Heads.Path, head["path"]!.GetValue<string>());
+        Assert.Equal(Heads.Length, D(head["length"]));
+        Assert.Equal(Heads.HalfWidth, D(head["halfWidth"]));
+        var scales = head["scales"]!.AsArray();
+        Assert.Equal(9, scales.Count);
+        foreach (var s in scales) Same(D(s!["scale"]), Heads.Scale(D(s["width"])), $"head scale on a line {D(s["width"])} thick");
+        var matrices = head["matrices"]!.AsArray();
+        Assert.Equal(7, matrices.Count);
+        foreach (var m in matrices)
+        {
+            var end = new Pt(D(m!["end"]!["x"]), D(m["end"]!["y"]));
+            var dir = new Pt(D(m["dir"]!["x"]), D(m["dir"]!["y"]));
+            var got = Heads.Matrix(end, dir, D(m["scale"]));
+            double[] gotValues = [got.A, got.B, got.C, got.D, got.E, got.F];
+            var want = m["matrix"]!.AsArray();
+            for (var i = 0; i < 6; i++) Same(D(want[i]), gotValues[i], $"head matrix {m["end"]!.ToJsonString()}, entry {i}");
+        }
     }
 
     [Fact]

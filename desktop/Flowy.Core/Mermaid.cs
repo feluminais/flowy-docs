@@ -59,6 +59,19 @@ public static partial class Mermaid
         yield return $"  style {node} fill:{hex},fill-opacity:{(Look.FillOpacity(o) / 100.0).ToString(System.Globalization.CultureInfo.InvariantCulture)}{(Look.IsColor(o.Color) ? $",stroke:{hex}" : "")}";
     }
 
+    /// <summary>
+    /// The arrow of a line, with a space after. A line with connections both ways has an arrowhead at each end, as on the canvas. Mermaid cannot say more of a kind
+    /// than this: a line with a mark at its start (a tail) gets a head there too, and a dash-dot line is dotted. The kind's name is not added to the label.
+    /// </summary>
+    private static string Arrow(Edge e)
+    {
+        var back = e.Both || (e.Look is not null && e.Look.Tail != "none") ? "<" : "";
+        var label = e.Label == "" ? "" : Text(e.Label);
+        return e.Look?.Pattern == "dashdot"
+            ? $"{back}-.{(label == "" ? "" : $" \"{label}\" .")}-> "
+            : $"{back}{(label == "" ? "" : $"-- \"{label}\" ")}--> ";
+    }
+
     /// <summary>A view as a flowchart: its boxes, the boxes around it drawn dashed, and its merged lines.</summary>
     public static string View(Model model, string view)
     {
@@ -74,8 +87,7 @@ public static partial class Mermaid
         }
         var lines = new List<string> { "flowchart TB" };
         lines.AddRange(n.Keys.Select(Box));
-        // A line with connections both ways has an arrowhead at each end, as on the canvas.
-        lines.AddRange(v.Edges.Select(e => $"  {n[e.From]} {(e.Both ? "<" : "")}{(e.Label == "" ? "" : $"-- \"{Text(e.Label)}\" ")}--> {n[e.To]}"));
+        lines.AddRange(v.Edges.Select(e => $"  {n[e.From]} {Arrow(e)}{n[e.To]}"));
         lines.AddRange(n.SelectMany(kv => StyleLine(model, kv.Key, kv.Value)));
         if (v.Outsiders.Count > 0) lines.AddRange(["  classDef outsider stroke-dasharray: 4 3", $"  class {string.Join(',', v.Outsiders.Select(id => n[id]))} outsider"]);
         return string.Join('\n', lines) + "\n";

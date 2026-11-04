@@ -41,8 +41,8 @@ internal sealed class ExplorerView : Grid
     /// <summary>The Compare button on a flow's row was pressed (never while a mode blocks it).</summary>
     public event Action<string>? CompareRequested;
 
-    /// <summary>The Drafts group under the tree.</summary>
-    public DraftsView Drafts { get; } = new();
+    /// <summary>The Sketches group under the tree.</summary>
+    public SketchesView Sketches { get; } = new();
 
     /// <summary>A click on a row, and Enter or a double-click on one.</summary>
     public event Action<OutlineRow>? Picked;
@@ -63,14 +63,14 @@ internal sealed class ExplorerView : Grid
         SetRow(_note, 2);
         SetRow(_list, 3);
         SetRow(_foot, 4);
-        SetRow(Drafts, 5);
+        SetRow(Sketches, 5);
         _foot.IsVisible = false;
         Children.Add(_summary);
         Children.Add(field);
         Children.Add(_note);
         Children.Add(_list);
         Children.Add(_foot);
-        Children.Add(Drafts);
+        Children.Add(Sketches);
 
         _list.ItemsSource = _shown;
         _list.ItemTemplate = new FuncDataTemplate<OutlineRow>((row, _) => row is null ? null : BuildRow(row));

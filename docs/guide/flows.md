@@ -1,6 +1,6 @@
 # Flows
 
-What a step sends, how a request ends, streams and listeners that stay open, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
+What a step sends, how a request ends, streams and listeners that stay open, which line a step rides, repeats, branches and parallel steps, and shape states. Part of the [Flowy Docs guide](../guide.md).
 
 ## What a step sends
 
@@ -104,6 +104,28 @@ Some steps leave something running. A subscribe opens a stream, a webhook regist
 Only a request that arrives can open or close one, so `opens` and `closes` refuse an `outcome`. The checker also refuses a `closes` for a name nothing has open at that step, an `opens` for a name that is already open, and a `name` or `towards` with no `opens`.
 
 The showcase has a flow for it, [Every open channel](../showcase/flowy/flows/open-channels.yaml). The `put_flow` tool takes the same keys.
+
+## Which line a step rides
+
+Where a project draws a line for each connection (`pairs: separate`, see [Sketches](sketches.md#several-lines-between-two-shapes)), a step between two shapes needs to say which of their lines it plays on. It says so with `via`, the `label` of the connection, whatever its case.
+
+```yaml
+- { from: ui, to: management, text: The screen asks for a scan, animation: call, via: Start scan }
+- { from: management, to: ui, text: Results reach the screen }
+```
+
+The candidates are the lines of the pair that run the step's way, then the Request and reply and Request then stream lines that run against it, since an answer rides the line of its request ([Kinds](kinds.md)). Against a publish, a cached publish, an object update or an extension point nothing comes back, so a step there plays on its dashed step line as before. Of the candidates, the first of these decides:
+
+1. The `via`, when it matches one.
+2. The step's `payload`, when it is listed under the `payloads:` of one.
+3. The step's own `from` and `to`, when the step sits between components and the view shows their parents.
+4. The first one in the file.
+
+So `via` can be left out when the payload or the direction already say which line.
+
+`flowy check` refuses a `via` that matches no connection between the step's two shapes: `step 2: "via" "Start san" matches no connection from ui to management`. Two lines that both fit are no problem, since the later rules pick one. Renaming a connection's label rewrites the `via` of the steps that name it, and a connection a `via` names can't be deleted until those steps change. In a view with one line for each pair, `via` is kept and does nothing. While recording a flow in edit mode, a click on a line sets the step's `via`.
+
+The `put_flow` tool takes `via`, and its answer says which line each step rides where the pair has several.
 
 ## Repeats, branches and parallel steps
 

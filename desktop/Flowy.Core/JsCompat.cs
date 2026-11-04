@@ -27,6 +27,54 @@ public static class JsCompat
         return start == 0 && end == s.Length ? s : s[start..end];
     }
 
+    /// <summary>
+    /// The text as JavaScript's <c>toLowerCase()</c> writes it. .NET's <c>ToLowerInvariant</c> maps one character at a time; JavaScript also applies the unconditional full
+    /// mapping of U+0130 (a capital dotted I becomes <c>i</c> and a combining dot) and the final-sigma rule (a capital sigma ends a word as <c>ς</c>, anywhere else it is <c>σ</c>).
+    /// Cased and case-ignorable are read from the general category, which is the same set but for a few letters of the modifier and number categories.
+    /// </summary>
+    public static string JsLower(string s)
+    {
+        if (s.AsSpan().IndexOfAny((char)0x3a3, (char)0x130) < 0) return s.ToLowerInvariant();
+        var sb = new StringBuilder(s.Length + 1);
+        for (var i = 0; i < s.Length; i++)
+        {
+            var c = s[i];
+            if (c == (char)0x130) sb.Append('i').Append((char)0x307);
+            else if (c == (char)0x3a3) sb.Append(IsFinalSigma(s, i) ? (char)0x3c2 : (char)0x3c3);
+            else if (char.IsHighSurrogate(c) && i + 1 < s.Length && char.IsLowSurrogate(s[i + 1]))
+            {
+                sb.Append(s.Substring(i, 2).ToLowerInvariant());
+                i++;
+            }
+            else sb.Append(char.ToLowerInvariant(c));
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Whether the capital sigma at <paramref name="at"/> ends a word: a cased letter comes before it and none after it, skipping the case-ignorable marks between.</summary>
+    private static bool IsFinalSigma(string s, int at)
+    {
+        var before = at - 1;
+        while (before >= 0 && IsCaseIgnorable(s, before)) before--;
+        if (before < 0 || !IsCased(s, before)) return false;
+        var after = at + 1;
+        while (after < s.Length && IsCaseIgnorable(s, after)) after++;
+        return after >= s.Length || !IsCased(s, after);
+    }
+
+    // The category of the character that ends at index i (a low surrogate looks back to its pair).
+    private static UnicodeCategory CategoryAt(string s, int i) =>
+        char.IsLowSurrogate(s[i]) && i > 0 && char.IsHighSurrogate(s[i - 1]) ? CharUnicodeInfo.GetUnicodeCategory(s, i - 1) : CharUnicodeInfo.GetUnicodeCategory(s, i);
+
+    private static bool IsCased(string s, int i) => CategoryAt(s, i) is UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter;
+
+    private static bool IsCaseIgnorable(string s, int i) =>
+        CategoryAt(s, i) is UnicodeCategory.NonSpacingMark or UnicodeCategory.EnclosingMark or UnicodeCategory.Format or UnicodeCategory.ModifierLetter or UnicodeCategory.ModifierSymbol
+        || IgnorableMarks.Contains(s[i]);
+
+    // The letters Unicode's word-break rules let sit inside a word (apostrophes, full stops, colons and middle dots): the case-ignorable ones that are not in a mark category.
+    private static readonly HashSet<char> IgnorableMarks = [(char)0x27, (char)0x2e, (char)0x3a, (char)0xb7, (char)0x387, (char)0x55f, (char)0x5f4, (char)0x2018, (char)0x2019, (char)0x2024, (char)0x2027, (char)0xfe13, (char)0xfe52, (char)0xfe55, (char)0xff07, (char)0xff0e, (char)0xff1a];
+
     /// <summary>The text as JavaScript's <c>JSON.stringify</c> writes it, quotes included: what a message that shows a bad value in quotes says.</summary>
     public static string Json(string s)
     {

@@ -6,12 +6,28 @@ namespace Flowy.Core;
 /// <summary>A line as a view draws it. Several connections between the same two boxes merge into one, labelled "N connections".</summary>
 /// <summary>
 /// One line between two shapes of a view, whichever way their connections run. <c>From</c> and <c>To</c> are the way the first of them runs;
-/// <c>Both</c> is set when some run the other way too, and the line gets an arrowhead at each end.
+/// <c>Both</c> is set when some run the other way too, and the line gets an arrowhead at each end. <c>Kind</c> is the kind all its connections share, and <c>Look</c> how
+/// the line is drawn when that is not the plain line (see <see cref="Kinds.MergedLook"/>); both are null otherwise, so a model with no kinds is unchanged.
 /// </summary>
-public sealed record Edge(string From, string To, string Label, int Count, bool Both = false);
+public sealed record Edge(string From, string To, string Label, int Count, bool Both = false, string? Kind = null, LineLook? Look = null);
 
-/// <summary>What one level shows: the boxes inside it, the boxes elsewhere that its lines reach, and the lines.</summary>
-public sealed record View(string Id, IReadOnlyList<string> Members, IReadOnlyList<string> Outsiders, IReadOnlyList<Edge> Edges);
+/// <summary>
+/// One line of a pair of shapes where a project draws a line for each connection (<c>pairs: separate</c>). <c>Pair</c> is the id of the pair's one merged line (<see cref="Views.LineKey"/>),
+/// which everything about a pair keeps using; <c>From</c> and <c>To</c> are the way the connection runs there; <c>Connections</c> are the indexes in the model's connections that land here (more than
+/// one when a zoomed-out view folds connections with the same ends and label into one). <c>Lane</c> counts from 0 among the <c>Lanes</c> strands of the pair: the strands that run from the pair's later
+/// id to its earlier come first, then the others, each in the order of the file. <c>Kind</c> and <c>Look</c> are the ones all its connections share, null for none.
+/// </summary>
+public sealed record Strand(string Id, string Pair, string From, string To, string Label, IReadOnlyList<int> Connections, int Lane, int Lanes, string? Kind = null, LineLook? Look = null, Trunk? Trunk = null);
+
+/// <summary>
+/// What a strand is when it stands for several lines of its pair that did not all fit across the shapes (see <see cref="Trunks.FoldPair"/>): <c>Size</c> is the connections it holds (the number its
+/// chip shows) and <c>Members</c> the ids of the strands it folded, in the order of the file. Such a strand is a trunk: one lane with two hairlines behind it.
+/// <see cref="Views.Compute"/> never makes one; a reader that draws a pair with more lines than fit across its shapes folds them.
+/// </summary>
+public sealed record Trunk(int Size, IReadOnlyList<string> Members);
+
+/// <summary>What one level shows: the boxes inside it, the boxes elsewhere that its lines reach, and the lines. <c>Strands</c> is there only when the project draws a line for each connection; otherwise null.</summary>
+public sealed record View(string Id, IReadOnlyList<string> Members, IReadOnlyList<string> Outsiders, IReadOnlyList<Edge> Edges, IReadOnlyList<Strand>? Strands = null);
 
 /// <summary>Which boxes and lines a level shows. A port of src/core/views.ts.</summary>
 public static class Views
@@ -154,12 +170,42 @@ public static class Views
         var outsiders = new List<string>();
         var order = new List<string>();
         var edges = new Dictionary<string, Edge>();
-        foreach (var c in model.Connections)
+        // The connections each line stands for, for its kind and look. A model with no kind anywhere has nothing to work out.
+        var kinded = model.Connections.Any(c => c.Kind is not null);
+        var joined = new Dictionary<string, List<Connection>>();
+        // Where a project draws a line for each connection: the strands of each pair, in the order the connections first land on them.
+        var separate = model.Pairs == "separate";
+        var drawn = new Dictionary<string, PairDraft>();
+        var drawnOrder = new List<string>();
+        for (var index = 0; index < model.Connections.Count; index++)
         {
+            var c = model.Connections[index];
             if (PlaceEnds(model, view, c.From, c.To) is not { } ends) continue;
             foreach (var end in new[] { ends.From, ends.To })
                 if (known.Add(end)) outsiders.Add(end);
             var key = LineKey(ends.From, ends.To);
+            if (kinded)
+            {
+                if (joined.TryGetValue(key, out var same)) same.Add(c);
+                else joined[key] = [c];
+            }
+            if (separate)
+            {
+                var label = c.Label is string text ? text : "";
+                if (!drawn.TryGetValue(key, out var pair))
+                {
+                    drawn[key] = pair = new PairDraft(string.CompareOrdinal(ends.From, ends.To) < 0 ? ends.From : ends.To);
+                    drawnOrder.Add(key);
+                }
+                var id = $"{ends.From}>{ends.To}|{label}";
+                if (pair.ById.TryGetValue(id, out var found)) found.Connections.Add(index);
+                else
+                {
+                    var strand = new StrandDraft(ends.From, ends.To, label) { Connections = [index] };
+                    pair.ById[id] = strand;
+                    pair.Strands.Add(strand);
+                }
+            }
             if (edges.TryGetValue(key, out var edge))
             {
                 var count = edge.Count + 1;
@@ -172,7 +218,50 @@ public static class Views
             }
         }
         foreach (var id in FlowActors(model, view)) if (known.Add(id)) outsiders.Add(id);
-        return new View(view, members, outsiders, order.Select(k => edges[k]).ToList());
+        if (kinded)
+            foreach (var (key, connections) in joined)
+            {
+                var edge = edges[key];
+                edges[key] = edge with { Kind = Kinds.SharedKind(connections), Look = Kinds.MergedLook([.. connections.Select(Kinds.LookOf)], edge.Both) };
+            }
+        return new View(view, members, outsiders, order.Select(k => edges[k]).ToList(), separate ? StrandsOf(model, drawn, drawnOrder) : null);
+    }
+
+    /// <summary>A strand as the connections that land on a pair give it, before it has its place among the pair's strands.</summary>
+    private sealed record StrandDraft(string From, string To, string Label)
+    {
+        public List<int> Connections { get; init; } = [];
+    }
+
+    /// <summary>A pair's strands as they are found; <c>First</c> is the earlier of its two ids (see <see cref="LineKey"/>).</summary>
+    private sealed class PairDraft(string first)
+    {
+        public string First { get; } = first;
+
+        public List<StrandDraft> Strands { get; } = [];
+
+        public Dictionary<string, StrandDraft> ById { get; } = [];
+    }
+
+    /// <summary>
+    /// The strands of every pair of a view, pair by pair in the order the pairs first appear. Within a pair they run in lanes: first the ones that run from the pair's later id to its earlier,
+    /// then the others, each group in the order of the file. Nothing here depends on a shape's name, so renaming a shape never turns a bundle round. Twin of strandsOf in src/core/views.ts.
+    /// </summary>
+    private static List<Strand> StrandsOf(Model model, Dictionary<string, PairDraft> drawn, List<string> order)
+    {
+        var strands = new List<Strand>();
+        foreach (var pair in order)
+        {
+            var draft = drawn[pair];
+            var ordered = draft.Strands.Where(d => d.From != draft.First).Concat(draft.Strands.Where(d => d.From == draft.First)).ToList();
+            for (var lane = 0; lane < ordered.Count; lane++)
+            {
+                var d = ordered[lane];
+                var connections = d.Connections.Select(i => model.Connections[i]).ToList();
+                strands.Add(new Strand($"{pair}|{d.From}>{d.To}|{d.Label}", pair, d.From, d.To, d.Label, d.Connections, lane, ordered.Count, Kinds.SharedKind(connections), Kinds.MergedLook([.. connections.Select(Kinds.LookOf)], false)));
+            }
+        }
+        return strands;
     }
 
     /// <summary>

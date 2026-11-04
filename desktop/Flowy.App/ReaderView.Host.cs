@@ -86,7 +86,7 @@ internal sealed partial class ReaderView
 
         public void DismissNotice() => r.DismissNotice();
 
-        public void OpenLine(string from, string to) => r.OpenLine(from, to);
+        public void OpenLine(string from, string to, int? focusLabel = null) => r.OpenLine(from, to, focusLabel);
 
         public void FitNow() => r.FitNow();
     }

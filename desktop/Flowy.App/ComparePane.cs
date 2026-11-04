@@ -68,6 +68,7 @@ internal sealed class ComparePane : Border, IFlowKeys
         Key = copy == 0 ? flowId : $"{flowId}#{copy}";
         _flow = new PaneFlow(this, flowId, _canvas, _player);
         Classes.Add("pane");
+        _canvas.KindKeyAtTop = true; // the key of the kinds stands at the top: the foot is the player card's
         Focusable = false;
 
         var (head, title) = PaneChrome.Head();

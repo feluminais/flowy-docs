@@ -48,17 +48,21 @@ internal sealed partial class ReaderView
     /// </summary>
     private void UpdateMotion(Model model, string view, (string Id, Flow Flow)? flow, int index, Playing? shown)
     {
+        // Where a project draws a line for each connection, the lines of the pair the step rides part around the lit one by the player's clock.
+        var plans = flow is { } on && shown is not null ? FlowStage.PartsAt(model, view, on.Flow, StopsOf(on.Flow), index, shown, LineStyle) : FlowStage.NoPlans;
         if (!_playback.Begin(flow?.Id, index, out var key))
         {
-            // A change on disk can take a recursion's tag off the step showing, or change its depth, without changing the step: the counter follows.
+            // A change on disk can take a recursion's tag off the step showing, or change its depth, without changing the step: the counter follows. It can change the lines the step rides too.
             _canvas.SetResting(flow is { } now && shown?.Ends[index] is { } at && Animations.Read(now.Flow.Steps[index]) is { Kind: "recurse" } a ? (at.From, a.Depth ?? Animations.DepthDefault) : null);
+            _canvas.PartStop(flow?.Id, index, plans);
             return;
         }
         _canvas.StopStep();
         _canvas.RestartChannels();
+        _canvas.PartStop(flow?.Id, index, plans); // the clock has begun this stop
         if (flow is { } playing && shown is not null)
         {
-            var runs = FlowStage.RunsOf(model, view, playing.Flow, StopsOf(playing.Flow), index, shown);
+            var runs = FlowStage.RunsOf(model, view, playing.Flow, StopsOf(playing.Flow), index, shown, plans, LineStyle);
             if (runs.Count > 0)
                 _canvas.PlaySteps(runs, () => _playback.Settled(key));
         }

@@ -14,7 +14,6 @@
     "repeatWords"
   ],
   "check": [
-    "check",
     "newProblems"
   ],
   "compare": [
@@ -33,14 +32,6 @@
     "CUES",
     "MIN_SCORE",
     "YAML_BUT_CODE"
-  ],
-  "drafts": [
-    "DRAFTS_FOLDER",
-    "draftFolder",
-    "draftModelId",
-    "isDraftId",
-    "newDraft",
-    "splitDraftModelId"
   ],
   "failures": [
     "BAND_NAMES",
@@ -91,7 +82,6 @@
     "ID_RULE",
     "LINE_STYLES",
     "OBJECT_TYPES",
-    "emptyModel",
     "isExternal",
     "isValidId",
     "linksOf",
@@ -101,6 +91,7 @@
     "deleteIcon",
     "disconnect",
     "putIcon",
+    "refuseBlindDisconnect",
     "tidyLayout",
     "tidyViews"
   ],
@@ -145,6 +136,14 @@
     "stepPrefix",
     "withoutStep"
   ],
+  "sketches": [
+    "LEGACY_DRAFTS_FOLDER",
+    "SKETCHES_FOLDER",
+    "isSketchId",
+    "sketchFolder",
+    "sketchModelId",
+    "splitSketchModelId"
+  ],
   "snippets": [
     "SNIPPET_MAX",
     "codeLines",
@@ -159,14 +158,6 @@
     "commitEdit",
     "firstBlocked",
     "firstUnreadable"
-  ],
-  "src/node/drafts": [
-    "draftDir",
-    "hasDraft",
-    "listDrafts",
-    "modelOfDraft",
-    "nameOfModel",
-    "repoOf"
   ],
   "src/node/files": [
     "OutsideFolder",
@@ -200,6 +191,15 @@
     "entryOf",
     "findModels",
     "scanModels"
+  ],
+  "src/node/sketches": [
+    "hasSketch",
+    "listSketches",
+    "modelOfSketch",
+    "nameOfModel",
+    "repoOf",
+    "sketchDir",
+    "sketchFolderIn"
   ],
   "states": [
     "isStateName",
@@ -261,13 +261,15 @@
     "FRAME",
     "NAV",
     "PANEL",
+    "PLAYER_ROOM",
     "depthIn",
     "fitOptions",
     "frameNode",
+    "inPair",
     "isStepLine",
-    "leaveAt",
     "lineId",
     "lineName",
+    "roomForCard",
     "sizeOf"
   ],
   "ui/src/highlight": [
@@ -290,7 +292,6 @@
   "ui/src/motion": [
     "CARD",
     "EFFECT",
-    "LIT_FLOOR",
     "REST",
     "SQUISH",
     "STILL",
@@ -302,6 +303,12 @@
     "squish",
     "squishParts",
     "tintColor"
+  ],
+  "ui/src/parts": [
+    "NO_PLANS",
+    "PartsContext",
+    "createPartStore",
+    "noParts"
   ],
   "ui/src/pathpoints": [
     "extend",

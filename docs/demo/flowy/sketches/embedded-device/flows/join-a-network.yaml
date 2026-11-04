@@ -1,0 +1,31 @@
+name: Join a network
+view: root
+tags: [happy path]
+groups:
+  announce:
+    kind: parallel
+    text: Every listener hears the change at once. Nobody is waited for.
+steps:
+  - { from: user, to: touch-app, text: Picks a network and taps Join, animation: { kind: send, carries: join } }
+  - from: touch-app
+    to: controller
+    text: Sends the choice
+    animation: { kind: call, carries: network }
+    via: reads and saves settings
+    payload: wifi-settings
+  - from: controller
+    to: network-daemon
+    text: Lets vendor code check the network
+    animation: { kind: call, carries: check }
+    via: calls vendor hooks
+    description: |
+      The Controller is the host. Whatever a vendor plugs into the daemon runs here, and the Controller waits for its verdict before it goes on.
+  - from: controller
+    to: network-daemon
+    text: Applies the config
+    animation: { kind: call, carries: config }
+    via: applies the config
+    payload: radio-config
+  - { from: controller, to: touch-app, text: Tells the screen the config changed, group: announce, lane: Touch app, animation: { kind: event, carries: changed }, via: announces config changes }
+  - { from: controller, to: network-daemon, text: Tells the daemon the config changed, group: announce, lane: Network daemon, animation: { kind: event, carries: changed }, via: announces config changes }
+  - { from: touch-app, to: user, text: Shows the network as joined, animation: { kind: send, carries: screen } }
