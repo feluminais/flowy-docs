@@ -279,18 +279,39 @@ test('the pointer reaches 7 screen pixels from a line of a pair at any zoom, as 
   }
 })
 
-test('the label of a line of a pair keeps off the others, slides along its own line, and the labels of one pair do not cover each other', () => {
+test('the label of a line of a pair side by side sits beside its own line, and the labels of one pair do not cover each other', () => {
   const [a, b] = [{ x: 0, y: 0, width: 200, height: 72 }, { x: 0, y: 400, width: 200, height: 72 }]
   // A vertical pair of three lanes, spread: 22 apart, so labels in a row would overlap; their places differ along the lanes.
   const xs = [88, 100, 112].map(x => x)
-  const lines = xs.map((x, i) => ({ id: `l${i}`, path: `M${x} 72L${x} 400`, mid: { x, y: 236 }, chars: 12, across: xs.filter((_, j) => j !== i).map(o => [{ x: o, y: 72 }, { x: o, y: 400 }]) }))
+  const lines = xs.map((x, i) => ({ id: `l${i}`, path: `M${x} 72L${x} 400`, mid: { x, y: 236 }, chars: 12, across: xs.filter((_, j) => j !== i).map(o => [{ x: o, y: 72 }, { x: o, y: 400 }]), extra: 34 }))
   const spots = placeLabels(lines, [a, b])
   const drawn = lines.map(l => ({ ...spots.get(l.id)! }))
   drawn.forEach((p, i) => drawn.forEach((q, j) => {
     if (i < j) assert.ok(Math.abs(p.y - q.y) >= 18 || Math.abs(p.x - q.x) >= 12 * 6.2 + 10, `labels ${i} and ${j} overlap`)
   }))
-  // Each stays on its own line: the label's middle is on it.
-  drawn.forEach((p, i) => assert.equal(p.x, xs[i]))
+  // Each sits beside its own line, running away from the others, the sample of its line at the end by the line.
+  drawn.forEach((p, i) => {
+    assert.equal(p.side, i === 0 ? -1 : 1, `label ${i} runs away from the lanes beside it`)
+    assert.ok(Math.abs(Math.abs(p.x - xs[i]) - ((12 * 6.2 + 10 + 34) / 2 + 4)) < 1e-9, `label ${i} is 4 from its own line`)
+  })
+})
+
+test('the labels of a crowded pair find rows beside their lines, and those that find none are left out', () => {
+  const [a, b] = [{ x: 0, y: 0, width: 200, height: 72 }, { x: 0, y: 72 + 110, width: 200, height: 72 }]
+  const xs = [34, 56, 78, 100, 122, 144, 166, 188]
+  const lines = xs.map((x, i) => ({ id: `l${i}`, path: `M${x} 72L${x} 182`, mid: { x, y: 127 }, chars: 14, across: xs.filter((_, j) => j !== i).map(o => [{ x: o, y: 72 }, { x: o, y: 182 }]), extra: 34 }))
+  const spots = placeLabels(lines, [a, b])
+  const shown = lines.filter(l => !spots.get(l.id)!.hidden)
+  assert.ok(shown.length >= 4 && shown.length < lines.length, `some are shown (${shown.length}) and the crowd is not`)
+  shown.forEach((l, i) => shown.forEach((m, j) => {
+    if (i >= j) return
+    const [p, q] = [spots.get(l.id)!, spots.get(m.id)!]
+    assert.ok(Math.abs(p.y - q.y) >= 18 || Math.abs(p.x - q.x) >= 14 * 6.2 + 10 + 34, `shown labels ${l.id} and ${m.id} do not overlap`)
+  }))
+  for (const l of shown) {
+    const p = spots.get(l.id)!
+    assert.ok(p.y - 9 >= 72 && p.y + 9 <= 182, `${l.id} is between the shapes`)
+  }
 })
 
 test('a lone label is not moved by lines beside it that it cannot get clear of', () => {

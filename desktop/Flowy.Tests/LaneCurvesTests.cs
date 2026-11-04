@@ -161,13 +161,15 @@ public class LaneCurvesTests
                     Same(D(items[i]!["mid"]!["y"]), made[i].Y, $"{c["name"]} anchor {i} y");
                 }
                 var labelItems = items.Select(i => new LabelItem(i!["id"]!.GetValue<string>(), i["path"]!.GetValue<string>(), new Pt(D(i["mid"]!["x"]), D(i["mid"]!["y"])), D(i["width"]), D(i["height"]),
-                    i["pinned"]!.GetValue<bool>(), i["across"]!.AsArray().Select(line => (IReadOnlyList<Pt>)line!.AsArray().Select(p => new Pt(D(p!["x"]), D(p["y"]))).ToList()).ToList(), D(i["extra"]))).ToList();
-                var spots = LineLabels.Place(labelItems, c["boxes"]!.AsArray().Select(r => new Rect(D(r!["x"]), D(r["y"]), D(r["width"]), D(r["height"]))).ToList());
+                    i["pinned"]!.GetValue<bool>(), i["across"]!.AsArray().Select(line => (IReadOnlyList<Pt>)line!.AsArray().Select(p => new Pt(D(p!["x"]), D(p["y"]))).ToList()).ToList(), D(i["extra"]), D(i["clear"]))).ToList();
+                var spots = LineLabels.PlaceSpots(labelItems, c["boxes"]!.AsArray().Select(r => new Rect(D(r!["x"]), D(r["y"]), D(r["width"]), D(r["height"]))).ToList());
                 var want = c["spots"]!.AsArray();
                 for (var i = 0; i < labelItems.Count; i++)
                 {
-                    Same(D(want[i]!["x"]), spots[labelItems[i].Id].X, $"{style} {c["name"]} label {i} x");
-                    Same(D(want[i]!["y"]), spots[labelItems[i].Id].Y, $"{style} {c["name"]} label {i} y");
+                    Same(D(want[i]!["x"]), spots[labelItems[i].Id].At.X, $"{style} {c["name"]} label {i} x");
+                    Same(D(want[i]!["y"]), spots[labelItems[i].Id].At.Y, $"{style} {c["name"]} label {i} y");
+                    Assert.Equal(want[i]!["side"]?.GetValue<int>() ?? 0, spots[labelItems[i].Id].Side);
+                    Assert.Equal(want[i]!["hidden"]?.GetValue<bool>() ?? false, spots[labelItems[i].Id].Hidden);
                 }
             }
         }

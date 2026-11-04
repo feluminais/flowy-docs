@@ -39,7 +39,7 @@ public static partial class Kinds
     public static readonly string List = string.Join(", ", All.Select(k => k.Id));
 
     /// <summary>How each pattern is dashed on a line, in px as SVG's <c>stroke-dasharray</c> takes it (the desktop divides by the pen's thickness). Butt caps.</summary>
-    public static IReadOnlyList<double> Dashes(string pattern) => pattern == "dashdot" ? [10, 4, 2, 4] : [];
+    public static IReadOnlyList<double> Dashes(string pattern) => pattern == "dashdot" ? [11, 3, 2, 3] : [];
 
     /// <summary>A ring: four cubics (not arcs, so the reader that flattens paths made of M, L, C and Q still works), radius 3.5, its edge on the line's end.</summary>
     private const string RingPath = "M0 0C0 1.933 -1.567 3.5 -3.5 3.5C-5.433 3.5 -7 1.933 -7 0C-7 -1.933 -5.433 -3.5 -3.5 -3.5C-1.567 -3.5 0 -1.933 0 0Z";

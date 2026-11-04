@@ -218,6 +218,12 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Stop += Stop;
         _player.Play += _playback.TogglePlay;
         _player.Clock = _canvas.Clock;
+        // A fit leaves room at the foot for the player's card as tall as the card is (never less than the usual 200, never more than 60% of the canvas), and fits again when the card grows or shrinks.
+        _canvas.PlayerRoom = () => Math.Clamp(_player.Bounds.Height + 40, 200, Math.Max(200, _canvas.Bounds.Height * 0.6));
+        _player.SizeChanged += (_, e) =>
+        {
+            if (e.HeightChanged) _canvas.Refit();
+        };
         // The payload card on a paused dot keeps clear of the player card and the panels that lie over the canvas.
         _canvas.Avoid = () => [.. new Control[] { _player, _panel, _nav }
             .Where(c => c.IsEffectivelyVisible && c.Bounds.Width > 0 && c.Bounds.Height > 0)

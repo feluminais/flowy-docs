@@ -1095,6 +1095,12 @@ internal sealed class CanvasView : Border
 
     private Padding FitRoom() => _fitPlayer && PlayerRoom is { } room ? _fitPadding with { Bottom = room() } : _fitPadding;
 
+    /// <summary>Fits again to the room as it is now (the player's card grew or shrank), but only a view that is still the fitted one: one the reader has zoomed or panned is theirs.</summary>
+    public void Refit()
+    {
+        if (_fitOnResize && Content() is { } bounds && base.Bounds.Width > 0 && base.Bounds.Height > 0) SetViewport(Camera.Fit(bounds, base.Bounds.Width, base.Bounds.Height, FitRoom()));
+    }
+
     /// <summary>The whole view, centred, with room for the details panel (`panel` wide, 0 when closed), the navigator (`nav` wide) and the flow player when they're there. Fits again when the window is resized.</summary>
     public void Fit(double panel, bool player, double nav = 0, double milliseconds = 0, bool refit = true)
     {

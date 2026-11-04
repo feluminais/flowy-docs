@@ -321,3 +321,30 @@ test('recording a flow, a click on a line picks the step\'s ends and the line it
     await s.close()
   }
 })
+
+test('the labels of a pair with many lines sit in rows beside their lines, none over another, between the shapes', async ({ page }) => {
+  const labels = ['reads settings', 'saves settings', 'starts a scan', 'announces changes', 'publishes the network', 'calls vendor hooks']
+  const model = systems(['a', 'b'], labels.map((label, i) => (i < 3 ? { from: 'a', to: 'b', label } : { from: 'b', to: 'a', label })), { pairs: 'separate' })
+  const s = await serveModel(model, 'flowy-pairs-many-')
+  try {
+    await page.goto(s.url)
+    await page.locator('.react-flow__node').filter({ hasText: 'A' }).first().click()
+    await expect(page.locator('.lane-pill').first()).toBeVisible()
+    await page.waitForTimeout(500) // the pair spreads over 160 ms
+    const { pills, a, b } = await page.evaluate(() => {
+      const box = (el: Element) => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom } }
+      const nodes = [...document.querySelectorAll('.react-flow__node')]
+      return { pills: [...document.querySelectorAll('.lane-pill')].map(box), a: box(nodes[0]), b: box(nodes[1]) }
+    })
+    expect(pills.length).toBeGreaterThanOrEqual(4) // those that find no room are left out; the panel lists every line
+    for (const p of pills) {
+      expect(p.top).toBeGreaterThanOrEqual(Math.min(a.bottom, b.bottom) - 1)
+      expect(p.bottom).toBeLessThanOrEqual(Math.max(a.top, b.top) + 1)
+    }
+    pills.forEach((p, i) => pills.forEach((q, j) => {
+      if (i < j) expect(p.left >= q.right || q.left >= p.right || p.top >= q.bottom || q.top >= p.bottom, `labels ${i} and ${j} do not overlap`).toBe(true)
+    }))
+  } finally {
+    await s.close()
+  }
+})

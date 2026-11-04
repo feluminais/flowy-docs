@@ -265,11 +265,13 @@ public class LanesViewTests
         var labels = layer.LabelRects;
         var shown = scene.Edges.Where(e => e.Label is not null).ToList();
         Assert.Equal(5, shown.Count);
-        Assert.Equal(5, labels.Count);
+        // A label that finds no place clear of the shapes and of the other labels is not drawn (the panel lists every line, and the line pointed at shows its own), so the labels on show are
+        // never over one another, as in the browser.
+        Assert.InRange(labels.Count, 1, 5);
         Assert.All(labels, r => Assert.True(r.Width > LineLabels.Sample + 8));
-        // Each label slides along its own line (it is never stacked above or below the middle, where another line is), so no two sit on the same spot. Where the shapes are close the
-        // five do not all fit clear of one another, in the browser too: the algorithm takes the least bad place for each.
-        Assert.Equal(5, labels.Select(l => (Math.Round(l.Center.X), Math.Round(l.Center.Y))).Distinct().Count());
+        for (var i = 0; i < labels.Count; i++)
+            for (var j = i + 1; j < labels.Count; j++)
+                Assert.True(labels[i].Right <= labels[j].X || labels[j].Right <= labels[i].X || labels[i].Bottom <= labels[j].Y || labels[j].Bottom <= labels[i].Y, $"labels {i} and {j} overlap");
     }
 
     [AvaloniaFact]

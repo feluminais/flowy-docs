@@ -261,6 +261,7 @@
     "FRAME",
     "NAV",
     "PANEL",
+    "PLAYER_ROOM",
     "depthIn",
     "fitOptions",
     "frameNode",
@@ -268,6 +269,7 @@
     "isStepLine",
     "lineId",
     "lineName",
+    "roomForCard",
     "sizeOf"
   ],
   "ui/src/highlight": [

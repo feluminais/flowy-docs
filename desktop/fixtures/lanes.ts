@@ -18,7 +18,7 @@ import { strandOf } from '../../src/core/strands.ts'
 import { computeView, placeStep } from '../../src/core/views.ts'
 import { loadState } from '../../src/node/files.ts'
 import { pairOf, strandName } from '../../ui/src/graph.ts'
-import { clip, placeLabels, SAMPLE } from '../../ui/src/labels.ts'
+import { clip, NEXT_TO, PIPE_CLEAR, placeLabels, SAMPLE } from '../../ui/src/labels.ts'
 import type { LabelItem } from '../../ui/src/labels.ts'
 import { createLaneStore } from '../../ui/src/lanes.ts'
 import { LIT_FLOOR, litOpacity, markerSpot } from '../../ui/src/motion.ts'
@@ -136,7 +136,7 @@ export function dumpCapacity(): unknown {
     capacity: [10, 20, 36, 50, 100, 140].map(half => ({ half, oneWay: laneCapacity(half, false), bothWays: laneCapacity(half, true) })),
     offsets: MIXES.map(([lanes, back]) => ({ lanes, back, at: Array.from({ length: lanes }, (_, lane) => round3(offsetOf({ lane, lanes, back }))) })),
     pitches: [20, 36, 100].flatMap(half => MIXES.map(([lanes, back]) => ({ half, lanes, back, pitch: round3(pitchFor(half, { lane: 0, lanes, back })) }))),
-    constants: { PITCH, GUTTER, MARGIN, MOST, SAMPLES, SPREAD_PITCH, REACH, HIT_WIDTH, SAMPLE },
+    constants: { PITCH, GUTTER, MARGIN, MOST, SAMPLES, SPREAD_PITCH, REACH, HIT_WIDTH, SAMPLE, NEXT_TO, PIPE_CLEAR },
     leaveAt: LEAVES.map(({ name, shape, from, rays }) => {
       const b = box('a', 50, 30, shape)
       return { name, shape, from: from ?? null, rays: rays.map(([dx, dy]) => ({ dx, dy, at: round(leaveAt(b.rect, b.edge, dx, dy, from === undefined ? undefined : { x: from[0], y: from[1] })) })) }
@@ -190,12 +190,19 @@ export async function dumpSeparateLanes(): Promise<unknown> {
 /** The labels of a pair of lanes: each label starts with a sample of its line and keeps off the other lanes of its pair (src/core/lanes.ts, ui/src/labels.ts). The C# side takes a label's size, as geometry.json's labels do. */
 export function dumpLaneLabels(style: LineStyle = 'straight'): unknown {
   const CHAR = 6.2
-  const cases: { name: string; a: LaneBox; b: LaneBox; lanes: number; back: number; pose: Pose; chars: number[]; pinned?: number }[] = [
+  const cases: { name: string; a: LaneBox; b: LaneBox; lanes: number; back: number; pose: Pose; chars: number[]; pinned?: number; clear?: number }[] = [
     { name: 'three lanes at rest', a: CONFIGS[0].a, b: CONFIGS[0].b, lanes: 3, back: 0, pose: REST, chars: [12, 6, 20] },
     { name: 'three lanes spread', a: CONFIGS[0].a, b: CONFIGS[0].b, lanes: 3, back: 0, pose: SPREAD, chars: [12, 6, 20] },
     { name: 'five lanes both ways, spread', a: CONFIGS[0].a, b: CONFIGS[0].b, lanes: 5, back: 2, pose: SPREAD, chars: [14, 14, 9, 22, 7] },
     { name: 'four lanes above and below, one pinned', a: CONFIGS[1].a, b: CONFIGS[1].b, lanes: 4, back: 1, pose: SPREAD, chars: [10, 10, 10, 10], pinned: 2 },
     { name: 'two lanes on a diagonal', a: CONFIGS[2].a, b: CONFIGS[2].b, lanes: 2, back: 0, pose: REST, chars: [30, 30] },
+    // Where the lanes run up and down and the gap between the shapes is short, the labels sit beside their lines, row by row, and those that find no place are left out (straight lanes; the routed styles have their own).
+    ...(style !== 'straight' ? [] : [
+      { name: 'six lanes in a short gap, spread', a: CONFIGS[1].a, b: box('b', 0, 150), lanes: 6, back: 3, pose: SPREAD, chars: [14, 14, 9, 22, 7, 16] },
+      { name: 'eight lanes in a gap that holds some of the labels, spread', a: CONFIGS[1].a, b: box('b', 0, 170), lanes: 8, back: 4, pose: SPREAD, chars: [14, 14, 9, 22, 7, 16, 12, 12] },
+      { name: 'a lit lane with a pipe beside it', a: CONFIGS[1].a, b: CONFIGS[1].b, lanes: 4, back: 1, pose: { s: 0, lam: [0, 0, 1, 0] } as Pose, chars: [10, 10, 18, 10], pinned: 2, clear: PIPE_CLEAR },
+      { name: 'a lit lane on a level pair, above or below it', a: CONFIGS[0].a, b: CONFIGS[0].b, lanes: 3, back: 1, pose: { s: 0, lam: [0, 1, 0] } as Pose, chars: [10, 18, 10], pinned: 1 },
+    ]),
     { name: 'one lane with others far away', a: CONFIGS[0].a, b: CONFIGS[0].b, lanes: 8, back: 4, pose: SPREAD, chars: [5, 5, 5, 5, 5, 5, 5, 5] },
     // Where the lanes are curves and staircases (the pairs above are level, or too steep for either), the labels slide along them.
     ...(style === 'straight' ? [] : [
@@ -206,17 +213,17 @@ export function dumpLaneLabels(style: LineStyle = 'straight'): unknown {
       { name: 'three lanes below and to the right, spread', a: CONFIGS[1].a, b: box('b', 80, 300), lanes: 3, back: 1, pose: SPREAD, chars: [10, 18, 10] },
     ]),
   ]
-  return cases.map(({ name, a, b, lanes, back, pose, chars, pinned }) => {
+  return cases.map(({ name, a, b, lanes, back, pose, chars, pinned, clear }) => {
     const bundleLines = bundle(a, b, lanes, back, pose, style)
     const items: LabelItem[] = bundleLines.map((l, i) => ({
       id: `l${i}`, path: l.path, mid: { x: l.anchor[0], y: l.anchor[1] }, chars: clip('x'.repeat(chars[i])).length, pinned: pinned === i,
-      across: bundleLines.filter((_, k) => k !== i).map(o => o.points.map(([x, y]) => ({ x, y }))), extra: SAMPLE,
+      across: bundleLines.filter((_, k) => k !== i).map(o => o.points.map(([x, y]) => ({ x, y }))), extra: SAMPLE, ...(clear === undefined ? {} : { clear }),
     }))
     const boxes = [a.rect, b.rect]
     const spots = placeLabels(items, boxes)
     return {
       name, a: boxJson(a), b: boxJson(b), lanes, back, spread: pose === SPREAD, ...(style === 'straight' ? {} : { style }), boxes,
-      items: items.map(i => ({ id: i.id, path: i.path, mid: i.mid, width: i.chars * CHAR + 10, height: 18, pinned: i.pinned === true, extra: i.extra, across: i.across })),
+      items: items.map(i => ({ id: i.id, path: i.path, mid: i.mid, width: i.chars * CHAR + 10, height: 18, pinned: i.pinned === true, extra: i.extra, clear: i.clear ?? NEXT_TO, across: i.across })),
       spots: items.map(i => spots.get(i.id)),
     }
   })

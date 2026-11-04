@@ -335,10 +335,22 @@ export function frameNode(name: string, rects: Rect[], onOpen?: () => void): Fra
   }
 }
 
-/** What fitView is given: room for the details panel (right) and the navigator (left), each as wide as it is or 0 when closed, and for the flow player. */
-export const fitOptions = (panel: number, player: boolean, nav = 0): FitViewOptions => ({
+/** The room a fit leaves at the bottom for the flow player's card when it does not know how tall the card is. */
+export const PLAYER_ROOM = 200
+
+/**
+ * The room a fit leaves at the bottom for the player's card, `card` tall: the card, the 24px under it and a little air, but never less than PLAYER_ROOM (a short card keeps the room it always had)
+ * and never more than 60% of the canvas, which is `canvas` tall (a card taller than that covers some of the diagram, as it always has).
+ */
+export const roomForCard = (card: number, canvas: number): number => Math.max(PLAYER_ROOM, Math.min(card + 40, Math.floor(canvas * 0.6)))
+
+/**
+ * What fitView is given: room for the details panel (right) and the navigator (left), each as wide as it is or 0 when closed, and for the flow player: true for the usual room, or the pixels
+ * its card takes (see roomForCard).
+ */
+export const fitOptions = (panel: number, player: boolean | number, nav = 0): FitViewOptions => ({
   maxZoom: 1,
-  padding: { top: '40px', left: `${nav > 0 ? nav + 40 : 40}px`, right: `${panel > 0 ? panel + 40 : 40}px`, bottom: `${player ? 200 : 40}px` },
+  padding: { top: '40px', left: `${nav > 0 ? nav + 40 : 40}px`, right: `${panel > 0 ? panel + 40 : 40}px`, bottom: `${typeof player === 'number' ? player : player ? PLAYER_ROOM : 40}px` },
 })
 
 /**

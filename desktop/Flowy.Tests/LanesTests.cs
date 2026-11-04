@@ -166,6 +166,8 @@ public class LanesTests
         Same(D(k["REACH"]), Lanes.Reach, "REACH");
         Same(D(k["HIT_WIDTH"]), Lanes.HitWidth, "HIT_WIDTH");
         Same(D(k["SAMPLE"]), LineLabels.Sample, "SAMPLE");
+        Same(D(k["NEXT_TO"]), LineLabels.NextTo, "NEXT_TO");
+        Same(D(k["PIPE_CLEAR"]), LineLabels.PipeClear, "PIPE_CLEAR");
     }
 
     [Fact]
@@ -209,14 +211,19 @@ public class LanesTests
     public void A_label_of_a_lane_starts_with_a_sample_of_its_line_and_keeps_off_the_others_as_in_the_browser()
     {
         var cases = Expected("labels")!.AsArray();
-        Assert.Equal(6, cases.Count);
+        Assert.Equal(10, cases.Count);
         foreach (var c in cases)
         {
             var items = c!["items"]!.AsArray().Select(i => new LabelItem(i!["id"]!.GetValue<string>(), i["path"]!.GetValue<string>(), new Pt(D(i["mid"]!["x"]), D(i["mid"]!["y"])), D(i["width"]), D(i["height"]),
-                i["pinned"]!.GetValue<bool>(), i["across"]!.AsArray().Select(line => (IReadOnlyList<Pt>)line!.AsArray().Select(p => new Pt(D(p!["x"]), D(p["y"]))).ToList()).ToList(), D(i["extra"]))).ToList();
-            var spots = LineLabels.Place(items, c["boxes"]!.AsArray().Select(r => new Rect(D(r!["x"]), D(r["y"]), D(r["width"]), D(r["height"]))).ToList());
+                i["pinned"]!.GetValue<bool>(), i["across"]!.AsArray().Select(line => (IReadOnlyList<Pt>)line!.AsArray().Select(p => new Pt(D(p!["x"]), D(p["y"]))).ToList()).ToList(), D(i["extra"]), D(i["clear"]))).ToList();
+            var spots = LineLabels.PlaceSpots(items, c["boxes"]!.AsArray().Select(r => new Rect(D(r!["x"]), D(r["y"]), D(r["width"]), D(r["height"]))).ToList());
             var want = c["spots"]!.AsArray();
-            for (var i = 0; i < items.Count; i++) SameXY(want[i]!, spots[items[i].Id], $"{c["name"]} label {i}");
+            for (var i = 0; i < items.Count; i++)
+            {
+                SameXY(want[i]!, spots[items[i].Id].At, $"{c["name"]} label {i}");
+                Assert.Equal(want[i]!["side"]?.GetValue<int>() ?? 0, spots[items[i].Id].Side);
+                Assert.Equal(want[i]!["hidden"]?.GetValue<bool>() ?? false, spots[items[i].Id].Hidden);
+            }
         }
     }
 

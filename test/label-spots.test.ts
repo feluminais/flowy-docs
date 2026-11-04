@@ -5,7 +5,9 @@ import type { Model } from '../src/core/model.ts'
 import { toGraph } from '../ui/src/graph.ts'
 import type { BoxNode } from '../ui/src/graph.ts'
 import { boxEnd, laneOf } from '../ui/src/lanehit.ts'
+import { SAMPLE } from '../ui/src/labels.ts'
 import { labelSpots } from '../ui/src/labelspots.ts'
+import { labelGap } from './label-gap.ts'
 import { lanes } from '../ui/src/lanes.ts'
 
 // Where the labels go on a pair of lines side by side whose lines part around the lit ones while a flow plays (parts.ts). The line is drawn at the parted pose, so its label has to be placed
@@ -29,7 +31,7 @@ function drawn() {
 
 const at = (nodes: BoxNode[], id: string) => nodes.find(n => n.id === id)!
 
-test('a lit line that has another lit line beside it is labelled where the pair has parted it, not where it rested', () => {
+test('a lit line that has another lit line beside it is labelled beside the line as the pair has parted it, not where it rested', () => {
   const { nodes, edges } = drawn()
   assert.equal(edges.length, 4)
   const lit = [1, 0, 0, 1]
@@ -39,24 +41,13 @@ test('a lit line that has another lit line beside it is labelled where the pair 
   for (const e of asLit.filter(e => e.className === 'active')) {
     const { slot } = laneOf(e.data)
     const line = lanes.laneFor(e.id, 'straight', boxEnd(at(nodes, e.source)), boxEnd(at(nodes, e.target)), { s: 0, lam: lit }, slot)
-    assert.deepEqual(parted.get(e.id), { x: line.x, y: line.y }, `lane ${slot!.lane}: a lit label stays at the middle of its parted line`)
+    const gap = labelGap(parted.get(e.id)!, 'Line 0'.length, SAMPLE, line.points!)
+    assert.ok(gap > 0 && gap <= 8, `lane ${slot!.lane}: a lit label sits beside its parted line, not on it (${gap} away)`)
     assert.notDeepEqual(parted.get(e.id), rest.get(e.id), `lane ${slot!.lane}: the pair has moved it`)
   }
 })
 
-/** How far a point is from a polyline. */
-function away(p: { x: number; y: number }, points: readonly { x: number; y: number }[]): number {
-  let best = Infinity
-  for (let i = 1; i < points.length; i++) {
-    const [a, b] = [points[i - 1], points[i]]
-    const [dx, dy] = [b.x - a.x, b.y - a.y]
-    const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy || 1)))
-    best = Math.min(best, Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy)))
-  }
-  return best
-}
-
-test('every label of a parted pair sits on its own line as the line is drawn now, the lines beside the lit ones included', () => {
+test('every label of a parted pair is on or beside its own line as the line is drawn now, the lines beside the lit ones included', () => {
   const { nodes, edges } = drawn()
   const lit = [1, 0, 0, 1]
   const asLit = edges.map(e => ((e.data?.slot as { lane: number }).lane === 0 || (e.data?.slot as { lane: number }).lane === 3 ? { ...e, className: 'active' } : e))
@@ -66,10 +57,10 @@ test('every label of a parted pair sits on its own line as the line is drawn now
   for (const e of asLit) {
     const { slot } = laneOf(e.data)
     const line = lanes.laneFor(e.id, 'straight', boxEnd(at(nodes, e.source)), boxEnd(at(nodes, e.target)), { s: 0, lam: lit }, slot)
-    assert.ok(away(parted.get(e.id)!, line.points!) < 1, `lane ${slot!.lane}: the label is on its line at the parted pose`)
-    if (away(rest.get(e.id)!, line.points!) > 1) moved++ // where it rested, the label would be off the line it labels
+    assert.ok(labelGap(parted.get(e.id)!, 'Line 0'.length, SAMPLE, line.points!) <= 8, `lane ${slot!.lane}: the label is by its line at the parted pose`)
+    if (parted.get(e.id)!.x !== rest.get(e.id)!.x || parted.get(e.id)!.y !== rest.get(e.id)!.y) moved++ // the label of a line that parted has moved with it
   }
-  assert.ok(moved > 0, 'the rest pose would have left a label off its line')
+  assert.ok(moved > 0, 'the labels moved with their lines')
 })
 
 test('with no lit lanes, or a pair nothing is lit on, the labels are where they have always been', () => {
@@ -89,6 +80,6 @@ test('a single lit lane keeps its place and its label, and the lines beside it p
   assert.deepEqual(parted.get(one.id), rest.get(one.id))
   for (const e of asLit) {
     const line = lanes.laneFor(e.id, 'straight', boxEnd(at(nodes, e.source)), boxEnd(at(nodes, e.target)), { s: 0, lam: lit }, laneOf(e.data).slot)
-    assert.ok(away(parted.get(e.id)!, line.points!) < 1, `${e.id}: the label is on its line`)
+    assert.ok(labelGap(parted.get(e.id)!, 'Line 0'.length, SAMPLE, line.points!) <= 8, `${e.id}: the label is by its line`)
   }
 })
