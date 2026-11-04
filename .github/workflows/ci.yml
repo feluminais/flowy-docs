@@ -29,6 +29,9 @@ jobs:
           - { os: ubuntu-latest, node: '22.18.0' } # the oldest Node package.json allows
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write # Codecov takes GitHub's OIDC token in place of an upload token, so none is stored here
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,7 +41,31 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
-      - run: npm run test:coverage # the whole suite, with a coverage table in the log
+      - run: npm run test:reports # the whole suite with a coverage table in the log, and coverage/lcov.info and coverage/junit.xml beside it
+      - name: Test results to Codecov # every run's results, so a test that fails on one run and passes on the next shows up as flaky
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          report_type: test_results
+          files: coverage/junit.xml
+          disable_search: true
+          flags: web-${{ runner.os }}
+      - name: Coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          files: coverage/lcov.info
+          disable_search: true
+          flags: web
+      - name: Keep the coverage for SonarQube Cloud
+        if: ${{ !cancelled() && matrix.os == 'ubuntu-latest' && matrix.node == '24' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: web-coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 1
       - run: node src/cli.ts check
       - run: npm run build:ui
 
@@ -73,6 +100,9 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write # Codecov, as in the web job
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -86,7 +116,8 @@ jobs:
           dotnet-version: 10.0.x
       - run: npm ci
       - run: dotnet restore desktop --locked-mode # the NuGet packages, transitive ones too, are the ones packages.lock.json names
-      - run: dotnet test desktop --no-restore --collect:"XPlat Code Coverage" --results-directory desktop/coverage
+      # A JUnit file per test project (desktop/test-results/Flowy.Tests.xml and Flowy.App.Tests.xml) for Codecov; the path is from each project's folder.
+      - run: dotnet test desktop --no-restore --collect:"XPlat Code Coverage" --results-directory desktop/coverage --logger "junit;LogFilePath=../test-results/{assembly}.xml"
       - name: Coverage
         if: always() && matrix.os == 'ubuntu-latest'
         shell: bash
@@ -95,6 +126,29 @@ jobs:
             rates=$(head -c 600 "$f" | grep -oE 'line-rate="[0-9.]+" branch-rate="[0-9.]+"' | head -1)
             echo "- $(grep -oE '<package name="[^"]+"' "$f" | head -1 | cut -d'"' -f2): $rates" >> "$GITHUB_STEP_SUMMARY"
           done
+      - name: Test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          report_type: test_results
+          files: desktop/test-results/Flowy.Tests.xml,desktop/test-results/Flowy.App.Tests.xml
+          disable_search: true
+          flags: desktop-${{ runner.os }}
+      - name: Coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          use_oidc: true
+          directory: desktop/coverage # one coverage.cobertura.xml per test project, each in a folder of its own
+          flags: desktop
+      - name: Keep the coverage for SonarQube Cloud
+        if: ${{ !cancelled() && matrix.os == 'ubuntu-latest' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desktop-coverage
+          path: desktop/coverage/*/coverage.cobertura.xml
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Known vulnerabilities
         if: matrix.os == 'ubuntu-latest'
         shell: bash
@@ -126,6 +180,50 @@ jobs:
             browser-tests/report
           if-no-files-found: ignore
           retention-days: 7
+
+  # SonarQube Cloud (its OSS plan, free for a public repository): bugs, code smells, duplication and coverage on new code, in the TypeScript and the C#.
+  # It posts its own check on a pull request, so "ci passed" does not wait for this job. It stays off until the repository variable SONAR_ENABLED
+  # is true and the secret SONAR_TOKEN is set (CONTRIBUTING.md, "Code quality services"). Forks and Dependabot get no secrets, so it skips their pull requests.
+  sonar:
+    name: sonar
+    needs: [web, desktop] # it reads their coverage
+    if: >-
+      ${{ !cancelled() && vars.SONAR_ENABLED == 'true' && github.actor != 'dependabot[bot]' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the blame of every line, which tells new code from old
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - run: npm ci # the TypeScript analysis reads the types in node_modules, and the desktop build needs it
+      - run: dotnet tool restore # dotnet-sonarscanner, pinned in .config/dotnet-tools.json
+      - run: dotnet restore desktop --locked-mode
+      - name: Coverage from the web and desktop jobs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: '*-coverage' # a job whose tests failed may have left none, and a pattern that matches nothing is not an error
+          path: coverage-reports # one folder per artifact: web-coverage/lcov.info, desktop-coverage/<run>/coverage.cobertura.xml
+      - name: Analyse
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        # The scanner for .NET reads the C# while the build runs, and the TypeScript, JSON and YAML around it on its own. Tests, models, fixtures and
+        # built files are left out; the C# test projects it finds itself.
+        run: |
+          dotnet dotnet-sonarscanner begin /k:feluminais_flowy-docs /o:feluminais "/d:sonar.token=$SONAR_TOKEN" \
+            "/d:sonar.javascript.lcov.reportPaths=coverage-reports/web-coverage/lcov.info" \
+            "/d:sonar.cs.cobertura.reportsPaths=coverage-reports/desktop-coverage/**/coverage.cobertura.xml" \
+            "/d:sonar.exclusions=**/node_modules/**,dist/**,**/bin/**,**/obj/**,coverage-reports/**,test/**,browser-tests/**,perf-lab/test/**,desktop/fixtures/**,docs/**,example/**,flowy/**,**/package-lock.json,**/packages.lock.json"
+          dotnet build desktop --no-restore
+          dotnet dotnet-sonarscanner end "/d:sonar.token=$SONAR_TOKEN"
 
   # The one check a branch rule needs to name. It is green only when every job above is, and it still runs when one of them failed.
   ok:
