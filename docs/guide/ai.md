@@ -24,6 +24,8 @@ after `mcp` to keep the files somewhere other than `./flowy`.
 
 **What to ask for.** "Map this repo into Flowy" or "make Flowy docs" gets the default: the people, apps, stores, components and outside services in the repo, how they connect, and three to five plain flows. Nothing else is written until you name it: flows with motion, repeats, branches or failed requests ([Flows](flows.md)), what the stores hold ([Data](data.md)), code on shapes ([Code](code.md)), a failure analysis ([Failure modes](failures.md)) or a look ([Shapes, colour and icons](shapes.md)). Ask for "everything" and it asks which. It reads the rules for a part only when you ask for that part, and ends by naming what Flowy could add that it saw material for in the repo.
 
+A connection can say how the two shapes talk (`kind:` on `connect`, or `set_kind` on one that exists), and the line is drawn to match ([Connection kinds](kinds.md)). The AI is told to set a kind only where the code shows it and to leave it out when unsure. In a sketch, where each connection is a line of its own, a flow step names the connection it rides with `via` ([Flows](flows.md#which-line-a-step-rides)), and when the pair has several lines, the answer to `put_flow` says which one each step rides.
+
 A shape can note where it lives in the code (`code: [src/api/]`). A path that doesn't
 exist is refused, so the model can't quietly point at code that's gone. When code moves later,
 the shape gets a "!" until someone fixes the path.
@@ -58,7 +60,7 @@ notes in an object's `description` instead.
 | --- | --- |
 | `get_model` | Reads the model. `summary: true` gives one short line for each thing, and `object`, `flow` or `analysis` gives that one thing in full. It also lists the load-test runs and the problems |
 | `get_problems` | Lists every problem right now, one line each, or says "No problems." It is `flowy check` ([below](share.md#check-it)) |
-| `get_view` | What one diagram shows: its shapes, the faded ones that connect in or that its flows name as people, and the lines merged to that zoom level, one per pair of shapes (`both` when they run both ways) |
+| `get_view` | What one diagram shows: its shapes, the faded ones that connect in or that its flows name as people, and the lines merged to that zoom level, one per pair of shapes (`both` when they run both ways, `kind` when all its connections share a kind, `look` when the line is drawn other than plain). With `pairs: separate` it also returns `strands`, one line for each connection that differs in direction or label, with its `id`, `pair`, `label`, `lane` and `lanes` |
 | `get_mermaid` | One view as a flowchart, or one flow as a sequence diagram |
 | `get_failures` | The failure analyses as tables, worst first, with coverage; `format: csv` for a spreadsheet |
 | `put_object`, `delete_object` | A shape and everything on it ([the file format](../format.md#an-object)), or removes one, with its lines. A shape with shapes inside it, or one a flow step, a flow view or a failure mode names, is refused with a row for each of those and the actions that settle it. Called again with `resolve`, one entry for each row, it settles them and deletes in one edit, or saves nothing |

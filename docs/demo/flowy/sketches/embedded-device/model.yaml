@@ -1,0 +1,76 @@
+name: Embedded device
+about: |-
+  A device with a touch screen and a radio, in three layers. The **Touch app** shows and asks, the **Controller** decides, and the **Network daemon** drives the radio.
+
+  A sketch of how the layers talk. Each connection is a line of its own, so the lines between two layers run side by side and each shows its kind. Open **Open the Wi-Fi screen** first.
+pairs: separate
+objects:
+  user:
+    type: actor
+    name: User
+    description: Taps the screen to join a network or look for one.
+  touch-app:
+    type: system
+    name: Touch app
+    description: |
+      Draws the screen and passes taps on. It keeps no settings of its own.
+
+      A screen that opens late asks for the settings and listens for the radio state, and gets the last state at once.
+  controller:
+    type: system
+    name: Controller
+    description: |
+      Holds the settings and decides what the radio does.
+
+      It is the host for vendor code: hooks plugged into the **Network daemon** can veto a network before the Controller applies it.
+  network-daemon:
+    type: system
+    name: Network daemon
+    description: |
+      Drives the radio: joins networks, scans, reports the link.
+
+      It answers within 5 s. Past that, the **Controller** reports the failure and keeps the old settings.
+payloads:
+  wifi-settings:
+    name: Wi-Fi settings
+    about: The network the device joins and how. Saved by the Controller, shown by the Touch app.
+    example:
+      language: json
+      text: |
+        { "ssid": "Workshop", "security": "wpa2", "autoJoin": true }
+  radio-state:
+    name: Radio state
+    about: Whether the radio is on and how well it hears the network. The Controller keeps the last one.
+    example:
+      language: json
+      text: |
+        { "on": true, "channel": 36, "signalDbm": -58 }
+  radio-config:
+    name: Radio config
+    about: What the Controller hands the daemon to apply. The settings plus the channel limits for the region.
+    example:
+      language: json
+      text: |
+        { "ssid": "Workshop", "security": "wpa2", "allowedChannels": [36, 40, 44, 48] }
+  found-network:
+    name: Found network
+    about: One network the radio heard during a scan. The list grows until the scan stops.
+    example:
+      language: json
+      text: |
+        { "ssid": "Workshop", "signalDbm": -58, "secured": true }
+connections:
+  - { from: user, to: touch-app, label: taps the screen }
+  - { from: touch-app, to: controller, label: reads and saves settings, kind: request, payloads: [wifi-settings] }
+  - { from: touch-app, to: controller, label: starts a scan, kind: stream, payloads: [found-network] }
+  - { from: touch-app, to: controller, label: subscribes to radio state }
+  - { from: controller, to: touch-app, label: publishes radio state, kind: cached, payloads: [radio-state] }
+  - { from: controller, to: touch-app, label: announces config changes, kind: publish }
+  - { from: controller, to: touch-app, label: publishes the current network, kind: object }
+  - { from: controller, to: network-daemon, label: applies the config, kind: request, payloads: [radio-config] }
+  - { from: controller, to: network-daemon, label: starts a radio scan, kind: stream, payloads: [found-network] }
+  - { from: controller, to: network-daemon, label: calls vendor hooks, kind: extension }
+  - { from: controller, to: network-daemon, label: announces config changes, kind: publish }
+  - { from: network-daemon, to: controller, label: publishes link state, kind: cached, payloads: [radio-state] }
+  - { from: network-daemon, to: controller, label: publishes link events, kind: publish }
+  - { from: network-daemon, to: controller, label: publishes the current network, kind: object }
