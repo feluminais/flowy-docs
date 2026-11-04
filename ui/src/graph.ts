@@ -12,8 +12,8 @@ import { childCount, computeView, nameOf, placeEnds } from '../../src/core/views
 import type { Strand } from '../../src/core/views.ts'
 import { strandCandidates } from '../../src/core/strands.ts'
 import { BOX, arrange, membersOf, spotsOf, tangle, untangle } from '../../src/core/layout.ts'
-import { HIT_WIDTH, leaveAt, slotsOf } from '../../src/core/lanes.ts'
-import type { Outline, Rect } from '../../src/core/lanes.ts'
+import { HIT_WIDTH, leaveAt, ports, slotsOf } from '../../src/core/lanes.ts'
+import type { Outline, PortSide, Rect } from '../../src/core/lanes.ts'
 import type { Region } from '../../src/core/layout.ts'
 
 // The layout moved to src/core so the MCP server can run it too; the page keeps importing it from here.
@@ -223,9 +223,10 @@ export function focusEdges(edges: Edge[], focus: { box?: string; line?: string; 
   })
 }
 
-// Where a line leaves a shape moved to src/core/lanes.ts, which lays out the lines of a pair side by side and needs it too; the page keeps importing it from here.
-export { leaveAt }
+// Where a line leaves a shape, and the ports of a curved or right-angled line, moved to src/core/lanes.ts, which lays out the lines of a pair side by side and needs them too; the page keeps importing them from here.
+export { leaveAt, ports }
 export type { Outline, Rect }
+export type Side = PortSide
 
 /** Where a straight line between the centres of two shapes leaves one and enters the other. A shape without an `edge` is the box itself. */
 export function lineEnds(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline = []): [XYPosition, XYPosition] {
@@ -274,28 +275,6 @@ export function loopAround(r: Rect, edge: Outline = []): string {
   const end = leaveAt(r, edge, r.width / 2, r.height * 0.22)
   const reach = 90 // the control points sit this far out, so the curve itself bulges about three quarters of it
   return `M${start.x} ${start.y}C${start.x + reach} ${start.y - 40} ${end.x + reach} ${end.y + 40} ${end.x} ${end.y}`
-}
-
-export type Side = 'top' | 'right' | 'bottom' | 'left'
-
-/** The side of `from` that faces `to`: the one a line between their centres leaves through. */
-function facing(from: Rect, to: Rect): Side {
-  const dx = to.x + to.width / 2 - (from.x + from.width / 2)
-  const dy = to.y + to.height / 2 - (from.y + from.height / 2)
-  if (Math.abs(dx) * from.height > Math.abs(dy) * from.width) return dx > 0 ? 'right' : 'left'
-  return dy > 0 ? 'bottom' : 'top'
-}
-
-const AXIS: Record<Side, [number, number]> = { top: [0, -1], bottom: [0, 1], left: [-1, 0], right: [1, 0] }
-
-/** The middle of one side of a shape: where the line along that axis from its centre meets the outline. */
-const middleOf = (r: Rect, side: Side, edge: Outline): XYPosition => leaveAt(r, edge, ...AXIS[side])
-
-/** Where a curved or right-angled line starts and ends: the middle of the side each shape turns to the other. */
-export function ports(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline = []): { from: XYPosition; fromSide: Side; to: XYPosition; toSide: Side } {
-  const fromSide = facing(a, b)
-  const toSide = facing(b, a)
-  return { from: middleOf(a, fromSide, edgeA), fromSide, to: middleOf(b, toSide, edgeB), toSide }
 }
 
 /** The frame around a view's own boxes: their bounding box plus `pad` on every side. */

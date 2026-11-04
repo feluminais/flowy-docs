@@ -5,11 +5,13 @@ import type { Animation } from '../../src/core/animation.ts'
 import { endsOfPath } from '../../src/core/heads.ts'
 import type { Point } from '../../src/core/heads.ts'
 import {
-  bulge, bundleReach, dashPhase, displacement, easedSpread, gapBeside, GUTTER, HIT_WIDTH, JUMP_MS, KIN_OPACITY, laneCapacity, laneGeometry, leaveAt, LIT_FLOOR_LANES, litLanes, MARGIN, markReach, MOST, MOVE_WORDS, nearestStrand,
-  offsetOf, PART_CLEAR, partEase, partingFor, PITCH, pitchFor, poseAt, REACH, REST, roomOf, round3, SAMPLES, SHIFT_MS, SIBLING_OPACITY, slotsOf, SPREAD, SPREAD_MS, SPREAD_PITCH, spreadProgress, usableOf,
+  ANGLE_RUN, bulge, bundleReach, CORNER, CORNER_AIR, CORNER_LEAST, dashPhase, displacement, easedSpread, GAP_LEAST, gapBeside, GUTTER, HIT_WIDTH, JUMP_MS, KAPPA_MAX, KIN_OPACITY, laneCapacity, laneGeometry, leaveAt, LEG_AIR,
+  LIT_FLOOR_LANES, litLanes, MARGIN, markReach, MIN_ROUTE_GAP, MOST, MOVE_WORDS, nearestStrand, offsetOf, PART_CLEAR, partEase, partingFor, PITCH, pitchFor, poseAt, ports, REACH, REST, roomOf, round3, SAMPLES, SHIFT_MS, SIBLING_OPACITY,
+  SIDE_AIR, slotsOf, SPREAD, SPREAD_MS, SPREAD_PITCH, spreadProgress, usableOf,
 } from '../../src/core/lanes.ts'
 import type { HitLane, LaneBox, Parting, Pose, Slot } from '../../src/core/lanes.ts'
 import { SHAPE_DEFS } from '../../src/core/look.ts'
+import type { LineStyle } from '../../src/core/model.ts'
 import type { Shape } from '../../src/core/look.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { strandOf } from '../../src/core/strands.ts'
@@ -18,6 +20,7 @@ import { loadState } from '../../src/node/files.ts'
 import { pairOf, strandName } from '../../ui/src/graph.ts'
 import { clip, placeLabels, SAMPLE } from '../../ui/src/labels.ts'
 import type { LabelItem } from '../../ui/src/labels.ts'
+import { createLaneStore } from '../../ui/src/lanes.ts'
 import { LIT_FLOOR, litOpacity, markerSpot } from '../../ui/src/motion.ts'
 import { planOf, STEPS } from '../../ui/src/parts.ts'
 
@@ -55,8 +58,8 @@ const MIXES: [lanes: number, back: number][] = [[1, 0], [1, 1], [2, 0], [2, 1], 
 const round = (p: Point): [number, number] => [round3(p.x), round3(p.y)]
 
 /** One lane as the readers need it: its path, anchor, the points it is made of, and the head and tail with the way they point. */
-function laneDump(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose) {
-  const lane = laneGeometry(source, target, slot, pose)
+function laneDump(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose, style: LineStyle = 'straight') {
+  const lane = laneGeometry(source, target, slot, pose, style)
   const ends = endsOfPath(lane.path)!
   return {
     slot, path: lane.path, anchor: [lane.x, lane.y], points: lane.points.map(round),
@@ -65,10 +68,10 @@ function laneDump(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose) {
 }
 
 /** The lanes of a pair: the first `back` run from b to a (the later id to the earlier), the others from a to b. */
-function bundle(a: LaneBox, b: LaneBox, lanes: number, back: number, pose: Pose) {
+function bundle(a: LaneBox, b: LaneBox, lanes: number, back: number, pose: Pose, style: LineStyle = 'straight') {
   return Array.from({ length: lanes }, (_, lane) => {
     const backwards = lane < back
-    return laneDump(backwards ? b : a, backwards ? a : b, { lane, lanes, back }, pose)
+    return laneDump(backwards ? b : a, backwards ? a : b, { lane, lanes, back }, pose, style)
   })
 }
 
@@ -185,7 +188,7 @@ export async function dumpDraftLanes(): Promise<unknown> {
 
 
 /** The labels of a pair of lanes: each label starts with a sample of its line and keeps off the other lanes of its pair (src/core/lanes.ts, ui/src/labels.ts). The C# side takes a label's size, as geometry.json's labels do. */
-export function dumpLaneLabels(): unknown {
+export function dumpLaneLabels(style: LineStyle = 'straight'): unknown {
   const CHAR = 6.2
   const cases: { name: string; a: LaneBox; b: LaneBox; lanes: number; back: number; pose: Pose; chars: number[]; pinned?: number }[] = [
     { name: 'three lanes at rest', a: CONFIGS[0].a, b: CONFIGS[0].b, lanes: 3, back: 0, pose: REST, chars: [12, 6, 20] },
@@ -194,9 +197,17 @@ export function dumpLaneLabels(): unknown {
     { name: 'four lanes above and below, one pinned', a: CONFIGS[1].a, b: CONFIGS[1].b, lanes: 4, back: 1, pose: SPREAD, chars: [10, 10, 10, 10], pinned: 2 },
     { name: 'two lanes on a diagonal', a: CONFIGS[2].a, b: CONFIGS[2].b, lanes: 2, back: 0, pose: REST, chars: [30, 30] },
     { name: 'one lane with others far away', a: CONFIGS[0].a, b: CONFIGS[0].b, lanes: 8, back: 4, pose: SPREAD, chars: [5, 5, 5, 5, 5, 5, 5, 5] },
+    // Where the lanes are curves and staircases (the pairs above are level, or too steep for either), the labels slide along them.
+    ...(style === 'straight' ? [] : [
+      { name: 'three lanes on a lower level, at rest', a: CONFIGS[0].a, b: box('b', 400, 80), lanes: 3, back: 0, pose: REST, chars: [12, 6, 20] },
+      { name: 'three lanes on a lower level, spread', a: CONFIGS[0].a, b: box('b', 400, 80), lanes: 3, back: 0, pose: SPREAD, chars: [12, 6, 20] },
+      { name: 'three lanes on a lower level, parted around the second', a: CONFIGS[0].a, b: box('b', 400, 80), lanes: 3, back: 0, pose: { s: 0, lam: [0, 1, 0] } as Pose, chars: [12, 6, 20], pinned: 1 },
+      { name: 'five lanes both ways on a lower level, spread', a: CONFIGS[0].a, b: box('b', 400, 80), lanes: 5, back: 2, pose: SPREAD, chars: [14, 14, 9, 22, 7] },
+      { name: 'three lanes below and to the right, spread', a: CONFIGS[1].a, b: box('b', 80, 300), lanes: 3, back: 1, pose: SPREAD, chars: [10, 18, 10] },
+    ]),
   ]
   return cases.map(({ name, a, b, lanes, back, pose, chars, pinned }) => {
-    const bundleLines = bundle(a, b, lanes, back, pose)
+    const bundleLines = bundle(a, b, lanes, back, pose, style)
     const items: LabelItem[] = bundleLines.map((l, i) => ({
       id: `l${i}`, path: l.path, mid: { x: l.anchor[0], y: l.anchor[1] }, chars: clip('x'.repeat(chars[i])).length, pinned: pinned === i,
       across: bundleLines.filter((_, k) => k !== i).map(o => o.points.map(([x, y]) => ({ x, y }))), extra: SAMPLE,
@@ -204,7 +215,7 @@ export function dumpLaneLabels(): unknown {
     const boxes = [a.rect, b.rect]
     const spots = placeLabels(items, boxes)
     return {
-      name, a: boxJson(a), b: boxJson(b), lanes, back, spread: pose === SPREAD, boxes,
+      name, a: boxJson(a), b: boxJson(b), lanes, back, spread: pose === SPREAD, ...(style === 'straight' ? {} : { style }), boxes,
       items: items.map(i => ({ id: i.id, path: i.path, mid: i.mid, width: i.chars * CHAR + 10, height: 18, pinned: i.pinned === true, extra: i.extra, across: i.across })),
       spots: items.map(i => spots.get(i.id)),
     }
@@ -299,4 +310,84 @@ export async function dumpParts(): Promise<unknown> {
       markerSpot: [[300, 0], [-300, 0], [0, 300], [200, 100], [0, 0]].flatMap(([dx, dy]) => [0, 24, 44].map(clear => ({ dx, dy, clear, at: markerSpot(dx, dy, { width: 100, height: 28 }, clear) }))),
     },
   }
+}
+
+
+/**
+ * Curved and right-angled lanes (src/core/lanes.ts): the pairs of CONFIGS and some more, in which the sides facing each other have room between them (a curve, a staircase), do not (the lanes fall
+ * back to straight ones, in either style), or have a staircase with no run (a curve only). For each: the ports a lone line would use, the lone line as the lane store draws it in the three styles,
+ * and the lanes of pairs of 1, 2, 3, 5 and 8 lines in the two styles. A pair of one line is not a pair of lanes: the store draws it as the browser always did (single), and the lanes dump of N = 1
+ * is only what the core says for a slot of one.
+ */
+const CURVE_CONFIGS: { name: string; a: LaneBox; b: LaneBox }[] = [
+  ...CONFIGS,
+  { name: 'beside, a little lower (a staircase with a run)', a: box('a', 0, 0), b: box('b', 400, 80) },
+  { name: 'beside, higher than the run needs (a staircase with no run)', a: box('a', 0, 0), b: box('b', 400, 12) },
+  { name: 'above, a little to the right', a: box('a', 0, 0), b: box('b', 80, 300) },
+  { name: 'above, far to the side (a flat curve)', a: box('a', 0, 0), b: box('b', 330, 230) },
+  { name: 'overlapping', a: box('a', 0, 0), b: box('b', 150, 0) },
+  { name: 'beside, near and above (lanes of other sizes)', a: box('a', 0, 0, 'rectangle', 120, 40), b: box('b', 260, -90, 'rectangle', 160, 100) },
+]
+
+/** The numbers of lines the spec names (1, 2, 3, 5, 8), alone and both ways. */
+const CURVE_MIXES: [lanes: number, back: number][] = [[1, 0], [2, 1], [3, 0], [5, 2], [8, 0], [8, 4]]
+
+const CURVE_STYLES: LineStyle[] = ['curved', 'angled']
+
+/** The lone line between two boxes, as the lane store draws it (the pair's own id, no slot) and as it draws a pair of one line (a slot of one lane): the same, and as before. */
+function singleLines(a: LaneBox, b: LaneBox) {
+  const store = createLaneStore()
+  return (['straight', 'curved', 'angled'] as const).map(style => {
+    const alone = store.laneFor(undefined, style, a, b)
+    const slotted = store.laneFor('a|b|only', style, a, b, REST, { lane: 0, lanes: 1, back: 0 })
+    return { style, path: alone.path, anchor: [alone.x, alone.y], sameWithASlotOfOne: slotted.path === alone.path && slotted.x === alone.x && slotted.y === alone.y }
+  })
+}
+
+export function dumpCurves(): unknown {
+  return {
+    constants: { MIN_ROUTE_GAP, KAPPA_MAX, GAP_LEAST, ANGLE_RUN, CORNER, CORNER_AIR, CORNER_LEAST, SIDE_AIR, LEG_AIR },
+    configs: CURVE_CONFIGS.map(({ name, a, b }) => {
+      const p = ports(a.rect, b.rect, a.edge, b.edge)
+      return {
+        name, a: boxJson(a), b: boxJson(b),
+        ports: { from: round(p.from), fromSide: p.fromSide, to: round(p.to), toSide: p.toSide },
+        single: singleLines(a, b),
+        styles: CURVE_STYLES.map(style => ({
+          style, room: round3(roomOf(a, b, style)),
+          mixes: CURVE_MIXES.map(([lanes, back]) => ({
+            lanes, back, pitch: round3(pitchFor(roomOf(a, b, style), { lane: 0, lanes, back })),
+            lines: bundle(a, b, lanes, back, REST, style),
+          })),
+        })),
+      }
+    }),
+  }
+}
+
+/** The poses in the two styles: spread and parted, for pairs of 3 and 5 (one with both ways), and how much room the neighbours of a lit lane and a mark leave, by style. */
+export function dumpCurvePoses(): unknown {
+  const pick = ['beside, a little lower (a staircase with a run)', 'diagonal', 'diamond and ellipse', 'above, a little to the right']
+  const gapCases: [number, number][] = [[3, 0], [5, 2]]
+  return {
+    poses: CURVE_CONFIGS.filter(c => pick.includes(c.name)).map(({ name, a, b }) => ({
+      name, a: boxJson(a), b: boxJson(b),
+      styles: CURVE_STYLES.map(style => ({
+        style,
+        poses: POSES.map(({ name: pose, pose: p }) => ({ pose, s: p.s, lam: p.lam, lanes: [[3, 0], [5, 2]].map(([lanes, back]) => ({ lanes, back, lines: bundle(a, b, lanes, back, p, style) })) })),
+      })),
+    })),
+    gaps: CURVE_CONFIGS.filter(c => pick.includes(c.name)).flatMap(({ name, a, b }) => CURVE_STYLES.flatMap(style => gapCases.flatMap(([lanes, back]) => [0, 1, 2].map(lit => ({
+      name, style, lanes, back, lit,
+      at: [0, 0.1, 0.5, 0.9, 1].map(t => ({
+        t, rest: gapBeside(a, b, { lane: lit, lanes, back }, REST, t, style), parted: gapBeside(a, b, { lane: lit, lanes, back }, { s: 0, lam: litOf(lanes, lit) }, t, style),
+      })),
+      reach: bundleReach(a, b, { lane: lit, lanes, back }, style),
+    }))))),
+  }
+}
+
+/** The labels of the lanes of a pair in the two styles (see dumpLaneLabels). */
+export function dumpCurveLabels(): unknown {
+  return Object.fromEntries(CURVE_STYLES.map(style => [style, dumpLaneLabels(style)]))
 }

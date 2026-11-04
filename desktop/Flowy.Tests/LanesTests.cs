@@ -37,10 +37,10 @@ public class LanesTests
     internal static LaneSlot Slot(JsonNode n) => new(n["lane"]!.GetValue<int>(), n["lanes"]!.GetValue<int>(), n["back"]!.GetValue<int>());
 
     /// <summary>The lanes of a pair, as the dump has them: the first <paramref name="back"/> run from b to a, the others from a to b.</summary>
-    internal static List<LaneLine> Bundle(LaneBox a, LaneBox b, int lanes, int back, LanePose pose) =>
+    internal static List<LaneLine> Bundle(LaneBox a, LaneBox b, int lanes, int back, LanePose pose, string style = "straight") =>
         Enumerable.Range(0, lanes).Select(lane => lane < back
-            ? Lanes.LaneGeometry(b, a, new LaneSlot(lane, lanes, back), pose)
-            : Lanes.LaneGeometry(a, b, new LaneSlot(lane, lanes, back), pose)).ToList();
+            ? Lanes.LaneGeometry(b, a, new LaneSlot(lane, lanes, back), pose, style)
+            : Lanes.LaneGeometry(a, b, new LaneSlot(lane, lanes, back), pose, style)).ToList();
 
     internal static void SameLane(JsonNode want, LaneLine got, string what)
     {

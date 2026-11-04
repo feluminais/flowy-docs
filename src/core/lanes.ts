@@ -1,4 +1,5 @@
 import type { Point } from './heads.ts'
+import type { LineStyle } from './model.ts'
 import type { Strand } from './views.ts'
 
 /**
@@ -6,7 +7,9 @@ import type { Strand } from './views.ts'
  * `PITCH` apart and centred on the line between the two shapes, from nothing but the order of the connections in the file and the geometry of the two shapes. Nothing is saved
  * per line. Both readers draw from this one module (the desktop app has a twin of it, held equal by desktop/fixtures).
  *
- * Only straight lanes so far: a pair of two or more lines is drawn straight in every line style (a pair with one line is drawn as it always was, see ui/src/lanes.ts).
+ * Lanes follow the project's line style. Straight lanes run parallel to the line between the shapes. Curved lanes are the curve a lone line of the pair would be (React Flow's cubic
+ * between the middles of the two facing sides), moved along the sides. Angled lanes are the staircase a lone line would be, nested. Where a pair has no such curve or staircase (its
+ * sides do not face each other, or there is no room between them), its lanes are straight in every style. A pair with one line is drawn as it always was (see ui/src/lanes.ts).
  *
  * The module uses `+ - * /`, `sqrt` and comparisons only, and every number it hands out is rounded with `round3`, so the C# twin gets the same numbers: no `hypot`, trigonometry
  * or `pow` (test/lanes-core.test.ts looks for them).
@@ -48,6 +51,30 @@ export function leaveAt(r: Rect, edge: Outline, dx: number, dy: number, from?: P
   return best === Infinity ? { x: cx, y: cy } : { x: cx + dx * best, y: cy + dy * best }
 }
 
+/** The side of a shape a curved or right-angled line leaves by. */
+export type PortSide = 'top' | 'right' | 'bottom' | 'left'
+
+/** The step out of a side of a shape: where a curved or right-angled line heads when it leaves by that side. */
+const OUT: Record<PortSide, readonly [number, number]> = { top: [0, -1], bottom: [0, 1], left: [-1, 0], right: [1, 0] }
+
+/** The side of `from` that faces `to`: the one a line between their centres leaves through. */
+function facing(from: Rect, to: Rect): PortSide {
+  const dx = to.x + to.width / 2 - (from.x + from.width / 2)
+  const dy = to.y + to.height / 2 - (from.y + from.height / 2)
+  if (Math.abs(dx) * from.height > Math.abs(dy) * from.width) return dx > 0 ? 'right' : 'left'
+  return dy > 0 ? 'bottom' : 'top'
+}
+
+/** The middle of one side of a shape: where the line along that axis from its centre meets the outline. */
+const middleOf = (r: Rect, side: PortSide, edge: Outline): Point => leaveAt(r, edge, ...OUT[side])
+
+/** Where a curved or right-angled line starts and ends: the middle of the side each shape turns to the other. */
+export function ports(a: Rect, b: Rect, edgeA: Outline = [], edgeB: Outline = []): { from: Point; fromSide: PortSide; to: Point; toSide: PortSide } {
+  const fromSide = facing(a, b)
+  const toSide = facing(b, a)
+  return { from: middleOf(a, fromSide, edgeA), fromSide, to: middleOf(b, toSide, edgeB), toSide }
+}
+
 /** A number to three decimals, the way both readers round: half up, whatever the sign (`Math.round` and C#'s `Math.Round` differ on halves). */
 export const round3 = (x: number): number => Math.floor(x * 1000 + 0.5) / 1000
 
@@ -61,6 +88,31 @@ export const MARGIN = 10
 export const MOST = 8
 /** Number of segments a lane that is displaced is drawn in (it has one more point than that). */
 export const SAMPLES = 24
+/**
+ * The least room, along the way two facing sides look, between the middles of the two sides for a pair to run curved or right-angled; with less (or sides that do not face each other)
+ * its lanes run straight. A curve that short has no middle to speak of, and a staircase has no room for its turns.
+ */
+export const MIN_ROUTE_GAP = 24
+/** The most the lanes of a curved pair are moved along the sides, as a multiple of their offset: where the curve is steep it takes more than the offset to be a pitch apart across it. */
+export const KAPPA_MAX = 1.3
+/**
+ * The least share of a pitch the lanes of a curved pair may be apart across the curve, which is in the middle, where the curve is steepest against the sides. With `KAPPA_MAX` it says how
+ * steep a curve may be: at least `GAP_LEAST / KAPPA_MAX` of its middle must run the way out of the sides. A curve that runs nearly along the sides (a flat S between shapes that face each
+ * other from above and below but sit side by side) cannot be moved along them to make room, since its lanes would lie on top of one another, so the pair runs straight.
+ */
+export const GAP_LEAST = 0.4
+/** The shortest run across (the middle leg of a staircase) a right-angled pair has: with less its lanes run straight. A run that short is no step, and it could not be moved when the pair parts. */
+export const ANGLE_RUN = 24
+/** The corner radius of a right-angled lane before its offset is added or taken, at least. */
+export const CORNER = 8
+/** How much more than the widest offset of a pair the radius is, if that is more than `CORNER`: the corner on the inside of the turn keeps at least this. */
+export const CORNER_AIR = 6
+/** The smallest radius a corner is rounded to; a corner between legs that are shorter is rounded to half the shorter. */
+export const CORNER_LEAST = 2
+/** How near the end of a side the outermost lane of a curved pair may be moved to: kappa is held to what leaves this much room. */
+export const SIDE_AIR = 3
+/** How much of each leg a right-angled pair keeps for itself when its runs are squeezed together to fit across it: a run never gets nearer a shape than this. */
+export const LEG_AIR = 6
 /** The pitch in the middle of a pair that is spread, at most. */
 export const SPREAD_PITCH = 22
 /** How far from a lane a pointer still means that lane, at most, in screen pixels (see nearestStrand: the same distance at any zoom). */
@@ -150,10 +202,64 @@ function halfRoom(box: LaneBox, n: Point): number {
   return Math.min(along(1), along(-1))
 }
 
-/** The smaller half-room of the two shapes of a pair across their lanes: how far each outline is from the line between the centres, along its normal, the nearer side of the nearer shape. */
-export function roomOf(one: LaneBox, other: LaneBox): number {
-  const { a, b, n } = frameOf(one, other)
-  return Math.min(halfRoom(a, n), halfRoom(b, n))
+/**
+ * The curve of a lone line between the middles of two facing sides: the first control point leaves the side straight out for half the gap, and the second arrives the same way.
+ * (React Flow's cubic with its curvature of 0.25: the control offset is half the distance when the other end is ahead.)
+ */
+function curveOf(from: Point, to: Point, sideA: PortSide, sideB: PortSide, gap: number): [Point, Point, Point, Point] {
+  const [outA, outB] = [OUT[sideA], OUT[sideB]]
+  const reach = gap / 2
+  return [from, { x: from.x + outA[0] * reach, y: from.y + outA[1] * reach }, { x: to.x + outB[0] * reach, y: to.y + outB[1] * reach }, to]
+}
+
+/**
+ * How much of the curve's middle runs along the way out of the sides (0 to 1): the component of its unit tangent there, 3/4 of (P3 + P2 - P1 - P0), along that way. 1 is a straight
+ * run between two sides; the smaller it is, the more of the middle runs along the sides, where the lanes are moved.
+ */
+function curveSteepness(from: Point, to: Point, sideA: PortSide, sideB: PortSide, gap: number): number {
+  const [p0, p1, p2, p3] = curveOf(from, to, sideA, sideB, gap)
+  const [tx, ty] = [0.75 * (p3.x + p2.x - p1.x - p0.x), 0.75 * (p3.y + p2.y - p1.y - p0.y)]
+  return Math.abs(OUT[sideA][1] === 0 ? tx : ty) / Math.sqrt(tx * tx + ty * ty)
+}
+
+/**
+ * How a pair of curved or right-angled lanes runs: between the middles of the two sides that face each other (`from` on the shape with the smaller id, `to` on the other), `gap` apart
+ * along the way the sides look, and moved along the sides (`lateral`, a unit step along them, to the same side as the pair's normal) to make room for the lanes side by side.
+ */
+type Route = { from: Point; to: Point; sideA: PortSide; sideB: PortSide; gap: number; horizontal: boolean; lateral: Point }
+
+/**
+ * The route curved or angled lanes take between the shapes of `frame`, or undefined when they run straight: in the straight style, when the sides that face each other are not
+ * opposite or are less than `MIN_ROUTE_GAP` apart, and, for a right-angled pair, when the run across is shorter than `ANGLE_RUN`.
+ */
+function routeOf(frame: Frame, style: LineStyle): Route | undefined {
+  if (style === 'straight') return undefined
+  const { a, b, n } = frame
+  const p = ports(a.rect, b.rect, a.edge, b.edge)
+  const [out, back] = [OUT[p.fromSide], OUT[p.toSide]]
+  if (out[0] + back[0] !== 0 || out[1] + back[1] !== 0) return undefined
+  const gap = (p.to.x - p.from.x) * out[0] + (p.to.y - p.from.y) * out[1]
+  if (gap < MIN_ROUTE_GAP) return undefined
+  const horizontal = out[1] === 0
+  if (style === 'angled' && (horizontal ? Math.abs(p.to.y - p.from.y) : Math.abs(p.to.x - p.from.x)) < ANGLE_RUN) return undefined
+  if (style === 'curved' && curveSteepness(p.from, p.to, p.fromSide, p.toSide, gap) * KAPPA_MAX < GAP_LEAST) return undefined
+  const lateral = horizontal ? { x: 0, y: n.y >= 0 ? 1 : -1 } : { x: n.x >= 0 ? 1 : -1, y: 0 }
+  return { from: p.from, to: p.to, sideA: p.fromSide, sideB: p.toSide, gap, horizontal, lateral }
+}
+
+/** The smaller half-room of the two shapes across the lanes of `frame`: along the normal for straight lanes, along the sides for the lanes of a route. */
+function spanOf(frame: Frame, route: Route | undefined): number {
+  const across = route?.lateral ?? frame.n
+  return Math.min(halfRoom(frame.a, across), halfRoom(frame.b, across))
+}
+
+/**
+ * The smaller half-room of the two shapes of a pair across their lanes: how far each outline is from the line between the centres, along its normal, the nearer side of the nearer
+ * shape. In the curved and angled styles, where the pair has a curve or a staircase, the same measured along the sides the lanes are moved along.
+ */
+export function roomOf(one: LaneBox, other: LaneBox, style: LineStyle = 'straight'): number {
+  const frame = frameOf(one, other)
+  return spanOf(frame, routeOf(frame, style))
 }
 
 /** The gutter between the lanes of the two directions: only where there are lanes both ways. */
@@ -195,19 +301,34 @@ export type Lane = { path: string; x: number; y: number; points: Point[] }
 const pointText = (p: Point): string => `${p.x} ${p.y}`
 const roundedPoint = (x: number, y: number): Point => ({ x: round3(x), y: round3(y) })
 
+/** The path through `points`: short curves through their midpoints, so the lane is smooth and passes where the displaced line was sampled. */
+function chain(points: readonly Point[]): string {
+  const last = points.length - 1
+  let path = `M${pointText(points[0])}`
+  for (let i = 1; i < last; i++) {
+    const next = points[i + 1]
+    path += `Q${pointText(points[i])} ${pointText(roundedPoint((points[i].x + next.x) / 2, (points[i].y + next.y) / 2))}`
+  }
+  return `${path}L${pointText(points[last])}`
+}
+
 /**
- * The lane `slot` of the pair between `source` and `target`, drawn from `source` to `target`, in `pose`. A lane at rest is the straight line between the two points where its
- * line (parallel to the line between the centres) meets the two outlines. A lane in another pose is the same line moved sideways by a field that is 0 at both ends and largest in
- * the middle, written as 24 short curves, so the shapes and the heads never move:
+ * The lane `slot` of the pair between `source` and `target`, drawn from `source` to `target`, in `pose` and in a line `style`. A lane at rest is the straight line between the two points
+ * where its line (parallel to the line between the centres) meets the two outlines. A lane in another pose is the same line moved sideways by a field that is 0 at both ends and
+ * largest in the middle, written as 24 short curves, so the shapes and the heads never move:
  *   moved(t) = bulge(t) * ((f - 1) * s * offset + a * sum over lit lanes j of lam[j] * sign(lane - j))
  * `f` widens the middle to a pitch of at most `SPREAD_PITCH`; `a` opens a gap beside a lit lane. Every lane is moved by the same field in its own place, and the offset and the
  * second term only grow with the lane's place, so the lanes keep their order: they never cross.
+ *
+ * In the curved and angled styles a pair whose sides face each other with room between them has curved or right-angled lanes instead (see curvedLane and angledLane); otherwise its
+ * lanes are straight, whatever the style.
  */
-export function laneGeometry(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose = REST): Lane {
+export function laneGeometry(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose = REST, style: LineStyle = 'straight'): Lane {
   const frame = frameOf(source, target)
+  const route = routeOf(frame, style)
+  if (route !== undefined) return style === 'curved' ? curvedLane(frame, route, source, slot, pose) : angledLane(frame, route, source, slot, pose)
   const { a, b, ca, cb, u, n } = frame
-  const half = Math.min(halfRoom(a, n), halfRoom(b, n))
-  const pitch = pitchFor(half, slot)
+  const pitch = pitchFor(spanOf(frame, undefined), slot)
   const offset = offsetOf(slot, pitch)
   const exitA = leaveAt(a.rect, a.edge, u.x, u.y, { x: ca.x + n.x * offset, y: ca.y + n.y * offset })
   const exitB = leaveAt(b.rect, b.edge, -u.x, -u.y, { x: cb.x + n.x * offset, y: cb.y + n.y * offset })
@@ -224,18 +345,151 @@ export function laneGeometry(source: LaneBox, target: LaneBox, slot: Slot, pose:
     const moved = bulge(t) * sideways
     points.push(i === 0 ? start : i === SAMPLES ? end : roundedPoint(start.x + (end.x - start.x) * t + n.x * moved, start.y + (end.y - start.y) * t + n.y * moved))
   }
-  let path = `M${pointText(points[0])}`
-  for (let i = 1; i < SAMPLES; i++) {
-    const next = points[i + 1]
-    path += `Q${pointText(points[i])} ${pointText(roundedPoint((points[i].x + next.x) / 2, (points[i].y + next.y) / 2))}`
-  }
-  path += `L${pointText(points[SAMPLES])}`
   const middle = points[SAMPLES / 2]
-  return { path, x: middle.x, y: middle.y, points }
+  return { path: chain(points), x: middle.x, y: middle.y, points }
+}
+
+/** A point of the cubic through `p0, c1, c2, p3` at `t`. */
+function cubicAt(t: number, p0: Point, c1: Point, c2: Point, p3: Point): Point {
+  const u = 1 - t
+  const [w0, w1, w2, w3] = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t]
+  return { x: w0 * p0.x + w1 * c1.x + w2 * c2.x + w3 * p3.x, y: w0 * p0.y + w1 * c1.y + w2 * c2.y + w3 * p3.y }
+}
+
+/**
+ * A lane of a curved pair. The curve a lone line of the pair would be is React Flow's cubic between the middles of the two facing sides, leaving each side straight out for half the gap
+ * between them. Lane k is that curve with all four points moved along the sides, to the lane's side of the pair, by `offset * kappa`, where `kappa = min(KAPPA_MAX, 1 / |m|)` and `|m|`
+ * is how far the curve runs along the way out of the sides in its middle, which makes the lanes a pitch apart across the curve there, however steep it is. Where a shape's outline is not
+ * straight across the side the moved end is in the air or inside the shape, so the lane is joined to the outline by a short straight stub along the way out, and the curve itself stays
+ * the moved copy of the one curve.
+ *
+ * A pair that is not at rest moves each lane along the sides too, by the field of laneGeometry (0 at both ends, so the ends and the stubs do not move). All the lanes are then graphs
+ * of one function over the way out of the sides, shifted by amounts that grow with the lane's place, so they never cross, in any pose and however tightly the curve bends.
+ */
+function curvedLane(frame: Frame, route: Route, source: LaneBox, slot: Slot, pose: Pose): Lane {
+  const { a, b, ca, cb } = frame
+  const span = spanOf(frame, route)
+  const pitch = pitchFor(span, slot)
+  const offset = offsetOf(slot, pitch)
+  const [outA, outB] = [OUT[route.sideA], OUT[route.sideB]]
+  const widest = widestOf(slot, pitch)
+  const kappa = Math.min(KAPPA_MAX, 1 / curveSteepness(route.from, route.to, route.sideA, route.sideB, route.gap), widest === 0 ? Infinity : (span - SIDE_AIR) / widest)
+  const along = (c: Point, by: number): Point => ({ x: c.x + route.lateral.x * by, y: c.y + route.lateral.y * by })
+  const [p0, p1, p2, p3] = curveOf(route.from, route.to, route.sideA, route.sideB, route.gap).map(c => along(c, offset * kappa))
+  const [q0, q1, q2, q3] = [roundedPoint(p0.x, p0.y), roundedPoint(p1.x, p1.y), roundedPoint(p2.x, p2.y), roundedPoint(p3.x, p3.y)]
+  // Where the lane meets the outlines: the ray out of the shape from the lane's side of its middle. On a straight side that is the end of the curve itself.
+  const exitA = leaveAt(a.rect, a.edge, outA[0], outA[1], along(ca, offset * kappa))
+  const exitB = leaveAt(b.rect, b.edge, outB[0], outB[1], along(cb, offset * kappa))
+  const [e0, e3] = [roundedPoint(exitA.x, exitA.y), roundedPoint(exitB.x, exitB.y)]
+  const [stubA, stubB] = [e0.x !== q0.x || e0.y !== q0.y, e3.x !== q3.x || e3.y !== q3.y]
+  const sideways = displacement(slot, pose, frame.length, pitch) * kappa
+  const samples: Point[] = []
+  for (let i = 0; i <= SAMPLES; i++) {
+    const at = cubicAt(i / SAMPLES, q0, q1, q2, q3)
+    const away = bulge(i / SAMPLES) * sideways
+    samples.push(i === 0 ? q0 : i === SAMPLES ? q3 : roundedPoint(at.x + route.lateral.x * away, at.y + route.lateral.y * away))
+  }
+  // From the shape with the smaller id to the other; the lane runs the other way when it starts at the other shape.
+  const forward = source === a
+  const inOrder = (list: Point[]): Point[] => (forward ? list : [...list].reverse())
+  const points = inOrder([...(stubA ? [e0] : []), ...samples, ...(stubB ? [e3] : [])])
+  if (sideways !== 0) {
+    const middle = samples[SAMPLES / 2]
+    return { path: chain(points), x: middle.x, y: middle.y, points }
+  }
+  const run = forward ? { head: stubA ? e0 : undefined, from: q0, c1: q1, c2: q2, to: q3, tail: stubB ? e3 : undefined } : { head: stubB ? e3 : undefined, from: q3, c1: q2, c2: q1, to: q0, tail: stubA ? e0 : undefined }
+  const path = `M${pointText(run.head ?? run.from)}${run.head ? `L${pointText(run.from)}` : ''}C${pointText(run.c1)} ${pointText(run.c2)} ${pointText(run.to)}${run.tail ? `L${pointText(run.tail)}` : ''}`
+  return { path, x: round3((q0.x + 3 * q1.x + 3 * q2.x + q3.x) / 8), y: round3((q0.y + 3 * q1.y + 3 * q2.y + q3.y) / 8), points }
+}
+
+/**
+ * The path through the corners of a right-angled lane, `radii[i - 1]` the radius of the corner at `vertices[i]`: straight legs, and each turn rounded by a quadratic curve that starts and
+ * ends that far from the corner (no more than half of either leg, and not under `CORNER_LEAST`). A turn between two legs on a line is no turn. The points are the lane flattened.
+ */
+function staircase(vertices: readonly Point[], radii: readonly number[]): { path: string; points: Point[] } {
+  const last = vertices.length - 1
+  let path = `M${pointText(vertices[0])}`
+  const points: Point[] = [vertices[0]]
+  for (let i = 1; i < last; i++) {
+    const [p, b, q] = [vertices[i - 1], vertices[i], vertices[i + 1]]
+    const [before, after] = [Math.abs(b.x - p.x) + Math.abs(b.y - p.y), Math.abs(q.x - b.x) + Math.abs(q.y - b.y)]
+    const radius = Math.min(Math.max(radii[i - 1], CORNER_LEAST), before / 2, after / 2)
+    if ((p.x === b.x && b.x === q.x) || (p.y === b.y && b.y === q.y) || !(radius > 0)) {
+      path += `L${pointText(b)}`
+      points.push(b)
+      continue
+    }
+    const enter = roundedPoint(b.x - sign(b.x - p.x) * radius, b.y - sign(b.y - p.y) * radius)
+    const leave = roundedPoint(b.x + sign(q.x - b.x) * radius, b.y + sign(q.y - b.y) * radius)
+    path += `L${pointText(enter)}Q${pointText(b)} ${pointText(leave)}`
+    points.push(enter)
+    for (const t of [0.25, 0.5, 0.75]) {
+      const u = 1 - t
+      points.push(roundedPoint(u * u * enter.x + 2 * u * t * b.x + t * t * leave.x, u * u * enter.y + 2 * u * t * b.y + t * t * leave.y))
+    }
+    points.push(leave)
+  }
+  points.push(vertices[last])
+  return { path: `${path}L${pointText(vertices[last])}`, points }
+}
+
+/**
+ * A lane of a right-angled pair. The staircase a lone line of the pair would be goes out of the middle of one side, across to the middle of the way between the shapes, along the
+ * run, and across to the middle of the other side (S, (cx, sy), (cx, ty), T). Lane k leaves its side `offset` along it, to the lane's side of the pair, and its run is moved the same
+ * distance the other way (across the legs), so the lanes are nested staircases the same gap apart that never cross; where the legs are too short for that, the runs are squeezed
+ * together by the same factor, which keeps their order. A pair that is not at rest moves only the run, by the displacement of laneGeometry, so the ends and the legs stay where they
+ * were. The corners are rounded to concentric arcs: the radius of the outer corner is the radius of the inner one plus the gap between them.
+ */
+function angledLane(frame: Frame, route: Route, source: LaneBox, slot: Slot, pose: Pose): Lane {
+  const { a, b, ca, cb } = frame
+  const pitch = pitchFor(spanOf(frame, route), slot)
+  const offset = offsetOf(slot, pitch)
+  const [outA, outB] = [OUT[route.sideA], OUT[route.sideB]]
+  const moved = (c: Point): Point => ({ x: c.x + route.lateral.x * offset, y: c.y + route.lateral.y * offset })
+  const exitA = leaveAt(a.rect, a.edge, outA[0], outA[1], moved(ca))
+  const exitB = leaveAt(b.rect, b.edge, outB[0], outB[1], moved(cb))
+  const [s, t] = [roundedPoint(exitA.x, exitA.y), roundedPoint(exitB.x, exitB.y)]
+  // Where the run of each lane is among the others: its offset and what the pose adds; all of them at once, to know how much room they need.
+  const runs = Array.from({ length: slot.lanes }, (_, lane) => offsetOf({ ...slot, lane }, pitch) + displacement({ ...slot, lane }, pose, frame.length, pitch))
+  const widestRun = runs.reduce((most, r) => Math.max(most, Math.abs(r)), 0)
+  const room = route.gap / 2 - LEG_AIR
+  const squeeze = widestRun <= room ? 1 : Math.max(0, room) / widestRun
+  const run = squeeze * runs[slot.lane]
+  const [hx, hy] = [sign(route.to.x - route.from.x), sign(route.to.y - route.from.y)]
+  const radius = Math.max(CORNER, widestOf(slot, pitch) + CORNER_AIR)
+  // The first and the second corner, by the gap between the lane's corner and the lone line's: the corner on the inside of a turn has the smaller radius.
+  const turn = hx * hy * offset
+  let vertices: Point[]
+  let radii: number[]
+  let anchor: Point
+  if (route.horizontal) {
+    const x = round3((route.from.x + route.to.x) / 2 - hy * run)
+    vertices = [s, { x, y: s.y }, { x, y: t.y }, t]
+    radii = [radius - turn, radius + turn]
+    anchor = { x, y: round3((s.y + t.y) / 2) }
+  } else {
+    const y = round3((route.from.y + route.to.y) / 2 + hx * run)
+    vertices = [s, { x: s.x, y }, { x: t.x, y }, t]
+    radii = [radius + turn, radius - turn]
+    anchor = { x: round3((s.x + t.x) / 2), y }
+  }
+  if (source !== frame.a) {
+    vertices = [...vertices].reverse()
+    radii = [...radii].reverse()
+  }
+  const { path, points } = staircase(vertices, radii)
+  return { path, x: anchor.x, y: anchor.y, points }
 }
 
 /** The sign of `x`: -1, 0 or 1. */
 const sign = (x: number): number => (x > 0 ? 1 : x < 0 ? -1 : 0)
+
+/** How far the outermost lane of a pair is from the line between the centres. The lanes are centred, so it is the same either side. */
+function widestOf(slot: Slot, pitch: number): number {
+  let widest = 0
+  for (let k = 0; k < slot.lanes; k++) widest = Math.max(widest, Math.abs(offsetOf({ ...slot, lane: k }, pitch)))
+  return widest
+}
 
 /**
  * How far the middle of lane `slot.lane` is moved along `n` in `pose`, for a pair whose shapes are `length` apart and whose lanes are `pitch` apart: the widening of a spread
@@ -244,9 +498,7 @@ const sign = (x: number): number => (x > 0 ? 1 : x < 0 ? -1 : 0)
 export function displacement(slot: Slot, pose: Pose, length: number, pitch: number): number {
   if (slot.lanes < 2 && pose.lam.every(l => l === 0)) return 0
   const offset = offsetOf(slot, pitch)
-  let widest = 0
-  for (let k = 0; k < slot.lanes; k++) widest = Math.max(widest, Math.abs(offsetOf({ ...slot, lane: k }, pitch)))
-  const spread = Math.min(SPREAD_PITCH / pitch, 1 + (0.2 * length) / (widest + PITCH))
+  const spread = Math.min(SPREAD_PITCH / pitch, 1 + (0.2 * length) / (widestOf(slot, pitch) + PITCH))
   const gap = Math.min(18, 0.2 * length)
   let parted = 0
   pose.lam.forEach((lit, j) => {
@@ -333,10 +585,9 @@ export function litLanes(strands: readonly Strand[], lit: readonly string[]): Ma
 }
 
 /** The pitch and the distance between the shapes of a pair of boxes the lane `slot` is among: what a pose and the marks need to say where the neighbours of a lane are. */
-function layoutOf(source: LaneBox, target: LaneBox, slot: Slot): { pitch: number; length: number } {
+function layoutOf(source: LaneBox, target: LaneBox, slot: Slot, style: LineStyle): { pitch: number; length: number } {
   const frame = frameOf(source, target)
-  const half = Math.min(halfRoom(frame.a, frame.n), halfRoom(frame.b, frame.n))
-  return { pitch: pitchFor(half, slot), length: frame.length }
+  return { pitch: pitchFor(spanOf(frame, routeOf(frame, style)), slot), length: frame.length }
 }
 
 /**
@@ -344,9 +595,9 @@ function layoutOf(source: LaneBox, target: LaneBox, slot: Slot): { pitch: number
  * more in the middle where a lit lane has opened a gap beside it (PART_CLEAR beside a lit lane). Infinity for a lane with no neighbour. The marks of an outcome use it to stay
  * clear of the lines beside.
  */
-export function gapBeside(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose, t: number): number {
+export function gapBeside(source: LaneBox, target: LaneBox, slot: Slot, pose: Pose, t: number, style: LineStyle = 'straight'): number {
   if (slot.lanes < 2) return Infinity
-  const { pitch, length } = layoutOf(source, target, slot)
+  const { pitch, length } = layoutOf(source, target, slot, style)
   const at = (lane: number): number => {
     const mine = { ...slot, lane }
     return offsetOf(mine, pitch) + bulge(t) * displacement(mine, pose, length, pitch)
@@ -368,12 +619,10 @@ export const markReach = (half: number, gap: number): number => (gap === Infinit
  * How far from the lit lane a mark that hangs off it (the marker of whoever takes an intercepted request) must stand to clear every other lane of the bundle: the widest lane
  * offset from the middle plus the gap a lit lane opens. 0 for a lane with no neighbours.
  */
-export function bundleReach(source: LaneBox, target: LaneBox, slot: Slot): number {
+export function bundleReach(source: LaneBox, target: LaneBox, slot: Slot, style: LineStyle = 'straight'): number {
   if (slot.lanes < 2) return 0
-  const { pitch, length } = layoutOf(source, target, slot)
-  let widest = 0
-  for (let k = 0; k < slot.lanes; k++) widest = Math.max(widest, Math.abs(offsetOf({ ...slot, lane: k }, pitch)))
-  return round3(widest + Math.min(18, 0.2 * length))
+  const { pitch, length } = layoutOf(source, target, slot, style)
+  return round3(widestOf(slot, pitch) + Math.min(18, 0.2 * length))
 }
 
 /** How far ahead of the pattern, in pixels, the dots of a stream on lane `slot` start: lane * 12.1 / lanes, so the streams of neighbouring lanes do not march in step (the pattern repeats every 12 px). */

@@ -29,8 +29,8 @@ internal sealed record Lane(LinePath Path, StreamGeometry Geometry, IReadOnlyLis
 /// of lines, the shapes at its two ends, a pose and, for a line that is one of several of its pair, its slot. The answer stays the same object while the shapes stay where they are,
 /// so a layer that asks on every draw gets the same lane back and has nothing new to work out, and the path is parsed into a geometry once, not on every frame.
 ///
-/// A line that is one of several of a pair (it has a slot of two lanes or more, see <see cref="Strand"/>) is a straight lane beside the others, in every line style; a line that is
-/// alone between its two shapes is drawn as it always was. A pose says how far the lanes of its pair are spread, and which are lit; a lone line has nothing to spread, so every pose gives its rest path.
+/// A line that is one of several of a pair (it has a slot of two lanes or more, see <see cref="Strand"/>) is a lane beside the others, in the project's line style (straight, curved or
+/// right-angled; a pair whose shapes do not face each other with room between them has straight lanes in every style); a line that is alone between its two shapes is drawn as it always was. A pose says how far the lanes of its pair are spread, and which are lit; a lone line has nothing to spread, so every pose gives its rest path.
 ///
 /// One store belongs to one canvas and is used from the UI thread only.
 /// </summary>
@@ -49,7 +49,7 @@ internal sealed class LaneStore
 
     /// <summary>
     /// The lane for <paramref name="strand"/> (null where the caller has no strand id: the pair's own id, which is also the id of the line the reader draws for the pair) in
-    /// <paramref name="style"/> ("straight", "curved" or "angled"), in <paramref name="pose"/>; with a <paramref name="slot"/> of two lanes or more it is the straight lane it is among them. A line that runs the other way between the same two shapes is another lane: its path starts at the other shape.
+    /// <paramref name="style"/> ("straight", "curved" or "angled"), in <paramref name="pose"/>; with a <paramref name="slot"/> of two lanes or more it is the lane it is among them, in <paramref name="style"/>. A line that runs the other way between the same two shapes is another lane: its path starts at the other shape.
     /// </summary>
     public Lane PathFor(string? strand, string style, LaneEnd from, LaneEnd to, LanePose? pose = null, LaneSlot? slot = null)
     {
@@ -60,7 +60,7 @@ internal sealed class LaneStore
         Lane lane;
         if (several)
         {
-            var made = Lanes.LaneGeometry(new LaneBox(from.Id, from.Rect, from.Edge), new LaneBox(to.Id, to.Rect, to.Edge), slot!.Value, pose ?? LanePose.Rest);
+            var made = Lanes.LaneGeometry(new LaneBox(from.Id, from.Rect, from.Edge), new LaneBox(to.Id, to.Rect, to.Edge), slot!.Value, pose ?? LanePose.Rest, style);
             var path = made.AsLinePath();
             lane = new Lane(path, StreamGeometry.Parse(path.Data), made.Points);
         }

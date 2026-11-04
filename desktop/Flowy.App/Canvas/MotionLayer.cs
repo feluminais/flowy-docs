@@ -84,12 +84,12 @@ internal sealed class MotionLayer : Control
             {
                 var size = MotionMath.MarkerSize(name);
                 var spot = SpotAt(line, line.ContourLength, beats.FirstOrDefault(b => b.Do == "marker")?.Along ?? 0.4);
-                var offset = MotionMath.MarkerSpot(spot.Dx, spot.Dy, size, among is { } slot ? Lanes.BundleReach(one!, other!, slot) : 0);
+                var offset = MotionMath.MarkerSpot(spot.Dx, spot.Dy, size, among is { } slot ? Lanes.BundleReach(one!, other!, slot, s.Style) : 0);
                 takerBox = new CoreRect(spot.X + offset.X - size.Width / 2, spot.Y + offset.Y - size.Height / 2, size.Width, size.Height);
             }
             runs.Add(new Run(beats, line, line.ContourLength, s.From, s.To, s.ShapeFrom is null ? null : Geometry.Parse(s.ShapeFrom), s.ShapeTo is null ? null : Geometry.Parse(s.ShapeTo),
                 takerBox, by?.Shape is { } shape ? Geometry.Parse(shape) : null, by?.Box is null ? by?.Name : null, s.Animation.Effect, s.Animation.Depth ?? Animations.DepthDefault, total, PathPoints.Flatten(data),
-                among is { } grouped ? KeepOf(beats, one!, other!, grouped, s.Lit) : null));
+                among is { } grouped ? KeepOf(beats, one!, other!, grouped, s.Lit, s.Style) : null));
             started.Add((beats, total));
         }
         _runs = runs;
@@ -101,7 +101,7 @@ internal sealed class MotionLayer : Control
     /// How much of its size each mark of an outcome keeps, among the lines of a pair: a mark of half-extent <c>half</c> at <c>along</c> the line reaches no further than the gap beside the lit line leaves
     /// there (see <see cref="Lanes.MarkReach"/>), once the pair has parted. A mark that fits keeps all of it (1).
     /// </summary>
-    private static Dictionary<Beat, double> KeepOf(IReadOnlyList<Beat> beats, LaneBox from, LaneBox to, LaneSlot slot, IReadOnlyList<double>? lit)
+    private static Dictionary<Beat, double> KeepOf(IReadOnlyList<Beat> beats, LaneBox from, LaneBox to, LaneSlot slot, IReadOnlyList<double>? lit, string style)
     {
         var parted = new LanePose(0, lit ?? []);
         var kept = new Dictionary<Beat, double>();
@@ -109,7 +109,7 @@ internal sealed class MotionLayer : Control
         {
             if (beat.Along is not { } along || beat.Do is not ("pop" or "clock" or "bar")) continue;
             var half = beat.Do switch { "pop" => PopHalf, "clock" => ClockHalf, _ => BarHalf };
-            kept[beat] = Math.Min(1, Lanes.MarkReach(half, Lanes.GapBeside(from, to, slot, parted, along)) / half);
+            kept[beat] = Math.Min(1, Lanes.MarkReach(half, Lanes.GapBeside(from, to, slot, parted, along, style)) / half);
         }
         return kept;
     }
