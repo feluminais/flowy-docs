@@ -408,7 +408,9 @@
     "SPREAD_PITCH": 22,
     "REACH": 7,
     "HIT_WIDTH": 14,
-    "SAMPLE": 34
+    "SAMPLE": 34,
+    "NEXT_TO": 4,
+    "PIPE_CLEAR": 21
   },
   "leaveAt": [
     {

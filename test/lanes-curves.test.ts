@@ -15,6 +15,7 @@ import { clip, placeLabels, SAMPLE } from '../ui/src/labels.ts'
 import type { LabelItem } from '../ui/src/labels.ts'
 import { createLaneStore } from '../ui/src/lanes.ts'
 import type { LaneEnd } from '../ui/src/lanes.ts'
+import { labelGap } from './label-gap.ts'
 
 // Curved and right-angled lanes (src/core/lanes.ts, spec 2.4): the formulas by hand, the places they fall back to straight lanes, and what must hold whatever the shapes and the pose.
 
@@ -351,7 +352,7 @@ test('the lanes of a routed pair are in the order of their places: the one with 
   ), { seed: 20261105, numRuns: 200 })
 })
 
-test('the label of a lane is on its lane, and the labels of a pair in the three poses are placed clear of the lanes beside', () => {
+test('the label of a lane is on or beside its lane, and the labels of a pair in the three poses are placed clear of the lanes beside', () => {
   const [a, b] = [box('a', 0, 0), box('b', 400, 80)]
   for (const style of ROUTED) {
     for (const pose of [REST, SPREAD, { s: 0, lam: [0, 1, 0] }]) {
@@ -364,8 +365,8 @@ test('the label of a lane is on its lane, and the labels of a pair in the three 
       drawn.forEach((lane, i) => {
         assert.ok(nearestDistance(lane.points, { x: lane.x, y: lane.y }) < 0.6, `${style}: the anchor of lane ${i} is on it`)
         const spot = spots.get(`l${i}`)!
-        // A label slides along its own lane and no further, so it is near it.
-        assert.ok(nearestDistance(lane.points, spot) < 1, `${style}: label ${i} at ${spot.x},${spot.y} is on its lane`)
+        // A label slides along its own lane, or sits beside it: it is on it or a few pixels from it.
+        assert.ok(labelGap(spot, 10, SAMPLE, lane.points) <= 8, `${style}: label ${i} at ${spot.x},${spot.y} is by its lane`)
       })
     }
   }

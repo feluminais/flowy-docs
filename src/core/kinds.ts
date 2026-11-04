@@ -87,7 +87,7 @@ export function sharedKind(connections: readonly Record<string, unknown>[]): Kin
 }
 
 /** How each pattern is dashed on a line, in px as SVG's `stroke-dasharray` takes it (the desktop divides by the pen's thickness). Butt caps. */
-export const DASHES: Record<Pattern, readonly number[]> = { solid: [], dashdot: [10, 4, 2, 4] }
+export const DASHES: Record<Pattern, readonly number[]> = { solid: [], dashdot: [11, 3, 2, 3] }
 
 /** How a mark is painted: filled in the line's colour, only stroked, or hollow (filled with the background and stroked, so the line does not show through). */
 export type MarkPaint = 'fill' | 'stroke' | 'hollow'

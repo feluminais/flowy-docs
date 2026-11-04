@@ -38,9 +38,10 @@ public class KindsViewTests
     public void A_kinds_pattern_shows_on_a_quiet_line_only_and_a_steps_line_and_a_lane_keep_their_own_dashes()
     {
         var extension = Kinds.LookOfKind("extension");
-        Assert.Equal([10d, 4, 2, 4], BackLayer.DashesOf(EdgeFlags.None, extension, false));
-        Assert.Equal([10d, 4, 2, 4], BackLayer.DashesOf(EdgeFlags.Dim | EdgeFlags.Hover, extension, false)); // hovered or dimmed: the colour changes, not the pattern
+        Assert.Equal([11d, 3, 2, 3], BackLayer.DashesOf(EdgeFlags.None, extension, false));
+        Assert.Equal([11d, 3, 2, 3], BackLayer.DashesOf(EdgeFlags.Dim | EdgeFlags.Hover, extension, false)); // hovered or dimmed: the colour changes, not the pattern
         Assert.Null(BackLayer.DashesOf(EdgeFlags.Active, extension, false)); // a lit line is solid, so the dot has a clean base
+        Assert.Equal([11d, 3, 2, 3], BackLayer.DashesOf(EdgeFlags.Active | EdgeFlags.Several, extension, false)); // one of several side by side keeps its pattern: the kind is what tells it from its neighbours
         Assert.Null(BackLayer.DashesOf(EdgeFlags.None, extension, true)); // under a load's traffic, which paints on top
         Assert.Equal([8d, 5], BackLayer.DashesOf(EdgeFlags.Step, extension, false));
         Assert.Equal([4d, 5], BackLayer.DashesOf(EdgeFlags.Lane, extension, true));

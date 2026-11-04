@@ -29,6 +29,8 @@ internal sealed class BackLayer : Control
     private List<Drawn> _lines = [];
     private List<CoreRect> _labels = [];
     private Dictionary<string, CoreRect> _labelAt = []; // where each label is drawn, by line id, kept clear of the boxes and of each other (LineLabels)
+    private Dictionary<string, int> _labelSide = []; // the side of its line a label beside the line runs to (-1 left, 1 right), by line id; left out for a label on its line (LineLabels)
+    private HashSet<string> _labelHidden = []; // the lines of a pair side by side whose labels found no clear place: drawn only while the line is pointed at
     private IReadOnlyDictionary<string, double>? _widths; // how thick each line is drawn while a load shows (by line id), where it differs from the usual
     private FailureOverlay? _failures; // the Failures tab's badges and the line a picked mode fails, while the tab is open
     private IReadOnlyDictionary<string, Change>? _changes; // a comparison's change marks on the lines, by line id, while Show changes is on
@@ -213,11 +215,13 @@ internal sealed class BackLayer : Control
             var across = l.Edge.Lanes > 1 && l.Edge.Pair is not null
                 ? _lines.Where(o => o.Edge.Id != l.Edge.Id && o.Edge.Pair == l.Edge.Pair && o.Points is not null).Select(o => o.Points!).ToList()
                 : null;
-            return new LabelItem(l.Edge.Id, l.Path.Data, new CorePt(box.X + box.Width / 2, box.Y + box.Height / 2), box.Width, box.Height, pinned, across, across is null ? 0 : LineLabels.Sample);
+            return new LabelItem(l.Edge.Id, l.Path.Data, new CorePt(box.X + box.Width / 2, box.Y + box.Height / 2), box.Width, box.Height, pinned, across, across is null ? 0 : LineLabels.Sample, IsLifted(l.Edge) ? LineLabels.PipeClear : LineLabels.NextTo);
         }).ToList();
-        var spots = LineLabels.Place(items, _scene?.Boxes.Select(b => b.Rect).ToList() ?? []);
-        _labelAt = items.ToDictionary(i => i.Id, i => LineLabels.Around(spots[i.Id], i));
-        _labels = [.. _labelAt.Values];
+        var spots = LineLabels.PlaceSpots(items, _scene?.Boxes.Select(b => b.Rect).ToList() ?? []);
+        _labelAt = items.ToDictionary(i => i.Id, i => LineLabels.Around(spots[i.Id].At, i));
+        _labelSide = spots.Where(e => e.Value.Side != 0).ToDictionary(e => e.Key, e => e.Value.Side);
+        _labelHidden = spots.Where(e => e.Value.Hidden).Select(e => e.Key).ToHashSet();
+        _labels = [.. _labelAt.Where(e => !_labelHidden.Contains(e.Key)).Select(e => e.Value)];
     }
 
     private IReadOnlySet<(string From, string To)> _lifted = new HashSet<(string, string)>();
@@ -475,13 +479,13 @@ internal sealed class BackLayer : Control
 
     /// <summary>
     /// The dashes a line is drawn with, in px as SVG counts them, or null for a solid line. A step's line and a lane keep their own. A kind's pattern shows on a line that is
-    /// not lit (a lit line is solid, so the dot has a clean base) and not under a load's traffic (<paramref name="loaded"/>), which paints on top of it; the marks stay either way.
+    /// not lit (a lit line is solid, so the dot has a clean base; one of several side by side keeps its kind's pattern, as the kind is what tells it from its neighbours) and not under a load's traffic (<paramref name="loaded"/>), which paints on top of it; the marks stay either way.
     /// </summary>
     internal static IReadOnlyList<double>? DashesOf(EdgeFlags flags, LineLook? look, bool loaded)
     {
         if (flags.HasFlag(EdgeFlags.Step)) return [8, 5];
         if (flags.HasFlag(EdgeFlags.Lane)) return [4, 5];
-        if (flags.HasFlag(EdgeFlags.Active) || look is null || loaded) return null;
+        if ((flags.HasFlag(EdgeFlags.Active) && !flags.HasFlag(EdgeFlags.Several)) || look is null || loaded) return null;
         var dashes = Kinds.Dashes(look.Pattern);
         return dashes.Count == 0 ? null : dashes;
     }
@@ -508,16 +512,23 @@ internal sealed class BackLayer : Control
         // The label of a line among others starts with a sample of the line (its pattern and marks), so it is tied to its own line with no leader line.
         var sampled = line.Edge.Lanes > 1 && line.Edge.Pair is not null;
         var sample = sampled ? LineLabels.Sample : 0;
-        var box = _labelAt.TryGetValue(line.Edge.Id, out var placed) ? placed : LabelBox(line.Path, formatted) with { Width = formatted.Width + 8 + sample };
-        if (sampled && !_labelAt.ContainsKey(line.Edge.Id)) box = box with { X = line.Path.Label.X - box.Width / 2 };
-        if (IsLifted(line.Edge) && _scene is { } s
+        // A label with no clear place is drawn only while its line is pointed at, then at the middle of the line.
+        var hidden = _labelHidden.Contains(line.Edge.Id);
+        if (hidden && !_raised.Contains(line.Edge.Id)) return;
+        var found = !hidden && _labelAt.TryGetValue(line.Edge.Id, out var placed);
+        var box = found ? _labelAt[line.Edge.Id] : LabelBox(line.Path, formatted) with { Width = formatted.Width + 8 + sample };
+        if (sampled && !found) box = box with { X = line.Path.Label.X - box.Width / 2 };
+        // The label of a line among others is placed beside its lit line already (see LineLabels.BesideLit), clear of a pipe too; a lone line's label steps aside here.
+        if (!sampled && IsLifted(line.Edge) && _scene is { } s
             && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.From) is { } a && s.Boxes.FirstOrDefault(b => b.Id == line.Edge.To) is { } b)
         {
             var (x, y) = MotionMath.LabelOffset(b.Rect.X + b.Rect.Width / 2 - (a.Rect.X + a.Rect.Width / 2), b.Rect.Y + b.Rect.Height / 2 - (a.Rect.Y + a.Rect.Height / 2), text.Length);
             box = box with { X = box.X + x, Y = box.Y + y };
         }
         context.DrawRectangle(Brush("BgBrush"), null, new Avalonia.Rect(box.X, box.Y, box.Width, box.Height), 2, 2);
-        if (sampled) LookSwatch.Sketch(context, line.Edge.Look ?? Kinds.PlainLook, false, Brush("EdgeBrush"), Brush("BgBrush"), box.X + 4, box.X + sample - 6, box.Y + box.Height / 2);
-        context.DrawText(formatted, new Point(box.X + 4 + sample, box.Y + 2));
+        // A label that runs to the left of its line has the sample at its right end, so the sample is by the line.
+        var flipped = found && _labelSide.TryGetValue(line.Edge.Id, out var side) && side < 0;
+        if (sampled) LookSwatch.Sketch(context, line.Edge.Look ?? Kinds.PlainLook, false, Brush("EdgeBrush"), Brush("BgBrush"), flipped ? box.X + box.Width - sample + 6 : box.X + 4, flipped ? box.X + box.Width - 4 : box.X + sample - 6, box.Y + box.Height / 2);
+        context.DrawText(formatted, new Point(flipped ? box.X + 4 : box.X + 4 + sample, box.Y + 2));
     }
 }

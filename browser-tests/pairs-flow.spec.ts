@@ -91,21 +91,20 @@ test('a step on the second line lights it, fades its kin to 35 percent and parts
 })
 
 /**
- * How far the middle of each label (the pill that starts with a sample of its line) is from its line, in the canvas's own units, for lines one to three. The label of a line is placed from the
- * line as it is drawn, so it is on the line wherever the pair has parted it.
+ * How far each label (the pill that starts with a sample of its line) is from its line, in the canvas's own units, for lines one to three: 0 where the line runs under it. The label of a line is
+ * placed from the line as it is drawn, so it stays by the line wherever the pair has parted it.
  */
 const offLine = (page: Page) => page.getByRole('group', { name: /^\d of 3, / }).locator('.react-flow__edge-path').evaluateAll(async paths => {
   const zoom = Number(/scale\(([\d.]+)\)/.exec((document.querySelector('.react-flow__viewport') as HTMLElement).style.transform)?.[1] ?? 1)
   const pills = [...document.querySelectorAll('.lane-pill')]
   return ['One', 'Two', 'Three'].map((text, i) => {
     const pill = pills.find(p => p.querySelector('span')?.textContent === text)!.getBoundingClientRect()
-    const [x, y] = [pill.x + pill.width / 2, pill.y + pill.height / 2]
     const path = paths[i] as unknown as SVGGeometryElement
     let best = Infinity
     for (let at = 0; at <= path.getTotalLength(); at += 1) {
       const p = path.getPointAtLength(at)
       const q = new DOMPoint(p.x, p.y).matrixTransform(path.getScreenCTM()!)
-      best = Math.min(best, Math.hypot(q.x - x, q.y - y))
+      best = Math.min(best, Math.hypot(Math.max(pill.left - q.x, 0, q.x - pill.right), Math.max(pill.top - q.y, 0, q.y - pill.bottom)))
     }
     return Math.round((best / zoom) * 10) / 10
   })
@@ -121,14 +120,17 @@ test('the labels of the lines beside the lit one move with their lines as the pa
     await settled(page)
     await expectGaps(page, [30, 30])
     const off = await offLine(page)
-    for (const i of [0, 2]) expect(off[i]).toBeLessThan(2) // the label of the lit line is moved aside from the pipe that plays along it
+    // The label of the lit line sits beside it, clear of the dot and the pipe that play along it; the labels of the lines that part around it are by their own lines.
+    expect(off[1]).toBeGreaterThan(1)
+    expect(off[1]).toBeLessThanOrEqual(24)
+    for (const i of [0, 2]) expect(off[i]).toBeLessThanOrEqual(8)
     // Moving on to line three: the pair re-forms around it, and the labels go with their lines.
     await player(page).getByRole('button', { name: 'Next' }).click()
     await expect(line(page, 3)).toHaveClass(/active/)
     await settled(page)
     await expectGaps(page, [12, 30])
     const later = await offLine(page)
-    for (const i of [0, 1]) expect(later[i]).toBeLessThan(2)
+    for (const i of [0, 1]) expect(later[i]).toBeLessThanOrEqual(8)
   } finally {
     await s.close()
   }
@@ -157,6 +159,28 @@ test('with reduced motion the lines are open as soon as the step shows', async (
     await open(page, s.url)
     await expect(line(page, 2)).toHaveClass(/active/)
     await expectGaps(page, [30, 30])
+  } finally {
+    await s.close()
+  }
+})
+
+test("the camera fits the diagram above the player's card, as tall as the card is", async ({ page }) => {
+  // A step with a long text makes a card taller than the room a fit used to leave for it.
+  const model = systems(['a', 'b', 'c'], [{ from: 'a', to: 'b', label: 'One' }, { from: 'a', to: 'b', label: 'Two' }, { from: 'b', to: 'c', label: 'Next' }], { pairs: 'separate' })
+  const long = 'This step says a good deal about what happens on the line, so that the card of the player has to be taller than its usual room. '.repeat(3)
+  model.flows = { ask: { name: 'Ask', view: 'root', steps: [{ from: 'a', to: 'b', text: long, via: 'Two', animation: 'call' }, { from: 'b', to: 'c', text: 'Then on to c', animation: 'send' }] } }
+  const s = await serveModel(model, 'flowy-pairs-card-')
+  try {
+    await page.setViewportSize({ width: 1100, height: 900 })
+    await open(page, s.url)
+    // The diagram is fitted once the card is drawn, so wait for the view to stop moving.
+    await expect.poll(async () => {
+      const [card, boxes] = await page.evaluate(() => [
+        document.querySelector('.player')!.getBoundingClientRect().top,
+        [...document.querySelectorAll('.react-flow__node')].map(n => n.getBoundingClientRect().bottom),
+      ] as [number, number[]])
+      return Math.max(...boxes) <= card
+    }, { intervals: [200], timeout: 5000 }).toBe(true)
   } finally {
     await s.close()
   }

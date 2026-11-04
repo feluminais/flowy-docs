@@ -261,11 +261,12 @@ svg { flex: none; }
 .kmark.fill { fill: var(--c); stroke: none; }
 .kmark.stroke { fill: none; stroke: var(--c); stroke-linecap: round; stroke-linejoin: round; }
 .kmark.hollow { fill: var(--bg); stroke: var(--c); stroke-linecap: round; stroke-linejoin: round; }
-/* A kind's pattern: dash-dot for an extension point (the numbers are core's DASHES). A lit line is solid, a step's line, a lane and a line under a run's traffic keep their own. */
-.react-flow__edge-path.dashdot { stroke-dasharray: 10 4 2 4; }
+/* A kind's pattern: dash-dot for an extension point (the numbers are core's DASHES). A lit line is solid, except one of several side by side, which keeps its kind's pattern; a step's line, a lane and a line under a run's traffic keep their own. */
+.react-flow__edge-path.dashdot { stroke-dasharray: 11 3 2 3; }
 .react-flow__edge.active .react-flow__edge-path, .react-flow__edge.step .react-flow__edge-path {
   stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: none;
 }
+.react-flow__edge.active.several .react-flow__edge-path.dashdot { stroke-dasharray: 11 3 2 3; }
 .react-flow__edge.active .head, .react-flow__edge.step .head { fill: var(--accent); }
 .react-flow__edge.active .kmark, .react-flow__edge.step .kmark { --c: var(--accent); }
 .react-flow__edge.step .react-flow__edge-path { stroke-dasharray: 8 5; }
@@ -1536,6 +1537,8 @@ details.payload .code-block, .dot-card .code-block { max-height: 240px; overflow
   position: absolute; display: flex; align-items: center; gap: 6px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 4px; pointer-events: none; white-space: nowrap;
   background: var(--xy-edge-label-background-color, var(--xy-edge-label-background-color-default)); color: var(--xy-edge-label-color, var(--xy-edge-label-color-default)); font-size: 10px;
 }
+/* A label that sits left of its line starts with the sample at its right end, so the sample is by the line. */
+.lane-pill.flip { flex-direction: row-reverse; }
 /* A pair spreads over 160ms (SPREAD_MS in src/core/lanes.ts) and its labels fade in over the same time, since they sit where the lanes are going to be. */
 @media (prefers-reduced-motion: no-preference) {
   .lane-pill { animation: lane-pill-in 160ms ease-out; }

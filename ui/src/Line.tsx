@@ -84,7 +84,7 @@ function createSpotStore(first: ReadonlyMap<string, Spot>) {
       const kept = new Map<string, Spot>()
       for (const [id, spot] of next) {
         const before = spots.get(id)
-        const same = before !== undefined && before.x === spot.x && before.y === spot.y
+        const same = before !== undefined && before.x === spot.x && before.y === spot.y && before.side === spot.side
         if (!same) changed = true
         kept.set(id, same ? before : spot)
       }
@@ -221,11 +221,12 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
   // A label shows on a line that is pointed at, as on one that is selected: the line itself says so, since pointing re-draws no page. The label it holds back is in its data.
   const shown = label ?? (hot && typeof data?.label === 'string' ? data.label : undefined)
   const text = typeof shown === 'string' ? clip(shown) : shown
-  const aside = data?.lift === true && typeof text === 'string' ? labelOffset(rb.x + rb.width / 2 - (ra.x + ra.width / 2), rb.y + rb.height / 2 - (ra.y + ra.height / 2), text.length) : { x: 0, y: 0 }
+  const sampled = typeof text === 'string' && isLaned(slot)
+  // The label of a line among others is placed beside its line already when the line is lit (see besideLit), clear of a pipe too; a lone line's label steps aside here.
+  const aside = data?.lift === true && !sampled && typeof text === 'string' ? labelOffset(rb.x + rb.width / 2 - (ra.x + ra.width / 2), rb.y + rb.height / 2 - (ra.y + ra.height / 2), text.length) : { x: 0, y: 0 }
   // The failure badge of a pair sits above the middle of the pair, not on one of its lines (the desktop's PairBadgeRect puts it in the same place).
   const centre = isLaned(slot) ? lanes.laneFor(pair, 'straight', endOf(a), endOf(b)) : { x, y }
-  const sampled = typeof text === 'string' && isLaned(slot)
-  const [labelX, labelY] = spot && data?.lift !== true ? [spot.x, spot.y] : [x + aside.x, y + aside.y]
+  const [labelX, labelY] = spot && !(spot.hidden && pointed === 'lane') && (data?.lift !== true || sampled) ? [spot.x, spot.y] : [x + aside.x, y + aside.y]
   return (
     <>
       {/* The line pointed at among the lines of its pair is drawn above them (the stylesheet lifts the svg React Flow gives it, for `raised`), and they fade a little (`lane-mate`). */}
@@ -236,10 +237,10 @@ export const Line = memo(function Line({ id, source, target, label, interactionW
         {trunk && !(hot && text !== undefined) && <TrunkChip size={trunk.size} at={{ x, y }} />}
         <Ends path={path} both={data?.both === true} hot={hot} width={width} look={look} lanes={typeof data?.lanes === 'number' ? data.lanes : 1} />
       </g>
-      {sampled && (
+      {sampled && !(spot?.hidden === true && pointed !== 'lane') && (
         <EdgeLabelRenderer>
           {/* The label of a line among others starts with a sample of the line (its pattern and marks), so it is tied to its own line with no leader line. It takes no clicks. */}
-          <div className={mate ? 'lane-pill lane-mate' : 'lane-pill'} aria-hidden="true" style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}>
+          <div className={['lane-pill', mate && 'lane-mate', spot?.side === -1 && 'flip'].filter(Boolean).join(' ')} aria-hidden="true" style={{ transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)` }}>
             <LookSwatch look={look} width={SAMPLE - 6} height={12} />
             <span>{text}</span>
           </div>

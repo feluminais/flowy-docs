@@ -16,6 +16,7 @@ import type { OutlineRow } from '../../src/core/outline.ts'
 import { chain, hasChildren, parentOf } from '../../src/core/views.ts'
 import { Box, Frame } from './Box.tsx'
 import { Camera } from './Camera.tsx'
+import { useCardRoom } from './useCardRoom.ts'
 import { KindKey } from './kinds.tsx'
 import { kindsOnScreen } from './kindkey.ts'
 import { ZoomControls } from './ZoomControls.tsx'
@@ -188,6 +189,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const { compare, setCompare, setCompareStart, compareRef, compareStart, draft, onDraft, dirtyRef, asking, setAsking, comparing, flowsCompared, unlessDraft, discardNote } = useCompare({ model, runs, editing, perfOpen, failuresOpen, setNotice })
   // A flow that was playing waits behind the Performance and Failures tabs and a comparison, so a step's motion, the traffic and the risk marks never draw at once.
   const flow = editing || perfOpen || failuresOpen || comparing ? undefined : flowsHere.find(([id]) => id === playing?.flow)?.[1]
+  // How much room a fit leaves for the flow player's card at the foot of the canvas: as tall as the card is, so the diagram is never fitted under it.
+  const playingFlow = flow !== undefined
+  const cardRoom = useCardRoom(canvas, playingFlow)
   const { stops, stopIndex, stop, flowMarks, shown, animated, moving, stepKey, caption, progress, marks, open, channelKinds, parts } = useFlowStage({ model, view, flow, playing, replays, recording, clock, lines })
   // While the Performance tab is open, a run over time sets the states instead: the latest event at or before the time on show. A pane of a comparison of runs draws its run the same way (see useRunDrawing).
   const { timeEvents, runMarks, loadTraffic, widths } = useRunDrawing({ model, runs, perf: perfRun, view, shown: perfOpen })
@@ -387,9 +391,9 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 onBlur={events.onBlur}
                 onPaneClick={events.onPaneClick}
               >
-                <Camera count={shapes} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={flow !== undefined} reveal={selectedBox} panel={detailsWidth} fitPanel={detailsOpen ? detailsWidth : 0} nav={nav ? navWidth : 0} />
+                <Camera count={shapes} fitKey={`${view} ${flow ? playing?.flow : ''} ${tidied}`} player={playingFlow ? cardRoom : false} reveal={selectedBox} panel={detailsWidth} fitPanel={detailsOpen ? detailsWidth : 0} nav={nav ? navWidth : 0} />
                 {/* The fit button reads its own options, not ReactFlow's fitViewOptions. Camera does the automatic fits. */}
-                <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, flow !== undefined, nav ? navWidth : 0)} nav={nav ? navWidth : undefined} />
+                <ZoomControls fit={fitOptions(detailsOpen ? detailsWidth : 0, playingFlow ? cardRoom : false, nav ? navWidth : 0)} nav={nav ? navWidth : undefined} />
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
                 {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
                 {flow && stop && animated.map(m => (

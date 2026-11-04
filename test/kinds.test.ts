@@ -85,8 +85,8 @@ test('a mark scales with the line, rounded to 3 decimals, and keeps its stroke i
 
 test('the dash-dot pattern clears the dashes the canvas already uses', () => {
   assert.deepEqual(DASHES.solid, [])
-  assert.deepEqual(DASHES.dashdot, [10, 4, 2, 4])
-  assert.equal(DASHES.dashdot.reduce((a, b) => a + b, 0), 20)
+  assert.deepEqual(DASHES.dashdot, [11, 3, 2, 3])
+  assert.equal(DASHES.dashdot.reduce((a, b) => a + b, 0), 19)
 })
 
 test('a line that stands for several connections: the merge rule', () => {

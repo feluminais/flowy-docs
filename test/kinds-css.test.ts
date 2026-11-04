@@ -37,7 +37,7 @@ test('a mark paints itself in its colour: filled, only an outline, or an outline
   assert.equal(valueOf(rulesFor('.kmark.hollow')[0].body, 'stroke'), 'var(--c)')
 })
 
-test("the dash-dot of an extension point is core's, and a lit line, a step's line, a lane and a run's traffic keep their own", () => {
+test("the dash-dot of an extension point is core's, and a lit line (not one of several side by side), a step's line, a lane and a run's traffic keep their own", () => {
   const dash = rulesFor('.react-flow__edge-path.dashdot')
   assert.equal(dash.length, 1)
   assert.equal(valueOf(dash[0].body, 'stroke-dasharray'), DASHES.dashdot.join(' '))
@@ -45,6 +45,7 @@ test("the dash-dot of an extension point is core's, and a lit line, a step's lin
   const lit = rulesFor('.react-flow__edge.active .react-flow__edge-path')
   assert.equal(valueOf(lit[0].body, 'stroke-dasharray'), 'none', 'a lit line is solid')
   assert.ok(at('.react-flow__edge-path.dashdot') < at('.react-flow__edge.active .react-flow__edge-path'))
+  assert.equal(valueOf(rulesFor('.react-flow__edge.active.several .react-flow__edge-path.dashdot')[0].body, 'stroke-dasharray'), DASHES.dashdot.join(' '), 'a lit line among its pair keeps its kind')
   assert.equal(valueOf(rulesFor('.react-flow__edge.lane .react-flow__edge-path')[0].body, 'stroke-dasharray'), '4 5')
   assert.equal(valueOf(rulesFor('.react-flow__edge.step .react-flow__edge-path').at(-1)!.body, 'stroke-dasharray'), '8 5')
   const loaded = '.canvas.loaded .react-flow__edge:not(.lane, .step) .react-flow__edge-path.dashdot'
