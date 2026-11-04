@@ -24,6 +24,26 @@ The same checks run on every pull request (`.github/workflows/ci.yml`): the test
 in light and dark and checks it draws, reports no error, fits its window, prints no shape or label over another, and has no serious accessibility problem. Its report
 keeps a picture of every page.
 
+### Code quality services
+
+Three free services for public repositories read the same runs. None of them can turn "ci passed" red.
+
+- [Codecov](https://app.codecov.io/gh/feluminais/flowy-docs) takes the coverage and the test results (JUnit) from both systems, comments the coverage a
+  pull request changes, and lists the tests that fail on one run and pass on the next. CI signs in with GitHub's OIDC token, so it needs no secret.
+  `npm run test:reports` writes the same files locally (`coverage/lcov.info`, `coverage/junit.xml`). Settings are in `codecov.yml`.
+- [SonarQube Cloud](https://sonarcloud.io/project/overview?id=feluminais_flowy-docs) runs as the `sonar` job: bugs, code smells, duplication and coverage on
+  new code, in the TypeScript and the C#, with its own check on a pull request.
+- [Socket](https://socket.dev) is a GitHub app with nothing in the repo. It comments when a pull request adds or updates an npm package that installs
+  scripts, reaches the network or looks like a known package's name.
+
+Setting them up, once, as the repository owner:
+
+1. Codecov: sign in at codecov.io with GitHub and add the repository.
+2. SonarQube Cloud: sign in at sonarcloud.io with GitHub, import the `feluminais` account as an organisation on the free OSS plan and add the repository.
+   Its keys must be `feluminais` and `feluminais_flowy-docs`, as in the `sonar` job. Under Administration > Analysis Method, turn Automatic Analysis
+   off. Make a token (My Account > Security), add it as the repository secret `SONAR_TOKEN`, then add the repository variable `SONAR_ENABLED = true`.
+3. Socket: install the Socket Security app from the GitHub Marketplace on this repository.
+
 `test/properties.test.ts` tries many generated texts (commas, quotes, line breaks, `__proto__`) through the writer and back. When it fails it prints the seed and the
 smallest text that breaks it; paste that text into a normal test next to the fix.
 
