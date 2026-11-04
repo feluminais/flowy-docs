@@ -111,7 +111,7 @@ internal sealed partial class ReaderView
         else if (tab == PanelTab.Explorer)
         {
             _nav.Explorer.Update(model, _folder!.Problems, Editing, _panels.Expanded, view, SelectedBox, flow?.Id);
-            ShowDrafts();
+            ShowSketches();
         }
         else if (tab == PanelTab.Failures) _failures.Show(model, view);
         else if (tab == PanelTab.Yaml && _dir is not null) _nav.Yaml.Show(_dir, _folder!, Recording?.Id ?? flow?.Id, SelectedBox);

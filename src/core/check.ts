@@ -71,7 +71,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   if (model.meta.lines !== undefined && !LINE_STYLES.some(s => s === model.meta.lines))
     add('model.yaml', undefined, 'lines must be straight, curved or angled')
 
-  // Honoured in any folder, drafts or not: the check does not know which folder a model is in.
+  // Honoured in any folder, sketches or not: the check does not know which folder a model is in.
   if (model.meta.pairs !== undefined && !PAIR_MODES.some(m => m === model.meta.pairs))
     add('model.yaml', undefined, 'pairs can be merged or separate')
 

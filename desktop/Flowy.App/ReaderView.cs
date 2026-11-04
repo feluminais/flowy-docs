@@ -69,9 +69,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private Control? _zoomButtons;
     private IReadOnlyList<ModelEntry> _models = [];
     private Task _modelsLoaded = Task.CompletedTask;
-    private IReadOnlyList<DraftInfo> _drafts = [];
-    private Task _draftsLoaded = Task.CompletedTask;
-    private string? _draftOf; // the model folder this one is a draft of, or null when it is a model
+    private IReadOnlyList<SketchInfo> _sketches = [];
+    private Task _sketchesLoaded = Task.CompletedTask;
+    private string? _sketchOf; // the model folder this one is a sketch of, or null when it is a model
     private Task _codeBaseLoaded = Task.CompletedTask;
     private string? _dir;
 
@@ -134,9 +134,9 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _bar.ModelPicked += dir => ModelPicked?.Invoke(dir);
         _bar.OwnerClicked += () =>
         {
-            if (_draftOf is { } model) ModelPicked?.Invoke(model);
+            if (_sketchOf is { } model) ModelPicked?.Invoke(model);
         };
-        _nav.Explorer.Drafts.Opened += dir => ModelPicked?.Invoke(dir);
+        _nav.Explorer.Sketches.Opened += dir => ModelPicked?.Invoke(dir);
         _bar.LinesChosen += ChooseLines;
         _bar.SearchClicked += ToggleSearch;
         _bar.HelpClicked += ToggleShortcuts;
@@ -323,10 +323,10 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _models = [];
         ShowCurrentModel();
         _modelsLoaded = LoadModels(dir);
-        _draftOf = Drafts.ModelOf(dir);
-        _bar.ShowDraft(_draftOf is null ? null : Drafts.NameOfModel(_draftOf) is { Length: > 0 } owner ? owner : "Model");
-        _drafts = [];
-        _draftsLoaded = LoadDrafts(dir);
+        _sketchOf = Sketches.ModelOf(dir);
+        _bar.ShowSketch(_sketchOf is null ? null : Sketches.NameOfModel(_sketchOf) is { Length: > 0 } owner ? owner : "Model");
+        _sketches = [];
+        _sketchesLoaded = LoadSketches(dir);
         WarmCode(folder);
         _edit.Open(dir, Reload, SetBanner);
         _view = Names.Root;
@@ -398,34 +398,34 @@ internal sealed partial class ReaderView : Grid, IDisposable
     }
 
     // How many lookups of each kind were started: only the latest one that finishes is shown, so a slow one can't put back what a newer one replaced.
-    private int _modelsAsked, _draftsAsked, _codeBaseAsked;
+    private int _modelsAsked, _sketchesAsked, _codeBaseAsked;
 
     private void ShowCurrentModel() => _bar.ShowModels(_models, _dir);
 
-    /// <summary>Looks for the model's drafts away from the UI thread (each is a file to read). A draft holds none.</summary>
-    private async Task LoadDrafts(string dir)
+    /// <summary>Looks for the model's sketches away from the UI thread (each is a file to read). A sketch holds none.</summary>
+    private async Task LoadSketches(string dir)
     {
-        if (_draftOf is not null) return;
-        var ticket = ++_draftsAsked;
+        if (_sketchOf is not null) return;
+        var ticket = ++_sketchesAsked;
         try
         {
-            var drafts = await Task.Run(() => Drafts.List(dir));
-            if (_dir != dir || ticket != _draftsAsked || drafts.SequenceEqual(_drafts)) return; // another folder was loaded, or a newer read began, while this one was being read; or nothing changed
-            _drafts = drafts;
-            ShowDrafts();
+            var sketches = await Task.Run(() => Sketches.List(dir));
+            if (_dir != dir || ticket != _sketchesAsked || sketches.SequenceEqual(_sketches)) return; // another folder was loaded, or a newer read began, while this one was being read; or nothing changed
+            _sketches = sketches;
+            ShowSketches();
         }
         catch (Exception e)
         {
-            if (_dir == dir && ticket == _draftsAsked) ShowNotice($"Couldn't list the drafts: {e.Message}", 6);
+            if (_dir == dir && ticket == _sketchesAsked) ShowNotice($"Couldn't list the sketches: {e.Message}", 6);
         }
     }
 
-    private void ShowDrafts() => _nav.Explorer.Drafts.Update(_dir, _drafts, _edit.SaveOff, _draftOf is not null);
+    private void ShowSketches() => _nav.Explorer.Sketches.Update(_dir, _sketches, _edit.SaveOff, _sketchOf is not null);
 
-    internal DraftsView DraftsGroup => _nav.Explorer.Drafts;
+    internal SketchesView SketchesGroup => _nav.Explorer.Sketches;
 
-    /// <summary>The name of the model this is a draft of, as the bar shows it, or null when this is a model.</summary>
-    internal string? DraftOwner => _bar.DraftOf;
+    /// <summary>The name of the model this is a sketch of, as the bar shows it, or null when this is a model.</summary>
+    internal string? SketchOwner => _bar.SketchOf;
 
     internal Button OwnerButtonForTest => _bar.OwnerButton;
 
@@ -436,7 +436,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     internal IReadOnlyList<ModelEntry> Models => _models;
 
     /// <summary>Done once what the folder last loaded looks up in the background is in and shown: the repo's other models and the code link.</summary>
-    internal Task Settled => Task.WhenAll(_modelsLoaded, _codeBaseLoaded, _draftsLoaded);
+    internal Task Settled => Task.WhenAll(_modelsLoaded, _codeBaseLoaded, _sketchesLoaded);
 
     private async Task LoadCodeBase(string dir)
     {
@@ -464,8 +464,8 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>A changed folder arrives: show it, keeping where the reader is as far as it still exists.</summary>
     public void Reload(Folder folder)
     {
-        // A draft added or taken away changes no file of the model, so the check below would pass it by: the list of drafts is read on its own.
-        if (_dir is { } dir) _draftsLoaded = LoadDrafts(dir);
+        // A sketch added or taken away changes no file of the model, so the check below would pass it by: the list of sketches is read on its own.
+        if (_dir is { } dir) _sketchesLoaded = LoadSketches(dir);
         // The folder read again is what is on show (the watch says so after the app's own save, which has been shown already): nothing to draw again.
         if (_folder is { } shown && !_banner.IsVisible && FolderSame.Is(shown, folder)) return;
         _folder = folder;

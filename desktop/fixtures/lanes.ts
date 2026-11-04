@@ -27,7 +27,7 @@ import { planOf, STEPS } from '../../ui/src/parts.ts'
 const root = fileURLToPath(new URL('../../', import.meta.url))
 
 // The lines of a pair of shapes side by side (src/core/lanes.ts): where each lane runs for pairs of 1 to 8 lines, beside, above and across from each other, between boxes and
-// between shapes with an outline; the poses (rest, spread, parted around a lit line); the capacity of a pair; which lane a pointer means; and, for the draft-lanes case, the slot,
+// between shapes with an outline; the poses (rest, spread, parted around a lit line); the capacity of a pair; which lane a pointer means; and, for the separate-lanes case, the slot,
 // the lane and the screen-reader name of each line of its view. The C# tests compare their own.
 
 const SHAPES = new WeakMap<LaneBox, Shape>()
@@ -156,14 +156,14 @@ export function dumpHits(): unknown {
   })))
 }
 
-/** The draft-lanes case: where each shape sits, then each line of the root view with its slot, its lane at rest and spread, its name, and the line each step rides. */
+/** The separate-lanes case: where each shape sits, then each line of the root view with its slot, its lane at rest and spread, its name, and the line each step rides. */
 const SPOTS: Record<string, [number, number, Shape?]> = {
   ui: [0, 0], management: [420, 0], linux: [420, 330, 'diamond'], cloud: [840, 0, 'ellipse'], bus: [420, -260], sensor: [0, 330],
 }
 
-export async function dumpDraftLanes(): Promise<unknown> {
-  const state = await loadState(join(root, 'desktop/fixtures/cases/draft-lanes/flowy'))
-  if ('parseError' in state) throw new Error("the draft-lanes case can't be read")
+export async function dumpSeparateLanes(): Promise<unknown> {
+  const state = await loadState(join(root, 'desktop/fixtures/cases/separate-lanes/flowy'))
+  if ('parseError' in state) throw new Error("the separate-lanes case can't be read")
   const model = modelOf(state)
   const view = computeView(model, 'root')
   const slots = slotsOf(view.strands!)
@@ -234,10 +234,10 @@ const PARTINGS: { name: string; parting: Parting }[] = [
 ]
 const CLOCKS = [-20, 0, 50, 112.5, 195, 200, 225, 312.5, 425, 600, 825, 5000]
 
-/** What a stop asks of the lanes of the draft-lanes case's pairs: the lit lanes by pair, and the earliest part beat. */
+/** What a stop asks of the lanes of the separate-lanes case's pairs: the lit lanes by pair, and the earliest part beat. */
 async function dumpPlans(): Promise<unknown> {
-  const state = await loadState(join(root, 'desktop/fixtures/cases/draft-lanes/flowy'))
-  if ('parseError' in state) throw new Error('the draft-lanes case cannot be read')
+  const state = await loadState(join(root, 'desktop/fixtures/cases/separate-lanes/flowy'))
+  if ('parseError' in state) throw new Error('the separate-lanes case cannot be read')
   const view = computeView(modelOf(state), 'root')
   const strands = view.strands!
   const idOf = (label: string) => strands.find(s => s.label === label)!.id

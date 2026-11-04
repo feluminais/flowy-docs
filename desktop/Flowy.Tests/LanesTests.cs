@@ -6,7 +6,7 @@ namespace Flowy.Tests;
 
 /// <summary>
 /// The lines of a pair of shapes side by side (src/core/lanes.ts, desktop/fixtures/lanes.ts): where each lane runs for pairs of 1 to 9 lines, in every arrangement and pose; the capacity of a
-/// pair; which lane a pointer means; where the labels of the lanes go; and, for the draft-lanes case, the slot, lane and name of each line of its view and the line each step rides.
+/// pair; which lane a pointer means; where the labels of the lanes go; and, for the separate-lanes case, the slot, lane and name of each line of its view and the line each step rides.
 /// Every number is the browser's, to the last digit of the rounding.
 /// </summary>
 public class LanesTests
@@ -221,10 +221,10 @@ public class LanesTests
     }
 
     [Fact]
-    public void The_draft_lanes_case_has_the_slots_names_lanes_and_rides_the_browser_works_out()
+    public void The_separate_lanes_case_has_the_slots_names_lanes_and_rides_the_browser_works_out()
     {
-        var e = Expected("draft");
-        var model = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "draft-lanes", "flowy")).Model;
+        var e = Expected("separate");
+        var model = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "separate-lanes", "flowy")).Model;
         var view = Views.Compute(model, "root");
         Assert.NotNull(view.Strands);
         Assert.Equal(Lanes.MoveUp, e["words"]!["up"]!.GetValue<string>());

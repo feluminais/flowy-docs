@@ -64,7 +64,7 @@ public static class Checks
         if (model.Meta.TryGetValue("lines", out var lines) && !(lines is string style && Names.LineStyles.Contains(style)))
             Add(FolderLayout.ModelFile, null, "lines must be straight, curved or angled");
 
-        // Honoured in any folder, drafts or not: the check does not know which folder a model is in.
+        // Honoured in any folder, sketches or not: the check does not know which folder a model is in.
         if (model.Meta.TryGetValue("pairs", out var pairs) && !(pairs is string mode && Names.PairModes.Contains(mode)))
             Add(FolderLayout.ModelFile, null, "pairs can be merged or separate");
 

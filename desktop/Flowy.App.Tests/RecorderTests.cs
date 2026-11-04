@@ -139,7 +139,7 @@ public class RecorderTests
     [AvaloniaFact]
     public async Task Recording_a_flow_where_each_connection_has_a_line_a_click_on_a_line_picks_the_ends_and_the_line_the_step_rides_as_in_the_browser()
     {
-        var (temp, dir, window, reader) = Open(fixture: "draft-lanes");
+        var (temp, dir, window, reader) = Open(fixture: "separate-lanes");
         using var _ = temp;
         Press(Labelled(reader, "New flow"));
         reader.Panel.CurrentRecorder!.StartNamed("Scan again");
@@ -173,7 +173,7 @@ public class RecorderTests
     [AvaloniaFact]
     public void The_step_being_picked_rides_the_line_a_click_chose_or_else_the_first_that_runs_its_way()
     {
-        var folder = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "draft-lanes", "flowy"));
+        var folder = FolderLoader.Load(Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "separate-lanes", "flowy"));
         var model = folder.Model;
         var chosen = EditGestures.RecordingShown(model, "root", new Recording("scan-again", "Scan again", "ui", "management", Via: "Start scan"));
         Assert.Equal("management ui|ui>management|Start scan", chosen.Strands![^1]);

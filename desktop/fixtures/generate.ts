@@ -10,7 +10,7 @@ import { dumpFolder, expectedPath, fixtureDirs } from './dump.ts'
 import { dumpFolderRules } from './folders.ts'
 import { dumpDependents } from './dependents.ts'
 import { dumpDetect, dumpHighlight } from './detect.ts'
-import { dumpNewDrafts } from './drafts.ts'
+import { dumpNewSketches } from './sketches.ts'
 import { dumpEditLabels } from './editlabel.ts'
 import { dumpFailures, dumpFailuresView } from './failures.ts'
 import { dumpUsedBy } from './usedby.ts'
@@ -18,7 +18,7 @@ import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
 import { dumpKinds } from './kinds.ts'
-import { dumpCapacity, dumpCurveLabels, dumpCurvePoses, dumpCurves, dumpDraftLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpParts, dumpPoses } from './lanes.ts'
+import { dumpCapacity, dumpCurveLabels, dumpCurvePoses, dumpCurves, dumpSeparateLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpParts, dumpPoses } from './lanes.ts'
 import { dumpLayout } from './layout.ts'
 import { dumpLook } from './look.ts'
 import { dumpMermaid } from './mermaid.ts'
@@ -82,14 +82,14 @@ await write('lanes/poses', dumpPoses())
 await write('lanes/capacity', dumpCapacity())
 await write('lanes/hits', dumpHits())
 await write('lanes/labels', dumpLaneLabels())
-await write('lanes/draft', await dumpDraftLanes())
+await write('lanes/separate', await dumpSeparateLanes())
 await write('lanes/parts', await dumpParts())
 await writeCompact('lanes/curves', dumpCurves())
 await writeCompact('lanes/curve-poses', dumpCurvePoses())
 await writeCompact('lanes/curve-labels', dumpCurveLabels())
 await writeCompact('trunks', await dumpTrunks())
 await write('layout-lanes', await dumpLayoutLanes())
-await write('drafts', dumpNewDrafts())
+await write('sketches', dumpNewSketches())
 await write('detect', dumpDetect())
 await write('highlight', dumpHighlight())
 await write('flow-diffs', await dumpFlowDiffs())

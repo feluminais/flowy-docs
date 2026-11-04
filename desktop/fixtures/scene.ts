@@ -65,9 +65,9 @@ export async function dumpScenes(): Promise<unknown> {
       for (let k = 0; k < stops.length; k++) scenes.push(await scene(folder, flow.view, { ends, steps: stops[k].steps, faint: otherLaneSteps(stops, k) }))
     }
   }
-  // The draft-lanes case: a line for each connection. Each stop of its flow with the line each step rides, then what a selected, pointed-at or focused line or box does to its pair.
+  // The separate-lanes case: a line for each connection. Each stop of its flow with the line each step rides, then what a selected, pointed-at or focused line or box does to its pair.
   {
-    const folder = 'desktop/fixtures/cases/draft-lanes/flowy'
+    const folder = 'desktop/fixtures/cases/separate-lanes/flowy'
     const { model: lanes } = await load(folder)
     const flow = lanes.flows.scan
     const view = computeView(lanes, flow.view)

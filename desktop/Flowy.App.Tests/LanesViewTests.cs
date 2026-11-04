@@ -13,13 +13,13 @@ using CoreRect = Flowy.Core.Rect;
 namespace Flowy.App.Tests;
 
 /// <summary>
-/// How the desktop draws a project that draws a line for each connection (desktop/fixtures/cases/draft-lanes): the lines of a pair side by side, which one a pointer means, where their labels
+/// How the desktop draws a project that draws a line for each connection (desktop/fixtures/cases/separate-lanes): the lines of a pair side by side, which one a pointer means, where their labels
 /// go, the panel that lists them with Move up and Move down, and the line a step rides. The geometry, the scene and the strands are core's, which the fixtures pin against the browser; these hold
 /// what the app does with them. Headless: no window opens, and nothing here plays an animation or drives a whole reader.
 /// </summary>
 public class LanesViewTests
 {
-    private static string Dir => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "draft-lanes", "flowy");
+    private static string Dir => Path.Combine(Repo.Root, "desktop", "fixtures", "cases", "separate-lanes", "flowy");
 
     private static Folder Load() => FolderLoader.Load(Dir);
 

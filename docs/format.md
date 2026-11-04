@@ -15,7 +15,7 @@ A model is a folder, `flowy/` by default, next to the code it describes.
 | `failures/<id>.yaml` | One failure analysis | You, an AI, the canvas |
 | `perf/<id>.yaml` | One load-test run | A tool. Flowy reads it, and writes only its `compare` |
 | `layout.yaml` | Where shapes were dragged | The canvas. Don't write it |
-| `drafts/<id>/` | A draft: a model of its own with the same files, which the model never reads ([Drafts](guide/drafts.md)) | You, an AI, the canvas |
+| `sketches/<id>/` | A sketch: a model of its own with the same files, which the model never reads ([Sketches](guide/sketches.md)). Sketches made before the rename are in `drafts/<id>/`, which is still read | You, an AI, the canvas |
 
 A flow's file can sit in folders inside `flows/` (`flows/payments/refund.yaml`), and the folders are yours to arrange. The id is the file name alone, so no two flows share one whatever their folders, and a flow moved to another folder keeps its id. A folder name may hold letters, digits, spaces and most marks, but not `\ / : * ? " < > | # %`; it can't start with a dot (such a folder is left alone), end in a dot or a space, or be longer than 64 characters, and folders nest six deep at most. `flowy check` lists a folder it skips and a name that two files share.
 
@@ -40,7 +40,7 @@ with no value, and the file can't be saved again. `flowy check` reports that. A 
 | `name` | Text | What the system is called. The Overview's heading |
 | `about` | Markdown | What the system is for and who uses it, a paragraph or two. The Overview shows it |
 | `lines` | How the canvas draws lines: `straight` (the default, so leave it out), `curved` or `angled` |
-| `pairs` | How the canvas draws two shapes with several connections between them: `merged` (the default, so leave it out) is one line, `separate` is a line for each connection, side by side. A draft starts as `separate`; the model leaves it out |
+| `pairs` | How the canvas draws two shapes with several connections between them: `merged` (the default, so leave it out) is one line, `separate` is a line for each connection, side by side. A sketch starts as `separate`; the model leaves it out |
 | `icons` | Your own icons: a mapping of name to SVG path data on a 24 by 24 grid ([the guide](guide/shapes.md#icons)) |
 | `payloads` | The data lines carry and steps send: a mapping of payload id to payload (below), at most 200 |
 

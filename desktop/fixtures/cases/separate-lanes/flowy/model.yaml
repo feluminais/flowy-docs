@@ -1,4 +1,4 @@
-name: Draft lanes
+name: Separate lanes
 pairs: separate
 objects:
   ui: { type: system, name: UI }
