@@ -298,14 +298,12 @@ public class GroupsTests
             reader.Load(FolderLoader.Load(copy), copy);
             reader.GoTo("shop");
             reader.Play("ok", 4); // the stop before the parallel one, which doesn't move
-            Press(window, Key.P, PhysicalKey.P);
+            Press(window, Key.A, PhysicalKey.A);
             Assert.True(reader.Autoplaying);
             Run(() => reader.PlayingStep == 5);
             Assert.True(reader.StepMoving); // both lanes of the parallel stop, together
             Run(() => !reader.StepMoving);
-            Assert.True(reader.Autoplaying); // the motions are over, Autoplay rests a moment before it ends at the last stop
-            Run(() => !reader.Autoplaying);
-            Assert.False(reader.Autoplaying);
+            Assert.True(reader.Autoplaying); // the motions are over: it waits on the last stop, still on
             Assert.Equal(5, reader.PlayingStep);
         }
         finally

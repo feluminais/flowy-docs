@@ -74,7 +74,7 @@ internal sealed partial class ReaderView
 
         public void CloseDetails() => r.CloseDetails();
 
-        public void StopAutoplay() => r._playback.StopAuto();
+        public void ResumeAutoplay() => r._playback.ArmAuto();
 
         public void LeavePerformance() => r.LeavePerformance();
 

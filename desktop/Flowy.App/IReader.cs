@@ -79,7 +79,8 @@ internal interface IReader
 
     void CloseDetails();
 
-    void StopAutoplay();
+    /// <summary>The comparison has closed: the flow behind it goes on, if Autoplay is on. It stands still while the panes are up.</summary>
+    void ResumeAutoplay();
 
     /// <summary>The Performance tab gives way, and a ramp stops with it.</summary>
     void LeavePerformance();

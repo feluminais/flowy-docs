@@ -41,6 +41,7 @@ export type PaneHandle = {
   step(by: 1 | -1): void
   end(which: 'first' | 'last'): void
   play(): void
+  autoplay(): void
   nextSpeed(): void
   nudge(by: 1 | -1): void
   replay(): void
@@ -181,14 +182,14 @@ export function ComparePane({ model, paneId, label, startAt, onEmpty, flowId, ti
 
 /** The motion of the step on show, on the canvas it is drawn in (inside the ReactFlow), the payload card on a paused dot, and the marks of the stop's group. */
 export function PaneMotions({ p }: { p: PaneFlow }) {
-  const { flow, stop, animated, stepKey, shown, repeat, clock, finished, open } = p
+  const { flow, stop, animated, stepKey, shown, repeat, autoplay, clock, finished, open } = p
   const [dotsBy, setDotsBy] = useState<Record<number, DotAt[]>>({})
   const carrying = carriedBy(animated, dotsBy)
   return (
     <>
       {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
       {flow && stop && animated.map(m => (
-        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} strand={m.strand} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
+        <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} strand={m.strand} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat && !autoplay} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
           onDots={d => setDotsBy(by => ({ ...by, [m.i]: d }))} />
       ))}
       {flow && stop && <DotCard dots={carrying} clock={clock} stepKey={stepKey} />}
@@ -199,10 +200,10 @@ export function PaneMotions({ p }: { p: PaneFlow }) {
 
 /** The card at the foot of a pane: the caption of the step on show and the buttons that move through the flow. With marks, its progress bar marks the steps that differ. */
 export function PanePlayer({ model, p, marks }: { model: Model; p: PaneFlow; marks?: SideMarks }) {
-  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, showsPause, moving, repeat, stepTo, togglePlay, replay, toggleRepeat, clock, speed, setSpeed, scrub } = p
+  const { flow, stop, caption, progress, stops, stopIndex, shown, marksHere, channelKinds, showsPause, moving, repeat, autoplay, stepTo, togglePlay, toggleAutoplay, replay, toggleRepeat, clock, speed, setSpeed, scrub } = p
   if (!(flow && stop && caption && progress)) return null
   return (
     <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} showsPause={showsPause} moving={moving}
-      changes={marks?.steps} repeat={repeat} clock={clock} speed={speed} onSpeed={setSpeed} scrub={scrub} onStep={stepTo} onPlay={togglePlay} onReplay={replay} onRepeat={toggleRepeat} />
+      changes={marks?.steps} repeat={repeat} clock={clock} speed={speed} onSpeed={setSpeed} scrub={scrub} onStep={stepTo} onPlay={togglePlay} onReplay={replay} onRepeat={toggleRepeat} autoplay={autoplay} onAutoplay={toggleAutoplay} />
   )
 }

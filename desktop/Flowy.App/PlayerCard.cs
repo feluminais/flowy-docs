@@ -31,7 +31,7 @@ internal sealed record PlayerStep(string Ends, string Text, string? Description,
 /// </summary>
 internal sealed record PlayerView(
     string FlowName, int Stop, int Count, string? Kind, Caption Caption, Progress Progress, bool ShowsPause, bool Moving, (string Name, int Step)? Trail, IReadOnlyList<PlayerStep> Steps,
-    IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null, IReadOnlyList<string>? ChannelKinds = null);
+    IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null, IReadOnlyList<string>? ChannelKinds = null, bool Auto = false);
 
 /// <summary>The card at the bottom while a flow plays: which stop, the group it is in, who talks to whom, what happens, and Back, Next and Stop.</summary>
 internal sealed class PlayerCard : Border
@@ -40,7 +40,8 @@ internal sealed class PlayerCard : Border
     public event Action? Next;
     public event Action? Stop;
     public event Action? Play;
-    /// <summary>Back on a step that moves: the step plays again from its start, and Play ends.</summary>
+    public event Action? Autoplay;
+    /// <summary>Back on a step that moves: the step plays again from its start.</summary>
     public event Action? Replay;
     /// <summary>The bar is taken hold of, dragged to a stop and a fraction of the way through it, and let go of (see <see cref="Playback.ScrubStart"/>).</summary>
     public event Action? ScrubStart;
@@ -635,7 +636,15 @@ internal sealed class PlayerCard : Border
         var play = v.ShowsPause ? Tool(Icons.Pause, "Pause", () => Play?.Invoke()) : Tool(Icons.Play, "Play", () => Play?.Invoke());
         play.MinWidth = PlayWidth(); // as wide as its longer word, so the buttons after it stay put when it changes
         ToolTip.SetTip(play, v.ShowsPause ? "Pause (P)" : "Play (P)");
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { back, play, Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true) } };
+        var auto = Tool(Icons.ChevronsRight, null, () => Autoplay?.Invoke(), name: "Autoplay");
+        auto.Classes.Add("auto");
+        ToolTip.SetTip(auto, "Autoplay (A)");
+        if (v.Auto)
+        {
+            auto.Classes.Add("on");
+            AutomationProperties.SetItemStatus(auto, "On"); // the tint is not the only copy of it
+        }
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { back, play, Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true), auto } };
         var speeds = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(8, 0, 0, 0) };
         speeds.Classes.Add("speed");
         ToolTip.SetTip(speeds, "Speed (S)");

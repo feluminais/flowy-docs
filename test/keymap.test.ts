@@ -350,6 +350,7 @@ test('the shortcut list says what it said before the table was built from the ke
     ['→  ←', 'Next and previous step'],
     ['Home  End', 'First and last step'],
     ['P', 'Play or pause'],
+    ['A', 'Autoplay'],
     ['S', 'Speed'],
     [',  .', 'A moment back or on, while paused'],
     ['R', 'Replay the step'],

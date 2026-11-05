@@ -13,7 +13,8 @@
 | F | Fit the view |
 | ← → | Previous and next step of the flow playing, or previous and next tested level. In a comparison, of the pane you last clicked |
 | Home, End | First and last step, or first and last tested level. In a comparison, of the pane you last clicked |
-| P | Play or pause: the flow steps on by itself, and Pause holds it where it is, part way through a step too (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own (in a comparison of runs, on the pane you last clicked) |
+| P | Play or pause: Pause holds the flow where it is, part way through a step too, and stays on through Back and Next (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own (in a comparison of runs, on the pane you last clicked) |
+| A | Autoplay on or off: a finished step goes on to the next, up to the last (in a comparison, on the pane you last clicked) |
 | S | The speed of the flow playing: 0.5×, 1× and 2× in turn (in a comparison, on the pane you last clicked) |
 | , . | A moment back or on, while the flow is paused (held down, it keeps going) |
 | R | Replay the step's animation (in a comparison, on the pane you last clicked) |

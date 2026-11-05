@@ -18,36 +18,51 @@ internal sealed record PlaybackHooks(
     PlayerClock Clock);
 
 /// <summary>
-/// The playhead, Play and Pause: the flow and stop playing, the step (and replay) whose motion has started, the step whose motion has finished, and the wait that
-/// takes Play on to the next stop. Pause stops the player's clock where it is, so a step's motion and the waits stand still. It holds no controls; the reader
-/// draws, and tells it when a step's motion ends.
+/// The playhead, Play and Pause, and Autoplay: the flow and stop playing, the step (and replay) whose motion has started, the step whose motion has finished, and the wait that
+/// takes Autoplay on to the next stop. Play and Pause are the player's clock and nothing else: Pause stops it where it is, so a step's motion and the waits stand still, and it
+/// stays paused through Back and Next. Autoplay only takes away the stop between steps. It holds no controls; the reader draws, and tells it when a step's motion ends.
 /// </summary>
 internal sealed class Playback
 {
     private readonly PlaybackHooks _hooks;
     private string _stepKey = ""; // the step (and replay) now showing; empty when no flow plays
-    private string _settledKey = ""; // the step whose motion has finished
+    private string _settledKey = ""; // the step that is over: its motion has finished, or Autoplay has given a step that doesn't move its moment
+    private string _playedKey = ""; // the step whose motion has finished
     private int _replays;
     private string? _flow; // the flow the clock last began a step of
 
     /// <summary>How far a nudge moves a paused step, in ms of player time.</summary>
     private const double NudgeMs = 100;
     private IDisposable? _wait; // what Autoplay is waiting for, run on animation frames like everything that moves here
+    private IDisposable? _redraw; // the end of the motion a step was dragged back into
 
     public Playback(PlaybackHooks hooks) => _hooks = hooks;
 
     /// <summary>The flow playing and its stop, or null.</summary>
     public Playhead? Head { get; set; }
 
-    /// <summary>Play is on: each finished step is followed by the next.</summary>
+    /// <summary>Autoplay is on: while the clock runs, each finished step is followed by the next. It stays on through Back, Next, Pause and another flow.</summary>
     public bool Auto { get; private set; }
 
     public bool Paused => _hooks.Clock.Paused;
 
-    /// <summary>Whether the button says Pause: Play is on, or the step you took is still moving.</summary>
-    public bool ShowsPause => !Paused && (Auto || (_hooks.StepMoving() && _settledKey != _stepKey));
+    private bool OnLast => _hooks.Where() is { } at && at.Index == at.Count - 1;
 
-    /// <summary>Taking a step yourself, leaving the flow or changing view ends Play. The caller draws.</summary>
+    /// <summary>Nothing is left to run: a step that has played out and rests on its end, or with Autoplay the last step.</summary>
+    private bool AtEnd => _settledKey == _stepKey && _hooks.Clock.Elapsed >= _hooks.Clock.Length && (Auto ? OnLast : _playedKey == _stepKey);
+
+    /// <summary>Whether the button says Pause: the clock runs and there is something for it to run.</summary>
+    public bool ShowsPause => !Paused && !AtEnd;
+
+    /// <summary>Autoplay on or off. Turned on while the clock runs, a step that is over goes on to the next; paused, nothing moves until Play.</summary>
+    public void ToggleAuto()
+    {
+        Auto = !Auto;
+        _hooks.Redraw();
+        ArmAuto();
+    }
+
+    /// <summary>Autoplay off, for a flow of a comparison that goes out of sight. The caller draws.</summary>
     public void StopAuto()
     {
         Auto = false;
@@ -76,29 +91,30 @@ internal sealed class Playback
     {
         if (key != _stepKey) return;
         _settledKey = key;
-        if (!Auto) _hooks.Redraw(); // a step you took has stopped moving: the button says Play now
+        _playedKey = key;
+        if (!Auto || OnLast) _hooks.Redraw(); // nothing comes after it: the button says Play now
         ArmAuto();
     }
 
     /// <summary>
     /// Autoplay: once the step now showing has finished moving (or has had a moment, if it doesn't move), rest a moment and go on to the
-    /// next, or stop after the last. Called whenever something it depends on changes.
+    /// next, and wait on the last. Called whenever something it depends on changes.
     /// </summary>
     public void ArmAuto()
     {
         _wait?.Dispose();
         _wait = null;
-        if (!Auto || _hooks.Where() is null) return;
+        if (!Auto || _stepKey == "" || _hooks.Where() is null) return;
         var key = _stepKey;
         if (_settledKey == key)
         {
+            if (OnLast) return;
             // A stop dragged (or nudged) back into its motion first plays the rest of it.
             After(MotionMath.Gap + Math.Max(0, _hooks.Clock.Length - _hooks.Clock.Elapsed), () =>
             {
                 // The flow may have been reloaded while this waited: ask which one is playing now, not the one it was armed on.
-                if (key != _stepKey || !Auto || _hooks.Where() is not { } now) return;
-                if (now.Index < now.Count - 1) Head = Head! with { Step = now.Index + 1 };
-                else Auto = false;
+                if (key != _stepKey || !Auto || _hooks.Where() is not { } now || now.Index >= now.Count - 1) return;
+                Head = Head! with { Step = now.Index + 1 };
                 _hooks.Redraw();
             });
         }
@@ -108,42 +124,54 @@ internal sealed class Playback
             {
                 if (key != _stepKey || !Auto) return;
                 _settledKey = key;
+                if (OnLast) _hooks.Redraw(); // nothing comes after it: the button says Play now
                 ArmAuto();
             });
         }
         // Otherwise the motion's end settles it (see Settled).
     }
 
-    /// <summary>Pause when the button says so, else Play: on through the flow from where it stands, or from the start once the last step is over.</summary>
+    /// <summary>Pause when the button says so, else Play: on from where it stands. Run out, Play goes round again: the step on its own, or with Autoplay the flow from its first step.</summary>
     public void TogglePlay()
     {
         if (_hooks.Where() is not { } at) return;
         if (ShowsPause)
         {
             _hooks.Clock.Pause();
-            StopAuto();
             _hooks.Redraw();
             return;
         }
-        var over = at.Index == at.Count - 1 && (!_hooks.StepMoving() || _settledKey == _stepKey);
-        _hooks.Clock.Play();
-        Auto = true;
-        if (over) Head = Head! with { Step = 0 };
+        var over = AtEnd;
+        Resume();
+        if (over)
+        {
+            if (Auto && at.Index > 0) Head = Head! with { Step = 0 };
+            else _replays++;
+        }
         _hooks.Redraw();
         ArmAuto();
+    }
+
+    /// <summary>The clock runs again. A step dragged back into its motion has the rest of it to play: the button says Play again when that is over.</summary>
+    private void Resume()
+    {
+        _hooks.Clock.Play();
+        _redraw?.Dispose();
+        _redraw = null;
+        var left = _hooks.Clock.Length - _hooks.Clock.Elapsed;
+        if (left > 0 && _settledKey == _stepKey) _redraw = _hooks.Wait(left, _hooks.Redraw);
     }
 
     /// <summary>The step (and replay) as the clock knows it: a new key is a new step to play.</summary>
     private string KeyOf(string flowId, int index) => $"{flowId}:{index}:{_replays}";
 
-    private bool _wasOn; // whether Play was on when the bar was taken hold of
+    private bool _wasOn; // whether it was playing when the bar was taken hold of
 
     /// <summary>The bar is taken hold of: the player stands still while it is dragged.</summary>
     public void ScrubStart()
     {
-        _wasOn = Auto;
+        _wasOn = ShowsPause;
         _hooks.Clock.Pause();
-        StopAuto();
         _hooks.Redraw();
     }
 
@@ -158,13 +186,12 @@ internal sealed class Playback
         _hooks.Redraw();
     }
 
-    /// <summary>The bar is let go of: Play goes on if it was on, else the player stays paused where it was dragged to.</summary>
+    /// <summary>The bar is let go of: it carries on if it was playing, else the player stays paused where it was dragged to.</summary>
     public void ScrubEnd()
     {
         if (!_wasOn) return;
         _wasOn = false;
-        _hooks.Clock.Play();
-        Auto = true;
+        Resume();
         _hooks.Redraw();
         ArmAuto();
     }

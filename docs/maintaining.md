@@ -355,7 +355,7 @@ Reading:
 
 Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flowy`, then the same folder in the desktop app):
 
-- [ ] Open *Every step animation* (`#steps/every-step-animation`) and press P: seventeen steps play in turn, each taking two to four seconds. In the browser a step plays again two and a half seconds after it ends until you move on, the Repeat button on the card turns that off (and is
+- [ ] Open *Every step animation* (`#steps/every-step-animation`) and press A: seventeen steps play in turn, each taking two to four seconds. In the browser a step plays again two and a half seconds after it ends until you move on, the Repeat button on the card turns that off (and is
       remembered), and the line's label sits beside the line while it runs. Send runs an envelope one way, Call goes and
       comes back while dots wait over the caller, Event runs a bolt and flashes the receiver, Callback sends a ring, then a bell, then a ring, a callback
       after a step flashes its publisher first, one from outside drops a bolt on it, and the next Send carries the words "order 42". Fail runs an envelope in the danger colour and flashes its receiver in it. Timeout sends the envelope, keeps the dots waiting over the caller with no reply, and then dims the line, which stays dim until you move on. Lost pops the envelope partway and leaves a red cross with the reason under it, and the receiver never squashes. Rejected stops it at a red bar by the receiver, which flashes, and sends it back red. Intercepted leaves the line for a dashed outline round a third shape (or a dashed marker named Café wifi proxy) that lights. Duplicated runs a second copy that trails the first, and the receiver squashes twice. Delayed waits beside a turning dashed clock with the reason beside it, then goes on and is answered. Share of requests sends ten, and the three that are lost are named r1, r2 and r3, each with its own colour and a ring, and leave their crosses where they vanished. Every shape
@@ -363,7 +363,7 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
 - [ ] Open Order API and pick "Pricing a meal deal", then step to its second step: a pipe loops out of Pricing's side and back in, cards
       pile up under it, the counter on its corner goes `↻ 1`, `↻ 2`, `↻ 3` and back down, a flag lands where it stops, and `↻ 3 deep` is
       left when it ends. R plays it again from a clean start, and ← → in a hurry leave no card or counter on any box. With the system's
-      animation effects off only `↻ 3 deep` shows, and Play (P) still moves on. The browser (`npx flowy-docs --dir docs/demo`, then
+      animation effects off only `↻ 3 deep` shows, and Autoplay (A) still moves on. The browser (`npx flowy-docs --dir docs/demo`, then
       `#order-api/price-a-deal`) does the same. Light and dark both read.
 - [ ] Open Ordering and click the line from Customer app to Order API: the line panel has Payloads 2, Basket open with its TypeScript shape and
       JSON example, then Receipt, whose tooltip names "Customer places an order, step 2 reply". Click Customer app: Basket sits closed under REST.
@@ -381,19 +381,23 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       bar, a pan or a zoom close it, and while the dot moves, nothing opens. In a comparison, pause one pane mid-send: its dot shows its card
       inside that pane, clear of its player card, and Esc closes the card and leaves the comparison open. Both readers, light and dark.
 - [ ] Play "Customer places an order" and press P while a dot is on its way: it stops where it is, and P again carries it on from there.
-      Pause on "The customer follows the courier" while the live map comes in: it stays half drawn, and its dots stand still. Drag the bar
-      to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Pick 2×:
+      Pause on "The customer follows the courier" while the live map comes in: it stays half drawn, and its dots stand still. Pause, then drag the bar
+      to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Let go of the bar while it plays and it carries on. Pick 2×:
       a step plays in about half the time, and the speed is still 2× after a reload (the browser) or for the next flow (the desktop app).
       Click a few pixels above a cell of the bar: the card goes to that step and moment. Step through Support refunds an order: the card's top edge and its
-      buttons never move, and on its last step Repeat is greyed out with "Nothing moves on this step". The buttons read Back, Play, Next. On step 2 of
-      "Customer places an order", Back plays the step again and a second click within two seconds goes to step 1; with Play on, Back or Next ends it. Both readers.
-- [ ] Open *Effects* (`#steps/effects`) and press P: the label of each of four steps runs from Effects · from to Effects · to, down a slope, doing what its word says. squish stretches
+      buttons never move, and on its last step Repeat is greyed out with "Nothing moves on this step". The buttons read Back, Play, Next, Autoplay. On step 2 of
+      "Customer places an order", Back plays the step again and a second click within two seconds goes to step 1. Both readers.
+- [ ] Play "Customer places an order": the first step moves by itself and nothing goes on to step 2. Without Repeat it rests on its end, the button says Play, and Play runs the
+      step again. Press A: step 2 starts, and each step goes on to the next. Pause holds it in a step or in the rest between two, Autoplay stays on, and P carries on from there.
+      Back and Next leave Autoplay on, and paused they stay paused. On the last step it waits with Autoplay still on, the button says Play, and Play starts from step 1. In the
+      browser Repeat is greyed out with "Autoplay is on", and Autoplay is still on after a reload. A pane of a comparison opens with it off, on a flow with Autoplay on behind it. Both readers.
+- [ ] Open *Effects* (`#steps/effects`) and press A: the label of each of four steps runs from Effects · from to Effects · to, down a slope, doing what its word says. squish stretches
       along the line, bounce hops, pulse swells and settles, and wiggle rocks from side to side. Whatever it does, the pill stays level and whole: never sheared, one end up and
       one end down, and its words are never stretched. A step with no `effect` (Send with a word) keeps its shape. In the desktop app the same. The `effect` key is for fun
       and is deliberately left out of the guide and the README.
 - [ ] Open Repeat, Branch, Parallel and Flow link in Flow structure. Repeat says it repeats up to 3 times, and its box on the bar is dashed. Branch says One of 2, forks the bar into its two lanes by name
       with the lane you are not in hollow, and dashes that lane on the canvas, Parallel lights three lanes together with a bolt each, and Flow link has an Open flow that lands on the other flow and a bar to come back.
-- [ ] Open Every state in Shape states (`#states/states`) and press P: Service starts out dotted and circling (Starting), settles with nothing drawn (Running), pulses amber with a
+- [ ] Open Every state in Shape states (`#states/states`) and press A: Service starts out dotted and circling (Starting), settles with nothing drawn (Running), pulses amber with a
       triangle on its corner (Degraded), drains its outline with an hourglass (Stopping), goes grey and dashed with a power symbol (Stopped), shows a short arc circling it (Restarting) and
       is plain again. The key under the progress bar names only the states on screen. Open State inside a shape: at step 2 the Holder has a dashed ring with a power symbol that reads "Stopped inside" in the key,
       and at step 3 it shows its own amber state instead. With the system's animation effects off the dimming, outlines and symbols stay and nothing moves.

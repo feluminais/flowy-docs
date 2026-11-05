@@ -113,7 +113,7 @@ export function SwapCanvas({ model, paneId, flows, index, start, shown, marks, o
     if (was.current === index) return
     const left = both[was.current]
     was.current = index
-    left.setPlaying(p => p && { ...p, auto: false })
+    left.setAutoplay(false)
     const there = (id: string) => target.graph.nodes.some(n => n.id === id)
     if (shown?.kind === 'object' && shown.id !== undefined && !there(shown.id)) onClosePanel()
     if (shown?.kind === 'line' && (shown.view !== target.view || !target.graph.edges.some(e => e.id === selectedLine || pairOf(e) === selectedLine))) onClosePanel()

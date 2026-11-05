@@ -202,7 +202,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         };
         _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
-        _playback = new Playback(new PlaybackHooks(PlayWhere, () => _canvas.StepMoving, Refresh, _canvas.Clock.After, _canvas.Clock));
+        _playback = new Playback(new PlaybackHooks(() => Comparing ? null : PlayWhere(), () => _canvas.StepMoving, Refresh, _canvas.Clock.After, _canvas.Clock));
         WirePerformance();
         _panels = new Panels(_nav, _rail, _detailsRail, _navSash, _detailsSash, _panel, _canvas, _perf, _host);
         _panels.Changed += state => NavigatorChanged?.Invoke(state);
@@ -217,6 +217,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.Next += () => StepTo(StopIndex() + 1);
         _player.Stop += Stop;
         _player.Play += _playback.TogglePlay;
+        _player.Autoplay += _playback.ToggleAuto;
         _player.Clock = _canvas.Clock;
         // A fit leaves room at the foot for the player's card as tall as the card is (never less than the usual 200, never more than 60% of the canvas), and fits again when the card grows or shrinks.
         _canvas.PlayerRoom = () => Math.Clamp(_player.Bounds.Height + 40, 200, Math.Max(200, _canvas.Bounds.Height * 0.6));
@@ -233,11 +234,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _player.ScrubStart += _playback.ScrubStart;
         _player.ScrubTo += _playback.ScrubTo;
         _player.ScrubEnd += _playback.ScrubEnd;
-        _player.Replay += () =>
-        {
-            _playback.StopAuto(); // as any step you take does
-            _playback.Replay();
-        };
+        _player.Replay += _playback.Replay;
         _player.OpenFlow += OpenLinked;
         _player.BackToFlow += GoBack;
 
@@ -781,7 +778,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         }
         _player.CompareOff = CompareChoices.Off(model, Editing);
         (string Name, int Step)? trail = _playback.Head is { Trail.Count: > 0 } here ? TrailBar(model, here.Trail[^1]) : null;
-        var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.ShowsPause, trail, _canvas.StatesShown.Values.ToList(), null, _canvas.ChannelKindsShown);
+        var (card, marks) = FlowStage.CardAt(model, f.Flow, f.Id, StopsOf(f.Flow), index, shown, _playback.ShowsPause, trail, _canvas.StatesShown.Values.ToList(), null, _canvas.ChannelKindsShown, auto: _playback.Auto);
         _player.Show(card, FlowStage.EveryCard(model, view, f.Flow, f.Id, StopsOf(f.Flow), shown, trail));
         _canvas.SetMarks(marks);
     }
@@ -815,7 +812,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _levelMotion.Stop();
         _view = view;
         _playback.Head = null;
-        _playback.StopAuto();
         _hover = null;
         if (_compareMode.State is { Kind: "flow" }) CloseCompare(false); // two flows are compared on their own views, so going to a level ends it; two runs are compared on the level, and both follow it
         if (_side is not (null or Side.Box)) _side = null; // lines belong to one view
@@ -987,7 +983,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     public void Play(string flow, int step = 0)
     {
         if (Editing) return;
-        _playback.StopAuto();
         // A step number is the file's; the player stops where that step is.
         var at = _folder?.Model.Flows.TryGetValue(flow, out var found) == true ? Structure.StopIndexOf(StopsOf(found), step) : step;
         _playback.Head = new Playhead(flow, at, []);
@@ -997,7 +992,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private void StepTo(int index)
     {
         if (PlayingFlow() is not { } f || _playback.Head is not { } p) return;
-        _playback.StopAuto();
         _playback.Head = p with { Step = Math.Max(0, Math.Min(index, StopsOf(f.Flow).Count - 1)) };
         Refresh();
     }
@@ -1006,7 +1000,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         var held = KeyboardFocus.Within(_player);
         _playback.Head = null;
-        _playback.StopAuto();
         Refresh();
         if (held) KeyboardFocus.HandBack(this); // Stop was the button that had the keyboard, and the card is gone
     }
@@ -1016,7 +1009,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
     {
         if (_folder is not { } folder || PlayingFlow() is not { } here || _playback.Head is not { } p) return;
         if (!folder.Model.Flows.TryGetValue(id, out var target) || target.Steps.Count == 0 || !Views.IsView(folder.Model, target.View)) return; // a flow whose view can't open can't play
-        _playback.StopAuto();
         var trail = Trails.Open(p.Trail, new FlowPlace(here.Id, StopIndex()));
         if (target.View != CurrentView()) GoTo(target.View!); // GoTo clears what plays
         _playback.Head = new Playhead(id, 0, trail);
@@ -1032,7 +1024,6 @@ internal sealed partial class ReaderView : Grid, IDisposable
             Stop(); // the flow it came from is gone, or can't play any more
             return;
         }
-        _playback.StopAuto();
         if (parent.View != CurrentView()) GoTo(parent.View!);
         _playback.Head = new Playhead(closed.Back.Flow, closed.Back.Step, closed.Trail);
         Refresh();

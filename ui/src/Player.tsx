@@ -19,7 +19,7 @@ import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { SPEEDS } from './clock.ts'
 import type { PlayerClock, Speed } from './clock.ts'
 import type { ReactNode } from 'react'
-import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, Pause, Play, Repeat, Route } from './icons.tsx'
+import { ArrowLeft, StepBack, StepForward, ArrowsSplit, ChevronsRight, Close, Columns, GitFork, Help, Pause, Play, Repeat, Route } from './icons.tsx'
 import { ChannelKey } from './Channels.tsx'
 import { StateKey } from './states.tsx'
 import { usePref } from './store.ts'
@@ -51,6 +51,7 @@ type Props = {
   moving: boolean
   /** Whether a step that moves plays again after a rest. */
   repeat: boolean
+  autoplay: boolean
   /** The flow the reader came from and the step they left it at, when they opened this one from it. */
   trail?: { name: string; step: number }
   /** What differs from the other flow of a comparison, by file step number: the bar's cell for a step takes the mark's colour. */
@@ -63,6 +64,7 @@ type Props = {
   scrub: Scrub
   onStep: (stop: number) => void
   onPlay: () => void
+  onAutoplay: () => void
   onReplay: () => void
   onRepeat: () => void
   /** Compare with another flow: `off` is why the button is greyed out, `picker` the popover `open` shows above the card. Without it there is no Compare button (a pane of a comparison has none). */
@@ -385,7 +387,7 @@ function useReserve(section: RefObject<HTMLElement | null>, count: number, deps:
  * The flow player's card: where you are, the group you are in, what happens at this stop (one block a step), and the buttons. It keeps the size of its tallest stop
  * (see useReserve), so its edge and its buttons stay put as the flow plays.
  */
-export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, showsPause, moving, repeat, trail, changes, compare, clock, speed, onSpeed, scrub, onStep, onPlay, onReplay, onRepeat, onStop, onOpenFlow, onBack }: Props) {
+export function Player({ model, flow, stops, stop, ends, caption, progress, marks, channels, showsPause, moving, repeat, autoplay, trail, changes, compare, clock, speed, onSpeed, scrub, onStep, onPlay, onReplay, onRepeat, onAutoplay, onStop, onOpenFlow, onBack }: Props) {
   const here = stops[stop]
   const [legendPref, setLegendPref] = usePref(LEGEND_KEY, 'closed')
   const legend = legendPref === 'open'
@@ -404,10 +406,8 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
   const back = () => {
     const again = performance.now() - lastBack.current < BACK_AGAIN
     lastBack.current = performance.now()
-    if (moving && (!again || stop === 0)) {
-      onStep(stop) // ends Play, as any step you take does
-      onReplay()
-    } else onStep(stop - 1)
+    if (moving && (!again || stop === 0)) onReplay()
+    else onStep(stop - 1)
   }
   const shared = { model, flow, stops, ends, progress, changes, clock, scrub, legend, grouped, onOpenFlow }
   return (
@@ -427,7 +427,8 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
           <span className="same-width"><span className={showsPause ? undefined : 'ghost'} aria-hidden={!showsPause}>Pause</span><span className={showsPause ? 'ghost' : undefined} aria-hidden={showsPause}>Play</span></span>
         </button>
         <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
-        <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving} title={!moving ? STILL : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>
+        <button aria-label="Autoplay" aria-pressed={autoplay} title="Autoplay (A)" onClick={onAutoplay}><ChevronsRight size={16} /></button>
+        <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving || autoplay} title={!moving ? STILL : autoplay ? 'Autoplay is on' : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>
         <div className="speed" role="group" aria-label="Speed" title="Speed (S)">
           {SPEEDS.map(s => <button key={s} aria-pressed={speed === s} onClick={() => onSpeed(s)}>{s}×</button>)}
         </div>

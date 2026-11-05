@@ -59,6 +59,7 @@ export type KeyActions = {
   stepFlow(by: 1 | -1): void
   flowEnd(end: 'first' | 'last'): void
   play(): void
+  autoplay(): void
   /** The next speed, round to the first after the last. */
   nextSpeed(): void
   /** A moment back (-1) or on (1), while paused. */
@@ -95,7 +96,7 @@ export type HelpGroupId = 'reading' | 'flows' | 'performance' | 'failures' | 'ed
 type Help = { keys?: string; text: string } // `keys` is the entry's own when left out
 
 export type KeyId =
-  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-speed' | 'flow-nudge' | 'flow-replay' | 'compare' | 'swap'
+  | 'undo-move' | 'escape' | 'perf-step' | 'perf-ends' | 'perf-ramp' | 'failure-step' | 'flow-step' | 'flow-ends' | 'flow-play' | 'flow-autoplay' | 'flow-speed' | 'flow-nudge' | 'flow-replay' | 'compare' | 'swap'
   | 'enter' | 'shortcuts' | 'search' | 'fit' | 'flows' | 'explorer' | 'yaml' | 'perf' | 'failures' | 'edit' | 'add' | 'delete' | 'select-all' | 'redo' | 'undo' | 'up'
 
 export type Entry = {
@@ -192,6 +193,12 @@ export const KEYMAP: readonly Entry[] = [
     when: c => flowKeys(c) && tap(c, 'p'),
     run: c => c.act.play(),
     help: { flows: { text: 'Play or pause' } },
+  },
+  {
+    id: 'flow-autoplay', keys: 'A',
+    when: c => flowKeys(c) && tap(c, 'a'),
+    run: c => c.act.autoplay(),
+    help: { flows: { text: 'Autoplay' } },
   },
   {
     id: 'flow-speed', keys: 'S',
@@ -349,7 +356,7 @@ export const HELP_GROUPS: { id: HelpGroupId; title: string }[] = [
 /** The order of each group's rows. A row that is not a key (a click, a drag) is written out here. */
 const HELP_ORDER: Record<HelpGroupId, (KeyId | [string, string])[]> = {
   reading: ['enter', 'escape', 'up', 'search', 'fit', 'flows', 'explorer', 'yaml', 'perf', 'failures', ['↑  ↓  Enter', 'In the model picker: move, then open'], 'shortcuts'],
-  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-speed', 'flow-nudge', 'flow-replay', 'compare', 'swap', 'escape'],
+  flows: ['flow-step', 'flow-ends', 'flow-play', 'flow-autoplay', 'flow-speed', 'flow-nudge', 'flow-replay', 'compare', 'swap', 'escape'],
   performance: ['perf-step', 'perf-ends', 'perf-ramp', 'escape'],
   failures: ['failure-step'],
   editing: [

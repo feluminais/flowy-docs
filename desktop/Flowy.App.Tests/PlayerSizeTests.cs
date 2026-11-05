@@ -17,7 +17,7 @@ namespace Flowy.App.Tests;
 
 /// <summary>
 /// The player card keeps the size of its tallest stop, so its top edge and its buttons stay put as the flow plays; Back plays a step that moves again before it
-/// goes back, Back and Next end Play, and Play sits between them; and the bar takes a click a few pixels off its cells. ui/src/Player.tsx does the same (browser-tests/player.spec.ts).
+/// goes back, Back and Next leave Autoplay on, and Play sits between them; and the bar takes a click a few pixels off its cells. ui/src/Player.tsx does the same (browser-tests/player.spec.ts).
 /// </summary>
 public class PlayerSizeTests
 {
@@ -154,23 +154,20 @@ public class PlayerSizeTests
     }
 
     [AvaloniaFact]
-    public void Back_and_Next_end_Play()
+    public void Back_and_Next_leave_Autoplay_on()
     {
         var (temp, window, reader) = Open();
         using var _ = temp;
         reader.Play("checkout", 1);
         Run(() => !reader.StepMoving);
-        Click(reader.Card, "Play");
+        Click(reader.Card, "Autoplay");
         Assert.True(reader.Autoplaying);
+        Assert.Contains("on", Named(reader.Card, "Autoplay")!.Classes);
         Click(reader.Card, "Back");
-        Assert.False(reader.Autoplaying);
-        Assert.Contains("Step 2 of 3", Words(reader.Card));
-        reader.Play("checkout", 0);
-        Settle(window);
-        Click(reader.Card, "Play");
         Assert.True(reader.Autoplaying);
+        Assert.Contains("Step 2 of 3", Words(reader.Card));
         Click(reader.Card, "Next");
-        Assert.False(reader.Autoplaying);
+        Assert.True(reader.Autoplaying);
     }
 
     [AvaloniaFact]
@@ -181,7 +178,7 @@ public class PlayerSizeTests
         reader.Play("checkout", 0);
         Settle(window);
         var row = Named(reader.Card, "Back")!.Parent as StackPanel;
-        Assert.Equal(["Back", "Play", "Next"], row!.Children.Select(c => AutomationProperties.GetName(c)));
+        Assert.Equal(["Back", "Play", "Next", "Autoplay"], row!.Children.Select(c => AutomationProperties.GetName(c)).Select(name => name == "Pause" ? "Play" : name));
     }
 
     [AvaloniaFact]
@@ -190,16 +187,17 @@ public class PlayerSizeTests
         var (temp, window, reader) = Open();
         using var _ = temp;
         reader.Play("checkout", 0);
+        window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, "p"); // paused before its motion can end
         Settle(window);
         double NextX() => Named(reader.Card, "Next")!.TranslatePoint(new Point(0, 0), window)!.Value.X;
-        var play = Named(reader.Card, "Play") ?? Named(reader.Card, "Pause");
+        var play = Named(reader.Card, "Play");
         Assert.NotNull(play);
         var (width, x) = (play.Bounds.Width, NextX());
         window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, "p");
-        Settle(window);
-        var other = AutomationProperties.GetName(play) == "Play" ? Named(reader.Card, "Pause") : Named(reader.Card, "Play");
-        Assert.NotNull(other); // the button changed its word
-        Assert.Equal(width, other.Bounds.Width);
+        window.UpdateLayout();
+        var pause = Named(reader.Card, "Pause");
+        Assert.NotNull(pause); // the button changed its word
+        Assert.Equal(width, pause.Bounds.Width);
         Assert.Equal(x, NextX());
     }
 

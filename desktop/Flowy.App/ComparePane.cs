@@ -19,6 +19,8 @@ internal interface IFlowKeys
 
     void TogglePlay();
 
+    void ToggleAuto();
+
     void NextSpeed();
 
     void Nudge(int by);
@@ -183,7 +185,7 @@ internal sealed class ComparePane : Border, IFlowKeys
     /// <summary>Draws the pane for the folder as it is now, with the shape or line the shared Details panel shows outlined when it was this pane that showed it.</summary>
     public void Show(Folder folder, string lineStyle, ReaderView.Side? selection) => _flow.Show(folder, lineStyle, selection);
 
-    /// <summary>One stop on (1) or back (-1). Taking a step yourself ends Autoplay.</summary>
+    /// <summary>One stop on (1) or back (-1).</summary>
     public void Step(int by) => _flow.Step(by);
 
     public void First() => _flow.First();
@@ -191,6 +193,8 @@ internal sealed class ComparePane : Border, IFlowKeys
     public void Last() => _flow.Last();
 
     public void TogglePlay() => _flow.TogglePlay();
+
+    public void ToggleAuto() => _flow.ToggleAuto();
 
     public void NextSpeed() => _flow.NextSpeed();
 

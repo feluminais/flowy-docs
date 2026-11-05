@@ -144,7 +144,7 @@ test('a pause holds the lines where the clock is, and play carries them on to op
     const frozen = await gaps(page)
     await page.waitForTimeout(500)
     expect(await gaps(page)).toEqual(frozen)
-    await player(page).getByRole('button', { name: 'Play' }).click()
+    await player(page).getByRole('button', { name: 'Play', exact: true }).click()
     await settled(page)
     await expectGaps(page, [30, 30])
   } finally {
