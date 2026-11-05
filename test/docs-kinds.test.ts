@@ -48,11 +48,10 @@ test('the Many lines paragraph says when the readers fold, not just the upper li
   assert.ok(!para.includes('draws up to eight lines'), 'eight is not where folding starts')
 })
 
-test('the sketches guide says a reply rides its request only when no line runs its way or via names it, as strandCandidates tries them', () => {
+test('a reply rides its request as strandCandidates tries them: the flows guide says the order, the sketches guide shows via naming the request line', () => {
   const sketches = read('docs/guide/sketches.md')
-  assert.ok(sketches.includes("only when no line of the pair runs the reply's way, or when its `via` or `payload` names that line"))
   assert.ok(!sketches.includes('A reply step rides the line of its request when'), 'the old sentence put the request line first')
-  assert.ok(sketches.includes('text: Results reach the screen, via: Start scan'), 'the example names the request line, since Scan results runs that way')
+  assert.ok(sketches.includes('text: Results reach the screen, via: Start scan'), 'the example names the request line, since another line runs that way')
   assert.ok(read('docs/guide/flows.md').includes("the lines of the pair that run the step's way, then the Request and reply and Request then stream lines that run against it"))
 })
 
@@ -64,9 +63,9 @@ test('the Mermaid paragraph of the sharing guide keeps "The same" next to what i
   assert.ok(!share.slice(share.lastIndexOf('Mermaid 11.3 or later)'), same).includes('kind'), 'nothing between Mermaid 11.3 and "The same"')
 })
 
-test('the flows guide, the AI guide and the writing rules say how a step names its line', () => {
+test('the flows guide, the file format and the writing rules say how a step names its line', () => {
   assert.match(read('docs/guide/flows.md'), /## Which line a step rides/)
-  assert.match(read('docs/guide/ai.md'), /`set_kind`/)
-  assert.match(read('docs/guide/ai.md'), /`via`/)
+  assert.match(read('docs/format.md'), /`set_kind`/)
+  assert.match(read('docs/format.md'), /`via`/)
   assert.match(read('docs/writing.md'), /One line per relationship in the model/)
 })

@@ -1,6 +1,6 @@
 # Shortcuts
 
-**?** in the app or the browser lists these too.
+**?** in the app or the browser lists these, all but Ctrl+Enter.
 
 | Shortcut | Action |
 | --- | --- |
@@ -8,32 +8,32 @@
 | O | The Explorer: everything as a tree |
 | L | The Flows tab: every flow by folder, and play one |
 | Enter | Open the selected shape |
-| Esc | Close what's open (the payload card on a paused dot, a panel, then the comparison), then go back to the last level. The navigator closes only if your last click was in it |
-| Backspace, Z | Zoom out: go up a level |
+| Esc | Stop the flow playing (not in a comparison), or close what's open (the payload card on a paused dot, a panel, a zoomed pane a level at a time, then the comparison), then go back to the last level, or up a level with none to go back to. The navigator closes only if your last click was in it |
+| Backspace, Z | Zoom out: go up a level (in a comparison, in the pane you last clicked) |
 | F | Fit the view |
-| ← → | Previous and next step of the flow playing, or previous and next tested level. In a comparison, of the pane you last clicked |
+| ← → | Previous and next step of the flow playing, previous and next tested level, or previous and next failure on the Failures tab. In a comparison, of the pane you last clicked |
 | Home, End | First and last step, or first and last tested level. In a comparison, of the pane you last clicked |
-| P | Play or pause: Pause holds the flow where it is, part way through a step too, and stays on through Back and Next (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own (in a comparison of runs, on the pane you last clicked) |
-| A | Autoplay on or off: a finished step goes on to the next, up to the last (in a comparison, on the pane you last clicked) |
+| P | Play or pause (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own (in a comparison of runs, on the pane you last clicked) |
+| A | Autoplay on or off (in a comparison, on the pane you last clicked) |
 | S | The speed of the flow playing: 0.5×, 1× and 2× in turn (in a comparison, on the pane you last clicked) |
 | , . | A moment back or on, while the flow is paused (held down, it keeps going) |
 | R | Replay the step's animation (in a comparison, on the pane you last clicked) |
 | C | Compare the flow playing with another flow, or the run on the Performance tab with another run, side by side, or close the comparison. F fits the pane you last clicked. In a comparison the diagrams keep their zoom when the window changes size, so press F to fit the focused pane |
-| X | Swap to the other flow or run of a comparison, when it is set to Swap. Swap flips one canvas between the two: shapes both flows draw glide to their new place and the others fade, while two runs, which draw the same level, fade their traffic. Each keeps its own step or place, and the keys above act on the one on show |
-| T | The Performance tab, where a folder has load-test runs |
-| M | The Failures tab, where a folder has failure analyses |
+| X | Swap to the other flow or run of a comparison, when it is set to Swap. The keys above act on the one on show |
+| Ctrl+Enter | Save a comparison note on a pair that has a tag |
+| T | The Performance tab. Off while editing |
+| M | The Failures tab |
 | Y | The YAML tab: the files as text, and every change to them in the browser |
 | ↑ ↓, Enter | In the model picker: move, then open (browser) |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
+| Ctrl+W, Ctrl+Q | Close the window, quit (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
-| Delete | Delete the open shapes or line |
-| Ctrl+click, Shift+drag, Ctrl+A | Select several shapes (editing): add one, draw a box round some, or take them all. Drag any of them to move them together |
-| Ctrl+Z, Ctrl+Y | Undo and redo |
+| Delete | Delete the selected shapes or line |
+| Ctrl+click, Shift+click, Shift+drag, Ctrl+A | Select several shapes (editing): add one or take it out, draw a box round some, or take them all. Drag any of them to move them together |
+| Ctrl+Z, Ctrl+Y or Ctrl+Shift+Z | Undo and redo |
 | Esc, Backspace | Right after dragging a shape (editing): take the drag back |
 | ? | List every shortcut |
-
-The panels name no keys, so this list is where to find them.
 
 ## Used by
 

@@ -1,90 +1,40 @@
 # Check it and share it
 
-The check and tidy commands, and exporting a read-only site. Part of the [Flowy Docs guide](../guide.md).
+`flowy` here means `node /path/to/flowy-docs/dist/cli.js`, or `flowy.sh` or `flowy.cmd` in the clone. `--dir` picks the model folder.
+
+- `flowy check`: prints every problem, one line each. Exits 1 on any.
+- `flowy tidy`: fixes the views whose faded shapes aren't on the side they have in the view above, in `layout.yaml`, and lists them.
+- `flowy tidy --check`: only lists them, on stderr. Exits 1 on any.
+- `tidy_layout` over MCP: the same, with `view` for one view and `check: true` to only list.
+- `flowy export`: writes a read-only copy of the canvas to `./flowy-site`, or to `--out`.
+- `flowy mermaid --view <id>` or `--flow <id>`: prints a flowchart or a sequence diagram.
+- `flowy failures`: prints the analyses as Markdown tables (`--format csv`, `--analysis <id>`), with problems on stderr. Exits 1 when it has nothing to print or the failure files have a problem. Other problems don't count.
+- `flowy mcp`: runs the MCP server.
 
 ## Check it
 
-```bash
-node /path/to/flowy-docs/dist/cli.js check
-```
+Gate a build on `check`. It reads the model, flows, failure analyses and load-test runs, then each sketch on its own, naming a sketch's files from the model folder. It reports a mode whose run doesn't exist, a `code` or `links` path that doesn't exist and a file that could not be saved again. A model or flow file that can't be read is the one line it prints.
 
-`check` prints every problem in the folder, one line each (`flows/checkout.yaml: step 3: unknown object "stripe"`), and exits with 1 if there is any. With
-none it says so and exits 0, so a build can gate on it:
+## Export
 
-```yaml
-- run: node /path/to/flowy-docs/dist/cli.js check
-```
+The model sits inside the page's `index.html`, with any runs and failure analyses. Browsers won't run it from disk, so it needs a static host such as GitHub Pages. Notion or Confluence embed that link.
 
-It reads what the canvas reads: the model, the flows, the failure analyses and the load-test runs, a failure mode whose run doesn't exist, a path in `code:` that
-doesn't exist, and a file Flowy skips (`.yml`). It also writes every file back in memory, which reports a file that loads but could not be saved again, such as a
-key with no value that an unquoted comma leaves behind. `--dir` picks the model folder. A model or flow file that can't be read at all is the one line it prints.
-`export` lists problems on the page and exits 0, and `failures` exits 1 only for the failure files, so `check` is the one to gate on.
+- Exporting again replaces only what the export wrote, so a `.git` or a `CNAME` stays.
+- `--out` refuses the folder that holds the model, and a folder with other files (hidden ones don't count).
+- A file that can't be read stops the export with exit 1. Problems don't: the page lists them, and it exits 0.
 
-## Tidy it
+## Mermaid
 
-```bash
-node /path/to/flowy-docs/dist/cli.js tidy
-```
-
-`tidy` puts the faded shapes of each view on the side they have in the view above, saves the views it changed in `layout.yaml` and lists them. A view that
-already agrees is left as it is, dragged positions and all. `tidy --check` only lists them, on stderr, and exits 1 if there are any, so a build can gate on it.
-`--dir` picks the model folder. Tidy in the app does the same for the view you are in.
-
-## Share it
-
-People without the repo can read the model too:
-
-```bash
-node /path/to/flowy-docs/dist/cli.js export
-```
-
-It writes a read-only copy of the canvas to `./flowy-site`, with the model inside its `index.html`.
-Put the folder on any static host, such as GitHub Pages, and send the link. Browsers won't run it
-straight from disk. To show it in Notion or Confluence, embed the link. `--dir` picks the model
-folder and `--out` the export folder. An export carries any load-test runs and failure analyses too, and its YAML tab says it has no history.
-
-Export again after the model changes. Only what the export wrote is replaced, so a `.git` or a
-`CNAME` you keep next to it stays. A folder with other files in it is left alone, and so is one
-that holds the model. A file that can't be read stops the export. Problems don't: the page lists
-them.
-
-For a README or a pull request, the Mermaid button copies the view on screen (or the flow
-playing) as a Mermaid diagram, fenced and ready to paste. GitHub and GitLab draw it. A diamond comes out as a
-diamond, a cylinder as a cylinder, and so on, and a colour becomes a `style` line (a folder has no Mermaid shape and stays a
-rectangle, and the queue, document, note and cloud shapes need Mermaid 11.3 or later). The same
-from the command line, or for an AI through MCP (`get_mermaid`):
-
-```bash
-node /path/to/flowy-docs/dist/cli.js mermaid --view ordering
-```
+The Mermaid button copies the view on screen, or the flow playing, fenced for a README or a pull request. A shape becomes the closest Mermaid node and a colour a `style` line (a folder stays a rectangle, and the queue, document, note and cloud shapes need Mermaid 11.3 or later). The same from the command line, or for an AI through MCP (`get_mermaid`): name a view or a flow.
 
 A connection's kind is only partly kept: an extension point comes out as a dotted line, a line with a mark at its start has an arrowhead at both ends, and the kind's name is not added to the label.
 
-`--flow <id>` prints a flow as a sequence diagram instead. A step one shape does on its own is a note over it, except a recursion
-(`animation: recurse`), which is an arrow from the shape back to itself. A flow's repeats, branches and parallel lanes come out as `loop`, `alt` and
-`par` blocks ([above](flows.md#repeats-branches-and-parallel-steps)). This is Customer places an order, from `mermaid --flow place-order`:
+In a sequence diagram a step on one shape is a note, a recursion an arrow back to the shape, a repeat a `loop`, a branch `alt` and `else` (`opt` with one lane) and a parallel group `par` and `and`. Outcomes, channels, states and a step's `flow` are notes.
 
-```mermaid
-sequenceDiagram
-  actor n0 as Customer
-  participant n1 as Customer app
-  participant n2 as Order API
-  participant n3 as Stripe
-  participant n4 as Orders DB
-  participant n5 as Order events
-  participant n6 as Delivery
-  participant n7 as Kitchen tablet
-  n0->>n1: Fills a basket and taps Place order
-  n1->>n2: POST /orders with the basket
-  n2->>n3: Holds the amount on the card
-  n2->>n4: Saves the order as placed
-  n2->>n5: Announces the order
-  n5->>n6: Dispatch starts looking for a courier
-  n2->>n7: The restaurant's tablet rings
-```
+## Addresses
 
-The desktop app does the same from **View › Copy as Mermaid**, and **View › Save Picture** saves the diagram as a PNG.
+The address follows what's on screen, in the browser and on a hosted export, so a document can link back to the map. `#ordering` opens the inside of Ordering and `#ordering/place-order` plays that flow there. The top level is `root`.
 
-The address follows what's on screen. `#ordering` is the inside of Ordering, and `#ordering/place-order` plays
-the flow `place-order` there. Copy it to send someone straight to a level or a flow. The local canvas
-does this too.
+- `#<view>/perf/<run>/<level>`: `<level>` is the level's place in the run from 0, or with several sources a comma list of places (`2,1.5`).
+- `#<view>/failures/<analysis>`, with `/<mode>` to pick a mode.
+- `#<view>/compare/<a>/<b>` for flows and `compare-runs` for runs, with `/swap` for Swap. `<a>` is the left pane, and a pair that can't open shows a notice.

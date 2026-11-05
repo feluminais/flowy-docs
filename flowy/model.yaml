@@ -242,17 +242,17 @@ objects:
     in: flowy
     name: MCP server
     tech: stdio
-    code: [src/node/mcp.ts, src/node/guidance.ts]
+    code: [src/node/mcp.ts, src/node/guidance.ts, src/node/rules.ts]
     description: |
-      Seventeen tools over stdio: read the model (all of it, a summary, or one thing), its problems,
+      Tools over stdio: read the model (all of it, a summary, or one thing), its problems,
       a view or a Mermaid diagram; write objects, connections, flows and failure analyses. It also
-      offers prompts for common jobs and the guides as resources.
+      offers prompts for common jobs, and the rules and guides as resources.
 
       Calls arrive in bursts and run one at a time, in order, so each sees the previous write. A write that loses a race on the file is retried once.
 
-      Its instructions give the AI the writing rules: survey the repo and check the list first, what
-      earns a shape, how to name one, and how to word a description, a label and a flow step. Before
-      the first flow, the AI asks how much to animate: None, Key steps or Every step.
+      Its instructions route the AI: survey the repo and check the list first, write the default, and
+      read the rules for any other part only when the user names it. The rules are sections of
+      `docs/writing.md`, served by topic, and `flowy mcp` does not start without them.
   exporter:
     type: app
     in: flowy
