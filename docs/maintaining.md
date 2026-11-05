@@ -261,8 +261,8 @@ Before merging a change to the app, look at what it could affect, in a real wind
       the file. Pick Auto: the line goes. Remove the snippet: `snippets:` is gone.
 - [ ] On a copy of `docs/demo`, open Orders DB: its panel has a Data section, the orders table open with PK on id, FK customers on customer_id, a type (uuid, int) in small type under each of those names and a purple dot on
       total whose note is under the table on a purple strip (open Refunds: NULL beside reason, whose type is `text?`), and the other three tables closed to a line each ("4 columns", and how long they are kept). Click a closed line: it
-      opens. Open Menu cache (a key set with Key, Value and Expires) and Order events (a topic with Key and Value). For a document, paste the Restaurant profiles
-      example from the guide's Data section under another store's `data:`: it shows its fields one to a line, indented, with the note under them. In edit mode the
+      opens. Open Menu cache (a key set with Key, Value and Expires) and Order events (a topic with Key and Value). For a document, paste the `restaurants`
+      example from the guide's Data page under another store's `data:`: it shows its fields one to a line, indented, with the note under them. In edit mode the
       form has a Data box holding the same lines as the file: delete a column from `columns` but not from the rows and click elsewhere, and a notice says a row has
       too many cells and the box keeps what you typed. Clear the box: `data:` is gone.
 - [ ] On a copy of `docs/demo`, open Support refunds an order from the Flows tab (**L**): the row has a link mark and a Compare button, quiet until you point at it. Press it: two panes open at once with the note under them (the row of a flow with no link opens a picker under the title), and Side by side, Swap, Show changes and Close in the bar. Show changes outlines New, Removed and Changed with the same key as the browser.

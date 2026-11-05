@@ -5,24 +5,25 @@ import { ResourceTemplate, type McpServer } from '@modelcontextprotocol/sdk/serv
 import { z } from 'zod'
 import { RULES } from './rules.ts'
 
-/** The guides an AI can read over MCP, by file name in docs/. They sit next to src/ and dist/, so they exist in a clone and not in a package of dist alone. */
+/** The guides an AI can read over MCP, by file name in docs/, which package.json ships beside dist/. Each description is what starts a read: what the page holds and when, in a task's words. */
 const DOCS = [
-  { file: 'format.md', title: 'File format', description: 'Every key of model.yaml, flows, failure analyses and load-test runs, with what each takes. Read it before writing a file by hand.' },
-  { file: 'writing.md', title: 'Writing good Flowy docs', description: 'What to put in a model: which shapes to draw, how to word a teaser, a connection label and a step, and how to keep it true.' },
-  { file: 'guide.md', title: 'Flowy Docs guide', description: 'Which page holds what, and which to read for a request. Start here.' },
-  { file: 'guide/canvas.md', title: 'Guide: the canvas', description: 'Zooming, panels, search, editing, the YAML tab and history.' },
-  { file: 'guide/shapes.md', title: 'Guide: shapes, colour and icons', description: 'Which shape, colour, opacity and icon a box takes.' },
-  { file: 'guide/flows.md', title: 'Guide: flows', description: 'How a request ends, which line of a pair a step rides (via), repeats, branches, parallel steps and shape states.' },
-  { file: 'guide/kinds.md', title: 'Guide: connection kinds', description: 'The six kinds of connection (request and reply, request then stream, publish, cached publish, object updates, extension point): how to pick one, and how the line draws it.' },
-  { file: 'guide/data.md', title: 'Guide: data', description: 'What a store holds: tables, key sets, topics and collections.' },
-  { file: 'guide/code.md', title: 'Guide: code', description: 'A few lines of code on a shape.' },
-  { file: 'guide/failures.md', title: 'Guide: failure modes', description: 'Rating how each part fails, and reading the ranked list.' },
-  { file: 'guide/performance.md', title: 'Guide: performance', description: 'Replaying a load test on the diagram.' },
-  { file: 'guide/compare.md', title: 'Guide: compare', description: 'Two flows or two runs side by side, the marks of what changed, a note, and the compare tag that makes a pair.' },
-  { file: 'guide/sketches.md', title: 'Guide: sketches', description: 'A sketch of a system or a flow in sketches/<id>/, kept apart from the model: making one, copying shapes into it, the sketch argument of every tool, and a line for each connection (pairs: separate).' },
-  { file: 'guide/ai.md', title: 'Guide: AI and MCP', description: 'Setup, the tools, the prompts and what to ask for.' },
-  { file: 'guide/share.md', title: 'Guide: check it and share it', description: 'The check command and exporting a read-only site.' },
-  { file: 'guide/desktop.md', title: 'Guide: the desktop app', description: 'What the desktop app does and where it differs from the browser.' },
+  { file: 'format.md', title: 'File format', description: 'Every key you write by hand, with limits, defaults and quoting: model.yaml, flows, failures, data, snippets. Read before editing YAML. Run file keys: guide/performance.md.' },
+  { file: 'writing.md', title: 'Writing good Flowy docs', description: 'All judgement on what to draw and how to word it. Holds what flowy://rules/* serve, plus comparison notes, load-test runs and what stays outside Flowy.' },
+  { file: 'guide.md', title: 'Flowy Docs guide', description: 'Which page holds what, by request. Read when the rules do not answer a question about Flowy.' },
+  { file: 'guide/canvas.md', title: 'Guide: the canvas', description: 'Using the app: panels, search, player, edit forms, YAML tab, history. Read when asked how to do something on screen or what a mark means.' },
+  { file: 'guide/shapes.md', title: 'Guide: shapes, colour and icons', description: 'Which shape, colour, opacity and icon a box can take. Read when asked for a look.' },
+  { file: 'guide/flows.md', title: 'Guide: flows', description: 'How a flow plays: what a step sends, how a request ends, which line a step rides, repeats, branches, parallel steps, shape states, streams and listeners.' },
+  { file: 'guide/kinds.md', title: 'Guide: connection kinds', description: 'The six connection kinds (request and reply, request then stream, publish, cached publish, object updates, extension point) and how a line draws each.' },
+  { file: 'guide/data.md', title: 'Guide: data', description: 'How a store shows what it holds: tables, key sets, topics and collections. Read to explain what the Data section shows.' },
+  { file: 'guide/failures.md', title: 'Guide: failure modes', description: 'How Flowy ranks a failure analysis: risk, bands, what Analysed counts. Read to explain or check a rating.' },
+  { file: 'guide/performance.md', title: 'Guide: performance', description: 'Replaying a load test on the diagram, and the run file keys. Read to write an exporter or a run, or to explain what the Performance tab shows.' },
+  { file: 'guide/compare.md', title: 'Guide: compare', description: 'Two flows or runs side by side: the compare tag that makes a pair, the note, the marks of what changed. Read to set up or explain a comparison.' },
+  { file: 'guide/sketches.md', title: 'Guide: sketches', description: 'Sketches and drafts kept apart from the model in sketches/<id>/: making one, copying shapes, the sketch argument, and a line for each connection (pairs: separate).' },
+  { file: 'guide/ai.md', title: 'Guide: AI and MCP', description: 'What to ask an AI for, how to review its first pass, and what the server offers. Setup is in install.md.' },
+  { file: 'guide/share.md', title: 'Guide: check it and share it', description: 'Command line: check, export a read-only site, Mermaid, tidy, with exit codes. Read to run Flowy in CI or publish a model.' },
+  { file: 'guide/desktop.md', title: 'Guide: the desktop app', description: 'How the desktop app differs from the browser. Read when a question names the desktop app.' },
+  { file: 'shortcuts.md', title: 'Shortcuts', description: 'Every keyboard shortcut in the app and the browser. Read when asked which key does something.' },
+  { file: 'install.md', title: 'Install', description: 'Installing the desktop app, the browser version and the VS Code extension, and adding the MCP server. Read for setup problems.' },
 ] as const
 
 const docsDir = fileURLToPath(new URL('../../docs/', import.meta.url))
@@ -42,8 +43,8 @@ const PROMPTS: Record<string, Prompt> = {
     },
     text: ({ focus, also }) => [
       `Map this repository into Flowy.${focus ? ` The reader: ${focus}` : ' First ask me who will read the model and what they want to know, in one line.'}`,
-      'Do not write anything yet. Call get_model with summary: true to see what exists, then list the people, apps, stores (databases, caches, named queues and topics) and outside services you can find in the code, each with the file or folder that shows it. Mark the ones we do not own. Leave out anything you cannot point to. I will check the list.',
-      'Then write in passes, and tell me when each is done: (1) shapes with put_object, each with a code path, a teaser and a real tech; (2) connections with connect, each a verb and what moves, never ending on to or from; (3) three to five plain flows with put_flow; (4) the text. Read the flowy://docs/writing.md resource if you are unsure how to word something.',
+      'Do not write anything yet. Read flowy://rules/writing. Call get_model with summary: true to see what exists, then list the people, apps, stores (databases, caches, named queues and topics) and outside services you can find in the code, each with the file or folder that shows it. Mark the ones we do not own. Leave out anything you cannot point to. I will check the list.',
+      'Then write in passes, and tell me when each is done: (1) shapes with put_object; (2) connections with connect; (3) three to five plain flows with put_flow; (4) the text, with a name and short about through put_project.',
       also ? `Beyond that, add: ${also}. Read flowy://rules/ for each of these before you write it (flows, data, code, failures).` : 'Add nothing beyond that: no failure modes, data, code on shapes, motion or looks. I will ask for them by name.',
       FINISH,
     ].join('\n\n'),
@@ -54,8 +55,7 @@ const PROMPTS: Record<string, Prompt> = {
     args: { change: z.string().optional().describe('The diff, a branch or a commit, or a sentence on what changed. Leave out to use the uncommitted changes.') },
     text: ({ change }) => [
       `Update the Flowy model for this change: ${change || 'the uncommitted changes in the repo'}.`,
-      'Call get_model with summary: true, then object, flow or analysis for only the parts the change touches. Change only those: a renamed shape, a moved code path, a new connection, a step that no longer happens. Do not rewrite text that is still true, and do not delete what you are unsure of. Mark anything you guessed with "Open question: ..." at the end of its description.',
-      'A path that exists proves little: if code changed what a shape does, update its text even though nothing reports a problem.',
+      'Read flowy://rules/writing. Call get_model with summary: true, then object, flow or analysis for only the parts the change touches. Change only those: a renamed shape, a moved code path, a new connection, a step that no longer happens. Do not rewrite text that is still true, and do not delete what you are unsure of.',
       FINISH,
     ].join('\n\n'),
   },
@@ -65,7 +65,7 @@ const PROMPTS: Record<string, Prompt> = {
     args: { goal: z.string().describe('What happens, as a goal: "Customer places an order".') },
     text: ({ goal }) => [
       `Write a Flowy flow for: ${goal}.`,
-      'Read the code that does it, and get_model with summary: true for the shape ids. Name the flow for the goal, start from its one trigger and tell the happy path whole in 3 to 9 steps. Each step is one handover with the sender as the subject: "Hands over the order", "Asks for the total". Say who waits, put why and timing in the step\'s description, and play it on the view where its ends are separate shapes. Give a failure its own flow. Write plain steps; add motion, repeats, branches or states only if I ask, and read flowy://rules/flows first.',
+      'Read flowy://rules/writing, the code that does it, and get_model with summary: true for the shape ids. Write it with put_flow. For motion, repeats, branches or states, which only I ask for, read flowy://rules/flows first.',
       'put_flow answers with how each step reads on its view: check that it reads like the code works.',
       FINISH,
     ].join('\n\n'),
@@ -76,8 +76,8 @@ const PROMPTS: Record<string, Prompt> = {
     args: { scope: z.string().optional().describe('The shape id the analysis covers, or "root" for everything. Leave out to choose.') },
     text: ({ scope }) => [
       `Write a Flowy failure analysis${scope ? ` for ${scope}` : ''}.`,
-      'Read flowy://rules/failures first. Call get_model with summary: true, and get_model with object for the shapes that matter. One row for each way a part fails, the mode a condition stated as a fact ("Stripe does not answer within five seconds"), the effect what a person or another part then sees. Name the part with on, or a line with from and to. Give severity, occurrence and detection (1 to 10, and 10 for detection means nobody would notice) only where you can defend them, and leave out the rest: a mode with no ratings shows as Not rated. Put what exists today in controls, what to do next in action, the flow that tells it in flow, and the shapes it hurts in affects. If a load-test run shows it, name it in run, one of the ids get_model lists.',
-      'Use put_failures for the analysis and put_failure to change one mode: put_failure replaces the whole mode, so read it with get_model first.',
+      'Read flowy://rules/failures first. Call get_model with summary: true, and get_model with object for the shapes that matter.',
+      'Use put_failures for the analysis and put_failure to change one mode.',
       FINISH,
     ].join('\n\n'),
   },
@@ -86,7 +86,8 @@ const PROMPTS: Record<string, Prompt> = {
     description: 'Read the model like a reviewer and report what is wrong, without changing anything.',
     text: () => [
       'Review the Flowy model. Change nothing: report.',
-      'Call get_problems, then get_model with summary: true, then read what you need in full. Look for: shapes with no code path, or with a path that proves nothing; a name that is only its type ("Database"); two shapes for one thing; a description that restates its name, or opens with "responsible for"; a teaser that leaves out a warning ("Deprecated") that the panel holds; a connection label that is "uses", or ends on to, from or with; a flow with more than one trigger, a step that names its receiver or ends on a preposition, or a happy path that is not whole; a view with more than a dozen shapes; text that will go stale (versions, counts, endpoint lists); a guess not marked "Open question".',
+      'Read flowy://rules/writing, and flowy://rules/<topic> for each part the model has (flows, data, code, failures). Call get_problems, then get_model with summary: true, then read what you need in full.',
+      'Look for: an app, store or component with no real tech, no code path, or a path that proves nothing; a name that is only its type ("Database"); two shapes for one thing; an acronym not explained where it is used; a teaser that restates its name or opens with "responsible for"; a warning ("Deprecated", "planned") the teaser leaves out; a procedure, table or decision in a panel that a linked document should hold; a connection label that is "uses", or ends on to, from or with; a flow not named for a goal, with more than one trigger, or not starting with whoever sets it off; a step whose sender is not the subject, that names its receiver or ends on a preposition; a happy path that is not whole; a view with more than a dozen shapes; a look that says nothing, or a colour with two meanings; a store showing more than the tables a flow touches, rows that look real, or a note that does not say why; a failure mode that names more than one way of failing, an effect a reader could not see, or a rating nobody can defend; text that will go stale (versions, counts, endpoint lists); a guess not marked "Open question".',
       'Give each finding as the shape or flow id, what is wrong, and what you would change, worst first.',
     ].join('\n\n'),
   },
