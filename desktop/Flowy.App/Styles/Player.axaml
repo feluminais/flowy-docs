@@ -14,6 +14,9 @@
   <Style Selector="Button.tool.speed"><Setter Property="Padding" Value="7,0" /><Setter Property="MinWidth" Value="0" /></Style>
   <Style Selector="Button.tool.speed.on /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Button.tool.speed.on TextBlock.btntext"><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <!-- Autoplay on: it stands on the tint, in the accent, as a pressed button of the browser's player does. -->
+  <Style Selector="Button.tool.auto.on /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="Button.tool.auto.on Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource AccentBrush}" /></Style>
   <!-- A lane the stop shown is not in: hollow, as the browser draws it. A group is a box, dashed when it may stop early. -->
   <Style Selector="Border.seg.off">
     <Setter Property="Background" Value="Transparent" />

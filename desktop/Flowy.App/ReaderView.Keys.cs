@@ -230,6 +230,12 @@ internal sealed partial class ReaderView
             else r._playback.TogglePlay();
         }
 
+        public void FlowAutoplay()
+        {
+            if (r._compareMode.View is { } view && r.Comparing) view.Target.ToggleAuto();
+            else r._playback.ToggleAuto();
+        }
+
         public void FlowSpeed()
         {
             if (r._compareMode.View is { } view && r.Comparing) view.Target.NextSpeed();

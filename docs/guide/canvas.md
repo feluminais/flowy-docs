@@ -76,11 +76,12 @@ Reading the model on the canvas, editing it, and the YAML tab with its history. 
   way, and `callback` shows what set it off (`trigger: outside` when it was the step before).
   A step that really ends another way adds an `outcome`: `fail` on a `send` or `call` runs red and flashes the receiver, `timeout` on a `call` leaves the sender waiting with no reply and dims the line, and five more show a request that is lost, turned away, taken by someone else, delivered twice or held up (see [How a request ends](flows.md#how-a-request-ends)). The step's text still says what happened.
   In the browser the step plays again two and a half seconds after it ends, until you move on (the Repeat button on the card turns that off),
-  R plays it again from the start, and Play (P) steps through the flow on its own after the first play. Pause (P again) holds
-  everything where it is, the moving dot, a channel coming in and a shape's state included, and Play carries on from there. The bar
+  R plays it again from the start. A flow opens with its first step moving, and each step waits for you at its end. Autoplay (A) takes that wait away: a finished step goes on
+  to the next, up to the last, and it stays on through Back and Next. Pause (P) holds everything where it is, with Autoplay on or off, the moving dot, a channel coming in and a
+  shape's state included, and Play (P again) carries on from there. Pressed on a step that has played out, Play runs it again; on the last step with Autoplay on, it starts from step 1. The bar
   on the card can be clicked or dragged to any moment of any step, and the buttons beside Stop set the speed: 0.5×, 1× or 2×. The card keeps
-  the size of its tallest step, so its edge and its buttons stay put, and on a step that doesn't move Replay (and in the browser Repeat) is greyed out. The browser keeps
-  the speed for your next visit; the desktop app keeps it until it closes. Nothing moves when
+  the size of its tallest step, so its edge and its buttons stay put, and in the browser Repeat is greyed out on a step that doesn't move and while Autoplay is on. The browser keeps
+  the speed and Autoplay for your next visit; the desktop app keeps them until it closes. A pane of a comparison opens with Autoplay off. Nothing moves when
   the system asks for less motion, and a step's text always says the same thing. The desktop app
   plays each step once.
 - A shape that calls itself is one step with no `to`, tagged `animation: recurse`. Its pipe loops

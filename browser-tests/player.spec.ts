@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
 
-// The flow player over Plum's "Customer places an order": Play and Pause freeze a step where it is and carry on from there.
+// The flow player over Plum's "Customer places an order": Play and Pause freeze a step where it is and carry on from there, and Autoplay takes away the stops between steps.
 
 async function openFlow(page: Page) {
   await page.goto('/#ordering/place-order')
@@ -10,14 +10,14 @@ async function openFlow(page: Page) {
 
 const player = (page: Page) => page.locator('.player')
 const button = (page: Page, name: 'Play' | 'Pause') => player(page).getByRole('button', { name, exact: true })
+const autoplay = (page: Page) => player(page).getByRole('button', { name: 'Autoplay' })
+const repeat = (page: Page) => player(page).getByRole('button', { name: 'Repeat' })
 /** The dot running along the step's line, while it is drawn. */
 const dot = (page: Page) => page.locator('.motion g[data-beat]:has(> .blob):visible').first()
 
 test('Pause freezes the dot and Play carries on from there', async ({ page }) => {
   await openFlow(page)
-  await button(page, 'Play').click()
-  await expect(player(page)).toContainText('Step 2 of')
-  await dot(page).waitFor() // the step's motion has begun
+  await dot(page).waitFor() // a flow opens with its first step moving
   await page.waitForTimeout(200)
   await button(page, 'Pause').click()
   await page.waitForTimeout(100) // the frame of the paused moment
@@ -28,19 +28,21 @@ test('Pause freezes the dot and Play carries on from there', async ({ page }) =>
   await expect.poll(() => dot(page).getAttribute('transform')).not.toBe(frozen)
 })
 
-test('Pausing in the rest between steps does not move on', async ({ page }) => {
+test('Pausing in the rest between steps does not move on, and Play goes on', async ({ page }) => {
   await openFlow(page)
-  await button(page, 'Play').click()
+  await autoplay(page).click()
   await expect(player(page)).toContainText('Step 2 of')
   await expect(page.locator('.motion g[data-beat]:has(> .blob):visible')).toHaveCount(0, { timeout: 5000 }) // its motion is over: the rest before step 3
   await button(page, 'Pause').click()
   await page.waitForTimeout(2000)
   await expect(player(page)).toContainText('Step 2 of')
+  await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
+  await button(page, 'Play').click()
+  await expect(player(page)).toContainText('Step 3 of', { timeout: 8000 })
 })
 
 test('Next while paused stays paused on the first frame of the next step', async ({ page }) => {
   await openFlow(page)
-  await button(page, 'Play').click()
   await page.waitForTimeout(300)
   await button(page, 'Pause').click()
   await player(page).getByRole('button', { name: 'Next' }).click()
@@ -76,7 +78,6 @@ test('Pause stops the dots of an open stream', async ({ page }) => {
   await openLiveMap(page)
   await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
   await page.keyboard.press('p')
-  await page.keyboard.press('p')
   const dots = page.locator('svg.channels .stream-dots').first()
   const offset = () => dots.evaluate(el => getComputedStyle(el).strokeDashoffset)
   await expect(button(page, 'Play')).toBeVisible()
@@ -91,13 +92,13 @@ test('Play does not bring an open channel in again', async ({ page }) => {
   await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
   await page.keyboard.press('p')
   await page.keyboard.press('p')
-  await page.keyboard.press('p')
   await page.waitForTimeout(100)
   expect(await opacity(page)).toBe('1')
 })
 
-test('Dragging the bar goes to the step and the moment under the pointer, and holds there', async ({ page }) => {
+test('Dragging the bar while paused goes to the step and the moment under the pointer, and holds there', async ({ page }) => {
   await openFlow(page)
+  await button(page, 'Pause').click()
   const cells = page.locator('.player .progress .cell')
   const first = (await cells.nth(0).boundingBox())!
   const third = (await cells.nth(2).boundingBox())!
@@ -115,6 +116,15 @@ test('Dragging the bar goes to the step and the moment under the pointer, and ho
   await page.waitForTimeout(500)
   expect(await dot(page).getAttribute('transform')).toBe(held)
   await expect(player(page).getByRole('slider', { name: 'Step' })).toHaveAttribute('aria-valuetext', /^Step 3 of \d+$/)
+})
+
+test('Letting go of the bar carries on if it was playing', async ({ page }) => {
+  await openFlow(page)
+  const cell = (await player(page).locator('.progress .cell[data-stop="1"]').boundingBox())!
+  await page.mouse.click(cell.x + cell.width / 5, cell.y + cell.height / 2)
+  await expect(player(page)).toContainText('Step 2 of')
+  await expect(button(page, 'Pause')).toBeVisible()
+  await expect(dot(page)).toBeVisible()
 })
 
 /** How long the motion of step 2 takes, from Next until its dot has gone. */
@@ -152,16 +162,13 @@ test('A flow stopped and opened again plays its first step from the start', asyn
 
 test('Turning Repeat off and on while paused keeps the frozen moment', async ({ page }) => {
   await openFlow(page)
-  await button(page, 'Play').click()
-  await expect(player(page)).toContainText('Step 2 of')
   await dot(page).waitFor()
   await page.waitForTimeout(200)
   await button(page, 'Pause').click()
   await page.waitForTimeout(100)
   const frozen = await dot(page).getAttribute('transform')
-  const repeat = player(page).getByRole('button', { name: 'Repeat' })
-  await repeat.click()
-  await repeat.click()
+  await repeat(page).click()
+  await repeat(page).click()
   await page.waitForTimeout(200)
   expect(await dot(page).getAttribute('transform', { timeout: 1000 })).toBe(frozen)
 })
@@ -233,19 +240,70 @@ test('Back on the first step plays it again', async ({ page }) => {
   await expect(player(page)).toContainText('Step 1 of')
 })
 
-test('Back and Next end Play', async ({ page }) => {
+test('Back and Next leave Autoplay on', async ({ page }) => {
   await openFlow(page)
-  await button(page, 'Play').click()
+  await autoplay(page).click()
   await player(page).getByRole('button', { name: 'Next' }).click()
   await expect(player(page)).toContainText('Step 2 of')
-  await settled(page)
-  await page.waitForTimeout(2500) // longer than the rest between steps
-  await expect(player(page)).toContainText('Step 2 of')
-  await button(page, 'Play').click()
+  await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
   await back(page).click()
+  await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
+  await expect(player(page)).toContainText('Step 3 of', { timeout: 8000 })
+})
+
+test('Without Autoplay a step rests on its end, and Play runs it again', async ({ page }) => {
+  await openFlow(page)
+  await repeat(page).click() // off: a step that has played holds its end
   await settled(page)
+  await expect(button(page, 'Play')).toBeVisible()
+  await page.waitForTimeout(2500) // longer than the rest between steps
+  await expect(player(page)).toContainText('Step 1 of')
+  await button(page, 'Play').click()
+  await expect(dot(page)).toBeVisible()
+  await expect(button(page, 'Pause')).toBeVisible()
+  await expect(player(page)).toContainText('Step 1 of')
+})
+
+test('Autoplay does not start a paused step, and turned on after a step is over it goes on', async ({ page }) => {
+  await openFlow(page)
+  await button(page, 'Pause').click()
+  await autoplay(page).click()
+  await expect(button(page, 'Play')).toBeVisible()
   await page.waitForTimeout(2500)
-  await expect(player(page)).toContainText('Step 2 of')
+  await expect(player(page)).toContainText('Step 1 of')
+  await autoplay(page).click()
+  await button(page, 'Play').click()
+  await repeat(page).click() // off: a step that has played holds its end
+  await settled(page)
+  await autoplay(page).click()
+  await expect(player(page)).toContainText('Step 2 of', { timeout: 8000 })
+})
+
+test('Autoplay waits on the last step, and Play starts the flow from its first', async ({ page }) => {
+  await page.goto('/#root/sms-dropped')
+  await player(page).waitFor()
+  for (let k = 0; k < 4; k++) await player(page).getByRole('button', { name: 'Next' }).click()
+  await expect(player(page)).toContainText('Step 5 of 5')
+  await autoplay(page).click()
+  await expect(button(page, 'Play')).toBeVisible({ timeout: 8000 })
+  await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
+  await button(page, 'Play').click()
+  await expect(player(page)).toContainText('Step 1 of 5')
+})
+
+test('Repeat is greyed out while Autoplay is on', async ({ page }) => {
+  await openFlow(page)
+  await autoplay(page).click()
+  await expect(repeat(page)).toBeDisabled()
+  await expect(repeat(page)).toHaveAttribute('title', 'Autoplay is on')
+})
+
+test('Autoplay is kept across visits', async ({ page }) => {
+  await openFlow(page)
+  await autoplay(page).click()
+  await page.reload()
+  await player(page).waitFor()
+  await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('Play sits between Back and Next', async ({ page }) => {

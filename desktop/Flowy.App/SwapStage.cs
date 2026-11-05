@@ -192,7 +192,7 @@ internal sealed class SwapStage : Border, IFlowKeys
     /// <summary>Swaps to the other flow.</summary>
     public void Swap() => SwapTo(_keys[1 - _on]);
 
-    /// <summary>Stops the Autoplay of both flows, where they are: the comparison is closed, and a flow nobody sees must not go on stepping.</summary>
+    /// <summary>Turns off the Autoplay of both flows, where they are: the comparison is closed, and a flow nobody sees must not go on stepping.</summary>
     public void StopPlayback()
     {
         foreach (var flow in _flows) flow.Playback.StopAuto();
@@ -362,6 +362,12 @@ internal sealed class SwapStage : Border, IFlowKeys
     {
         Settle();
         Current.TogglePlay();
+    }
+
+    public void ToggleAuto()
+    {
+        Settle();
+        Current.ToggleAuto();
     }
 
     public void NextSpeed()

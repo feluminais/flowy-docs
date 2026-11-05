@@ -60,7 +60,7 @@ internal static class FlowStage
     /// <summary>The card for the stop at <paramref name="index"/>, and the marks its groups put on the lines.</summary>
     public static (PlayerView Card, List<CanvasView.Mark> Marks) CardAt(
         Model model, Flow flow, string id, IReadOnlyList<Stop> stops, int index, Playing? shown, bool showsPause, (string Name, int Step)? trail, IReadOnlyList<StateMark> states,
-        IReadOnlyDictionary<int, Change>? changes = null, IReadOnlyList<string>? channels = null)
+        IReadOnlyDictionary<int, Change>? changes = null, IReadOnlyList<string>? channels = null, bool auto = false)
     {
         var stop = stops[index];
         var caption = Captions.Of(flow, stop);
@@ -81,7 +81,7 @@ internal static class FlowStage
         var progress = Captions.ProgressOf(flow, stops);
         // A cell takes the mark of the steps of its stop (by file step number), when a comparison is marking this flow.
         var cells = changes is null ? null : progress.Cells.Select(c => CompareUi.ChangeOfStop(stops[c.Stop].Steps, changes)).ToList();
-        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, progress, showsPause, moves, trail, steps, states, cells, channels);
+        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, progress, showsPause, moves, trail, steps, states, cells, channels, auto);
         var marks = stop.Steps
             .Select((i, n) => (Placed: shown?.Ends[i], Text: n < caption.Marks.Count ? caption.Marks[n] : ""))
             .Where(x => x.Placed is not null && x.Text != "" && stop.Kind is not null)
