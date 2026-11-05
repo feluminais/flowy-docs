@@ -162,7 +162,7 @@ export const ICONS: Record<string, string> = {
   pill: "M4.5 12.5l8 -8a4.94 4.94 0 0 1 7 7l-8 8a4.94 4.94 0 0 1 -7 -7M8.5 8.5l7 7",
 }
 
-/** The icons by what they are for, in the order the guide and the pickers list them. */
+/** The icons by what they are for, in the order the pickers and the put_icon description list them. */
 export const ICON_GROUPS: readonly { group: string; names: readonly string[] }[] = [
   { group: "People", names: ["user","users","user-circle","user-check","user-cog","user-shield","users-group","headset","robot","id-badge-2","heart-handshake"] },
   { group: "Places and organisations", names: ["building","building-bank","building-store","building-factory-2","building-warehouse","building-skyscraper","building-hospital","home","school","map-pin","world","flag"] },

@@ -29,7 +29,7 @@ test('the server offers the guide pages and the topic rules as resources, the pa
   const client = await setup(t)
   const listed = (await client.listResources()).resources
   const pages = (await readdir('docs/guide')).map(n => `flowy://docs/guide/${n}`)
-  assert.deepEqual(listed.map(r => r.uri).sort(), ['flowy://docs/format.md', 'flowy://docs/guide.md', ...pages, 'flowy://docs/writing.md', 'flowy://rules/code', 'flowy://rules/data', 'flowy://rules/failures', 'flowy://rules/flows', 'flowy://rules/writing'].sort())
+  assert.deepEqual(listed.map(r => r.uri).sort(), ['flowy://docs/format.md', 'flowy://docs/guide.md', ...pages, 'flowy://docs/install.md', 'flowy://docs/shortcuts.md', 'flowy://docs/writing.md', 'flowy://rules/code', 'flowy://rules/data', 'flowy://rules/failures', 'flowy://rules/flows', 'flowy://rules/writing'].sort())
   for (const r of listed) assert.ok(r.description && r.mimeType === 'text/markdown', r.uri)
   const read = await client.readResource({ uri: 'flowy://docs/format.md' })
   assert.equal((read.contents[0] as { text: string }).text, await readFile('docs/format.md', 'utf8'))
@@ -78,13 +78,16 @@ test('every tool, prompt and guide the instructions name is really there', async
   assert.ok(instructions.includes('flowy://docs/format.md') && resources.includes('flowy://docs/format.md'))
 })
 
-test('the guide lists every tool, and SECURITY.md and the guide count them as the server does', async t => {
+test('the file format names every tool that writes, and SECURITY.md and the guide count the tools as the server does', async t => {
   const client = await setup(t)
   const tools = (await client.listTools()).tools.map(x => x.name)
   const guide = await readFile('docs/guide/ai.md', 'utf8')
   const security = await readFile('SECURITY.md', 'utf8')
-  const table = guide.slice(guide.indexOf('**The tools.**'), guide.indexOf('Not over MCP:'))
-  assert.deepEqual(tools.filter(name => !table.includes(`\`${name}\``)), [], 'tools missing from the guide table')
+  const format = await readFile('docs/format.md', 'utf8')
+  const table = format.slice(format.indexOf('## What writes what over MCP'))
+  // The get_ tools change nothing, and new_draft and delete_draft are old names of tools the table lists.
+  const writes = tools.filter(name => !name.startsWith('get_') && !name.endsWith('_draft'))
+  assert.deepEqual(writes.filter(name => !table.includes(`\`${name}\``)), [], 'tools missing from What writes what over MCP')
   const words = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three', 'twenty-four', 'twenty-five', 'twenty-six', 'twenty-seven', 'twenty-eight', 'twenty-nine', 'thirty', 'thirty-one', 'thirty-two', 'thirty-three']
   assert.match(guide, new RegExp(`The server has ${words[tools.length]}\\.`))
   const reads = tools.filter(name => name.startsWith('get_')).length
@@ -124,6 +127,15 @@ test('each topic rule is a resource, with the limits the code enforces', async t
   assert.match(await text('failures'), /put_failure replaces the whole mode/)
   assert.match(await text('writing'), /A connection label is a few words/)
   assert.match(await text('writing'), /One trigger, one story/)
+})
+
+test('the rules are sections of docs/writing.md, word for word, and the default stays short', async t => {
+  const client = await setup(t)
+  const writing = (await readFile('docs/writing.md', 'utf8')).replace(/\r\n/g, '\n')
+  const text = async (topic: string) => ((await client.readResource({ uri: `flowy://rules/${topic}` })).contents[0] as { text: string }).text
+  for (const topic of ['writing', 'flows', 'data', 'code', 'failures']) assert.ok(writing.includes(`\n\n${await text(topic)}\n`), topic)
+  const size = Buffer.byteLength(await text('writing'))
+  assert.ok(size <= 6000, `the default rules are ${size} bytes; keep them at 6,000 or less, since every request reads them`)
 })
 
 test('docs/guide.md routes to every page, and every relative link in the guide pages lands on a file', async () => {

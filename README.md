@@ -180,9 +180,9 @@ connections:
 
 | Page | Covers |
 | --- | --- |
-| [Guide](docs/guide.md) | Everything the canvas does, and how editing, agents and sharing work |
+| [Guide](docs/guide.md) | Which page answers what: the canvas, flows, editing, agents and sharing |
 | [Writing good Flowy docs](docs/writing.md) | What to put in a model, shape by shape |
-| [File format](docs/format.md) | Every key of the YAML files |
+| [File format](docs/format.md) | Every key you write by hand |
 | [Install](docs/install.md) | The desktop app, the browser version, the VS Code extension |
 | [Shortcuts](docs/shortcuts.md) | Every key |
 | [Security](SECURITY.md) | What Flowy touches, and how to report a problem |
