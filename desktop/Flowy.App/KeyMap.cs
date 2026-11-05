@@ -107,6 +107,8 @@ internal interface IKeyActions
     void FlowFirst();
     void FlowLast();
     void FlowPlay();
+
+    void FlowAutoplay();
     void FlowSpeed();
     void FlowNudge(int by);
     void FlowReplay();
@@ -184,6 +186,7 @@ internal static class KeyMap
         Do("flow-step", "→  ←", (p, s) => FlowKeys(s) && p.Arrow, (p, _, a) => a.FlowStep(p.By), Flows("Next and previous step")),
         Do("flow-ends", "Home  End", (p, s) => FlowKeys(s) && p.Key is Key.Home or Key.End, (p, _, a) => { if (p.Key == Key.Home) a.FlowFirst(); else a.FlowLast(); }, Flows("First and last step")),
         Do("flow-play", "P", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Play or pause")),
+        Do("flow-autoplay", "A", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.A), (_, _, a) => a.FlowAutoplay(), Flows("Autoplay")),
         Do("flow-speed", "S", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.S), (_, _, a) => a.FlowSpeed(), Flows("Speed")),
         // Comma is a moment back and full stop a moment on, by where the key is (any layout). Held down, it goes on.
         Do("flow-nudge", ",  .", (p, s) => FlowKeys(s) && p.Plain && p.Physical is PhysicalKey.Comma or PhysicalKey.Period, (p, _, a) => a.FlowNudge(p.Physical == PhysicalKey.Comma ? -1 : 1),
@@ -283,7 +286,7 @@ internal static class KeyMap
     private static readonly IReadOnlyDictionary<HelpGroup, (string Id, string Keys, string What)[]> Order = new Dictionary<HelpGroup, (string, string, string)[]>
     {
         [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("yaml"), R("perf"), R("failures"), R("shortcuts")],
-        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-speed"), R("flow-nudge"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
+        [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-autoplay"), R("flow-speed"), R("flow-nudge"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
         [HelpGroup.Performance] = [R("perf-step"), R("perf-ends"), R("perf-ramp"), R("escape")],
         [HelpGroup.Failures] = [R("failure-step")],
         [HelpGroup.Editing] =

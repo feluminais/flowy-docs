@@ -33,11 +33,11 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
 }) {
   const flow = Object.hasOwn(model.flows, flowId) ? model.flows[flowId] : undefined
   const view = level ?? flow?.view ?? ROOT
-  const player = usePlayer({ initialFlow: () => flowId, initialStep: startAt })
-  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock, paused, speed, setSpeed } = player
+  const player = usePlayer({ initialFlow: () => flowId, initialStep: startAt, pane: true })
+  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, autoplay, setAutoplay, toggleAutoplay, settledKey, setSettledKey, clock, paused, speed, setSpeed } = player
   const stage = useFlowStage({ model, view, flow, playing, replays, clock, lines })
   const { stops, stopIndex, flowMarks, shown, animated, moving, stepKey } = stage
-  const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays })
+  const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays, replay, repeat, autoplay })
   const graph = useMemo(() => toGraph(model, view, shown, problems, flowMarks, { style: lines, opened: selectedLine }), [model, view, shown, problems, flowMarks, lines, selectedLine])
   const marksHere = useMemo(() => Object.fromEntries(graph.nodes.flatMap(n => (n.data.state ? [[n.id, n.data.state] as const] : []))), [graph])
   const sizes = useRef(new Map<string, { width: number; height: number }>()) // what each box measured (see Reader: React Flow forgets it on every new node object)
@@ -62,11 +62,12 @@ export function usePaneFlow({ model, flowId, level, startAt, problems, selectedB
     step: (by: 1 | -1) => stepTo(stopIndex + by),
     end: (which: 'first' | 'last') => stepTo(which === 'first' ? 0 : stops.length - 1),
     play: togglePlay,
+    autoplay: toggleAutoplay,
     nextSpeed: () => setSpeed(nextOf(speed)),
     nudge,
     replay,
   }
-  return { ...stage, flow, view, playing, setPlaying, replay, clock, repeat, toggleRepeat, finished, stepTo, togglePlay, showsPause, nudge, scrub, speed, setSpeed, graph, marksHere, nodes, frame, edges, spots, setHovered, onNodesChange, keys }
+  return { ...stage, flow, view, playing, setPlaying, replay, clock, repeat, toggleRepeat, autoplay, setAutoplay, toggleAutoplay, finished, stepTo, togglePlay, showsPause, nudge, scrub, speed, setSpeed, graph, marksHere, nodes, frame, edges, spots, setHovered, onNodesChange, keys }
 }
 
 export type PaneFlow = ReturnType<typeof usePaneFlow>
