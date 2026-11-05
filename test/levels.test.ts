@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { backFrom, cameBack, remember } from '../ui/src/levels.ts'
+import { backAbout, backFrom, cameBack, remember } from '../ui/src/levels.ts'
 
 const anywhere = () => true
 
@@ -33,6 +33,13 @@ test('Esc goes back from the box the level is drawn as', () => {
   assert.equal(backFrom(chain, 'in', id => id === 'dispatch'), 'dispatch')
   assert.equal(backFrom(chain, 'out', () => true), undefined, 'going out zooms about the middle')
   assert.equal(backFrom(chain, 'across', () => false), undefined, 'not drawn: about the middle')
+})
+
+test('Esc plays a move it knows back from where it started', () => {
+  assert.deepEqual(backAbout('out', [-300, 120]), [-300, 120], 'out lands on the spot the reader went in from')
+  assert.deepEqual(backAbout('across', [-300, 120]), [300, -120], 'across goes back the other way')
+  assert.equal(backAbout('in', [-300, 120]), undefined)
+  assert.equal(backAbout('out', undefined), undefined, 'not known: about the middle')
 })
 
 test('only the last 50 levels are kept', () => {

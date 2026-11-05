@@ -51,6 +51,16 @@ public class LevelsTests
     }
 
     [Fact]
+    public void Esc_plays_a_move_it_knows_back_from_where_it_started()
+    {
+        var there = new Pt(-300, 120);
+        Assert.Equal(new Pt(-300, 120), Levels.BackAbout(Move.Out, there)); // out lands on the spot the reader went in from
+        Assert.Equal(new Pt(300, -120), Levels.BackAbout(Move.Across, there)); // across goes back the other way
+        Assert.Null(Levels.BackAbout(Move.In, there));
+        Assert.Null(Levels.BackAbout(Move.Out, null)); // not known: about the middle
+    }
+
+    [Fact]
     public void Only_the_last_fifty_levels_are_kept()
     {
         var levels = new List<string>();
