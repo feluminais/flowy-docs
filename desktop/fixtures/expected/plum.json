@@ -1425,13 +1425,18 @@
         },
         {
           "from": "order-api",
-          "text": "Times out after 5 s and retries",
+          "to": "stripe",
+          "text": "Tries again after a short wait",
+          "animation": {
+            "kind": "send",
+            "carries": "retry"
+          },
           "group": "charge",
           "placed": [
             "order-api",
-            "order-api"
+            "stripe"
           ],
-          "ends": "Order API"
+          "ends": "Order API → Stripe"
         },
         {
           "from": "stripe",

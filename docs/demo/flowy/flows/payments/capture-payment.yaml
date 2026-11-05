@@ -13,7 +13,7 @@ steps:
   - { from: restaurant, to: kitchen-tablet, text: The kitchen taps Accept, animation: { kind: send, carries: accept }, flow: restaurant-accepts }
   - { from: kitchen-tablet, to: order-api, text: Sends the acceptance, animation: { kind: call, carries: accept } }
   - { from: order-api, to: stripe, text: Captures the amount it held, group: charge, animation: { kind: call, outcome: timeout } }
-  - { from: order-api, text: Times out after 5 s and retries, group: charge }
+  - { from: order-api, to: stripe, text: Tries again after a short wait, group: charge, animation: { kind: send, carries: retry } }
   - { from: stripe, to: order-api, text: Confirms the charge, group: outcome, lane: The charge goes through, animation: { kind: send, carries: charged } }
   - { from: order-api, to: orders-db, text: Marks the order paid, group: outcome, animation: call }
   - from: stripe

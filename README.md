@@ -155,7 +155,7 @@ Another MCP client runs `node /path/to/flowy-docs/dist/cli.js mcp` over stdio. T
 There is no release yet, so every version runs from a clone (see [Quick start](#quick-start) for the browser version). The
 desktop app needs the .NET 10 SDK: `dotnet run --project desktop/Flowy.App -- docs/demo` opens Plum, and **File › Open Folder**
 opens a repo. Installers will be on [Releases](https://github.com/feluminais/flowy-docs/releases) once the first one is out.
-The VS Code extension, the other commands (`check`, `export`, `mermaid`, `failures`) and updating are in [Install](docs/install.md).
+The VS Code extension and updating are in [Install](docs/install.md), and the other commands (`check`, `tidy`, `export`, `mermaid`, `failures`) in [Check it and share it](docs/guide/share.md).
 
 > [!NOTE]
 > Windows is where the desktop app has been built and tried. The macOS and Linux packages haven't been run, and none of them is signed yet.
