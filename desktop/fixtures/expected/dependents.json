@@ -2977,6 +2977,24 @@
             "described": "flow capture-payment, step 3"
           },
           {
+            "key": "step:capture-payment:4",
+            "kind": "step",
+            "of": "stripe",
+            "flow": "capture-payment",
+            "step": 4,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow capture-payment, step 4"
+          },
+          {
             "key": "step:capture-payment:5",
             "kind": "step",
             "of": "stripe",
