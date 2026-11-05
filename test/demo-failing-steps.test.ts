@@ -19,15 +19,15 @@ test('capture-payment keeps its nine steps and the nine stops they make', () => 
   assert.deepEqual(stopsOf(flow).map(s => s.steps), [[0], [1], [2], [3], [4], [5], [6], [7], [8]])
 })
 
-test('the first try is a call that times out, and the next step is the API giving up on its own', () => {
-  const [, , call, gives] = flow.steps
+test('the first try is a call that times out, and the next step travels the line again', () => {
+  const [, , call, retry] = flow.steps
   assert.deepEqual(call.animation, { kind: 'call', outcome: 'timeout' })
   assert.equal(call.text, 'Captures the amount it held')
   assert.deepEqual(animationOf(call), { kind: 'call', trigger: 'inside', outcome: 'timeout' })
-  assert.equal(gives.from, 'order-api')
-  assert.equal(gives.to, undefined)
-  assert.equal(gives.text, 'Times out after 5 s and retries')
-  assert.equal(animationOf(gives), undefined)
+  assert.equal(retry.from, 'order-api')
+  assert.equal(retry.to, 'stripe')
+  assert.equal(retry.text, 'Tries again after a short wait')
+  assert.deepEqual(retry.animation, { kind: 'send', carries: 'retry' })
 })
 
 test('the decline is a send that fails', () => {
