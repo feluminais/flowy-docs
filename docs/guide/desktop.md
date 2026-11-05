@@ -20,7 +20,7 @@ What it has, as the canvas does: zoom into a shape (double-click it, or select i
 the breadcrumb go up), a frame around the shape you're inside, shapes that belong to another level faded and dashed, wheel to
 zoom and drag to pan, **F** to fit, the side panel with the description, its code, what a store holds (its [Data](data.md#data) section), its links, the files a shape lives in (as links when the repo's
 origin is on GitHub or GitLab), and every connection out and in, the rail of icons on the left edge (**O** shows the whole documentation as a tree, **L** lists every flow and plays one, **T** replays load-test runs, **M** lists failure modes; all four are always there, and one with nothing in it says so, as in the browser) and the one on the right for Details, flows that play with ← and → (Home and End go to the first and last
-step) with a step's animation, **R** to play it again, **P** to let the flow run on its own and to pause it part way through a step, **S** for its speed (0.5×, 1×, 2×) and the bar on the card to drag to any moment, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
+step) with a step's animation, **R** to play it again, **P** to pause it part way through a step, **A** to go on from step to step by itself, **S** for its speed (0.5×, 1×, 2×) and the bar on the card to drag to any moment, **Ctrl+K** or **/** to find a shape, **?** for the shortcut list, the problem list in the top bar, straight, curved or
 right-angled lines, light or dark with the system, and no animation when the system asks for less. **Opening a shape that sits
 beside the one you're in slides across instead of zooming in.** It doesn't have the browser's YAML tab (**Y**) yet.
 

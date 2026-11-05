@@ -175,7 +175,7 @@ public class AnimationTests
         reader.Play("recursion");
         Assert.False(reader.StepMoving);
         Assert.Equal(("api", 3), reader.Canvas.Resting!.Value);
-        Press(window, Key.P, PhysicalKey.P);
+        Press(window, Key.A, PhysicalKey.A);
         Run(() => reader.PlayingStep >= 1);
         Assert.True(reader.PlayingStep >= 1);
         Assert.Equal(("api", 4), reader.Canvas.Resting!.Value);
@@ -289,20 +289,19 @@ public class AnimationTests
     }
 
     [AvaloniaFact]
-    public void P_steps_through_the_flow_on_its_own_and_an_arrow_key_takes_over()
+    public void A_steps_through_the_flow_on_its_own_and_an_arrow_key_leaves_it_on()
     {
         var (window, reader) = Open("0");
         try
         {
             reader.Play("tags");
-            Run(() => !reader.StepMoving); // while the step moves, P would pause it
-            Press(window, Key.P, PhysicalKey.P);
+            Press(window, Key.A, PhysicalKey.A);
             Assert.True(reader.Autoplaying);
             Run(() => reader.PlayingStep >= 1);
             Assert.True(reader.PlayingStep >= 1, "it went on by itself");
             Assert.True(reader.Autoplaying);
             Press(window, Key.Right, PhysicalKey.ArrowRight);
-            Assert.False(reader.Autoplaying);
+            Assert.True(reader.Autoplaying);
         }
         finally
         {
@@ -316,7 +315,7 @@ public class AnimationTests
         var (window, reader) = Open("1");
         reader.Play("tags");
         Assert.False(reader.StepMoving);
-        Press(window, Key.P, PhysicalKey.P);
+        Press(window, Key.A, PhysicalKey.A);
         Run(() => reader.PlayingStep >= 1);
         Assert.True(reader.PlayingStep >= 1);
         Assert.False(reader.StepMoving);
@@ -383,14 +382,16 @@ public class AnimationTests
     }
 
     [AvaloniaFact]
-    public void P_on_the_last_step_starts_again_from_the_first()
+    public void P_pauses_and_leaves_Autoplay_as_it_was()
     {
         var (window, reader) = Open("1");
-        reader.Play("tags", 14);
-        Press(window, Key.P, PhysicalKey.P);
-        Assert.Equal(0, reader.PlayingStep);
+        reader.Play("tags", 3);
+        Press(window, Key.A, PhysicalKey.A);
         Assert.True(reader.Autoplaying);
         Press(window, Key.P, PhysicalKey.P);
+        Assert.True(reader.Autoplaying);
+        Assert.Equal(3, reader.PlayingStep);
+        Press(window, Key.A, PhysicalKey.A);
         Assert.False(reader.Autoplaying);
     }
 

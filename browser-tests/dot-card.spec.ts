@@ -19,7 +19,7 @@ const hit = (page: Page) => page.locator('.dot-hit')
 async function pauseMidSend(page: Page, which = '.blob', path = '/#ordering/place-order', step = 'Step 2 of') {
   await page.goto(path)
   await player(page).waitFor()
-  await button(page, 'Play').click()
+  await player(page).getByRole('button', { name: 'Next', exact: true }).click()
   await expect(player(page)).toContainText(step)
   await dots(page, which).first().waitFor()
   await page.waitForTimeout(150)
@@ -46,7 +46,7 @@ test('paused mid-send, the dot under the pointer shows its payload beside it', a
 
 test('while the dot moves, hovering it shows nothing', async ({ page }) => {
   await page.goto('/#ordering/place-order')
-  await button(page, 'Play').click()
+  await player(page).getByRole('button', { name: 'Next', exact: true }).click()
   await expect(player(page)).toContainText('Step 2 of')
   await dots(page).first().waitFor()
   await expect(hit(page)).toHaveCount(0)
@@ -125,7 +125,7 @@ test('zooming closes the card', async ({ page }) => {
 test('a dot whose step sends nothing has no card', async ({ page }) => {
   // Step 6, Order events calling Dispatch back, names no payload.
   await page.goto('/#ordering/place-order')
-  await button(page, 'Play').click()
+  await player(page).getByRole('button', { name: 'Next', exact: true }).click()
   await expect(player(page)).toContainText('Step 2 of')
   for (const n of [3, 4, 5, 6]) {
     await player(page).getByRole('button', { name: 'Next', exact: true }).click()
@@ -188,7 +188,7 @@ test('moved to another dot of a burst, the card goes beside it and starts at its
   try {
     // A burst's dots leave one after another: pause once three are on their way.
     await page.goto(s.url)
-    await button(page, 'Play').click()
+    await player(page).getByRole('button', { name: 'Next', exact: true }).click()
     await expect(player(page)).toContainText('Step 2 of')
     await dots(page).nth(2).waitFor()
     await button(page, 'Pause').click()
@@ -225,7 +225,7 @@ test('in a comparison, a pane paused mid-send shows its dot\'s payload, inside t
     await page.getByRole('group', { name: 'Customer checks out', exact: true }).getByRole('button', { name: 'Compare', exact: true }).click()
     const pane = page.locator('.pane').first()
     await pane.locator('.player').waitFor()
-    await pane.locator('.player').getByRole('button', { name: 'Play', exact: true }).click()
+    await pane.locator('.player').getByRole('button', { name: 'Next', exact: true }).click()
     await expect(pane.locator('.player')).toContainText('Step 2 of')
     await pane.locator('.motion g[data-beat]:has(> .blob):visible').first().waitFor()
     await page.waitForTimeout(150)

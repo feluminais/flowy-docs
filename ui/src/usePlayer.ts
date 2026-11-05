@@ -22,14 +22,15 @@ export const runKeyOf = (stepKey: string): string => {
 /** The speed kept from last time, or normal speed. */
 const savedSpeed = (): Speed => SPEEDS.find(s => String(s) === readPref('flowy.speed')) ?? 1
 
-/** The flow playing and where it is: `step` is a stop (see structure.ts). `auto` is Play, `trail` the flows left behind to come back to. */
-export type Play = { flow: string; step: number; auto?: boolean; trail?: Spot[] }
+/** The flow playing and where it is: `step` is a stop (see structure.ts), `trail` the flows left behind to come back to. */
+export type Play = { flow: string; step: number; trail?: Spot[] }
 
 /**
  * Which flow is playing, and the small settings of the player: R counts up and a new count plays the step again; whether a step that moves plays again after a rest (kept
- * across visits); the step (and replay) whose motion has finished; and the player's clock (see clock.ts), with whether it is paused.
+ * across visits); whether a finished step goes on to the next one (Autoplay, kept across visits too, except in a pane of a comparison, which opens with it off); the step
+ * (and replay) whose motion has finished; and the player's clock (see clock.ts), with whether it is paused.
  */
-export function usePlayer({ initialFlow, initialStep = 0 }: { initialFlow: () => string | undefined; initialStep?: number }) {
+export function usePlayer({ initialFlow, initialStep = 0, pane = false }: { initialFlow: () => string | undefined; initialStep?: number; pane?: boolean }) {
   const [playing, setPlaying] = useState<Play | undefined>(() => {
     const flow = initialFlow()
     return flow === undefined ? undefined : { flow, step: initialStep }
@@ -39,6 +40,11 @@ export function usePlayer({ initialFlow, initialStep = 0 }: { initialFlow: () =>
   const toggleRepeat = () => {
     setRepeat(!repeat)
     writePref('flowy.repeat', repeat ? 'off' : 'on') // storage blocked: the choice lasts until the page closes
+  }
+  const [autoplay, setAutoplay] = useState(() => !pane && readPref('flowy.autoplay') === 'on')
+  const toggleAutoplay = () => {
+    setAutoplay(!autoplay)
+    if (!pane) writePref('flowy.autoplay', autoplay ? 'off' : 'on') // storage blocked: the choice lasts until the page closes
   }
   const [settledKey, setSettledKey] = useState('')
   const replay = () => setReplays(n => n + 1)
@@ -53,18 +59,18 @@ export function usePlayer({ initialFlow, initialStep = 0 }: { initialFlow: () =>
     clock.setRate(s)
     writePref('flowy.speed', String(s)) // storage blocked: the speed lasts until the page closes
   }
-  return { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock, paused, speed, setSpeed }
+  return { playing, setPlaying, replays, replay, repeat, toggleRepeat, autoplay, setAutoplay, toggleAutoplay, settledKey, setSettledKey, clock, paused, speed, setSpeed }
 }
 
 /**
  * Stepping through the flow that plays, and Play and Pause. The reader works out what is on screen (`flow`, its `stops`, the `stopIndex`, whether a step is `moving`, how
- * many `motions` it has) and this keeps time on the player's `clock`: a stop settles when every motion in it has finished, not the first, and with Play on, a step that
- * doesn't move waits a moment, then each finished step is followed by the next. Pause stops the clock where it is, so a step's motion and the waits stand still. Taking a
- * step yourself plays that step and holds on its end (or on its first moment, while paused).
+ * many `motions` it has) and this keeps time on the player's `clock`: a stop settles when every motion in it has finished, not the first. Play and Pause are the clock and
+ * nothing else: Pause stops it where it is, so a step's motion and the waits stand still, and it stays paused through Back and Next. Autoplay only takes away the stop between
+ * steps: a step that doesn't move waits a moment, then each finished step is followed by the next, while the clock runs.
  */
-export function usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions, settledKey, setSettledKey, clock, paused, replays }: {
+export function usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions, settledKey, setSettledKey, clock, paused, replays, replay, repeat, autoplay }: {
   playing: Play | undefined; setPlaying: (p: Play | undefined) => void; flow: Flow | undefined; stops: Stop[]; stopIndex: number; stepKey: string; moving: boolean; motions: number
-  settledKey: string; setSettledKey: (key: string) => void; clock: PlayerClock; paused: boolean; replays: number
+  settledKey: string; setSettledKey: (key: string) => void; clock: PlayerClock; paused: boolean; replays: number; replay: () => void; repeat: boolean; autoplay: boolean
 }) {
   const finishedSteps = useRef(new Set<number>())
   useEffect(() => {
@@ -75,28 +81,37 @@ export function usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepK
     finishedSteps.current.add(i)
     if (finishedSteps.current.size >= motions) setSettledKey(stepKey)
   }
-  const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, stops.length - 1)), auto: false })
-  /** Whether the button says Pause: Play is on, or the step you took is still moving. */
-  const showsPause = !paused && (playing?.auto === true || (moving && settledKey !== stepKey))
+  const stepTo = (i: number) => playing && flow && setPlaying({ ...playing, step: Math.max(0, Math.min(i, stops.length - 1)) })
+  /** Nothing is left to run: a step that has played out and rests on its end, or with Autoplay the last step. */
+  const atEnd = () => settledKey === stepKey && clock.elapsed() >= clock.length && (autoplay ? stopIndex === stops.length - 1 : moving && !repeat)
+  /** Whether the button says Pause: the clock runs and there is something for it to run. */
+  const showsPause = !paused && !atEnd()
+  const [, redraw] = useState(0)
+  /** The clock runs again. A step dragged back into its motion has the rest of it to play: the button says Play again when that is over. */
+  const resume = () => {
+    clock.play()
+    const left = clock.length - clock.elapsed()
+    if (left > 0 && settledKey === stepKey) clock.after(left, () => redraw(n => n + 1))
+  }
   const togglePlay = () => {
     if (!playing || !flow) return
     if (showsPause) {
       clock.pause()
-      setPlaying({ ...playing, auto: false })
       return
     }
-    // From the last step once it is over, Play starts the flow again; anywhere else it carries on from where it stands.
-    const over = stopIndex === stops.length - 1 && (!moving || settledKey === stepKey)
-    clock.play()
-    setPlaying({ ...playing, step: over ? 0 : stopIndex, auto: true })
+    const over = atEnd()
+    resume()
+    if (!over) return
+    // Run out, Play goes round again: the step on its own, or with Autoplay the flow from its first step.
+    if (autoplay && stopIndex > 0) setPlaying({ ...playing, step: 0 })
+    else replay()
   }
-  // Dragging the bar: it holds the player while the pointer is down and goes to the step and the moment under it; letting go plays again only if Play was on.
+  // Dragging the bar: it holds the player while the pointer is down and goes to the step and the moment under it; letting go carries on if it was playing.
   const wasOn = useRef<boolean | undefined>(undefined)
   const scrub = {
     start: () => {
-      wasOn.current = playing?.auto === true
+      wasOn.current = showsPause
       clock.pause()
-      if (playing?.auto) setPlaying({ ...playing, auto: false })
     },
     to: (stop: number, fraction: number) => {
       if (!playing || !flow) return
@@ -105,10 +120,7 @@ export function usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepK
       clock.seekFraction(fraction, stepKeyOf(playing.flow, at, replays))
     },
     end: () => {
-      if (wasOn.current && playing) {
-        clock.play()
-        setPlaying({ ...playing, auto: true })
-      }
+      if (wasOn.current) resume()
       wasOn.current = undefined
     },
   }
@@ -123,13 +135,13 @@ export function usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepK
     clock.play()
   }, [playing?.flow])
   useEffect(() => {
-    if (!playing?.auto || moving) return
+    if (!autoplay || !flow || moving) return
     return clock.after(DWELL, () => setSettledKey(stepKey))
-  }, [playing?.auto, moving, stepKey])
+  }, [autoplay, flow === undefined, moving, stepKey])
   useEffect(() => {
-    if (!playing?.auto || !flow || settledKey !== stepKey) return
+    if (!autoplay || !playing || !flow || settledKey !== stepKey || stopIndex === stops.length - 1) return
     // A stop dragged (or nudged) back into its motion first plays the rest of it.
-    return clock.after(GAP + Math.max(0, clock.length - clock.elapsed()), () => setPlaying(stopIndex < stops.length - 1 ? { ...playing, step: stopIndex + 1 } : { ...playing, auto: false }))
-  }, [playing?.auto, settledKey, stepKey])
+    return clock.after(GAP + Math.max(0, clock.length - clock.elapsed()), () => setPlaying({ ...playing, step: stopIndex + 1 }))
+  }, [autoplay, flow === undefined, settledKey, stepKey])
   return { finished, stepTo, togglePlay, showsPause, nudge, scrub }
 }

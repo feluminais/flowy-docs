@@ -37,16 +37,13 @@ internal sealed class PaneFlow
         _player.Back += () => Step(-1);
         _player.Next += () => Step(1);
         _player.Play += _playback.TogglePlay;
+        _player.Autoplay += _playback.ToggleAuto;
         _player.Clock = _canvas.Clock;
         _player.Speed += _playback.SetSpeed;
         _player.ScrubStart += _playback.ScrubStart;
         _player.ScrubTo += _playback.ScrubTo;
         _player.ScrubEnd += _playback.ScrubEnd;
-        _player.Replay += () =>
-        {
-            _playback.StopAuto(); // as any step you take does
-            _playback.Replay();
-        };
+        _player.Replay += _playback.Replay;
     }
 
     /// <summary>The flow was drawn (its name may be new): the pane's title follows.</summary>
@@ -161,7 +158,7 @@ internal sealed class PaneFlow
             _fitted = true;
             _canvas.Fit(0, true, 0, 0, refit: false); // once, when the pane first has a size; after that the reader's zoom stays through a resize
         }
-        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.ShowsPause, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps, _canvas.ChannelKindsShown);
+        var (card, marks) = FlowStage.CardAt(model, flow, _flowId, stops, index, shown, _playback.ShowsPause, null, _canvas.StatesShown.Values.ToList(), Changes?.Steps, _canvas.ChannelKindsShown, _playback.Auto);
         _player.Show(card, FlowStage.EveryCard(model, view, flow, _flowId, stops, shown, null, Changes?.Steps));
         _canvas.SetMarks(marks);
 
@@ -226,7 +223,7 @@ internal sealed class PaneFlow
 
     // ---- what the keys and the card do --------------------------------------------------------------------------
 
-    /// <summary>One stop on (1) or back (-1). Taking a step yourself ends Autoplay.</summary>
+    /// <summary>One stop on (1) or back (-1).</summary>
     public void Step(int by) => GoTo(StopNow + by);
 
     public void First() => GoTo(0);
@@ -236,12 +233,13 @@ internal sealed class PaneFlow
     private void GoTo(int stop)
     {
         if (StopsNow() is not { } stops || _playback.Head is not { } head) return;
-        _playback.StopAuto();
         _playback.Head = head with { Step = Math.Max(0, Math.Min(stop, stops.Count - 1)) };
         Draw();
     }
 
     public void TogglePlay() => _playback.TogglePlay();
+
+    public void ToggleAuto() => _playback.ToggleAuto();
 
     public void NextSpeed() => _playback.NextSpeed();
 

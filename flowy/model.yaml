@@ -149,6 +149,7 @@ objects:
       and shapes ringing, flashing or squashing. The player's clock runs it, the waits between steps,
       a channel coming in and a shape's state, so Pause holds all of them part way through a step, the
       bar on the card drags them to any moment and the speed (0.5×, 1×, 2×) changes them together.
+      Autoplay only takes away the stop between steps: Play and Pause run the clock either way.
       Nothing moves when the system asks for less motion. Paused, the dot under the pointer shows its
       payload on a card beside it, clear of the player card and the panels.
 

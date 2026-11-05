@@ -16,11 +16,11 @@ import type { Tag } from './useModel.ts'
  * What opens and closes a comparison: the Compare buttons of the player, of a flow's row and of the Performance tab's run header, the popovers under them, and the link a run keeps
  * to the one it is the newer of. Each popover hangs on its owner and closes when the owner goes. The state of the comparison is in useCompare.
  */
-export function useCompareActions({ model, runs, editing, tag, setNotice, setSide, setCompare, setCompareStart, comparing, asking, setAsking, unlessDraft, flow, playing, setPlaying, stopIndex, perfRun, perfOpen, runsOpen, nav, leave }: {
+export function useCompareActions({ model, runs, editing, tag, setNotice, setSide, setCompare, setCompareStart, comparing, asking, setAsking, unlessDraft, flow, playing, stopIndex, perfRun, perfOpen, runsOpen, nav, leave }: {
   model: Model; runs: Record<string, Run>; editing: boolean; tag: Tag; setNotice: (notice: string | undefined) => void; setSide: (side: Side | undefined) => void
   setCompare: Dispatch<SetStateAction<Compare | undefined>>; setCompareStart: (start: { flow: string; step: number } | undefined) => void; comparing: Compare | undefined
   asking: { leave: () => void } | undefined; setAsking: (asking: { leave: () => void } | undefined) => void; unlessDraft: (leave: () => void) => boolean
-  flow: Flow | undefined; playing: Play | undefined; setPlaying: Dispatch<SetStateAction<Play | undefined>>; stopIndex: number
+  flow: Flow | undefined; playing: Play | undefined; stopIndex: number
   perfRun: ReturnType<typeof usePerfRun>; perfOpen: boolean; runsOpen: boolean; nav: NavTab | undefined; leave: (t: NavTab) => void
 }) {
   const [picking, setPicking] = useState(false) // the popover of the player's Compare button
@@ -48,7 +48,6 @@ export function useCompareActions({ model, runs, editing, tag, setNotice, setSid
     if (!playable(model, id) || !playable(model, other)) return setNotice("That flow can't play yet.")
     setSide(undefined)
     setCompareStart(flow && playing?.flow === id ? { flow: id, step: stopIndex } : undefined)
-    if (playing?.auto) setPlaying({ ...playing, auto: false }) // it must not start up again behind the panes, or when the comparison closes
     setCompare(pairOf(model, id, other))
   }
   /** Two runs side by side: `id` is the one the Performance tab showed, `other` the one picked to go with it. The tab leaves, as the comparison has a panel of its own for each run. */

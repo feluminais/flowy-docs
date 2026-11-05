@@ -147,7 +147,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const perfRun = usePerfRun({ runs, named: () => readHash(location.hash).perf, still })
   const { runKey, loadTest, activeDial, here, ramping, scrubbing } = perfRun
   // The flow playing, and the player's small settings (see usePlayer.ts).
-  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, settledKey, setSettledKey, clock, paused, speed, setSpeed } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
+  const { playing, setPlaying, replays, replay, repeat, toggleRepeat, autoplay, toggleAutoplay, settledKey, setSettledKey, clock, paused, speed, setSpeed } = usePlayer({ initialFlow: () => readHash(location.hash).flow })
   // Edit mode, the notice, the boxes being dragged and the runner every edit goes through (see useEditSession.ts).
   const session = useEditSession({ edit, undo, redo, restore, readOnly })
   const { editing, notice, setNotice, announce, undoable, moved, run, takeBack, bringBack, restoreVersion, clearMoved, didSomethingElse } = session
@@ -201,11 +201,11 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   // Where each moving step's dots are while the player is paused, and what each carries (see DotCard).
   const [dotsBy, setDotsBy] = useState<Record<number, DotAt[]>>({})
   const carrying = carriedBy(animated, dotsBy)
-  const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays })
+  const { finished, stepTo, togglePlay, showsPause, nudge, scrub } = usePlayback({ playing, setPlaying, flow, stops, stopIndex, stepKey, moving, motions: animated.length, settledKey, setSettledKey, clock, paused, replays, replay, repeat, autoplay })
   const left = cameFrom(model.flows, playing?.trail ?? [])
   const trail = flow ? left : undefined
   const { picking, setPicking, rowPicking, setRowPicking, pickingRun, setPickingRun, linkingRun, setLinkingRun, dropping, setDropping, openCompare, openRunCompare, writeLink, linkRun, closeCompare, toggleCompare, compareRow } =
-    useCompareActions({ model, runs, editing, tag, setNotice, setSide, setCompare, setCompareStart, comparing, asking, setAsking, unlessDraft, flow, playing, setPlaying, stopIndex, perfRun, perfOpen, runsOpen, nav, leave })
+    useCompareActions({ model, runs, editing, tag, setNotice, setSide, setCompare, setCompareStart, comparing, asking, setAsking, unlessDraft, flow, playing, stopIndex, perfRun, perfOpen, runsOpen, nav, leave })
   const drawnLines = useMemo(() => (still ? NO_LINES : loadTraffic?.lines ?? NO_LINES), [still, loadTraffic]) // what the panel's key is told, so the tab makes no traffic of its own
   // While the Used by panel is open, the shapes about to go are outlined in red and the ones its focused row names in the accent colour.
   const going = new Set(side?.kind === 'usedby' ? side.targets.flatMap(t => ('object' in t ? [t.object] : [])) : [])
@@ -324,7 +324,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
       else setNotice(readOnly ? `This flow can't play yet. Fix ${p.file} first.` : 'Press E to fix this flow in edit mode.')
     }
   }
-  useReaderKeys({ model, view, editing, readOnly, canPerf, session, panels, perfRun, perfOpen, runsOpen, failuresOpen, shortcuts, setShortcuts, setSearching, flow, stops, stopIndex, stepTo, togglePlay, replay, speed, setSpeed, nudge, setPlaying, comparing, compareRef, toggleCompare, closeCompare, recording, setSide, show, detailsOpen, manyPicked, closeDetails, failures: { analysis, rows, mode, modeId, selectMode }, navigation: { motion, back, jumpTo, zoomInto }, selectedBox, canOpen, fitNow: events.fitNow, toggleEdit, remove, members: graph.members })
+  useReaderKeys({ model, view, editing, readOnly, canPerf, session, panels, perfRun, perfOpen, runsOpen, failuresOpen, shortcuts, setShortcuts, setSearching, flow, stops, stopIndex, stepTo, togglePlay, toggleAutoplay, replay, speed, setSpeed, nudge, setPlaying, comparing, compareRef, toggleCompare, closeCompare, recording, setSide, show, detailsOpen, manyPicked, closeDetails, failures: { analysis, rows, mode, modeId, selectMode }, navigation: { motion, back, jumpTo, zoomInto }, selectedBox, canOpen, fitNow: events.fitNow, toggleEdit, remove, members: graph.members })
 
   /** What the canvas can give one panel: all of it but a strip to look at, and what the other panel takes. */
   const spare = (other: number) => (canvas.current?.clientWidth ?? Infinity) - 160 - other
@@ -397,7 +397,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
                 {loadTraffic && !still && <TrafficLayer lines={loadTraffic.lines} style={lines} />}
                 {flow && stop && <ChannelMarks open={open} stepKey={stepKey} />}
                 {flow && stop && animated.map(m => (
-                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} strand={m.strand} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
+                  <StepMotion key={`${stepKey}:${m.i}`} ends={m.placed} strand={m.strand} animation={m.animation} by={m.by} afterLanding={stop.before.some(j => followsLanding(shown?.ends[j], m.placed))} repeat={repeat && !autoplay} clock={clock} stepKey={stepKey} onDone={() => finished(m.i)}
                     onDots={d => setDotsBy(by => ({ ...by, [m.i]: d }))} />
                 ))}
                 {flow && stop && <DotCard dots={carrying} clock={clock} stepKey={stepKey} />}
@@ -520,7 +520,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
           {detailsOpen && <Sash side="details" width={detailsWidth} onResize={w => setDetailsWidth(clampWidth(w, spare(nav ? navWidth : 0), widest('aside.panel:not(.navpanel)', detailsWidth)))} onReset={() => setDetailsWidth(PANEL)} />}
           {flow && stop && caption && progress && (
             <Player model={model} flow={flow} stops={stops} stop={stopIndex} ends={shown?.ends ?? []} caption={caption} progress={progress} marks={marksHere} channels={channelKinds} showsPause={showsPause} moving={moving}
-              trail={trail} clock={clock} speed={speed} onSpeed={setSpeed} scrub={scrub} onStep={stepTo} onPlay={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
+              trail={trail} clock={clock} speed={speed} onSpeed={setSpeed} scrub={scrub} onStep={stepTo} onPlay={togglePlay} onReplay={replay} repeat={repeat} onRepeat={toggleRepeat} autoplay={autoplay} onAutoplay={toggleAutoplay} onStop={() => setPlaying(undefined)} onOpenFlow={openLinked} onBack={goBack}
               compare={{ off: compareOff(model, editing), open: picking, onToggle: () => setPicking(open => !open),
                 picker: playing ? <ComparePicker model={model} id={playing.flow} onPick={id => openCompare(playing.flow, id)} onClose={() => setPicking(false)} /> : null }} />
           )}

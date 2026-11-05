@@ -579,7 +579,7 @@ public class CompareTests
         reader.OpenCompareById("refund", "refund-not-recorded", swap: true);
         EditModeTests.Settle(window);
         var stage = reader.CompareShown!.Stage!;
-        Press(window, Key.P, PhysicalKey.P);
+        Press(window, Key.A, PhysicalKey.A);
         Assert.True(stage.Flow("refund").Playback.Auto);
         Press(window, Key.X, PhysicalKey.X);
         Assert.False(stage.Flow("refund").Playback.Auto);
@@ -1229,7 +1229,7 @@ public class CompareTests
         reader.OpenCompareById("refund", "refund-not-recorded");
         EditModeTests.Settle(window);
         var pane = reader.CompareShown!.Panes[0];
-        Press(window, Key.P, PhysicalKey.P);
+        Press(window, Key.A, PhysicalKey.A);
         Assert.True(pane.Playback.Auto);
         ClickBar(reader.CompareShown.Bar.CloseButton);
         Assert.Null(reader.CompareNow);
@@ -1238,7 +1238,7 @@ public class CompareTests
         reader.OpenCompareById("refund", "refund-not-recorded", swap: true);
         EditModeTests.Settle(window);
         var stage = reader.CompareShown!.Stage!;
-        Press(window, Key.P, PhysicalKey.P);
+        Press(window, Key.A, PhysicalKey.A);
         Assert.True(stage.Flow("refund").Playback.Auto);
         ClickBar(reader.CompareShown.Bar.CloseButton);
         Assert.False(stage.Flow("refund").Playback.Auto);

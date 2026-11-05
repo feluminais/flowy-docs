@@ -132,7 +132,6 @@ internal sealed class CompareMode
         }
         _reader.DidSomethingElse();
         _compareStart = _reader.Playing is { } playing && playing.Flow == id ? playing : null;
-        _reader.StopAutoplay(); // it must not start up again behind the panes, or when the comparison closes
         var (older, newer) = CompareChoices.Order("flow", CompareChoices.TagsOf(folder.Model, new Dictionary<string, LoadRun>(), "flow"), id, other);
         _compare = new CompareState("flow", older, newer, mode);
         _compareView = null;
@@ -156,7 +155,6 @@ internal sealed class CompareMode
         }
         _reader.DidSomethingElse();
         _reader.LeavePerformance(); // the Performance tab gives way, and a ramp stops with it
-        _reader.StopAutoplay(); // nor does a flow play behind the panes
         var (older, newer) = CompareChoices.RunPairOf(RunMap, id, other);
         _compare = new CompareState("run", older, newer, mode);
         _compareView = null;
@@ -191,6 +189,7 @@ internal sealed class CompareMode
         _host.Child = null;
         _compareStart = null;
         _reader.Pick = null; // what the Details panel showed was clicked in a pane
+        _reader.ResumeAutoplay();
         if (!redraw) return;
         _reader.Refresh();
         _reader.TakeFocus();
