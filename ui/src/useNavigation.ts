@@ -7,7 +7,7 @@ import { chain, isView, parentOf } from '../../src/core/views.ts'
 import type { Compare } from './compare.ts'
 import { moveBetween } from './edit.ts'
 import type { Move } from './edit.ts'
-import { backFrom, cameBack, remember } from './levels.ts'
+import { backAbout, backFrom, cameBack, remember } from './levels.ts'
 import type { Levels } from './levels.ts'
 import type { Side } from './side.ts'
 import { closeFlow, openFlow as leaveFlow } from './trail.ts'
@@ -27,7 +27,7 @@ export function useNavigation({ model, view, canvas, canOpen, editing, setViewId
 }) {
   const levels = useRef<Levels>([]) // the levels the reader has left, for Esc to go back through
   const arriving = useRef<{ id: string; how: 'back' | 'jump' }>(undefined) // the level a way back or a jump up is heading for
-  const slides = useRef(new Map<string, [number, number]>()) // "from>to": how far from the middle each move started, for Esc to go back the other way
+  const slides = useRef(new Map<string, [number, number]>()) // "from>to": how far from the middle each move started, for Esc to play it back
   const zoom = useZoom({ canvas, model, go: id => go(id) }) // the zoom between views (see useZoom.ts)
   const { motion } = zoom
   const close = () => setSide(undefined)
@@ -63,11 +63,10 @@ export function useNavigation({ model, view, canvas, canOpen, editing, setViewId
     arriving.current = { id: to, how: came ? 'back' : 'jump' }
     const move = moveBetween(model, here, to)
     const c = canvas.current!.getBoundingClientRect()
-    // Back across plays the way there in reverse: each view puts its neighbours where it likes, so where the level is drawn here may lie the same way again.
-    const there = move === 'across' ? slides.current.get(`${to}>${here}`) : undefined
+    const about = backAbout(move, slides.current.get(`${to}>${here}`))
     // Else from where the level is drawn. A second press is still on the old view, so about the middle.
     const from = here === view ? backFrom(chain(model, to), move, id => !!nodeOf(id)) : undefined
-    if (there) zoomAt(here, to, move, c.width / 2 - there[0], c.height / 2 - there[1])
+    if (about) zoomAt(here, to, move, c.width / 2 + about[0], c.height / 2 + about[1])
     else if (from) zoomFrom(to, move, from)
     else zoomAt(here, to, move, c.width / 2, c.height / 2)
   }
