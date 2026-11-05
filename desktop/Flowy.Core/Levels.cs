@@ -36,4 +36,12 @@ public static class Levels
     /// </summary>
     public static string? BackFrom(IReadOnlyList<string> chain, Move move, Func<string, bool> drawn) =>
         move == Move.Out ? null : chain.FirstOrDefault(drawn);
+
+    /// <summary>
+    /// Where Esc zooms about, from the middle of the canvas, when it knows the way here: <paramref name="there"/> is how far from the middle that move began. Out lands on the spot the
+    /// reader went in from, where the level's box sits. Across goes back the other way: each view puts its neighbours where it likes, so where the level is drawn here may lie the same
+    /// way again. Null when the way is not known, or going in.
+    /// </summary>
+    public static Pt? BackAbout(Move move, Pt? there) =>
+        there is not { } t || move == Move.In ? null : move == Move.Across ? new Pt(-t.X, -t.Y) : t;
 }

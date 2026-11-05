@@ -112,8 +112,7 @@ internal sealed partial class ReaderView
         _arriving = (to, came is not null);
         var move = Navigation.MoveBetween(folder.Model, here, to);
         var middle = Middle();
-        // Back across plays the way there in reverse: each view puts its neighbours where it likes, so where the level is drawn here may lie the same way again.
-        if (move == Move.Across && _slides.TryGetValue((to, here), out var there)) ZoomAt(to, move, new Pt(middle.X - there.X, middle.Y - there.Y));
+        if (Levels.BackAbout(move, _slides.TryGetValue((to, here), out var there) ? there : null) is { } about) ZoomAt(to, move, new Pt(middle.X + about.X, middle.Y + about.Y));
         else if (Levels.BackFrom(Views.Chain(folder.Model, to), move, id => _canvas.RectOf(id) is not null) is { } from) ZoomFrom(to, move, from); // else from where the level is drawn
         else ZoomAt(to, move, middle);
     }
