@@ -13,7 +13,13 @@
     "flowy": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "docs/format.md",
+    "docs/guide.md",
+    "docs/guide/*.md",
+    "docs/install.md",
+    "docs/shortcuts.md",
+    "docs/writing.md"
   ],
   "engines": {
     "node": ">=22.18"

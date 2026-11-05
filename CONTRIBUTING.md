@@ -53,6 +53,8 @@ This repo documents itself: `flowy/` is Flowy Docs' own architecture, and `node 
 (after `npm run build:ui`). If a change adds, moves or removes a box, a connection or a flow, update
 `flowy/` in the same change. Every `code:` path in it has to exist, so the canvas shows no problems.
 
+`docs/writing.md` draws on the [C4 model](https://c4model.com/diagrams/checklist), [arc42](https://docs.arc42.org/tips/5-5/), [Structurizr's inspections](https://docs.structurizr.com/workspaces/inspections), [IcePanel](https://docs.icepanel.io/getting-started), [LikeC4](https://likec4.dev/dsl/views/dynamic/), [Ilograph](https://www.ilograph.com/blog/posts/diagram-mistakes/), [Google's reference comment style](https://developers.google.com/style/api-reference-comments), [Diátaxis](https://diataxis.fr/), [Nygard on decision records](https://www.cognitect.com/blog/2011/11/15/documenting-architecture-decisions), [Software Engineering at Google](https://abseil.io/resources/swe-book/html/ch10.html) and [an ICSA 2026 study of generated views](https://conf.researchr.org/details/icsa-2026/icsa-2026-papers/25/LLM-based-Automated-Architecture-View-Generation-Where-Are-We-Now-). Its numbers (about 25 words, a dozen shapes) are untested suggestions.
+
 ## Run it from source
 
 `npm run build` puts the canvas in `dist/ui` and the server in `dist/`. In a clone, `node src/cli.ts` does what
