@@ -29,3 +29,13 @@ export function cameBack(levels: Levels, here: string, exists: (id: string) => b
 export function backFrom(chain: readonly string[], move: Move, drawn: (id: string) => boolean): string | undefined {
   return move === 'out' ? undefined : chain.find(drawn)
 }
+
+/**
+ * Where Esc zooms about, from the middle of the canvas, when it knows the way here: `there` is how far from the middle that move began. Out lands on the spot the reader went
+ * in from, where the level's box sits. Across goes back the other way: each view puts its neighbours where it likes, so where the level is drawn here may lie the same way again.
+ * Undefined when the way is not known, or going in.
+ */
+export function backAbout(move: Move, there: readonly [number, number] | undefined): [number, number] | undefined {
+  if (!there || move === 'in') return undefined
+  return move === 'across' ? [-there[0], -there[1]] : [there[0], there[1]]
+}

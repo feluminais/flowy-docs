@@ -81,7 +81,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
     private string _view = Names.Root;
     private readonly List<string> _levels = []; // the levels the reader has left, for Esc to go back through
     private (string Id, bool Back)? _arriving; // the level a way back (Back) or a jump up is heading for
-    private readonly Dictionary<(string From, string To), Pt> _slides = []; // how far from the middle each move started, for Esc to go back the other way
+    private readonly Dictionary<(string From, string To), Pt> _slides = []; // how far from the middle each move started, for Esc to play it back
     private Side? _side; // what is picked: it shows in Details
     private readonly TopBar _bar = new();
     private readonly Panels _panels;
