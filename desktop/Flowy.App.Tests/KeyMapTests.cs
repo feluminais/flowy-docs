@@ -167,18 +167,19 @@ public class KeyMapTests
         new("ctrl+y in edit mode, nothing to redo", Edit, Key.Y, PhysicalKey.Y, RawInputModifiers.Control),
         new("ctrl+shift+z in edit mode, nothing to redo", Edit, Key.Z, PhysicalKey.Z, RawInputModifiers.Control | RawInputModifiers.Shift),
         new("ctrl+f in edit mode", Edit, Key.F, PhysicalKey.F, RawInputModifiers.Control),
-        new("p in edit mode", Edit, Key.P, PhysicalKey.P),
+        new("space in edit mode", Edit, Key.Space, PhysicalKey.Space),
 
         // A flow is playing
         new("flow: right", Flow, Key.Right, PhysicalKey.ArrowRight),
         new("flow: left", Flow, Key.Left, PhysicalKey.ArrowLeft),
         new("flow: home", Flow, Key.Home, PhysicalKey.Home),
         new("flow: end", Flow, Key.End, PhysicalKey.End),
-        new("flow: p", Flow, Key.P, PhysicalKey.P),
-        new("flow: shift+p", Flow, Key.P, PhysicalKey.P, RawInputModifiers.Shift),
+        new("flow: space", Flow, Key.Space, PhysicalKey.Space),
+        new("flow: shift+space", Flow, Key.Space, PhysicalKey.Space, RawInputModifiers.Shift),
+        new("flow: p is not a key any more", Flow, Key.P, PhysicalKey.P),
         new("flow: r", Flow, Key.R, PhysicalKey.R),
         new("flow: x is not taken outside Swap", Flow, Key.X, PhysicalKey.X),
-        new("no flow: p", None, Key.P, PhysicalKey.P),
+        new("no flow: space", None, Key.Space, PhysicalKey.Space),
         new("no flow: r", None, Key.R, PhysicalKey.R),
         new("no flow: right", None, Key.Right, PhysicalKey.ArrowRight),
         new("flow: l", Flow, Key.L, PhysicalKey.L),
@@ -190,11 +191,11 @@ public class KeyMapTests
         new("perf: left after right", Then(Perf, Type(Key.Right, PhysicalKey.ArrowRight)), Key.Left, PhysicalKey.ArrowLeft),
         new("perf: home", Then(Perf, Type(Key.Right, PhysicalKey.ArrowRight)), Key.Home, PhysicalKey.Home),
         new("perf: end", Perf, Key.End, PhysicalKey.End),
-        new("perf: p", Perf, Key.P, PhysicalKey.P),
-        new("perf: shift+p", Perf, Key.P, PhysicalKey.P, RawInputModifiers.Shift),
+        new("perf: space", Perf, Key.Space, PhysicalKey.Space),
+        new("perf: shift+space", Perf, Key.Space, PhysicalKey.Space, RawInputModifiers.Shift),
         new("perf: r", Perf, Key.R, PhysicalKey.R),
         new("perf while a flow plays: right", Then(Flow, Perf), Key.Right, PhysicalKey.ArrowRight),
-        new("perf while a flow plays: p", Then(Flow, Perf), Key.P, PhysicalKey.P),
+        new("perf while a flow plays: space", Then(Flow, Perf), Key.Space, PhysicalKey.Space),
         new("perf: m", Perf, Key.M, PhysicalKey.M),
         new("perf: l", Perf, Key.L, PhysicalKey.L),
         new("perf: z inside", Then((_, r) => r.GoTo("ordering"), Perf), Key.Z, PhysicalKey.Z),
@@ -203,7 +204,7 @@ public class KeyMapTests
         new("failures: right", Failures, Key.Right, PhysicalKey.ArrowRight),
         new("failures: left", Then(Failures, Type(Key.Right, PhysicalKey.ArrowRight), Type(Key.Right, PhysicalKey.ArrowRight)), Key.Left, PhysicalKey.ArrowLeft),
         new("failures: home", Failures, Key.Home, PhysicalKey.Home),
-        new("failures: p", Failures, Key.P, PhysicalKey.P),
+        new("failures: space", Failures, Key.Space, PhysicalKey.Space),
         new("failures: t", Failures, Key.T, PhysicalKey.T),
         new("failures while a flow plays: right", Then(Flow, Failures), Key.Right, PhysicalKey.ArrowRight),
 
@@ -213,7 +214,7 @@ public class KeyMapTests
         new("two runs: left", Then(TwoRuns, Type(Key.Right, PhysicalKey.ArrowRight)), Key.Left, PhysicalKey.ArrowLeft),
         new("two runs: home", Then(TwoRuns, Type(Key.Right, PhysicalKey.ArrowRight)), Key.Home, PhysicalKey.Home),
         new("two runs: end", TwoRuns, Key.End, PhysicalKey.End),
-        new("two runs: p", TwoRuns, Key.P, PhysicalKey.P),
+        new("two runs: space", TwoRuns, Key.Space, PhysicalKey.Space),
         new("two runs: r", TwoRuns, Key.R, PhysicalKey.R),
         new("two runs: f", TwoRuns, Key.F, PhysicalKey.F),
         new("two runs: x side by side", TwoRuns, Key.X, PhysicalKey.X),
@@ -335,8 +336,8 @@ public class KeyMapTests
         Assert.Equal("perf-step", Pick(Key.Right, PhysicalKey.ArrowRight, State(perf: true, flow: true)));
         Assert.Equal("flow-step", Pick(Key.Right, PhysicalKey.ArrowRight, State(flow: true)));
         Assert.Equal("failure-step", Pick(Key.Right, PhysicalKey.ArrowRight, State(failures: true)));
-        Assert.Equal("perf-ramp", Pick(Key.P, PhysicalKey.P, State(perf: true, flow: true)));
-        Assert.Equal("flow-play", Pick(Key.P, PhysicalKey.P, State(flow: true)));
+        Assert.Equal("perf-ramp", Pick(Key.Space, PhysicalKey.Space, State(perf: true, flow: true)));
+        Assert.Equal("flow-play", Pick(Key.Space, PhysicalKey.Space, State(flow: true)));
         Assert.Equal("flow-speed", Pick(Key.S, PhysicalKey.S, State(flow: true)));
         Assert.Equal("flow-nudge", Pick(Key.OemComma, PhysicalKey.Comma, State(flow: true)));
         Assert.Equal("flow-nudge", Pick(Key.OemPeriod, PhysicalKey.Period, State(flow: true)));
@@ -349,7 +350,7 @@ public class KeyMapTests
         Assert.Equal("perf-step", Pick(Key.Left, PhysicalKey.ArrowLeft, runs));
         Assert.Equal("perf-ends", Pick(Key.Home, PhysicalKey.Home, runs));
         Assert.Equal("perf-ends", Pick(Key.End, PhysicalKey.End, runs));
-        Assert.Equal("perf-ramp", Pick(Key.P, PhysicalKey.P, runs));
+        Assert.Equal("perf-ramp", Pick(Key.Space, PhysicalKey.Space, runs));
         Assert.Null(Pick(Key.R, PhysicalKey.R, runs));
         Assert.Equal("flow-step", Pick(Key.Left, PhysicalKey.ArrowLeft, State() with { Compare = true }));
         Assert.Equal("flow-replay", Pick(Key.R, PhysicalKey.R, State() with { Compare = true }));
@@ -507,16 +508,17 @@ internal static class Expected
         "ctrl+y in edit mode, nothing to redo | taken | same",
         "ctrl+shift+z in edit mode, nothing to redo | taken | same",
         "ctrl+f in edit mode | left | same",
-        "p in edit mode | left | same",
+        "space in edit mode | left | same",
         "flow: right | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/2 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: left | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: home | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: end | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/10 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
-        "flow: p | taken | same",
-        "flow: shift+p | left | same",
+        "flow: space | taken | same",
+        "flow: shift+space | left | same",
+        "flow: p is not a key any more | left | same",
         "flow: r | taken | same",
         "flow: x is not taken outside Swap | left | same",
-        "no flow: p | left | same",
+        "no flow: space | left | same",
         "no flow: r | left | same",
         "no flow: right | left | same",
         "flow: l | taken | view=delivery edit=False panel=True tab=Flows details=False perf=False fail=False flow=deliver-order/1 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
@@ -526,18 +528,18 @@ internal static class Expected
         "perf: left after right | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
         "perf: home | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "perf: end | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=4 ramp=False mode= rec=False",
-        "perf: p | taken | same",
-        "perf: shift+p | left | same",
+        "perf: space | taken | same",
+        "perf: shift+space | left | same",
         "perf: r | left | same",
         "perf while a flow plays: right | taken | view=delivery edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=4 ramp=False mode= rec=False",
-        "perf while a flow plays: p | taken | same",
+        "perf while a flow plays: space | taken | same",
         "perf: m | taken | view=root edit=False panel=True tab=Failures details=False perf=False fail=True flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
         "perf: l | taken | view=root edit=False panel=True tab=Flows details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
         "perf: z inside | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
         "failures: right | taken | view=root edit=False panel=True tab=Failures details=False perf=False fail=True flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode=refund-not-recorded rec=False",
         "failures: left | taken | view=root edit=False panel=True tab=Failures details=False perf=False fail=True flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode=refund-not-recorded rec=False",
         "failures: home | left | same",
-        "failures: p | left | same",
+        "failures: space | left | same",
         "failures: t | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False",
         "failures while a flow plays: right | taken | view=delivery edit=False panel=True tab=Failures details=False perf=False fail=True flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode=eta-mapbox-fails rec=False",
         "perf: c | taken | view=root edit=False panel=True tab=Performance details=False perf=True fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=3 ramp=False mode= rec=False runpicker=open",
@@ -545,7 +547,7 @@ internal static class Expected
         "two runs: left | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at=3*/4",
         "two runs: home | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at=0*/4",
         "two runs: end | taken | view=root edit=False panel=False tab= details=False perf=False fail=False flow=/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False runs=dinner-rush/eta-batched:side at=4*/4",
-        "two runs: p | taken | same",
+        "two runs: space | taken | same",
         "two runs: r | left | same",
         "two runs: f | taken | same",
         "two runs: x side by side | left | same",
@@ -558,9 +560,9 @@ internal static class Expected
 
     public static readonly string[] Shortcuts =
     [
-        "everything | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | P | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | PERFORMANCE | → | ← | Next and previous tested level | Home | End | First and last tested level | P | Ramp the load or play the time, or pause | Esc | Close the panel | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
-        "editing | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | P | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
-        "run but no analysis | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | P | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | PERFORMANCE | → | ← | Next and previous tested level | Home | End | First and last tested level | P | Ramp the load or play the time, or pause | Esc | Close the panel | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
-        "neither | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | P | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | PERFORMANCE | → | ← | Next and previous tested level | Home | End | First and last tested level | P | Ramp the load or play the time, or pause | Esc | Close the panel | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
+        "everything | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | Space | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | PERFORMANCE | → | ← | Next and previous tested level | Home | End | First and last tested level | Space | Ramp the load or play the time, or pause | Esc | Close the panel | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
+        "editing | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | Space | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
+        "run but no analysis | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | Space | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | PERFORMANCE | → | ← | Next and previous tested level | Home | End | First and last tested level | Space | Ramp the load or play the time, or pause | Esc | Close the panel | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
+        "neither | Keyboard shortcuts | GETTING AROUND | Enter | Open the selected shape | Esc | Close what's open, then go back to the last level. The navigator closes only if your last click was in it | Backspace | Z | Zoom out: go up a level | Ctrl+K | / | Find a shape | F | Fit the view | L | Show every flow, and play one | O | Show everything as a tree | Y | The files as YAML | T | Show a load-test run on the diagram, where there is one | M | Show how things fail, worst first | Ctrl+Tab | Ctrl+Shift+Tab | Next and previous tab | Ctrl+W | Close the tab | ? | Show these shortcuts | FLOWS | → | ← | Next and previous step | Home | End | First and last step | Space | Play or pause | A | Autoplay | S | Speed | , | . | A moment back or on, while paused | R | Replay the step | C | Compare with another flow, or close the comparison | X | Swap to the other flow of a comparison | Esc | Stop the flow | PERFORMANCE | → | ← | Next and previous tested level | Home | End | First and last tested level | Space | Ramp the load or play the time, or pause | Esc | Close the panel | FAILURES | → | ← | Next and previous failure | EDIT MODE | E | Edit mode on and off | N | Add a shape | Ctrl+click | Shift+click | Add a shape to the selection, or take it out | Shift+drag | Draw a box round shapes to select them | Ctrl+A | Select every shape in this view | Delete | Delete the selected shapes or line | Ctrl+Z | Undo | Esc | Backspace | Straight after dragging a shape: take the drag back | Ctrl+Y | Ctrl+Shift+Z | Redo | USED BY | ↑ | ↓ | Move between rows | X | Remove the row | R | Reroute the row, or every row | Enter | Remove all, or delete once nothing is left | Esc | Cancel",
     ];
 }

@@ -183,7 +183,7 @@ public class SourcesTests
         Click(dials[0].Ramp); // the ramp moves to the first dial
         Assert.True(reader.PerfState.Ramping);
         Assert.Equal(0, reader.PerfPlaces.Active);
-        Press(window, Key.P, PhysicalKey.P); // P acts on the active dial: it stops the ramp
+        window.PressSpace(); // Space acts on the active dial: it stops the ramp
         Assert.False(reader.PerfState.Ramping);
         window.UpdateLayout();
         Assert.All(reader.PerfPanelNow.DialLines, d => Assert.Equal("Ramp", ButtonText(d.Ramp)));
@@ -254,7 +254,7 @@ public class SourcesTests
         Assert.DoesNotContain("Courier pings|1 dot", string.Join("|", panel.KeyLabels));
         Assert.DoesNotContain("←|→", Text(reader));
         Assert.DoesNotContain("|P|", Text(reader));
-        Press(window, Key.P, PhysicalKey.P);
+        window.PressSpace();
         Assert.False(reader.PerfState.Ramping);
         Assert.NotEmpty(reader.Canvas.Load!.Boxes); // the colours and the numbers stay
     }

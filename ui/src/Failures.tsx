@@ -12,12 +12,12 @@ import { AFTER_LABEL, afterText, bandCounts, firstErrorAt, ratingCells, SEEN_IN_
 import type { Filter } from './failuresview.ts'
 import { AddMode, AnalysisForm, ModeForm, NewAnalysis } from './FailuresEdit.tsx'
 import type { Preset } from './FailuresEdit.tsx'
-import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, ChevronRight, Close, Copy, Info, Plus, Route } from './icons.tsx'
 import { ABOUT_FOLDS_OVER } from './perfview.ts'
 import type { SaveEdit as Edit } from './forms.tsx'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { Paged } from './Paging.tsx'
+import { RowList } from './RowList.tsx'
 
 /** What the Failures tab's body is told: the folder, the analysis on show and the mode picked in it, the rows to list, and what to do about a click. */
 export type FailuresProps = {
@@ -138,7 +138,7 @@ export function FailuresBody(p: FailuresProps) {
         <button aria-label="Copy as table" title="Copy as table" onClick={() => p.onCopy('markdown')}><Copy size={16} />Table</button>
       </div>
       {ids.length > 1
-        ? <Dropdown label="Analysis" value={analysisId} options={ids.map(id => [id, model.failures[id].name || id])} onChange={p.onAnalysis} />
+        ? <RowList label="Analysis" value={analysisId} rows={ids.map(id => ({ id, name: model.failures[id].name || id }))} onPick={p.onAnalysis} />
         : <h2>{analysis.name || analysisId}</h2>}
       {p.editing && analysisId !== undefined && <AnalysisForm model={model} id={analysisId} run={p.run} />}
       {p.editing && <details className="about"><summary>New analysis</summary><NewAnalysis model={model} run={p.run} onMade={p.onAnalysis} /></details>}
