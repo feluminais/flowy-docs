@@ -92,7 +92,7 @@ internal sealed class CompareMode
     /// <summary>Whether two runs are on screen: the keys of the Performance panel act on the pane with the focus, and the keys of a flow stay out.</summary>
     internal bool ShowingRuns => Showing && _compare is { Kind: "run" };
 
-    /// <summary>Another folder was loaded: it has other flows. A note about two of them is no use there. The same folder read again keeps its notes (they are by pair), and a window asks before it goes to another folder (MainWindow.Open).</summary>
+    /// <summary>Another folder was loaded: it has other flows. A note about two of them is no use there. The same folder read again keeps its notes (they are by pair).</summary>
     internal void Reset(bool sameFolder)
     {
         Close(false);

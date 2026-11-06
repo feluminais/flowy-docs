@@ -24,6 +24,6 @@ internal static class AreaStyles
     {
         ["CanvasView"] = "Canvas", ["ExplorerView"] = "Explorer", ["FailuresPanel"] = "Failures", ["PerfPanel"] = "Performance",
         ["YamlPanel"] = "Yaml", ["NavigatorPanel"] = "Navigator", ["NavRail"] = "Rail", ["SidePanel"] = "SidePanel", ["PlayerCard"] = "Player",
-        ["TopBar"] = "TopBar", ["CompareBar"] = "CompareBar", ["CompareView"] = "Compare", ["TitleRow"] = "TitleRow",
+        ["TopBar"] = "TopBar", ["CompareBar"] = "CompareBar", ["CompareView"] = "Compare", ["TitleRow"] = "TitleRow", ["DocTabsBar"] = "DocTabs",
     };
 }
