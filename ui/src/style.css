@@ -151,7 +151,7 @@ svg { flex: none; }
 .panel button.danger, .picked-bar button.danger { color: var(--danger); }
 .panel button.danger svg, .picked-bar button.danger svg { color: inherit; }
 .panel button.danger:hover:not(:disabled), .picked-bar button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 12%, transparent); }
-/* The dropdown (Dropdown.tsx): the words and a chevron. On the bar it is a flat button, in a form a field, in the Performance and Failures panels a boxed one. */
+/* The dropdown (Dropdown.tsx): the words and a chevron. On the bar it is a flat button, in a form a field, in the Failures panel a boxed one. */
 .dd { max-width: 100%; text-align: left; }
 .dd .dd-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dd svg { flex: none; }
@@ -955,6 +955,9 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .perf > * { flex: none; margin-top: 0; margin-bottom: 0; }
 .navbody > .perf { margin: -12px; padding: 14px 16px 26px; } /* the Performance and Failures panels fill the navigator's body */
 .perf h2 { margin: 0; font-size: 18px; }
+.row-list { max-height: 144px; margin: 0; padding: 0; overflow-y: auto; list-style: none; } /* four rows of 32px and half a fifth, which shows there is more */
+.row-list .linked { flex: none; display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 12.5px; }
+.panel .row-list .linked svg { color: inherit; top: 0; }
 .perf button.dd { width: 100%; min-height: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); justify-content: space-between; }
 .perf button.dd:hover:not(:disabled) { background: color-mix(in srgb, var(--box), var(--fg) 6%); }
 /* The twist sits where a section's icon does and the words where its title does, so the fold lines up with the headings below. */
