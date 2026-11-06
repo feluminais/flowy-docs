@@ -26,7 +26,9 @@
 | Y | The YAML tab: the files as text, and every change to them in the browser |
 | ↑ ↓, Enter | In the model picker: move, then open (browser) |
 | Ctrl+O, F5 | Open a folder, reload it (app) |
-| Ctrl+W, Ctrl+Q | Close the window, quit (app) |
+| Ctrl+Tab, Ctrl+Shift+Tab | Next and previous tab (app) |
+| Ctrl+W, Ctrl+Shift+W, Ctrl+Q | Close the tab, close the window, quit (app) |
+| Ctrl+Shift+N | New window (app) |
 | E | Edit mode on and off |
 | N | Add a shape |
 | Delete | Delete the selected shapes or line |

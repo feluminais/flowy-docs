@@ -3,7 +3,7 @@ import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent a
 import { ReactFlow } from '@xyflow/react'
 import { typesIn } from '../../src/core/check.ts'
 import type { Problem } from '../../src/core/problem.ts'
-import { getObject, ROOT } from '../../src/core/model.ts'
+import { getObject, projectName, ROOT } from '../../src/core/model.ts'
 import { moveFlow } from '../../src/core/ops.ts'
 import { followsLanding } from '../../src/core/animation.ts'
 import { usesStates } from '../../src/core/states.ts'
@@ -52,7 +52,7 @@ import { GroupMarks } from './GroupMarks.tsx'
 import { Player } from './Player.tsx'
 import { cameFrom } from './trail.ts'
 import { vscode } from './host.ts'
-import { fetchModels } from './models.ts'
+import { fetchModels, modelOfPage } from './models.ts'
 import type { ModelList } from './models.ts'
 import { useReveal } from './reveal.ts'
 import { useColorMode } from './hosttheme.ts'
@@ -69,6 +69,8 @@ import { DetailsPanels } from './DetailsPanels.tsx'
 import type { Side } from './side.ts'
 import { TopBar } from './TopBar.tsx'
 import { SketchesList } from './Sketches.tsx'
+import { DocTabs } from './DocTabs.tsx'
+import { fallbackName, modelInfo } from './doctabs.ts'
 import { useAddress } from './useAddress.ts'
 import { useCanvasEvents, useClickWait } from './useCanvasEvents.ts'
 import { useCanvasGraph } from './useCanvasGraph.ts'
@@ -332,6 +334,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
   const widest = (panel: string, width: number) => widestFor(width, sidewaysOverflow(document.querySelector(panel)))
   return (
     <>
+      {live && !vscode && <DocTabs name={projectName(model) || fallbackName(modelOfPage(), models?.models)} of={sketchOf?.of} where={sketchOf ? undefined : modelInfo(modelOfPage(), models?.models)?.where} />}
       <TopBar model={model} sketch={sketchOf} view={view} editing={editing} live={live} readOnly={readOnly} problems={problems} models={models} onModels={setModels} lines={lines} searching={searching} shortcuts={shortcuts} run={run}
         onJump={jumpTo} onProblem={jump} onShow={show} onUndo={() => void takeBack()} onRedo={() => void bringBack()}
         onTidy={() => {

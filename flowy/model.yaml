@@ -656,7 +656,7 @@ objects:
       The model never reads a sketch, so a sketch can't change or break it. Every MCP tool takes a sketch id to work on one instead.
 connections:
   - { from: reader, to: cli, label: node dist/cli.js }
-  - { from: reader, to: desktop, label: opens folders in a window }
+  - { from: reader, to: desktop, label: opens folders in tabs }
   - { from: reader, to: shell, label: "reads it, draws in edit mode" }
   - { from: reader, to: host, label: opens the shared link }
   - { from: reader, to: vscode, label: reads it inside the editor }

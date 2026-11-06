@@ -102,7 +102,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
 
     public event Action<string?>? LinesPicked;
 
-    /// <summary>The reader picked another model of the repo, by its folder. The window opens it in a window of its own.</summary>
+    /// <summary>The reader picked another model of the repo, by its folder. The window opens it in a tab of its own.</summary>
     public event Action<string>? ModelPicked;
 
     /// <summary>The app the person chose to open linked files with, or null for the system's default. Read at every click.</summary>
