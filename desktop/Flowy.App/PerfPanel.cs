@@ -17,7 +17,7 @@ namespace Flowy.App;
 /// <summary>What is picked on the canvas while the Performance panel is open: a shape, or the line between two.</summary>
 internal sealed record PerfSelection(string? Id, string? From = null, string? To = null);
 
-/// <summary>One row of the run picker: the run's name, and whether it is in a pair (a link icon and the word Linked beside the name).</summary>
+/// <summary>One row of the run list: the run's name, and whether it is in a pair (a link icon and Compare pair beside the name).</summary>
 internal sealed record RunChoice(string Name, bool Linked)
 {
     public override string ToString() => Name;
@@ -317,14 +317,15 @@ internal sealed class PerfPanel : StackPanel
     private string? _stateOf;
     private StateMark? _stateShown;
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the shapes in a state on the canvas now
-    private ComboBox? _picker;
+    private ListBox? _picker;
+    private IdMap<LoadRun>? _pickerRuns; // the runs its rows were made for
     private LoadMeasure _measure = LoadMeasure.Calls; // what the lines and dots count now, which the key says
     private string? _dataOff; // why Data is blocked for the run on show, or null
     private Button? _callsButton;
     private Button? _dataButton;
     private TextBlock? _measureOff;
     private Button? _mixedButton;
-    private bool _pane; // a panel inside a pane of a comparison: no run picker or title, the pane has them
+    private bool _pane; // a panel inside a pane of a comparison: no run list or title, the pane has them
     private RunActions? _actions; // what the header offers for comparing, if anything
     private StackPanel? _actionsHost; // the buttons and, under them, the picker one of them opened
     private string? _pickerOpen; // "compare" while the picker of that button is open
@@ -459,9 +460,9 @@ internal sealed class PerfPanel : StackPanel
     /// <summary>Whether the selected line says it is scaled down.</summary>
     internal bool ScaledDownShown => _scaledRow is { IsVisible: true };
 
-    internal ComboBox? Picker => _picker;
+    internal ListBox? Picker => _picker;
 
-    /// <summary>The run picker's rows: the name, and whether the run shows Linked.</summary>
+    /// <summary>The run list's rows: the name, and whether the run shows Compare pair.</summary>
     internal IReadOnlyList<RunChoice> RunChoices => _picker?.ItemsSource?.Cast<RunChoice>().ToList() ?? [];
 
     /// <summary>The header's Compare and the Linked mark; null where the header has none.</summary>
@@ -546,7 +547,13 @@ internal sealed class PerfPanel : StackPanel
     private void Build(PerfPanelModel next)
     {
         var (model, view, runs, runProblems, runId, pos, ramping, still, selection, places, active, pane, actions) = next;
-        Children.Clear();
+        // The run list stays through a rebuild for the same runs, or a click on a row would put it back to the top. It is always the first child.
+        if (_picker is not null && !pane && ReferenceEquals(runs, _pickerRuns) && runs.Contains(runId)) Children.RemoveRange(1, Children.Count - 1);
+        else
+        {
+            Children.Clear();
+            _picker = null;
+        }
         _pane = pane;
         _actions = actions;
         _actionsHost = null;
@@ -566,7 +573,6 @@ internal sealed class PerfPanel : StackPanel
         _readings.Clear();
         _scaledRow = null;
         _scaledLine = null;
-        _picker = null;
         _strip = null;
         _marks = null;
         _eventRows.Clear();
@@ -685,26 +691,30 @@ internal sealed class PerfPanel : StackPanel
         SetPos(pos, ramping);
     }
 
-    /// <summary>The run's name (a picker when there is more than one run) and, when it has one, the About line that opens to its note.</summary>
+    /// <summary>The run's name (a list of the runs when there is more than one) and, when it has one, the About line that opens to its note.</summary>
     private void AddHeader(IdMap<LoadRun> runs, string runId, LoadRun run)
     {
         var linked = CompareChoices.LinkedRuns(RunDrawing.MapOf(runs));
         if (_pane) { } // the pane has the run's name over its canvas, and the run is the pane's own
+        else if (_picker is { } kept)
+        {
+            _syncing = true; // the run changed, or was told again: not the reader picking one
+            kept.SelectedIndex = runs.Keys.ToList().IndexOf(runId);
+            _syncing = false;
+        }
         else if (runs.Count > 1)
         {
             var choices = runs.Select(kv => new RunChoice(kv.Value.Name, linked.Contains(kv.Key))).ToList();
-            var picker = new ComboBox
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 32, 0), ItemsSource = choices, ItemTemplate = RunRow, SelectedIndex = runs.Keys.ToList().IndexOf(runId), Focusable = false,
-            };
+            var picker = new ListBox { MaxHeight = RunListHeight, ItemsSource = choices, ItemTemplate = RunRow, SelectedIndex = runs.Keys.ToList().IndexOf(runId), Classes = { "runlist" } };
             AutomationProperties.SetName(picker, "Run");
             picker.SelectionChanged += (_, _) =>
             {
-                if (_syncing || picker.SelectedIndex < 0) return;
-                RunPicked?.Invoke(runs.Keys[picker.SelectedIndex]);
-                Used?.Invoke();
+                if (!_syncing && picker.SelectedIndex >= 0) RunPicked?.Invoke(runs.Keys[picker.SelectedIndex]);
             };
+            // After a click, not at every change: the arrows move through the runs with the keyboard staying on the list.
+            picker.AddHandler(PointerReleasedEvent, (_, _) => Used?.Invoke(), RoutingStrategies.Bubble, handledEventsToo: true);
             _picker = picker;
+            _pickerRuns = runs;
             Children.Add(picker);
         }
         else Children.Add(new TextBlock { Text = run.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) });
@@ -738,10 +748,14 @@ internal sealed class PerfPanel : StackPanel
         }
     }
 
-    /// <summary>A row of the run picker: the name, and the link icon with the word Linked beside it when the run is in a pair.</summary>
+    /// <summary>Four rows of the run list (32 tall, in Styles/Performance.axaml) and half a fifth, which shows there is more. Past that it scrolls inside itself.</summary>
+    private const double RunListHeight = 144;
+
+    /// <summary>A row of the run list: the name, and the link icon with Compare pair beside it when the run is in a pair.</summary>
     private static readonly FuncDataTemplate<RunChoice> RunRow = new((choice, _) =>
     {
         var name = new TextBlock { Text = choice?.Name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
+        ToolTip.SetTip(name, choice?.Name);
         if (choice is not { Linked: true }) return name;
         var mark = Chrome.Chip("Compare pair", Icons.Link, "accent");
         var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { name, mark } };
