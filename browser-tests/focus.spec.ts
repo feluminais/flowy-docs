@@ -77,7 +77,6 @@ test('the arrows move the highlight and do not step the load while the list is o
   await page.keyboard.press('Enter')
   const before = level(page)
   await page.keyboard.press('ArrowRight')
-  await page.keyboard.press('p')
   expect(level(page)).toBe(before)
   await page.keyboard.press('Escape')
   await expect(page.getByRole('listbox')).toBeHidden()

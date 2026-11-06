@@ -32,6 +32,7 @@ export type KeyState = {
   analysis: boolean // the Failures tab has an analysis to step through
   readOnly: boolean
   canPerf: boolean
+  tabbed: boolean // the focus came where it is by Tab, not by a click: a control there keeps Space
 }
 
 /** What a key can do. The reader supplies them; each one does what its name says, on the screen as it is now. */
@@ -121,6 +122,15 @@ const flowKeys = (c: KeyContext) => c.s.flow || (c.s.compare && !c.s.runCompare)
 const nudgeBy = (c: KeyContext): 1 | -1 | undefined => (c.e.code === 'Comma' ? -1 : c.e.code === 'Period' ? 1 : undefined)
 /** A plain press of the letter that is not a key held down. */
 const tap = (c: KeyContext, l: string) => c.key === l && c.plain && !c.e.repeat
+/** What has a press of its own. A slider or a scrolling region has none, so it leaves Space to the page. */
+const SPACE_TAKERS = 'button, summary, input:not([type=range]), .react-flow__node, .react-flow__edge'
+/**
+ * Space, unless it presses a control the keyboard came to by Tab. One that was only clicked keeps the focus too, and there Space is the page's: pausing after a click on Next must not
+ * press Next again.
+ */
+const space = (c: KeyContext) => c.e.key === ' ' && c.plain && !(c.s.tabbed && (c.e.target as { closest?: (selector: string) => unknown } | null)?.closest?.(SPACE_TAKERS))
+/** One play or pause for a Space held down. The repeats stay taken: a clicked button keeps the focus, and one let through would press it. */
+const once = (c: KeyContext, act: () => void) => { if (!c.e.repeat) act() }
 
 export const KEYMAP: readonly Entry[] = [
   {
@@ -164,9 +174,9 @@ export const KEYMAP: readonly Entry[] = [
     help: { performance: { text: 'First and last tested level' } },
   },
   {
-    id: 'perf-ramp', keys: 'P',
-    when: c => (c.s.perfOpen || c.s.runCompare) && tap(c, 'p'),
-    run: c => c.act.ramp(),
+    id: 'perf-ramp', keys: 'Space',
+    when: c => (c.s.perfOpen || c.s.runCompare) && space(c),
+    run: c => once(c, c.act.ramp),
     help: { performance: { text: 'Ramp the load or play the time, or pause' } },
   },
   // In edit mode the arrow keys nudge a picked shape, so the list is stepped with them only outside it.
@@ -189,9 +199,9 @@ export const KEYMAP: readonly Entry[] = [
     help: { flows: { text: 'First and last step' } },
   },
   {
-    id: 'flow-play', keys: 'P',
-    when: c => flowKeys(c) && tap(c, 'p'),
-    run: c => c.act.play(),
+    id: 'flow-play', keys: 'Space',
+    when: c => flowKeys(c) && space(c),
+    run: c => once(c, c.act.play),
     help: { flows: { text: 'Play or pause' } },
   },
   {
