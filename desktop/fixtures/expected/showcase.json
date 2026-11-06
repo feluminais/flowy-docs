@@ -7,7 +7,7 @@
       "id": "steps",
       "type": "system",
       "name": "Step animations",
-      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nEach animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop,\nSend with a word, Fail, Timeout, Lost, Rejected, Intercepted (twice: by a shape and by a name), Duplicated, Delayed and Share\n(Flash has two, because the step before sets it off).\n\n**Every step animation** plays them all: press **P** to watch them one after the other.\n"
+      "description": "One pair of shapes for each way a step can travel, named for the animation they play.\n\nEach animation has a flow of its own with a single step to click through: Send, Call, Event, Callback, Flash, Bolt drop,\nSend with a word, Fail, Timeout, Lost, Rejected, Intercepted (twice: by a shape and by a name), Duplicated, Delayed and Share\n(Flash has two, because the step before sets it off).\n\n**Every step animation** plays them all: press **Space** to watch them one after the other.\n"
     },
     {
       "id": "structure",

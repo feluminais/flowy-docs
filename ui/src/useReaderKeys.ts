@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import type { Flow, Model } from '../../src/core/model.ts'
 import { ROOT } from '../../src/core/model.ts'
@@ -40,8 +40,15 @@ export function useReaderKeys({ model, view, editing, readOnly, canPerf, session
   const { here, activeDial, loadTest, multi, dials } = perfRun
   const { analysis, rows, mode, modeId, selectMode } = failures
   const { motion, back, jumpTo, zoomInto } = navigation
+  const tabbed = useRef(false) // how the focus came where it is: by Tab, or by a click
+  useEffect(() => {
+    const clicked = () => { tabbed.current = false }
+    window.addEventListener('pointerdown', clicked, true)
+    return () => window.removeEventListener('pointerdown', clicked, true)
+  }, [])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') tabbed.current = true
       const inNavigator = e.target instanceof Element && e.target.closest('.navpanel') !== null
       // A text field keeps its keys. A slider, a checkbox or a colour does not: one that was just used keeps the focus, and the keys stay the tab's (arrows and Home and End step the run).
       // The navigator's filters clear themselves on Escape and stop it, so one that gets here is empty: a click in it lets Escape close the navigator.
@@ -52,7 +59,7 @@ export function useReaderKeys({ model, view, editing, readOnly, canPerf, session
       const state: KeyState = {
         editing, justMoved: session.justMoved(), shortcuts, navigatorOpen: nav !== undefined, navigatorUsed: navUsed.current, flow: flow !== undefined, compare: comparing !== undefined, swap: comparing?.mode === 'swap', runCompare: comparing?.kind === 'run', halfStep: recording?.from !== undefined,
         panel: detailsOpen || manyPicked || perfOpen || runsOpen || failuresOpen, inside: view !== ROOT && !comparing, paneInside: comparing?.kind === 'flow' && compareRef.current?.focused()?.inside() === true, recording: recording !== undefined, perfOpen, failuresOpen, analysis: analysis !== undefined, readOnly,
-        canPerf,
+        canPerf, tabbed: tabbed.current,
       }
       const act: KeyActions = {
         takeBack: () => void session.takeBack(),

@@ -243,8 +243,20 @@ internal sealed partial class ReaderView : Grid, IDisposable
         // Every press, handled or not (the canvas handles its own): it says which half the reader is working in.
         AddHandler(PointerPressedEvent, OnPointerDown, RoutingStrategies.Tunnel, handledEventsToo: true);
         // On the whole window, so keys work wherever the focus happens to be: a click on a button must not switch the shortcuts off.
-        AttachedToVisualTree += (_, _) => TopLevel.GetTopLevel(this)?.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Bubble);
-        DetachedFromVisualTree += (_, e) => (e.RootVisual as Interactive)?.RemoveHandler(KeyDownEvent, OnKeyDown);
+        AttachedToVisualTree += (_, _) =>
+        {
+            if (TopLevel.GetTopLevel(this) is not { } top) return;
+            top.AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Bubble);
+            top.AddHandler(KeyDownEvent, OnSpaceDown, RoutingStrategies.Tunnel);
+            top.AddHandler(KeyUpEvent, OnSpaceUp, RoutingStrategies.Tunnel);
+        };
+        DetachedFromVisualTree += (_, e) =>
+        {
+            if (e.RootVisual is not Interactive top) return;
+            top.RemoveHandler(KeyDownEvent, OnKeyDown);
+            top.RemoveHandler(KeyDownEvent, OnSpaceDown);
+            top.RemoveHandler(KeyUpEvent, OnSpaceUp);
+        };
         ActualThemeVariantChanged += (_, _) => Refresh();
     }
 

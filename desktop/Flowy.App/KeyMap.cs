@@ -179,13 +179,13 @@ internal static class KeyMap
         Do("perf-step", "→  ←", (p, s) => (s.PerfOpen || s.RunCompare) && p.Arrow, (p, _, a) => a.PerfStep(p.By), Performance("Next and previous tested level")),
         Do("perf-ends", "Home  End", (p, s) => (s.PerfOpen || s.RunCompare) && (p.Key == Key.Home || (p.Key == Key.End && (s.HasLoad || s.RunCompare))), (p, _, a) => { if (p.Key == Key.Home) a.PerfFirst(); else a.PerfLast(); },
             Performance("First and last tested level")),
-        Do("perf-ramp", "P", (p, s) => (s.PerfOpen || s.RunCompare) && p.Tap(PhysicalKey.P), (_, _, a) => a.PerfRamp(), Performance("Ramp the load or play the time, or pause")),
+        Do("perf-ramp", "Space", (p, s) => (s.PerfOpen || s.RunCompare) && p.Tap(PhysicalKey.Space), (_, _, a) => a.PerfRamp(), Performance("Ramp the load or play the time, or pause")),
         new("failure-step", "→  ←", (p, s) => s.FailuresOpen && p.Arrow, (p, _, a) => a.StepFailures(p.Key), Failures("Next and previous failure")),
 
         // The keys of a flow apply while one is playing, and while two are compared (they act on the pane last clicked). Two runs have no steps: their comparison takes the keys of the Performance panel.
         Do("flow-step", "→  ←", (p, s) => FlowKeys(s) && p.Arrow, (p, _, a) => a.FlowStep(p.By), Flows("Next and previous step")),
         Do("flow-ends", "Home  End", (p, s) => FlowKeys(s) && p.Key is Key.Home or Key.End, (p, _, a) => { if (p.Key == Key.Home) a.FlowFirst(); else a.FlowLast(); }, Flows("First and last step")),
-        Do("flow-play", "P", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.P), (_, _, a) => a.FlowPlay(), Flows("Play or pause")),
+        Do("flow-play", "Space", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.Space), (_, _, a) => a.FlowPlay(), Flows("Play or pause")),
         Do("flow-autoplay", "A", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.A), (_, _, a) => a.FlowAutoplay(), Flows("Autoplay")),
         Do("flow-speed", "S", (p, s) => FlowKeys(s) && p.Tap(PhysicalKey.S), (_, _, a) => a.FlowSpeed(), Flows("Speed")),
         // Comma is a moment back and full stop a moment on, by where the key is (any layout). Held down, it goes on.

@@ -10,7 +10,7 @@ const press = (key: string, more: Partial<KeyEvent> = {}): KeyEvent => ({
 
 const nothing: KeyState = {
   editing: false, justMoved: false, shortcuts: false, navigatorOpen: false, navigatorUsed: false, flow: false, compare: false, swap: false, runCompare: false, halfStep: false, panel: false, inside: false, paneInside: false, recording: false,
-  perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, canPerf: false,
+  perfOpen: false, failuresOpen: false, analysis: false, readOnly: false, canPerf: false, tabbed: false,
 }
 
 /** Actions that only write down their name (and what they were asked), so a test can say which one a key reached. */
@@ -33,6 +33,23 @@ function reach(e: KeyEvent, s: Partial<KeyState> = {}, inNavigator = false) {
   return { id: hit?.id, calls, handled: hit ? dispatch(ctx) : false }
 }
 const idOf = (e: KeyEvent, s: Partial<KeyState> = {}) => reach(e, s).id
+
+test('Space plays once for a key held down, and the repeats stay taken so a clicked button under the focus is not pressed', () => {
+  const held = reach(press(' ', { repeat: true }), { flow: true })
+  assert.equal(held.handled, true)
+  assert.deepEqual(held.calls, [])
+})
+
+test('Space presses a control Tab came to, and plays over one that was only clicked', () => {
+  const control = { closest: (selector: string) => (selector.includes('button') ? {} : null) }
+  const onButton = press(' ', { target: control as unknown as EventTarget })
+  assert.equal(idOf(onButton, { flow: true }), 'flow-play', 'clicked')
+  assert.equal(idOf(onButton, { flow: true, tabbed: true }), undefined, 'by Tab')
+  assert.equal(idOf(onButton, { perfOpen: true }), 'perf-ramp', 'clicked')
+  assert.equal(idOf(onButton, { perfOpen: true, tabbed: true }), undefined, 'by Tab')
+  const slider = press(' ', { target: { closest: () => null } as unknown as EventTarget })
+  assert.equal(idOf(slider, { flow: true, tabbed: true }), 'flow-play', 'a slider has no press of its own')
+})
 
 test('every entry has its own name', () => {
   const ids = KEYMAP.map(k => k.id)
@@ -128,20 +145,21 @@ test('right after a drag, Esc and Backspace take it back, ahead of everything el
   assert.deepEqual(reach(press('Escape'), dragged).calls, ['takeBack'])
 })
 
-test('a load-test run takes the arrows, Home, End and P before a flow or the failures', () => {
+test('a load-test run takes the arrows, Home, End and Space before a flow or the failures', () => {
   const perf = { perfOpen: true, flow: true, failuresOpen: true, analysis: true }
   assert.equal(idOf(press('ArrowRight'), perf), 'perf-step')
   assert.equal(idOf(press('ArrowLeft'), perf), 'perf-step')
   assert.equal(idOf(press('Home'), perf), 'perf-ends')
   assert.equal(idOf(press('End'), perf), 'perf-ends')
-  assert.equal(idOf(press('p'), perf), 'perf-ramp')
-  assert.equal(idOf(press('p', { repeat: true }), perf), undefined, 'P does not repeat')
-  assert.equal(idOf(press('p', { ctrlKey: true }), perf), undefined)
+  assert.equal(idOf(press(' '), perf), 'perf-ramp')
+  assert.deepEqual(reach(press(' ', { repeat: true }), perf).calls, [], 'Space held down ramps once')
+  assert.equal(idOf(press(' ', { ctrlKey: true }), perf), undefined)
+  assert.equal(idOf(press('p'), perf), undefined, 'P is not a key any more')
   assert.deepEqual(reach(press('ArrowRight'), perf).calls, ['stepRun(1)'])
   assert.deepEqual(reach(press('ArrowLeft'), perf).calls, ['stepRun(-1)'])
   assert.deepEqual(reach(press('Home'), perf).calls, ['runEnd(first)'])
   assert.deepEqual(reach(press('End'), perf).calls, ['runEnd(last)'])
-  assert.deepEqual(reach(press('p'), perf).calls, ['ramp'])
+  assert.deepEqual(reach(press(' '), perf).calls, ['ramp'])
 })
 
 test('the arrows step the failures list, but not while editing (they nudge a picked shape there)', () => {
@@ -156,13 +174,15 @@ test('the arrows step the failures list, but not while editing (they nudge a pic
   assert.deepEqual(reach(press('ArrowLeft'), failing).calls, ['stepFailure(-1)'])
 })
 
-test('a flow playing takes the arrows, Home, End, P and R', () => {
+test('a flow playing takes the arrows, Home, End, Space and R', () => {
   const flow = { flow: true }
   assert.equal(idOf(press('ArrowRight'), flow), 'flow-step')
   assert.equal(idOf(press('ArrowLeft'), flow), 'flow-step')
   assert.equal(idOf(press('Home'), flow), 'flow-ends')
   assert.equal(idOf(press('End'), flow), 'flow-ends')
-  assert.equal(idOf(press('p'), flow), 'flow-play')
+  assert.equal(idOf(press(' '), flow), 'flow-play')
+  assert.equal(idOf(press('p'), flow), undefined, 'P is not a key any more')
+  assert.equal(idOf(press(' ')), undefined, 'no flow, no Space: a clicked button keeps it')
   assert.equal(idOf(press('r'), flow), 'flow-replay')
   assert.equal(idOf(press('r', { repeat: true }), flow), undefined)
   assert.equal(idOf(press('r')), undefined, 'no flow, no R')
@@ -171,7 +191,7 @@ test('a flow playing takes the arrows, Home, End, P and R', () => {
   assert.deepEqual(reach(press('ArrowLeft'), flow).calls, ['stepFlow(-1)'])
   assert.deepEqual(reach(press('Home'), flow).calls, ['flowEnd(first)'])
   assert.deepEqual(reach(press('End'), flow).calls, ['flowEnd(last)'])
-  assert.deepEqual(reach(press('p'), flow).calls, ['play'])
+  assert.deepEqual(reach(press(' '), flow).calls, ['play'])
   assert.deepEqual(reach(press('r'), flow).calls, ['replay'])
 })
 
@@ -206,11 +226,11 @@ test('with two flows side by side, the keys of a flow reach the actions that act
   const side = { compare: true }
   assert.equal(idOf(press('ArrowRight'), side), 'flow-step')
   assert.equal(idOf(press('Home'), side), 'flow-ends')
-  assert.equal(idOf(press('p'), side), 'flow-play')
+  assert.equal(idOf(press(' '), side), 'flow-play')
   assert.equal(idOf(press('r'), side), 'flow-replay')
   assert.deepEqual(reach(press('ArrowLeft'), side).calls, ['stepFlow(-1)'])
   assert.deepEqual(reach(press('End'), side).calls, ['flowEnd(last)'])
-  assert.deepEqual(reach(press('p'), side).calls, ['play'])
+  assert.deepEqual(reach(press(' '), side).calls, ['play'])
   assert.deepEqual(reach(press('r'), side).calls, ['replay'])
   assert.deepEqual(reach(press('f'), side).calls, ['fit'], 'F fits the pane too')
   assert.equal(idOf(press('ArrowRight')), undefined, 'no flow and no comparison: nothing to step')
@@ -221,10 +241,10 @@ test('with two runs compared, the keys of the Performance tab reach the actions 
   const runs = { compare: true, runCompare: true }
   assert.equal(idOf(press('ArrowRight'), runs), 'perf-step')
   assert.equal(idOf(press('Home'), runs), 'perf-ends')
-  assert.equal(idOf(press('p'), runs), 'perf-ramp')
+  assert.equal(idOf(press(' '), runs), 'perf-ramp')
   assert.deepEqual(reach(press('ArrowLeft'), runs).calls, ['stepRun(-1)'])
   assert.deepEqual(reach(press('End'), runs).calls, ['runEnd(last)'])
-  assert.deepEqual(reach(press('p'), runs).calls, ['ramp'])
+  assert.deepEqual(reach(press(' '), runs).calls, ['ramp'])
   assert.deepEqual(reach(press('f'), runs).calls, ['fit'], 'F fits the pane')
   assert.equal(idOf(press('r'), runs), undefined, 'two runs have no step to replay')
   assert.equal(idOf(press('c'), runs), 'compare', 'C closes the comparison')
@@ -349,7 +369,7 @@ test('the shortcut list says what it said before the table was built from the ke
   assert.deepEqual(rows.flows, [
     ['→  ←', 'Next and previous step'],
     ['Home  End', 'First and last step'],
-    ['P', 'Play or pause'],
+    ['Space', 'Play or pause'],
     ['A', 'Autoplay'],
     ['S', 'Speed'],
     [',  .', 'A moment back or on, while paused'],
@@ -361,7 +381,7 @@ test('the shortcut list says what it said before the table was built from the ke
   assert.deepEqual(rows.performance, [
     ['→  ←', 'Next and previous tested level'],
     ['Home  End', 'First and last tested level'],
-    ['P', 'Ramp the load or play the time, or pause'],
+    ['Space', 'Ramp the load or play the time, or pause'],
     ['Esc', 'Close the panel'],
   ])
   assert.deepEqual(rows.failures, [['→  ←', 'Next and previous failure']])
