@@ -2034,16 +2034,16 @@ public class CompareTests
     [AvaloniaFact]
     public void Partners_are_both_marked_in_the_Flows_tab_whichever_folder_each_is_filed_in()
     {
-        // Plum files announce-order in payments and stripe-outage in payments/stripe; tagging one marks both, and neither moves to the other.
-        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "stripe-outage") ? "compare: announce-order\n" + text : text);
+        // Plum files capture-payment in payments and stripe-outage in payments/stripe; tagging one marks both, and neither moves to the other.
+        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "stripe-outage") ? "compare: capture-payment\n" + text : text);
         using var _ = temp;
         reader.ClickRail(PanelTab.Flows);
         EditModeTests.Settle(window);
         var listed = reader.Navigator.Flows.Listed;
-        var announce = listed.Single(f => f.Id == "announce-order");
+        var capture = listed.Single(f => f.Id == "capture-payment");
         var outage = listed.Single(f => f.Id == "stripe-outage");
-        Assert.True(announce.Linked && outage.Linked);
-        Assert.Equal(("payments", "payments/stripe"), (announce.Folder, outage.Folder));
+        Assert.True(capture.Linked && outage.Linked);
+        Assert.Equal(("payments", "payments/stripe"), (capture.Folder, outage.Folder));
     }
 
     [AvaloniaFact]

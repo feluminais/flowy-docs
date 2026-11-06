@@ -2,7 +2,7 @@ name: Group orders
 about: |-
   Friends order from one restaurant into one basket, and each pays their share.
 
-  A sketch, not built. Open question: does the host pay the delivery fee alone, or is it split too?
+  Not built. Open question: does the host pay the delivery fee alone, or is it split too?
 objects:
   customer:
     type: actor
@@ -13,9 +13,6 @@ objects:
     name: Ordering
     description: |
       Everything customer-facing: menus, basket, payment.
-
-      The **Order API** is the only entry point. It stores orders in Postgres and publishes each
-      new order to **Order events**, which **Delivery** consumes.
   customer-app:
     type: app
     in: ordering
@@ -27,7 +24,7 @@ objects:
       - url: apps/customer/README.md
         title: Build and release notes
     description: |
-      Mobile client. Browse, order, pay, follow the courier.
+      Browse, order, pay, follow the courier.
 
       Stores only the basket and the session.
   order-api:
@@ -38,11 +35,7 @@ objects:
     code:
       - services/order-api/
     description: |
-      Entry point for every client, and the only service that touches the **Orders DB**.
-
-      - `GET /menus/:restaurant` reads a menu
-      - `POST /orders` places an order
-      - `POST /orders/:id/refund` refunds one
+      Entry point for every client: menus, orders and refunds.
   basket:
     type: component
     in: order-api
