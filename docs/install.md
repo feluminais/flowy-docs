@@ -6,7 +6,7 @@ Flowy Docs comes three ways. All three read the same `flowy/` folder, edit it th
 
 There is no release yet. Until the first installer is on [Releases](https://github.com/feluminais/flowy-docs/releases), run the app from a clone with the .NET 10 SDK: `dotnet run --project desktop/Flowy.App`.
 
-**File › Open Folder** opens a repo, and the app redraws whenever a file changes. A repo with several `flowy/` folders has a Model picker in the top bar that opens another in its own window. [The desktop app](guide/desktop.md#the-desktop-app) lists how it differs from the browser.
+**File › Open Folder** opens a repo, and the app redraws whenever a file changes. A repo with several `flowy/` folders has a Model picker in the top bar that opens another in a new tab. [The desktop app](guide/desktop.md#the-desktop-app) lists how it differs from the browser.
 
 Windows is where it has been built and tried. The macOS and Linux packages come from the same workflow but haven't been run. None is signed yet, so Windows shows SmartScreen the first time, and the macOS app needs right-click, then Open, and doesn't update itself.
 
