@@ -234,7 +234,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
           ctx.lineCap = 'round'
           ctx.lineWidth = Math.max(2.4, line.width + 0.9) // a little thicker than the line it runs on, in the diagram's units, so the two read as one arrow at any zoom
           ctx.globalAlpha = 0.9
-          ctx.strokeStyle = colours.muted // not the source's colour: a line with no numbers of its own is not one that was measured, and the key calls it Not measured
+          ctx.strokeStyle = colours.muted // not the source's colour: a line with no numbers of its own is not one that was measured, and the key calls it Not measured calls
           ctx.setLineDash([pace.dash, pace.gap])
           ctx.lineDashOffset = -phase * period
           ctx.stroke()
