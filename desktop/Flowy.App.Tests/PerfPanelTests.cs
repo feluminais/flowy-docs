@@ -472,7 +472,7 @@ public class PerfPanelTests
     {
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 1);
-        var group = panel.GetVisualDescendants().OfType<StackPanel>().Single(p => Avalonia.Automation.AutomationProperties.GetName(p) == "Each stripe");
+        var group = panel.GetVisualDescendants().OfType<WrapPanel>().Single(p => Avalonia.Automation.AutomationProperties.GetName(p) == "Each stripe");
         (TopLevel.GetTopLevel(panel) as Window)?.UpdateLayout();
         Assert.Equal(["Each stripe", "Calls", "Data", "Mixed"], group.GetVisualDescendants().OfType<TextBlock>().Where(t => !t.GetVisualAncestors().OfType<Border>().Any(b => b.Classes.Contains("sw"))).Select(t => t.Text));
         Assert.DoesNotContain("Count", Text(panel).Split('|'));

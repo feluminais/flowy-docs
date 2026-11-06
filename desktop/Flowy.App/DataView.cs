@@ -181,7 +181,7 @@ internal static class DataView
                 Grid.SetColumn(cell, c);
                 grid.Children.Add(cell);
             }
-        var framed = Framed(grid, $"{entry.Name} rows", resource, new Thickness(0, 0, 0, 7)); // room under the rows for the scrollbar, which lies over the content
+        var framed = Framed(grid, $"{entry.Name} rows", resource, default);
         return cutRows > 0 ? WithMore(framed, $"{cutRows} more rows", resource) : framed;
     }
 
@@ -207,7 +207,7 @@ internal static class DataView
             if (line.Noted) row.Children.Add(Dot());
             doc.Children.Add(row);
         }
-        var framedDoc = Framed(doc, $"{entry.Name} sample", resource, new Thickness(10, 8, 10, 12)); // room under the lines for the scrollbar, which lies over the content
+        var framedDoc = Framed(doc, $"{entry.Name} sample", resource, new Thickness(10, 8));
         return cutLines > 0 ? WithMore(framedDoc, $"{cutLines} more fields", resource) : framedDoc;
     }
 
