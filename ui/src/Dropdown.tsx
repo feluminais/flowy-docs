@@ -102,7 +102,7 @@ export function Dropdown({ options, value, defaultValue, onChange, label, title,
     if (e.nativeEvent.isComposing || disabled) return
     const mine = () => {
       e.preventDefault()
-      e.stopPropagation() // the page's keys (arrows that step a run, P, Esc that closes a panel) are not for it while it is being used
+      e.stopPropagation() // the page's keys (arrows that step a run, Space, Esc that closes a panel) are not for it while it is being used
     }
     if (!open) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
