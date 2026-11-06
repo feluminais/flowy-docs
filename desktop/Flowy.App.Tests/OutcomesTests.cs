@@ -398,8 +398,8 @@ public class OutcomesTests
         {
             reader.Play("ends", 4);
             Assert.True(reader.StepMoving);
-            window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, null); // the step is moving: P pauses it
-            window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, null); // and Play carries on
+            window.PressSpace(); // the step is moving: Space pauses it
+            window.PressSpace(); // and Play carries on
             window.KeyPress(Key.A, RawInputModifiers.None, PhysicalKey.A, null); // and Autoplay goes on through the flow
             Run(() => reader.PlayingStep >= 5);
             Assert.True(reader.PlayingStep >= 5, "Autoplay went on to the next step by itself");

@@ -182,18 +182,60 @@ public class PlayerSizeTests
     }
 
     [AvaloniaFact]
+    public void Space_on_a_button_that_was_clicked_pauses_and_does_not_press_it()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.Play("checkout", 0);
+        Settle(window);
+        var next = Named(reader.Card, "Next")!;
+        Assert.True(next.Focus(NavigationMethod.Pointer));
+        window.PressSpace();
+        Settle(window);
+        Assert.Equal(0, reader.PlayingStep);
+        Assert.NotNull(Named(reader.Card, "Play"));
+    }
+
+    [AvaloniaFact]
+    public void A_button_Tab_came_to_keeps_Space()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.Play("checkout", 0);
+        Settle(window);
+        var next = Named(reader.Card, "Next")!;
+        Assert.True(next.Focus(NavigationMethod.Tab));
+        window.PressSpace();
+        Settle(window);
+        Assert.Equal(1, reader.PlayingStep);
+    }
+
+    [AvaloniaFact]
+    public void Space_held_down_pauses_once()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        reader.Play("checkout", 0);
+        Settle(window);
+        for (var i = 0; i < 3; i++) window.KeyPress(Key.Space, RawInputModifiers.None, PhysicalKey.Space, " "); // Windows repeats a key held down
+        window.KeyRelease(Key.Space, RawInputModifiers.None, PhysicalKey.Space, " ");
+        Settle(window);
+        Assert.NotNull(Named(reader.Card, "Play"));
+    }
+
+    [AvaloniaFact]
     public void Play_and_Pause_are_one_width_so_Next_stays_put()
     {
         var (temp, window, reader) = Open();
         using var _ = temp;
         reader.Play("checkout", 0);
-        window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, "p"); // paused before its motion can end
+        window.PressSpace(); // paused before its motion can end
         Settle(window);
         double NextX() => Named(reader.Card, "Next")!.TranslatePoint(new Point(0, 0), window)!.Value.X;
         var play = Named(reader.Card, "Play");
         Assert.NotNull(play);
         var (width, x) = (play.Bounds.Width, NextX());
-        window.KeyPress(Key.P, RawInputModifiers.None, PhysicalKey.P, "p");
+        window.PressSpace();
         window.UpdateLayout();
         var pause = Named(reader.Card, "Pause");
         Assert.NotNull(pause); // the button changed its word
