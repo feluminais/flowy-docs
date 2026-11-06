@@ -1167,7 +1167,7 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void Closing_the_window_or_opening_another_folder_with_a_note_nobody_saved_asks_first()
+    public void Closing_the_window_or_the_tab_with_a_note_nobody_saved_asks_first()
     {
         TestApp.NoMotion();
         using var temp = new TempFolder();
@@ -1187,15 +1187,21 @@ public class CompareTests
         Assert.True(window.IsVisible);
         Assert.Equal("Still to say", reader.NoteDraftNow);
 
-        window.Open(Plum); // another folder in this window asks too; Keep stays where it is
-        Assert.Equal(dir, window.Dir);
-        ClickBar(reader.AskShown!.Keep);
-        Assert.Equal(dir, window.Dir);
         window.Open(dir); // the same folder read again does not ask
         Assert.Null(reader.AskShown);
         Assert.True(reader.HoldsNote);
 
-        window.Close();
+        window.CloseActiveTab(); // closing the tab asks too; Keep leaves it open
+        ClickBar(reader.AskShown!.Keep);
+        Assert.Equal(dir, window.Dir);
+
+        shell.Show(Plum); // another folder is another tab: nothing to ask, and the note stays out of sight
+        Assert.Null(reader.AskShown);
+        Assert.Equal(Plum, window.Dir);
+
+        window.Close(); // the tab that holds the note comes on show to ask
+        Assert.True(window.IsVisible);
+        Assert.Equal(dir, window.Dir);
         ClickBar(reader.AskShown!.Discard);
         Assert.False(window.IsVisible); // Discard closes it for real
         Assert.Empty(shell.Windows);

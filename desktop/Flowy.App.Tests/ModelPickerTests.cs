@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Flowy.App.Tests;
 
-/// <summary>The picker for the repo's other models: there when the repo holds several, off when it holds one, and it opens a model in a window of its own.</summary>
+/// <summary>The picker for the repo's other models: there when the repo holds several, off when it holds one, and it opens a model in a tab of its own.</summary>
 public class ModelPickerTests
 {
     private static string Model(TempFolder temp, string rel)

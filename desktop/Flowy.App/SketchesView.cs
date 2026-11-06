@@ -11,7 +11,7 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// The Sketches group under the Explorer's tree: a row for each sketch of the model, which opens it in a window of its own as the Model picker opens a model, and New sketch, which asks for a name,
+/// The Sketches group under the Explorer's tree: a row for each sketch of the model, which opens it in a tab beside the model, and New sketch, which asks for a name,
 /// makes an empty sketch and opens it. A sketch is a model of its own in sketches/&lt;id&gt;/ (see <see cref="Sketches"/>), so making one changes no file of the model and needs no edit mode. When the
 /// folder can't be written the button is greyed out with the reason in its tooltip, not hidden. Not shown inside a sketch: a sketch holds none.
 /// </summary>
