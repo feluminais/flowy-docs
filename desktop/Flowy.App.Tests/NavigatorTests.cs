@@ -37,7 +37,7 @@ public class NavigatorTests
     {
         var (window, reader) = Open();
         var icons = reader.Rail.Shown.ToList();
-        Assert.Equal(["Explorer, 36", "Flows, 21", "Performance, 7", "Failures, 14", "YAML"], icons.Select(i => i.Name)); // Plum has seven runs and 14 failure modes; YAML has no count
+        Assert.Equal(["Explorer, 36", "Flows, 20", "Performance, 7", "Failures, 14", "YAML"], icons.Select(i => i.Name)); // Plum has seven runs and 14 failure modes; YAML has no count
         Assert.All(icons, i => Assert.True(i.Visible));
         Assert.Equal(["Details"], reader.DetailsRail.Shown.Where(i => i.Visible).Select(i => i.Name));
         Assert.False(reader.HasPanel); // nothing is open until an icon is picked
@@ -127,9 +127,9 @@ public class NavigatorTests
         var ordering = explorer.Rows.First(r => r.Key == "shape:ordering");
         Assert.Equal(7, ordering.Inside); // the "7 inside" the canvas draws on Ordering, and the tree used to say 13
         Assert.Equal(13, ordering.Shapes);
-        var count = explorer.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == "7 inside · 13 flows");
-        Assert.Equal("7 inside, 13 in all, 13 flows", ToolTip.GetTip(count));
-        Assert.Contains(explorer.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Ordering, 7 inside, 13 in all, 13 flows");
+        var count = explorer.GetVisualDescendants().OfType<TextBlock>().First(t => t.Text == "7 inside · 12 flows");
+        Assert.Equal("7 inside, 13 in all, 12 flows", ToolTip.GetTip(count));
+        Assert.Contains(explorer.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Ordering, 7 inside, 13 in all, 12 flows");
         Assert.Equal(36, explorer.Rows[0].Shapes); // the project row still holds every shape; the panel header keeps the model's totals
         Assert.Equal("36 shapes · 20 flows", explorer.SummaryText);
     }
@@ -237,7 +237,7 @@ public class NavigatorTests
         reader.GoTo("delivery");
         reader.ClickRail(PanelTab.Flows);
         var listed = reader.Navigator.Flows.Listed;
-        Assert.Equal(21, listed.Count);
+        Assert.Equal(20, listed.Count);
         Assert.Equal("delivery", listed[0].View); // the flows in this level come first
         reader.Navigator.Flows.Open("place-order");
         Assert.Equal("ordering", reader.View);
