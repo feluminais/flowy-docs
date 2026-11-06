@@ -65,10 +65,10 @@ public class FlowListHeadingsTests
         reader.ClickRail(PanelTab.Flows);
         window.UpdateLayout();
         var flows = reader.Navigator.Flows;
-        Assert.Equal(["error path:9", "happy path:7", "edge case:3", "background:2", "recovery:2"], flows.TagButtons.Select(t => $"{t.Tag}:{t.Count}"));
+        Assert.Equal(["error path:9", "happy path:7", "edge case:3", "recovery:2", "background:1"], flows.TagButtons.Select(t => $"{t.Tag}:{t.Count}"));
         var buttons = flows.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("tagchip")).ToList();
         Assert.Equal(5, buttons.Count);
-        Assert.Equal(21, flows.Listed.Count);
+        Assert.Equal(20, flows.Listed.Count);
     }
 
     [AvaloniaFact]
@@ -90,7 +90,7 @@ public class FlowListHeadingsTests
         flows.ToggleTag("error path");
         Assert.Equal(2, flows.Listed.Count);
         flows.ToggleTag("recovery");
-        Assert.Equal(21, flows.Listed.Count);
+        Assert.Equal(20, flows.Listed.Count);
         Assert.Empty(flows.PickedTags);
     }
 
