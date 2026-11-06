@@ -1,6 +1,22 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <!-- The styles of the Performance panel: PerfPanel loads them (AreaStyles.cs), so no control outside it is checked against them. -->
+  <!-- The run list: rows like the Flows tab's. Its height is in PerfPanel, with the reason. -->
+  <Style Selector="ListBox.runlist">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.runlist ListBoxItem">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ListBox.runlist ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="ListBox.runlist ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="ListBox.runlist ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Border.sw.p50, Border.sw.p95, Border.sw.busy">
     <Setter Property="Width" Value="18" />
     <Setter Property="Height" Value="2" />

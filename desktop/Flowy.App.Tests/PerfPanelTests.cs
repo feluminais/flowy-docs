@@ -1,5 +1,8 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Flowy.Core;
@@ -118,6 +121,101 @@ public class PerfPanelTests
         panel.RampButton.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
         Assert.Equal(1, ramps);
         Assert.True(used >= 3); // each of them gives the keyboard back to the reader
+    }
+
+    /// <summary>The run list's row at <paramref name="index"/> once the window is laid out, if it is drawn.</summary>
+    private static ListBoxItem? RunRow(PerfPanel panel, int index)
+    {
+        Dispatcher.UIThread.RunJobs();
+        (TopLevel.GetTopLevel(panel) as Window)?.UpdateLayout();
+        return panel.Picker!.ContainerFromIndex(index) as ListBoxItem;
+    }
+
+    private static bool InViewOf(Control list, Control row)
+    {
+        var top = row.TranslatePoint(new Point(0, 0), list)!.Value.Y;
+        return top >= 0 && top + row.Bounds.Height <= list.Bounds.Height;
+    }
+
+    [AvaloniaFact]
+    public void Past_four_runs_the_list_stops_growing_and_scrolls_inside_itself()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 3);
+        var count = panel.RunChoices.Count;
+        Assert.True(count > 4);
+        var row = RunRow(panel, panel.Picker!.SelectedIndex)!;
+        Assert.Equal(32, row.Bounds.Height);
+        Assert.Equal(144, panel.Picker.Bounds.Height); // four rows and half a fifth, so it shows there is more
+        Assert.True(panel.Picker.GetVisualDescendants().OfType<ListBoxItem>().Count() < count); // only the rows in view are made
+    }
+
+    [AvaloniaFact]
+    public void The_chosen_run_is_in_view_when_it_opens_and_when_it_changes()
+    {
+        var (panel, folder) = Open();
+        var ids = folder.Runs!.Keys.ToList();
+        Show(panel, folder, "ramp", 0);
+        foreach (var id in new[] { ids[^1], ids[0] })
+        {
+            Show(panel, folder, id, 0);
+            var row = RunRow(panel, ids.IndexOf(id));
+            Assert.NotNull(row);
+            Assert.True(InViewOf(panel.Picker!, row), id);
+        }
+    }
+
+    [AvaloniaFact]
+    public void A_rebuild_for_the_same_runs_keeps_the_list_and_where_it_was_scrolled()
+    {
+        var (panel, folder) = Open();
+        var ids = folder.Runs!.Keys.ToList();
+        Show(panel, folder, ids[^1], 0);
+        RunRow(panel, ids.Count - 1);
+        var list = panel.Picker!;
+        var scroll = list.GetVisualDescendants().OfType<ScrollViewer>().First();
+        var offset = scroll.Offset;
+        Assert.True(offset.Y > 0);
+        Show(panel, folder, ids[^2], 0); // a row in view: nothing to scroll for
+        RunRow(panel, ids.Count - 2);
+        Assert.Same(list, panel.Picker);
+        Assert.Equal(offset, scroll.Offset);
+        Assert.Equal(0, panel.Children.IndexOf(list));
+    }
+
+    [AvaloniaFact]
+    public void A_click_on_a_row_picks_the_run_and_gives_the_keyboard_back()
+    {
+        var (panel, folder) = Open();
+        var (runs, used) = (new List<string>(), 0);
+        panel.RunPicked += runs.Add;
+        panel.Used += () => used++;
+        var ids = folder.Runs!.Keys.ToList();
+        Show(panel, folder, ids[1], 0);
+        var window = (Window)TopLevel.GetTopLevel(panel)!;
+        var at = RunRow(panel, 0)!.TranslatePoint(new Point(20, 10), window)!.Value;
+        window.MouseDown(at, MouseButton.Left);
+        window.MouseUp(at, MouseButton.Left);
+        Assert.Equal([ids[0]], runs);
+        Assert.Equal(1, used);
+    }
+
+    [AvaloniaFact]
+    public void The_arrows_go_through_the_runs_with_the_keyboard_staying_on_the_list()
+    {
+        var (panel, folder) = Open();
+        var (runs, used) = (new List<string>(), 0);
+        panel.RunPicked += runs.Add;
+        panel.Used += () => used++;
+        var ids = folder.Runs!.Keys.ToList();
+        Show(panel, folder, ids[0], 0);
+        var window = (Window)TopLevel.GetTopLevel(panel)!;
+        RunRow(panel, 0)!.Focus(NavigationMethod.Tab);
+        window.KeyPress(Key.Down, RawInputModifiers.None, PhysicalKey.ArrowDown, null);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal([ids[1]], runs);
+        Assert.Equal(0, used);
+        Assert.True(panel.Picker!.IsKeyboardFocusWithin);
     }
 
     [AvaloniaFact]
