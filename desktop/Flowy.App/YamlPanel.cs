@@ -56,8 +56,10 @@ internal sealed class YamlPanel : Grid
         _tabs.Classes.Add("navtabs");
         _tabs.Classes.Add("yfiles");
         AutomationProperties.SetName(_tabs, "Files");
-        var tabStrip = new Border { Child = new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = _tabs } };
-        tabStrip.Classes.Add("ytabs");
+        // The line under the tabs scrolls with them, so the bar sits below the line, as in the browser.
+        var line = new Border { Child = _tabs };
+        line.Classes.Add("ytabs");
+        var tabStrip = new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = line };
         SetRow(tabStrip, 1);
 
         _numbers.Classes.Add("ynum");
