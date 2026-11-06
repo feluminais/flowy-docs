@@ -1,6 +1,9 @@
 name: Stripe reports a charge
 view: ordering
 tags: [background]
+groups:
+  readers:
+    kind: parallel
 steps:
   - from: stripe
     to: order-api
@@ -8,7 +11,13 @@ steps:
     animation: { kind: callback, trigger: outside }
     payload: charge
     reply: { name: Received, about: Plum answers at once so Stripe doesn't send the event again., example: { language: json, text: '{ "received": true }' } }
-    description: |
-      Stripe initiates this call, not Plum. The order is marked paid when it arrives.
   - { from: order-api, to: orders-db, text: Marks the order paid, animation: { kind: call, carries: paid } }
-  - { from: order-api, text: Carries on to publish the order, flow: announce-order }
+  - { from: order-api, to: events, text: Publishes the paid event and carries on without waiting, animation: { kind: event, carries: paid } }
+  - from: events
+    to: dispatch
+    text: Dispatch consumes it and starts looking for a courier
+    group: readers
+    lane: Delivery
+    flow: deliver-order
+    animation: callback
+  - { from: events, to: warehouse, text: Streams the same event to the warehouse, group: readers, lane: Warehouse, animation: { kind: event, carries: paid } }

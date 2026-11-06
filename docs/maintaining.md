@@ -461,8 +461,8 @@ How a request ends in Plum (`npm run build:ui && node src/cli.ts --dir docs/demo
 - [ ] Play A double tap sends the order twice (`#ordering/order-sent-twice`): a second copy leaves the first, both wear one colour, and Order API takes both in. Play Hotel wifi
       takes the order (`#ordering/hotel-wifi-takes-order`): the call leaves the line for a dashed marker named Hotel wifi portal, which lights. Play Dispatch hears about an order late
       (`#delivery/events-arrive-late`): the bolt waits beside a turning dashed clock labelled Consumer lag, then goes on.
-- [ ] Play Stripe reports a charge (`#ordering/stripe-webhook`): a bolt drops onto Stripe first, then a bell runs to Order API with the words o_1042. The last step links to A paid order
-      is announced. In that flow the first step is an Event (a bolt, and Order events flashes), and the Dispatch lane is a Callback that flashes Order events first.
+- [ ] Play Stripe reports a charge (`#ordering/stripe-webhook`): a bolt drops onto Stripe first, then a bell runs to Order API with the words o_1042. The third
+      step is an Event (a bolt, and Order events flashes), and the Dispatch lane is a Callback that flashes Order events first.
 - [ ] Click Stripe, Mapbox and Customer app: each has a link in Details (Provider status, Rate limits, Build and release notes). The last one opens the file in the repo. The courier has a truck
       and Message templates is drawn as a document, in the browser and the desktop app, light and dark.
 

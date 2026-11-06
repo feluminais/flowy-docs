@@ -11,7 +11,7 @@ using Xunit;
 namespace Flowy.App.Tests;
 
 /// <summary>
-/// The rail, the Flows list and the Explorer tree, on the Plum demo (36 shapes, 21 flows):
+/// The rail, the Flows list and the Explorer tree, on the Plum demo (36 shapes, 20 flows):
 /// what is on them, what a click on a row does, the keys, the filter, and what is remembered.
 /// </summary>
 public class NavigatorTests
@@ -110,7 +110,7 @@ public class NavigatorTests
         var (_, reader) = Open();
         reader.ClickRail(PanelTab.Explorer);
         var explorer = reader.Navigator.Explorer;
-        Assert.Equal("36 shapes · 21 flows", explorer.SummaryText);
+        Assert.Equal("36 shapes · 20 flows", explorer.SummaryText);
         Assert.Equal("shape:root", explorer.Rows[0].Key);
         Assert.Equal(36, explorer.Rows[0].Shapes);
         Assert.Contains(explorer.Rows, r => r.Key == "shape:ordering" && r.Depth == 1 && r.Expandable && !r.Expanded);
@@ -131,7 +131,7 @@ public class NavigatorTests
         Assert.Equal("7 inside, 13 in all, 13 flows", ToolTip.GetTip(count));
         Assert.Contains(explorer.GetVisualDescendants().OfType<Control>(), c => Avalonia.Automation.AutomationProperties.GetName(c) == "Ordering, 7 inside, 13 in all, 13 flows");
         Assert.Equal(36, explorer.Rows[0].Shapes); // the project row still holds every shape; the panel header keeps the model's totals
-        Assert.Equal("36 shapes · 21 flows", explorer.SummaryText);
+        Assert.Equal("36 shapes · 20 flows", explorer.SummaryText);
     }
 
     [AvaloniaFact]
@@ -350,7 +350,7 @@ public class NavigatorTests
         var explorer = reader.Navigator.Explorer;
         explorer.Filter = "order api";
         Assert.Equal(["Overview", "Ordering", "Order API"], explorer.Rows.Select(r => r.Name));
-        Assert.Equal("36 shapes · 21 flows", explorer.SummaryText); // the totals are of the whole model
+        Assert.Equal("36 shapes · 20 flows", explorer.SummaryText); // the totals are of the whole model
         explorer.Filter = "zzzzz";
         Assert.Empty(explorer.Rows);
         explorer.Filter = "";

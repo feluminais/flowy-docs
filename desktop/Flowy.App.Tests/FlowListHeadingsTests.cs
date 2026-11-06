@@ -82,7 +82,7 @@ public class FlowListHeadingsTests
         window.UpdateLayout();
         Assert.Equal(9, flows.Listed.Count);
         Assert.All(flows.Listed, f => Assert.Contains("error path", f.Tags));
-        Assert.Contains("9 of 21 flows", Texts(window, reader));
+        Assert.Contains("9 of 20 flows", Texts(window, reader));
         var chip = flows.GetVisualDescendants().OfType<Button>().First(b => Avalonia.Automation.AutomationProperties.GetName(b) == "error path");
         Assert.Contains("on", chip.Classes);
         flows.ToggleTag("recovery"); // any of the tags: every recovery flow is an error path as well
@@ -102,7 +102,7 @@ public class FlowListHeadingsTests
         Assert.Contains("happy path", Texts(window, reader));
         reader.Navigator.Flows.Filter = "background";
         Dispatcher.UIThread.RunJobs();
-        Assert.Equal(["announce-order", "stripe-webhook"], reader.Navigator.Flows.Listed.Select(f => f.Id).Order());
+        Assert.Equal(["stripe-webhook"], reader.Navigator.Flows.Listed.Select(f => f.Id));
         reader.Navigator.Flows.Filter = "stripe";
         Dispatcher.UIThread.RunJobs();
         Assert.Equal(["payments", "payments/stripe"], reader.Navigator.Flows.Folders.Select(f => f.Path));

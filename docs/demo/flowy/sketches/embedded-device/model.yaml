@@ -2,7 +2,7 @@ name: Embedded device
 about: |-
   A device with a touch screen and a radio, in three layers. The **Touch app** shows and asks, the **Controller** decides, and the **Network daemon** drives the radio.
 
-  A sketch of how the layers talk. Each connection is a line of its own, so the lines between two layers run side by side and each shows its kind. Open **Open the Wi-Fi screen** first.
+  Open **Open the Wi-Fi screen** first.
 pairs: separate
 objects:
   user:
@@ -12,10 +12,7 @@ objects:
   touch-app:
     type: system
     name: Touch app
-    description: |
-      Draws the screen and passes taps on. It keeps no settings of its own.
-
-      A screen that opens late asks for the settings and listens for the radio state, and gets the last state at once.
+    description: Draws the screen and passes taps on.
   controller:
     type: system
     name: Controller
@@ -33,14 +30,14 @@ objects:
 payloads:
   wifi-settings:
     name: Wi-Fi settings
-    about: The network the device joins and how. Saved by the Controller, shown by the Touch app.
+    about: The network the device joins and how.
     example:
       language: json
       text: |
         { "ssid": "Workshop", "security": "wpa2", "autoJoin": true }
   radio-state:
     name: Radio state
-    about: Whether the radio is on and how well it hears the network. The Controller keeps the last one.
+    about: Whether the radio is on and how well it hears the network.
     example:
       language: json
       text: |
