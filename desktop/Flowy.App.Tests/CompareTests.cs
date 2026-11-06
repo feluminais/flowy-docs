@@ -1393,10 +1393,10 @@ public class CompareTests
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
         try
         {
-            Press(window, Key.P, PhysicalKey.P);
+            window.PressSpace();
             Assert.True(right.Session.Ramping);
             Assert.False(left.Session.Ramping);
-            Press(window, Key.P, PhysicalKey.P);
+            window.PressSpace();
             Assert.False(right.Session.Ramping);
         }
         finally
@@ -1449,7 +1449,7 @@ public class CompareTests
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
         try
         {
-            Press(window, Key.P, PhysicalKey.P);
+            window.PressSpace();
             Assert.True(stage.Run(Dinner).Session.Ramping);
             Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "1"); // the swap itself cuts, so no animation is left running behind the test
             stage.Swap();
@@ -1893,7 +1893,7 @@ public class CompareTests
         Environment.SetEnvironmentVariable("FLOWY_REDUCE_MOTION", "0");
         try
         {
-            Press(window, Key.P, PhysicalKey.P);
+            window.PressSpace();
             Assert.True(left.Ramping);
             Press(window, Key.T, PhysicalKey.T); // another tab in front of the comparison stops it too
             Assert.False(left.Ramping);

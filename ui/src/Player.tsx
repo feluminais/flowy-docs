@@ -15,11 +15,11 @@ import type { StateMark } from '../../src/core/states.ts'
 import { channelsAt, kindsOf } from '../../src/core/channels.ts'
 import { Chip } from './Chrome.tsx'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { PointerEvent as ReactPointerEvent, RefObject } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, RefObject } from 'react'
 import { SPEEDS } from './clock.ts'
 import type { PlayerClock, Speed } from './clock.ts'
 import type { ReactNode } from 'react'
-import { ArrowLeft, StepBack, StepForward, ArrowsSplit, ChevronsRight, Close, Columns, GitFork, Help, Pause, Play, Repeat, Route } from './icons.tsx'
+import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, ListVideo, Pause, Play, Repeat, Route } from './icons.tsx'
 import { ChannelKey } from './Channels.tsx'
 import { StateKey } from './states.tsx'
 import { usePref } from './store.ts'
@@ -28,6 +28,12 @@ import { usePref } from './store.ts'
 export const KIND_ICON = { repeat: Repeat, branch: GitFork, parallel: ArrowsSplit } as const satisfies Record<GroupKind, unknown>
 
 type Place = [string, string] | null
+
+/** A mouse click leaves no focus on the buttons: Chrome would draw the outline on that button at the next key, and Space is for the player. A press from the keyboard keeps it. */
+function letGo(e: ReactMouseEvent<HTMLDivElement>) {
+  const button = document.activeElement
+  if (e.detail > 0 && button instanceof HTMLElement && e.currentTarget.contains(button)) button.blur()
+}
 
 /** Where the legend's open or closed is kept, so it is as last time. Storage may be blocked or empty: the legend then starts closed. */
 const LEGEND_KEY = 'flowy.legend'
@@ -419,15 +425,15 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
           <StopBody {...shared} stop={stop} caption={caption} marks={marks} channels={channels} />
         </div>
       </div>
-      <div className="player-buttons">
+      <div className="player-buttons" onClick={letGo}>
         <button disabled={stop === 0 && !moving} title={backTip(stop, moving)} onClick={back}><StepBack size={16} />Back</button>
         {/* Play and Pause are one button as wide as its longer word, and Repeat stays greyed out on a step that doesn't move, so the row never reflows. */}
-        <button onClick={onPlay} title={showsPause ? 'Pause (P)' : 'Play (P)'}>
+        <button onClick={onPlay} title={showsPause ? 'Pause (Space)' : 'Play (Space)'}>
           {showsPause ? <Pause size={16} /> : <Play size={16} />}
           <span className="same-width"><span className={showsPause ? undefined : 'ghost'} aria-hidden={!showsPause}>Pause</span><span className={showsPause ? 'ghost' : undefined} aria-hidden={showsPause}>Play</span></span>
         </button>
         <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
-        <button aria-label="Autoplay" aria-pressed={autoplay} title="Autoplay (A)" onClick={onAutoplay}><ChevronsRight size={16} /></button>
+        <button aria-label="Autoplay" aria-pressed={autoplay} title="Autoplay (A)" onClick={onAutoplay}><ListVideo size={16} /></button>
         <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving || autoplay} title={!moving ? STILL : autoplay ? 'Autoplay is on' : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>
         <div className="speed" role="group" aria-label="Speed" title="Speed (S)">
           {SPEEDS.map(s => <button key={s} aria-pressed={speed === s} onClick={() => onSpeed(s)}>{s}×</button>)}

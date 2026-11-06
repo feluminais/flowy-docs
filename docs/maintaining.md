@@ -63,7 +63,7 @@ in the desktop app. `node src/cli.ts --dir docs/showcase/flowy` opens it, and so
 `dotnet run --project desktop/Flowy.App -- docs/showcase`. Each shape is named for the animation it plays (Send · from, Flash · to), and its second line holds the tag that sets it off.
 It has eight views:
 
-- Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout, Lost, Rejected, Intercepted twice, Duplicated, Delayed, Share of requests), so you can click through them, and Every step animation, which plays them all: press **P** to watch them one after the other, or **R** to play a step again.
+- Step animations: a flow of one step for each way a step can travel (Send, Call, Event, Callback, Flash, Bolt drop, Send with a word, Fail, Timeout, Lost, Rejected, Intercepted twice, Duplicated, Delayed, Share of requests), so you can click through them, and Every step animation, which plays them all: press **Space** to watch them one after the other, or **R** to play a step again.
 - Flow structure: a flow each for Repeat, Branch, Parallel and Flow link.
 - Performance: the run Every load effect (**T**) gives each shape one effect of load, and **Ramp** sweeps all of them.
 - Colour and scale: the run Colour and scale gives each shape one thing a run's `source` does (blobs counted by a formula, the same blobs at another pace, bigger calls, a line scaled down, lost calls, rejected calls).
@@ -211,7 +211,7 @@ Before merging a change to the app, look at what it could affect, in a real wind
       button under Failures with a 2 on it, and T opens its tab on the load where the Fulfilment worker first struggles
       (200 req/s on the ramp). In Shop lab, shapes that carry numbers are outlined from green to red along their own outline, Order queue
       carries a number but no colour, busy lines are thicker with more dots, and Catalog cache and Payment gateway stay plain. ← → Home End
-      move between tested loads (← from the first goes down to 0 req/s, where nothing runs on the lines); P ramps up (from the top it starts again from no load) and a click on the slider stops it; drag the slider: the
+      move between tested loads (← from the first goes down to 0 req/s, where nothing runs on the lines); Space ramps up (from the top it starts again from no load) and a click on the slider stops it; drag the slider: the
       load follows the thumb in small steps, "Between 50 and 100, estimated" shows between tested loads, and the thumb pulls onto a tested load, which reads "Tested"; a picked shape or
       line reads out its numbers; under Ramp an Each stripe switch has Calls, Data and Mixed, each beside the stripe it draws. This run gives no sizes of a call, so it opens on Calls (a small stripe for each call, running along the line)
       and Data and Mixed are greyed out with the reason in their tooltip and in a muted line under the switch ("No call sizes in this run"). A run with sizes opens on Mixed: the stripes count the calls and are as big as their calls. Data counts the data instead and turns the
@@ -375,12 +375,13 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       order" that still sends it, and Basket stays on the line. Open "Customer
       places an order" for editing: step 2's Payload and Reply list Basket and Receipt first, and on step 1, a Send, Reply is greyed out with
       its reason in the tooltip. Ctrl+Z takes each change back. Both readers do the same.
-- [ ] Play "Customer places an order" to step 2 and press P while the dot is on its way to Order API. Put the pointer on the dot: a card beside
+- [ ] Play "Customer places an order" to step 2 and press Space while the dot is on its way to Order API. Put the pointer on the dot: a card beside
       it shows Basket, with its About, Shape and Example, clear of the player card. Move onto the card: it stays, and its code scrolls. Wait for
       the answer's dot (or drag the bar to it) and pause: its card shows Receipt with the back arrow. Leaving it, Esc, Play, a move along the
       bar, a pan or a zoom close it, and while the dot moves, nothing opens. In a comparison, pause one pane mid-send: its dot shows its card
       inside that pane, clear of its player card, and Esc closes the card and leaves the comparison open. Both readers, light and dark.
-- [ ] Play "Customer places an order" and press P while a dot is on its way: it stops where it is, and P again carries it on from there.
+- [ ] Play "Customer places an order" and press Space while a dot is on its way: it stops where it is, and Space again carries it on from there.
+- [ ] Click Next, then press Space: the step pauses and stays the same step. Press Tab until Next has its outline, then press Space: it goes to the next step. Both readers.
       Pause on "The customer follows the courier" while the live map comes in: it stays half drawn, and its dots stand still. Pause, then drag the bar
       to a fifth of the way into step 3: the card says Step 3, the button says Play and the dot stands near the start of its line. Let go of the bar while it plays and it carries on. Pick 2×:
       a step plays in about half the time, and the speed is still 2× after a reload (the browser) or for the next flow (the desktop app).
@@ -388,7 +389,7 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       buttons never move, and on its last step Repeat is greyed out with "Nothing moves on this step". The buttons read Back, Play, Next, Autoplay. On step 2 of
       "Customer places an order", Back plays the step again and a second click within two seconds goes to step 1. Both readers.
 - [ ] Play "Customer places an order": the first step moves by itself and nothing goes on to step 2. Without Repeat it rests on its end, the button says Play, and Play runs the
-      step again. Press A: step 2 starts, and each step goes on to the next. Pause holds it in a step or in the rest between two, Autoplay stays on, and P carries on from there.
+      step again. Press A: step 2 starts, and each step goes on to the next. Pause holds it in a step or in the rest between two, Autoplay stays on, and Space carries on from there.
       Back and Next leave Autoplay on, and paused they stay paused. On the last step it waits with Autoplay still on, the button says Play, and Play starts from step 1. In the
       browser Repeat is greyed out with "Autoplay is on", and Autoplay is still on after a reload. A pane of a comparison opens with it off, on a flow with Autoplay on behind it. Both readers.
 - [ ] Open *Effects* (`#steps/effects`) and press A: the label of each of four steps runs from Effects · from to Effects · to, down a slope, doing what its word says. squish stretches
@@ -490,7 +491,7 @@ Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, the
       symbol, and the key names Stopped and nothing else. Three marks sit above the slider at 40, 70 and 85 s, in the colours of Stopped, Starting and Running, with the words of each when you point at it. The Events list has Payments killed lit,
       a dot before it, and two rings.
 - [ ] Drag the slider to 41 s: Stripe stays stopped. Drag to 10 s: its outline goes at once, with no fade, and the key has no state. Drag to 75 s: dotted outline, and Starting in the key. Drag to 90 s: nothing is drawn.
-- [ ] Click Restart begins in the list, and the mark above the slider: the slider goes to 70 s, and Stripe eases to Starting. ← and → still go level to level (45 s, 60 s, 90 s). Play (**P**) takes the run in about 30 s,
+- [ ] Click Restart begins in the list, and the mark above the slider: the slider goes to 70 s, and Stripe eases to Starting. ← and → still go level to level (45 s, 60 s, 90 s). Play (**Space**) takes the run in about 30 s,
       the thumb moves evenly in time, Stripe goes stopped, then starting, then runs, and the Events rows fill in as it passes. Touching the slider stops it.
 - [ ] Pick Stripe while at 45 s: under its readings is a Stopped line. Pick Dinner rush in the run list: the tab says Load and Ramp again, and Stripe is as it was. Pick Every state over time in the showcase (`--dir docs/showcase/flowy`):
       the service goes through all six states, and at 45 s the holder shows a dashed ring that reads Stopped inside. With the system's reduce-motion setting on there is no Play, and the states, marks and numbers still show.
@@ -502,7 +503,7 @@ Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, th
       Courier pings (green), each with a slider, its tested loads under it, "Tested" and its own Ramp, and the first is marked at its edge. It opens at 800 orders/min and 400 pings/s: "First struggles with Customer orders at
       800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". On the line from Live tracking to Fleet DB blue and green dots run side by side, and the key names both sources, each in a group with its colour bar, "1 dot = 4 calls/s" under Customer orders and "1 dot = 20 calls/s" under Courier pings, after the marks they share.
 - [ ] ← → Home and End move the marked block only. Press the Courier pings slider: that block is marked now, the chart is headed Courier pings with "Customer orders held at 800 orders/min", and the keys move it. Ramp under Courier pings
-      moves that slider alone and P stops it; press Ramp under Customer orders while one runs and the ramp moves there. Go there puts both back.
+      moves that slider alone and Space stops it; press Ramp under Customer orders while one runs and the ramp moves there. Go there puts both back.
 - [ ] Put both at their highest (1200 and 800): Fleet DB is red, and clicking it reads Busy 143% and "Added use is over 100%". The line from Live tracking to Fleet DB has 24 green dots and fewer blue ones (15, the ratio of their calls),
       and the key says Scaled down. Orders alone (Customer orders in the picker) has no label and one slider, as before.
 - [ ] Pick Orders and pings, tested together: the tab says Tested together, with three loads on each slider. At 600 orders/min and 400 pings/s Fleet DB reads 99%, where the two added read 93%, and nothing says "Added use" at any setting.
@@ -515,7 +516,7 @@ Compare (`--dir docs/demo/flowy`; `npm run build:ui` first):
 
 - [ ] In the Flows tab (**L**) Support refunds an order has a link mark and every row has a Compare button. Click it on that row: two panes open at once, The refund is not recorded on the left and Support refunds an order on the right, the address is
       `#root/compare/refund-not-recorded/refund`, and the note about the two refunds is under the panes. The row of a flow with no link (Place an order) opens a picker with a field that says "Find a flow" instead. Each pane zooms, pans and plays on its own. Click a shape in one: Details opens, and a second click on it closes it. Double-click Order API in the right pane: only that pane zooms in, a breadcrumb (Overview, Ordering, Order API) appears under its title, and the panel does not open. **Esc** goes up to Ordering and the breadcrumb goes away. Press **Esc** twice: the panel, then the comparison.
-- [ ] Press **C** while a flow with no link plays: the picker opens. Press **C** on Support refunds an order: the comparison opens at once. ← → **P** **R** **F** act on the pane you clicked last, which has an outline.
+- [ ] Press **C** while a flow with no link plays: the picker opens. Press **C** on Support refunds an order: the comparison opens at once. ← → **Space** **R** **F** act on the pane you clicked last, which has an outline.
 - [ ] Turn on **Show changes**: the key names New, Removed and Changed. Stripe is Changed in both panes, the left flow's other shapes are Removed and the right's are New, and the steps in the progress bars carry the same outlines.
       Reload: the switch is still on. Pick two flows with no shape in common (The refund is not recorded and Courier pings are lost): the key says Nothing in common and no shape is outlined.
 - [ ] Press **Swap**, then **X**: one canvas flips between the two, shapes both draw glide, new ones fade in and removed ones fade out, and the bar names both flows with the one on show marked. With reduced motion on, it cuts.
