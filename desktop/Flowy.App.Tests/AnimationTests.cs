@@ -382,13 +382,13 @@ public class AnimationTests
     }
 
     [AvaloniaFact]
-    public void P_pauses_and_leaves_Autoplay_as_it_was()
+    public void Space_pauses_and_leaves_Autoplay_as_it_was()
     {
         var (window, reader) = Open("1");
         reader.Play("tags", 3);
         Press(window, Key.A, PhysicalKey.A);
         Assert.True(reader.Autoplaying);
-        Press(window, Key.P, PhysicalKey.P);
+        window.PressSpace();
         Assert.True(reader.Autoplaying);
         Assert.Equal(3, reader.PlayingStep);
         Press(window, Key.A, PhysicalKey.A);
@@ -404,7 +404,7 @@ public class AnimationTests
             reader.Play("tags");
             Run(() => reader.Canvas.Clock.Elapsed > 200);
             Assert.True(reader.StepMoving);
-            Press(window, Key.P, PhysicalKey.P); // the step is moving: P pauses it
+            window.PressSpace(); // the step is moving: Space pauses it
             Assert.True(reader.Canvas.Clock.Paused);
             var held = reader.Canvas.Clock.Elapsed;
             var drawn = reader.Canvas.DrawnBeats.Count;
@@ -414,7 +414,7 @@ public class AnimationTests
             Assert.Equal(held, reader.Canvas.Clock.Elapsed);
             Assert.True(reader.StepMoving, "the paused step is still part way through");
             Assert.Equal(drawn, reader.Canvas.DrawnBeats.Count);
-            Press(window, Key.P, PhysicalKey.P);
+            window.PressSpace();
             Run(() => reader.Canvas.Clock.Elapsed > held + 100);
             Assert.True(reader.Canvas.Clock.Elapsed > held + 100, "Play carries on from the moment it was paused at");
         }

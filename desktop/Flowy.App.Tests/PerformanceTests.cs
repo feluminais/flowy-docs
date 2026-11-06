@@ -260,7 +260,7 @@ public class PerformanceTests
         Assert.Null(reader.PerfPanelNow.RampButton.Parent); // not in the panel
         Assert.DoesNotContain("←|→", string.Join("|", AllText(reader.PerfPanelNow))); // the panel names no keys: the list ? opens does
         Assert.DoesNotContain("|P|", string.Join("|", AllText(reader.PerfPanelNow)));
-        Press(window, Key.P, PhysicalKey.P);
+        window.PressSpace();
         Assert.False(reader.PerfState.Ramping);
     }
 
@@ -272,21 +272,21 @@ public class PerformanceTests
         reader.PickRunById("ramp");
         Press(window, Key.T, PhysicalKey.T);
         Press(window, Key.End, PhysicalKey.End);
-        Press(window, Key.P, PhysicalKey.P); // at the top: from no load
+        window.PressSpace(); // at the top: from no load
         Assert.True(reader.PerfState.Ramping);
         Assert.Equal(-1.0, reader.PerfState.Pos);
         Assert.Equal("Pause", ButtonText(reader.PerfPanelNow.RampButton));
         Thread.Sleep(250);
         reader.TickRamp();
         Assert.InRange(reader.PerfState.Pos, -0.99, -0.8); // a level takes 10 s on a ramp of four levels
-        Press(window, Key.P, PhysicalKey.P); // pause where it has got to
+        window.PressSpace(); // pause where it has got to
         var paused = reader.PerfState.Pos;
         Assert.False(reader.PerfState.Ramping);
         Thread.Sleep(100);
         reader.TickRamp();
         Assert.Equal(paused, reader.PerfState.Pos);
         Assert.Equal("Ramp", ButtonText(reader.PerfPanelNow.RampButton));
-        Press(window, Key.P, PhysicalKey.P);
+        window.PressSpace();
         Press(window, Key.Right, PhysicalKey.ArrowRight); // a key stops it
         Assert.False(reader.PerfState.Ramping);
     }
@@ -527,7 +527,7 @@ public class PerformanceTests
         Assert.Contains("TIME", AllText(panel)); // a section's title is set in capitals
         Assert.DoesNotContain("LOAD", AllText(panel));
         Assert.Contains("EVENTS", AllText(panel));
-        Assert.DoesNotContain("P", AllText(panel)); // no key hint: the list ? opens names P
+        Assert.DoesNotContain("Space", AllText(panel)); // no key hint: the list ? opens names it
         Assert.Equal([("40 s", "Payments killed", true, true), ("70 s", "Restart begins", false, false), ("85 s", "Answers again", false, false)], panel.EventLines);
         Assert.Equal(3, panel.EventMarkCount);
         Assert.Equal((0.0, 150.0), (panel.Slider.Minimum, panel.Slider.Maximum)); // the slider is in time
@@ -642,14 +642,14 @@ public class PerformanceTests
         var (window, reader) = Outage();
         var run = OutageRun();
         Press(window, Key.End, PhysicalKey.End);
-        Press(window, Key.P, PhysicalKey.P); // at the end: from the start
+        window.PressSpace(); // at the end: from the start
         Assert.True(reader.PerfState.Ramping);
         Assert.Equal("Pause", ButtonText(reader.PerfPanelNow.RampButton));
         Thread.Sleep(300);
         reader.TickRamp();
         var time = PerfView.LoadAt(run, reader.PerfState.Pos);
         Assert.InRange(time, 0.5, 4); // a ramp of 150 s takes 30 s, so 5 s of the run in each second
-        Press(window, Key.P, PhysicalKey.P);
+        window.PressSpace();
         Assert.False(reader.PerfState.Ramping);
         Assert.Equal("Play", ButtonText(reader.PerfPanelNow.RampButton));
     }
@@ -663,7 +663,7 @@ public class PerformanceTests
         Assert.DoesNotContain("|P|", string.Join("|", AllText(panel)));
         Assert.Equal(new StateMark("stopped", false), StripeState(reader));
         Assert.Equal(3, panel.EventLines.Count);
-        Press(window, Key.P, PhysicalKey.P);
+        window.PressSpace();
         Assert.False(reader.PerfState.Ramping);
     }
 

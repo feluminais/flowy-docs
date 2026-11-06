@@ -320,6 +320,9 @@ public class DocTabsTests
         Assert.False(reader.FlowPaused);
         shell.Show(Model(temp, "other", "Other"));
         Assert.True(reader.FlowPaused);
+        Settle(window);
+        EditModeTests.Press(window, Key.Space, PhysicalKey.Space); // Space plays the tab on show, and this one is out of sight
+        Assert.True(reader.FlowPaused);
         window.Close();
     }
 }

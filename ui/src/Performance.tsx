@@ -13,7 +13,6 @@ import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { computeView, lineKey, nameOf, pathName } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
-import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
@@ -23,6 +22,7 @@ import {
 import type { Area } from './perfview.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { RangeSlider } from './RangeSlider.tsx'
+import { RowList } from './RowList.tsx'
 import { PlainSwatch, StateGlyph, StateKey, Swatch } from './states.tsx'
 
 /** No shapes measured, the same object every time so the key is not worked out again. */
@@ -306,6 +306,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   const label = modeLabel(found.mode)
   const subject = chartSubject(multi ? undefined : run.entry, id => nameOf(model, id))
   const over = selection?.kind === 'object' && selected ? overText(found.mode, selected.at?.util) : undefined
+  const carried = measure === 'data' ? 'data' : 'calls'
 
   const keySection = (
     <>
@@ -314,12 +315,13 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         {onCanvas.busy && <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>}
         {onCanvas.struggling && <KeyItem swatch={<span className="sw pct">90%</span>}>Struggling</KeyItem>}
         {onCanvas.waiting && <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>}
-        <KeyItem swatch={<span className="pair"><span className="sw none" />{drawn.bare && <span className="sw stripes" />}</span>}>Not measured</KeyItem>
+        <KeyItem swatch={<span className="sw none" />}>Not measured</KeyItem>
         <KeyItem swatch={<span className="sw call" />} title="Slower stripes are slower calls">A call</KeyItem>
         {marks.fade && <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>}
         {marks.lost && <KeyItem swatch={<span className="sw lost" />}>Lost call</KeyItem>}
         {marks.rejected && <KeyItem swatch={<span className="sw rejected" />}>Rejected call</KeyItem>}
-        <KeyItem swatch={<span className="sw busy" />} title="Thicker lines carry more calls">{measure === 'data' ? 'More data' : 'More calls'}</KeyItem>
+        {drawn.bare && <KeyItem swatch={<span className="sw stripes" />}>Not measured {carried}</KeyItem>}
+        <KeyItem swatch={<span className="sw thicker" />} title={`Thicker lines carry more ${carried}`}>More {carried}</KeyItem>
         {multi && keyed.other && <KeyItem swatch={<span className="sw call" />} style={srcStyle(OTHER_COLOR)}>Other calls</KeyItem>}
         {multi && keyed.scaledDown && <KeyItem swatch={<Scaled />}>Scaled down</KeyItem>}
         {!multi && one?.scale && <KeyItem swatch={<span className="sw call" />}>{one.scale}</KeyItem>}
@@ -340,7 +342,8 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   return (
     <div className="perf">
       {pane ? null : ids.length > 1
-        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Compare pair)' : ''}`])} onChange={onRun} />
+        ? <RowList label="Run" value={runId} onPick={onRun}
+            rows={ids.map(id => ({ id, name: runs[id].name, end: linked.has(id) && <span className="linked"><Link size={13} />Compare pair</span> }))} />
         : <h2>{run.name}</h2>}
       {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
       {run.about && (run.about.length > RUN_ABOUT_FOLDS_OVER

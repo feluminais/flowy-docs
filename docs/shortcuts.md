@@ -13,7 +13,7 @@
 | F | Fit the view |
 | ← → | Previous and next step of the flow playing, previous and next tested level, or previous and next failure on the Failures tab. In a comparison, of the pane you last clicked |
 | Home, End | First and last step, or first and last tested level. In a comparison, of the pane you last clicked |
-| P | Play or pause (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own (in a comparison of runs, on the pane you last clicked) |
+| Space | Play or pause (in a comparison, on the pane you last clicked). In Performance, ramp the load or play the time on its own (in a comparison of runs, on the pane you last clicked) |
 | A | Autoplay on or off (in a comparison, on the pane you last clicked) |
 | S | The speed of the flow playing: 0.5×, 1× and 2× in turn (in a comparison, on the pane you last clicked) |
 | , . | A moment back or on, while the flow is paused (held down, it keeps going) |

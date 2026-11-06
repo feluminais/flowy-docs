@@ -11,6 +11,7 @@ namespace Flowy.App;
 internal sealed partial class ReaderView
 {
     private IKeyActions? _keyActions;
+    private bool _spaceTaken; // Space went to the player and has not come back up yet
 
     private bool InNavigator(object? source) => _nav.IsVisible && source is Visual v && (ReferenceEquals(v, _nav) || v.GetVisualAncestors().Contains(_nav));
 
@@ -81,6 +82,29 @@ internal sealed partial class ReaderView
         }
         if (_nav.Explorer.Holds(e.Source) && e.Key != Key.Escape) return; // the tree has its own keys, and a letter typed in it goes to its filter
         if (KeyMap.Dispatch(KeyPress.Of(e), KeyStateNow(inNavigator), _keyActions ??= new KeyActions(this))) e.Handled = true;
+    }
+
+    /// <summary>
+    /// Space plays and pauses before a button that was only clicked can hear it: that button keeps the focus, and pausing after a click on Next must not press Next again.
+    /// A control Tab came to keeps Space, and a text box its spaces. Held down, it plays or pauses once.
+    /// </summary>
+    private void OnSpaceDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Space || e.Source is TextBox || !IsVisible) return; // every tab's reader listens on the window; the key is for the one on show
+        if (_spaceTaken) e.Handled = true;
+        else if (e.Source is not StyledElement tabbed || !tabbed.Classes.Contains(":focus-visible"))
+        {
+            OnKeyDown(sender, e);
+            _spaceTaken = e.Handled;
+        }
+    }
+
+    /// <summary>A button that heard no press must not hear the release: it would click.</summary>
+    private void OnSpaceUp(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Space || !_spaceTaken) return;
+        _spaceTaken = false;
+        e.Handled = true;
     }
 
     /// <summary>What the keys of the Performance panel act on while two runs are compared: the pane with the focus, or the run on show in Swap. Null otherwise.</summary>
