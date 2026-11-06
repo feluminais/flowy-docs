@@ -63,11 +63,12 @@ The key draws only the marks on the canvas.
 | Busy | Outline from green to red: strain |
 | Struggling | Percentage on a shape, from 85% strain |
 | Waiting | Square badge: calls queued. A round badge is a failure mode |
-| Not measured | Plain outline, or grey stripes quickening with the share of the highest load (mean of the sliders), one pace over time |
+| Not measured | Plain outline |
 | A call | Stripe along a line, crossing at a speed set by `p50` |
 | A call that fails | Red stripe that fades |
 | Lost call | `lost`: red stripe that pops where it dies |
 | Rejected call | `rejected`: stripe stopped by a bar, returning red |
+| Not measured calls, Not measured data | Grey stripes on a line with no numbers, quickening with the share of the highest load (mean of the sliders), one pace over time |
 | More calls, More data | Thicker line |
 | Bigger call | Stripe bigger or smaller than usual |
 | Scaled down | A `dot` count past 24 on a line, cut to 24 |
@@ -82,7 +83,7 @@ The key draws only the marks on the canvas.
 | Data | Each bit of data a second, calls times size, against the run's mean size rounded to 1, 2 or 5 times a power of ten | Usual |
 | Mixed | Each call a second | `size`, else twice the bytes is twice the area against that mean |
 
-A run with `bytes` on a line or in a `by` opens on Mixed, else on Calls with Data and Mixed greyed out. `bytes` on `overall` alone doesn't count. A line with no `rate`, or no `bytes` under Data, shows as Not measured.
+A run with `bytes` on a line or in a `by` opens on Mixed, else on Calls with Data and Mixed greyed out. `bytes` on `overall` alone doesn't count. A line with no `rate` shows as Not measured calls, and one with no `bytes` under Data as Not measured data.
 
 ## source
 

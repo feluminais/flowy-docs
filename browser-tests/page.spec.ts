@@ -190,20 +190,24 @@ test.describe('the performance tab on an 880 px window', () => {
 })
 
 test.describe('the performance key and the stripe choice', () => {
-  test('draws the muted stripes of a line with no numbers under one name, and says why Data and Mixed are greyed', async ({ page }) => {
+  test('names a shape and a line with no numbers apart, draws More calls growing thicker, and says why Data and Mixed are greyed', async ({ page }) => {
     await open(page, '/#delivery/perf/dinner-rush/3', 'light')
-    const item = page.locator('.perf .keyrow li', { hasText: 'Not measured' })
-    await expect(item).toHaveCount(1)
-    await expect(item.locator('.sw.none')).toBeVisible() // the empty outline of a shape
-    await expect(item.locator('.sw.stripes')).toBeVisible() // and the stripes of a line, the same name for both
-    expect(await item.locator('.sw.stripes').evaluate(el => getComputedStyle(el).backgroundImage)).toContain(await page.evaluate(() => {
+    const colourOf = (token: string) => page.evaluate(name => {
       const probe = document.createElement('i')
-      probe.style.color = 'var(--muted)'
+      probe.style.color = `var(${name})`
       document.body.append(probe)
       const colour = getComputedStyle(probe).color
       probe.remove()
       return colour
-    }))
+    }, token)
+    await expect(page.locator('.perf .keyrow li', { hasText: /^Not measured$/ }).locator('.sw.none')).toBeVisible() // the empty outline of a shape
+    const stripes = page.locator('.perf .keyrow li', { hasText: /^Not measured calls$/ }).locator('.sw.stripes') // the stripes of a line
+    await expect(stripes).toBeVisible()
+    expect(await stripes.evaluate(el => getComputedStyle(el).backgroundImage)).toContain(await colourOf('--muted'))
+    const thicker = page.locator('.perf .keyrow li', { hasText: /^More calls$/ }).locator('.sw.thicker')
+    await expect(thicker).toBeVisible()
+    expect(await thicker.evaluate(el => getComputedStyle(el).backgroundColor)).toBe(await colourOf('--edge')) // the colour of the line it stands for
+    expect(await thicker.evaluate(el => getComputedStyle(el).clipPath)).toContain('polygon')
     await expect(page.locator('.perf .keyrow', { hasText: 'No numbers' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Data' })).toBeDisabled()
     await expect(page.getByText('No call sizes in this run')).toBeVisible() // on screen, not only in a tooltip

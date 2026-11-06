@@ -18,7 +18,7 @@ objects:
       Send with a word, Fail, Timeout, Lost, Rejected, Intercepted (twice: by a shape and by a name), Duplicated, Delayed and Share
       (Flash has two, because the step before sets it off).
 
-      **Every step animation** plays them all: press **P** to watch them one after the other.
+      **Every step animation** plays them all: press **Space** to watch them one after the other.
   structure:
     type: system
     name: Flow structure

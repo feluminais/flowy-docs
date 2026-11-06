@@ -159,7 +159,7 @@ export const runCompareOff = (runs: Record<string, Run>, editing: boolean): stri
 /** The first run `id` is linked to that is there, or undefined: what C opens beside the run the Performance tab shows. */
 export const firstLinkedRun = (model: Model, runs: Record<string, Run>, id: string): string | undefined => choicesFor(model, runs, 'run', id).linked.find(c => !c.missing)?.id
 
-/** The runs that are linked to another run that is there, either way round: the Performance tab's run picker marks them. */
+/** The runs that are linked to another run that is there, either way round: the Performance tab's run list marks them. */
 export function linkedRuns(runs: Record<string, Run>): Set<string> {
   const linked = new Set<string>()
   for (const id of Object.keys(runs)) {

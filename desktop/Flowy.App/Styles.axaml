@@ -824,6 +824,22 @@
   <Style Selector="Button.flowrow.current /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="Button.flowrow.current TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <Style Selector="Button.flowrow Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
+  <!-- A short set of choices as rows in a panel (RowList.cs): rows like the Flows tab's. -->
+  <Style Selector="ListBox.rowlist">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+  </Style>
+  <Style Selector="ListBox.rowlist ListBoxItem">
+    <Setter Property="MinHeight" Value="32" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ListBox.rowlist ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource HoverBrush}" /></Style>
+  <Style Selector="ListBox.rowlist ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
+  <Style Selector="ListBox.rowlist ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="{DynamicResource AccentBrush}" /></Style>
   <!-- A tag: a small word with the mark of a tag on a flow's row, and a small button in the filter bar and the flow's form, where a ring and a tint say it is on. -->
   <Style Selector="Path.tagmark"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Button.tagchip">

@@ -74,10 +74,36 @@ test('Pause holds a channel that is opening', async ({ page }) => {
   await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
 })
 
+test('Space after a click on Next pauses the step and does not press Next again', async ({ page }) => {
+  await openFlow(page)
+  await player(page).getByRole('button', { name: 'Next', exact: true }).click()
+  const step = player(page).getByText(/^Step \d+ of \d+$/).first()
+  await expect(step).toHaveText(/^Step 2 of/)
+  await expect(button(page, 'Pause')).toBeVisible()
+  await page.keyboard.press('Space')
+  await expect(button(page, 'Play')).toBeVisible()
+  await expect(step).toHaveText(/^Step 2 of/)
+  await expect(page.locator('.player-buttons :focus-visible')).toHaveCount(0) // no outline on a button the mouse pressed
+  await page.keyboard.press('Space')
+  await expect(button(page, 'Pause')).toBeVisible()
+})
+
+test('A button Tab came to keeps Space', async ({ page }) => {
+  await openFlow(page)
+  await button(page, 'Pause').waitFor()
+  await autoplay(page).focus()
+  await page.keyboard.press('Shift+Tab') // the keyboard's way there: it says the focus came by Tab
+  await page.keyboard.press('Tab')
+  await page.keyboard.press('Space')
+  await expect(autoplay(page)).toBeFocused()
+  await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
+  await expect(button(page, 'Pause')).toBeVisible()
+})
+
 test('Pause stops the dots of an open stream', async ({ page }) => {
   await openLiveMap(page)
   await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
-  await page.keyboard.press('p')
+  await page.keyboard.press('Space')
   const dots = page.locator('svg.channels .stream-dots').first()
   const offset = () => dots.evaluate(el => getComputedStyle(el).strokeDashoffset)
   await expect(button(page, 'Play')).toBeVisible()
@@ -90,8 +116,8 @@ test('Pause stops the dots of an open stream', async ({ page }) => {
 test('Play does not bring an open channel in again', async ({ page }) => {
   await openLiveMap(page)
   await expect.poll(() => opacity(page), { timeout: 8000 }).toBe('1')
-  await page.keyboard.press('p')
-  await page.keyboard.press('p')
+  await page.keyboard.press('Space')
+  await page.keyboard.press('Space')
   await page.waitForTimeout(100)
   expect(await opacity(page)).toBe('1')
 })
