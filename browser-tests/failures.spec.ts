@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 import type { Page } from '@playwright/test'
+import { serveModel, systems } from './serve.ts'
 
 // The Failures tab as a reader meets it on a short window: the picked mode's card is in view, the rows say what they are, and what fails is
 // outlined in the colour of the mode's band. The Plum demo's Stripe time-out is Medium (96), so it must not read as High.
@@ -68,4 +69,23 @@ test('a Medium mode is outlined orange and solid, a High one red, and the key fo
   expect(swatch).toBe(await colour('--warn'))
   await open(page, '#ordering/failures/ordering/refund-not-recorded')
   expect((await strokeOf(page, '.react-flow__node.fails')).stroke).toBe(await colour('--danger'))
+})
+
+test('several analyses are rows, and a row picks the analysis', async ({ page }) => {
+  const model = systems(['a', 'b'], [{ from: 'a', to: 'b', label: 'Calls' }])
+  model.failures = { first: { name: 'First analysis', modes: {} }, second: { name: 'Second analysis', modes: {} } }
+  const s = await serveModel(model, 'flowy-analyses-')
+  try {
+    await page.goto(s.url)
+    await page.locator('.react-flow__node').first().waitFor()
+    await page.keyboard.press('m')
+    const list = page.getByRole('list', { name: 'Analysis' })
+    await expect(list.getByRole('button')).toHaveCount(2)
+    await expect(list.getByRole('button', { name: 'First analysis' })).toHaveAttribute('aria-current', 'true')
+    await list.getByRole('button', { name: 'Second analysis' }).click()
+    await expect(list.getByRole('button', { name: 'Second analysis' })).toHaveAttribute('aria-current', 'true')
+    await expect(page.getByRole('combobox', { name: 'Analysis' })).toHaveCount(0)
+  } finally {
+    await s.close()
+  }
 })
