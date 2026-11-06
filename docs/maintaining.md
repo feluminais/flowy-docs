@@ -428,7 +428,7 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       the dots on its lines do the same under a label ("accepts or refuses", "travel times"), which stays readable, and in the browser under the card that appears when you
       point at a shape. A dot that comes out of the first or last shape of its own line is not faint there. Reduced motion draws no dots at all.
 - [ ] Click Fulfilment worker: the panel stays and reads Busy and Failing with a curve each. Click the line from Order queue to
-      it: its numbers show. Pick Slow gateway in the run picker: the struggle is
+      it: its numbers show. Pick Slow gateway in the run list: the struggle is
       at a lower load. Press Home, then P (or click Ramp): the load sweeps up through the levels in about 30 s (from a later load it
       covers the rest at the same pace) and stops at the highest; the slider and the strip's cursor move with it, and touching the
       slider stops it. At the 400 level a few red dots fade out part-way along the lines into Payment gateway. After you move, Go there
@@ -486,19 +486,19 @@ YAML (press Y, in a copy of `docs/demo` served with `FLOWY_STATE_DIR` pointing a
 
 Runs over time (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 
-- [ ] Press T and pick Stripe outage in the run picker (`#ordering/perf/stripe-outage/2`, with Ordering open). The tab says Time, not Load, and reads 45 s, Tested. Stripe is grey and dashed with a power
+- [ ] Press T and pick Stripe outage in the run list (`#ordering/perf/stripe-outage/2`, with Ordering open). The tab says Time, not Load, and reads 45 s, Tested. Stripe is grey and dashed with a power
       symbol, and the key names Stopped and nothing else. Three marks sit above the slider at 40, 70 and 85 s, in the colours of Stopped, Starting and Running, with the words of each when you point at it. The Events list has Payments killed lit,
       a dot before it, and two rings.
 - [ ] Drag the slider to 41 s: Stripe stays stopped. Drag to 10 s: its outline goes at once, with no fade, and the key has no state. Drag to 75 s: dotted outline, and Starting in the key. Drag to 90 s: nothing is drawn.
 - [ ] Click Restart begins in the list, and the mark above the slider: the slider goes to 70 s, and Stripe eases to Starting. ← and → still go level to level (45 s, 60 s, 90 s). Play (**P**) takes the run in about 30 s,
       the thumb moves evenly in time, Stripe goes stopped, then starting, then runs, and the Events rows fill in as it passes. Touching the slider stops it.
-- [ ] Pick Stripe while at 45 s: under its readings is a Stopped line. Pick Dinner rush in the run picker: the tab says Load and Ramp again, and Stripe is as it was. Pick Every state over time in the showcase (`--dir docs/showcase/flowy`):
+- [ ] Pick Stripe while at 45 s: under its readings is a Stopped line. Pick Dinner rush in the run list: the tab says Load and Ramp again, and Stripe is as it was. Pick Every state over time in the showcase (`--dir docs/showcase/flowy`):
       the service goes through all six states, and at 45 s the holder shows a dashed ring that reads Stopped inside. With the system's reduce-motion setting on there is no Play, and the states, marks and numbers still show.
       Light and dark both read. In Plum's Failures tab, Stripe doesn't answer within 5 s has Seen in a run: it opens the tab at 45 s on this run.
 
 Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, then the same folder in the desktop app):
 
-- [ ] Press T and pick Orders and pings, added in the run picker (`#delivery/perf/together/3,3`, with Delivery open). The tab says Added from separate runs. It has a block for Customer orders (a blue dot) and one for
+- [ ] Press T and pick Orders and pings, added in the run list (`#delivery/perf/together/3,3`, with Delivery open). The tab says Added from separate runs. It has a block for Customer orders (a blue dot) and one for
       Courier pings (green), each with a slider, its tested loads under it, "Tested" and its own Ramp, and the first is marked at its edge. It opens at 800 orders/min and 400 pings/s: "First struggles with Customer orders at
       800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". On the line from Live tracking to Fleet DB blue and green dots run side by side, and the key names both sources, each in a group with its colour bar, "1 dot = 4 calls/s" under Customer orders and "1 dot = 20 calls/s" under Courier pings, after the marks they share.
 - [ ] ← → Home and End move the marked block only. Press the Courier pings slider: that block is marked now, the chart is headed Courier pings with "Customer orders held at 800 orders/min", and the keys move it. Ramp under Courier pings
