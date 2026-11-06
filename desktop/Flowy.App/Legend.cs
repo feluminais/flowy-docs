@@ -71,22 +71,21 @@ internal static class KeyRow
         return group;
     }
 
-    /// <summary>The empty outline of a shape the run does not measure, and with it the muted stripes of a line it gives no numbers when one is on screen: one name for both.</summary>
-    public static Control NotMeasured(bool stripes)
-    {
-        var pair = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5, VerticalAlignment = VerticalAlignment.Center };
-        pair.Children.Add(Mark("none"));
-        if (stripes) pair.Children.Add(Stripes());
-        return pair;
-    }
-
-    /// <summary>A mark the styles draw: a line (<c>p50</c>, <c>p95</c>, <c>busy</c>), a dot (<c>call</c>, and <c>bad</c> as well for one that fails) or an outline (<c>none</c>).</summary>
+    /// <summary>A mark the styles draw: a line (<c>p50</c>, <c>p95</c>), a dot (<c>call</c>, and <c>bad</c> as well for one that fails) or an outline (<c>none</c>).</summary>
     public static Control Mark(params string[] classes)
     {
         var mark = new Border();
         mark.Classes.Add("sw");
         foreach (var c in classes) mark.Classes.Add(c);
         return mark;
+    }
+
+    /// <summary>A line from the thinnest the canvas draws (1.5) to the thickest (6): a thicker line carries more.</summary>
+    public static Control Thicker()
+    {
+        var line = Mark("thicker");
+        line.Clip = Geometry.Parse("M0,2.25 L20,0 L20,6 L0,3.75 Z");
+        return line;
     }
 
     /// <summary>The red dashes that mark where a run first struggles.</summary>

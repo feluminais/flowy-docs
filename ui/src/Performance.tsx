@@ -306,6 +306,7 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   const label = modeLabel(found.mode)
   const subject = chartSubject(multi ? undefined : run.entry, id => nameOf(model, id))
   const over = selection?.kind === 'object' && selected ? overText(found.mode, selected.at?.util) : undefined
+  const carried = measure === 'data' ? 'data' : 'calls'
 
   const keySection = (
     <>
@@ -314,12 +315,13 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
         {onCanvas.busy && <KeyItem swatch={<span className="sw heat" />}>Busy</KeyItem>}
         {onCanvas.struggling && <KeyItem swatch={<span className="sw pct">90%</span>}>Struggling</KeyItem>}
         {onCanvas.waiting && <KeyItem swatch={<span className="sw queue">3</span>}>Waiting</KeyItem>}
-        <KeyItem swatch={<span className="pair"><span className="sw none" />{drawn.bare && <span className="sw stripes" />}</span>}>Not measured</KeyItem>
+        <KeyItem swatch={<span className="sw none" />}>Not measured</KeyItem>
         <KeyItem swatch={<span className="sw call" />} title="Slower stripes are slower calls">A call</KeyItem>
         {marks.fade && <KeyItem swatch={<span className="sw call bad" />}>A call that fails</KeyItem>}
         {marks.lost && <KeyItem swatch={<span className="sw lost" />}>Lost call</KeyItem>}
         {marks.rejected && <KeyItem swatch={<span className="sw rejected" />}>Rejected call</KeyItem>}
-        <KeyItem swatch={<span className="sw busy" />} title="Thicker lines carry more calls">{measure === 'data' ? 'More data' : 'More calls'}</KeyItem>
+        {drawn.bare && <KeyItem swatch={<span className="sw stripes" />}>Not measured {carried}</KeyItem>}
+        <KeyItem swatch={<span className="sw thicker" />} title={`Thicker lines carry more ${carried}`}>More {carried}</KeyItem>
         {multi && keyed.other && <KeyItem swatch={<span className="sw call" />} style={srcStyle(OTHER_COLOR)}>Other calls</KeyItem>}
         {multi && keyed.scaledDown && <KeyItem swatch={<Scaled />}>Scaled down</KeyItem>}
         {!multi && one?.scale && <KeyItem swatch={<span className="sw call" />}>{one.scale}</KeyItem>}

@@ -270,7 +270,7 @@ public class PerfPanelTests
         Assert.Contains("Not measured", names);
         Assert.Contains("A call that fails", names);
         var marks = panel.GetVisualDescendants().OfType<Border>().Where(b => b.Classes.Contains("sw")).SelectMany(b => b.Classes).ToList();
-        foreach (var mark in new[] { "p50", "p95", "heat", "queue", "none", "call", "bad", "busy" }) Assert.Contains(mark, marks);
+        foreach (var mark in new[] { "p50", "p95", "heat", "queue", "none", "call", "bad", "thicker" }) Assert.Contains(mark, marks);
         Assert.Single(panel.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Line>(), l => l.Classes.Contains("knee"));
         Assert.DoesNotContain("Blue:", string.Join("|", names)); // a legend of colour names is the thing the marks replace
 
@@ -345,11 +345,21 @@ public class PerfPanelTests
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 1);
         Assert.Equal("Busy|Not measured|A call|A call that fails|More calls", KeyOf(panel));
-        Assert.Null(panel.KeyStripes); // no line without numbers on screen: no stripes beside Not measured
+        Assert.Null(panel.KeyStripes); // no line without numbers on screen: no stripes in the key
         Show(panel, folder, "ramp", 3);
         var key = KeyOf(panel);
         Assert.StartsWith("Busy|Struggling|", key); // a shape is past the struggle mark: its number is on the canvas, and in the key
         Assert.EndsWith("Not measured|A call|A call that fails|More calls", key);
+    }
+
+    [AvaloniaFact]
+    public void More_calls_is_a_line_growing_thicker_in_the_colour_of_the_real_line()
+    {
+        var (panel, folder) = Open();
+        Show(panel, folder, "ramp", 1);
+        var mark = panel.GetVisualDescendants().OfType<Border>().Single(b => b.Classes.Contains("thicker"));
+        Assert.Equal(AppTheme.Brush(mark, "EdgeBrush"), mark.Background);
+        Assert.Equal(new Avalonia.Rect(0, 0, 20, 6), mark.Clip!.Bounds);
     }
 
     [AvaloniaFact]
@@ -358,8 +368,8 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled();
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Not measured|A call|Lost call|Rejected call|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
-        // a line with no numbers is on screen: its muted stripes sit beside the outline, under the one name
+        Assert.Equal("Not measured|A call|Lost call|Rejected call|Not measured calls|More calls|1 dot = 50 calls/s|Bigger call", KeyOf(panel));
+        // a line with no numbers is on screen: its muted stripes have their own name
         Assert.NotNull(panel.KeyStripes);
         Assert.Equal(AppTheme.Brush(panel.KeyStripes!, "MutedBrush"), panel.KeyStripes!.Stroke);
     }
@@ -376,6 +386,8 @@ public class PerfPanelTests
         var key = KeyOf(panel);
         Assert.Contains("More data", key);
         Assert.DoesNotContain("More calls", key);
+        Assert.Contains("Not measured data", key);
+        Assert.DoesNotContain("Not measured calls", key);
         Assert.DoesNotContain("Bigger call", key);
         Assert.Matches(@"1 dot = [\d.]+ (K|M)?B/s", key);
         panel.SetMeasure(LoadMeasure.Calls, null);
@@ -417,7 +429,7 @@ public class PerfPanelTests
         var slider = panel.Slider;
         panel.SetPos(1, false);
         Assert.Equal(1, panel.SliderValue);
-        Assert.Equal("Not measured|A call|A call that fails|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
+        Assert.Equal("Not measured|A call|A call that fails|Not measured calls|More calls|1 dot = 50 calls/s|Bigger call|Scaled down", KeyOf(panel));
         Assert.Same(slider, panel.Slider);
     }
 
@@ -452,7 +464,7 @@ public class PerfPanelTests
         var (panel, folder, temp) = OpenScaled("source: { color: teal }");
         using var _ = temp;
         panel.Show(new PerfPanelModel(folder.Model, "shop", folder.Runs!, folder.RunProblems!, "scaled", 0, false, false, null));
-        Assert.Equal("Not measured|A call|Lost call|Rejected call|More calls", KeyOf(panel));
+        Assert.Equal("Not measured|A call|Lost call|Rejected call|Not measured calls|More calls", KeyOf(panel));
     }
 
     [AvaloniaFact]

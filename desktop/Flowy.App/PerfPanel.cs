@@ -433,7 +433,7 @@ internal sealed class PerfPanel : StackPanel
     /// <summary>The line under the Each stripe switch that says why Data and Mixed are greyed out, or null when they are not.</summary>
     /// <summary>The name that heads each source's group in the key of a run with several sources, in order.</summary>
     internal IReadOnlyList<string> KeyGroups => _keyRows.Children.OfType<Border>().Where(b => b.Classes.Contains("keygroup")).Select(b => b.GetVisualDescendants().OfType<TextBlock>().First().Text ?? "").ToList();
-    /// <summary>The muted stripes in the key, beside the outline under Not measured, while a line with no numbers is on screen.</summary>
+    /// <summary>The muted stripes in the key, while a line with no numbers is on screen.</summary>
     internal Avalonia.Controls.Shapes.Line? KeyStripes => _keyRows.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Line>().FirstOrDefault(l => l.Classes.Contains("stripes"));
     internal string? MeasureOffText => _measureOff is { IsVisible: true } ? _measureOff.Text : null;
 
@@ -1006,17 +1006,21 @@ internal sealed class PerfPanel : StackPanel
             onCanvas.Busy ? (new HeatSwatch(), "Busy") : null,
             onCanvas.Struggling ? (KeyRow.Pct("90%"), "Struggling") : null,
             onCanvas.Waiting ? (KeyRow.Count("3"), "Waiting") : null,
-            (KeyRow.NotMeasured(shown.Bare), "Not measured"),
+            (KeyRow.Mark("none"), "Not measured"),
             (KeyRow.Tipped(KeyRow.Call(source?.Color, dark), "Slower stripes are slower calls"), "A call"),
             marks.Fade ? (KeyRow.Mark("call", "bad"), "A call that fails") : null,
             marks.Lost ? (KeyRow.Mark("lost"), "Lost call") : null,
             marks.Rejected ? (KeyRow.Rejected(), "Rejected call") : null,
-            (KeyRow.Tipped(KeyRow.Mark("busy"), "Thicker lines carry more calls"), _measure == LoadMeasure.Data ? "More data" : "More calls"),
+            shown.Bare ? (KeyRow.Stripes(), $"Not measured {Carried}") : null,
+            (KeyRow.Tipped(KeyRow.Thicker(), $"Thicker lines carry more {Carried}"), $"More {Carried}"),
             source?.Scale is { } scale ? (KeyRow.Call(source.Color, dark), scale) : null,
             source is { Bigger: true } ? (KeyRow.Bigger(source.Color, dark), "Bigger call") : null,
             source is { ScaledDown: true } ? (KeyRow.Scaled(source.Color, dark), "Scaled down") : null));
         if (StateKey.Of(_states.Values) is { } stateKey) _keyRows.Children.Add(stateKey); // the states on the canvas now: only those
     }
+
+    /// <summary>What a line carries under the measure, in the key's words.</summary>
+    private string Carried => _measure == LoadMeasure.Data ? "data" : "calls";
 
     /// <summary>The state of the picked shape, under its readings, when it is in one on the canvas now.</summary>
     private void ShowSelectedState()
@@ -1291,12 +1295,13 @@ internal sealed class PerfPanel : StackPanel
         if (onCanvas.Busy) items.Add((new HeatSwatch(), "Busy"));
         if (onCanvas.Struggling) items.Add((KeyRow.Pct("90%"), "Struggling"));
         if (onCanvas.Waiting) items.Add((KeyRow.Count("3"), "Waiting"));
-        items.Add((KeyRow.NotMeasured(shown.Bare), "Not measured"));
+        items.Add((KeyRow.Mark("none"), "Not measured"));
         items.Add((KeyRow.Tipped(KeyRow.Call(null, dark), "Slower stripes are slower calls"), "A call"));
         if (marks.Fade) items.Add((KeyRow.Mark("call", "bad"), "A call that fails"));
         if (marks.Lost) items.Add((KeyRow.Mark("lost"), "Lost call"));
         if (marks.Rejected) items.Add((KeyRow.Rejected(), "Rejected call"));
-        items.Add((KeyRow.Tipped(KeyRow.Mark("busy"), "Thicker lines carry more calls"), _measure == LoadMeasure.Data ? "More data" : "More calls"));
+        if (shown.Bare) items.Add((KeyRow.Stripes(), $"Not measured {Carried}"));
+        items.Add((KeyRow.Tipped(KeyRow.Thicker(), $"Thicker lines carry more {Carried}"), $"More {Carried}"));
         if (keyed.Other) items.Add((KeyRow.Call(Perf.OtherColor, dark), "Other calls"));
         if (keyed.ScaledDown) items.Add((KeyRow.Scaled(Perf.OtherColor, dark), "Scaled down"));
         _keyRows.Children.Clear();
