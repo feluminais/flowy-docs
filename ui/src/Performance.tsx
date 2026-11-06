@@ -13,7 +13,6 @@ import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { computeView, lineKey, nameOf, pathName } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
-import { Dropdown } from './Dropdown.tsx'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
@@ -23,6 +22,7 @@ import {
 import type { Area } from './perfview.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { RangeSlider } from './RangeSlider.tsx'
+import { RowList } from './RowList.tsx'
 import { PlainSwatch, StateGlyph, StateKey, Swatch } from './states.tsx'
 
 /** No shapes measured, the same object every time so the key is not worked out again. */
@@ -340,7 +340,8 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   return (
     <div className="perf">
       {pane ? null : ids.length > 1
-        ? <Dropdown label="Run" value={runId} options={ids.map(id => [id, `${runs[id].name}${linked.has(id) ? ' (Compare pair)' : ''}`])} onChange={onRun} />
+        ? <RowList label="Run" value={runId} onPick={onRun}
+            rows={ids.map(id => ({ id, name: runs[id].name, end: linked.has(id) && <span className="linked"><Link size={13} />Compare pair</span> }))} />
         : <h2>{run.name}</h2>}
       {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
       {run.about && (run.about.length > RUN_ABOUT_FOLDS_OVER
