@@ -1,5 +1,5 @@
-import { useLayoutEffect, useMemo, useRef } from 'react'
-import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
+import { useMemo } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
 import type { Model } from '../../src/core/model.ts'
 import { kneeOf } from '../../src/core/perf/analyse.ts'
@@ -13,7 +13,6 @@ import { STATE_LABELS } from '../../src/core/states.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
 import { computeView, lineKey, nameOf, pathName } from '../../src/core/views.ts'
 import { Section } from './Chrome.tsx'
-import { stepRow } from './dropdown.ts'
 import { Activity, Alert, Bolt, ChevronRight, Clock, Columns, Info, Link, Pause, Play, Plus } from './icons.tsx'
 import { linkedRuns } from './compare.ts'
 import {
@@ -23,6 +22,7 @@ import {
 import type { Area } from './perfview.ts'
 import { KeyItem, KeyRow } from './legend.tsx'
 import { RangeSlider } from './RangeSlider.tsx'
+import { RowList } from './RowList.tsx'
 import { PlainSwatch, StateGlyph, StateKey, Swatch } from './states.tsx'
 
 /** No shapes measured, the same object every time so the key is not worked out again. */
@@ -230,48 +230,6 @@ function RunActions({ compare, linked }: { compare: RunCompare; linked: boolean 
   )
 }
 
-/**
- * The runs as rows to press. Four show in full; past that the list scrolls inside itself, and half a fifth row shows there is more. It is one Tab stop: the arrows up and down, Home
- * and End go through the runs, and the page keeps its other keys.
- */
-function RunList({ runs, ids, runId, linked, onRun }: { runs: Record<string, Run>; ids: string[]; runId: string; linked: ReadonlySet<string>; onRun: (id: string) => void }) {
-  const list = useRef<HTMLUListElement>(null)
-  // The run also changes from outside the list (a link, a comparison that closes): its row stays in view, and only the list moves, never the panel. The focus follows the keys.
-  useLayoutEffect(() => {
-    const box = list.current
-    const row = box?.querySelector<HTMLElement>('[aria-current="true"]')
-    if (!box || !row) return
-    const shown = box.getBoundingClientRect()
-    const at = row.getBoundingClientRect()
-    if (at.top < shown.top) box.scrollTop -= shown.top - at.top
-    else if (at.bottom > shown.bottom) box.scrollTop += at.bottom - shown.bottom
-    if (box.contains(document.activeElement)) row.focus({ preventScroll: true })
-  }, [runId])
-  const pick = (id: string) => {
-    if (id !== runId) onRun(id)
-  }
-  const onKeyDown = (e: KeyboardEvent<HTMLUListElement>) => {
-    const at = ids.indexOf(runId)
-    const to = e.key === 'ArrowDown' || e.key === 'ArrowUp' ? stepRow(at, e.key === 'ArrowDown' ? 1 : -1, ids.length) : e.key === 'Home' ? 0 : e.key === 'End' ? ids.length - 1 : undefined
-    if (to === undefined) return
-    e.preventDefault()
-    e.stopPropagation() // Home and End are the page's anywhere else
-    pick(ids[to])
-  }
-  return (
-    <ul ref={list} className="run-list" aria-label="Run" onKeyDown={onKeyDown}>
-      {ids.map(id => (
-        <li key={id}>
-          <button className="flow-row" aria-current={id === runId} tabIndex={id === runId ? 0 : -1} title={runs[id].name} onClick={() => pick(id)}>
-            <span className="name">{runs[id].name}</span>
-            {linked.has(id) && <span className="linked"><Link size={13} />Compare pair</span>}
-          </button>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 /** The Performance tab's body: which run and where in it, what it says about where things first struggle, and the numbers of what is selected. */
 export function PerfBody({ model, view, runs, runProblems, runId, positions, active, boxes, lines, ramping, measure = 'calls', dataOff, onMeasure, still, states, selection, onRun, onActive, onSlide, onJump, onPlace, onRamp, onCreate, pane, compare }: PerfProps) {
   const run: Run | undefined = Object.hasOwn(runs, runId) ? runs[runId] : undefined
@@ -382,7 +340,8 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
   return (
     <div className="perf">
       {pane ? null : ids.length > 1
-        ? <RunList runs={runs} ids={ids} runId={runId} linked={linked} onRun={onRun} />
+        ? <RowList label="Run" value={runId} onPick={onRun}
+            rows={ids.map(id => ({ id, name: runs[id].name, end: linked.has(id) && <span className="linked"><Link size={13} />Compare pair</span> }))} />
         : <h2>{run.name}</h2>}
       {compare && <RunActions compare={compare} linked={linked.has(runId)} />}
       {run.about && (run.about.length > RUN_ABOUT_FOLDS_OVER

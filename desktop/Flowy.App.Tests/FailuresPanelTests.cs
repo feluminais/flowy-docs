@@ -631,6 +631,22 @@ public class FailuresPanelTests
     }
 
     [AvaloniaFact]
+    public void Several_analyses_are_rows_and_the_list_stays_when_the_panel_is_built_again()
+    {
+        var (window, reader) = Open();
+        Press(window, Key.M, PhysicalKey.M);
+        var ids = reader.Folder!.Model.Failures.Keys.ToList();
+        var list = reader.FailuresPanelNow.Picker!;
+        Assert.Equal(ids.Count, list.ItemCount);
+        var other = ids.FindIndex(id => id != ids[list.SelectedIndex]);
+        list.SelectedIndex = other;
+        Dispatcher.UIThread.RunJobs();
+        Assert.Same(list, reader.FailuresPanelNow.Picker);
+        Assert.Equal(other, list.SelectedIndex);
+        Assert.Equal(1, reader.FailuresPanelNow.Children.IndexOf(list)); // under the copy buttons, where it was
+    }
+
+    [AvaloniaFact]
     public void Plum_opens_on_its_analysis_with_the_plain_name_and_a_mode_for_every_part_it_names()
     {
         var (window, reader) = Open(Plum);

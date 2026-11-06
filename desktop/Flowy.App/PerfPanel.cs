@@ -317,7 +317,7 @@ internal sealed class PerfPanel : StackPanel
     private string? _stateOf;
     private StateMark? _stateShown;
     private IReadOnlyDictionary<string, StateMark> _states = new Dictionary<string, StateMark>(); // the shapes in a state on the canvas now
-    private ListBox? _picker;
+    private RowList? _picker;
     private IdMap<LoadRun>? _pickerRuns; // the runs its rows were made for
     private LoadMeasure _measure = LoadMeasure.Calls; // what the lines and dots count now, which the key says
     private string? _dataOff; // why Data is blocked for the run on show, or null
@@ -460,7 +460,7 @@ internal sealed class PerfPanel : StackPanel
     /// <summary>Whether the selected line says it is scaled down.</summary>
     internal bool ScaledDownShown => _scaledRow is { IsVisible: true };
 
-    internal ListBox? Picker => _picker;
+    internal RowList? Picker => _picker;
 
     /// <summary>The run list's rows: the name, and whether the run shows Compare pair.</summary>
     internal IReadOnlyList<RunChoice> RunChoices => _picker?.ItemsSource?.Cast<RunChoice>().ToList() ?? [];
@@ -696,26 +696,13 @@ internal sealed class PerfPanel : StackPanel
     {
         var linked = CompareChoices.LinkedRuns(RunDrawing.MapOf(runs));
         if (_pane) { } // the pane has the run's name over its canvas, and the run is the pane's own
-        else if (_picker is { } kept)
-        {
-            _syncing = true; // the run changed, or was told again: not the reader picking one
-            kept.SelectedIndex = runs.Keys.ToList().IndexOf(runId);
-            _syncing = false;
-        }
+        else if (_picker is { } kept) kept.Choose(runs.Keys.ToList().IndexOf(runId));
         else if (runs.Count > 1)
         {
             var choices = runs.Select(kv => new RunChoice(kv.Value.Name, linked.Contains(kv.Key))).ToList();
-            var picker = new ListBox { MaxHeight = RunListHeight, ItemsSource = choices, ItemTemplate = RunRow, SelectedIndex = runs.Keys.ToList().IndexOf(runId), Classes = { "runlist" } };
-            AutomationProperties.SetName(picker, "Run");
-            picker.SelectionChanged += (_, _) =>
-            {
-                if (!_syncing && picker.SelectedIndex >= 0) RunPicked?.Invoke(runs.Keys[picker.SelectedIndex]);
-            };
-            // After a click, not at every change: the arrows move through the runs with the keyboard staying on the list.
-            picker.AddHandler(PointerReleasedEvent, (_, _) => Used?.Invoke(), RoutingStrategies.Bubble, handledEventsToo: true);
-            _picker = picker;
+            _picker = new RowList("Run", choices, runs.Keys.ToList().IndexOf(runId), RunRow, at => RunPicked?.Invoke(runs.Keys[at]), () => Used?.Invoke());
             _pickerRuns = runs;
-            Children.Add(picker);
+            Children.Add(_picker);
         }
         else Children.Add(new TextBlock { Text = run.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) });
         if (_actions is { } actions) Children.Add(BuildRunActions(actions, linked.Contains(runId)));
@@ -748,14 +735,10 @@ internal sealed class PerfPanel : StackPanel
         }
     }
 
-    /// <summary>Four rows of the run list (32 tall, in Styles/Performance.axaml) and half a fifth, which shows there is more. Past that it scrolls inside itself.</summary>
-    private const double RunListHeight = 144;
-
     /// <summary>A row of the run list: the name, and the link icon with Compare pair beside it when the run is in a pair.</summary>
     private static readonly FuncDataTemplate<RunChoice> RunRow = new((choice, _) =>
     {
-        var name = new TextBlock { Text = choice?.Name, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
-        ToolTip.SetTip(name, choice?.Name);
+        var name = RowList.RowName(choice?.Name);
         if (choice is not { Linked: true }) return name;
         var mark = Chrome.Chip("Compare pair", Icons.Link, "accent");
         var row = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { name, mark } };

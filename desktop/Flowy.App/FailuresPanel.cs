@@ -70,6 +70,8 @@ internal sealed class FailuresPanel : StackPanel
     private ModeForm? _modeForm;
     private bool _editOpen;
     private bool _newOpen;
+    private RowList? _picker;
+    private List<(string Id, string Name)> _pickerRows = []; // the analyses its rows were made for
     private FailuresShown? _last;
     private string? _shownMode; // the mode the last build showed a card for, so a new pick brings its card into view
 
@@ -90,7 +92,7 @@ internal sealed class FailuresPanel : StackPanel
 
     internal IEnumerable<Button> Buttons => this.GetVisualDescendants().OfType<Button>();
 
-    internal ComboBox? Picker => this.GetVisualDescendants().OfType<ComboBox>().FirstOrDefault();
+    internal RowList? Picker => _picker;
 
     internal IReadOnlyList<(string Name, bool Current)> Rows =>
         Buttons.Where(b => b.Classes.Contains("failrow")).Select(b => (AutomationProperties.GetName(b) ?? "", b.Classes.Contains("current"))).ToList();
@@ -106,7 +108,7 @@ internal sealed class FailuresPanel : StackPanel
 
     public void Show(FailuresShown s)
     {
-        Children.Clear();
+        ClearForBuild(s);
         _last = s;
         var model = s.Model;
         if (s.Edit is null) _adding = null;
@@ -129,8 +131,9 @@ internal sealed class FailuresPanel : StackPanel
         copy.Children.Add(CopyButton("CSV", "Copy as CSV", "csv"));
         copy.Children.Add(new Border { Width = 1, Height = 16, VerticalAlignment = VerticalAlignment.Center, Classes = { "copysep" } });
         copy.Children.Add(CopyButton("Table", "Copy as table", "markdown"));
-        Children.Add(copy);
-        Children.Add(Heading(s, analysis));
+        Children.Insert(0, copy);
+        if (_picker is { } kept) kept.Choose(model.Failures.Keys.ToList().IndexOf(s.AnalysisId));
+        else Children.Add(Heading(s, analysis));
         if (s.Edit is { } edit) Children.Add(EditSection(s, edit));
         else if (Failures.Has(analysis.About)) Children.Add(About(analysis.About!));
 
@@ -177,24 +180,25 @@ internal sealed class FailuresPanel : StackPanel
     // Words take their colour from a style, which follows the theme and the control's place in the tree; a brush looked up when the panel is built would not.
     private static TextBlock Muted(string text) => new() { Text = text, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap };
 
+    /// <summary>The list of analyses stays through a rebuild for the same analyses, or each press in the panel would put it back to the top. All the rest goes.</summary>
+    private void ClearForBuild(FailuresShown s)
+    {
+        if (_picker is not null && (s.AnalysisId is null || !s.Model.Failures.Contains(s.AnalysisId) || !AnalysisRows(s.Model).SequenceEqual(_pickerRows))) _picker = null;
+        for (var i = Children.Count - 1; i >= 0; i--)
+            if (!ReferenceEquals(Children[i], _picker)) Children.RemoveAt(i);
+    }
+
+    private static List<(string Id, string Name)> AnalysisRows(Model model) =>
+        [.. model.Failures.Keys.Select(id => (id, JsCompat.JsTrim(model.Failures[id].Name) == "" ? id : model.Failures[id].Name))];
+
     private Control Heading(FailuresShown s, FailureAnalysis analysis)
     {
         var ids = s.Model.Failures.Keys.ToList();
         if (ids.Count < 2)
             return new TextBlock { Text = JsCompat.JsTrim(analysis.Name) == "" ? s.AnalysisId : analysis.Name, FontSize = 18, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 32, 0) };
-        var picker = new ComboBox
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch, Margin = new Thickness(0, 0, 32, 0), Focusable = false,
-            ItemsSource = ids.Select(id => JsCompat.JsTrim(s.Model.Failures[id].Name) == "" ? id : s.Model.Failures[id].Name).ToList(), SelectedIndex = ids.IndexOf(s.AnalysisId!),
-        };
-        AutomationProperties.SetName(picker, "Analysis");
-        picker.SelectionChanged += (_, _) =>
-        {
-            if (picker.SelectedIndex < 0 || ids[picker.SelectedIndex] == s.AnalysisId) return;
-            AnalysisPicked?.Invoke(ids[picker.SelectedIndex]);
-            Used?.Invoke();
-        };
-        return picker;
+        _pickerRows = AnalysisRows(s.Model);
+        var rows = _pickerRows;
+        return _picker = new RowList("Analysis", rows.Select(r => r.Name).ToList(), ids.IndexOf(s.AnalysisId!), RowList.PlainRow, at => AnalysisPicked?.Invoke(rows[at].Id), () => Used?.Invoke());
     }
 
     private Control NewForm(EditRun run) => Detach(_newForm ??= new NewAnalysisForm(run, id => AnalysisPicked?.Invoke(id)));
