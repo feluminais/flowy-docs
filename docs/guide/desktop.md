@@ -5,7 +5,6 @@ A native reader and editor of the same folders, with its own renderer and no ser
 - Address: none.
 - A run's tag: no Undo, as in the browser.
 - Player: Autoplay and the speed last until it closes.
-- A sketch: opens in a window of its own.
 - Layout: shapes you haven't dragged can sit a little differently. Dragged ones are where `layout.yaml` says.
 - A file that can't be read: the last good model stays, with the reason in a banner and editing off.
 - Images in descriptions: never fetched, shown as their description in brackets.
@@ -21,11 +20,26 @@ A native reader and editor of the same folders, with its own renderer and no ser
 - Any other file: shown in its folder, never run. The type is the real file's, so a link called `notes.md` that points at a script counts as a script. A folder button beside each file does the same.
 - **File › Open Files With** picks your own app for any file in the repo. The choice stays on your computer.
 
+## Tabs
+
+![Plum and two of its sketches inside one outline](../images/desktop-tabs.png)
+
+Each model and sketch open in a window has a tab. A model and its sketches sit inside one outline, and each sketch wears its mark.
+
+- **+**, **File › Open Folder**, **File › Open Recent**, a dropped folder and the Model picker: a new tab in this window.
+- A sketch: a tab beside its model, whichever window it was opened from. Away from its model it reads `Group orders (sketch of Plum)`.
+- **Ctrl+Tab** and **Ctrl+Shift+Tab**: next and previous tab. **Ctrl+W**, the tab's cross or a middle click: close it. Closing a model leaves its sketches open.
+- Right-click a tab: **Close**, **Close Others**, **Move to New Window**. A model takes its sketches with it, and a sketch goes alone, so a model and its sketch can sit side by side.
+- **File › New Window**: an empty window.
+- A tab stays as you left it, and a flow playing pauses when you leave.
+
+The browser has the same row, from two open models on. It has no keys and no **+**: the Model picker adds a tab.
+
 ## Opening a model
 
 **File › Open Folder** takes the first that fits: a folder called `flowy`, the `flowy/` inside it, or the folder itself if it holds `model.yaml`. With none, the app says so. Opening never creates files.
 
 - Also: drop a folder on a window, **File › Open Recent**, or `FlowyDocs.exe path\to\repo`. A running app takes the folder.
 - **Open with Flowy Docs**: on the right-click menu of a folder and its empty space (under *Show more options* on Windows 11), from the Windows installer until you uninstall.
-- Each model has one window, and opening it again brings that forward. A new window takes the size and maximized state of the last one closed.
+- A model is open once, and opening it again brings its tab forward. A new window takes the size and maximized state of the last one closed.
 - **Help › Open the Demo (Plum)**, or the welcome window's button: the sample in the app, with seven made-up load-test runs. It can't be edited.

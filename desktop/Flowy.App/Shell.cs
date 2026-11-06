@@ -8,12 +8,12 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// The app as a whole: one window per model folder, the recent folders, and what the app remembers. Opening a folder that is already open
-/// brings its window forward. A folder with no Flowy model says so and creates nothing.
+/// The app as a whole: the windows and which of them holds each open model folder, the recent folders, and what the app remembers. A folder is open once: opening it again brings its
+/// tab forward. A new one opens in a tab of the window it was asked from, and a sketch beside its model. A folder with no Flowy model says so and creates nothing.
 /// </summary>
 internal sealed class Shell
 {
-    private readonly Dictionary<string, MainWindow> _windows = [];
+    private readonly Dictionary<string, MainWindow> _open = []; // which window holds each folder, by its key
     private readonly UserStateStore? _store;
     private readonly LaunchOptions? _launch;
     private UserState _state;
@@ -35,7 +35,7 @@ internal sealed class Shell
 
     public event Action? RecentChanged;
 
-    public IEnumerable<MainWindow> Windows => _windows.Values;
+    public IEnumerable<MainWindow> Windows => _open.Values.Distinct();
 
     private void Remember(UserState state)
     {
@@ -74,7 +74,7 @@ internal sealed class Shell
     /// <summary>The sample model that ships with the app (Plum, a made-up delivery service), or null when this build has none beside it.</summary>
     public static string? DemoDir => Path.Combine(AppContext.BaseDirectory, "Demo", "flowy") is var dir && Directory.Exists(dir) ? dir : null;
 
-    /// <summary>Opens what was picked, dropped or typed: a model folder, or a repo with one inside. Says so if there is none.</summary>
+    /// <summary>Opens what was picked, dropped or typed, in a tab of <paramref name="owner"/>: a model folder, or a repo with one inside. Says so if there is none.</summary>
     public async Task<MainWindow?> OpenAsync(string picked, Window? owner, LaunchOptions? options = null)
     {
         var dir = ModelFolders.Resolve(picked);
@@ -84,28 +84,22 @@ internal sealed class Shell
                 $"“{ModelFolders.Title(picked)}” has no flowy folder, and no model.yaml of its own. Open a repo that has one, or the flowy folder itself.");
             return null;
         }
-        return Show(dir, options);
+        return Show(dir, options, owner as MainWindow);
     }
 
-    /// <summary>Shows a model folder's window: the one already open for it, else a new one.</summary>
-    public MainWindow Show(string dir, LaunchOptions? options = null)
+    /// <summary>Shows a model folder's tab: the one already open for it, else a new one in the window <paramref name="from"/> asked for it.</summary>
+    public MainWindow Show(string dir, LaunchOptions? options = null, MainWindow? from = null)
     {
         var key = ModelFolders.Key(dir);
-        if (_windows.TryGetValue(key, out var existing))
+        if (_open.TryGetValue(key, out var existing))
         {
-            existing.Reopen();
+            existing.ShowTab(key);
             Bring(existing);
             return existing;
         }
-        // A window that has no folder yet (the first one, before a folder was chosen) takes it.
-        var window = EmptyWindow() ?? new MainWindow(this, _launch);
+        var window = WindowFor(dir, from);
+        _open[key] = window;
         window.Open(dir, options);
-        _windows[key] = window;
-        window.Closed += (_, _) =>
-        {
-            _windows.Remove(key);
-            RecentChanged?.Invoke();
-        };
         Remember(_state with { Recent = Recents.Push(_state.Recent, dir) });
         RecentChanged?.Invoke();
         if (!window.IsVisible) window.Show();
@@ -113,7 +107,57 @@ internal sealed class Shell
         return window;
     }
 
+    /// <summary>Where a new tab goes: a sketch beside its model, wherever that is; else the window that asked, the one with nothing open yet, the last one, or a new one.</summary>
+    private MainWindow WindowFor(string dir, MainWindow? from)
+    {
+        if (Sketches.ModelOf(dir) is { } model && _open.TryGetValue(ModelFolders.Key(model), out var owner)) return owner;
+        return from ?? EmptyWindow() ?? _open.Values.LastOrDefault() ?? Create();
+    }
+
+    private MainWindow Create()
+    {
+        var window = new MainWindow(this, _launch);
+        window.Closed += (_, _) =>
+        {
+            foreach (var key in _open.Where(kv => kv.Value == window).Select(kv => kv.Key).ToList()) _open.Remove(key);
+            RecentChanged?.Invoke();
+        };
+        return window;
+    }
+
     private MainWindow? EmptyWindow() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.Windows.OfType<MainWindow>().FirstOrDefault(w => w.Dir is null);
+
+    /// <summary>A tab was closed: its folder is free to open again.</summary>
+    internal void TabClosed(string key)
+    {
+        _open.Remove(key);
+        RecentChanged?.Invoke();
+    }
+
+    /// <summary>A window with nothing open yet, for File › New Window.</summary>
+    public MainWindow NewWindow()
+    {
+        var window = Create();
+        window.Show();
+        Bring(window);
+        return window;
+    }
+
+    /// <summary>Takes <paramref name="tabs"/> out of <paramref name="from"/> and into a new window, as they are.</summary>
+    internal MainWindow MoveToNewWindow(MainWindow from, IReadOnlyList<DocTab> tabs)
+    {
+        var window = Create();
+        foreach (var tab in tabs)
+        {
+            from.Release(tab);
+            window.Adopt(tab);
+            _open[tab.Key] = window;
+        }
+        window.Show();
+        Bring(window);
+        window.Reader.Focus();
+        return window;
+    }
 
     private static void Bring(Window window)
     {
@@ -126,12 +170,12 @@ internal sealed class Shell
     {
         if (ModelFolders.FromArguments(args, cwd) is { } folder)
         {
-            await OpenAsync(folder, _windows.Values.LastOrDefault(), options);
+            await OpenAsync(folder, _open.Values.LastOrDefault(), options);
             return;
         }
-        if (_windows.Count > 0)
+        if (_open.Count > 0)
         {
-            Bring(_windows.Values.Last());
+            Bring(_open.Values.Last());
             return;
         }
         if (Recent.FirstOrDefault() is { } last && ModelFolders.Resolve(last) is { } dir)
@@ -139,7 +183,7 @@ internal sealed class Shell
             Show(dir, options);
             return;
         }
-        var window = EmptyWindow() ?? new MainWindow(this, _launch);
+        var window = EmptyWindow() ?? Create();
         window.Show();
         if (options?.Shot is not null) await window.ApplyAndShootAsync(options); // a picture of the welcome, not a dialog nobody can answer
         else await ChooseAsync(window);
@@ -152,10 +196,10 @@ internal sealed class Shell
         if (folders.Count == 1 && Avalonia.Platform.Storage.StorageProviderExtensions.TryGetLocalPath(folders[0]) is { } path) await OpenAsync(path, owner);
     }
 
-    /// <summary>Opens the sample model that ships with the app.</summary>
-    public void OpenDemo()
+    /// <summary>Opens the sample model that ships with the app, in a tab of <paramref name="from"/>.</summary>
+    public void OpenDemo(MainWindow? from = null)
     {
-        if (DemoDir is { } dir) Show(dir);
+        if (DemoDir is { } dir) Show(dir, null, from);
     }
 
     public void ClearRecent()

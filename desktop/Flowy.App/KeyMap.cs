@@ -285,7 +285,7 @@ internal static class KeyMap
     /// <summary>The order of each group's rows. A row that is not a key (a click, a drag) is written out here.</summary>
     private static readonly IReadOnlyDictionary<HelpGroup, (string Id, string Keys, string What)[]> Order = new Dictionary<HelpGroup, (string, string, string)[]>
     {
-        [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("yaml"), R("perf"), R("failures"), R("shortcuts")],
+        [HelpGroup.Reading] = [R("enter"), R("escape"), R("up"), R("search"), R("fit"), R("flows"), R("explorer"), R("yaml"), R("perf"), R("failures"), ("", "Ctrl+Tab  Ctrl+Shift+Tab", "Next and previous tab"), ("", "Ctrl+W", "Close the tab"), R("shortcuts")],
         [HelpGroup.Flows] = [R("flow-step"), R("flow-ends"), R("flow-play"), R("flow-autoplay"), R("flow-speed"), R("flow-nudge"), R("flow-replay"), R("compare"), R("swap"), R("escape")],
         [HelpGroup.Performance] = [R("perf-step"), R("perf-ends"), R("perf-ramp"), R("escape")],
         [HelpGroup.Failures] = [R("failure-step")],

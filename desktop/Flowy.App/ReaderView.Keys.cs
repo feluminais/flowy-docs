@@ -49,7 +49,7 @@ internal sealed partial class ReaderView
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (_folder is null) return;
+        if (_folder is null || !IsVisible) return; // every tab's reader listens on the window; the keys are for the one on show
         if (e.Key == Key.Escape && (_canvas.CloseDotCard() || (ComparingFlows && CompareShown is { } compare && compare.Panes.Any(p => p.Canvas.CloseDotCard()))))
         {
             e.Handled = true; // the payload card on a paused dot is the innermost layer: Esc takes it away and nothing else
