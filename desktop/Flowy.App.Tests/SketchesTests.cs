@@ -81,7 +81,7 @@ public class SketchesTests
     }
 
     [AvaloniaFact]
-    public async Task A_row_asks_for_the_sketch_in_a_window_of_its_own()
+    public async Task A_row_asks_for_the_sketch()
     {
         using var temp = new TempFolder();
         var model = Setup(temp);
