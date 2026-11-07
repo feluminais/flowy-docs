@@ -482,14 +482,14 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public async Task Y_opens_the_files_as_text_read_only_with_a_tab_for_each_in_the_browser_s_order()
+    public async Task Y_opens_the_files_as_text_read_only_with_a_row_for_each_in_the_browser_s_order()
     {
         var (window, reader) = Open();
         Press(window, Key.Y, PhysicalKey.Y);
         Assert.Equal(PanelTab.Yaml, reader.ShownTabNow);
         var yaml = reader.Navigator.Yaml;
         await EditModeTests.Until(() => !yaml.Reading); // the files are read off the UI thread
-        Assert.Equal(YamlFiles.Read(Plum).Select(f => f.Path), yaml.Tabs);
+        Assert.Equal(YamlFiles.Read(Plum).Select(f => f.Path), yaml.Files);
         Assert.Equal("model.yaml", yaml.Open);
         Assert.Equal(string.Join('\n', YamlFiles.LinesOf(File.ReadAllText(Path.Combine(Plum, "model.yaml")))), yaml.Text);
         Assert.Contains(yaml.GetVisualDescendants().OfType<TextBlock>(), t => t.Text == "Read only");
@@ -499,23 +499,25 @@ public class NavigatorTests
     }
 
     [AvaloniaFact]
-    public async Task The_tabs_are_made_once_so_the_one_the_keyboard_is_on_survives_a_pick_and_a_step()
+    public async Task The_file_list_is_made_once_so_the_keyboard_survives_a_pick_and_a_step()
     {
         var (window, reader) = Open();
         reader.OpenTab("yaml");
         var yaml = reader.Navigator.Yaml;
         await EditModeTests.Until(() => !yaml.Reading);
-        var tab = yaml.TabButton("failures/ordering.yaml")!;
-        Assert.True(tab.Focus(NavigationMethod.Tab), $"the tab took no focus: visible {tab.IsEffectivelyVisible}, enabled {tab.IsEffectivelyEnabled}, " +
-            $"focusable {tab.Focusable}, in this window {TopLevel.GetTopLevel(tab) == window}, window active {window.IsActive}, focused {window.FocusManager?.GetFocusedElement()}");
+        var list = yaml.FileList!;
+        list.UpdateLayout();
+        var row = (Control)list.ContainerFromIndex(list.SelectedIndex)!;
+        Assert.True(row.Focus(NavigationMethod.Tab), $"the row took no focus: visible {row.IsEffectivelyVisible}, enabled {row.IsEffectivelyEnabled}, " +
+            $"focusable {row.Focusable}, in this window {TopLevel.GetTopLevel(row) == window}, window active {window.IsActive}, focused {window.FocusManager?.GetFocusedElement()}");
         yaml.PickFile("failures/ordering.yaml");
         reader.OpenFlowById("deliver-order"); // a step on the flow: the panel is shown again
         Dispatcher.UIThread.RunJobs();
-        Assert.Same(tab, yaml.TabButton("failures/ordering.yaml"));
-        Assert.Same(tab, window.FocusManager!.GetFocusedElement());
+        Assert.Same(list, yaml.FileList);
+        Assert.True(list.IsKeyboardFocusWithin, "the keyboard left the list");
+        Assert.Equal(yaml.Files.ToList().IndexOf(yaml.Open!), list.SelectedIndex); // the new flow shows its own file, and the list follows
         yaml.PickFile("model.yaml");
-        Assert.Contains("on", yaml.TabButton("model.yaml")!.Classes);
-        Assert.DoesNotContain("on", tab.Classes);
+        Assert.Equal(yaml.Files.ToList().IndexOf("model.yaml"), list.SelectedIndex);
     }
 
     [AvaloniaFact]
