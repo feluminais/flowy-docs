@@ -37,7 +37,7 @@ A flow opens with its first step moving, and each step waits at its end.
 - Autoplay: a finished step goes on to the next, up to the last. It stays on through Back and Next, and a comparison pane opens with it off.
 - Repeat (browser, on by default): a moving step plays again 2.5 seconds after it ends. Greyed out on a still step and during Autoplay.
 - The bar goes to any moment of any step. The browser keeps Autoplay, Repeat and the speed for your next visit.
-- The card keeps the size of its tallest step.
+- The card keeps the size of its tallest step, up to 180 px for the part between the chips and the buttons. A taller step makes the card taller for that step only, up to the canvas, where it scrolls.
 - A step on a part of a shape names it: "Scheduler in Core".
 - Recursion: a card per level, a flag on the deepest, and a counter that stays at the end (`↻ 3 deep`).
 - Reduced motion (system setting): nothing moves and every mark stays drawn, a recursion shows only its counter, and a step's text stays the same.

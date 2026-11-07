@@ -446,6 +446,12 @@ internal sealed class PlayerCard : Border
     /// <summary>The stops a card measures to keep the size of its tallest; a longer flow keeps the card as each stop draws it. The browser's card has the same.</summary>
     private const int ReserveMost = 300;
 
+    /// <summary>
+    /// The most room a card keeps for the part between its chips and its buttons: an ordinary stop is 100 to 180 tall, and the rest of a flow should not pay for one
+    /// parallel stop with many lanes or a long description. A taller stop makes the card taller for that stop only. The browser's card has the same (RESERVE_BODY_MOST).
+    /// </summary>
+    private const double ReserveColumnMost = 180;
+
     private (object? Key, double Width, bool Legend) _reserveFor;
     private (double Top, double Column)? _reserve;
     private Every? _every; // the flow's cards, kept for the card's own rebuilds (the legend, the Compare flyout, a new width)
@@ -511,7 +517,7 @@ internal sealed class PlayerCard : Border
             Child = probe;
             probe.Measure(new Size(width, double.PositiveInfinity));
             tallestTop = Math.Max(tallestTop, top.DesiredSize.Height - top.Margin.Top - top.Margin.Bottom);
-            tallestColumn = Math.Max(tallestColumn, column.DesiredSize.Height + top.Margin.Bottom); // the gap over the column is the chips' margin, or the bar's own room
+            tallestColumn = Math.Max(tallestColumn, Math.Min(column.DesiredSize.Height, ReserveColumnMost) + top.Margin.Bottom); // the gap over the column is the chips' margin, or the bar's own room
         }
         Child = null;
         _reserve = (tallestTop, tallestColumn);

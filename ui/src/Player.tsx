@@ -274,6 +274,13 @@ function inView(box: HTMLElement, item: HTMLElement, below = 0) {
 /** The stops a card measures to keep the size of its tallest; a longer flow keeps the card as each stop draws it. */
 const RESERVE_MOST = 300
 
+/**
+ * The most room a card keeps for its body (everything between the chips and the buttons), in pixels. An ordinary step is 100 to 180 tall; the rest of a flow
+ * should not pay for one parallel stop with many lanes, a long description or an open legend. A stop taller than this makes the card taller for that stop
+ * only (the card is anchored at its foot, so the buttons stay put), up to the canvas, where the body scrolls. The desktop's card has the same (PlayerCard.cs).
+ */
+const RESERVE_BODY_MOST = 180
+
 /** The chips over the card's body: the flow, the step and the group it is in, then Compare and the legend's button. */
 function Chips({ flow, stop, count, caption, kind, compare, legend, grouped, onLegend, minHeight }: {
   flow: Flow; stop: number; count: number; caption: Caption; kind: GroupKind | undefined; compare?: Props['compare']; legend: boolean; grouped: boolean; onLegend: () => void; minHeight?: number
@@ -384,7 +391,7 @@ function useReserve(section: RefObject<HTMLElement | null>, count: number, deps:
       chips = Math.max(chips, (row.children[0] as HTMLElement).offsetHeight)
       body = Math.max(body, (row.children[1] as HTMLElement).offsetHeight)
     }
-    setReserve({ for: token, chips, body })
+    setReserve({ for: token, chips, body: Math.min(body, RESERVE_BODY_MOST) })
   })
   return { measure, measuring, reserve: reserve?.for === token ? reserve : undefined }
 }

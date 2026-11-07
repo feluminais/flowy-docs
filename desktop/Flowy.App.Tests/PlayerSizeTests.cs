@@ -40,7 +40,7 @@ public class PlayerSizeTests
           - { from: app, text: Opens }
           - from: app
             to: api
-            text: Sends the basket with every line the customer picked, the address to bring it to and a note for the kitchen, then waits for the total
+            text: Sends the basket and the address to bring it to, then waits for the total
             animation: call
             payload: basket
             reply: receipt
@@ -61,6 +61,23 @@ public class PlayerSizeTests
           - { from: app, to: api, text: Answers, animation: send }
         """;
 
+    /// <summary>Two short stops, then one stop with six lanes: far taller than the limit the card keeps room for.</summary>
+    private const string Fan = """
+        name: Fan out
+        view: shop
+        groups:
+          all: { kind: parallel }
+        steps:
+          - { from: app, text: Opens }
+          - { from: app, to: api, text: Asks for the total, animation: call }
+          - { from: api, to: app, text: Checks the stock for every line of the basket before it answers, group: all, lane: Stock }
+          - { from: api, to: app, text: Checks the address against the places the kitchen delivers to, group: all, lane: Address }
+          - { from: api, to: app, text: Checks the card with the bank and holds the amount, group: all, lane: Card }
+          - { from: api, to: app, text: Looks for a courier close to the kitchen who is free, group: all, lane: Courier }
+          - { from: api, to: app, text: Works out the price with the offers the customer has, group: all, lane: Price }
+          - { from: api, to: app, text: Writes the order down so the kitchen tablet can show it, group: all, lane: Order }
+        """;
+
     private static (TempFolder Temp, Window Window, ReaderView Reader) Open()
     {
         var temp = new TempFolder();
@@ -69,6 +86,7 @@ public class PlayerSizeTests
         File.WriteAllText(Path.Combine(dir, "model.yaml"), Source);
         File.WriteAllText(Path.Combine(dir, "flows", "checkout.yaml"), Flow);
         File.WriteAllText(Path.Combine(dir, "flows", "retry.yaml"), Grouped);
+        File.WriteAllText(Path.Combine(dir, "flows", "fan.yaml"), Fan);
         var reader = new ReaderView();
         var window = new Window { Width = 1200, Height = 800, Content = reader };
         window.Show();
@@ -100,6 +118,23 @@ public class PlayerSizeTests
             seen.Add((Math.Round(at.Y), Math.Round(reader.Card.Bounds.Height), Math.Round(reader.Card.Bounds.Width)));
         }
         Assert.Single(seen);
+    }
+
+    [AvaloniaFact]
+    public void A_stop_taller_than_the_limit_makes_the_card_taller_for_that_stop_only()
+    {
+        var (temp, window, reader) = Open();
+        using var _ = temp;
+        var heights = new List<double>();
+        for (var k = 0; k < 3; k++)
+        {
+            reader.Play("fan", k);
+            Settle(window);
+            Assert.Contains($"Step {k + 1} of 3", Words(reader.Card));
+            heights.Add(Math.Round(reader.Card.Bounds.Height));
+        }
+        Assert.Equal(heights[0], heights[1]); // the short stops share one size, kept at the limit and no more
+        Assert.True(heights[2] > heights[0] + 60, $"the six-lane stop is {heights[2]} tall and the short ones {heights[0]}");
     }
 
     /// <summary>Lets frames and timers run until <paramref name="done"/>, or ten seconds pass. A headless window draws no frames of its own.</summary>

@@ -444,6 +444,7 @@ svg { flex: none; }
 .progress .runs { display: grid; gap: 2px 3px; }
 .progress .cell { position: relative; height: 4px; border-radius: 2px; background: var(--line); }
 .progress .cell::after { content: ''; position: absolute; inset: -1px 0; } /* a strip four pixels high is hard to point at: its hover text comes from a taller one */
+.progress .fork .cell::after { inset: -1px 0 0; } /* the fork scrolls: a hit area spilling below its last lane gave it a scroll bar with nothing to scroll */
 .progress .cell.done { background: var(--accent); }
 .progress .cell.now { background: linear-gradient(to right, var(--accent) calc(var(--fill, 1) * 100%), var(--line) 0); }
 .progress[role='slider'] { cursor: pointer; touch-action: none; border-radius: 3px; }

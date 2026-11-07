@@ -225,6 +225,24 @@ test('The card keeps one size and one top edge through a flow', async ({ page })
   }
 })
 
+test('A stop taller than the limit makes the card taller for that stop only, and the buttons stay put', async ({ page }) => {
+  await page.goto('/#ordering/stripe-webhook') // three short stops, then one with two lanes
+  await player(page).waitFor()
+  expect(await player(page).locator('.player-stop').first().evaluate(e => (e as HTMLElement).style.minHeight)).toBe('180px')
+  const heights: number[] = []
+  const feet = new Set<number>()
+  for (let k = 0; k < 4; k++) {
+    await expect(player(page)).toContainText(`Step ${k + 1} of 4`)
+    const box = (await player(page).boundingBox())!
+    heights.push(Math.round(box.height))
+    feet.add(Math.round(box.y + box.height))
+    if (k < 3) await player(page).getByRole('button', { name: 'Next' }).click()
+  }
+  expect(new Set(heights.slice(0, 3)).size).toBe(1)
+  expect(heights[3]).toBeGreaterThan(heights[0] + 40)
+  expect(feet.size).toBe(1)
+})
+
 test('Repeat stays on a step that does not move, greyed out, and Back goes straight to the step before', async ({ page }) => {
   await page.goto('/#root/sms-dropped')
   await player(page).waitFor()
