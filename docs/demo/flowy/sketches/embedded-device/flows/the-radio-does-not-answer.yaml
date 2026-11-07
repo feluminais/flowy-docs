@@ -11,6 +11,6 @@ steps:
     via: applies the config
     payload: radio-config
     description: |
-      The Controller waits 5 s, then gives up and keeps the old settings. The radio may still have joined, so the next state it publishes decides what the screen shows.
+      The radio may still have joined, so the next state it publishes decides what the screen shows.
   - { from: controller, to: touch-app, text: Tells the screen the network was not joined, animation: { kind: send, carries: failed }, via: reads and saves settings }
   - { from: touch-app, to: user, text: Shows Could not join, animation: { kind: send, carries: screen } }

@@ -20,7 +20,7 @@ steps:
     via: starts a scan
     payload: found-network
     description: |
-      The results ride the line that asked for the scan, so the screen needs no second connection. The list grows until the scan stops.
+      The results ride the line that asked for the scan, so the screen needs no second connection.
   - { from: user, to: touch-app, text: Taps Stop, animation: { kind: send, carries: tap } }
   - { from: touch-app, to: controller, text: Closes the scan, animation: { kind: send, closes: Scan results }, via: starts a scan }
   - { from: controller, to: network-daemon, text: Stops the radio scan, animation: { kind: send, closes: Radio scan }, via: starts a radio scan }

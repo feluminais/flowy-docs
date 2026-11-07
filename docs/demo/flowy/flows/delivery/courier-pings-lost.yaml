@@ -8,8 +8,7 @@ steps:
     text: About a third of the pings are lost on the way
     animation: { kind: send, outcome: lost, share: 30, reason: Packet dropped }
     description: |
-      On a weak signal, pings never reach **Live tracking**. The app does not retry them, since a
-      newer one follows in 5 s.
+      The app does not retry them, since a newer one follows in 5 s.
   - { from: tracking, to: customer-app, text: Sends the positions that did arrive, animation: { kind: send, carries: position } }
   - { from: customer-app, to: customer, text: The courier jumps across the map, animation: { kind: send, carries: map } }
   - from: fleet-db

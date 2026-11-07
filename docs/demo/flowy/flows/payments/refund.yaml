@@ -5,8 +5,6 @@ compare:
   with: refund-not-recorded
   note: |
     The same refund twice. Right: what support sees, from the console to the customer's SMS. Left: the refund inside Ordering when Orders DB doesn't answer. Stripe returns the money, the order stays marked paid, and the customer still gets a confirmation.
-
-    Support, Back office and Stripe are in both flows.
 steps:
   - { from: support, to: backoffice, text: Finds the order in the support console, animation: send, payload: ticket }
   - from: backoffice
@@ -28,8 +26,8 @@ steps:
     payload: refund
     reply: stripe-refund
     description: |
-      Stripe refunds the original charge. The order is marked refunded only after Stripe confirms,
-      so the database never records a refund that didn't happen.
+      The order is marked refunded only after Stripe confirms, so the database never records a
+      refund that didn't happen.
   - { from: ordering, to: notifications, text: Requests a confirmation, animation: send, payload: message }
   - { from: notifications, to: twilio, text: Hands the SMS to Twilio, animation: send, payload: sms }
   - from: twilio
@@ -42,4 +40,4 @@ steps:
       example:
         language: text
         text: |
-          Plum: your refund of €24.90 is on its way back to your card. It can take 5 days to show.
+          Plum: your refund of €24.90 is on its way back to your card. It can take up to 10 days to show.

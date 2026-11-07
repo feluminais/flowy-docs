@@ -10,7 +10,7 @@ steps:
     animation: { kind: call, outcome: timeout }
     states: { stripe: stopped }
     description: |
-      Checkout waits 5 s for the hold and gets no answer. It does not retry while Stripe is down.
+      Checkout waits 5 s for the hold. It does not retry while Stripe is down.
   - { from: checkout, to: customer-app, text: Offers pay at the door, animation: { kind: send, carries: pay at the door }, states: { checkout: degraded } }
   - { from: customer, to: customer-app, text: Picks pay at the door, animation: { kind: send, carries: cash } }
   - { from: order-api, to: stripe, text: The status page says Stripe is restarting, animation: call, states: { stripe: restarting } }
