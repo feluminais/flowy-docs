@@ -946,7 +946,7 @@ internal sealed class PerfPanel : StackPanel
         var label = Muted("Each stripe");
         label.VerticalAlignment = VerticalAlignment.Center;
         label.TextWrapping = TextWrapping.NoWrap;
-        var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { label, _callsButton, _dataButton, _mixedButton } };
+        var row = new WrapPanel { Orientation = Orientation.Horizontal, ItemSpacing = 6, LineSpacing = 6, Margin = new Thickness(0, 10, 0, 0), Children = { label, _callsButton, _dataButton, _mixedButton } };
         AutomationProperties.SetName(row, "Each stripe");
         _measureOff = new TextBlock { Classes = { "muted" }, FontSize = 12.5, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) };
         ShowMeasure();

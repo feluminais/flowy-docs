@@ -108,7 +108,7 @@ internal static class CodeView
             if (run.Kind is { } kind) piece.Foreground = resource(BrushName(kind));
             block.Inlines!.Add(piece);
         }
-        // The box scrolls along but draws no bar of its own: that one widens over the last line under the pointer. The bar below takes its place.
+        // The box scrolls along but draws no bar of its own: the bar below takes its place.
         var scroller = maxHeight is { } most
             ? new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = most, Content = block, Classes = { "payloadcode" } }
             : new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden, Content = block };

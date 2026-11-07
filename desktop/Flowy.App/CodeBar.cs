@@ -6,9 +6,8 @@ using Avalonia.Media;
 namespace Flowy.App;
 
 /// <summary>
-/// The bar under a code box that scrolls a long line along. It sits below the box, so it never covers a line of code, and its handle keeps one size:
-/// the scroll bar the box would draw itself is a hairline until the pointer reaches it, then widens over the last line. Drag the handle, click the bar to
-/// jump there, or turn the wheel over it. It shows only while a line runs past the box.
+/// The bar under a code box that scrolls a long line along. Its handle keeps one size: the scroll bar the box would draw itself is a hairline until the
+/// pointer reaches it. Drag the handle, click the bar to jump there, or turn the wheel over it. It shows only while a line runs past the box.
 /// </summary>
 internal sealed class CodeBar : Control
 {

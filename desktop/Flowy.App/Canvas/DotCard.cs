@@ -29,7 +29,7 @@ internal sealed class DotCard : Border
         Child = new ScrollViewer
         {
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = new StackPanel { Spacing = 8, Margin = new Avalonia.Thickness(0, 0, 12, 0), Children = { head, PayloadView.Body(shown, resource) } }, // room for the scroll bar
+            Content = new StackPanel { Spacing = 8, Children = { head, PayloadView.Body(shown, resource) } },
         };
         // The wheel is the card's: scrolled to its end it does nothing, rather than zoom the canvas under it (which would close it).
         AddHandler(PointerWheelChangedEvent, (_, e) => e.Handled = true);
