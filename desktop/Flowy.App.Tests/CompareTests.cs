@@ -2040,16 +2040,16 @@ public class CompareTests
     [AvaloniaFact]
     public void Partners_are_both_marked_in_the_Flows_tab_whichever_folder_each_is_filed_in()
     {
-        // Plum files announce-order in payments and stripe-outage in payments/stripe; tagging one marks both, and neither moves to the other.
-        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "stripe-outage") ? "compare: announce-order\n" + text : text);
+        // Plum files capture-payment in payments and stripe-outage in payments/stripe; tagging one marks both, and neither moves to the other.
+        var (temp, window, reader) = Open((rel, text) => IsFlow(rel, "stripe-outage") ? "compare: capture-payment\n" + text : text);
         using var _ = temp;
         reader.ClickRail(PanelTab.Flows);
         EditModeTests.Settle(window);
         var listed = reader.Navigator.Flows.Listed;
-        var announce = listed.Single(f => f.Id == "announce-order");
+        var capture = listed.Single(f => f.Id == "capture-payment");
         var outage = listed.Single(f => f.Id == "stripe-outage");
-        Assert.True(announce.Linked && outage.Linked);
-        Assert.Equal(("payments", "payments/stripe"), (announce.Folder, outage.Folder));
+        Assert.True(capture.Linked && outage.Linked);
+        Assert.Equal(("payments", "payments/stripe"), (capture.Folder, outage.Folder));
     }
 
     [AvaloniaFact]
@@ -2225,7 +2225,7 @@ public class CompareTests
         using var _ = temp;
         Assert.Null(picker.Partner);
         Assert.DoesNotContain("refund", picker.OfferedIds); // a flow can't compare with itself
-        Assert.Equal(20, picker.OfferedIds.Count); // every other flow: Plum's twenty-one less this one
+        Assert.Equal(19, picker.OfferedIds.Count); // every other flow: Plum's twenty less this one
         ClickBar(picker.TileOf("place-order")!);
         await EditModeTests.Until(() => FlowFile(temp, "refund").Contains("compare: place-order"));
         await EditModeTests.Until(() => reader.Panel.CurrentRecorder!.PartnerPicker!.Partner is not null);
@@ -2346,7 +2346,7 @@ public class CompareTests
         Assert.Contains("Nothing called that", Words(picker));
         picker.Find.Text = "";
         EditModeTests.Settle(window);
-        Assert.Equal(20, picker.OfferedIds.Count);
+        Assert.Equal(19, picker.OfferedIds.Count);
     }
 
     [AvaloniaFact]

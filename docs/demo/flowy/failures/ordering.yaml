@@ -173,7 +173,7 @@ modes:
     step: 3
   tracking-signal-lost:
     on: tracking
-    mode: The courier loses signal and the map freezes
+    mode: The courier loses signal
     effect: The customer sees a courier who has stopped moving.
     cause: The courier drives through a tunnel or a dead zone.
     severity: 2
