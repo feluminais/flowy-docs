@@ -295,7 +295,7 @@ function Chips({ flow, stop, count, caption, kind, compare, legend, grouped, onL
         <button className="compare-btn" data-compare-toggle aria-pressed={compare.open} disabled={compare.off !== undefined} title={compare.off ?? 'Compare with another flow (C)'} onClick={compare.onToggle}><Columns size={14} />Compare</button>
       )}
       {grouped && (
-        <button className="help" aria-label="What do these mean?" title="What do these mean?" aria-pressed={legend} onClick={onLegend}><Help size={15} /></button>
+        <button className="help" aria-label="Key" title="Key" aria-pressed={legend} onClick={onLegend}><Help size={15} /></button>
       )}
     </div>
   )

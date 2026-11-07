@@ -266,7 +266,7 @@ internal static class KeyMap
     /// <summary>The title of a group of the list.</summary>
     public static string Title(HelpGroup group) => group switch
     {
-        HelpGroup.Reading => "Getting around",
+        HelpGroup.Reading => "Navigation",
         HelpGroup.Flows => "Flows",
         HelpGroup.Performance => "Performance",
         HelpGroup.Failures => "Failures",

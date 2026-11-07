@@ -461,7 +461,7 @@ export function bracketOf(d: Dial, pos: number): { lower: number; upper: number;
 export const modeLabel = (mode: Mode): string | undefined => (mode === 'added' ? 'Added from separate runs' : mode === 'tested' ? 'Tested together' : undefined)
 
 /** What a shape's readout says when runs that were added made it pass its capacity, which one run never does: nothing for a share that is 1 or under, or for runs tested together. */
-export const overText = (mode: Mode, util: number | undefined): string | undefined => (mode === 'added' && util !== undefined && util > 1 ? 'Added use is over 100%' : undefined)
+export const overText = (mode: Mode, util: number | undefined): string | undefined => (mode === 'added' && util !== undefined && util > 1 ? 'Adds up to over 100% busy' : undefined)
 
 /**
  * A run to start from: two levels with made-up numbers for the first shapes of the view and the connections between them, as a file to save in

@@ -350,7 +350,7 @@ test('a key nothing wants is left to the browser', () => {
 
 // The list ? opens, pinned word for word.
 test('the shortcut list says what it said before the table was built from the key map', () => {
-  assert.deepEqual(HELP_GROUPS.map(g => g.title), ['Getting around', 'Flows', 'Performance', 'Failures', 'Edit mode', 'Used by'])
+  assert.deepEqual(HELP_GROUPS.map(g => g.title), ['Navigation', 'Flows', 'Performance', 'Failures', 'Edit mode', 'Used by'])
   const rows = Object.fromEntries(HELP_GROUPS.map(g => [g.id, helpRows(g.id)]))
   assert.deepEqual(rows.reading, [
     ['Enter', 'Open the selected shape'],

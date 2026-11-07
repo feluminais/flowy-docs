@@ -85,7 +85,7 @@ public class PerformanceTests
         Assert.InRange(reader.Canvas.Load!.Boxes["ordering"].Strain!.Value, 0, Perf.KneeStrain - 0.01);
         Assert.Equal(14, reader.Canvas.Load!.Boxes["events"].Queue); // and Order events has begun to fill behind it
         reader.PickRunById("eta-batched");
-        Assert.Contains("It never struggled in the tested range.", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.Contains("No limit in the tested range.", string.Join("|", AllText(reader.PerfPanelNow)));
         Assert.InRange(reader.Canvas.Load!.Boxes["delivery"].Strain!.Value, 0, Perf.KneeStrain - 0.01); // at its highest load, still fine
     }
 
@@ -134,7 +134,7 @@ public class PerformanceTests
         reader.PickRunById("calm");
         Press(window, Key.T, PhysicalKey.T);
         Assert.Equal(("calm", 1.0, false), reader.PerfState);
-        Assert.Contains("It never struggled", string.Join("|", AllText(reader.PerfPanelNow)));
+        Assert.Contains("No limit in the tested range", string.Join("|", AllText(reader.PerfPanelNow)));
     }
 
     private static IEnumerable<string> AllText(Control root) =>

@@ -130,7 +130,7 @@ function Strip({ run, pos, kneeAt, subject }: { run: Run; pos: number; kneeAt?: 
       <KeyRow>
         <KeyItem swatch={<span className="sw p50" />}>Expected call</KeyItem>
         <KeyItem swatch={<span className="sw p95" />}>Slowest 5%</KeyItem>
-        {kneeAt !== undefined && <KeyItem swatch={<span className="sw knee" />}>First struggles</KeyItem>}
+        {kneeAt !== undefined && <KeyItem swatch={<span className="sw knee" />}>Limit</KeyItem>}
         <KeyItem swatch={<span className="sw now" />}>Now</KeyItem>
       </KeyRow>
     </figcaption>
@@ -401,10 +401,10 @@ export function PerfBody({ model, view, runs, runProblems, runId, positions, act
             </div>
           </>
         )}
-      <Section icon={Alert} title="Where it struggles" />
+      <Section icon={Alert} title="Limit" />
       {struggle
         ? <p>{kneeTextOf(runs, runId, struggle, place)} <button className="link" title={goText(runs, runId, struggle)} aria-label={goText(runs, runId, struggle)} onClick={() => onPlace(openingPositions(dials, struggle))}>Go there</button></p>
-        : <p className="muted">It never struggled in the tested range.</p>}
+        : <p className="muted">No limit in the tested range.</p>}
 
       {onMeasure && (
         <>

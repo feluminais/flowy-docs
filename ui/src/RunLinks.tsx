@@ -40,7 +40,7 @@ export function RunLinks({ model, runs, linkOff, picking, onPicking, onLink }: {
             </div>
             <div className="run-actions">
               <button {...{ [toggle]: '' }} aria-pressed={picking === id} disabled={linkOff !== undefined} title={linkOff ?? 'Link this run with another'} onClick={() => onPicking(picking === id ? undefined : id)}><Link size={14} />Link with</button>
-              <button disabled={unlinkOff !== undefined} title={unlinkOff ?? 'Take away the link'} onClick={() => onLink(id, undefined)}>Unlink</button>
+              <button disabled={unlinkOff !== undefined} title={unlinkOff ?? 'Remove the link'} onClick={() => onLink(id, undefined)}>Unlink</button>
               {picking === id && (
                 <ComparePicker model={model} runs={runs} kind="run" id={id} label="Link with" toggle={toggle}
                   onPick={other => {

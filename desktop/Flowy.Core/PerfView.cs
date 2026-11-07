@@ -549,5 +549,5 @@ public static class PerfView
     public static string? ModeLabel(string mode) => mode switch { Perf.ModeAdded => "Added from separate runs", Perf.ModeTested => "Tested together", _ => null };
 
     /// <summary>What a shape's readout says when runs that were added made it pass its capacity, which one run never does: nothing for a share that is 1 or under, or for runs tested together.</summary>
-    public static string? OverText(string mode, double? util) => mode == Perf.ModeAdded && util > 1 ? "Added use is over 100%" : null;
+    public static string? OverText(string mode, double? util) => mode == Perf.ModeAdded && util > 1 ? "Adds up to over 100% busy" : null;
 }

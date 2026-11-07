@@ -563,10 +563,10 @@ internal sealed class PlayerCard : Border
             {
                 s_legend = !s_legend;
                 if (_shown is { } again) Show(again);
-            }, name: "What do these mean?");
+            }, name: "Key");
             help.Classes.Add("legendbutton");
             if (s_legend) help.Classes.Add("on");
-            ToolTip.SetTip(help, "What do these mean?");
+            ToolTip.SetTip(help, "Key");
             DockPanel.SetDock(help, Dock.Right);
             head.Children.Add(help);
         }

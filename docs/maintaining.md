@@ -421,7 +421,7 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       req/s on the ramp), with `#shop/perf/ramp/4` in the address. In Shop lab, shapes that carry numbers are outlined from green to red
       along their own outline (SQLite's cylinder, Upload folder's folder, the boxes of Web API and the worker), Order queue carries a
       number but no colour, busy lines are thicker and carry more dots, and Catalog cache (a hexagon with no numbers) and Payment gateway
-      stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5%, red dashes First struggles and a solid line Now; the Key (under the first-struggles sentence and Each stripe)
+      stay plain. Under the chart, a blue line reads Expected call, an amber one Slowest 5%, red dashes Limit and a solid line Now; the Key (under the first-struggles sentence and Each stripe)
       draws each mark on the canvas now. ← → move between loads, Home and End jump (Home gives `#shop/perf/ramp/0`), and the address follows. Esc closes the
       panel; Back closes it too if you opened it with T (after Esc, Back opens it again). Click a shape and its Details open on the right, beside
       the panel, and the diagram still fits; Esc closes whichever is showing.
@@ -505,13 +505,13 @@ Several sources (`npm run build:ui && node src/cli.ts --dir docs/demo/flowy`, th
       800 orders/min and Courier pings at 400 pings/s: Fleet DB at 101% of capacity". On the line from Live tracking to Fleet DB blue and green dots run side by side, and the key names both sources, each in a group with its colour bar, "1 dot = 4 calls/s" under Customer orders and "1 dot = 20 calls/s" under Courier pings, after the marks they share.
 - [ ] ← → Home and End move the marked block only. Press the Courier pings slider: that block is marked now, the chart is headed Courier pings with "Customer orders held at 800 orders/min", and the keys move it. Ramp under Courier pings
       moves that slider alone and Space stops it; press Ramp under Customer orders while one runs and the ramp moves there. Go there puts both back.
-- [ ] Put both at their highest (1200 and 800): Fleet DB is red, and clicking it reads Busy 143% and "Added use is over 100%". The line from Live tracking to Fleet DB has 24 green dots and fewer blue ones (15, the ratio of their calls),
+- [ ] Put both at their highest (1200 and 800): Fleet DB is red, and clicking it reads Busy 143% and "Adds up to over 100% busy". The line from Live tracking to Fleet DB has 24 green dots and fewer blue ones (15, the ratio of their calls),
       and the key says Scaled down. Orders alone (Customer orders in the picker) has no label and one slider, as before.
-- [ ] Pick Orders and pings, tested together: the tab says Tested together, with three loads on each slider. At 600 orders/min and 400 pings/s Fleet DB reads 99%, where the two added read 93%, and nothing says "Added use" at any setting.
+- [ ] Pick Orders and pings, tested together: the tab says Tested together, with three loads on each slider. At 600 orders/min and 400 pings/s Fleet DB reads 99%, where the two added read 93%, and nothing says "Adds up to over 100% busy" at any setting.
       `#delivery/perf/together/2` (one place for two sources) and `#delivery/perf/together/a,b` both open at the first struggle, and `#delivery/perf/together/1,4` opens at 200 orders/min and 800 pings/s.
 - [ ] With reduced motion on there are no dots and no Ramp buttons, and the sliders, numbers and the key's Busy, Struggling, Waiting and Not measured stay. Both themes read.
 - [ ] In the showcase (`--dir docs/showcase/flowy`, Several sources, T): Several sources added at its highest has blue and green dots side by side on the line into Shared service, both scaled down together, and Shared service reads
-      "Added use is over 100%". Several sources tested together has a grey line into Not split by source, and the key says Other calls.
+      "Adds up to over 100% busy". Several sources tested together has a grey line into Not split by source, and the key says Other calls.
 
 Compare (`--dir docs/demo/flowy`; `npm run build:ui` first):
 

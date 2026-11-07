@@ -355,7 +355,7 @@ export function dispatch(c: KeyContext): boolean {
 export const keyOf = (id: KeyId): string => KEYMAP.find(k => k.id === id)!.keys
 
 export const HELP_GROUPS: { id: HelpGroupId; title: string }[] = [
-  { id: 'reading', title: 'Getting around' },
+  { id: 'reading', title: 'Navigation' },
   { id: 'flows', title: 'Flows' },
   { id: 'performance', title: 'Performance' },
   { id: 'failures', title: 'Failures' },

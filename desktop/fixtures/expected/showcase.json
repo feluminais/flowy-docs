@@ -620,7 +620,7 @@
       "type": "store",
       "name": "Shared service",
       "in": "sources",
-      "description": "Both sources fill it. In the run added from separate runs its use is the two added, and past 100% it reads \"Added use is over 100%\". In the run tested together it is what was measured with both at once."
+      "description": "Both sources fill it. In the run added from separate runs its use is the two added, and past 100% it reads \"Adds up to over 100% busy\". In the run tested together it is what was measured with both at once."
     },
     {
       "id": "audit",
