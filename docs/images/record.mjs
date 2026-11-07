@@ -151,20 +151,21 @@ const scenes = {
   flows: {
     hash: '#ordering',
     async story(s) {
-      const play = async (name, last) => {
+      const play = async (name, last, autoplay) => {
         await s.key('l'); await s.wait(500)
         await s.click(`::-p-text(${name})`, 700); await s.park(); await s.wait(300)
         await s.key('l'); await s.wait(1200)
-        await s.click('::-p-text(Play)', 700); await s.park() // the flow steps itself from here
+        if (autoplay) { await s.click('[aria-label="Autoplay"]', 700); await s.park() } // the flow steps itself from here, and the button stays on for the next flow
         await s.page.waitForFunction(t => document.body.innerText.includes(t), { timeout: 90000 }, `Step ${last} of ${last}`)
         await s.wait(2200)
       }
       await s.wait(500)
       await s.caption('Play a flow')
-      await play('Customer places an order', 7)
+      await play('Customer places an order', 7, true)
       await s.key('Escape'); await s.wait(900)
       await s.caption('Retries and branches')
-      await play('The payment is captured', 9)
+      await play('The payment is captured', 9, false)
+      await s.page.evaluate(() => localStorage.removeItem('flowy.autoplay')) // the next theme's page shares this storage, and a click there would turn it off
       await s.caption(null)
       await s.key('Escape'); await s.wait(1000)
     },
