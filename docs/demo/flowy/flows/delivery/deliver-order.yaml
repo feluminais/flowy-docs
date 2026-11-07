@@ -10,8 +10,7 @@ steps:
     text: Asks Mapbox how far each courier is
     animation: { kind: call, carries: travel times }
     description: |
-      **ETA** asks for each courier's travel time (distance, traffic, vehicle), and the **Matcher**
-      ranks them by arrival. The quickest gets the first offer.
+      The **Matcher** ranks couriers by arrival, and the quickest gets the first offer.
   - { from: dispatch, to: notifier, text: Sends the offer as a push, animation: { kind: send, carries: offer, effect: bounce } }
   - { from: courier, to: courier-app, text: Accepts within 30 seconds, animation: { kind: send, carries: accept } }
   - { from: restaurant, to: courier, text: Hands the food over at the counter, animation: { kind: send, carries: food } }
@@ -21,8 +20,7 @@ steps:
     animation: { kind: send, carries: position, effect: pulse }
     flow: follow-the-courier
     description: |
-      Only while a job is open. Positions older than 1 min are dropped, so a courier who loses
-      signal freezes on the map until a fresh position arrives.
+      A courier who loses signal freezes on the map until a fresh position arrives.
   - { from: tracking, to: customer-app, text: The customer's map follows the courier, animation: { kind: send, carries: position } }
   - { from: courier, to: customer, text: Hands the food over at the door, animation: { kind: send, carries: food } }
   - { from: courier-app, to: order-api, text: Marks the order delivered, animation: { kind: call, carries: delivered } }

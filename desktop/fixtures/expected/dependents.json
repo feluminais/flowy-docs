@@ -2273,19 +2273,6 @@
         ],
         "rows": [
           {
-            "key": "view:announce-order",
-            "kind": "view",
-            "of": "ordering",
-            "flow": "announce-order",
-            "actions": [
-              "changeView",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "the view of flow announce-order"
-          },
-          {
             "key": "view:capture-payment",
             "kind": "view",
             "of": "ordering",
@@ -2940,24 +2927,6 @@
           }
         ],
         "rows": [
-          {
-            "key": "step:announce-order:1",
-            "kind": "step",
-            "of": "stripe",
-            "flow": "announce-order",
-            "step": 1,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow announce-order, step 1"
-          },
           {
             "key": "step:capture-payment:3",
             "kind": "step",
@@ -4536,42 +4505,6 @@
         ],
         "rows": [
           {
-            "key": "step:announce-order:1",
-            "kind": "step",
-            "of": "order-api",
-            "flow": "announce-order",
-            "step": 1,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow announce-order, step 1"
-          },
-          {
-            "key": "step:announce-order:2",
-            "kind": "step",
-            "of": "order-api",
-            "flow": "announce-order",
-            "step": 2,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow announce-order, step 2"
-          },
-          {
             "key": "step:capture-payment:2",
             "kind": "step",
             "of": "order-api",
@@ -5219,11 +5152,11 @@
               "to"
             ],
             "actions": [
-              "deleteFlow",
+              "removeStep",
               "reroute",
-              "removeStep"
+              "deleteFlow"
             ],
-            "emptiesFlow": true,
+            "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow stripe-webhook, step 1"
           },
@@ -5237,11 +5170,11 @@
               "from"
             ],
             "actions": [
-              "deleteFlow",
+              "removeStep",
               "reroute",
-              "removeStep"
+              "deleteFlow"
             ],
-            "emptiesFlow": true,
+            "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow stripe-webhook, step 2"
           },
@@ -5255,11 +5188,11 @@
               "from"
             ],
             "actions": [
-              "deleteFlow",
+              "removeStep",
               "reroute",
-              "removeStep"
+              "deleteFlow"
             ],
-            "emptiesFlow": true,
+            "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow stripe-webhook, step 3"
           },
@@ -5831,60 +5764,6 @@
         ],
         "rows": [
           {
-            "key": "step:announce-order:2",
-            "kind": "step",
-            "of": "events",
-            "flow": "announce-order",
-            "step": 2,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow announce-order, step 2"
-          },
-          {
-            "key": "step:announce-order:3",
-            "kind": "step",
-            "of": "events",
-            "flow": "announce-order",
-            "step": 3,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow announce-order, step 3"
-          },
-          {
-            "key": "step:announce-order:4",
-            "kind": "step",
-            "of": "events",
-            "flow": "announce-order",
-            "step": 4,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow announce-order, step 4"
-          },
-          {
             "key": "step:deliver-order:2",
             "kind": "step",
             "of": "events",
@@ -6009,6 +5888,60 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow restaurant-accepts, step 5"
+          },
+          {
+            "key": "step:stripe-webhook:3",
+            "kind": "step",
+            "of": "events",
+            "flow": "stripe-webhook",
+            "step": 3,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 3"
+          },
+          {
+            "key": "step:stripe-webhook:4",
+            "kind": "step",
+            "of": "events",
+            "flow": "stripe-webhook",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 4"
+          },
+          {
+            "key": "step:stripe-webhook:5",
+            "kind": "step",
+            "of": "events",
+            "flow": "stripe-webhook",
+            "step": 5,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 5"
           },
           {
             "key": "mode:ordering:events-lag:on",
@@ -7039,24 +6972,6 @@
         ],
         "rows": [
           {
-            "key": "step:announce-order:3",
-            "kind": "step",
-            "of": "dispatch",
-            "flow": "announce-order",
-            "step": 3,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow announce-order, step 3"
-          },
-          {
             "key": "step:deliver-order:2",
             "kind": "step",
             "of": "dispatch",
@@ -7248,6 +7163,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow place-order, step 6"
+          },
+          {
+            "key": "step:stripe-webhook:4",
+            "kind": "step",
+            "of": "dispatch",
+            "flow": "stripe-webhook",
+            "step": 4,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-webhook, step 4"
           },
           {
             "key": "child:matcher",
@@ -8442,11 +8375,11 @@
         ],
         "rows": [
           {
-            "key": "step:announce-order:4",
+            "key": "step:stripe-webhook:5",
             "kind": "step",
             "of": "warehouse",
-            "flow": "announce-order",
-            "step": 4,
+            "flow": "stripe-webhook",
+            "step": 5,
             "ends": [
               "to"
             ],
@@ -8457,7 +8390,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow announce-order, step 4"
+            "described": "flow stripe-webhook, step 5"
           },
           {
             "key": "mode:ordering:warehouse-down:on",

@@ -88,12 +88,8 @@
       ],
       "flows": [
         {
-          "flow": "announce-order",
-          "text": "sequenceDiagram\n  participant n0 as Stripe\n  participant n1 as Order API\n  participant n2 as Order events\n  participant n3 as Delivery\n  participant n4 as Back office\n  n0->>n1: Reports that the charge went through\n  Note over n1: Continues in #quot;Stripe reports a charge#quot;\n  n1->>n2: Publishes the paid event and carries on without waiting\n  par Delivery\n    n2->>n3: Dispatch consumes it and starts looking for a courier\n    Note over n3: Continues in #quot;A courier delivers it#quot;\n  and Warehouse\n    n2->>n4: Streams the same event to the warehouse\n  end\n"
-        },
-        {
           "flow": "capture-payment",
-          "text": "sequenceDiagram\n  actor n0 as Restaurant\n  participant n1 as Kitchen tablet\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Customer app\n  actor n6 as Customer\n  n0->>n1: The kitchen taps Accept\n  Note over n1: Continues in #quot;The restaurant accepts#quot;\n  n1->>n2: Sends the acceptance\n  loop Up to 3 times, until the bank answers: Waits 1 s, then 2 s, then 4 s between tries. Plum's client gives up after three.\n    n2->>n3: Captures the amount it held\n    Note over n2,n3: Times out\n    n2->>n3: Tries again after a short wait\n  end\n  alt The charge goes through\n    n3->>n2: Confirms the charge\n    n2->>n4: Marks the order paid\n  else The card is declined\n    n3->>n2: Declines the card\n    Note over n3,n2: Fails\n    n2->>n5: Asks for another card\n    n5->>n6: Shows that the card was declined\n  end\n"
+          "text": "sequenceDiagram\n  actor n0 as Restaurant\n  participant n1 as Kitchen tablet\n  participant n2 as Order API\n  participant n3 as Stripe\n  participant n4 as Orders DB\n  participant n5 as Customer app\n  actor n6 as Customer\n  n0->>n1: The kitchen taps Accept\n  Note over n1: Continues in #quot;The restaurant accepts#quot;\n  n1->>n2: Sends the acceptance\n  loop Up to 3 times, until the bank answers: Waits 1 s, then 2 s, then 4 s between tries.\n    n2->>n3: Captures the amount it held\n    Note over n2,n3: Times out\n    n2->>n3: Tries again after a short wait\n  end\n  alt The charge goes through\n    n3->>n2: Confirms the charge\n    n2->>n4: Marks the order paid\n  else The card is declined\n    n3->>n2: Declines the card\n    Note over n3,n2: Fails\n    n2->>n5: Asks for another card\n    n5->>n6: Shows that the card was declined\n  end\n"
         },
         {
           "flow": "courier-pings-lost",
@@ -125,7 +121,7 @@
         },
         {
           "flow": "no-courier-answers",
-          "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Ordering\n  participant n2 as Dispatch\n  participant n3 as Notifications\n  actor n4 as Courier\n  participant n5 as Courier app\n  n0->>n1: Places an order\n  Note over n1: Continues in #quot;Customer places an order#quot;\n  n1->>n2: The placed order reaches Dispatch\n  loop Until a courier accepts, or the list runs out: One courier at a time, nearest first. Each has 30 seconds.\n    n2->>n3: Offers the job#59; the nearest courier doesn't answer in 30 s\n    Note over n2,n3: Times out: No answer in 30 s\n    Note over n2: Moves on to the next courier on the list\n  end\n  alt A courier accepts\n    n4->>n5: A courier taps Accept\n    n5->>n2: The offers stop\n  else The list runs out\n    n2->>n3: Tells the customer that no courier is free yet\n    Note over n2: Searches again in a minute\n  end\n"
+          "text": "sequenceDiagram\n  actor n0 as Customer\n  participant n1 as Ordering\n  participant n2 as Dispatch\n  participant n3 as Notifications\n  actor n4 as Courier\n  participant n5 as Courier app\n  n0->>n1: Places an order\n  Note over n1: Continues in #quot;Customer places an order#quot;\n  n1->>n2: The placed order reaches Dispatch\n  loop Until a courier accepts, or the list runs out: One courier at a time, quickest first.\n    n2->>n3: Offers the job#59; the courier doesn't answer in 30 s\n    Note over n2,n3: Times out: No answer in 30 s\n    Note over n2: Moves on to the next courier on the list\n  end\n  alt A courier accepts\n    n4->>n5: A courier taps Accept\n    n5->>n2: The offers stop\n  else The list runs out\n    n2->>n3: Tells the customer that no courier is free yet\n    Note over n2: Searches again in a minute\n  end\n"
         },
         {
           "flow": "nobody-accepts",
@@ -169,7 +165,7 @@
         },
         {
           "flow": "stripe-webhook",
-          "text": "sequenceDiagram\n  participant n0 as Stripe\n  participant n1 as Order API\n  participant n2 as Orders DB\n  n0->>n1: Calls Plum's webhook: the charge went through\n  n1->>n2: Marks the order paid\n  Note over n1: Carries on to publish the order\n  Note over n1: Continues in #quot;A paid order is announced#quot;\n"
+          "text": "sequenceDiagram\n  participant n0 as Stripe\n  participant n1 as Order API\n  participant n2 as Orders DB\n  participant n3 as Order events\n  participant n4 as Delivery\n  participant n5 as Back office\n  n0->>n1: Calls Plum's webhook: the charge went through\n  n1->>n2: Marks the order paid\n  n1->>n3: Publishes the paid event and carries on without waiting\n  par Delivery\n    n3->>n4: Dispatch consumes it and starts looking for a courier\n    Note over n4: Continues in #quot;A courier delivers it#quot;\n  and Warehouse\n    n3->>n5: Streams the same event to the warehouse\n  end\n"
         }
       ]
     },

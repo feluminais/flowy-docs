@@ -41,12 +41,12 @@ payloads:
         { "amount": 2490, "currency": "eur", "capture_method": "manual", "customer": "cus_9a1" }
   order:
     name: Order
-    about: The order as it is saved, with its status. Each line keeps the price it was ordered at.
+    about: The order as it is saved, with its status.
     shape:
       language: sql
       text: |
         orders (id, customer_id, restaurant_id, status, total, placed_at)
-        order_lines (order_id, dish_id, count, price)
+        order_items (order_id, item_id, quantity, unit_price)
   placed:
     name: Order placed
     about: The event every listener hears when an order is placed. It names the order, not its contents.
@@ -57,10 +57,10 @@ payloads:
   position:
     name: Courier position
     about: |
-      Where the courier is, sent every 5 s while a job is open. The Courier app reads it from the phone's location service (GPS, helped by
-      Wi-Fi and cell towers), so `lat` and `lng` are degrees (WGS 84) and `accuracyMeters` is how far off the fix may be.
+      Where the courier is. The Courier app reads it from the phone's location service (GPS, helped by Wi-Fi and cell towers). `accuracyMeters`
+      is how far off the fix may be.
 
-      Heading and speed come only while the phone is moving. Live tracking drops a position older than 1 min.
+      Heading and speed come only while the phone is moving.
     shape:
       language: kotlin
       text: |
@@ -128,7 +128,7 @@ payloads:
         { "id": "evt_1Q", "type": "charge.succeeded", "data": { "object": { "amount": 2490, "metadata": { "orderId": "o-1042" } } } }
   refund:
     name: Refund
-    about: A refund in full or by line. Support picks a reason, and the reason is saved on the order.
+    about: A refund in full or by line, with the reason support picked.
     shape:
       language: typescript
       text: |
@@ -146,7 +146,7 @@ payloads:
         { "id": "re_3Pq", "charge": "ch_3Pq", "amount": 2490, "status": "succeeded" }
   message:
     name: Message request
-    about: What a service asks Notifications to send. Notifications takes the wording from a template and sends it by SMS.
+    about: What a service asks Notifications to send.
     shape:
       language: typescript
       text: |
@@ -166,7 +166,7 @@ payloads:
         Body: Plum: Noodle Bar has your order. It arrives in about 35 min.
   job-offer:
     name: Job offer
-    about: The job a courier sees and what it pays. They have 30 s to take it before the next courier gets it.
+    about: The job a courier sees and what it pays.
     shape:
       language: kotlin
       text: |
@@ -217,24 +217,18 @@ objects:
     name: Ordering
     description: |
       Everything customer-facing: menus, basket, payment.
-
-      The **Order API** is the only entry point. It stores orders in Postgres and publishes each
-      new order to **Order events**, which **Delivery** consumes.
   delivery:
     type: system
     name: Delivery
-    description: |
-      Assigns a courier to each order and tracks it to the door.
-
-      Dispatch matches and offers. Live tracking feeds the customer's map.
+    description: Assigns a courier to each order and tracks it to the door.
   notifications:
     type: system
     name: Notifications
-    description: Push, SMS and email. The only system that talks to a messaging provider.
+    description: Push, SMS and email.
   backoffice:
     type: system
     name: Back office
-    description: Internal tools for Plum staff. Not exposed to customers or couriers.
+    description: Internal tools for Plum staff.
   stripe:
     type: system
     name: Stripe
@@ -263,7 +257,7 @@ objects:
     links:
       - { url: apps/customer/README.md, title: Build and release notes }
     description: |
-      Mobile client. Browse, order, pay, follow the courier.
+      Browse, order, pay, follow the courier.
 
       Stores only the basket and the session.
   web:
@@ -285,11 +279,7 @@ objects:
     tech: Node, Fastify
     code: [services/order-api/]
     description: |
-      Entry point for every client, and the only service that touches the **Orders DB**.
-
-      - `GET /menus/:restaurant` reads a menu
-      - `POST /orders` places an order
-      - `POST /orders/:id/refund` refunds one
+      Entry point for every client: menus, orders and refunds.
   orders-db:
     type: store
     in: ordering
@@ -300,7 +290,6 @@ objects:
       - name: orders
         kind: table
         limits: Kept 7 years, then archived
-        note: One row per order. A refund adds a row to refunds and leaves the order alone.
         columns:
           - {name: id, type: uuid, key: primary}
           - {name: customer_id, type: uuid, to: customers}
@@ -343,7 +332,7 @@ objects:
     data:
       - name: Keys
         limits: LRU eviction at 256 MB
-        note: 5 min TTL. A shorter one put too much load on Postgres.
+        note: A shorter TTL put too much load on Postgres.
         columns: [Key, Value, Expires]
         rows:
           - ["menu:{restaurantId}", "{ items, prices, hours }", 5 min]
@@ -356,8 +345,6 @@ objects:
     tech: Kafka
     description: |
       One message per order change: `placed`, `accepted`, `picked-up`, `delivered`.
-
-      Dispatch and the warehouse are consumers.
     data:
       - name: order-events
         kind: topic
@@ -385,8 +372,6 @@ objects:
     code: [services/order-api/src/pricing.ts]
     description: |
       Computes the total: items, delivery fee and any promotion.
-
-      The fee is based on Mapbox travel distance, rounded up to the next 500 m.
 
       A meal deal is priced by pricing each of its parts, and a part can be a deal too.
     snippets:
@@ -420,7 +405,7 @@ objects:
     type: component
     in: order-api
     name: Refunds
-    description: Refunds the card, then marks the order refunded. Full or per line.
+    description: Refunds the card, then marks the order refunded.
   courier-app:
     type: app
     in: delivery
@@ -433,10 +418,7 @@ objects:
     name: Dispatch
     tech: Go
     code: [services/dispatch/]
-    description: |
-      Assigns a courier to each new order.
-
-      Consumes `placed` events and offers the job to couriers one at a time, nearest first.
+    description: Assigns a courier to each new order.
   tracking:
     type: app
     in: delivery
@@ -473,7 +455,7 @@ objects:
     in: notifications
     name: Notifier
     tech: Node
-    description: Chooses push, SMS or email per message and sends it. Never blocks the caller.
+    description: Chooses push, SMS or email per message and sends it.
   templates:
     type: store
     in: notifications
@@ -498,7 +480,7 @@ objects:
     in: backoffice
     name: Data warehouse
     tech: ClickHouse
-    description: Every order event, kept for reporting. Only the **Admin dashboard** reads it.
+    description: Every order event, kept for reporting.
 connections:
   - { from: customer, to: customer-app, label: orders on a phone, payloads: [choice] }
   - { from: customer, to: web, label: orders in a browser, payloads: [choice] }
