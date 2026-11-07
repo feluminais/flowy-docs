@@ -24,17 +24,17 @@ public class ShellTests
     }
 
     [AvaloniaFact]
-    public void Opening_a_folder_that_is_already_open_brings_its_window_forward_instead_of_adding_one()
+    public void Opening_a_folder_that_is_already_open_brings_its_tab_forward_instead_of_adding_one()
     {
         var shell = new Shell(null);
         var first = shell.Show(Plum);
         var again = shell.Show(Plum + Path.DirectorySeparatorChar);
         var other = shell.Show(Example);
         Assert.Same(first, again);
-        Assert.NotSame(first, other);
-        Assert.Equal(2, shell.Windows.Count());
+        Assert.Same(first, other); // another folder is a tab of the same window
+        Assert.Equal(2, first.Tabs.Count);
+        Assert.Single(shell.Windows);
         first.Close();
-        other.Close();
         Assert.Empty(shell.Windows);
     }
 

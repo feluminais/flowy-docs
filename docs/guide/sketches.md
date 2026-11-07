@@ -3,6 +3,7 @@
 A sketch is for what isn't built or decided. It can't change the model, and its problems are not the model's.
 
 - **New sketch**, in the Explorer's **Sketches** group, needs no edit mode
+- A sketch opens in [a tab](desktop.md#tabs) beside its model, inside one outline
 - To delete one, remove its folder or call `delete_sketch`
 - A sketch holds no sketches, and keeps its own history
 - `code` and `links` paths start where the model's do

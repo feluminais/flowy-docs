@@ -131,7 +131,7 @@ internal sealed class TopBar : Border
             if (_syncing || _modelPicker.SelectedIndex < 0 || _modelPicker.SelectedIndex >= _models.Count) return;
             var picked = _models[_modelPicker.SelectedIndex];
             if (_dir is not null && ModelFolders.Key(picked.Dir) != ModelFolders.Key(_dir)) ModelPicked?.Invoke(picked.Dir);
-            ShowModels(_models, _dir); // this window stays on its own model; the picked one opens in its own window
+            ShowModels(_models, _dir); // this tab stays on its own model; the picked one opens in a tab of its own
         };
         _ownerButton.Click += (_, _) => OwnerClicked?.Invoke();
         ToolTip.SetTip(_ownerButton, "Back to the model");
