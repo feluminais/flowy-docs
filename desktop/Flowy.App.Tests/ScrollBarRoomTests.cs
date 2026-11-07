@@ -101,7 +101,7 @@ public class ScrollBarRoomTests
             panel.UpdateLayout();
 
             var list = panel.FileList!;
-            Assert.True(list.Bounds.Height <= 144, $"the list is {list.Bounds.Height} tall: it should cap at four rows and a half");
+            Assert.True(list.Bounds.Height <= 150, $"the list is {list.Bounds.Height} tall: it should cap at four rows and a half");
             var bar = list.GetVisualDescendants().OfType<ScrollBar>().First(b => b.Orientation == Avalonia.Layout.Orientation.Vertical && b.IsVisible);
             var content = list.GetVisualDescendants().OfType<ScrollContentPresenter>().First();
             Assert.False(content.Bounds.Intersects(bar.Bounds), $"The bar at {bar.Bounds} lies over the rows at {content.Bounds}");

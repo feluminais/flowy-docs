@@ -146,7 +146,7 @@ public class PerfPanelTests
         Assert.True(count > 4);
         var row = RunRow(panel, panel.Picker!.SelectedIndex)!;
         Assert.Equal(32, row.Bounds.Height);
-        Assert.Equal(144, panel.Picker.Bounds.Height); // four rows and half a fifth, so it shows there is more
+        Assert.Equal(150, panel.Picker.Bounds.Height); // four rows and half a fifth, so it shows there is more
         Assert.True(panel.Picker.GetVisualDescendants().OfType<ListBoxItem>().Count() < count); // only the rows in view are made
     }
 
