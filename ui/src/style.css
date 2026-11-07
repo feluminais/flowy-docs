@@ -970,7 +970,7 @@ kbd { padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px;
 .perf > * { flex: none; margin-top: 0; margin-bottom: 0; }
 .navbody > .perf { margin: -12px; padding: 14px 16px 26px; } /* the Performance and Failures panels fill the navigator's body */
 .perf h2 { margin: 0; font-size: 18px; }
-.row-list { max-height: 144px; margin: 0; padding: 0; overflow-y: auto; list-style: none; } /* four rows of 32px and half a fifth, which shows there is more */
+.row-list { box-sizing: border-box; max-height: 150px; margin: 0; padding: 2px; overflow-y: auto; list-style: none; border: 1px solid var(--line); border-radius: 6px; } /* four rows of 32px and half a fifth, which shows there is more, plus 6px of border and padding */
 .row-list .linked { flex: none; display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: 12.5px; }
 .panel .row-list .linked svg { color: inherit; top: 0; }
 .perf button.dd { width: 100%; min-height: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--box); justify-content: space-between; }

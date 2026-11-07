@@ -14,8 +14,8 @@ namespace Flowy.App;
 /// </summary>
 internal sealed class RowList : ListBox
 {
-    /// <summary>Four rows, 32 tall in Styles.axaml, and half a fifth.</summary>
-    private const double Tall = 144;
+    /// <summary>Four rows, 32 tall in Styles.axaml, and half a fifth, plus the border and padding (6).</summary>
+    private const double Tall = 150;
 
     private bool _told;
 
