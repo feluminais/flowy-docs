@@ -10,6 +10,14 @@ internal sealed partial class ReaderView
 
     internal bool StepMoving => _canvas.StepMoving;
 
+    /// <summary>Another tab takes the screen: a field being typed in saves, as a click elsewhere would, and a flow or a ramp stops running where nobody can see it. Coming back finds them paused.</summary>
+    internal void LeaveTab()
+    {
+        if (Avalonia.Controls.TopLevel.GetTopLevel(this)?.FocusManager?.GetFocusedElement() is Avalonia.Visual typing && Avalonia.VisualTree.VisualExtensions.FindAncestorOfType<FieldBox>(typing) is { } box) _ = box.Commit();
+        if (PlayingFlow() is not null && _playback.ShowsPause) _playback.TogglePlay();
+        _perf.StopRamp();
+    }
+
     /// <summary>
     /// For <c>--pause-at</c>: once the step on show moves, pauses it <paramref name="ms"/> into its motion; with <paramref name="hover"/> (<c>--hover-dot</c>) the first dot
     /// that carries a payload then shows its card, as the pointer on it would.
@@ -37,6 +45,8 @@ internal sealed partial class ReaderView
         }
         Try();
     }
+    internal bool FlowPaused => _playback.Paused;
+
     internal bool Autoplaying => _playback.Auto && PlayingFlow() is not null;
 
     /// <summary>Where the flow on show stands, for <see cref="Playback"/>: its stop and how many it has, or null when none plays.</summary>
