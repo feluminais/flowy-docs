@@ -10,7 +10,7 @@ using Flowy.Core;
 namespace Flowy.App;
 
 /// <summary>
-/// The YAML tab of the navigator: the model's files as text, read only. A tab for each file, the open flow's file first (the model's when a shape is
+/// The YAML tab of the navigator: the model's files as text, read only. A row for each file in a list that scrolls, the open flow's file shown first (the model's when a shape is
 /// selected), and the selected shape's lines tinted in model.yaml and brought into view. The browser's YAML tab (ui/src/Yaml.tsx) shows the same files,
 /// in the same order, and adds the history of changes, which the desktop does not keep.
 /// </summary>
@@ -19,7 +19,8 @@ internal sealed class YamlPanel : Grid
     /// <summary>Every line is this tall, so a line's place in the text is known without measuring it.</summary>
     internal const double Row = 20;
 
-    private readonly StackPanel _tabs = new() { Orientation = Orientation.Horizontal, Spacing = 2 };
+    private readonly Border _fileBox = new();
+    private RowList? _list;
     private readonly ScrollViewer _text = new() { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = true, IsTabStop = false }; // the arrows scroll it once a click has put the keyboard in it; Tab goes past
     private readonly TextBlock _numbers = new() { FontFamily = Fonts.Mono, FontSize = 12.5, LineHeight = Row, TextAlignment = TextAlignment.Right, Width = 32, Margin = new Thickness(0, 0, 12, 0) };
     private readonly SelectableTextBlock _code = new() { FontFamily = Fonts.Mono, FontSize = 12.5, LineHeight = Row, TextWrapping = TextWrapping.NoWrap };
@@ -30,7 +31,7 @@ internal sealed class YamlPanel : Grid
     internal const int LinesPage = 2000;
 
     private readonly Button _more = new() { HorizontalAlignment = HorizontalAlignment.Left, IsVisible = false, Classes = { "link" } };
-    private readonly Dictionary<string, Button> _tabButtons = [];
+    private List<string> _listed = [];
     private List<string> _lines = [];
     private int _limit;
     private List<YamlFile> _files = [];
@@ -53,14 +54,8 @@ internal sealed class YamlPanel : Grid
         var readOnly = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, Margin = new Thickness(0, 0, 0, 6), Children = { lockIcon, new TextBlock { Text = "Read only", FontSize = 12.5, VerticalAlignment = VerticalAlignment.Center } } };
         readOnly.Classes.Add("yreadonly");
 
-        _tabs.Classes.Add("navtabs");
-        _tabs.Classes.Add("yfiles");
-        AutomationProperties.SetName(_tabs, "Files");
-        // The line under the tabs scrolls with them, so the bar sits below the line, as in the browser.
-        var line = new Border { Child = _tabs };
-        line.Classes.Add("ytabs");
-        var tabStrip = new ScrollViewer { HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Content = line };
-        SetRow(tabStrip, 1);
+        _fileBox.Classes.Add("yfiles");
+        SetRow(_fileBox, 1);
 
         _numbers.Classes.Add("ynum");
         _block.Classes.Add("yblock");
@@ -76,7 +71,7 @@ internal sealed class YamlPanel : Grid
             ShowLines();
         };
         Children.Add(readOnly);
-        Children.Add(tabStrip);
+        Children.Add(_fileBox);
         Children.Add(_text);
     }
 
@@ -148,28 +143,18 @@ internal sealed class YamlPanel : Grid
         var fallback = selected is not null && paths.Contains(FolderLayout.ModelFile) ? FolderLayout.ModelFile : YamlFiles.DefaultFile(paths, flow);
         var path = _chosen is not null && paths.Contains(_chosen) ? _chosen : fallback;
 
-        // The tabs are made when the list of files changes, not at every step: a rebuilt tab under the keyboard would take it with it.
-        if (!paths.SequenceEqual(_tabButtons.Keys))
+        // The list is made when the files change, not at every step: a rebuilt list under the keyboard would take it with it.
+        if (_list is null || !paths.SequenceEqual(_listed))
         {
-            _tabs.Children.Clear();
-            _tabButtons.Clear();
-            foreach (var p in paths)
+            _listed = paths;
+            _list = new RowList("Files", paths.Select(YamlFiles.TabName).ToList(), paths.IndexOf(path), RowList.PlainRow, at =>
             {
-                var tab = new Button { Content = YamlFiles.TabName(p), FontSize = 12.5, MinHeight = 28 };
-                tab.Classes.Add("navtab");
-                ToolTip.SetTip(tab, p);
-                AutomationProperties.SetName(tab, p);
-                var picked = p;
-                tab.Click += (_, _) =>
-                {
-                    _chosen = picked;
-                    Draw();
-                };
-                _tabs.Children.Add(tab);
-                _tabButtons[p] = tab;
-            }
+                _chosen = _listed[at];
+                Draw();
+            }, () => Used?.Invoke());
+            _fileBox.Child = _list;
         }
-        foreach (var (p, tab) in _tabButtons) tab.Classes.Set("on", p == path);
+        else if (_list.SelectedIndex != paths.IndexOf(path)) _list.Choose(paths.IndexOf(path));
 
         if (_shown == (path, selected)) return; // the same text and block: leave the scroll where the reader put it
         var newFile = _shown?.Path != path;
@@ -209,8 +194,11 @@ internal sealed class YamlPanel : Grid
         AutomationProperties.SetName(_more, $"Show {Math.Min(LinesPage, left)} more, {left} left");
     }
 
+    /// <summary>A click on a file let go of the mouse: the keyboard goes back to the reader.</summary>
+    public event Action? Used;
+
     // What a test can look at.
-    internal IReadOnlyList<string> Tabs => _tabs.Children.OfType<Button>().Select(b => AutomationProperties.GetName(b) ?? "").ToList();
+    internal IReadOnlyList<string> Files => _listed;
 
     internal string? Open => _shown?.Path;
 
@@ -219,8 +207,8 @@ internal sealed class YamlPanel : Grid
     /// <summary>The button that draws the next page of a long file, or null when every line is drawn.</summary>
     internal Button? MoreButton => _more.IsVisible ? _more : null;
 
-    /// <summary>The tab button of a file, for a test.</summary>
-    internal Button? TabButton(string path) => _tabButtons.GetValueOrDefault(path);
+    /// <summary>The list of files, for a test.</summary>
+    internal RowList? FileList => _list;
 
     /// <summary>True while the files are being read.</summary>
     internal bool Reading => _cancelRead is not null;

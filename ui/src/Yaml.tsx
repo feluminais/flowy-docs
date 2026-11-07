@@ -3,6 +3,7 @@ import type { KeyboardEvent } from 'react'
 import type { HistoryStore } from './historystore.ts'
 import { focusIfLost } from './focusback.ts'
 import { Lock } from './icons.tsx'
+import { RowList } from './RowList.tsx'
 import { scrollToRow, visibleRows } from './window.ts'
 import { blockOf, canRestore, defaultFile, fileOrder, neighbour, restoreLabel, rowsFor, scrollTarget, SOURCE_NAMES, tabName, timeLabel } from './yamlview.ts'
 
@@ -39,7 +40,6 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
   const [height, setHeight] = useState(300)
   const text = useRef<HTMLDivElement>(null)
   const steps = useRef<HTMLUListElement>(null)
-  const tabs = useRef<HTMLDivElement>(null)
   const clear = useRef<HTMLButtonElement>(null)
   const keep = useRef<HTMLButtonElement>(null)
 
@@ -94,10 +94,6 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
     if (el && to !== undefined) el.scrollTop = to
   }, [view.shownId])
 
-  // The file shown stays in view in a strip of tabs that scrolls, however it was picked (a click, a new context, a version that has fewer files).
-  useEffect(() => {
-    tabs.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-  }, [file])
   // Clear history? takes the button's place and gives it back: the focus goes to the safe answer, and back to the button (or the text, once the history is gone).
   const wasAsking = useRef(false)
   useEffect(() => {
@@ -143,13 +139,8 @@ export function Yaml({ store, readOnly = false, editing, broken, flow, selected,
     <>
       {readOnly && <p className="yreadonly"><Lock size={14} />Read only</p>}
       <div className="yfiles">
-        <div className="ytabs" role="tablist" aria-label="Files" ref={tabs}>
-          {paths.map(p => (
-            <button key={p} role="tab" aria-selected={p === file} aria-label={changed.has(p) ? `${p}, changed` : p} title={p} onClick={() => setChosen(p)}>
-              {tabName(p)}{changed.has(p) && <i className="ydot" aria-hidden="true" />}
-            </button>
-          ))}
-        </div>
+        <RowList label="Files" value={file} onPick={setChosen}
+          rows={paths.map(p => ({ id: p, name: tabName(p), end: changed.has(p) ? <><i className="ydot" aria-hidden="true" /><span className="visually-hidden">, changed</span></> : undefined }))} />
       </div>
       {view.picked !== undefined && view.shown?.step.id === view.picked && (
         <div className="ybanner" role="status">

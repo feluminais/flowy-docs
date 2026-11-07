@@ -44,6 +44,7 @@ internal sealed class Panels
         _details.Closed += CloseDetails;
         _nav.Closed += CloseNav;
         _nav.Explorer.Toggled += ToggleOpen;
+        _nav.Yaml.Used += reader.TakeFocus; // a click on a file took the keyboard: give it back, so the keys work
         _rail.Picked += ToggleTab;
         _detailsRail.Picked += ToggleTab;
         _navSash.Current = () => _navWidth;

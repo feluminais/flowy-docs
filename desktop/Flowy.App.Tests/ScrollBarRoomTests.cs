@@ -86,9 +86,9 @@ public class ScrollBarRoomTests
     }
 
     [AvaloniaFact]
-    public async Task The_yaml_tab_strip_keeps_its_bar_under_the_tabs_and_their_line()
+    public async Task The_yaml_file_list_scrolls_inside_itself_with_its_bar_off_the_rows()
     {
-        var dir = Directory.CreateTempSubdirectory("flowy-yaml-tabs").FullName;
+        var dir = Directory.CreateTempSubdirectory("flowy-yaml-files").FullName;
         try
         {
             Directory.CreateDirectory(Path.Combine(dir, "flows"));
@@ -100,11 +100,11 @@ public class ScrollBarRoomTests
             await EditModeTests.Until(() => !panel.Reading);
             panel.UpdateLayout();
 
-            AssertBarsClear(panel);
-            var strip = panel.GetVisualDescendants().OfType<ScrollViewer>().First();
-            var bar = strip.GetVisualDescendants().OfType<ScrollBar>().First(b => b.Orientation == Avalonia.Layout.Orientation.Horizontal && b.IsVisible);
-            var line = strip.GetVisualDescendants().OfType<Border>().First(b => b.Classes.Contains("ytabs"));
-            Assert.True(line.TranslatePoint(new(0, line.Bounds.Height), strip)!.Value.Y <= bar.Bounds.Top, "the line under the tabs should sit above the bar, as in the browser");
+            var list = panel.FileList!;
+            Assert.True(list.Bounds.Height <= 144, $"the list is {list.Bounds.Height} tall: it should cap at four rows and a half");
+            var bar = list.GetVisualDescendants().OfType<ScrollBar>().First(b => b.Orientation == Avalonia.Layout.Orientation.Vertical && b.IsVisible);
+            var content = list.GetVisualDescendants().OfType<ScrollContentPresenter>().First();
+            Assert.False(content.Bounds.Intersects(bar.Bounds), $"The bar at {bar.Bounds} lies over the rows at {content.Bounds}");
         }
         finally
         {
