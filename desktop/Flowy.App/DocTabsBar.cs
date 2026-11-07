@@ -48,8 +48,10 @@ internal sealed class DocTabsBar : Border
         Chrome.Fill(_open, Icons.Plus, null, "Open folder");
         ToolTip.SetTip(_open, "Open folder (Ctrl+O)");
         _open.Click += (_, _) => OpenAsked?.Invoke();
-        Grid.SetColumn(_open, 1);
-        Child = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { _scroll, _open } };
+        // The button sits right after the last tab. The row stops growing where the button would leave the window, and scrolls from there.
+        _scroll.HorizontalAlignment = HorizontalAlignment.Left;
+        Child = new StackPanel { Orientation = Orientation.Horizontal, Children = { _scroll, _open } };
+        SizeChanged += (_, e) => _scroll.MaxWidth = Math.Max(0, e.NewSize.Width - Padding.Left - Padding.Right - _open.Margin.Left - _open.Bounds.Width);
     }
 
     public event Action<DocTab>? Picked;
@@ -117,7 +119,7 @@ internal sealed class DocTabsBar : Border
         ToolTip.SetTip(close, "Close tab (Ctrl+W)");
         close.Click += (_, _) => CloseAsked?.Invoke(tab);
 
-        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto)], Children = { pick, close } };
+        var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], Children = { pick, close } };
         Grid.SetColumn(close, 1);
         var shown = new Border { Child = grid, Classes = { "doctab" } };
         if (tab.IsSketch) shown.Classes.Add("sketch");
