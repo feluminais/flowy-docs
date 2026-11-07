@@ -25,6 +25,9 @@ internal sealed class YamlPanel : Grid
     private readonly TextBlock _numbers = new() { FontFamily = Fonts.Mono, FontSize = 12.5, LineHeight = Row, TextAlignment = TextAlignment.Right, Width = 32, Margin = new Thickness(0, 0, 12, 0) };
     private readonly SelectableTextBlock _code = new() { FontFamily = Fonts.Mono, FontSize = 12.5, LineHeight = Row, TextWrapping = TextWrapping.NoWrap };
     private readonly Border _block = new() { VerticalAlignment = VerticalAlignment.Top, IsVisible = false, IsHitTestVisible = false };
+    private readonly Border _gutterBlock = new() { VerticalAlignment = VerticalAlignment.Top, IsVisible = false, IsHitTestVisible = false }; // the selected shape's tint under the numbers, which cover the one in the text
+    private readonly Panel _gutter = new();
+    private readonly TranslateTransform _pin = new();
     private readonly TextBlock _note = new() { FontStyle = FontStyle.Italic, FontSize = 12.5, Margin = new Thickness(0, 8, 0, 0), TextWrapping = TextWrapping.Wrap, IsVisible = false };
 
     /// <summary>A long file is drawn this many lines at a time: one text block with every line of a big file makes the panel slow to lay out and to scroll.</summary>
@@ -60,7 +63,14 @@ internal sealed class YamlPanel : Grid
         _numbers.Classes.Add("ynum");
         _block.Classes.Add("yblock");
         _note.Classes.Add("ynote");
-        var lines = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { _numbers, _code } };
+        // The numbers are pinned: the text scrolls sideways under them. A click in the text brings the spot it hit into view, which would move numbers that scroll with it away.
+        _gutterBlock.Classes.Add("yblock");
+        _gutter.Classes.Add("ygutter");
+        _gutter.Children.Add(_gutterBlock);
+        _gutter.Children.Add(_numbers);
+        _gutter.RenderTransform = _pin;
+        _text.ScrollChanged += (_, _) => _pin.X = _text.Offset.X;
+        var lines = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], Children = { _gutter, _code } };
         SetColumn(_code, 1);
         _text.Content = new Panel { Margin = new Thickness(0, 6, 8, 6), Children = { _block, new StackPanel { Children = { lines, _note, _more } } } };
         SetRow(_text, 2);
@@ -168,11 +178,12 @@ internal sealed class YamlPanel : Grid
         _note.Text = file?.Note ?? (file is null ? (_cancelRead is not null ? "Reading files" : _readFailure ?? "No YAML files here") : null);
         _note.IsVisible = _note.Text is not null;
 
-        _block.IsVisible = block is not null;
+        _block.IsVisible = _gutterBlock.IsVisible = block is not null;
         if (block is { } b)
         {
             _block.Margin = new Thickness(-4, (b.Start - 1) * Row, 0, 0);
-            _block.Height = (b.End - b.Start + 1) * Row;
+            _block.Height = _gutterBlock.Height = (b.End - b.Start + 1) * Row;
+            _gutterBlock.Margin = new Thickness(-4, (b.Start - 1) * Row, 0, 0);
         }
         // The shape's lines come into view a third of the way down; a new file without them starts at the top. Placed once the text is laid out,
         // when the height it is seen at is known.
@@ -209,6 +220,13 @@ internal sealed class YamlPanel : Grid
 
     /// <summary>The list of files, for a test.</summary>
     internal RowList? FileList => _list;
+
+    /// <summary>The scroller of the text, and the line numbers and code in it, for a test.</summary>
+    internal ScrollViewer Scroller => _text;
+
+    internal Control Numbers => _numbers;
+
+    internal Control Code => _code;
 
     /// <summary>True while the files are being read.</summary>
     internal bool Reading => _cancelRead is not null;

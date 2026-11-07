@@ -13,6 +13,7 @@
     <Setter Property="Foreground" Value="{DynamicResource MutedBrush}" />
     <Setter Property="Opacity" Value="0.75" />
   </Style>
+  <Style Selector="Panel.ygutter"><Setter Property="Background" Value="{DynamicResource BgBrush}" /></Style>
   <Style Selector="Border.yblock"><Setter Property="Background" Value="{DynamicResource AccentTintBrush}" /></Style>
   <Style Selector="TextBlock.ynote"><Setter Property="Foreground" Value="{DynamicResource MutedBrush}" /></Style>
 </Styles>
