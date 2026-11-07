@@ -136,9 +136,16 @@
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
+    <!-- The room a scroll bar takes, the same as the bar under a code box (CodeBar.Tall) and the inset of a navigator tab. -->
+    <x:Double x:Key="ScrollBarSize">12</x:Double>
   </Styles.Resources>
 
   <!-- The styles more than one area uses. An area's own (the canvas, a panel, the bar) are in Styles/<area>.axaml, on the control that holds it (AreaStyles.cs). -->
+  <!-- A scroll bar has room of its own. The theme runs the content under bars that can hide, so the bar covers it, in every scroller: lists, text boxes and flyouts have one too. The selector has the theme's trigger because a style with a trigger outranks one without. -->
+  <Style Selector="ScrollViewer[AllowAutoHide=True] /template/ ScrollContentPresenter#PART_ContentPresenter">
+    <Setter Property="Grid.RowSpan" Value="1" />
+    <Setter Property="Grid.ColumnSpan" Value="1" />
+  </Style>
   <!-- TitleRow shows the window's title between the menu and the buttons, so the one Avalonia draws at the left (over the menu) goes. -->
   <Style Selector="WindowDrawnDecorations /template/ Panel#PART_TitleTextPanel > TextBlock"><Setter Property="IsVisible" Value="False" /></Style>
   <Style Selector="Window">
