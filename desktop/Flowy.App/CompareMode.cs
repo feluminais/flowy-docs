@@ -432,7 +432,7 @@ internal sealed class CompareMode
             DropUnlinkAsk();
             go?.Invoke();
             _reader.TakeFocus();
-        }, KeepLink, "Remove the link and its note", "Remove", "Take away the link and the note it holds", "Keep the link (Esc)");
+        }, KeepLink, "Remove the link and its note", "Remove", "Remove the link and its note", "Keep the link (Esc)");
         _overlay.Children.Add(_unlinkAsk);
     }
 

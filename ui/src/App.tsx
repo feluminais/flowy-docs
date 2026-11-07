@@ -433,7 +433,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <div className="draft-ask" role="alertdialog" aria-label="Discard the note?" onKeyDown={e => leaveOnEsc(e, () => setAsking(undefined))}>
               <FocusBack fallback={() => canvas.current} />
               <span>Discard the note?</span>
-              <button title="Throw the note away" onClick={discardNote}>Discard</button>
+              <button title="Discard the note" onClick={discardNote}>Discard</button>
               <button className="primary" autoFocus title="Keep the note (Esc)" onClick={() => setAsking(undefined)}>Keep</button>
             </div>
           )}
@@ -441,7 +441,7 @@ function Reader({ model, problems, codeBase, runs, runProblems, failureProblems,
             <div className="draft-ask" role="alertdialog" aria-label="Remove the link and its note?" onKeyDown={e => leaveOnEsc(e, () => setDropping(undefined))}>
               <FocusBack fallback={() => canvas.current} />
               <span>Remove the link and its note?</span>
-              <button title="Take away the link and the note it holds" onClick={() => {
+              <button title="Remove the link and its note" onClick={() => {
                 writeLink(dropping.id, dropping.other)
                 setDropping(undefined)
               }}>Remove</button>

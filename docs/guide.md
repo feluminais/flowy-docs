@@ -16,7 +16,7 @@ The examples come from Plum, the model in [`docs/demo/flowy`](demo/flowy).
 | What a database, cache or queue holds | [Data rules](writing.md#data), [Data](guide/data.md) |
 | A formula, a query or a request on a shape | [Show a few lines of code](writing.md#show-a-few-lines-of-code) |
 | How it breaks, risk, FMEA, "what if X is down" | [Failure rules](writing.md#failure-modes), [Failure modes](guide/failures.md) |
-| Load, capacity, "where does it struggle" | [Draw a load test](writing.md#draw-a-load-test), [Performance](guide/performance.md) |
+| Load, capacity, the limit | [Draw a load test](writing.md#draw-a-load-test), [Performance](guide/performance.md) |
 | A fix, a before and after, two runs side by side | [Write a comparison note](writing.md#write-a-comparison-note), [Compare](guide/compare.md) |
 | A sketch, a draft, something not built yet | [Sketches](guide/sketches.md) |
 | Colour, shape, icon | [Looks](writing.md#looks), [Shapes, colour and icons](guide/shapes.md) |

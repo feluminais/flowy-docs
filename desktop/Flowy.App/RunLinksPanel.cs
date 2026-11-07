@@ -81,7 +81,7 @@ internal sealed class RunLinksPanel : StackPanel
             var link = new Button { IsEnabled = saveOff is null, Margin = new Thickness(0, 0, 6, 0) };
             CompareBar.Make(link, Icons.Link, "Link with", "Link with", saveOff ?? "Link this run with another", () => TogglePicker(runId));
             var unlink = new Button { IsEnabled = unlinkOff is null, Margin = new Thickness(0, 0, 6, 0) };
-            CompareBar.Make(unlink, null, "Unlink", "Unlink", unlinkOff ?? "Take away the link", () =>
+            CompareBar.Make(unlink, null, "Unlink", "Unlink", unlinkOff ?? "Remove the link", () =>
             {
                 ShowPicker(null);
                 Unlinked?.Invoke(runId);

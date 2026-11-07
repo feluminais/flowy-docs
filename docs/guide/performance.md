@@ -48,8 +48,8 @@ Numbers are optional, and a missing one stays plain, never zero. An unknown shap
 - Shape holding others: the highest Busy and Failing inside, queues added.
 - Merged line: `rate` adds, `p50`, `p95` and `errors` take the worst, `bytes` is the mean weighted by `rate`. Both directions land on it.
 - Strain: Busy, or Failing times 20, whichever is worse.
-- First struggles, where the tab opens: the first tested load with a shape at 85% strain or the overall Slowest 5% at 3 times its first value. If both, the shape is named.
-- Chart: time on a log scale. Blue line Expected call, amber line Slowest 5%, red dashes First struggles, solid grey line Now, the slider's load.
+- Limit, where the tab opens: the first tested load with a shape at 85% strain or the overall Slowest 5% at 3 times its first value. If both, the shape is named.
+- Chart: time on a log scale. Blue line Expected call, amber line Slowest 5%, red dashes Limit, solid grey line Now, the slider's load.
 - Click a shape or line: its numbers at this load, with a small curve of each across all tested loads.
 - While editing: the tab lists runs and shows no numbers.
 - Reduced motion: no stripes, Ramp or Play. Colours, thickness, badges and numbers stay.
@@ -119,7 +119,7 @@ events:
 
 Each is a source with its `name`, loads and `source.color`, else the first of blue, green, orange and indigo unused. Two in one colour are a problem.
 
-Each counts at its own load: `util` and `queue` add, `errors` takes the worst, lines as a merged line. A shape past 1 stops at full strain and reads "Added use is over 100%". The result is an estimate.
+Each counts at its own load: `util` and `queue` add, `errors` takes the worst, lines as a merged line. A shape past 1 stops at full strain and reads "Adds up to over 100% busy". The result is an estimate.
 
 ## Tested together
 
@@ -141,6 +141,6 @@ levels:
 ## With several sources
 
 - The source last moved or clicked is active, marked at its edge: keys act on it, the chart follows it, the others hold.
-- First struggles: all sources rise together, each along its own loads.
+- Limit: all sources rise together, each along its own loads.
 - A shared line draws a stream per source. Past a `dot` count of 24 on the busiest, all on that line scale by one factor.
 - The address gives one place per source, in slider order: `#delivery/perf/together/3,2`. A list of the wrong length, or with a non-number, opens where the tab opens.

@@ -117,7 +117,7 @@ test('the panel says once how the sources were measured, and when a shape is add
   assert.equal(modeLabel('added'), 'Added from separate runs')
   assert.equal(modeLabel('tested'), 'Tested together')
   assert.equal(modeLabel('single'), undefined)
-  assert.equal(overText('added', 1.3), 'Added use is over 100%')
+  assert.equal(overText('added', 1.3), 'Adds up to over 100% busy')
   assert.equal(overText('added', 1), undefined)
   assert.equal(overText('added', 0.7), undefined)
   assert.equal(overText('added', undefined), undefined)

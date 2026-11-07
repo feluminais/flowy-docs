@@ -24,7 +24,7 @@ internal sealed record NoteInput(IReadOnlyDictionary<string, object?> Tags, Func
 internal sealed class DraftAsk : Border
 {
     /// <summary>Asks "Discard the note?", or, with the words given, another question with the same two answers: the first goes ahead and loses something, Keep stays.</summary>
-    public DraftAsk(Action discard, Action keep, string ask = "Discard the note?", string discardLabel = "Discard", string discardTip = "Throw the note away", string keepTip = "Keep the note (Esc)")
+    public DraftAsk(Action discard, Action keep, string ask = "Discard the note?", string discardLabel = "Discard", string discardTip = "Discard the note", string keepTip = "Keep the note (Esc)")
     {
         Classes.Add("card");
         HorizontalAlignment = HorizontalAlignment.Center;

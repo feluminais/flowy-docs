@@ -264,7 +264,7 @@ public class PerfPanelTests
         var (panel, folder) = Open();
         Show(panel, folder, "ramp", 3);
         var names = panel.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text).ToList();
-        Assert.Equal(["Expected call", "Slowest 5%", "First struggles"], names.Where(n => n is "Expected call" or "Slowest 5%" or "First struggles"));
+        Assert.Equal(["Expected call", "Slowest 5%", "Limit"], names.Where(n => n is "Expected call" or "Slowest 5%" or "Limit"));
         Assert.Contains("Busy", names);
         Assert.Contains("Waiting", names);
         Assert.Contains("Not measured", names);
@@ -276,7 +276,7 @@ public class PerfPanelTests
 
         Show(panel, folder, "calm", 1);
         Assert.DoesNotContain(panel.GetVisualDescendants().OfType<Avalonia.Controls.Shapes.Line>(), l => l.Classes.Contains("knee"));
-        Assert.DoesNotContain("First struggles", panel.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
+        Assert.DoesNotContain("Limit", panel.GetVisualDescendants().OfType<TextBlock>().Select(t => t.Text));
     }
 
     [AvaloniaFact]
@@ -285,7 +285,7 @@ public class PerfPanelTests
         var (panel, folder) = Open();
         Show(panel, folder, "calm", 1);
         var text = Text(panel);
-        Assert.Contains("It never struggled in the tested range.", text);
+        Assert.Contains("No limit in the tested range.", text);
         Assert.Contains("Problems", text.Replace("PROBLEMS", "Problems"));
         Assert.Contains("perf/broken.yaml", text);
         Assert.Contains("needs at least two levels", text);

@@ -163,9 +163,9 @@ public class GroupsTests
     {
         var (_, reader) = Open("1");
         reader.Play("capture-payment");
-        Assert.Null(Named(reader, "What do these mean?"));
+        Assert.Null(Named(reader, "Key"));
         reader.Play("ok");
-        var help = Named(reader, "What do these mean?")!;
+        var help = Named(reader, "Key")!;
         Assert.DoesNotContain(Borders(reader, "legend"), _ => true);
         Click(help);
         try
@@ -174,12 +174,12 @@ public class GroupsTests
             var words = Words(reader);
             foreach (var row in Captions.Legend) Assert.Contains(row.Title, words);
             Assert.Contains(Captions.Legend[2].Text, words);
-            Click(Named(reader, "What do these mean?")!);
+            Click(Named(reader, "Key")!);
             Assert.DoesNotContain(Borders(reader, "legend"), _ => true);
         }
         finally
         {
-            if (Borders(reader, "legend").Count > 0) Click(Named(reader, "What do these mean?")!); // leave it closed for the next test
+            if (Borders(reader, "legend").Count > 0) Click(Named(reader, "Key")!); // leave it closed for the next test
         }
     }
 

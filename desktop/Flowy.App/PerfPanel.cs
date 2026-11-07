@@ -655,8 +655,8 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(new TickLabels(PerfView.TickLabels(run)));
         if (!still) Children.Add(_ramp);
 
-        Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
-        if (knee is null) Children.Add(Muted("It never struggled in the tested range."));
+        Children.Add(Chrome.Section(Icons.Alert, "Limit"));
+        if (knee is null) Children.Add(Muted("No limit in the tested range."));
         else
         {
             var sentence = new TextBlock { Text = Perf.KneeText(run, knee, id => PathName(model, view, id)) + " ", TextWrapping = TextWrapping.Wrap };
@@ -681,7 +681,7 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(KeyRow.Of(
             (KeyRow.Mark("p50"), "Expected call"),
             (KeyRow.Mark("p95"), "Slowest 5%"),
-            knee is null ? null : (KeyRow.Dashes(), "First struggles"),
+            knee is null ? null : (KeyRow.Dashes(), "Limit"),
             (KeyRow.Mark("now"), "Now")));
         if (run.Events.Count > 0) Children.Add(BuildEvents(model, run));
 
@@ -1109,9 +1109,9 @@ internal sealed class PerfPanel : StackPanel
         Children.Add(Chrome.Section(Icons.Activity, "Load"));
         for (var i = 0; i < dials.Items.Count; i++) Children.Add(BuildDial(i, dials.Items[i], still));
 
-        Children.Add(Chrome.Section(Icons.Alert, "Where it struggles"));
+        Children.Add(Chrome.Section(Icons.Alert, "Limit"));
         var knee = Perf.KneeOf(runs, runId);
-        if (knee is null) Children.Add(Muted("It never struggled in the tested range."));
+        if (knee is null) Children.Add(Muted("No limit in the tested range."));
         else
         {
             var sentence = new TextBlock { Text = Perf.KneeTextOf(runs, runId, knee, id => PathName(model, view, id)) + " ", TextWrapping = TextWrapping.Wrap };

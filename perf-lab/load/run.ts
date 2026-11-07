@@ -115,7 +115,7 @@ async function main(): Promise<void> {
   await writeFile(out, text)
   const k = knee(run)
   console.log(`wrote ${out}`)
-  console.log(k ? kneeText(run, k, id => id) : 'It never struggled in the tested range.')
+  console.log(k ? kneeText(run, k, id => id) : 'No limit in the tested range.')
 }
 
 await main()

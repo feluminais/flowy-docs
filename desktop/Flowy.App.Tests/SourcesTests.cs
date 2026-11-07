@@ -221,7 +221,7 @@ public class SourcesTests
         reader.GoTo("shop");
         reader.Select("db");
         window.UpdateLayout();
-        Assert.Equal("Added use is over 100%", reader.PerfPanelNow.OverShown);
+        Assert.Equal("Adds up to over 100% busy", reader.PerfPanelNow.OverShown);
         Assert.Contains(("Busy", "130%"), reader.PerfPanelNow.Readings);
         Press(window, Key.Home, PhysicalKey.Home);
         Assert.Null(reader.PerfPanelNow.OverShown); // orders at the lowest, pings at its highest: 0.2 + 0.7 is not over it
