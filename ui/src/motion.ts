@@ -232,10 +232,6 @@ export const cardBox = (r: Rect, k: number, amount: number): Rect => ({ x: r.x +
 /** The counter on a recursing box: the height of the stack while it plays, and how deep it went once it has finished. */
 export const pillText = (playing: boolean, cards: number, depth: number): string => (playing ? `↻ ${Math.round(cards) + 1}` : `↻ ${depth} deep`)
 
-/** The squash for the `from` and `to` tiles. With one box at both ends the larger goes on it, so the empty second side never wipes the first. */
-export const tileSquash = (sameBox: boolean, squash: { from: number; to: number }): { from: number; to: number } =>
-  sameBox ? { from: Math.max(squash.from, squash.to), to: 0 } : squash
-
 /** The payload card on a paused dot: its largest size, how far it stands off the dot, and how far it keeps inside the canvas. */
 export const CARD = { width: 380, height: 320, gap: 12, margin: 8 } as const
 

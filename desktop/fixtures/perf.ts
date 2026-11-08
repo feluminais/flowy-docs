@@ -17,7 +17,7 @@ import { BARE_STRIPES, traffic, trafficAt } from '../../src/core/perf/traffic.ts
 import type { Dial, Metrics, Run, Setting } from '../../src/core/perf/types.ts'
 import { nameOf, pathName } from '../../src/core/views.ts'
 import {
-  activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionsOf, rampActive, rampFromActive, settingOf, slideDial, stepActive, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, loadNote, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
+  activeRun, activeSeries, bracketOf, BOX_KEYS, boxAt, boxSeries, boxSeriesIn, dialTicks, dialTop, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, rampActive, rampFromActive, settingOf, slideDial, stepFrom, clampPos, cursorX, eventFractions, eventRows, failureMarks, fmtBytes, fmtLoad, fmtMs, fmtPct, fmtRate, gridOf, isTested, LINE_KEYS, levelLabels, levelX, lineAt, lineSeries, loadAt, loadNote, METRICS, pathOf, posAt, RAMP_MS, RAMP_STEP_MS, rampFrom, rampPos, scaleOf, slidePos, sliderFraction, sliderRange, sliderValue, snap, sourceCss, tickLabels, top, xAt, xOfPos, yAt,
 } from '../../ui/src/perfview.ts'
 import { loadState } from '../../src/node/files.ts'
 
@@ -698,13 +698,10 @@ function dumpDials(model: Model) {
         return {
           positions,
           setting,
-          back: positionsOf(dials, setting),
           actives: dials.map((_, active) => {
             const along = activeSeries(runs, id, dials, positions, active)
             return {
               active,
-              step: [stepActive(dials, positions, active, 1), stepActive(dials, positions, active, -1)],
-              edge: [edgeActive(dials, positions, active, 'start'), edgeActive(dials, positions, active, 'end')],
               place: [placeActive(dials, positions, active, 1.5), placeActive(dials, positions, active, -2), placeActive(dials, positions, active, 99)],
               ramp: [0, 16, 1000, RAMP_MS / 2, RAMP_MS, RAMP_MS * 3].map(ms => rampActive(dials, positions, active, ms)),
               from: rampFromActive(dials, positions, active),

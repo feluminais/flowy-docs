@@ -420,13 +420,10 @@ public class PerfViewTests
                 var where = $"{id} at {set["positions"]!.ToJsonString()}";
                 var setting = PerfView.SettingOf(dials, positions);
                 Same(set["setting"], Json(setting), $"{where}: the setting");
-                Same(set["back"], Doubles(PerfView.PositionsOf(dials, Setting(set["setting"]))), $"{where}: the positions back");
                 foreach (var a in set["actives"]!.AsArray())
                 {
                     var active = a!["active"]!.GetValue<int>();
                     var at = $"{where}, dial {active}";
-                    Same(a["step"], new JsonArray(Doubles(PerfView.StepActive(dials, positions, active, 1)), Doubles(PerfView.StepActive(dials, positions, active, -1))), $"{at}: a step");
-                    Same(a["edge"], new JsonArray(Doubles(PerfView.EdgeActive(dials, positions, active, false)), Doubles(PerfView.EdgeActive(dials, positions, active, true))), $"{at}: the ends");
                     Same(a["place"], new JsonArray(Doubles(PerfView.PlaceActive(dials, positions, active, 1.5)), Doubles(PerfView.PlaceActive(dials, positions, active, -2)), Doubles(PerfView.PlaceActive(dials, positions, active, 99))), $"{at}: a place");
                     Same(a["ramp"], new JsonArray(new[] { 0, 16, 1000, PerfView.RampMs / 2, PerfView.RampMs, PerfView.RampMs * 3 }.Select(ms => (JsonNode?)Doubles(PerfView.RampActive(dials, positions, active, ms))).ToArray()), $"{at}: a ramp");
                     Same(a["from"], Doubles(PerfView.RampFromActive(dials, positions, active)), $"{at}: where a ramp starts");

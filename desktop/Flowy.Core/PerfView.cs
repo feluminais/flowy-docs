@@ -405,10 +405,6 @@ public static class PerfView
         return top;
     }
 
-    /// <summary>The positions of a setting, one for each dial; a dial it doesn't name is at its lowest load.</summary>
-    public static List<double> PositionsOf(IReadOnlyList<Dial> dials, IdMap<double> setting) =>
-        [.. dials.Select(d => PositionOf(d, setting.TryGetValue(d.Id, out var x) ? x : double.NaN))];
-
     /// <summary>
     /// Where the panel opens: at the first struggle when every dial rises together (the knee's step, each dial along its own loads), else every dial at its top, as a single run opens.
     /// <paramref name="knee"/> is what <see cref="Perf.KneeOf"/> found for the run, if anything.
@@ -425,14 +421,6 @@ public static class PerfView
 
     /// <summary>The whole-number position one step on from <paramref name="pos"/> in <paramref name="direction"/> (1 or -1): the next tested load, or the one before, even when <paramref name="pos"/> is between two.</summary>
     public static double StepFrom(double pos, int direction) => direction == 1 ? Math.Floor(pos + 1e-6) + 1 : Math.Ceiling(pos - 1e-6) - 1;
-
-    /// <summary>The positions with the dial <paramref name="active"/> one tested load further on (it stops at either end). Arrow keys.</summary>
-    public static List<double> StepActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, int direction) =>
-        PlaceActive(dials, positions, active, Perf.JsRound(ClampDial(dials[active], StepFrom(positions[active], direction))) + 0);
-
-    /// <summary>The positions with the dial <paramref name="active"/> at its first or last tested load. Home and End.</summary>
-    public static List<double> EdgeActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, bool end) =>
-        PlaceActive(dials, positions, active, end ? DialTop(dials[active]) : 0);
 
     /// <summary>The positions with the dial <paramref name="active"/> <paramref name="ms"/> further on in a ramp (it stops at its last tested load). The others are held.</summary>
     public static List<double> RampActive(IReadOnlyList<Dial> dials, IReadOnlyList<double> positions, int active, double ms) =>

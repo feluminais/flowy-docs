@@ -15,7 +15,8 @@ public class Smoke
         window.Show();
         reader.Load(FolderLoader.Load(Path.Combine(Repo.Root, "docs", "demo", "flowy")), Path.Combine(Repo.Root, "docs", "demo", "flowy"));
         Assert.Equal(Names.Root, reader.View);
-        Assert.NotNull(reader.Canvas.Scene);
+        Assert.NotEmpty(reader.Canvas.Scene!.Boxes); // the root level draws its shapes
+        Assert.NotEmpty(reader.Canvas.Scene.Edges);
     }
 }
 

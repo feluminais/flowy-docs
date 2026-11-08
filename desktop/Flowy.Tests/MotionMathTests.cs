@@ -215,20 +215,6 @@ public class MotionMathTests
     }
 
     [Fact]
-    public void With_one_box_at_both_ends_the_larger_squash_goes_on_the_first()
-    {
-        var all = Motion()["squashes"]!.AsArray();
-        Assert.Equal(8, all.Count);
-        foreach (var e in all)
-        {
-            var squash = e!["squash"]!;
-            var (from, to) = MotionMath.TileSquash(e["sameBox"]!.GetValue<bool>(), (squash["from"]!.GetValue<double>(), squash["to"]!.GetValue<double>()));
-            Assert.Equal(e["result"]!["from"]!.GetValue<double>(), from, 9);
-            Assert.Equal(e["result"]!["to"]!.GetValue<double>(), to, 9);
-        }
-    }
-
-    [Fact]
     public void A_gulp_squashes_the_box_it_is_on_while_it_runs()
     {
         var (beats, _) = Animations.BeatsFor(new StepAnimation("send", "inside", null), 250, false);

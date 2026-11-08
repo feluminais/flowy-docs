@@ -389,15 +389,6 @@ public static class Failures
     /// <summary>/^[1-9]\d*$/ with ASCII digits only.</summary>
     private static bool IsWholeFrom1(string s) => s.Length > 0 && s[0] is >= '1' and <= '9' && s.All(c => c is >= '0' and <= '9');
 
-    /// <summary>The analyses that name a shape: as a mode's part or the end of its line, in its <c>affects</c>, or as the scope.</summary>
-    public static List<string> UsersOfObject(Model model, string id) =>
-        model.Failures.Where(kv => kv.Value.Scope == id || kv.Value.Modes.Any(mm => mm.Value.On == id || mm.Value.From == id || mm.Value.To == id || (mm.Value.Affects ?? []).Contains(id)))
-            .Select(kv => kv.Key).ToList();
-
-    /// <summary>The analyses with a line mode on from → to.</summary>
-    public static List<string> UsersOfConnection(Model model, string from, string to) =>
-        model.Failures.Where(kv => kv.Value.Modes.Any(mm => mm.Value.From == from && mm.Value.To == to)).Select(kv => kv.Key).ToList();
-
     /// <summary>How a refusal names the analyses in the way: "failure analysis ordering", "failure analyses a, b".</summary>
     public static string AnalysesText(IReadOnlyList<string> ids) => $"{(ids.Count == 1 ? "failure analysis" : "failure analyses")} {string.Join(", ", ids)}";
 
