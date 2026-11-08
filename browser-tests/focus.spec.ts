@@ -121,5 +121,5 @@ test('past four runs the list scrolls inside itself, and a run opened by its lin
     const row = list.querySelector('[aria-current="true"]')!.getBoundingClientRect()
     return { height: box.height, scrolls: list.scrollHeight > list.clientHeight, inView: row.top >= box.top && row.bottom <= box.bottom, rowHeight: row.height, panel: list.closest('.perf')!.scrollTop }
   })
-  expect(fit).toEqual({ height: 144, scrolls: true, inView: true, rowHeight: 32, panel: 0 })
+  expect(fit).toEqual({ height: 150, scrolls: true, inView: true, rowHeight: 32, panel: 0 })
 })

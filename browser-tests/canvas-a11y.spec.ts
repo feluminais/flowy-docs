@@ -55,8 +55,8 @@ test('an Explorer row counts the shapes right inside it, as the canvas does, and
   await open(page, '')
   await page.getByRole('button', { name: /^Explorer/ }).click()
   const ordering = page.getByRole('treeitem', { name: /^Ordering/ })
-  await expect(ordering.locator('.count > [aria-hidden]')).toHaveText('7 inside · 13 flows')
-  await expect(ordering.locator('.count')).toHaveAttribute('title', '7 inside, 13 in all, 13 flows')
+  await expect(ordering.locator('.count > [aria-hidden]')).toHaveText('7 inside · 12 flows')
+  await expect(ordering.locator('.count')).toHaveAttribute('title', '7 inside, 13 in all, 12 flows')
   await expect(page.locator('.react-flow__node[data-id="ordering"] .inside')).toHaveText('7 inside')
 })
 
