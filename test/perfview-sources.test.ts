@@ -6,8 +6,8 @@ import { levelAt } from '../src/core/perf/levels.ts'
 import { parseRun } from '../src/core/perf/parse.ts'
 import type { Run } from '../src/core/perf/types.ts'
 import {
-  activeSeries, bracketOf, boxSeriesIn, dialTicks, dialTop, edgeActive, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionOf, positionsOf, rampActive, rampFromActive,
-  RAMP_MS, settingOf, stepActive, stepFrom,
+  activeSeries, bracketOf, boxSeriesIn, dialTicks, dialTop, heldText, lineSeriesIn, modeLabel, openingPositions, overText, placeActive, positionOf, rampActive, rampFromActive,
+  RAMP_MS, settingOf, stepFrom,
 } from '../ui/src/perfview.ts'
 import { shop } from './fixtures.ts'
 
@@ -28,10 +28,6 @@ test('a position along a dial is a load and a load is a position, one way round 
   assert.deepEqual(settingOf(dials, [1.5, 3]), { orders: 250, pings: 40 })
   assert.deepEqual(settingOf(dials, [9, -2]), { orders: 300, pings: 0 }, 'past the top is the top, and past no load is no load')
   assert.deepEqual(settingOf(dials, [Number.NaN, Number.POSITIVE_INFINITY]), { orders: 100, pings: 10 }, 'a position that is not a number is the lowest')
-  assert.deepEqual(positionsOf(dials, { orders: 250, pings: 40 }), [1.5, 3])
-  assert.deepEqual(positionsOf(dials, { orders: 999, pings: 1 }), [2, -0.9], 'a load under the first is on the way down to no load')
-  assert.deepEqual(positionsOf(dials, {}), [0, 0], 'a dial the setting does not name is at its lowest')
-  assert.deepEqual(positionsOf(dials, { orders: Number.NaN, pings: Number.NaN }), [0, 0])
   for (const pos of [0, 0.25, 1, 1.75, 2]) near(positionOf(dials[0], settingOf(dials, [pos, 0]).orders), pos)
 })
 
@@ -49,14 +45,6 @@ test('the arrow keys step the active dial to the next tested load and leave the 
   assert.equal(stepFrom(1.5, 1), 2)
   assert.equal(stepFrom(1.5, -1), 1)
   assert.equal(stepFrom(1 + 1e-9, -1), 0, 'a position a hair past a load is on it')
-  assert.deepEqual(stepActive(dials, [1, 2], 0, 1), [2, 2])
-  assert.deepEqual(stepActive(dials, [1, 2], 1, -1), [1, 1])
-  assert.deepEqual(stepActive(dials, [1.5, 2.5], 1, 1), [1.5, 3])
-  assert.deepEqual(stepActive(dials, [2, 4], 0, 1), [2, 4], 'it stops at the top')
-  assert.deepEqual(stepActive(dials, [0, 0], 1, -1), [0, -1], 'from the first load it goes down to no load')
-  assert.deepEqual(stepActive(dials, [0, -1], 1, -1), [0, -1], 'and stops there')
-  assert.deepEqual(edgeActive(dials, [1, 2], 1, 'end'), [1, 4])
-  assert.deepEqual(edgeActive(dials, [1, 2], 0, 'start'), [0, 2])
   assert.deepEqual(placeActive(dials, [1, 2], 0, 7), [2, 2])
   assert.deepEqual(placeActive(dials, [1, 2], 1, Number.NaN), [1, 0])
 })

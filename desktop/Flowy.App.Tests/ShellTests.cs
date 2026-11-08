@@ -19,7 +19,7 @@ public class ShellTests
         var window = shell.Show(Plum);
         Assert.Equal(Plum, window.Dir);
         Assert.Equal("demo - Flowy Docs", window.Title);
-        Assert.NotNull(window.Reader.Folder);
+        Assert.NotEmpty(window.Reader.Folder!.Model.Objects);
         window.Close();
     }
 

@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   analysedText, analysesText, analysisProblems, analysisText, badgeName, BAND_RULES, bandLabel, bandOf, bandReason, carried, coverage, coverageText, drawnIn, homeView, inView, lightFor, partName, rank, ratingOf, ratingsAfter, ratingsOf,
-  reach, riskOf, riskProduct, rollUp, rowName, runLinkProblems, usersOfConnection, usersOfObject,
+  reach, riskOf, riskProduct, rollUp, rowName, runLinkProblems,
 } from '../../src/core/failures.ts'
 import { ROOT } from '../../src/core/model.ts'
 import { locate } from '../../ui/src/edit.ts'
@@ -56,10 +56,6 @@ async function dumpDir(dir: string): Promise<unknown> {
         }
       }),
     })),
-    users: {
-      objects: Object.keys(model.objects).map(id => ({ id, analyses: usersOfObject(model, id) })),
-      connections: model.connections.map(c => ({ from: c.from, to: c.to, analyses: usersOfConnection(model, c.from, c.to) })),
-    },
   }
 }
 

@@ -388,9 +388,6 @@ export function positionOf(d: Dial, x: number): number {
   return top
 }
 
-/** The positions of a setting, one for each dial; a dial it doesn't name is at its lowest load. */
-export const positionsOf = (dials: readonly Dial[], setting: Setting): Positions => dials.map(d => positionOf(d, Object.hasOwn(setting, d.id) ? setting[d.id] : Number.NaN))
-
 /**
  * Where the tab opens: at the first struggle when every dial rises together (the knee's step, each dial along its own loads), else every dial at its top, as a single run opens.
  * `knee` is what kneeOf found for the run, if anything.
@@ -408,14 +405,6 @@ export const placeActive = (dials: readonly Dial[], positions: Positions, active
 
 /** The whole-number position one step on from `pos` in `direction` (1 or -1): the next tested load, or the one before, even when `pos` is between two. */
 export const stepFrom = (pos: number, direction: 1 | -1): number => (direction === 1 ? Math.floor(pos + 1e-6) + 1 : Math.ceil(pos - 1e-6) - 1)
-
-/** `positions` with the dial `active` one tested load further on (it stops at either end). Arrow keys. */
-export const stepActive = (dials: readonly Dial[], positions: Positions, active: number, direction: 1 | -1): Positions =>
-  placeActive(dials, positions, active, Math.round(clampDial(dials[active], stepFrom(positions[active], direction))) + 0)
-
-/** `positions` with the dial `active` at its first or last tested load. Home and End. */
-export const edgeActive = (dials: readonly Dial[], positions: Positions, active: number, edge: 'start' | 'end'): Positions =>
-  placeActive(dials, positions, active, edge === 'start' ? 0 : dialTop(dials[active]))
 
 /** `positions` with the dial `active` `ms` further on in a ramp (it stops at its last tested load). The others are held. */
 export const rampActive = (dials: readonly Dial[], positions: Positions, active: number, ms: number): Positions =>

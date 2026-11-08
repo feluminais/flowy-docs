@@ -2,7 +2,6 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { connect, deleteAnalysis, deleteMode, deleteObject, disconnect, OpError, putAnalysis, putMode, refuseNewProblems, removeConnection, swapSteps, updateAnalysis, updateMode } from '../src/core/ops.ts'
 import type { ModeInput } from '../src/core/ops.ts'
-import { usersOfConnection, usersOfObject } from '../src/core/failures.ts'
 import { ID_RULE } from '../src/core/model.ts'
 import { shop, shopWithFailures } from './fixtures.ts'
 
@@ -98,18 +97,6 @@ test('deleteMode and deleteAnalysis remove them', () => {
   assert.equal(Object.hasOwn(m.failures.ordering.modes, 'db-down'), false)
   assert.equal(Object.keys(m.failures.ordering.modes).length, 5)
   assert.deepEqual(deleteAnalysis(shopWithFailures(), 'ordering').failures, {})
-})
-
-test('usersOfObject and usersOfConnection find what a mode, an affects entry or a scope names', () => {
-  const m = shopWithFailures()
-  assert.deepEqual(usersOfObject(m, 'db'), ['ordering']) // on
-  assert.deepEqual(usersOfObject(m, 'mail'), ['ordering']) // end of a line
-  assert.deepEqual(usersOfObject(m, 'shop'), ['ordering']) // scope
-  assert.deepEqual(usersOfObject(m, 'customer'), [])
-  m.failures.ordering.modes['api-slow'].affects = ['customer']
-  assert.deepEqual(usersOfObject(m, 'customer'), ['ordering']) // affects
-  assert.deepEqual(usersOfConnection(m, 'orders', 'mail'), ['ordering'])
-  assert.deepEqual(usersOfConnection(m, 'mail', 'orders'), [])
 })
 
 test('deleteObject refuses a shape a mode names, as a part or as a line end, and drops it from affects', () => {

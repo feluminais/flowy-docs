@@ -198,10 +198,6 @@ public static class MotionMath
     public static string PillText(bool playing, double cards, int depth) =>
         playing ? $"↻ {(int)Math.Round(cards, MidpointRounding.AwayFromZero) + 1}" : $"↻ {depth} deep";
 
-    /// <summary>The squash for the <c>from</c> and <c>to</c> boxes. With one box at both ends the larger goes on it, so the empty second side never wipes the first.</summary>
-    public static (double From, double To) TileSquash(bool sameBox, (double From, double To) squash) =>
-        sameBox ? (Math.Max(squash.From, squash.To), 0) : squash;
-
     /// <summary>How hard each end of the step is squashed at <paramref name="t"/>: the strongest of the gulps running then.</summary>
     public static (double From, double To) Squash(IEnumerable<Beat> beats, double t)
     {

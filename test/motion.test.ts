@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { active, bump, CARD, cardBox, cardSpot, cardsAt, cyclePeriod, distance, ease, EFFECT, effectPose, entryPoint, keepsPlaying, momentOf, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, REST, squish, STILL, tileSquash, tintColor, tubeOpacity } from '../ui/src/motion.ts'
+import { active, bump, CARD, cardBox, cardSpot, cardsAt, cyclePeriod, distance, ease, EFFECT, effectPose, entryPoint, keepsPlaying, momentOf, labelOffset, LIT_FLOOR, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, REST, squish, STILL, tintColor, tubeOpacity } from '../ui/src/motion.ts'
 import { beatsFor, EFFECTS, TINTS } from '../src/core/animation.ts'
 import { COLORS } from '../src/core/look.ts'
 
@@ -237,12 +237,6 @@ test('the counter reads the height of the stack while it plays and how deep it w
   assert.equal(pillText(true, 1.4, 3), '↻ 2')
   assert.equal(pillText(true, 1.6, 3), '↻ 3')
   assert.equal(pillText(false, 0, 3), '↻ 3 deep')
-})
-
-test('with one box at both ends a squash on the first side is not wiped by the empty second side', () => {
-  assert.deepEqual(tileSquash(true, { from: 0.6, to: 0 }), { from: 0.6, to: 0 })
-  assert.deepEqual(tileSquash(true, { from: 0.2, to: 0.5 }), { from: 0.5, to: 0 })
-  assert.deepEqual(tileSquash(false, { from: 0.2, to: 0.5 }), { from: 0.2, to: 0.5 })
 })
 
 test('momentOf holds the end without Repeat and loops with it', () => {

@@ -128,21 +128,6 @@ public class FailuresTests
         }
     }
 
-    [Theory]
-    [InlineData("shop", "failures")]
-    [InlineData("plum", "plum")]
-    public void The_analyses_that_name_a_shape_or_a_line_are_found_as_the_TypeScript_finds_them(string key, string fixture)
-    {
-        var model = Load(fixture).Model;
-        var users = Expected()[key]!["users"]!;
-        Assert.Equal(
-            JsonDump.Pretty(users["objects"]),
-            JsonDump.Pretty(new JsonArray(model.Objects.Keys.Select(id => (JsonNode?)new JsonObject { ["id"] = id, ["analyses"] = Strings(Failures.UsersOfObject(model, id)) }).ToArray())));
-        Assert.Equal(
-            JsonDump.Pretty(users["connections"]),
-            JsonDump.Pretty(new JsonArray(model.Connections.Select(c => (JsonNode?)new JsonObject { ["from"] = c.From, ["to"] = c.To, ["analyses"] = Strings(Failures.UsersOfConnection(model, c.From!, c.To!)) }).ToArray())));
-    }
-
     [Fact]
     public void A_refusal_names_the_analyses_in_the_way()
     {

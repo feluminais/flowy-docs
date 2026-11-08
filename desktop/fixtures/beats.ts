@@ -1,7 +1,7 @@
 import { ANIMATION_KINDS, animationOf, animationProblem, animationWith, beatsFor, burstOf, CHANNEL_SKETCHES, channelLine, EFFECTS, END_SKETCHES, followsLanding, interceptorProblem, KIND_SKETCHES, leavesMarks, OUTCOME_SKETCHES, outcomeBlock, outcomeLine, RECURSE_HAS_TO, OUTCOMES, shortLabel, TINTS, travelMs } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
 import { colorPair } from '../../src/core/look.ts'
-import { active, bump, cardBox, cardSpot, cardsAt, distance, DWELL, ease, effectPose, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, tileSquash, tubeOpacity } from '../../ui/src/motion.ts'
+import { active, bump, cardBox, cardSpot, cardsAt, distance, DWELL, ease, effectPose, entryPoint, GAP, labelOffset, litOpacity, lowerSide, markerSize, markerSpot, noteSpot, pillText, progress, tubeOpacity } from '../../ui/src/motion.ts'
 
 type Box = { x: number; y: number; width: number; height: number }
 const SPOT_CARD = { width: 380, height: 320 }
@@ -118,7 +118,6 @@ const TUBE = { at: 0, dur: 1000 }
 const PILES: [number, number][] = [[2, 250], [3, 250], [5, 250], [3, 0]]
 const PILE_TIMES = [...Array.from({ length: 241 }, (_, i) => i * 50), 1319, 1395, 1470, 4365, 5760]
 const CARD_BOX = { x: 10, y: 20, width: 200, height: 72 }
-const SQUASHES = [{ from: 0, to: 0 }, { from: 0.6, to: 0 }, { from: 0.2, to: 0.5 }, { from: 0.5, to: 0.2 }]
 
 /** What the TypeScript says about tags: whether each is wrong, how it reads, how long a line takes, and every beat. */
 export function dumpBeats(): unknown {
@@ -202,7 +201,6 @@ export function dumpBeats(): unknown {
       }),
       cardBoxes: [1, 2, 3, 4].flatMap(k => [0, 0.25, 0.5, 1].map(amount => ({ k, amount, box: cardBox(CARD_BOX, k, amount) }))),
       pills: [false, true].flatMap(playing => [2, 3, 4, 5].flatMap(depth => [0, 0.5, 1, 1.4, 1.5, 1.6, 2.5, 3.4].map(cards => ({ playing, depth, cards, text: pillText(playing, cards, depth) })))),
-      squashes: [false, true].flatMap(sameBox => SQUASHES.map(squash => ({ sameBox, squash, result: tileSquash(sameBox, squash) }))),
       // Where the payload card of a paused dot goes (test/motion.test.ts has the first six).
       cardSpots: CARD_SPOTS.map(([dot, bounds, avoid, card = SPOT_CARD]) => ({ dot, card, bounds, avoid, spot: cardSpot(dot, card, bounds, avoid) })),
     },

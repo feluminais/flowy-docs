@@ -363,18 +363,6 @@ export function analysisProblems(model: Model, aid: string, a: Analysis): Proble
   return problems
 }
 
-/** The analyses that name a shape: as a mode's part or the end of its line, in its `affects`, or as the scope. */
-export function usersOfObject(model: Model, id: string): string[] {
-  return Object.entries(model.failures)
-    .filter(([, a]) => a.scope === id || Object.values(a.modes).some(m => m.on === id || m.from === id || m.to === id || (m.affects ?? []).includes(id)))
-    .map(([aid]) => aid)
-}
-
-/** The analyses with a line mode on from → to. */
-export function usersOfConnection(model: Model, from: string, to: string): string[] {
-  return Object.entries(model.failures).filter(([, a]) => Object.values(a.modes).some(m => m.from === from && m.to === to)).map(([aid]) => aid)
-}
-
 /** How a refusal names the analyses in the way: "failure analysis ordering", "failure analyses a, b". */
 export const analysesText = (ids: string[]): string => `${ids.length === 1 ? 'failure analysis' : 'failure analyses'} ${ids.join(', ')}`
 
