@@ -2,6 +2,8 @@
 
 <p align="center">Architecture docs you zoom into, kept in your repo.</p>
 
+<p align="center">Version 0.1.0, no release yet. One maintainer, in active development. The desktop app has been run on Windows only.</p>
+
 <p align="center">
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/feluminais/flowy-docs"></a>
   <a href="https://github.com/feluminais/flowy-docs/actions/workflows/ci.yml"><img alt="Tests" src="https://github.com/feluminais/flowy-docs/actions/workflows/ci.yml/badge.svg"></a>
@@ -190,8 +192,9 @@ connections:
 ## Contributing
 
 [CONTRIBUTING.md](CONTRIBUTING.md) has the build and the conventions, and [Maintaining](docs/maintaining.md) the rest. This repo
-documents itself: open its own `flowy/` folder in the app, or run `node src/cli.ts`. Bug reports and feature requests go to
-[Issues](https://github.com/feluminais/flowy-docs/issues).
+documents itself: open its own `flowy/` folder in the app, or run `node src/cli.ts`. Questions go to
+[Discussions](https://github.com/feluminais/flowy-docs/discussions), bug reports and feature requests to
+[Issues](https://github.com/feluminais/flowy-docs/issues), and [SUPPORT.md](SUPPORT.md) says what to expect.
 
 Flowy Docs is written with AI coding agents. Each change has to pass the tests and checks in CONTRIBUTING.md.
 
