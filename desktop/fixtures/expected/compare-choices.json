@@ -4123,52 +4123,6 @@
         "result": "Not while editing"
       }
     ],
-    "firstLinked": [
-      {
-        "id": "after",
-        "result": "base"
-      },
-      {
-        "id": "apple",
-        "result": null
-      },
-      {
-        "id": "bad-shape",
-        "result": null
-      },
-      {
-        "id": "bare",
-        "result": null
-      },
-      {
-        "id": "base",
-        "result": "after"
-      },
-      {
-        "id": "eat",
-        "result": null
-      },
-      {
-        "id": "eclair",
-        "result": null
-      },
-      {
-        "id": "lost",
-        "result": null
-      },
-      {
-        "id": "noted",
-        "result": "base"
-      },
-      {
-        "id": "same",
-        "result": null
-      },
-      {
-        "id": "zebra",
-        "result": null
-      }
-    ],
     "linked": [
       "after",
       "base",

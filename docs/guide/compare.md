@@ -4,8 +4,7 @@ The newer one reads on the right, and second in Swap.
 
 ## Open it
 
-- Compare on a flow row: beside the first linked flow, else the picker. Its shortcut does this for the flow playing and the run on the Performance tab.
-- Compare on the player card or the Performance tab: always the picker, linked ones first, then the rest by name.
+- Compare on a flow row, on the player card or on the Performance tab, and its shortcut: the picker, linked ones pinned on top, then the rest by name.
 - Greyed out: in the picker, a flow that can't play and a Missing tag. Compare itself, while editing or with nothing else to compare.
 
 ## Side by side and Swap

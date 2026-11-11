@@ -260,7 +260,7 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void C_with_a_linked_flow_opens_the_comparison_directly_and_reads_the_tag_holder_second()
+    public void C_with_a_linked_flow_opens_the_picker_with_the_linked_flow_first()
     {
         var (temp, window, reader) = Open(Linked);
         using var _ = temp;
@@ -269,12 +269,11 @@ public class CompareTests
         EditModeTests.Settle(window);
         Press(window, Key.C, PhysicalKey.C);
         EditModeTests.Settle(window);
-        Assert.Null(reader.PickerShown);
-        Assert.Equal(new CompareState("flow", "refund", "refund-not-recorded", "side"), reader.CompareNow);
-        Assert.Equal(1, reader.CompareShown!.Panes[1].StopNow);
-        Press(window, Key.C, PhysicalKey.C); // C again closes it
         Assert.Null(reader.CompareNow);
-        Assert.Equal("refund-not-recorded", reader.PlayingFlowId); // and the flow that was playing is back
+        Assert.Equal("refund", reader.PickerShown!.Rows[0].Id); // the linked flow is pinned on top
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.PickerShown);
+        Assert.Equal("refund-not-recorded", reader.PlayingFlowId); // and the flow that was playing is still there
     }
 
     [AvaloniaFact]
@@ -1718,7 +1717,7 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void C_with_the_Performance_panel_open_opens_the_first_linked_run_directly_else_the_picker()
+    public void C_with_the_Performance_panel_open_opens_the_picker_over_the_runs()
     {
         var (temp, window, reader) = Open(BatchedTags());
         using var _ = temp;
@@ -1727,10 +1726,11 @@ public class CompareTests
         EditModeTests.Settle(window);
         Press(window, Key.C, PhysicalKey.C);
         EditModeTests.Settle(window);
-        Assert.Equal(new CompareState("run", Dinner, Batched, "side"), reader.CompareNow); // the holder of the tag reads second
-        Assert.False(reader.PerfOpenNow);
-        Press(window, Key.C, PhysicalKey.C); // C again closes it
-        Assert.Null(reader.CompareNow);
+        Assert.Null(reader.CompareNow); // a linked run does not skip the picker
+        Assert.Equal("compare", reader.PerfPanelNow.PickerOpen);
+        EditModeTests.Settle(window);
+        Press(window, Key.Escape, PhysicalKey.Escape);
+        Assert.Null(reader.PerfPanelNow.RunPicker);
 
         reader.OpenTab("performance");
         reader.PickRunById("orders-only");
@@ -2053,7 +2053,7 @@ public class CompareTests
     }
 
     [AvaloniaFact]
-    public void The_Compare_button_on_a_row_of_a_linked_flow_opens_the_comparison_and_leaves_the_row_alone()
+    public void The_Compare_button_on_a_row_of_a_linked_flow_opens_the_picker_with_the_linked_flow_first()
     {
         var (temp, window, reader) = Open(Linked);
         using var _ = temp;
@@ -2065,9 +2065,8 @@ public class CompareTests
         Assert.Equal("Compare with another flow", ToolTip.GetTip(button));
         ClickBar(button);
         EditModeTests.Settle(window);
-        Assert.Equal(new CompareState("flow", "refund", "refund-not-recorded", "side"), reader.CompareNow); // the one that holds the tag reads second
-        Assert.Null(reader.PickerShown);
-        Assert.Null(reader.PlayingFlowId); // the comparison, not the flow's own player
+        Assert.Null(reader.CompareNow); // a linked flow does not skip the picker
+        Assert.Equal("refund", reader.PickerShown!.Rows[0].Id); // it is pinned on top
     }
 
     [AvaloniaFact]
@@ -2202,7 +2201,7 @@ public class CompareTests
         button.Focus();
         Press(window, Key.Enter, PhysicalKey.Enter);
         EditModeTests.Settle(window);
-        Assert.NotNull(reader.CompareNow); // its own Enter: the pair opened, and the flow did not play on its own
+        Assert.NotNull(reader.PickerShown); // its own Enter: the picker opened, and the flow did not play on its own
         Assert.Null(reader.PlayingFlowId);
     }
 

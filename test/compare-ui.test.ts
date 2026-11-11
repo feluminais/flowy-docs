@@ -6,7 +6,7 @@ import type { Run } from '../src/core/perf/types.ts'
 import { nameOf } from '../src/core/views.ts'
 import { diffFlows } from '../src/core/flowdiff.ts'
 import type { FlowDiff } from '../src/core/flowdiff.ts'
-import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, draftKey, firstLinked, firstLinkedRun, flipped, fromAddress, keepsDrafts, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, paneInside, paneLevel, paneUp, pairKey, pairOf, pairOff, partnerChoices, playable, removeNeedsConfirm, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved, withDraft } from '../ui/src/compare.ts'
+import { CHANGE_NAMES, changeOfStop, choicesFor, compareOff, draftKey, flipped, fromAddress, keepsDrafts, keyItems, linkedRuns, marksFor, noteOf, noteOff, orderPair, paneInside, paneLevel, paneUp, pairKey, pairOf, pairOff, partnerChoices, playable, removeNeedsConfirm, runCompareOff, runPairOf, samePick, saveTarget, taggedBy, tagWith, unsaved, withDraft } from '../ui/src/compare.ts'
 import type { Compare, Drafts } from '../ui/src/compare.ts'
 
 const flow = (name: string, compare?: unknown): Flow => ({ name, view: 'root', steps: [], ...(compare === undefined ? {} : { compare }) })
@@ -90,15 +90,6 @@ test('Compare is blocked while editing and with no other flow, and the reason is
   assert.equal(compareOff(modelOf({ a: plays('A') }), true), 'Not while editing', 'editing is the first reason')
 })
 
-test('C offers the first linked flow that is there, else nothing', () => {
-  const model = modelOf({ old: plays('Old'), now: plays('Now', 'old'), later: plays('Later', 'now'), alone: plays('Alone') })
-  assert.equal(firstLinked(model, 'now'), 'old')
-  assert.equal(firstLinked(model, 'old'), 'now')
-  assert.equal(firstLinked(model, 'alone'), undefined, 'not linked: the picker opens instead')
-  assert.equal(firstLinked(modelOf({ a: plays('A', 'gone'), b: plays('B', 'a') }), 'a'), 'b', 'a missing tag is skipped')
-  assert.equal(firstLinked(modelOf({ a: plays('A', 'gone') }), 'a'), undefined)
-})
-
 test('the pick is ordered so the holder of the tag is second', () => {
   const model = modelOf({ old: plays('Old'), now: plays('Now', 'old'), other: plays('Other') })
   assert.deepEqual(pairOf(model, 'now', 'old'), { kind: 'flow', a: 'old', b: 'now', mode: 'side' })
@@ -134,15 +125,6 @@ test('Compare on the Performance tab is blocked while editing and with no other 
   assert.equal(runCompareOff({ a: run('A'), b: run('B') }, false), undefined)
   assert.equal(runCompareOff({ a: run('A'), b: run('B') }, true), 'Not while editing')
   assert.equal(runCompareOff({ a: run('A') }, false), 'No other run')
-})
-
-test('C on a run offers the first run it is linked to that is there', () => {
-  const model = modelOf({})
-  const runs = { old: run('Old'), now: run('Now', { with: 'old' }), gone: run('Gone', { with: 'missing' }), alone: run('Alone') }
-  assert.equal(firstLinkedRun(model, runs, 'now'), 'old')
-  assert.equal(firstLinkedRun(model, runs, 'old'), 'now', 'the one that tags it')
-  assert.equal(firstLinkedRun(model, runs, 'alone'), undefined, 'not linked: the picker opens instead')
-  assert.equal(firstLinkedRun(model, runs, 'gone'), undefined, 'a tag to a run that is not there is skipped')
 })
 
 test('a run is marked linked when it tags a run that is there or one tags it', () => {

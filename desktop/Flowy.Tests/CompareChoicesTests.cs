@@ -75,8 +75,6 @@ public class CompareChoicesTests
     public void The_first_linked_run_and_the_runs_that_show_Linked_are_the_ones_the_TypeScript_says()
     {
         var rules = Expected["runRules"]!;
-        Assert.NotEmpty(rules["firstLinked"]!.AsArray());
-        foreach (var c in rules["firstLinked"]!.AsArray()) Assert.Equal(Null(c!["result"]), CompareChoices.FirstLinkedRun(Runs, c["id"]!.GetValue<string>()));
         Assert.Equal(rules["linked"]!.AsArray().Select(n => n!.GetValue<string>()).ToArray(), CompareChoices.LinkedRuns(Runs).Order(StringComparer.Ordinal).ToArray());
     }
 

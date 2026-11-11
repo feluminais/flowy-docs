@@ -7,7 +7,7 @@ import type { CompareTag } from '../../src/core/compare.ts'
 import { modelOf } from '../../src/core/state.ts'
 import { loadState } from '../../src/node/files.ts'
 import {
-  CHANGE_NAMES, changeOfStop, choicesFor, firstLinkedRun, flowTile, fromAddress, keyItems, linkedRuns, noteOf, noteOff, openable, orderPair, pairKey, pairOff, partnerChoices, removeNeedsConfirm, runCompareOff, runPairOf,
+  CHANGE_NAMES, changeOfStop, choicesFor, flowTile, fromAddress, keyItems, linkedRuns, noteOf, noteOff, openable, orderPair, pairKey, pairOff, partnerChoices, removeNeedsConfirm, runCompareOff, runPairOf,
   saveTarget, tagWith, taggedBy, unsaved,
 } from '../../ui/src/compare.ts'
 import type { Choice } from '../../ui/src/compare.ts'
@@ -84,7 +84,6 @@ export async function dumpCompareChoices(): Promise<unknown> {
     // The rules the Performance panel and the launch option ask about runs: whether Compare is blocked, the run C opens, which runs show Linked, the pair that opens and what an address says.
     runRules: {
       off: [0, 1, 2].flatMap(count => [false, true].map(editing => ({ count, editing, result: runCompareOff(Object.fromEntries(runIds.slice(0, count).map(id => [id, runs[id]])), editing) ?? null }))),
-      firstLinked: runIds.map(id => ({ id, result: none(firstLinkedRun(model, runs, id)) })),
       linked: [...linkedRuns(runs)].sort(),
       pairs: runIds.flatMap(id => runIds.map(other => { const c = runPairOf(runs, id, other); return { id, other, a: c.a, b: c.b } })),
       openable: asked.map(id => ({ id, result: openable(runs, id) })),

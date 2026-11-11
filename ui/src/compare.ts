@@ -149,15 +149,9 @@ export const playable = (model: Model, id: string): boolean => Object.hasOwn(mod
 export const compareOff = (model: Model, editing: boolean): string | undefined =>
   editing ? 'Not while editing' : Object.keys(model.flows).length < 2 ? 'No other flow' : undefined
 
-/** The first flow `id` is linked to that is there, or undefined: what C opens beside the flow playing. */
-export const firstLinked = (model: Model, id: string): string | undefined => choicesFor(model, {}, 'flow', id).linked.find(c => !c.missing)?.id
-
 /** Why the Compare button of the Performance tab is blocked, or undefined: there has to be a second run. */
 export const runCompareOff = (runs: Record<string, Run>, editing: boolean): string | undefined =>
   editing ? 'Not while editing' : Object.keys(runs).length < 2 ? 'No other run' : undefined
-
-/** The first run `id` is linked to that is there, or undefined: what C opens beside the run the Performance tab shows. */
-export const firstLinkedRun = (model: Model, runs: Record<string, Run>, id: string): string | undefined => choicesFor(model, runs, 'run', id).linked.find(c => !c.missing)?.id
 
 /** The runs that are linked to another run that is there, either way round: the Performance tab's run list marks them. */
 export function linkedRuns(runs: Record<string, Run>): Set<string> {

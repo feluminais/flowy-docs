@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { Flow, Model } from '../../src/core/model.ts'
 import { compareOf } from '../../src/core/compare.ts'
 import type { Run } from '../../src/core/perf/types.ts'
-import { compareOff, firstLinked, firstLinkedRun, openable, pairOf, playable, runCompareOff, runPairOf } from './compare.ts'
+import { compareOff, openable, pairOf, playable, runCompareOff, runPairOf } from './compare.ts'
 import type { Compare } from './compare.ts'
 import type { PickAt } from './ComparePicker.tsx'
 import type { NavTab } from './navstate.ts'
@@ -75,30 +75,19 @@ export function useCompareActions({ model, runs, editing, tag, setNotice, setSid
     setCompare(undefined)
     setSide(undefined) // what it showed was clicked in a pane
   }
-  /** C: close the comparison, or open it beside the flow playing (or the run the Performance tab shows), with the first one it is linked to or else the picker. */
+  /** C: close the comparison, or open the picker for the flow playing (or the run the Performance tab shows). The flows linked to it are pinned on top of the picker. */
   const toggleCompare = () => {
     if (comparing) return closeCompare()
     const off = perfOpen ? runCompareOff(runs, editing) : compareOff(model, editing)
     if (off !== undefined) return setNotice(off)
-    if (perfOpen) {
-      const other = firstLinkedRun(model, runs, runKey)
-      if (other === undefined) setPickingRun(open => (open === 'compare' ? undefined : 'compare'))
-      else openRunCompare(runKey, other)
-      return
-    }
-    const id = flow ? playing?.flow : undefined
-    if (id === undefined) return
-    const other = firstLinked(model, id)
-    if (other === undefined) setPicking(open => !open)
-    else openCompare(id, other)
+    if (perfOpen) return setPickingRun(open => (open === 'compare' ? undefined : 'compare'))
+    if (flow && playing?.flow !== undefined) setPicking(open => !open)
   }
-  /** The Compare button on a flow's row in the navigator: the comparison with the first flow it is linked to, or else the picker under that row. */
+  /** The Compare button on a flow's row in the navigator: the picker under that row. */
   const compareRow = (id: string, at: PickAt) => {
     if (compareOff(model, editing) !== undefined) return
     if (unlessDraft(() => compareRow(id, at))) return
-    const other = firstLinked(model, id)
-    if (other === undefined) setRowPicking(open => (open?.flow === id ? undefined : { flow: id, at }))
-    else openCompare(id, other)
+    setRowPicking(open => (open?.flow === id ? undefined : { flow: id, at }))
   }
   return { picking, setPicking, rowPicking, setRowPicking, pickingRun, setPickingRun, linkingRun, setLinkingRun, dropping, setDropping, openCompare, openRunCompare, writeLink, linkRun, closeCompare, toggleCompare, compareRow }
 }
