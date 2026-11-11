@@ -4,7 +4,7 @@
   "description": "Architecture docs you zoom through: open a repo's flowy/ folder as a diagram inside VS Code, play its flows, edit it, and jump between the diagram and the code.",
   "version": "0.1.0",
   "publisher": "feluminais",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/feluminais/flowy-docs.git",

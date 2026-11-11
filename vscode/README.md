@@ -64,5 +64,5 @@ The same folders open in a [native desktop app](https://github.com/feluminais/fl
 
 ## License
 
-MIT. The licences of what the extension bundles are in the package: `dist/THIRD-PARTY-LICENSES.md` for its own code and
+GPL-3.0. The licences of what the extension bundles are in the package: `dist/THIRD-PARTY-LICENSES.md` for its own code and
 `media/THIRD-PARTY-LICENSES.md` for the canvas.

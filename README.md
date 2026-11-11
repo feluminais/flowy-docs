@@ -5,7 +5,7 @@
 <p align="center">Version 0.1.0, no release yet. One maintainer, in active development. The desktop app has been run on Windows only.</p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/github/license/feluminais/flowy-docs"></a>
+  <a href="LICENSE"><img alt="GPL-3.0 license" src="https://img.shields.io/github/license/feluminais/flowy-docs"></a>
   <a href="https://github.com/feluminais/flowy-docs/actions/workflows/ci.yml"><img alt="Tests" src="https://github.com/feluminais/flowy-docs/actions/workflows/ci.yml/badge.svg"></a>
 </p>
 
@@ -200,7 +200,7 @@ Flowy Docs is written with AI coding agents. Each change has to pass the tests a
 
 ## License
 
-[MIT](LICENSE). The shape icons are from [Tabler Icons](https://tabler.io/icons), also MIT; their notice ships with the
+[GPL-3.0](LICENSE). The shape icons are from [Tabler Icons](https://tabler.io/icons), which is MIT; their notice ships with the
 canvas and the app.
 
 Stripe, Twilio and Mapbox appear in Plum as examples of outside services and are trademarks of their owners.
