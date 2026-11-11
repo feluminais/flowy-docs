@@ -86,9 +86,11 @@ public class PanelCostTests
         var first = Rows();
         Assert.InRange(first, 90, 110); // a page, not 250
         var more = panel.Buttons.First(b => (AutomationProperties.GetName(b) ?? "").StartsWith("Show "));
+        var moreName = AutomationProperties.GetName(more);
         more.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Settle();
-        Assert.Equal(first + 100, Rows());
+        var shows = string.Join(" | ", panel.Buttons.Select(b => AutomationProperties.GetName(b) ?? "").Where(n => n.StartsWith("Show ")));
+        Assert.True(Rows() == first + 100, $"rows {first} before the click on \"{moreName}\", {Rows()} after; same panel {ReferenceEquals(panel, reader.FailuresPanelNow)}, still attached {more.IsAttachedToVisualTree()}; Show buttons now: {shows}");
     }
 
     [AvaloniaFact]
