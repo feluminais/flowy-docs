@@ -439,8 +439,8 @@ svg { flex: none; }
 /* The cells are four pixels high: the strip that takes a click or a drag is 20, in the room the bar's margins already gave it. */
 .progress[role='slider'] { margin: 0; padding: 8px 0; }
 .progress .stretch { display: grid; min-width: 0; }
-.progress .grp { display: flex; flex-direction: column; gap: 3px; margin: 0 5px; padding: 5px 5px 3px; border: 1px solid var(--line); border-radius: 6px; }
-.progress .grp.maybe { border-style: dashed; border-color: var(--muted); }
+.progress .grp { display: flex; flex-direction: column; gap: 3px; margin: -6px 5px 0; padding: 6px 6px 4px; outline: 1px solid var(--line); outline-offset: -1px; border-radius: 6px; } /* an outline, not a border: a border's width rounds on a scaled screen and pushes the box's line off the plain ones' */
+.progress .grp.maybe { outline-style: dashed; outline-color: var(--muted); }
 .progress .runs { display: grid; gap: 2px 3px; }
 .progress .cell { position: relative; height: 4px; border-radius: 2px; background: var(--line); }
 .progress .cell::after { content: ''; position: absolute; inset: -1px 0; } /* a strip four pixels high is hard to point at: its hover text comes from a taller one */

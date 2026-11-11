@@ -298,7 +298,8 @@ internal sealed class PlayerCard : Border
             if (group < 0)
             {
                 part = Cell(plainAt[at]);
-                if (forked) (part.VerticalAlignment, part.Margin) = (VerticalAlignment.Top, new Thickness(0, Strip - 4, 0, 0));
+                // At the top of its column, not centred in it: a box beside it is taller, and its line would otherwise sit lower or higher than this one.
+                (part.VerticalAlignment, part.Margin) = (VerticalAlignment.Top, new Thickness(0, forked ? Strip - 4 : 0, 0, 0));
             }
             else if (progress.Brackets[group].Kind == "branch")
             {
@@ -318,8 +319,8 @@ internal sealed class PlayerCard : Border
                 var box = new Rectangle();
                 box.Classes.Add("box");
                 if (b.Maybe) box.Classes.Add("maybe");
-                // A box's strip is 7 down it, so on a forked bar the box drops by the rest.
-                part = new Grid { Margin = new Thickness(5, forked ? Strip - 7 : 0, 5, 0), VerticalAlignment = VerticalAlignment.Top, Background = Brushes.Transparent, Children = { box, new StackPanel { Margin = new Thickness(5, 3, 5, 0), Children = { cells, label } } } };
+                // A box's strip is 7 down it and a plain one 4, so the box rises by the difference and, on a forked bar, drops by the rest.
+                part = new Grid { Margin = new Thickness(5, (forked ? Strip : 4) - 7, 5, 0), VerticalAlignment = VerticalAlignment.Top, Background = Brushes.Transparent, Children = { box, new StackPanel { Margin = new Thickness(5, 3, 5, 0), Children = { cells, label } } } };
                 ToolTip.SetTip(part, b.Title);
             }
             strip.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(group < 0 ? 1 : progress.Brackets[group].To - progress.Brackets[group].From + 1, GridUnitType.Star)));
