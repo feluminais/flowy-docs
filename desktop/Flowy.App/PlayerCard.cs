@@ -157,11 +157,10 @@ internal sealed class PlayerCard : Border
     internal static string? BackTip(int stop, bool moving) =>
         !moving ? (stop == 0 ? "Nothing moves on this step" : null) : stop == 0 ? "Replay the step" : "Replay the step, twice for the one before";
 
-    private Button Tool(string icon, string? text, Action click, bool enabled = true, bool primary = false, string? name = null)
+    private Button Tool(string icon, string? text, Action click, bool enabled = true, string? name = null)
     {
         var button = new Button { IsEnabled = enabled };
         button.Classes.Add("tool");
-        if (primary) button.Classes.Add("primary");
         Chrome.Fill(button, icon, text, name);
         button.Click += (_, _) => click();
         return button;
@@ -651,7 +650,7 @@ internal sealed class PlayerCard : Border
             auto.Classes.Add("on");
             AutomationProperties.SetItemStatus(auto, "On"); // the tint is not the only copy of it
         }
-        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { back, play, Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1, primary: true), auto } };
+        var left = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { back, play, Tool(Icons.StepForward, "Next", () => Next?.Invoke(), v.Stop < v.Count - 1), auto } };
         var speeds = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 2, Margin = new Thickness(8, 0, 0, 0) };
         speeds.Classes.Add("speed");
         ToolTip.SetTip(speeds, "Speed (S)");
