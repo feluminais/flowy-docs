@@ -439,7 +439,7 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
           {showsPause ? <Pause size={16} /> : <Play size={16} />}
           <span className="same-width"><span className={showsPause ? undefined : 'ghost'} aria-hidden={!showsPause}>Pause</span><span className={showsPause ? 'ghost' : undefined} aria-hidden={showsPause}>Play</span></span>
         </button>
-        <button className="primary" disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
+        <button disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
         <button aria-label="Autoplay" aria-pressed={autoplay} title="Autoplay (A)" onClick={onAutoplay}><ListVideo size={16} /></button>
         <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving || autoplay} title={!moving ? STILL : autoplay ? 'Autoplay is on' : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>
         <div className="speed" role="group" aria-label="Speed" title="Speed (S)">
