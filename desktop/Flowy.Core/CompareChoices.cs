@@ -45,9 +45,6 @@ public static class CompareChoices
     /// <summary>Why Compare is blocked, or null when it is not: the reason goes in the button's tooltip.</summary>
     public static string? Off(Model model, bool editing) => editing ? "Not while editing" : model.Flows.Count < 2 ? "No other flow" : null;
 
-    /// <summary>The first flow <paramref name="id"/> is linked to that is there, or null: what C opens beside the flow playing.</summary>
-    public static string? FirstLinked(Model model, string id) => For(model, new Dictionary<string, LoadRun>(), "flow", id).Linked.FirstOrDefault(c => !c.Missing)?.Id;
-
     /// <summary>Each flow's (or run's) raw <c>compare</c> value by id, in the order of the files: what <see cref="Compares.Partners"/> and <see cref="Order"/> read.</summary>
     public static IReadOnlyDictionary<string, object?> TagsOf(Model model, IReadOnlyDictionary<string, LoadRun> runs, string kind)
     {
@@ -69,10 +66,6 @@ public static class CompareChoices
 
     /// <summary>Why the Performance panel's Compare is blocked, or null: it needs a second run, and not while editing. A port of <c>runCompareOff</c>.</summary>
     public static string? RunOff(IReadOnlyDictionary<string, LoadRun> runs, bool editing) => editing ? "Not while editing" : runs.Count < 2 ? "No other run" : null;
-
-    /// <summary>The first run <paramref name="id"/> is linked to that is there, or null: what C opens beside the run the Performance panel shows. A port of <c>firstLinkedRun</c>.</summary>
-    public static string? FirstLinkedRun(IReadOnlyDictionary<string, LoadRun> runs, string id) =>
-        For(new Model(), runs, "run", id).Linked.FirstOrDefault(c => !c.Missing)?.Id;
 
     /// <summary>The runs that are linked to another run that is there, either way round: the Performance panel's run picker marks them. A port of <c>linkedRuns</c>.</summary>
     public static IReadOnlySet<string> LinkedRuns(IReadOnlyDictionary<string, LoadRun> runs) => Compares.Linked(RunTags(runs));

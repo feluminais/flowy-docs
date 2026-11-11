@@ -196,7 +196,7 @@ internal sealed class CompareMode
     }
 
     /// <summary>
-    /// C: close the comparison, or open it beside the flow playing (or the run the Performance panel shows), with the first one it is linked to or else the picker. A comparison that waits
+    /// C: close the comparison, or open the picker for the flow playing (or the run the Performance panel shows). A comparison that waits
     /// behind the Performance tab is not the one on screen: C there is for the run.
     /// </summary>
     internal void Toggle()
@@ -214,9 +214,7 @@ internal sealed class CompareMode
                 _reader.ShowNotice(blocked, 4);
                 return;
             }
-            var runId = PerfView.ActiveRun(folder.Runs!, _perf.RunId);
-            if (CompareChoices.FirstLinkedRun(RunMap, runId) is { } linked) OpenRuns(runId, linked);
-            else _nav.Perf.TogglePicker("compare");
+            _nav.Perf.TogglePicker("compare");
             return;
         }
         if (CompareChoices.Off(folder.Model, _reader.Editing) is { } off)
@@ -225,8 +223,7 @@ internal sealed class CompareMode
             return;
         }
         if (_reader.Playing is not { } playing) return;
-        if (CompareChoices.FirstLinked(folder.Model, playing.Flow) is { } other) Open(playing.Flow, other);
-        else TogglePicker(playing.Flow);
+        TogglePicker(playing.Flow);
     }
 
     private void Flip()
@@ -519,7 +516,7 @@ internal sealed class CompareMode
     }
 
     /// <summary>
-    /// The Compare button on a flow's row (Flows tab or Explorer): the comparison of that flow with the first one it is linked to that is there, else the same flyout the player's button opens, hosted
+    /// The Compare button on a flow's row (Flows tab or Explorer): the same flyout the player's button opens, hosted
     /// under the navigator's tabs. A second press on the same row's button closes the flyout; on another row's, it moves there. Nothing opens while editing (the button is greyed out then).
     /// </summary>
     internal void FromRow(string flow)
@@ -531,11 +528,6 @@ internal sealed class CompareMode
             return;
         }
         DropPicker();
-        if (CompareChoices.FirstLinked(folder.Model, flow) is { } other)
-        {
-            Open(flow, other);
-            return;
-        }
         _pickerFlow = flow;
         _pickerOnRow = true;
         _picker = new ComparePicker(folder.Model, flow, partner => Open(flow, partner), ClosePicker);
