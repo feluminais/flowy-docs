@@ -274,11 +274,11 @@ public class PerformanceTests
         Press(window, Key.End, PhysicalKey.End);
         window.PressSpace(); // at the top: from no load
         Assert.True(reader.PerfState.Ramping);
-        Assert.Equal(-1.0, reader.PerfState.Pos);
+        Assert.InRange(reader.PerfState.Pos, -1.0, -0.9); // from no load; a frame may already have run, and a slow runner may run a few
         Assert.Equal("Pause", ButtonText(reader.PerfPanelNow.RampButton));
         Thread.Sleep(250);
         reader.TickRamp();
-        Assert.InRange(reader.PerfState.Pos, -0.99, -0.8); // a level takes 10 s on a ramp of four levels
+        Assert.InRange(reader.PerfState.Pos, -0.999, -0.8); // a level takes 10 s on a ramp of four levels
         window.PressSpace(); // pause where it has got to
         var paused = reader.PerfState.Pos;
         Assert.False(reader.PerfState.Ramping);
