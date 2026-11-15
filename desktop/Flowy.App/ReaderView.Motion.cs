@@ -49,6 +49,12 @@ internal sealed partial class ReaderView
 
     internal bool Autoplaying => _playback.Auto && PlayingFlow() is not null;
 
+    /// <summary>Autoplay was turned on or off with its button or key: what the app remembers for the next window.</summary>
+    public event Action<bool>? AutoplayPicked;
+
+    /// <summary>Starts with Autoplay as it was left, before a flow plays.</summary>
+    internal void RestoreAutoplay(bool on) => _playback.RestoreAuto(on);
+
     /// <summary>Where the flow on show stands, for <see cref="Playback"/>: its stop and how many it has, or null when none plays.</summary>
     private (int Index, int Count)? PlayWhere() => PlayingFlow() is { } f ? (StopIndex(), StopsOf(f.Flow).Count) : null;
 

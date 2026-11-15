@@ -4,7 +4,7 @@ A native reader and editor of the same folders, with its own renderer and no ser
 
 - Address: none.
 - A run's tag: no Undo, as in the browser.
-- Player: Autoplay and the speed last until it closes.
+- Player: the speed lasts until it closes. Autoplay is kept for the next time, as in the browser.
 - Layout: shapes you haven't dragged can sit a little differently. Dragged ones are where `layout.yaml` says.
 - A file that can't be read: the last good model stays, with the reason in a banner and editing off.
 - Images in descriptions: never fetched, shown as their description in brackets.

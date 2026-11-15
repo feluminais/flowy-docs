@@ -60,7 +60,14 @@ internal sealed class Playback
         Auto = !Auto;
         _hooks.Redraw();
         ArmAuto();
+        AutoToggled?.Invoke(Auto);
     }
+
+    /// <summary>Autoplay was turned on or off by the person (not by <see cref="StopAuto"/> or <see cref="RestoreAuto"/>).</summary>
+    public event Action<bool>? AutoToggled;
+
+    /// <summary>Autoplay as it was left last time, set before any flow plays: nothing is drawn or started.</summary>
+    public void RestoreAuto(bool on) => Auto = on;
 
     /// <summary>Autoplay off, for a flow of a comparison that goes out of sight. The caller draws.</summary>
     public void StopAuto()

@@ -203,6 +203,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
         _perf = new PerfSession(new PerfHooks(() => _folder?.Runs, snap => ApplyLoad(snap), () => _perfPanel.SnapSlider(),
             (places, active) => _perfPanel.SetPlaces(places, active, false), frame => TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ => frame()), () => Still));
         _playback = new Playback(new PlaybackHooks(() => Comparing ? null : PlayWhere(), () => _canvas.StepMoving, Refresh, _canvas.Clock.After, _canvas.Clock));
+        _playback.AutoToggled += on => AutoplayPicked?.Invoke(on);
         WirePerformance();
         _panels = new Panels(_nav, _rail, _detailsRail, _navSash, _detailsSash, _panel, _canvas, _perf, _host);
         _panels.Changed += state => NavigatorChanged?.Invoke(state);
