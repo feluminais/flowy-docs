@@ -53,6 +53,8 @@ internal sealed class DocTab : IDisposable
         Reader.LinesPicked += shell.RememberLines;
         Reader.ChangesPicked += shell.RememberChanges;
         Reader.ShowChanges = shell.State.ShowChanges;
+        Reader.RestoreAutoplay(shell.State.Autoplay);
+        Reader.AutoplayPicked += shell.RememberAutoplay;
         Reader.ModelPicked += picked => shell.Show(picked, null, TopLevel.GetTopLevel(Reader) as MainWindow);
         Reader.NavigatorChanged += navigator => shell.RememberNavigator(Dir, navigator);
         Reader.CustomApp = () => shell.State.OpenFilesWith;

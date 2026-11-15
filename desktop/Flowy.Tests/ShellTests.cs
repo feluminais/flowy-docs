@@ -143,6 +143,18 @@ public class UserStateTests
     }
 
     [Fact]
+    public void Autoplay_is_off_by_default_and_what_is_saved_is_read_back()
+    {
+        using var temp = new TempDir();
+        var store = new UserStateStore(Path.Combine(temp.Dir, "state.json"));
+        Assert.False(UserState.Default.Autoplay);
+        store.Save(UserState.Default with { Autoplay = true });
+        Assert.True(store.Load().Autoplay);
+        temp.Write("state.json", "{\"autoplay\": \"yes\"}");
+        Assert.False(store.Load().Autoplay); // anything but true is off
+    }
+
+    [Fact]
     public void What_is_saved_is_read_back_in_a_folder_that_did_not_exist()
     {
         using var temp = new TempDir();
