@@ -310,7 +310,8 @@ public class ParticlesTests
         Assert.Equal(path.End.X, x, 6);
         Assert.Equal(path.End.Y, y, 6);
         Assert.True(line.Total >= Math.Sqrt(Math.Pow(x - line.Xs[0], 2) + Math.Pow(y - line.Ys[0], 2)) - 1e-9);
-        if (style != "straight") Assert.True(line.Xs.Length > 2);
+        // Boxes one above the other make a right-angled line run straight, and a straight run has no bend points.
+        if (style == "curved") Assert.True(line.Xs.Length > 2);
         var last = double.NegativeInfinity;
         for (var s = 0.0; s <= 1; s += 0.05)
         {

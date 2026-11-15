@@ -66,7 +66,7 @@ test('a few lines are pinned by their path data', () => {
   const at = (style: LineStyle) => createLaneStore().laneFor(undefined, style, a, b).path
   assert.equal(at('straight'), 'M 200,36L 400,36')
   assert.equal(at('curved'), 'M200,36 C300,36 300,36 400,36')
-  assert.equal(at('angled'), 'M200 36L220 36L300 36L300 36L380 36L400 36')
+  assert.equal(at('angled'), 'M200 36L400 36')
 })
 
 test('asked again with the shapes where they were, the store gives back the same lane', () => {

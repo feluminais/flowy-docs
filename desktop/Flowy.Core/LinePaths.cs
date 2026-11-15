@@ -162,13 +162,20 @@ public static class LinePaths
         }
         var gappedSource = new Pt(sg.X + sourceGapOffset.X, sg.Y + sourceGapOffset.Y);
         var gappedTarget = new Pt(tg.X + targetGapOffset.X, tg.Y + targetGapOffset.Y);
-        var route = new List<Pt> { source };
-        if (gappedSource != points[0]) route.Add(gappedSource);
-        route.AddRange(points);
-        if (gappedTarget != points[^1]) route.Add(gappedTarget);
-        route.Add(target);
+        var route = new List<Pt>();
+        foreach (var point in new List<Pt> { source, gappedSource }.Concat(points).Append(gappedTarget).Append(target))
+        {
+            // Drop the last point when the path runs straight through it, so it doesn't shrink the bend of the next corner.
+            if (route.Count >= 2 && IsBetween(route[^2], route[^1], point)) route.RemoveAt(route.Count - 1);
+            route.Add(point);
+        }
         return (route, new Pt(cx, cy));
     }
+
+    /// <summary>Whether <paramref name="b"/> lies on the straight segment from <paramref name="a"/> to <paramref name="c"/>, counting b == c.</summary>
+    private static bool IsBetween(Pt a, Pt b, Pt c) =>
+        (a.X == b.X && b.X == c.X && (b.Y - a.Y) * (c.Y - b.Y) >= 0)
+        || (a.Y == b.Y && b.Y == c.Y && (b.X - a.X) * (c.X - b.X) >= 0);
 
     private static string Bend(Pt a, Pt b, Pt c, double size)
     {
