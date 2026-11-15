@@ -33,7 +33,7 @@ internal static class PaneChrome
             if (!first)
             {
                 var chevron = Icons.Make(Icons.ChevronRight, "crumbsep", 14);
-                chevron.Margin = new Thickness(2, 2, 2, 0);
+                chevron.Margin = new Thickness(2, 0);
                 chevron.VerticalAlignment = VerticalAlignment.Center;
                 row.Children.Add(chevron);
             }
