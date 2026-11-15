@@ -22,7 +22,7 @@ Write what the code can't tell you: what a part is for, who relies on it, why it
 ### Names, tech and paths
 
 - Name a shape for what it holds or does ("Orders DB"), never its type ("Database"), singular, in words a new teammate knows. Spell out an acronym where it first appears.
-- One name for one thing everywhere.
+- One name for one thing everywhere, and never a second shape for it.
 - Name an outside service for the vendor (Stripe), with its role in the teaser.
 - Fill `tech` on every app, store and component with the real stack, short ("Node, Fastify").
 - Give every app, store and component a `code` path: two or three, folders before files. Actors and outside services are the exception.
@@ -43,7 +43,8 @@ Shape, colour, opacity and icon are optional: the type picks a good default. Set
 - Warnings go first ("Deprecated: ...", "(planned)"): a reader may stop at the teaser. Write for any day: no "currently", "now" or "soon".
 - Later paragraphs: why, limits, risks. Point first, about 150 words at most, none for a plain shape. Write behaviour, which survives a rewrite. No versions, counts or endpoint lists, nothing the panel shows, no commands to run.
 - Where something is a guess, end its description with "Open question: ..." and never a plausible sentence.
-- Long documents (runbooks, decision records, specs) go in `links`. A relative Markdown link in a description fails on the canvas and in an export.
+- A fault in the repo or in another document is not a fact about the system: say it, don't draw it.
+- Long documents go in `links`. A relative Markdown link in a description fails on the canvas and in an export.
 - The project's `about`: what the system is for, who uses it and which shapes to open first, in one or two short paragraphs. No list of shapes, stack or endpoints.
 
 ### Label connections

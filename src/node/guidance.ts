@@ -87,8 +87,8 @@ const PROMPTS: Record<string, Prompt> = {
     text: () => [
       'Review the Flowy model. Change nothing: report.',
       'Read flowy://rules/writing, and flowy://rules/<topic> for each part the model has (flows, data, code, failures). Call get_problems, then get_model with summary: true, then read what you need in full.',
-      'Look for: an app, store or component with no real tech, no code path, or a path that proves nothing; a name that is only its type ("Database"); two shapes for one thing; an acronym not explained where it is used; a teaser that restates its name or opens with "responsible for"; a warning ("Deprecated", "planned") the teaser leaves out; a procedure, table or decision in a panel that a linked document should hold; a connection label that is "uses", or ends on to, from or with; a flow not named for a goal, with more than one trigger, or not starting with whoever sets it off; a step whose sender is not the subject, that names its receiver or ends on a preposition; a happy path that is not whole; a view with more than a dozen shapes; a look that says nothing, or a colour with two meanings; a store showing more than the tables a flow touches, rows that look real, or a note that does not say why; a failure mode that names more than one way of failing, an effect a reader could not see, or a rating nobody can defend; text that will go stale (versions, counts, endpoint lists); a guess not marked "Open question".',
-      'Give each finding as the shape or flow id, what is wrong, and what you would change, worst first.',
+      'Every line of those rules is a check, so report each shape, connection, flow, store, snippet or failure mode that breaks one. Then hold the model against the code it describes: a code path that has moved, a teaser the code contradicts, a sentence nothing in the repo supports, a number that was true once.',
+      'Give each finding as the shape or flow id, what is wrong, and what you would change, worst first. A model is best read by someone who did not write it, in a fresh session with the repo to hand.',
     ].join('\n\n'),
   },
 }
