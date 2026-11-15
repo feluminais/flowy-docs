@@ -223,6 +223,7 @@ test('in a comparison, a pane paused mid-send shows its dot\'s payload, inside t
     await page.goto(`http://127.0.0.1:${server.port}/#shop`)
     await page.getByRole('button', { name: /^Flows/ }).click()
     await page.getByRole('group', { name: 'Customer checks out', exact: true }).getByRole('button', { name: 'Compare', exact: true }).click()
+    await page.getByRole('dialog', { name: 'Compare with' }).getByRole('button', { name: /Customer checks out again/ }).click()
     const pane = page.locator('.pane').first()
     await pane.locator('.player').waitFor()
     await pane.locator('.player').getByRole('button', { name: 'Next', exact: true }).click()
