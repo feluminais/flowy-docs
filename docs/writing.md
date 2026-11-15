@@ -78,6 +78,7 @@ Every step text still says everything, with motion off and as a plain list.
 
 - Animate only when the user asked for motion. Then ask how much, unless they have said: Key steps (only a step whose way of travelling adds to its text) or Every step that hands something from one shape to another. If they asked for motion and gave no more, animate every such step.
 - Pick the kind by who waits: `call` when the sender waits for the answer, `send` or `event` when it doesn't, `callback` when something sets off a reply to a subscriber (`trigger: outside` when that came in at the step before).
+- A `call` already draws the answer coming back, so don't write the reply as its own step. Where the answer stands on its own (it comes much later, or another shape sends it), the first step is a `send` and the reply is a step of its own, with its own motion.
 - A step with no "to" can't travel, with one exception: a shape that calls itself to handle a smaller piece of the same job (a tree walk, a CNAME chase) is one step with no "to", tagged `recurse`. The text says what gets smaller and what stops it. `depth` is only how deep the picture goes, so the real limit goes in More. Repeating the same work without nesting is not recursion.
 
 ### Outcomes
