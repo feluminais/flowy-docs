@@ -156,7 +156,7 @@ internal sealed class TopBar : Border
     {
         var icon = Icons.Make(Icons.Sketch, "sketchmark", 14);
         icon.VerticalAlignment = VerticalAlignment.Center;
-        var word = new TextBlock { Text = "Sketch", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 0, 1), Classes = { "sketchmark" } };
+        var word = new TextBlock { Text = "Sketch", VerticalAlignment = VerticalAlignment.Center, Classes = { "sketchmark" } };
         var outline = new Avalonia.Controls.Shapes.Rectangle { RadiusX = 11, RadiusY = 11 };
         outline.Classes.Add("sketchmark");
         var row = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, Margin = new Thickness(9, 3), Children = { icon, word } };
@@ -197,7 +197,7 @@ internal sealed class TopBar : Border
             if (!first)
             {
                 var chevron = Icons.Make(Icons.ChevronRight, "crumbsep", 14);
-                chevron.Margin = new Thickness(2, 2, 2, 0);
+                chevron.Margin = new Thickness(2, 0);
                 chevron.VerticalAlignment = VerticalAlignment.Center;
                 _crumbs.Children.Add(chevron);
             }
