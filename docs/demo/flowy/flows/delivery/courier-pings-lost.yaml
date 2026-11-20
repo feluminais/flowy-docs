@@ -9,7 +9,8 @@ steps:
     animation: { kind: send, outcome: lost, share: 30, reason: Packet dropped }
     description: |
       The app does not retry them, since a newer one follows in 5 s.
-  - { from: tracking, to: customer-app, text: Sends the positions that did arrive, animation: { kind: send, carries: position } }
+  - { from: tracking, to: fleet-db, text: Stores only the positions that arrived, animation: { kind: send, carries: position } }
+  - { from: tracking, to: customer-app, text: Sends the same positions on, animation: { kind: send, carries: position } }
   - { from: customer-app, to: customer, text: The courier jumps across the map, animation: { kind: send, carries: map } }
   - from: fleet-db
     text: Keeps the last position it got

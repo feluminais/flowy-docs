@@ -3,7 +3,8 @@ view: ordering
 tags: [error path, recovery]
 steps:
   - { from: customer, to: customer-app, text: Taps Place order as Stripe goes down, animation: { kind: send, carries: basket } }
-  - { from: order-api, to: stripe, text: The hold is slow while Stripe shuts down, animation: call, states: { stripe: stopping } }
+  - { from: customer-app, to: order-api, text: POST /orders with the basket, animation: { kind: call, carries: POST /orders } }
+  - { from: checkout, to: stripe, text: Asks for a hold as Stripe shuts down, animation: { kind: call, carries: hold }, states: { stripe: stopping } }
   - from: checkout
     to: stripe
     text: The hold times out
@@ -11,8 +12,14 @@ steps:
     states: { stripe: stopped }
     description: |
       Checkout waits 5 s for the hold. It does not retry while Stripe is down.
-  - { from: checkout, to: customer-app, text: Offers pay at the door, animation: { kind: send, carries: pay at the door }, states: { checkout: degraded } }
+  - { from: order-api, to: customer-app, text: Offers pay at the door, animation: { kind: send, carries: pay at the door }, states: { checkout: degraded } }
   - { from: customer, to: customer-app, text: Picks pay at the door, animation: { kind: send, carries: cash } }
-  - { from: order-api, to: stripe, text: The status page says Stripe is restarting, animation: call, states: { stripe: restarting } }
-  - { from: order-api, to: stripe, text: The next check finds it coming back up, animation: call, states: { stripe: starting } }
-  - { from: checkout, to: stripe, text: The hold goes through, animation: call, states: { stripe: running, checkout: running } }
+  - { from: customer-app, to: order-api, text: Places the order as cash, animation: { kind: call, carries: cash } }
+  - from: checkout
+    to: stripe
+    text: Finds Stripe coming back on the next order
+    animation: call
+    states: { stripe: restarting }
+    description: |
+      Every new order tries the hold first, so the first one after the outage is the check.
+  - { from: checkout, to: stripe, text: The next hold goes through, animation: call, states: { stripe: running, checkout: running } }

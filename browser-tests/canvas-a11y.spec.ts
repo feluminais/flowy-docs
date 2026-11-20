@@ -13,7 +13,7 @@ async function open(page: Page, hash: string) {
 test('a connection is named by its shapes and its label, never by ids', async ({ page }) => {
   await open(page, '#ordering')
   await expect(page.getByRole('group', { name: /^Edge from / })).toHaveCount(0)
-  await expect(page.getByRole('group', { name: 'Customer app to Order API, REST' })).toHaveCount(1)
+  await expect(page.getByRole('group', { name: 'Customer app to Order API, reads menus, places orders' })).toHaveCount(1)
 })
 
 test('the level you are on is the current page, not an unavailable button', async ({ page }) => {
@@ -62,7 +62,7 @@ test('an Explorer row counts the shapes right inside it, as the canvas does, and
 
 test('the key of states draws each mark small and names the shape inside that is in a state', async ({ page }) => {
   await open(page, '#ordering/stripe-outage')
-  for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight') // step 6: Stripe restarts while Checkout is still degraded
+  for (let i = 0; i < 7; i++) await page.keyboard.press('ArrowRight') // step 8: Stripe restarts while Checkout is still degraded
   const key = page.locator('.player .keyrow')
   await expect(key).toContainText('Restarting')
   await expect(key).toContainText('Degraded inside: Checkout')

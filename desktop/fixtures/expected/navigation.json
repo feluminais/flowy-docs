@@ -71,7 +71,7 @@
               {
                 "from": "support",
                 "to": "support-console",
-                "label": "handles tickets"
+                "label": "works tickets"
               },
               {
                 "from": "support",
@@ -94,7 +94,7 @@
               {
                 "from": "pricing",
                 "to": "mapbox",
-                "label": "delivery distance"
+                "label": "measures delivery distance"
               }
             ]
           },
@@ -123,7 +123,7 @@
               {
                 "from": "status",
                 "to": "notifier",
-                "label": "order updates"
+                "label": "requests order updates"
               },
               {
                 "from": "refunds",
@@ -181,14 +181,14 @@
             "other": "delivery",
             "connections": [
               {
-                "from": "dispatch",
+                "from": "matcher",
                 "to": "events",
                 "label": "reads placed orders"
               },
               {
                 "from": "courier-app",
                 "to": "status",
-                "label": "picked up, delivered"
+                "label": "reports pickup and delivery"
               },
               {
                 "from": "tracking",
@@ -199,6 +199,18 @@
                 "from": "tracking",
                 "to": "web",
                 "label": "live map"
+              }
+            ]
+          },
+          {
+            "from": "notifications",
+            "to": "ordering",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "customer-app",
+                "label": "pushes order news"
               }
             ]
           },
@@ -235,14 +247,14 @@
             "other": "ordering",
             "connections": [
               {
-                "from": "dispatch",
+                "from": "matcher",
                 "to": "events",
                 "label": "reads placed orders"
               },
               {
                 "from": "courier-app",
                 "to": "status",
-                "label": "picked up, delivered"
+                "label": "reports pickup and delivery"
               },
               {
                 "from": "tracking",
@@ -264,12 +276,12 @@
               {
                 "from": "eta",
                 "to": "mapbox",
-                "label": "travel times"
+                "label": "asks for travel times"
               },
               {
                 "from": "courier-app",
                 "to": "mapbox",
-                "label": "navigation"
+                "label": "loads directions"
               }
             ]
           },
@@ -298,6 +310,18 @@
                 "label": "takes deliveries"
               }
             ]
+          },
+          {
+            "from": "notifications",
+            "to": "delivery",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "courier-app",
+                "label": "pushes job offers"
+              }
+            ]
           }
         ]
       },
@@ -312,7 +336,31 @@
               {
                 "from": "notifier",
                 "to": "twilio",
-                "label": "SMS"
+                "label": "sends SMS"
+              }
+            ]
+          },
+          {
+            "from": "notifications",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "customer-app",
+                "label": "pushes order news"
+              }
+            ]
+          },
+          {
+            "from": "notifications",
+            "to": "delivery",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "courier-app",
+                "label": "pushes job offers"
               }
             ]
           }
@@ -326,7 +374,7 @@
               {
                 "from": "status",
                 "to": "notifier",
-                "label": "order updates"
+                "label": "requests order updates"
               },
               {
                 "from": "refunds",
@@ -384,7 +432,7 @@
               {
                 "from": "support",
                 "to": "support-console",
-                "label": "handles tickets"
+                "label": "works tickets"
               },
               {
                 "from": "support",
@@ -442,7 +490,7 @@
               {
                 "from": "notifier",
                 "to": "twilio",
-                "label": "SMS"
+                "label": "sends SMS"
               }
             ]
           }
@@ -460,7 +508,7 @@
               {
                 "from": "pricing",
                 "to": "mapbox",
-                "label": "delivery distance"
+                "label": "measures delivery distance"
               }
             ]
           },
@@ -472,12 +520,12 @@
               {
                 "from": "eta",
                 "to": "mapbox",
-                "label": "travel times"
+                "label": "asks for travel times"
               },
               {
                 "from": "courier-app",
                 "to": "mapbox",
-                "label": "navigation"
+                "label": "loads directions"
               }
             ]
           }
@@ -494,7 +542,7 @@
               {
                 "from": "customer-app",
                 "to": "order-api",
-                "label": "REST"
+                "label": "reads menus, places orders"
               }
             ]
           }
@@ -523,6 +571,18 @@
                 "label": "live map"
               }
             ]
+          },
+          {
+            "from": "notifications",
+            "to": "customer-app",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "customer-app",
+                "label": "pushes order news"
+              }
+            ]
           }
         ]
       },
@@ -537,7 +597,7 @@
               {
                 "from": "web",
                 "to": "order-api",
-                "label": "REST"
+                "label": "reads menus, places orders"
               }
             ]
           }
@@ -580,7 +640,7 @@
               {
                 "from": "kitchen-tablet",
                 "to": "order-api",
-                "label": "accepts, marks ready"
+                "label": "accepts orders, marks them ready"
               }
             ]
           }
@@ -623,7 +683,7 @@
               {
                 "from": "menu",
                 "to": "orders-db",
-                "label": "on a cache miss"
+                "label": "reads menus on a cache miss"
               },
               {
                 "from": "basket",
@@ -638,7 +698,7 @@
               {
                 "from": "status",
                 "to": "orders-db",
-                "label": "moves the order on"
+                "label": "updates order status"
               },
               {
                 "from": "refunds",
@@ -655,7 +715,7 @@
               {
                 "from": "pricing",
                 "to": "mapbox",
-                "label": "delivery distance"
+                "label": "measures delivery distance"
               }
             ]
           },
@@ -701,7 +761,7 @@
               {
                 "from": "status",
                 "to": "notifier",
-                "label": "order updates"
+                "label": "requests order updates"
               },
               {
                 "from": "refunds",
@@ -720,7 +780,7 @@
               {
                 "from": "customer-app",
                 "to": "order-api",
-                "label": "REST"
+                "label": "reads menus, places orders"
               }
             ]
           },
@@ -732,7 +792,7 @@
               {
                 "from": "web",
                 "to": "order-api",
-                "label": "REST"
+                "label": "reads menus, places orders"
               }
             ]
           },
@@ -744,7 +804,7 @@
               {
                 "from": "kitchen-tablet",
                 "to": "order-api",
-                "label": "accepts, marks ready"
+                "label": "accepts orders, marks them ready"
               }
             ]
           },
@@ -756,7 +816,7 @@
               {
                 "from": "courier-app",
                 "to": "status",
-                "label": "picked up, delivered"
+                "label": "reports pickup and delivery"
               }
             ]
           },
@@ -796,7 +856,7 @@
               {
                 "from": "menu",
                 "to": "orders-db",
-                "label": "on a cache miss"
+                "label": "reads menus on a cache miss"
               },
               {
                 "from": "basket",
@@ -811,7 +871,7 @@
               {
                 "from": "status",
                 "to": "orders-db",
-                "label": "moves the order on"
+                "label": "updates order status"
               },
               {
                 "from": "refunds",
@@ -880,7 +940,7 @@
             "other": "delivery",
             "connections": [
               {
-                "from": "dispatch",
+                "from": "matcher",
                 "to": "events",
                 "label": "reads placed orders"
               }
@@ -911,7 +971,7 @@
               {
                 "from": "menu",
                 "to": "orders-db",
-                "label": "on a cache miss"
+                "label": "reads menus on a cache miss"
               }
             ]
           }
@@ -959,7 +1019,7 @@
               {
                 "from": "pricing",
                 "to": "mapbox",
-                "label": "delivery distance"
+                "label": "measures delivery distance"
               }
             ]
           }
@@ -1056,7 +1116,7 @@
               {
                 "from": "status",
                 "to": "orders-db",
-                "label": "moves the order on"
+                "label": "updates order status"
               }
             ]
           },
@@ -1080,7 +1140,7 @@
               {
                 "from": "status",
                 "to": "notifier",
-                "label": "order updates"
+                "label": "requests order updates"
               }
             ]
           }
@@ -1094,7 +1154,7 @@
               {
                 "from": "courier-app",
                 "to": "status",
-                "label": "picked up, delivered"
+                "label": "reports pickup and delivery"
               }
             ]
           }
@@ -1178,7 +1238,7 @@
               {
                 "from": "courier-app",
                 "to": "tracking",
-                "label": "position every 5 s"
+                "label": "sends its position every 5 s"
               }
             ]
           },
@@ -1190,7 +1250,7 @@
               {
                 "from": "courier-app",
                 "to": "status",
-                "label": "picked up, delivered"
+                "label": "reports pickup and delivery"
               }
             ]
           },
@@ -1202,7 +1262,7 @@
               {
                 "from": "courier-app",
                 "to": "mapbox",
-                "label": "navigation"
+                "label": "loads directions"
               }
             ]
           }
@@ -1219,6 +1279,18 @@
                 "label": "takes deliveries"
               }
             ]
+          },
+          {
+            "from": "notifications",
+            "to": "courier-app",
+            "other": "notifications",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "courier-app",
+                "label": "pushes job offers"
+              }
+            ]
           }
         ]
       },
@@ -1231,7 +1303,7 @@
             "other": "ordering",
             "connections": [
               {
-                "from": "dispatch",
+                "from": "matcher",
                 "to": "events",
                 "label": "reads placed orders"
               }
@@ -1257,7 +1329,7 @@
               {
                 "from": "eta",
                 "to": "mapbox",
-                "label": "travel times"
+                "label": "asks for travel times"
               }
             ]
           },
@@ -1331,7 +1403,7 @@
               {
                 "from": "courier-app",
                 "to": "tracking",
-                "label": "position every 5 s"
+                "label": "sends its position every 5 s"
               }
             ]
           }
@@ -1370,6 +1442,18 @@
       {
         "id": "matcher",
         "out": [
+          {
+            "from": "matcher",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "matcher",
+                "to": "events",
+                "label": "reads placed orders"
+              }
+            ]
+          },
           {
             "from": "matcher",
             "to": "fleet-db",
@@ -1420,7 +1504,7 @@
               {
                 "from": "eta",
                 "to": "mapbox",
-                "label": "travel times"
+                "label": "asks for travel times"
               }
             ]
           }
@@ -1482,7 +1566,7 @@
               {
                 "from": "notifier",
                 "to": "twilio",
-                "label": "SMS"
+                "label": "sends SMS"
               }
             ]
           },
@@ -1497,6 +1581,30 @@
                 "label": "reads the wording"
               }
             ]
+          },
+          {
+            "from": "notifier",
+            "to": "ordering",
+            "other": "ordering",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "customer-app",
+                "label": "pushes order news"
+              }
+            ]
+          },
+          {
+            "from": "notifier",
+            "to": "delivery",
+            "other": "delivery",
+            "connections": [
+              {
+                "from": "notifier",
+                "to": "courier-app",
+                "label": "pushes job offers"
+              }
+            ]
           }
         ],
         "in": [
@@ -1508,7 +1616,7 @@
               {
                 "from": "status",
                 "to": "notifier",
-                "label": "order updates"
+                "label": "requests order updates"
               },
               {
                 "from": "refunds",
@@ -1572,7 +1680,7 @@
               {
                 "from": "admin",
                 "to": "warehouse",
-                "label": "weekly reports"
+                "label": "reads weekly reports"
               }
             ]
           }
@@ -1622,7 +1730,7 @@
               {
                 "from": "support",
                 "to": "support-console",
-                "label": "handles tickets"
+                "label": "works tickets"
               }
             ]
           }
@@ -1640,7 +1748,7 @@
               {
                 "from": "admin",
                 "to": "warehouse",
-                "label": "weekly reports"
+                "label": "reads weekly reports"
               }
             ]
           },

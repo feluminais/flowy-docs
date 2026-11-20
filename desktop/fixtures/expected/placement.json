@@ -1149,6 +1149,10 @@
           "to": "web"
         },
         {
+          "from": "notifications",
+          "to": "customer-app"
+        },
+        {
           "from": "backoffice",
           "to": "order-api"
         },
@@ -1201,7 +1205,7 @@
           [
             "notifications",
             0,
-            150
+            75
           ],
           [
             "delivery",
@@ -1339,7 +1343,7 @@
           []
         ]
       },
-      "tangleArranged": 16,
+      "tangleArranged": 17,
       "tidy": [
         [
           "customer-app",
@@ -1417,7 +1421,7 @@
           -254
         ]
       ],
-      "tangleTidy": 9
+      "tangleTidy": 10
     },
     {
       "name": "docs/demo/flowy delivery",
@@ -1495,6 +1499,10 @@
         {
           "from": "tracking",
           "to": "ordering"
+        },
+        {
+          "from": "notifications",
+          "to": "courier-app"
         }
       ],
       "regions": {
@@ -1533,7 +1541,7 @@
           ],
           [
             "notifications",
-            300,
+            150,
             0
           ],
           [
@@ -1596,17 +1604,17 @@
             -152
           ],
           [
-            "customer",
+            "notifications",
             35,
             -152
           ],
           [
-            "restaurant",
+            "customer",
             265,
             -152
           ],
           [
-            "notifications",
+            "restaurant",
             495,
             -152
           ]
@@ -1620,9 +1628,9 @@
           ],
           [
             "courier",
+            "notifications",
             "customer",
-            "restaurant",
-            "notifications"
+            "restaurant"
           ],
           [
             "mapbox"
@@ -1669,26 +1677,26 @@
         ],
         [
           "courier",
+          35,
+          -152
+        ],
+        [
+          "notifications",
           -195,
           -152
         ],
         [
           "customer",
-          35,
-          -152
-        ],
-        [
-          "restaurant",
           265,
           -152
         ],
         [
-          "notifications",
+          "restaurant",
           495,
           -152
         ]
       ],
-      "tangleTidy": 8
+      "tangleTidy": 7
     },
     {
       "name": "example root",
@@ -2419,6 +2427,16 @@
       "view": "order-api",
       "box": "root",
       "meets": null
+    },
+    {
+      "folder": "docs/demo/flowy",
+      "view": "dispatch",
+      "box": "ordering",
+      "meets": {
+        "view": "root",
+        "here": "delivery",
+        "there": "ordering"
+      }
     },
     {
       "folder": "docs/demo/flowy",

@@ -57,7 +57,7 @@
       "type": "system",
       "name": "Stripe",
       "external": "true",
-      "description": "Card payments and refunds. Plum never handles card numbers.",
+      "description": "Card payments and refunds. Plum never sees card numbers.",
       "links": [
         {
           "url": "https://status.stripe.com",
@@ -108,7 +108,7 @@
       "name": "Website",
       "in": "ordering",
       "tech": "Next.js",
-      "description": "The same ordering flow in a browser. Menus are server-rendered so search engines can index them."
+      "description": "Takes orders in a browser, as the app does. Menus are server-rendered so search engines can index them."
     },
     {
       "id": "kitchen-tablet",
@@ -124,7 +124,7 @@
       "name": "Order API",
       "in": "ordering",
       "tech": "Node, Fastify",
-      "description": "Entry point for every client: menus, orders and refunds.\n",
+      "description": "Serves menus, takes orders and issues refunds for every client.\n",
       "code": [
         "services/order-api/"
       ]
@@ -633,7 +633,7 @@
       "name": "Courier app",
       "in": "delivery",
       "tech": "Kotlin, Swift",
-      "description": "Offers, navigation and proof of delivery. Reports position every 5 s while a job is open."
+      "description": "Shows the courier offers and directions, and records proof of delivery. Reports position every 5 s while a job is open."
     },
     {
       "id": "dispatch",
@@ -709,7 +709,7 @@
       "name": "Admin dashboard",
       "in": "backoffice",
       "tech": "React",
-      "description": "Restaurants, delivery zones, promotions and the weekly reports."
+      "description": "Edits restaurants, delivery zones and promotions, and shows the weekly reports."
     },
     {
       "id": "support-console",
@@ -717,7 +717,7 @@
       "name": "Support console",
       "in": "backoffice",
       "tech": "React",
-      "description": "Look up an order, see where the courier is, issue a refund."
+      "description": "Looks up an order, shows where its courier is and issues refunds."
     },
     {
       "id": "warehouse",
@@ -931,7 +931,7 @@
     {
       "from": "support",
       "to": "support-console",
-      "label": "handles tickets",
+      "label": "works tickets",
       "payloads": [
         "ticket"
       ],
@@ -947,7 +947,7 @@
     {
       "from": "customer-app",
       "to": "order-api",
-      "label": "REST",
+      "label": "reads menus, places orders",
       "payloads": [
         "basket"
       ],
@@ -958,7 +958,7 @@
     {
       "from": "web",
       "to": "order-api",
-      "label": "REST",
+      "label": "reads menus, places orders",
       "payloads": [
         "basket"
       ],
@@ -969,7 +969,7 @@
     {
       "from": "kitchen-tablet",
       "to": "order-api",
-      "label": "accepts, marks ready",
+      "label": "accepts orders, marks them ready",
       "payloads": [
         "accept"
       ],
@@ -985,7 +985,7 @@
     {
       "from": "menu",
       "to": "orders-db",
-      "label": "on a cache miss"
+      "label": "reads menus on a cache miss"
     },
     {
       "from": "basket",
@@ -1000,7 +1000,7 @@
     {
       "from": "pricing",
       "to": "mapbox",
-      "label": "delivery distance",
+      "label": "measures delivery distance",
       "payloads": [
         "route"
       ],
@@ -1049,7 +1049,7 @@
     {
       "from": "status",
       "to": "orders-db",
-      "label": "moves the order on"
+      "label": "updates order status"
     },
     {
       "from": "status",
@@ -1071,7 +1071,7 @@
     {
       "from": "status",
       "to": "notifier",
-      "label": "order updates",
+      "label": "requests order updates",
       "payloads": [
         "message"
       ],
@@ -1107,7 +1107,7 @@
       ]
     },
     {
-      "from": "dispatch",
+      "from": "matcher",
       "to": "events",
       "label": "reads placed orders"
     },
@@ -1129,7 +1129,7 @@
     {
       "from": "eta",
       "to": "mapbox",
-      "label": "travel times",
+      "label": "asks for travel times",
       "payloads": [
         "route"
       ],
@@ -1158,7 +1158,7 @@
     {
       "from": "courier-app",
       "to": "tracking",
-      "label": "position every 5 s",
+      "label": "sends its position every 5 s",
       "payloads": [
         "position"
       ],
@@ -1169,7 +1169,7 @@
     {
       "from": "courier-app",
       "to": "status",
-      "label": "picked up, delivered",
+      "label": "reports pickup and delivery",
       "payloads": [
         "delivery-step"
       ],
@@ -1180,7 +1180,7 @@
     {
       "from": "courier-app",
       "to": "mapbox",
-      "label": "navigation",
+      "label": "loads directions",
       "payloads": [
         "route"
       ],
@@ -1218,7 +1218,7 @@
     {
       "from": "notifier",
       "to": "twilio",
-      "label": "SMS",
+      "label": "sends SMS",
       "payloads": [
         "sms"
       ],
@@ -1230,6 +1230,16 @@
       "from": "notifier",
       "to": "templates",
       "label": "reads the wording"
+    },
+    {
+      "from": "notifier",
+      "to": "customer-app",
+      "label": "pushes order news"
+    },
+    {
+      "from": "notifier",
+      "to": "courier-app",
+      "label": "pushes job offers"
     },
     {
       "from": "support-console",
@@ -1274,7 +1284,7 @@
     {
       "from": "admin",
       "to": "warehouse",
-      "label": "weekly reports",
+      "label": "reads weekly reports",
       "payloads": [
         "report"
       ],
@@ -1490,8 +1500,22 @@
         },
         {
           "from": "tracking",
+          "to": "fleet-db",
+          "text": "Stores only the positions that arrived",
+          "animation": {
+            "kind": "send",
+            "carries": "position"
+          },
+          "placed": [
+            "tracking",
+            "fleet-db"
+          ],
+          "ends": "Live tracking → Fleet DB"
+        },
+        {
+          "from": "tracking",
           "to": "customer-app",
-          "text": "Sends the positions that did arrive",
+          "text": "Sends the same positions on",
           "animation": {
             "kind": "send",
             "carries": "position"
@@ -1571,6 +1595,7 @@
           "from": "dispatch",
           "to": "fleet-db",
           "text": "Finds idle couriers near the restaurant",
+          "description": "The **Matcher** asks Mapbox how far each one is and ranks them by arrival, so the quickest gets the first offer.\n",
           "animation": {
             "kind": "call",
             "carries": "who is idle"
@@ -1580,21 +1605,6 @@
             "fleet-db"
           ],
           "ends": "Dispatch → Fleet DB"
-        },
-        {
-          "from": "dispatch",
-          "to": "mapbox",
-          "text": "Asks Mapbox how far each courier is",
-          "description": "The **Matcher** ranks couriers by arrival, and the quickest gets the first offer.\n",
-          "animation": {
-            "kind": "call",
-            "carries": "travel times"
-          },
-          "placed": [
-            "dispatch",
-            "mapbox"
-          ],
-          "ends": "Dispatch → Mapbox"
         },
         {
           "from": "dispatch",
@@ -1626,6 +1636,20 @@
           "ends": "Courier → Courier app"
         },
         {
+          "from": "courier-app",
+          "to": "dispatch",
+          "text": "Sends the acceptance",
+          "animation": {
+            "kind": "call",
+            "carries": "accept"
+          },
+          "placed": [
+            "courier-app",
+            "dispatch"
+          ],
+          "ends": "Courier app → Dispatch"
+        },
+        {
           "from": "restaurant",
           "to": "courier",
           "text": "Hands the food over at the counter",
@@ -1643,7 +1667,7 @@
           "from": "courier-app",
           "to": "tracking",
           "text": "Streams its position every 5 seconds",
-          "description": "A courier who loses signal freezes on the map until a fresh position arrives.\n",
+          "description": "**Tracking** passes each one to the customer's map. A courier who loses signal freezes there until a fresh position arrives.\n",
           "animation": {
             "kind": "send",
             "carries": "position",
@@ -1655,20 +1679,6 @@
             "tracking"
           ],
           "ends": "Courier app → Live tracking"
-        },
-        {
-          "from": "tracking",
-          "to": "customer-app",
-          "text": "The customer's map follows the courier",
-          "animation": {
-            "kind": "send",
-            "carries": "position"
-          },
-          "placed": [
-            "tracking",
-            "ordering"
-          ],
-          "ends": "Live tracking → Customer app in Ordering"
         },
         {
           "from": "courier",
@@ -1683,20 +1693,6 @@
             "customer"
           ],
           "ends": "Courier → Customer"
-        },
-        {
-          "from": "courier-app",
-          "to": "order-api",
-          "text": "Marks the order delivered",
-          "animation": {
-            "kind": "call",
-            "carries": "delivered"
-          },
-          "placed": [
-            "courier-app",
-            "ordering"
-          ],
-          "ends": "Courier app → Order API in Ordering"
         }
       ],
       "folder": "delivery",
@@ -2000,7 +1996,7 @@
         },
         {
           "from": "eta",
-          "text": "Falls back to straight-line distance and ranks more roughly",
+          "text": "Falls back to straight-line distance, so the ranking is rougher",
           "placed": [
             "eta",
             "eta"
@@ -2037,7 +2033,7 @@
           "to": "menu",
           "text": "Asks for a restaurant's menu",
           "animation": {
-            "kind": "call",
+            "kind": "send",
             "carries": "GET /menus"
           },
           "placed": [
@@ -2049,32 +2045,18 @@
         {
           "from": "menu",
           "to": "menu-cache",
-          "text": "Looks the menu up",
+          "text": "Finds the menu in the cache",
           "animation": {
             "kind": "call",
             "carries": "menu r_42"
           },
+          "group": "lookup",
+          "lane": "Cache hit",
           "placed": [
             "menu",
             "menu-cache"
           ],
           "ends": "Menu → Menu cache"
-        },
-        {
-          "from": "menu-cache",
-          "to": "menu",
-          "text": "Returns the cached menu",
-          "animation": {
-            "kind": "send",
-            "carries": "menu"
-          },
-          "group": "lookup",
-          "lane": "Cache hit",
-          "placed": [
-            "menu-cache",
-            "menu"
-          ],
-          "ends": "Menu cache → Menu"
         },
         {
           "from": "menu",
@@ -2226,7 +2208,7 @@
         {
           "from": "courier-app",
           "to": "dispatch",
-          "text": "The offers stop",
+          "text": "Sends the acceptance, and the offers stop",
           "animation": {
             "kind": "call",
             "carries": "accept"
@@ -2751,7 +2733,7 @@
         {
           "from": "refunds",
           "to": "stripe",
-          "text": "Stripe has refunded the charge",
+          "text": "Refunds the charge at Stripe",
           "animation": {
             "kind": "call",
             "carries": "refund"
@@ -3177,10 +3159,27 @@
           "ends": "Customer → Customer app"
         },
         {
-          "from": "order-api",
+          "from": "customer-app",
+          "to": "order-api",
+          "text": "POST /orders with the basket",
+          "animation": {
+            "kind": "call",
+            "carries": "POST /orders"
+          },
+          "placed": [
+            "customer-app",
+            "order-api"
+          ],
+          "ends": "Customer app → Order API"
+        },
+        {
+          "from": "checkout",
           "to": "stripe",
-          "text": "The hold is slow while Stripe shuts down",
-          "animation": "call",
+          "text": "Asks for a hold as Stripe shuts down",
+          "animation": {
+            "kind": "call",
+            "carries": "hold"
+          },
           "states": {
             "stripe": "stopping"
           },
@@ -3188,7 +3187,7 @@
             "order-api",
             "stripe"
           ],
-          "ends": "Order API → Stripe"
+          "ends": "Checkout in Order API → Stripe"
         },
         {
           "from": "checkout",
@@ -3209,7 +3208,7 @@
           "ends": "Checkout in Order API → Stripe"
         },
         {
-          "from": "checkout",
+          "from": "order-api",
           "to": "customer-app",
           "text": "Offers pay at the door",
           "animation": {
@@ -3223,7 +3222,7 @@
             "order-api",
             "customer-app"
           ],
-          "ends": "Checkout in Order API → Customer app"
+          "ends": "Order API → Customer app"
         },
         {
           "from": "customer",
@@ -3240,9 +3239,24 @@
           "ends": "Customer → Customer app"
         },
         {
-          "from": "order-api",
+          "from": "customer-app",
+          "to": "order-api",
+          "text": "Places the order as cash",
+          "animation": {
+            "kind": "call",
+            "carries": "cash"
+          },
+          "placed": [
+            "customer-app",
+            "order-api"
+          ],
+          "ends": "Customer app → Order API"
+        },
+        {
+          "from": "checkout",
           "to": "stripe",
-          "text": "The status page says Stripe is restarting",
+          "text": "Finds Stripe coming back on the next order",
+          "description": "Every new order tries the hold first, so the first one after the outage is the check.\n",
           "animation": "call",
           "states": {
             "stripe": "restarting"
@@ -3251,26 +3265,12 @@
             "order-api",
             "stripe"
           ],
-          "ends": "Order API → Stripe"
-        },
-        {
-          "from": "order-api",
-          "to": "stripe",
-          "text": "The next check finds it coming back up",
-          "animation": "call",
-          "states": {
-            "stripe": "starting"
-          },
-          "placed": [
-            "order-api",
-            "stripe"
-          ],
-          "ends": "Order API → Stripe"
+          "ends": "Checkout in Order API → Stripe"
         },
         {
           "from": "checkout",
           "to": "stripe",
-          "text": "The hold goes through",
+          "text": "The next hold goes through",
           "animation": "call",
           "states": {
             "stripe": "running",
@@ -3538,7 +3538,7 @@
           "owner": "Ordering",
           "status": "accepted",
           "flow": "menu-is-read",
-          "step": "4",
+          "step": "3",
           "affects": [
             "customer-app",
             "web"
@@ -3662,8 +3662,8 @@
           "controls": "Positions older than 1 min are dropped, so the map holds still until a fresh one arrives.",
           "owner": "Delivery",
           "status": "accepted",
-          "flow": "deliver-order",
-          "step": "8",
+          "flow": "courier-pings-lost",
+          "step": "2",
           "affects": [
             "customer-app",
             "web"
@@ -3882,7 +3882,7 @@
         {
           "from": "ordering",
           "to": "mapbox",
-          "label": "delivery distance",
+          "label": "measures delivery distance",
           "count": 1,
           "carries": [
             {
@@ -3964,8 +3964,9 @@
         {
           "from": "ordering",
           "to": "notifications",
-          "label": "2 connections",
-          "count": 2,
+          "label": "3 connections",
+          "count": 3,
+          "both": true,
           "carries": [
             {
               "name": "Message request",
@@ -4023,8 +4024,9 @@
         {
           "from": "delivery",
           "to": "notifications",
-          "label": "sends the offer",
-          "count": 1,
+          "label": "2 connections",
+          "count": 2,
+          "both": true,
           "carries": [
             {
               "name": "Job offer",
@@ -4043,7 +4045,7 @@
         {
           "from": "notifications",
           "to": "twilio",
-          "label": "SMS",
+          "label": "sends SMS",
           "count": 1,
           "carries": [
             {
@@ -4185,7 +4187,7 @@
         {
           "from": "customer-app",
           "to": "order-api",
-          "label": "REST",
+          "label": "reads menus, places orders",
           "count": 1,
           "carries": [
             {
@@ -4217,7 +4219,7 @@
         {
           "from": "web",
           "to": "order-api",
-          "label": "REST",
+          "label": "reads menus, places orders",
           "count": 1,
           "carries": [
             {
@@ -4231,7 +4233,7 @@
         {
           "from": "kitchen-tablet",
           "to": "order-api",
-          "label": "accepts, marks ready",
+          "label": "accepts orders, marks them ready",
           "count": 1,
           "carries": [
             {
@@ -4271,7 +4273,7 @@
         {
           "from": "order-api",
           "to": "mapbox",
-          "label": "delivery distance",
+          "label": "measures delivery distance",
           "count": 1,
           "carries": [
             {
@@ -4381,7 +4383,7 @@
         {
           "from": "delivery",
           "to": "order-api",
-          "label": "picked up, delivered",
+          "label": "reports pickup and delivery",
           "count": 1,
           "carries": [
             {
@@ -4419,6 +4421,12 @@
               "steps": []
             }
           ]
+        },
+        {
+          "from": "notifications",
+          "to": "customer-app",
+          "label": "pushes order news",
+          "count": 1
         },
         {
           "from": "backoffice",
@@ -4513,7 +4521,7 @@
         {
           "from": "dispatch",
           "to": "mapbox",
-          "label": "travel times",
+          "label": "asks for travel times",
           "count": 1,
           "carries": [
             {
@@ -4553,7 +4561,7 @@
         {
           "from": "courier-app",
           "to": "tracking",
-          "label": "position every 5 s",
+          "label": "sends its position every 5 s",
           "count": 1,
           "carries": [
             {
@@ -4573,7 +4581,7 @@
         {
           "from": "courier-app",
           "to": "ordering",
-          "label": "picked up, delivered",
+          "label": "reports pickup and delivery",
           "count": 1,
           "carries": [
             {
@@ -4587,7 +4595,7 @@
         {
           "from": "courier-app",
           "to": "mapbox",
-          "label": "navigation",
+          "label": "loads directions",
           "count": 1,
           "carries": [
             {
@@ -4617,6 +4625,12 @@
               "steps": []
             }
           ]
+        },
+        {
+          "from": "notifications",
+          "to": "courier-app",
+          "label": "pushes job offers",
+          "count": 1
         }
       ],
       "actors": [
@@ -4640,8 +4654,9 @@
         {
           "from": "ordering",
           "to": "notifier",
-          "label": "2 connections",
-          "count": 2,
+          "label": "3 connections",
+          "count": 3,
+          "both": true,
           "carries": [
             {
               "name": "Message request",
@@ -4654,8 +4669,9 @@
         {
           "from": "delivery",
           "to": "notifier",
-          "label": "sends the offer",
-          "count": 1,
+          "label": "2 connections",
+          "count": 2,
+          "both": true,
           "carries": [
             {
               "name": "Job offer",
@@ -4674,7 +4690,7 @@
         {
           "from": "notifier",
           "to": "twilio",
-          "label": "SMS",
+          "label": "sends SMS",
           "count": 1,
           "carries": [
             {
@@ -4708,7 +4724,7 @@
         {
           "from": "support",
           "to": "support-console",
-          "label": "handles tickets",
+          "label": "works tickets",
           "count": 1,
           "carries": [
             {
@@ -4762,7 +4778,7 @@
         {
           "from": "admin",
           "to": "warehouse",
-          "label": "weekly reports",
+          "label": "reads weekly reports",
           "count": 1,
           "carries": [
             {
@@ -4820,7 +4836,7 @@
         {
           "from": "menu",
           "to": "orders-db",
-          "label": "on a cache miss",
+          "label": "reads menus on a cache miss",
           "count": 1
         },
         {
@@ -4838,7 +4854,7 @@
         {
           "from": "pricing",
           "to": "mapbox",
-          "label": "delivery distance",
+          "label": "measures delivery distance",
           "count": 1,
           "carries": [
             {
@@ -4900,7 +4916,7 @@
         {
           "from": "status",
           "to": "orders-db",
-          "label": "moves the order on",
+          "label": "updates order status",
           "count": 1
         },
         {
@@ -4920,7 +4936,7 @@
         {
           "from": "status",
           "to": "notifications",
-          "label": "order updates",
+          "label": "requests order updates",
           "count": 1,
           "carries": [
             {
@@ -4968,7 +4984,7 @@
         {
           "from": "delivery",
           "to": "status",
-          "label": "picked up, delivered",
+          "label": "reports pickup and delivery",
           "count": 1,
           "carries": [
             {
@@ -5006,12 +5022,19 @@
         "offers"
       ],
       "outsiders": [
+        "ordering",
         "fleet-db",
         "mapbox",
         "notifications",
         "customer"
       ],
       "edges": [
+        {
+          "from": "matcher",
+          "to": "ordering",
+          "label": "reads placed orders",
+          "count": 1
+        },
         {
           "from": "matcher",
           "to": "fleet-db",
@@ -5033,7 +5056,7 @@
         {
           "from": "eta",
           "to": "mapbox",
-          "label": "travel times",
+          "label": "asks for travel times",
           "count": 1,
           "carries": [
             {

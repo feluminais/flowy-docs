@@ -1001,6 +1001,7 @@
           "problems": [],
           "at": [
             {},
+            {},
             {
               "stripe": "stopping"
             },
@@ -1016,11 +1017,11 @@
               "checkout": "degraded"
             },
             {
-              "stripe": "restarting",
+              "stripe": "stopped",
               "checkout": "degraded"
             },
             {
-              "stripe": "starting",
+              "stripe": "restarting",
               "checkout": "degraded"
             },
             {
@@ -1029,6 +1030,7 @@
             }
           ],
           "marks": [
+            {},
             {},
             {
               "stripe": {
@@ -1040,6 +1042,26 @@
               "stripe": {
                 "state": "stopped",
                 "inside": false
+              }
+            },
+            {
+              "stripe": {
+                "state": "stopped",
+                "inside": false
+              },
+              "checkout": {
+                "state": "degraded",
+                "inside": false
+              },
+              "order-api": {
+                "state": "degraded",
+                "inside": true,
+                "via": "Checkout"
+              },
+              "ordering": {
+                "state": "degraded",
+                "inside": true,
+                "via": "Checkout"
               }
             },
             {
@@ -1102,26 +1124,6 @@
                 "via": "Checkout"
               }
             },
-            {
-              "stripe": {
-                "state": "starting",
-                "inside": false
-              },
-              "checkout": {
-                "state": "degraded",
-                "inside": false
-              },
-              "order-api": {
-                "state": "degraded",
-                "inside": true,
-                "via": "Checkout"
-              },
-              "ordering": {
-                "state": "degraded",
-                "inside": true,
-                "via": "Checkout"
-              }
-            },
             {}
           ],
           "before": [
@@ -1132,7 +1134,8 @@
             3,
             4,
             5,
-            6
+            6,
+            7
           ],
           "outside": [
             {
@@ -1141,12 +1144,12 @@
               "before": null
             },
             {
-              "k": 8,
+              "k": 9,
               "states": {},
               "before": null
             },
             {
-              "k": 13,
+              "k": 14,
               "states": {},
               "before": null
             }

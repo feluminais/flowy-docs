@@ -233,7 +233,7 @@ objects:
     type: system
     name: Stripe
     external: true
-    description: Card payments and refunds. Plum never handles card numbers.
+    description: Card payments and refunds. Plum never sees card numbers.
     links:
       - { url: "https://status.stripe.com", title: Provider status }
   twilio:
@@ -265,7 +265,7 @@ objects:
     in: ordering
     name: Website
     tech: Next.js
-    description: The same ordering flow in a browser. Menus are server-rendered so search engines can index them.
+    description: Takes orders in a browser, as the app does. Menus are server-rendered so search engines can index them.
   kitchen-tablet:
     type: app
     in: ordering
@@ -279,7 +279,7 @@ objects:
     tech: Node, Fastify
     code: [services/order-api/]
     description: |
-      Entry point for every client: menus, orders and refunds.
+      Serves menus, takes orders and issues refunds for every client.
   orders-db:
     type: store
     in: ordering
@@ -411,7 +411,7 @@ objects:
     in: delivery
     name: Courier app
     tech: Kotlin, Swift
-    description: Offers, navigation and proof of delivery. Reports position every 5 s while a job is open.
+    description: Shows the courier offers and directions, and records proof of delivery. Reports position every 5 s while a job is open.
   dispatch:
     type: app
     in: delivery
@@ -468,13 +468,13 @@ objects:
     in: backoffice
     name: Admin dashboard
     tech: React
-    description: Restaurants, delivery zones, promotions and the weekly reports.
+    description: Edits restaurants, delivery zones and promotions, and shows the weekly reports.
   support-console:
     type: app
     in: backoffice
     name: Support console
     tech: React
-    description: Look up an order, see where the courier is, issue a refund.
+    description: Looks up an order, shows where its courier is and issues refunds.
   warehouse:
     type: store
     in: backoffice
@@ -494,21 +494,21 @@ connections:
     label: takes deliveries
     payloads:
       - { name: Yes or no, about: The courier takes the job or lets it pass to the next one. }
-  - { from: support, to: support-console, label: handles tickets, payloads: [ticket] }
+  - { from: support, to: support-console, label: works tickets, payloads: [ticket] }
   - { from: support, to: admin, label: looks up couriers }
-  - { from: customer-app, to: order-api, label: REST, payloads: [basket] }
-  - { from: web, to: order-api, label: REST, payloads: [basket] }
-  - { from: kitchen-tablet, to: order-api, label: "accepts, marks ready", payloads: [accept] }
+  - { from: customer-app, to: order-api, label: "reads menus, places orders", payloads: [basket] }
+  - { from: web, to: order-api, label: "reads menus, places orders", payloads: [basket] }
+  - { from: kitchen-tablet, to: order-api, label: "accepts orders, marks them ready", payloads: [accept] }
   - { from: menu, to: menu-cache, label: reads menus }
-  - { from: menu, to: orders-db, label: on a cache miss }
+  - { from: menu, to: orders-db, label: reads menus on a cache miss }
   - { from: basket, to: orders-db, label: saves the basket }
   - { from: basket, to: pricing, label: asks for totals }
-  - { from: pricing, to: mapbox, label: delivery distance, payloads: [route] }
+  - { from: pricing, to: mapbox, label: measures delivery distance, payloads: [route] }
   - { from: checkout, to: pricing, label: gets the total }
   - { from: checkout, to: stripe, label: holds the card, payloads: [hold] }
   - { from: checkout, to: orders-db, label: writes the order, payloads: [order] }
   - { from: checkout, to: events, label: announces placed, payloads: [placed] }
-  - { from: status, to: orders-db, label: moves the order on }
+  - { from: status, to: orders-db, label: updates order status }
   - from: status
     to: events
     label: announces each step
@@ -518,25 +518,27 @@ connections:
           language: json
           text: |
             { "type": "order.status", "orderId": "o-1042", "status": "picked_up", "at": "2026-11-01T19:24:41Z" }
-  - { from: status, to: notifier, label: order updates, payloads: [message] }
+  - { from: status, to: notifier, label: requests order updates, payloads: [message] }
   - { from: refunds, to: stripe, label: refunds the charge, payloads: [refund] }
   - { from: refunds, to: orders-db, label: marks refunded }
   - { from: refunds, to: notifier, label: confirms by message, payloads: [message] }
-  - { from: dispatch, to: events, label: reads placed orders }
+  - { from: matcher, to: events, label: reads placed orders }
   - { from: matcher, to: fleet-db, label: finds idle couriers }
   - { from: matcher, to: eta, label: asks who is quickest }
   - { from: matcher, to: offers, label: hands over the ranking }
-  - { from: eta, to: mapbox, label: travel times, payloads: [route] }
+  - { from: eta, to: mapbox, label: asks for travel times, payloads: [route] }
   - { from: offers, to: notifier, label: sends the offer, payloads: [job-offer, message] }
   - { from: courier-app, to: dispatch, label: accepts or refuses }
-  - { from: courier-app, to: tracking, label: "position every 5 s", payloads: [position] }
-  - { from: courier-app, to: status, label: "picked up, delivered", payloads: [delivery-step] }
-  - { from: courier-app, to: mapbox, label: navigation, payloads: [route] }
+  - { from: courier-app, to: tracking, label: "sends its position every 5 s", payloads: [position] }
+  - { from: courier-app, to: status, label: "reports pickup and delivery", payloads: [delivery-step] }
+  - { from: courier-app, to: mapbox, label: loads directions, payloads: [route] }
   - { from: tracking, to: fleet-db, label: stores positions }
   - { from: tracking, to: customer-app, label: live map, payloads: [position] }
   - { from: tracking, to: web, label: live map, payloads: [position] }
-  - { from: notifier, to: twilio, label: SMS, payloads: [sms] }
+  - { from: notifier, to: twilio, label: sends SMS, payloads: [sms] }
   - { from: notifier, to: templates, label: reads the wording }
+  - { from: notifier, to: customer-app, label: pushes order news }
+  - { from: notifier, to: courier-app, label: pushes job offers }
   - { from: support-console, to: order-api, label: looks up orders, payloads: [ticket] }
   - { from: support-console, to: refunds, label: issues refunds, payloads: [refund] }
   - from: admin
@@ -553,5 +555,5 @@ connections:
             restaurants: [noodle-bar, pho-corner]
             from: 2026-11-01
             until: 2026-11-30
-  - { from: admin, to: warehouse, label: weekly reports, payloads: [report] }
+  - { from: admin, to: warehouse, label: reads weekly reports, payloads: [report] }
   - { from: events, to: warehouse, label: streams every event, payloads: [placed] }
