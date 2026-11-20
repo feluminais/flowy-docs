@@ -117,7 +117,8 @@
           "target": "notifications",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -141,7 +142,8 @@
           "target": "notifications",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -403,6 +405,14 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -586,6 +596,14 @@
           "label": null,
           "classes": [],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [],
+          "selected": false
         }
       ],
       "members": [
@@ -640,7 +658,8 @@
           "target": "notifier",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery notifier",
@@ -648,7 +667,8 @@
           "target": "notifier",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifier twilio",
@@ -1033,6 +1053,13 @@
           "inside": 0
         },
         {
+          "id": "ordering",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
           "id": "fleet-db",
           "classes": [
             "outsider"
@@ -1062,6 +1089,14 @@
         }
       ],
       "edges": [
+        {
+          "id": "matcher ordering",
+          "source": "matcher",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
         {
           "id": "fleet-db matcher",
           "source": "matcher",
@@ -1431,6 +1466,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -1776,6 +1821,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -2145,6 +2200,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -2452,6 +2517,14 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -2490,6 +2563,10 @@
           [
             "courier-app",
             "tracking"
+          ],
+          [
+            "tracking",
+            "fleet-db"
           ],
           [
             "tracking",
@@ -2695,6 +2772,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -2719,6 +2806,10 @@
           ],
           [
             "tracking",
+            "fleet-db"
+          ],
+          [
+            "tracking",
             "ordering"
           ],
           [
@@ -2730,7 +2821,7 @@
             "fleet-db"
           ]
         ],
-        "step": 2
+        "step": 3
       },
       "focus": {},
       "boxes": [
@@ -2921,6 +3012,16 @@
             "active"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -2945,6 +3046,10 @@
           ],
           [
             "tracking",
+            "fleet-db"
+          ],
+          [
+            "tracking",
             "ordering"
           ],
           [
@@ -2956,7 +3061,7 @@
             "fleet-db"
           ]
         ],
-        "step": 4
+        "step": 5
       },
       "focus": {},
       "boxes": [
@@ -3147,6 +3252,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -3168,6 +3283,10 @@
           [
             "courier-app",
             "tracking"
+          ],
+          [
+            "tracking",
+            "fleet-db"
           ],
           [
             "tracking",
@@ -3336,6 +3455,14 @@
           "label": null,
           "classes": [],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [],
+          "selected": false
         }
       ],
       "members": [
@@ -3364,15 +3491,15 @@
           ],
           [
             "dispatch",
-            "mapbox"
-          ],
-          [
-            "dispatch",
             "notifications"
           ],
           [
             "courier",
             "courier-app"
+          ],
+          [
+            "courier-app",
+            "dispatch"
           ],
           [
             "restaurant",
@@ -3383,16 +3510,8 @@
             "tracking"
           ],
           [
-            "tracking",
-            "ordering"
-          ],
-          [
             "courier",
             "customer"
-          ],
-          [
-            "courier-app",
-            "ordering"
           ]
         ],
         "step": 0
@@ -3588,6 +3707,16 @@
           "selected": false
         },
         {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "step",
           "source": "customer",
           "target": "ordering",
@@ -3624,15 +3753,15 @@
           ],
           [
             "dispatch",
-            "mapbox"
-          ],
-          [
-            "dispatch",
             "notifications"
           ],
           [
             "courier",
             "courier-app"
+          ],
+          [
+            "courier-app",
+            "dispatch"
           ],
           [
             "restaurant",
@@ -3643,19 +3772,11 @@
             "tracking"
           ],
           [
-            "tracking",
-            "ordering"
-          ],
-          [
             "courier",
             "customer"
-          ],
-          [
-            "courier-app",
-            "ordering"
           ]
         ],
-        "step": 5
+        "step": 4
       },
       "focus": {},
       "boxes": [
@@ -3846,6 +3967,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -3874,15 +4005,15 @@
           ],
           [
             "dispatch",
-            "mapbox"
-          ],
-          [
-            "dispatch",
             "notifications"
           ],
           [
             "courier",
             "courier-app"
+          ],
+          [
+            "courier-app",
+            "dispatch"
           ],
           [
             "restaurant",
@@ -3893,26 +4024,18 @@
             "tracking"
           ],
           [
-            "tracking",
-            "ordering"
-          ],
-          [
             "courier",
             "customer"
-          ],
-          [
-            "courier-app",
-            "ordering"
           ]
         ],
-        "step": 10
+        "step": 8
       },
       "focus": {},
       "boxes": [
         {
           "id": "courier-app",
           "classes": [
-            "lit"
+            "dim"
           ],
           "inside": 0
         },
@@ -3940,7 +4063,7 @@
         {
           "id": "courier",
           "classes": [
-            "dim",
+            "lit",
             "outsider"
           ],
           "inside": 0
@@ -3948,7 +4071,7 @@
         {
           "id": "ordering",
           "classes": [
-            "lit",
+            "dim",
             "outsider"
           ],
           "inside": 7
@@ -3972,7 +4095,7 @@
         {
           "id": "customer",
           "classes": [
-            "dim",
+            "lit",
             "outsider"
           ],
           "inside": 0
@@ -4061,9 +4184,9 @@
           "id": "courier-app ordering",
           "source": "courier-app",
           "target": "ordering",
-          "label": "picked up, delivered",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -4096,6 +4219,26 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "courier",
+          "target": "customer",
+          "label": null,
+          "classes": [
+            "step"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -4124,15 +4267,15 @@
           ],
           [
             "dispatch",
-            "mapbox"
-          ],
-          [
-            "dispatch",
             "notifications"
           ],
           [
             "courier",
             "courier-app"
+          ],
+          [
+            "courier-app",
+            "dispatch"
           ],
           [
             "restaurant",
@@ -4143,16 +4286,8 @@
             "tracking"
           ],
           [
-            "tracking",
-            "ordering"
-          ],
-          [
             "courier",
             "customer"
-          ],
-          [
-            "courier-app",
-            "ordering"
           ]
         ]
       },
@@ -4306,6 +4441,14 @@
           "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -4522,6 +4665,16 @@
           "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
           "label": null,
           "classes": [
             "dim"
@@ -4757,6 +4910,16 @@
           "selected": false
         },
         {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "step",
           "source": "ordering",
           "target": "dispatch",
@@ -4983,6 +5146,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -5161,6 +5334,14 @@
           "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -5393,6 +5574,16 @@
           "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
           "label": null,
           "classes": [
             "dim"
@@ -5642,6 +5833,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -5878,6 +6079,16 @@
           "selected": false
         },
         {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "step",
           "source": "ordering",
           "target": "tracking",
@@ -6080,6 +6291,14 @@
           "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -6390,6 +6609,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -6591,7 +6820,7 @@
           "id": "customer-app order-api",
           "source": "customer-app",
           "target": "order-api",
-          "label": "REST",
+          "label": "reads menus, places orders",
           "classes": [
             "active"
           ],
@@ -6711,6 +6940,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -7046,6 +7285,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -7319,6 +7568,14 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -7397,6 +7654,14 @@
           "inside": 0
         },
         {
+          "id": "ordering",
+          "classes": [
+            "lit",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
           "id": "fleet-db",
           "classes": [
             "dim",
@@ -7427,17 +7692,19 @@
             "outsider"
           ],
           "inside": 0
-        },
-        {
-          "id": "ordering",
-          "classes": [
-            "lit",
-            "outsider"
-          ],
-          "inside": 7
         }
       ],
       "edges": [
+        {
+          "id": "matcher ordering",
+          "source": "matcher",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
         {
           "id": "fleet-db matcher",
           "source": "matcher",
@@ -7557,6 +7824,14 @@
           "inside": 0
         },
         {
+          "id": "ordering",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
           "id": "fleet-db",
           "classes": [
             "dim",
@@ -7587,17 +7862,19 @@
             "outsider"
           ],
           "inside": 0
-        },
-        {
-          "id": "ordering",
-          "classes": [
-            "dim",
-            "outsider"
-          ],
-          "inside": 7
         }
       ],
       "edges": [
+        {
+          "id": "matcher ordering",
+          "source": "matcher",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
         {
           "id": "fleet-db matcher",
           "source": "matcher",
@@ -7707,6 +7984,14 @@
           "inside": 0
         },
         {
+          "id": "ordering",
+          "classes": [
+            "dim",
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
           "id": "fleet-db",
           "classes": [
             "dim",
@@ -7737,17 +8022,19 @@
             "outsider"
           ],
           "inside": 0
-        },
-        {
-          "id": "ordering",
-          "classes": [
-            "dim",
-            "outsider"
-          ],
-          "inside": 7
         }
       ],
       "edges": [
+        {
+          "id": "matcher ordering",
+          "source": "matcher",
+          "target": "ordering",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
         {
           "id": "fleet-db matcher",
           "source": "matcher",
@@ -7850,6 +8137,13 @@
           "inside": 0
         },
         {
+          "id": "ordering",
+          "classes": [
+            "outsider"
+          ],
+          "inside": 7
+        },
+        {
           "id": "fleet-db",
           "classes": [
             "outsider"
@@ -7876,16 +8170,17 @@
             "outsider"
           ],
           "inside": 0
-        },
-        {
-          "id": "ordering",
-          "classes": [
-            "outsider"
-          ],
-          "inside": 7
         }
       ],
       "edges": [
+        {
+          "id": "matcher ordering",
+          "source": "matcher",
+          "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
         {
           "id": "fleet-db matcher",
           "source": "matcher",
@@ -7949,10 +8244,6 @@
           [
             "menu",
             "menu-cache"
-          ],
-          [
-            "menu-cache",
-            "menu"
           ],
           [
             "menu",
@@ -8307,10 +8598,6 @@
             "menu-cache"
           ],
           [
-            "menu-cache",
-            "menu"
-          ],
-          [
             "menu",
             "orders-db"
           ],
@@ -8327,7 +8614,7 @@
             "customer"
           ]
         ],
-        "step": 4
+        "step": 3
       },
       "focus": {},
       "boxes": [
@@ -8469,7 +8756,7 @@
           "id": "menu orders-db",
           "source": "menu",
           "target": "orders-db",
-          "label": "on a cache miss",
+          "label": "reads menus on a cache miss",
           "classes": [
             "active"
           ],
@@ -8653,10 +8940,6 @@
             "menu-cache"
           ],
           [
-            "menu-cache",
-            "menu"
-          ],
-          [
             "menu",
             "orders-db"
           ],
@@ -8673,7 +8956,7 @@
             "customer"
           ]
         ],
-        "step": 7
+        "step": 6
       },
       "focus": {},
       "boxes": [
@@ -9009,10 +9292,6 @@
             "menu-cache"
           ],
           [
-            "menu-cache",
-            "menu"
-          ],
-          [
             "menu",
             "orders-db"
           ],
@@ -9511,6 +9790,16 @@
           "selected": false
         },
         {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "step",
           "source": "customer",
           "target": "ordering",
@@ -9757,6 +10046,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -9995,6 +10294,16 @@
             "dim"
           ],
           "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
         }
       ],
       "members": [
@@ -10193,6 +10502,14 @@
           "id": "ordering tracking",
           "source": "tracking",
           "target": "ordering",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "courier-app notifications",
+          "source": "notifications",
+          "target": "courier-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -10508,6 +10825,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -10855,6 +11182,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -11195,6 +11532,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -11485,6 +11832,14 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -11814,6 +12169,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -12015,7 +12380,7 @@
           "id": "customer-app order-api",
           "source": "customer-app",
           "target": "order-api",
-          "label": "REST",
+          "label": "reads menus, places orders",
           "classes": [
             "active"
           ],
@@ -12135,6 +12500,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -12470,6 +12845,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -12738,6 +13123,14 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -13079,6 +13472,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -13412,6 +13815,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -13769,6 +14182,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -14049,6 +14472,14 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -14394,6 +14825,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -14731,6 +15172,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -15082,6 +15533,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -15376,6 +15837,14 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -16943,6 +17412,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -17293,6 +17772,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -17633,6 +18122,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -17918,6 +18417,14 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -18125,7 +18632,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -18155,7 +18663,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -18370,11 +18879,12 @@
           "id": "notifications ordering",
           "source": "ordering",
           "target": "notifications",
-          "label": "2 connections",
+          "label": "3 connections",
           "classes": [
             "active"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -18404,7 +18914,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -18623,7 +19134,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -18653,7 +19165,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -18845,7 +19358,8 @@
           "target": "notifications",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -18869,7 +19383,8 @@
           "target": "notifications",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -19221,6 +19736,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -19569,6 +20094,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -19910,6 +20445,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -20220,6 +20765,14 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -20423,7 +20976,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -20453,7 +21007,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -20668,7 +21223,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -20698,13 +21254,14 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
           "source": "notifications",
           "target": "twilio",
-          "label": "SMS",
+          "label": "sends SMS",
           "classes": [
             "active"
           ],
@@ -20913,7 +21470,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -20943,7 +21501,8 @@
           "classes": [
             "dim"
           ],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -21121,7 +21680,8 @@
           "target": "notifications",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "delivery ordering",
@@ -21145,7 +21705,8 @@
           "target": "notifications",
           "label": null,
           "classes": [],
-          "selected": false
+          "selected": false,
+          "both": true
         },
         {
           "id": "notifications twilio",
@@ -21189,6 +21750,10 @@
             "customer-app"
           ],
           [
+            "customer-app",
+            "order-api"
+          ],
+          [
             "order-api",
             "stripe"
           ],
@@ -21205,8 +21770,8 @@
             "customer-app"
           ],
           [
-            "order-api",
-            "stripe"
+            "customer-app",
+            "order-api"
           ],
           [
             "order-api",
@@ -21497,6 +22062,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -21537,6 +22112,10 @@
             "customer-app"
           ],
           [
+            "customer-app",
+            "order-api"
+          ],
+          [
             "order-api",
             "stripe"
           ],
@@ -21553,8 +22132,8 @@
             "customer-app"
           ],
           [
-            "order-api",
-            "stripe"
+            "customer-app",
+            "order-api"
           ],
           [
             "order-api",
@@ -21593,7 +22172,7 @@
         {
           "id": "order-api",
           "classes": [
-            "dim"
+            "lit"
           ],
           "inside": 6
         },
@@ -21621,7 +22200,7 @@
         {
           "id": "customer",
           "classes": [
-            "lit",
+            "dim",
             "outsider"
           ],
           "inside": 0
@@ -21688,9 +22267,9 @@
           "id": "customer customer-app",
           "source": "customer",
           "target": "customer-app",
-          "label": "orders on a phone",
+          "label": null,
           "classes": [
-            "active"
+            "dim"
           ],
           "selected": false
         },
@@ -21845,6 +22424,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -21861,6 +22450,16 @@
           "label": null,
           "classes": [
             "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "step",
+          "source": "order-api",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "step"
           ],
           "selected": false
         }
@@ -21885,6 +22484,10 @@
             "customer-app"
           ],
           [
+            "customer-app",
+            "order-api"
+          ],
+          [
             "order-api",
             "stripe"
           ],
@@ -21901,8 +22504,8 @@
             "customer-app"
           ],
           [
-            "order-api",
-            "stripe"
+            "customer-app",
+            "order-api"
           ],
           [
             "order-api",
@@ -21913,7 +22516,7 @@
             "stripe"
           ]
         ],
-        "step": 7
+        "step": 8
       },
       "focus": {},
       "boxes": [
@@ -22193,6 +22796,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -22233,6 +22846,10 @@
             "customer-app"
           ],
           [
+            "customer-app",
+            "order-api"
+          ],
+          [
             "order-api",
             "stripe"
           ],
@@ -22249,8 +22866,8 @@
             "customer-app"
           ],
           [
-            "order-api",
-            "stripe"
+            "customer-app",
+            "order-api"
           ],
           [
             "order-api",
@@ -22481,6 +23098,14 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -22811,6 +23436,16 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [
             "dim"
@@ -23164,6 +23799,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -23500,6 +24145,16 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "dim"
+          ],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -23776,6 +24431,14 @@
           "id": "delivery web",
           "source": "delivery",
           "target": "web",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
           "label": null,
           "classes": [],
           "selected": false
@@ -54821,7 +55484,7 @@
           "id": "customer-app order-api",
           "source": "customer-app",
           "target": "order-api",
-          "label": "REST",
+          "label": "reads menus, places orders",
           "classes": [],
           "selected": false
         },
@@ -54941,6 +55604,14 @@
           "classes": [
             "faint"
           ],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": "pushes order news",
+          "classes": [],
           "selected": false
         },
         {
@@ -55206,6 +55877,14 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -55462,6 +56141,14 @@
           "selected": false
         },
         {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [],
+          "selected": false
+        },
+        {
           "id": "backoffice order-api",
           "source": "backoffice",
           "target": "order-api",
@@ -55635,7 +56322,7 @@
           "id": "order-api web",
           "source": "web",
           "target": "order-api",
-          "label": "REST",
+          "label": "reads menus, places orders",
           "classes": [],
           "selected": false
         },
@@ -55745,6 +56432,16 @@
           "target": "web",
           "label": "live map",
           "classes": [],
+          "selected": false
+        },
+        {
+          "id": "customer-app notifications",
+          "source": "notifications",
+          "target": "customer-app",
+          "label": null,
+          "classes": [
+            "faint"
+          ],
           "selected": false
         },
         {

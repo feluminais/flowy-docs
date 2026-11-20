@@ -27,7 +27,7 @@ export type Play = { flow: string; step: number; trail?: Spot[] }
 
 /**
  * Which flow is playing, and the small settings of the player: R counts up and a new count plays the step again; whether a step that moves plays again after a rest (kept
- * across visits); whether a finished step goes on to the next one (Autoplay, kept across visits too, except in a pane of a comparison, which opens with it off); the step
+ * across visits); whether a finished step goes on to the next one (Autoplay: on until it is turned off, and kept across visits and for every flow, except in a pane of a comparison, which opens with it off); the step
  * (and replay) whose motion has finished; and the player's clock (see clock.ts), with whether it is paused.
  */
 export function usePlayer({ initialFlow, initialStep = 0, pane = false }: { initialFlow: () => string | undefined; initialStep?: number; pane?: boolean }) {
@@ -41,7 +41,7 @@ export function usePlayer({ initialFlow, initialStep = 0, pane = false }: { init
     setRepeat(!repeat)
     writePref('flowy.repeat', repeat ? 'off' : 'on') // storage blocked: the choice lasts until the page closes
   }
-  const [autoplay, setAutoplay] = useState(() => !pane && readPref('flowy.autoplay') === 'on')
+  const [autoplay, setAutoplay] = useState(() => !pane && readPref('flowy.autoplay') !== 'off')
   const toggleAutoplay = () => {
     setAutoplay(!autoplay)
     if (!pane) writePref('flowy.autoplay', autoplay ? 'off' : 'on') // storage blocked: the choice lasts until the page closes

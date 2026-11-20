@@ -2652,6 +2652,14 @@
           {
             "view": "ordering",
             "line": [
+              "notifications",
+              "customer-app"
+            ],
+            "here": []
+          },
+          {
+            "view": "ordering",
+            "line": [
               "backoffice",
               "order-api"
             ],
@@ -2808,6 +2816,14 @@
             "line": [
               "tracking",
               "ordering"
+            ],
+            "here": []
+          },
+          {
+            "view": "delivery",
+            "line": [
+              "notifications",
+              "courier-app"
             ],
             "here": []
           },
@@ -3180,6 +3196,11 @@
           },
           {
             "view": "dispatch",
+            "box": "ordering",
+            "here": []
+          },
+          {
+            "view": "dispatch",
             "box": "fleet-db",
             "here": []
           },
@@ -3196,6 +3217,14 @@
           {
             "view": "dispatch",
             "box": "customer",
+            "here": []
+          },
+          {
+            "view": "dispatch",
+            "line": [
+              "matcher",
+              "ordering"
+            ],
             "here": []
           },
           {

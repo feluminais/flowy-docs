@@ -99,7 +99,7 @@ modes:
     status: accepted
     affects: [customer-app, web]
     flow: menu-is-read
-    step: 4
+    step: 3
   eta-mapbox-fails:
     from: eta
     to: mapbox
@@ -183,8 +183,8 @@ modes:
     owner: Delivery
     status: accepted
     affects: [customer-app, web]
-    flow: deliver-order
-    step: 8
+    flow: courier-pings-lost
+    step: 2
   sms-not-delivered:
     from: notifier
     to: twilio

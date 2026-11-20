@@ -11,4 +11,4 @@ steps:
     animation: { kind: call, outcome: rejected, reason: Rate limit }
     description: |
       Plum exceeds Mapbox's limit above 900 orders a minute. Mapbox rejects at once.
-  - { from: eta, text: Falls back to straight-line distance and ranks more roughly }
+  - { from: eta, text: "Falls back to straight-line distance, so the ranking is rougher" }

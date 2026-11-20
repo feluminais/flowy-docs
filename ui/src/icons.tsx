@@ -34,8 +34,8 @@ export const ZoomIn = icon(<><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0
 // The controls and the panel's headings. The same drawings as the desktop app's (desktop/Flowy.App/Canvas/Icons.cs).
 export const Workflow = one('M5 3h4a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v4a2 2 0 0 0 2 2h4M15 13h4a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z')
 export const StepForward = one('M10.029 4.285A2 2 0 0 0 7 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432zM3 4v16')
-/** A list that plays on by itself: Autoplay (Lucide's list-video). */
-export const ListVideo = one('M21 5H3M10 12H3M10 19H3M15 12.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997a1 1 0 0 1-1.517-.86z')
+/** A switch with a play mark in its knob, the usual sign for Autoplay. */
+export const Autoplay = one('M9 5h6a7 7 0 0 1 0 14H9A7 7 0 0 1 9 5zM13 9.2v5.6a.8.8 0 0 0 1.2.7l4-2.8a.8.8 0 0 0 0-1.3l-4-2.8a.8.8 0 0 0-1.2.6z')
 export const StepBack = one('M13.971 4.285A2 2 0 0 1 17 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432zM21 20V4')
 export const Home = one('M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z')
 export const ChevronRight = one('M0 0m9 18 6-6-6-6')
@@ -75,6 +75,8 @@ export const Explorer = one('M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1
 export const FileCode = one('M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35M14 2v5a1 1 0 0 0 1 1h5M0 0m5 16-3 3 3 3M0 0m9 22 3-3-3-3')
 export const Lock = one('M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-7a2 2 0 0 1 2 -2zM7 11V7a5 5 0 0 1 10 0v4')
 export const Repeat = one('M0 0m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M0 0m7 22-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3')
+/** Repeat with a 1 inside: the player's Repeat, which plays the one step again (Lucide's repeat-1). Plain Repeat is a repeat group. */
+export const RepeatStep = one('M0 0m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M0 0m7 22-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3M11 10h1v4')
 export const GitFork = one('M9 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M3 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9M12 12v3')
 export const ArrowsSplit = one('M16 3h5v5M8 3H3v5M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3M0 0m15 9 6-6')
 export const Help = one('M2 12a10 10 0 1 0 20 0a10 10 0 1 0 -20 0M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01')

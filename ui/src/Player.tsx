@@ -19,7 +19,7 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, 
 import { SPEEDS } from './clock.ts'
 import type { PlayerClock, Speed } from './clock.ts'
 import type { ReactNode } from 'react'
-import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, ListVideo, Pause, Play, Repeat, Route } from './icons.tsx'
+import { ArrowLeft, StepBack, StepForward, ArrowsSplit, Close, Columns, GitFork, Help, Autoplay, Pause, Play, Repeat, RepeatStep, Route } from './icons.tsx'
 import { ChannelKey } from './Channels.tsx'
 import { StateKey } from './states.tsx'
 import { usePref } from './store.ts'
@@ -440,8 +440,8 @@ export function Player({ model, flow, stops, stop, ends, caption, progress, mark
           <span className="same-width"><span className={showsPause ? undefined : 'ghost'} aria-hidden={!showsPause}>Pause</span><span className={showsPause ? 'ghost' : undefined} aria-hidden={showsPause}>Play</span></span>
         </button>
         <button disabled={stop === stops.length - 1} onClick={() => onStep(stop + 1)}><StepForward size={16} />Next</button>
-        <button aria-label="Autoplay" aria-pressed={autoplay} title="Autoplay (A)" onClick={onAutoplay}><ListVideo size={16} /></button>
-        <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving || autoplay} title={!moving ? STILL : autoplay ? 'Autoplay is on' : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><Repeat size={16} /></button>
+        <button aria-label="Autoplay" aria-pressed={autoplay} title="Autoplay (A)" onClick={onAutoplay}><Autoplay size={16} /></button>
+        <button aria-label="Repeat" aria-pressed={repeat} disabled={!moving || autoplay} title={!moving ? STILL : autoplay ? 'Autoplay is on' : repeat ? 'Repeating: plays again after a rest' : 'Repeat: play again after a rest'} onClick={onRepeat}><RepeatStep size={16} /></button>
         <div className="speed" role="group" aria-label="Speed" title="Speed (S)">
           {SPEEDS.map(s => <button key={s} aria-pressed={speed === s} onClick={() => onSpeed(s)}>{s}×</button>)}
         </div>

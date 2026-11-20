@@ -206,7 +206,7 @@ public class PlayerSizeTests
     }
 
     [AvaloniaFact]
-    public void Autoplay_is_remembered_for_the_next_window()
+    public void Autoplay_starts_on_and_is_remembered_for_the_next_window()
     {
         using var temp = new TempFolder();
         var dir = Path.Combine(temp.Path, "flowy");
@@ -216,27 +216,26 @@ public class PlayerSizeTests
         var store = new UserStateStore(Path.Combine(temp.Path, "state.json"));
         var shell = new Shell(store);
         var window = shell.Show(dir);
-        Assert.False(shell.State.Autoplay);
+        Assert.True(shell.State.Autoplay);
         window.Reader.GoTo("shop");
         window.Reader.Play("checkout", 1);
-        Run(() => !window.Reader.StepMoving);
         Assert.NotNull(Named(window.Reader.Card, "Autoplay")); // a flow plays, so the player's card is there
-        Assert.False(window.Reader.Autoplaying);
+        Assert.True(window.Reader.Autoplaying);
         window.Reader.Focus();
         window.KeyPress(Key.A, RawInputModifiers.None, PhysicalKey.A, null);
-        Assert.True(window.Reader.Autoplaying);
-        Assert.True(shell.State.Autoplay);
+        Assert.False(window.Reader.Autoplaying);
+        Assert.False(shell.State.Autoplay);
         window.Close();
         var next = new Shell(new UserStateStore(store.File)).Show(dir);
         next.Reader.GoTo("shop");
         next.Reader.Play("checkout", 1);
-        Assert.True(next.Reader.Autoplaying);
+        Assert.False(next.Reader.Autoplaying);
         Run(() => !next.Reader.StepMoving);
         next.Reader.Focus();
         next.KeyPress(Key.A, RawInputModifiers.None, PhysicalKey.A, null);
-        Assert.False(next.Reader.Autoplaying);
+        Assert.True(next.Reader.Autoplaying);
         next.Close();
-        Assert.False(new UserStateStore(store.File).Load().Autoplay);
+        Assert.True(new UserStateStore(store.File).Load().Autoplay);
     }
 
     [AvaloniaFact]

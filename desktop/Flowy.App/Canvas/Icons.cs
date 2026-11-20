@@ -20,7 +20,8 @@ internal static class Icons
     // Controls share the Quiet set's 1.4-unit rounded stroke on a 24-unit grid.
     public const string Workflow = "M5 3h4a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2zM7 11v4a2 2 0 0 0 2 2h4M15 13h4a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2z";
     public const string StepForward = "M10.029 4.285A2 2 0 0 0 7 6v12a2 2 0 0 0 3.029 1.715l9.997-5.998a2 2 0 0 0 .003-3.432zM3 4v16";
-    public const string ListVideo = "M21 5H3M10 12H3M10 19H3M15 12.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997a1 1 0 0 1-1.517-.86z";
+    /// <summary>A switch with a play mark in its knob, the usual sign for Autoplay.</summary>
+    public const string Autoplay = "M9 5h6a7 7 0 0 1 0 14H9A7 7 0 0 1 9 5zM13 9.2v5.6a.8.8 0 0 0 1.2.7l4-2.8a.8.8 0 0 0 0-1.3l-4-2.8a.8.8 0 0 0-1.2.6z";
     public const string StepBack = "M13.971 4.285A2 2 0 0 1 17 6v12a2 2 0 0 1-3.029 1.715l-9.997-5.998a2 2 0 0 1-.003-3.432zM21 20V4";
     public const string Home = "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z";
     public const string ChevronRight = "M0 0m9 18 6-6-6-6";
@@ -43,6 +44,8 @@ internal static class Icons
     public const string Search = "M0 0m21 21-4.34-4.34M3 11a8 8 0 1 0 16 0a8 8 0 1 0 -16 0";
     // The three kinds of group: a repeat, a branch (one of several lanes) and parallel lanes.
     public const string Repeat = "M0 0m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M0 0m7 22-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3";
+    /// <summary>Repeat with a 1 inside: the player's Repeat, which plays the one step again (Lucide's repeat-1). Plain <see cref="Repeat"/> is a repeat group.</summary>
+    public const string RepeatStep = "M0 0m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M0 0m7 22-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3M11 10h1v4";
     public const string GitFork = "M9 18a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M3 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M15 6a3 3 0 1 0 6 0a3 3 0 1 0 -6 0M18 9v2c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9M12 12v3";
     public const string ArrowsSplit = "M16 3h5v5M8 3H3v5M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3M0 0m15 9 6-6";
 

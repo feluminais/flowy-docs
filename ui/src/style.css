@@ -405,8 +405,9 @@ svg { flex: none; }
 .data-notes code { margin-right: 6px; }
 .form textarea.data-yaml { font: 12px/1.5 ui-monospace, monospace; white-space: pre; overflow-x: auto; }
 
+/* Centred by its margins, not by translate(-50%): a translate lands the card on half a pixel when the canvas is an odd width, and the text and icons blur. */
 .player {
-  position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 5;
+  position: absolute; left: 0; right: 0; margin-inline: auto; bottom: 24px; z-index: 5;
   width: min(460px, calc(100% - 32px)); box-sizing: border-box; padding: 12px 16px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003;
   display: flex; flex-direction: column; max-height: calc(100% - 48px);
@@ -708,7 +709,7 @@ button[aria-pressed='true'] > .switch::after { transform: translateX(12px); }
 
 /* Search: a field at the top middle, over the canvas. */
 .search {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 8;
+  position: absolute; top: 12px; left: 0; right: 0; margin-inline: auto; z-index: 8;
   width: min(420px, calc(100% - 32px)); box-sizing: border-box; padding: 8px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003;
 }
@@ -723,7 +724,7 @@ button[aria-pressed='true'] > .switch::after { transform: translateX(12px); }
 
 /* The keyboard shortcuts (?): a card at the top middle, like search. */
 .shortcuts {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 8;
+  position: absolute; top: 12px; left: 0; right: 0; margin-inline: auto; z-index: 8;
   width: min(440px, calc(100% - 32px)); max-height: calc(100% - 24px); overflow: auto; box-sizing: border-box; padding: 16px 20px 14px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--box); box-shadow: 0 6px 20px #0003;
 }

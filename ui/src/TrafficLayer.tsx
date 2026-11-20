@@ -87,12 +87,12 @@ const behindOf = (shapes: Shape[], labels: Rect[], x: number, y: number, ramp: n
 }
 
 /**
- * Where the things that sit over the lines are, in the diagram's own units: the rectangle behind each label showing, and the card a shape shows
- * when it is pointed at (once it has faded in). The page owns them, so they are read from it.
+ * Where the things that sit over the lines are, in the diagram's own units: the rectangle behind each label showing (`.react-flow__edge-textbg`), or
+ * the card a shape shows when it is pointed at (`.teaser`, once it has faded in). The page owns them, so they are read from it.
  */
-const labelsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number]): Rect[] => {
+const rectsIn = (el: HTMLElement, [tx, ty, zoom]: [number, number, number], selector: string): Rect[] => {
   const root = el.getBoundingClientRect()
-  return [...(el.closest('.react-flow')?.querySelectorAll('.react-flow__edge-textbg, .teaser') ?? [])].flatMap(n => {
+  return [...(el.closest('.react-flow')?.querySelectorAll(selector) ?? [])].flatMap(n => {
     const r = n.getBoundingClientRect()
     if (r.width === 0 || (n.classList.contains('teaser') && Number(getComputedStyle(n).opacity) < 0.05)) return []
     return [{ x: (r.left - root.left - tx) / zoom, y: (r.top - root.top - ty) / zoom, width: r.width / zoom, height: r.height / zoom }]
@@ -199,7 +199,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
       const transform = store.getState().transform
       const [tx, ty, zoom] = transform
       ctx.setTransform(zoom * dpr, 0, 0, zoom * dpr, tx * dpr, ty * dpr)
-      const labels = labelsIn(el, transform)
+      const labels = rectsIn(el, transform, '.react-flow__edge-textbg')
       const { lines, paths } = now.current
       const alive = new Set<string>()
       lines.forEach((line, i) => {
@@ -362,6 +362,8 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
         }
         ctx.globalAlpha = 1
       })
+      // The card a pointed-at shape shows is read over the canvas, so nothing is drawn under it: a faint particle there looks like a stain on the card.
+      for (const c of rectsIn(el, transform, '.teaser')) ctx.clearRect(c.x, c.y, c.width, c.height)
       for (const key of streams.current.keys()) if (!alive.has(key)) streams.current.delete(key) // a line the view no longer has
       for (const key of stripeAt.current.keys()) if (!alive.has(key)) stripeAt.current.delete(key)
       frame = requestAnimationFrame(draw)

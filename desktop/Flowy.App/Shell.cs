@@ -24,7 +24,8 @@ internal sealed class Shell
     {
         _store = store;
         _launch = launch;
-        _state = store?.Load() ?? UserState.Default;
+        // A screenshot run remembers nothing, and has Autoplay off: a picture shows the step it names, not one Autoplay has gone on to.
+        _state = store?.Load() ?? (launch?.Shot is null ? UserState.Default : UserState.Default with { Autoplay = false });
     }
 
     public static Shell? Current { get; set; }

@@ -1613,11 +1613,11 @@
             "described": "flow capture-payment, step 9"
           },
           {
-            "key": "step:courier-pings-lost:4",
+            "key": "step:courier-pings-lost:5",
             "kind": "step",
             "of": "customer",
             "flow": "courier-pings-lost",
-            "step": 4,
+            "step": 5,
             "ends": [
               "to"
             ],
@@ -1628,7 +1628,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow courier-pings-lost, step 4"
+            "described": "flow courier-pings-lost, step 5"
           },
           {
             "key": "step:deliver-order:1",
@@ -1649,11 +1649,11 @@
             "described": "flow deliver-order, step 1"
           },
           {
-            "key": "step:deliver-order:10",
+            "key": "step:deliver-order:9",
             "kind": "step",
             "of": "customer",
             "flow": "deliver-order",
-            "step": 10,
+            "step": 9,
             "ends": [
               "to"
             ],
@@ -1664,7 +1664,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 10"
+            "described": "flow deliver-order, step 9"
           },
           {
             "key": "step:events-arrive-late:1",
@@ -1757,11 +1757,11 @@
             "described": "flow menu-is-read, step 1"
           },
           {
-            "key": "step:menu-is-read:8",
+            "key": "step:menu-is-read:7",
             "kind": "step",
             "of": "customer",
             "flow": "menu-is-read",
-            "step": 8,
+            "step": 7,
             "ends": [
               "to"
             ],
@@ -1772,7 +1772,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow menu-is-read, step 8"
+            "described": "flow menu-is-read, step 7"
           },
           {
             "key": "step:no-courier-answers:1",
@@ -1955,11 +1955,11 @@
             "described": "flow stripe-outage, step 1"
           },
           {
-            "key": "step:stripe-outage:5",
+            "key": "step:stripe-outage:6",
             "kind": "step",
             "of": "customer",
             "flow": "stripe-outage",
-            "step": 5,
+            "step": 6,
             "ends": [
               "from"
             ],
@@ -1970,7 +1970,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow stripe-outage, step 5"
+            "described": "flow stripe-outage, step 6"
           },
           {
             "key": "line:0",
@@ -2105,11 +2105,11 @@
             "described": "flow courier-pings-lost, step 1"
           },
           {
-            "key": "step:deliver-order:6",
+            "key": "step:deliver-order:5",
             "kind": "step",
             "of": "courier",
             "flow": "deliver-order",
-            "step": 6,
+            "step": 5,
             "ends": [
               "from"
             ],
@@ -2120,7 +2120,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 6"
+            "described": "flow deliver-order, step 5"
           },
           {
             "key": "step:deliver-order:7",
@@ -2141,11 +2141,11 @@
             "described": "flow deliver-order, step 7"
           },
           {
-            "key": "step:deliver-order:10",
+            "key": "step:deliver-order:9",
             "kind": "step",
             "of": "courier",
             "flow": "deliver-order",
-            "step": 10,
+            "step": 9,
             "ends": [
               "from"
             ],
@@ -2156,7 +2156,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 10"
+            "described": "flow deliver-order, step 9"
           },
           {
             "key": "step:no-courier-answers:5",
@@ -2242,7 +2242,7 @@
             "line": {
               "from": "support",
               "to": "support-console",
-              "label": "handles tickets"
+              "label": "works tickets"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -3090,24 +3090,6 @@
             "described": "flow restaurant-accepts, step 4"
           },
           {
-            "key": "step:stripe-outage:2",
-            "kind": "step",
-            "of": "stripe",
-            "flow": "stripe-outage",
-            "step": 2,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow stripe-outage, step 2"
-          },
-          {
             "key": "step:stripe-outage:3",
             "kind": "step",
             "of": "stripe",
@@ -3126,11 +3108,11 @@
             "described": "flow stripe-outage, step 3"
           },
           {
-            "key": "step:stripe-outage:6",
+            "key": "step:stripe-outage:4",
             "kind": "step",
             "of": "stripe",
             "flow": "stripe-outage",
-            "step": 6,
+            "step": 4,
             "ends": [
               "to"
             ],
@@ -3141,25 +3123,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow stripe-outage, step 6"
-          },
-          {
-            "key": "step:stripe-outage:7",
-            "kind": "step",
-            "of": "stripe",
-            "flow": "stripe-outage",
-            "step": 7,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow stripe-outage, step 7"
+            "described": "flow stripe-outage, step 4"
           },
           {
             "key": "step:stripe-outage:8",
@@ -3178,6 +3142,24 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow stripe-outage, step 8"
+          },
+          {
+            "key": "step:stripe-outage:9",
+            "kind": "step",
+            "of": "stripe",
+            "flow": "stripe-outage",
+            "step": 9,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-outage, step 9"
           },
           {
             "key": "step:stripe-webhook:1",
@@ -3358,7 +3340,7 @@
             "line": {
               "from": "notifier",
               "to": "twilio",
-              "label": "SMS"
+              "label": "sends SMS"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -3374,24 +3356,6 @@
           }
         ],
         "rows": [
-          {
-            "key": "step:deliver-order:4",
-            "kind": "step",
-            "of": "mapbox",
-            "flow": "deliver-order",
-            "step": 4,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow deliver-order, step 4"
-          },
           {
             "key": "step:mapbox-rate-limit:4",
             "kind": "step",
@@ -3432,7 +3396,7 @@
             "line": {
               "from": "pricing",
               "to": "mapbox",
-              "label": "delivery distance"
+              "label": "measures delivery distance"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -3446,7 +3410,7 @@
             "line": {
               "from": "eta",
               "to": "mapbox",
-              "label": "travel times"
+              "label": "asks for travel times"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -3460,7 +3424,7 @@
             "line": {
               "from": "courier-app",
               "to": "mapbox",
-              "label": "navigation"
+              "label": "loads directions"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -3513,11 +3477,11 @@
             "described": "flow capture-payment, step 9"
           },
           {
-            "key": "step:courier-pings-lost:3",
+            "key": "step:courier-pings-lost:4",
             "kind": "step",
             "of": "customer-app",
             "flow": "courier-pings-lost",
-            "step": 3,
+            "step": 4,
             "ends": [
               "to"
             ],
@@ -3528,14 +3492,14 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow courier-pings-lost, step 3"
+            "described": "flow courier-pings-lost, step 4"
           },
           {
-            "key": "step:courier-pings-lost:4",
+            "key": "step:courier-pings-lost:5",
             "kind": "step",
             "of": "customer-app",
             "flow": "courier-pings-lost",
-            "step": 4,
+            "step": 5,
             "ends": [
               "from"
             ],
@@ -3546,7 +3510,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow courier-pings-lost, step 4"
+            "described": "flow courier-pings-lost, step 5"
           },
           {
             "key": "step:deliver-order:1",
@@ -3565,24 +3529,6 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow deliver-order, step 1"
-          },
-          {
-            "key": "step:deliver-order:9",
-            "kind": "step",
-            "of": "customer-app",
-            "flow": "deliver-order",
-            "step": 9,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow deliver-order, step 9"
           },
           {
             "key": "step:events-arrive-late:1",
@@ -3783,11 +3729,11 @@
             "described": "flow menu-is-read, step 2"
           },
           {
-            "key": "step:menu-is-read:7",
+            "key": "step:menu-is-read:6",
             "kind": "step",
             "of": "customer-app",
             "flow": "menu-is-read",
-            "step": 7,
+            "step": 6,
             "ends": [
               "to"
             ],
@@ -3798,14 +3744,14 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow menu-is-read, step 7"
+            "described": "flow menu-is-read, step 6"
           },
           {
-            "key": "step:menu-is-read:8",
+            "key": "step:menu-is-read:7",
             "kind": "step",
             "of": "customer-app",
             "flow": "menu-is-read",
-            "step": 8,
+            "step": 7,
             "ends": [
               "from"
             ],
@@ -3816,7 +3762,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow menu-is-read, step 8"
+            "described": "flow menu-is-read, step 7"
           },
           {
             "key": "step:no-courier-answers:1",
@@ -4053,13 +3999,13 @@
             "described": "flow stripe-outage, step 1"
           },
           {
-            "key": "step:stripe-outage:4",
+            "key": "step:stripe-outage:2",
             "kind": "step",
             "of": "customer-app",
             "flow": "stripe-outage",
-            "step": 4,
+            "step": 2,
             "ends": [
-              "to"
+              "from"
             ],
             "actions": [
               "removeStep",
@@ -4068,7 +4014,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow stripe-outage, step 4"
+            "described": "flow stripe-outage, step 2"
           },
           {
             "key": "step:stripe-outage:5",
@@ -4087,6 +4033,42 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow stripe-outage, step 5"
+          },
+          {
+            "key": "step:stripe-outage:6",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "stripe-outage",
+            "step": 6,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-outage, step 6"
+          },
+          {
+            "key": "step:stripe-outage:7",
+            "kind": "step",
+            "of": "customer-app",
+            "flow": "stripe-outage",
+            "step": 7,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-outage, step 7"
           },
           {
             "key": "line:0",
@@ -4109,7 +4091,7 @@
             "line": {
               "from": "customer-app",
               "to": "order-api",
-              "label": "REST"
+              "label": "reads menus, places orders"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -4129,6 +4111,20 @@
             "emptiesFlow": false,
             "needsDecision": false,
             "described": "the line tracking → customer-app"
+          },
+          {
+            "key": "line:39",
+            "kind": "line",
+            "of": "customer-app",
+            "line": {
+              "from": "notifier",
+              "to": "customer-app",
+              "label": "pushes order news"
+            },
+            "actions": [],
+            "emptiesFlow": false,
+            "needsDecision": false,
+            "described": "the line notifier → customer-app"
           },
           {
             "key": "affects:ordering:stripe-timeout",
@@ -4259,7 +4255,7 @@
             "line": {
               "from": "web",
               "to": "order-api",
-              "label": "REST"
+              "label": "reads menus, places orders"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -4466,7 +4462,7 @@
             "line": {
               "from": "kitchen-tablet",
               "to": "order-api",
-              "label": "accepts, marks ready"
+              "label": "accepts orders, marks them ready"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -4629,24 +4625,6 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow capture-payment, step 8"
-          },
-          {
-            "key": "step:deliver-order:11",
-            "kind": "step",
-            "of": "order-api",
-            "flow": "deliver-order",
-            "step": 11,
-            "ends": [
-              "to"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow deliver-order, step 11"
           },
           {
             "key": "step:follow-the-courier:6",
@@ -5095,7 +5073,7 @@
             "flow": "stripe-outage",
             "step": 2,
             "ends": [
-              "from"
+              "to"
             ],
             "actions": [
               "removeStep",
@@ -5107,11 +5085,11 @@
             "described": "flow stripe-outage, step 2"
           },
           {
-            "key": "step:stripe-outage:6",
+            "key": "step:stripe-outage:5",
             "kind": "step",
             "of": "order-api",
             "flow": "stripe-outage",
-            "step": 6,
+            "step": 5,
             "ends": [
               "from"
             ],
@@ -5122,7 +5100,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow stripe-outage, step 6"
+            "described": "flow stripe-outage, step 5"
           },
           {
             "key": "step:stripe-outage:7",
@@ -5131,7 +5109,7 @@
             "flow": "stripe-outage",
             "step": 7,
             "ends": [
-              "from"
+              "to"
             ],
             "actions": [
               "removeStep",
@@ -5296,7 +5274,7 @@
             "line": {
               "from": "customer-app",
               "to": "order-api",
-              "label": "REST"
+              "label": "reads menus, places orders"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -5310,7 +5288,7 @@
             "line": {
               "from": "web",
               "to": "order-api",
-              "label": "REST"
+              "label": "reads menus, places orders"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -5324,7 +5302,7 @@
             "line": {
               "from": "kitchen-tablet",
               "to": "order-api",
-              "label": "accepts, marks ready"
+              "label": "accepts orders, marks them ready"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -5332,7 +5310,7 @@
             "described": "the line kitchen-tablet → order-api"
           },
           {
-            "key": "line:39",
+            "key": "line:41",
             "kind": "line",
             "of": "order-api",
             "line": {
@@ -5346,7 +5324,7 @@
             "described": "the line support-console → order-api"
           },
           {
-            "key": "line:41",
+            "key": "line:43",
             "kind": "line",
             "of": "order-api",
             "line": {
@@ -5398,11 +5376,11 @@
             "described": "flow capture-payment, step 6"
           },
           {
-            "key": "step:menu-is-read:5",
+            "key": "step:menu-is-read:4",
             "kind": "step",
             "of": "orders-db",
             "flow": "menu-is-read",
-            "step": 5,
+            "step": 4,
             "ends": [
               "to"
             ],
@@ -5413,7 +5391,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow menu-is-read, step 5"
+            "described": "flow menu-is-read, step 4"
           },
           {
             "key": "step:nobody-accepts:5",
@@ -5599,7 +5577,7 @@
             "line": {
               "from": "menu",
               "to": "orders-db",
-              "label": "on a cache miss"
+              "label": "reads menus on a cache miss"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -5641,7 +5619,7 @@
             "line": {
               "from": "status",
               "to": "orders-db",
-              "label": "moves the order on"
+              "label": "updates order status"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -5690,29 +5668,11 @@
             "described": "flow menu-is-read, step 3"
           },
           {
-            "key": "step:menu-is-read:4",
+            "key": "step:menu-is-read:5",
             "kind": "step",
             "of": "menu-cache",
             "flow": "menu-is-read",
-            "step": 4,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow menu-is-read, step 4"
-          },
-          {
-            "key": "step:menu-is-read:6",
-            "kind": "step",
-            "of": "menu-cache",
-            "flow": "menu-is-read",
-            "step": 6,
+            "step": 5,
             "ends": [
               "to"
             ],
@@ -5723,7 +5683,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow menu-is-read, step 6"
+            "described": "flow menu-is-read, step 5"
           },
           {
             "key": "mode:ordering:menu-cache-stale:on",
@@ -5991,17 +5951,17 @@
             "kind": "line",
             "of": "events",
             "line": {
-              "from": "dispatch",
+              "from": "matcher",
               "to": "events",
               "label": "reads placed orders"
             },
             "actions": [],
             "emptiesFlow": false,
             "needsDecision": false,
-            "described": "the line dispatch → events"
+            "described": "the line matcher → events"
           },
           {
-            "key": "line:43",
+            "key": "line:45",
             "kind": "line",
             "of": "events",
             "line": {
@@ -6066,7 +6026,7 @@
             "flow": "menu-is-read",
             "step": 4,
             "ends": [
-              "to"
+              "from"
             ],
             "actions": [
               "removeStep",
@@ -6114,24 +6074,6 @@
             "described": "flow menu-is-read, step 6"
           },
           {
-            "key": "step:menu-is-read:7",
-            "kind": "step",
-            "of": "menu",
-            "flow": "menu-is-read",
-            "step": 7,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow menu-is-read, step 7"
-          },
-          {
             "key": "line:9",
             "kind": "line",
             "of": "menu",
@@ -6152,7 +6094,7 @@
             "line": {
               "from": "menu",
               "to": "orders-db",
-              "label": "on a cache miss"
+              "label": "reads menus on a cache miss"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -6316,7 +6258,7 @@
             "line": {
               "from": "pricing",
               "to": "mapbox",
-              "label": "delivery distance"
+              "label": "measures delivery distance"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -6401,6 +6343,24 @@
             "described": "flow stripe-outage, step 8"
           },
           {
+            "key": "step:stripe-outage:9",
+            "kind": "step",
+            "of": "checkout",
+            "flow": "stripe-outage",
+            "step": 9,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow stripe-outage, step 9"
+          },
+          {
             "key": "mode:ordering:stripe-timeout:from",
             "kind": "mode",
             "of": "checkout",
@@ -6429,6 +6389,17 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "mode card-declined of ordering"
+          },
+          {
+            "key": "stepState:stripe-outage:5",
+            "kind": "stepState",
+            "of": "checkout",
+            "flow": "stripe-outage",
+            "step": 5,
+            "actions": [],
+            "emptiesFlow": false,
+            "needsDecision": false,
+            "described": "flow stripe-outage, step 5"
           },
           {
             "key": "line:14",
@@ -6502,7 +6473,7 @@
             "line": {
               "from": "status",
               "to": "orders-db",
-              "label": "moves the order on"
+              "label": "updates order status"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -6530,7 +6501,7 @@
             "line": {
               "from": "status",
               "to": "notifier",
-              "label": "order updates"
+              "label": "requests order updates"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -6544,7 +6515,7 @@
             "line": {
               "from": "courier-app",
               "to": "status",
-              "label": "picked up, delivered"
+              "label": "reports pickup and delivery"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -6708,7 +6679,7 @@
             "described": "the line refunds → notifier"
           },
           {
-            "key": "line:40",
+            "key": "line:42",
             "kind": "line",
             "of": "refunds",
             "line": {
@@ -6767,13 +6738,31 @@
             "described": "flow courier-pings-lost, step 2"
           },
           {
+            "key": "step:deliver-order:5",
+            "kind": "step",
+            "of": "courier-app",
+            "flow": "deliver-order",
+            "step": 5,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow deliver-order, step 5"
+          },
+          {
             "key": "step:deliver-order:6",
             "kind": "step",
             "of": "courier-app",
             "flow": "deliver-order",
             "step": 6,
             "ends": [
-              "to"
+              "from"
             ],
             "actions": [
               "removeStep",
@@ -6801,24 +6790,6 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow deliver-order, step 8"
-          },
-          {
-            "key": "step:deliver-order:11",
-            "kind": "step",
-            "of": "courier-app",
-            "flow": "deliver-order",
-            "step": 11,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow deliver-order, step 11"
           },
           {
             "key": "step:follow-the-courier:3",
@@ -6927,7 +6898,7 @@
             "line": {
               "from": "courier-app",
               "to": "tracking",
-              "label": "position every 5 s"
+              "label": "sends its position every 5 s"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -6941,7 +6912,7 @@
             "line": {
               "from": "courier-app",
               "to": "status",
-              "label": "picked up, delivered"
+              "label": "reports pickup and delivery"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -6955,12 +6926,26 @@
             "line": {
               "from": "courier-app",
               "to": "mapbox",
-              "label": "navigation"
+              "label": "loads directions"
             },
             "actions": [],
             "emptiesFlow": false,
             "needsDecision": false,
             "described": "the line courier-app → mapbox"
+          },
+          {
+            "key": "line:40",
+            "kind": "line",
+            "of": "courier-app",
+            "line": {
+              "from": "notifier",
+              "to": "courier-app",
+              "label": "pushes job offers"
+            },
+            "actions": [],
+            "emptiesFlow": false,
+            "needsDecision": false,
+            "described": "the line notifier → courier-app"
           }
         ]
       },
@@ -7026,13 +7011,13 @@
             "described": "flow deliver-order, step 4"
           },
           {
-            "key": "step:deliver-order:5",
+            "key": "step:deliver-order:6",
             "kind": "step",
             "of": "dispatch",
             "flow": "deliver-order",
-            "step": 5,
+            "step": 6,
             "ends": [
-              "from"
+              "to"
             ],
             "actions": [
               "removeStep",
@@ -7041,7 +7026,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 5"
+            "described": "flow deliver-order, step 6"
           },
           {
             "key": "step:events-arrive-late:2",
@@ -7222,20 +7207,6 @@
             "described": "offers inside it"
           },
           {
-            "key": "line:24",
-            "kind": "line",
-            "of": "dispatch",
-            "line": {
-              "from": "dispatch",
-              "to": "events",
-              "label": "reads placed orders"
-            },
-            "actions": [],
-            "emptiesFlow": false,
-            "needsDecision": false,
-            "described": "the line dispatch → events"
-          },
-          {
             "key": "line:30",
             "kind": "line",
             "of": "dispatch",
@@ -7328,6 +7299,24 @@
             "described": "flow courier-pings-lost, step 3"
           },
           {
+            "key": "step:courier-pings-lost:4",
+            "kind": "step",
+            "of": "tracking",
+            "flow": "courier-pings-lost",
+            "step": 4,
+            "ends": [
+              "from"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow courier-pings-lost, step 4"
+          },
+          {
             "key": "step:deliver-order:8",
             "kind": "step",
             "of": "tracking",
@@ -7344,24 +7333,6 @@
             "emptiesFlow": false,
             "needsDecision": true,
             "described": "flow deliver-order, step 8"
-          },
-          {
-            "key": "step:deliver-order:9",
-            "kind": "step",
-            "of": "tracking",
-            "flow": "deliver-order",
-            "step": 9,
-            "ends": [
-              "from"
-            ],
-            "actions": [
-              "removeStep",
-              "reroute",
-              "deleteFlow"
-            ],
-            "emptiesFlow": false,
-            "needsDecision": true,
-            "described": "flow deliver-order, step 9"
           },
           {
             "key": "step:follow-the-courier:2",
@@ -7475,7 +7446,7 @@
             "line": {
               "from": "courier-app",
               "to": "tracking",
-              "label": "position every 5 s"
+              "label": "sends its position every 5 s"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -7545,11 +7516,29 @@
         ],
         "rows": [
           {
-            "key": "step:courier-pings-lost:5",
+            "key": "step:courier-pings-lost:3",
             "kind": "step",
             "of": "fleet-db",
             "flow": "courier-pings-lost",
-            "step": 5,
+            "step": 3,
+            "ends": [
+              "to"
+            ],
+            "actions": [
+              "removeStep",
+              "reroute",
+              "deleteFlow"
+            ],
+            "emptiesFlow": false,
+            "needsDecision": true,
+            "described": "flow courier-pings-lost, step 3"
+          },
+          {
+            "key": "step:courier-pings-lost:6",
+            "kind": "step",
+            "of": "fleet-db",
+            "flow": "courier-pings-lost",
+            "step": 6,
             "ends": [
               "from"
             ],
@@ -7560,7 +7549,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow courier-pings-lost, step 5"
+            "described": "flow courier-pings-lost, step 6"
           },
           {
             "key": "step:deliver-order:3",
@@ -7705,6 +7694,20 @@
             "described": "flow mapbox-rate-limit, step 3"
           },
           {
+            "key": "line:24",
+            "kind": "line",
+            "of": "matcher",
+            "line": {
+              "from": "matcher",
+              "to": "events",
+              "label": "reads placed orders"
+            },
+            "actions": [],
+            "emptiesFlow": false,
+            "needsDecision": false,
+            "described": "the line matcher → events"
+          },
+          {
             "key": "line:25",
             "kind": "line",
             "of": "matcher",
@@ -7845,7 +7848,7 @@
             "line": {
               "from": "eta",
               "to": "mapbox",
-              "label": "travel times"
+              "label": "asks for travel times"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -7990,11 +7993,11 @@
         ],
         "rows": [
           {
-            "key": "step:deliver-order:5",
+            "key": "step:deliver-order:4",
             "kind": "step",
             "of": "notifier",
             "flow": "deliver-order",
-            "step": 5,
+            "step": 4,
             "ends": [
               "to"
             ],
@@ -8005,7 +8008,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 5"
+            "described": "flow deliver-order, step 4"
           },
           {
             "key": "step:no-courier-answers:3",
@@ -8119,7 +8122,7 @@
             "line": {
               "from": "status",
               "to": "notifier",
-              "label": "order updates"
+              "label": "requests order updates"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -8161,7 +8164,7 @@
             "line": {
               "from": "notifier",
               "to": "twilio",
-              "label": "SMS"
+              "label": "sends SMS"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -8181,6 +8184,34 @@
             "emptiesFlow": false,
             "needsDecision": false,
             "described": "the line notifier → templates"
+          },
+          {
+            "key": "line:39",
+            "kind": "line",
+            "of": "notifier",
+            "line": {
+              "from": "notifier",
+              "to": "customer-app",
+              "label": "pushes order news"
+            },
+            "actions": [],
+            "emptiesFlow": false,
+            "needsDecision": false,
+            "described": "the line notifier → customer-app"
+          },
+          {
+            "key": "line:40",
+            "kind": "line",
+            "of": "notifier",
+            "line": {
+              "from": "notifier",
+              "to": "courier-app",
+              "label": "pushes job offers"
+            },
+            "actions": [],
+            "emptiesFlow": false,
+            "needsDecision": false,
+            "described": "the line notifier → courier-app"
           }
         ]
       },
@@ -8229,7 +8260,7 @@
             "described": "the line support → admin"
           },
           {
-            "key": "line:41",
+            "key": "line:43",
             "kind": "line",
             "of": "admin",
             "line": {
@@ -8243,13 +8274,13 @@
             "described": "the line admin → order-api"
           },
           {
-            "key": "line:42",
+            "key": "line:44",
             "kind": "line",
             "of": "admin",
             "line": {
               "from": "admin",
               "to": "warehouse",
-              "label": "weekly reports"
+              "label": "reads weekly reports"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -8319,7 +8350,7 @@
             "line": {
               "from": "support",
               "to": "support-console",
-              "label": "handles tickets"
+              "label": "works tickets"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -8327,7 +8358,7 @@
             "described": "the line support → support-console"
           },
           {
-            "key": "line:39",
+            "key": "line:41",
             "kind": "line",
             "of": "support-console",
             "line": {
@@ -8341,7 +8372,7 @@
             "described": "the line support-console → order-api"
           },
           {
-            "key": "line:40",
+            "key": "line:42",
             "kind": "line",
             "of": "support-console",
             "line": {
@@ -8408,13 +8439,13 @@
             "described": "mode warehouse-down of ordering"
           },
           {
-            "key": "line:42",
+            "key": "line:44",
             "kind": "line",
             "of": "warehouse",
             "line": {
               "from": "admin",
               "to": "warehouse",
-              "label": "weekly reports"
+              "label": "reads weekly reports"
             },
             "actions": [],
             "emptiesFlow": false,
@@ -8422,7 +8453,7 @@
             "described": "the line admin → warehouse"
           },
           {
-            "key": "line:43",
+            "key": "line:45",
             "kind": "line",
             "of": "warehouse",
             "line": {
@@ -8629,7 +8660,7 @@
             "line": {
               "from": "support",
               "to": "support-console",
-              "label": "handles tickets",
+              "label": "works tickets",
               "all": false
             }
           }
@@ -8721,7 +8752,7 @@
             "line": {
               "from": "customer-app",
               "to": "order-api",
-              "label": "REST",
+              "label": "reads menus, places orders",
               "all": false
             }
           }
@@ -8767,7 +8798,7 @@
             "line": {
               "from": "web",
               "to": "order-api",
-              "label": "REST",
+              "label": "reads menus, places orders",
               "all": false
             }
           }
@@ -8813,7 +8844,7 @@
             "line": {
               "from": "kitchen-tablet",
               "to": "order-api",
-              "label": "accepts, marks ready",
+              "label": "accepts orders, marks them ready",
               "all": false
             }
           }
@@ -8905,7 +8936,7 @@
             "line": {
               "from": "menu",
               "to": "orders-db",
-              "label": "on a cache miss",
+              "label": "reads menus on a cache miss",
               "all": false
             }
           }
@@ -9043,7 +9074,7 @@
             "line": {
               "from": "pricing",
               "to": "mapbox",
-              "label": "delivery distance",
+              "label": "measures delivery distance",
               "all": false
             }
           }
@@ -9360,7 +9391,7 @@
             "line": {
               "from": "status",
               "to": "orders-db",
-              "label": "moves the order on",
+              "label": "updates order status",
               "all": false
             }
           }
@@ -9452,7 +9483,7 @@
             "line": {
               "from": "status",
               "to": "notifier",
-              "label": "order updates",
+              "label": "requests order updates",
               "all": false
             }
           }
@@ -9634,7 +9665,7 @@
         "targets": [
           {
             "line": {
-              "from": "dispatch",
+              "from": "matcher",
               "to": "events",
               "label": "reads placed orders",
               "all": false
@@ -9650,7 +9681,7 @@
         "targets": [
           {
             "line": {
-              "from": "dispatch",
+              "from": "matcher",
               "to": "events",
               "all": false
             }
@@ -9665,7 +9696,7 @@
         "targets": [
           {
             "line": {
-              "from": "dispatch",
+              "from": "matcher",
               "to": "events",
               "all": true
             }
@@ -9820,7 +9851,7 @@
             "line": {
               "from": "eta",
               "to": "mapbox",
-              "label": "travel times",
+              "label": "asks for travel times",
               "all": false
             }
           }
@@ -10003,7 +10034,7 @@
             "line": {
               "from": "courier-app",
               "to": "tracking",
-              "label": "position every 5 s",
+              "label": "sends its position every 5 s",
               "all": false
             }
           }
@@ -10049,7 +10080,7 @@
             "line": {
               "from": "courier-app",
               "to": "status",
-              "label": "picked up, delivered",
+              "label": "reports pickup and delivery",
               "all": false
             }
           }
@@ -10095,7 +10126,7 @@
             "line": {
               "from": "courier-app",
               "to": "mapbox",
-              "label": "navigation",
+              "label": "loads directions",
               "all": false
             }
           }
@@ -10279,7 +10310,7 @@
             "line": {
               "from": "notifier",
               "to": "twilio",
-              "label": "SMS",
+              "label": "sends SMS",
               "all": false
             }
           }
@@ -10414,6 +10445,98 @@
         "targets": [
           {
             "line": {
+              "from": "notifier",
+              "to": "customer-app",
+              "label": "pushes order news",
+              "all": false
+            }
+          }
+        ],
+        "rows": [],
+        "indices": [
+          39
+        ]
+      },
+      {
+        "targets": [
+          {
+            "line": {
+              "from": "notifier",
+              "to": "customer-app",
+              "all": false
+            }
+          }
+        ],
+        "rows": [],
+        "indices": [
+          39
+        ]
+      },
+      {
+        "targets": [
+          {
+            "line": {
+              "from": "notifier",
+              "to": "customer-app",
+              "all": true
+            }
+          }
+        ],
+        "rows": [],
+        "indices": [
+          39
+        ]
+      },
+      {
+        "targets": [
+          {
+            "line": {
+              "from": "notifier",
+              "to": "courier-app",
+              "label": "pushes job offers",
+              "all": false
+            }
+          }
+        ],
+        "rows": [],
+        "indices": [
+          40
+        ]
+      },
+      {
+        "targets": [
+          {
+            "line": {
+              "from": "notifier",
+              "to": "courier-app",
+              "all": false
+            }
+          }
+        ],
+        "rows": [],
+        "indices": [
+          40
+        ]
+      },
+      {
+        "targets": [
+          {
+            "line": {
+              "from": "notifier",
+              "to": "courier-app",
+              "all": true
+            }
+          }
+        ],
+        "rows": [],
+        "indices": [
+          40
+        ]
+      },
+      {
+        "targets": [
+          {
+            "line": {
               "from": "support-console",
               "to": "order-api",
               "label": "looks up orders",
@@ -10423,7 +10546,7 @@
         ],
         "rows": [],
         "indices": [
-          39
+          41
         ]
       },
       {
@@ -10438,7 +10561,7 @@
         ],
         "rows": [],
         "indices": [
-          39
+          41
         ]
       },
       {
@@ -10453,7 +10576,7 @@
         ],
         "rows": [],
         "indices": [
-          39
+          41
         ]
       },
       {
@@ -10469,7 +10592,7 @@
         ],
         "rows": [],
         "indices": [
-          40
+          42
         ]
       },
       {
@@ -10484,7 +10607,7 @@
         ],
         "rows": [],
         "indices": [
-          40
+          42
         ]
       },
       {
@@ -10499,7 +10622,7 @@
         ],
         "rows": [],
         "indices": [
-          40
+          42
         ]
       },
       {
@@ -10515,7 +10638,7 @@
         ],
         "rows": [],
         "indices": [
-          41
+          43
         ]
       },
       {
@@ -10530,7 +10653,7 @@
         ],
         "rows": [],
         "indices": [
-          41
+          43
         ]
       },
       {
@@ -10545,7 +10668,7 @@
         ],
         "rows": [],
         "indices": [
-          41
+          43
         ]
       },
       {
@@ -10554,14 +10677,14 @@
             "line": {
               "from": "admin",
               "to": "warehouse",
-              "label": "weekly reports",
+              "label": "reads weekly reports",
               "all": false
             }
           }
         ],
         "rows": [],
         "indices": [
-          42
+          44
         ]
       },
       {
@@ -10576,7 +10699,7 @@
         ],
         "rows": [],
         "indices": [
-          42
+          44
         ]
       },
       {
@@ -10591,7 +10714,7 @@
         ],
         "rows": [],
         "indices": [
-          42
+          44
         ]
       },
       {
@@ -10607,7 +10730,7 @@
         ],
         "rows": [],
         "indices": [
-          43
+          45
         ]
       },
       {
@@ -10622,7 +10745,7 @@
         ],
         "rows": [],
         "indices": [
-          43
+          45
         ]
       },
       {
@@ -10637,7 +10760,7 @@
         ],
         "rows": [],
         "indices": [
-          43
+          45
         ]
       }
     ],
@@ -10689,11 +10812,11 @@
             "described": "flow capture-payment, step 9"
           },
           {
-            "key": "step:courier-pings-lost:4",
+            "key": "step:courier-pings-lost:5",
             "kind": "step",
             "of": "customer",
             "flow": "courier-pings-lost",
-            "step": 4,
+            "step": 5,
             "ends": [
               "to"
             ],
@@ -10704,7 +10827,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow courier-pings-lost, step 4"
+            "described": "flow courier-pings-lost, step 5"
           },
           {
             "key": "step:deliver-order:1",
@@ -10743,11 +10866,11 @@
             "described": "flow deliver-order, step 7"
           },
           {
-            "key": "step:deliver-order:10",
+            "key": "step:deliver-order:9",
             "kind": "step",
             "of": "customer",
             "flow": "deliver-order",
-            "step": 10,
+            "step": 9,
             "ends": [
               "to"
             ],
@@ -10758,7 +10881,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 10"
+            "described": "flow deliver-order, step 9"
           },
           {
             "key": "step:events-arrive-late:1",
@@ -10851,11 +10974,11 @@
             "described": "flow menu-is-read, step 1"
           },
           {
-            "key": "step:menu-is-read:8",
+            "key": "step:menu-is-read:7",
             "kind": "step",
             "of": "customer",
             "flow": "menu-is-read",
-            "step": 8,
+            "step": 7,
             "ends": [
               "to"
             ],
@@ -10866,7 +10989,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow menu-is-read, step 8"
+            "described": "flow menu-is-read, step 7"
           },
           {
             "key": "step:no-courier-answers:1",
@@ -11067,11 +11190,11 @@
             "described": "flow stripe-outage, step 1"
           },
           {
-            "key": "step:stripe-outage:5",
+            "key": "step:stripe-outage:6",
             "kind": "step",
             "of": "customer",
             "flow": "stripe-outage",
-            "step": 5,
+            "step": 6,
             "ends": [
               "from"
             ],
@@ -11082,7 +11205,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow stripe-outage, step 5"
+            "described": "flow stripe-outage, step 6"
           },
           {
             "key": "line:0",
@@ -11196,11 +11319,11 @@
             "described": "flow courier-pings-lost, step 1"
           },
           {
-            "key": "step:courier-pings-lost:4",
+            "key": "step:courier-pings-lost:5",
             "kind": "step",
             "of": "customer",
             "flow": "courier-pings-lost",
-            "step": 4,
+            "step": 5,
             "ends": [
               "to"
             ],
@@ -11211,7 +11334,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow courier-pings-lost, step 4"
+            "described": "flow courier-pings-lost, step 5"
           },
           {
             "key": "step:deliver-order:1",
@@ -11232,11 +11355,11 @@
             "described": "flow deliver-order, step 1"
           },
           {
-            "key": "step:deliver-order:6",
+            "key": "step:deliver-order:5",
             "kind": "step",
             "of": "courier",
             "flow": "deliver-order",
-            "step": 6,
+            "step": 5,
             "ends": [
               "from"
             ],
@@ -11247,7 +11370,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 6"
+            "described": "flow deliver-order, step 5"
           },
           {
             "key": "step:deliver-order:7",
@@ -11269,11 +11392,11 @@
             "described": "flow deliver-order, step 7"
           },
           {
-            "key": "step:deliver-order:10",
+            "key": "step:deliver-order:9",
             "kind": "step",
             "of": "courier",
             "flow": "deliver-order",
-            "step": 10,
+            "step": 9,
             "ends": [
               "from",
               "to"
@@ -11285,7 +11408,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow deliver-order, step 10"
+            "described": "flow deliver-order, step 9"
           },
           {
             "key": "step:events-arrive-late:1",
@@ -11378,11 +11501,11 @@
             "described": "flow menu-is-read, step 1"
           },
           {
-            "key": "step:menu-is-read:8",
+            "key": "step:menu-is-read:7",
             "kind": "step",
             "of": "customer",
             "flow": "menu-is-read",
-            "step": 8,
+            "step": 7,
             "ends": [
               "to"
             ],
@@ -11393,7 +11516,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow menu-is-read, step 8"
+            "described": "flow menu-is-read, step 7"
           },
           {
             "key": "step:no-courier-answers:1",
@@ -11612,11 +11735,11 @@
             "described": "flow stripe-outage, step 1"
           },
           {
-            "key": "step:stripe-outage:5",
+            "key": "step:stripe-outage:6",
             "kind": "step",
             "of": "customer",
             "flow": "stripe-outage",
-            "step": 5,
+            "step": 6,
             "ends": [
               "from"
             ],
@@ -11627,7 +11750,7 @@
             ],
             "emptiesFlow": false,
             "needsDecision": true,
-            "described": "flow stripe-outage, step 5"
+            "described": "flow stripe-outage, step 6"
           },
           {
             "key": "line:0",

@@ -642,7 +642,7 @@ internal sealed class PlayerCard : Border
         var play = v.ShowsPause ? Tool(Icons.Pause, "Pause", () => Play?.Invoke()) : Tool(Icons.Play, "Play", () => Play?.Invoke());
         play.MinWidth = PlayWidth(); // as wide as its longer word, so the buttons after it stay put when it changes
         ToolTip.SetTip(play, v.ShowsPause ? "Pause (Space)" : "Play (Space)");
-        var auto = Tool(Icons.ListVideo, null, () => Autoplay?.Invoke(), name: "Autoplay");
+        var auto = Tool(Icons.Autoplay, null, () => Autoplay?.Invoke(), name: "Autoplay");
         auto.Classes.Add("auto");
         ToolTip.SetTip(auto, "Autoplay (A)");
         if (v.Auto)
