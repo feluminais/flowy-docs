@@ -3723,7 +3723,7 @@
           {
             "from": "courier-app",
             "to": "tracking",
-            "text": "Sends its position",
+            "text": "Sends its position on its own timer",
             "group": "updates",
             "animation": {
               "kind": "send",
@@ -3769,7 +3769,7 @@
           }
         ]
       },
-      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: order\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
+      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: order\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position on its own timer\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
     },
     {
       "folder": "docs/demo/flowy",
@@ -13187,7 +13187,7 @@
           {
             "from": "courier-app",
             "to": "tracking",
-            "text": "Sends its position",
+            "text": "Sends its position on its own timer",
             "group": "updates",
             "animation": {
               "kind": "send",
@@ -13233,7 +13233,7 @@
           }
         ]
       },
-      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: order\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
+      "text": "name: The customer follows the courier\nview: delivery\ntags:\n  - happy path\ngroups:\n  updates:\n    kind: repeat\n    until: the order is delivered\n    text: A position every 5 s.\nsteps:\n  - from: customer\n    to: customer-app\n    text: Opens the order to see where the food is\n    animation:\n      kind: send\n      carries: order\n  - from: customer-app\n    to: tracking\n    text: Opens the live map\n    animation:\n      kind: call\n      opens: stream\n      name: Live map\n      towards: from\n  - from: courier-app\n    to: tracking\n    text: Sends its position on its own timer\n    group: updates\n    animation:\n      kind: send\n      carries: position\n    payload: position\n  - from: tracking\n    to: fleet-db\n    text: Stores it\n    group: updates\n    animation: send\n  - from: tracking\n    to: customer-app\n    text: Moves the courier on the customer's map\n    group: updates\n    animation:\n      kind: send\n      carries: position\n      effect: pulse\n  - from: courier-app\n    to: order-api\n    text: Marks the order delivered\n    animation:\n      kind: call\n      carries: delivered\n  - from: customer-app\n    to: tracking\n    text: Closes the live map\n    animation:\n      kind: send\n      closes: Live map\n"
     },
     {
       "folder": "docs/demo/flowy",

@@ -8,6 +8,7 @@ steps:
     text: Starts the local server and opens the browser
     description: |
       Port 4321, or the next free one up to twenty along, on 127.0.0.1 only. The `flowy/` folder is created if missing, so there is always something to watch.
+  - { from: server, to: canvas, text: Serves the page to the browser }
   - { from: canvas, to: server, text: "GET /api/state" }
   - from: server
     to: repo

@@ -11,4 +11,6 @@ steps:
       doesn't exist counts (the canvas can't check it, Node can), so the AI can't point a shape at
       code that's gone.
   - { from: mcp, to: repo, text: Writes only the files that changed, animation: send }
+  - { from: repo, to: server, text: "The write wakes the server's file watcher" }
+  - { from: server, to: canvas, text: Tells the open page over its event stream }
   - { from: canvas, text: Picks the change up without a reload }
