@@ -1791,7 +1791,7 @@
         {
           "from": "courier-app",
           "to": "tracking",
-          "text": "Sends its position",
+          "text": "Sends its position on its own timer",
           "animation": {
             "kind": "send",
             "carries": "position"

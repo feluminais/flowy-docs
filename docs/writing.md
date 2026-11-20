@@ -63,7 +63,7 @@ Shape, colour, opacity and icon are optional: the type picks a good default. Set
 - One trigger, one story, usually 3-9 steps.
 - Happy path first and whole. A failure gets its own flow, whose first step states the condition as a fact ("Stripe declines the card").
 - A step is one handover, the sender its subject, saying what passes: "Hands over the order", "POST /orders with the basket". Leave the receiver's name out unless the text needs it, and never end on "to", "from" or another preposition.
-- Say when the sender doesn't wait (it queues the work, fires and forgets, runs on a timer).
+- Start a step at the trigger or a shape an earlier step reached. Say when a sender doesn't wait or acts alone.
 - Add a step back only when something new is sent or time passes. When a shape asks and gets its answer in one step, say so.
 - Keep to what the trigger causes. Something that happens on its own gets a step that says so, or its own flow.
 - More (a step's description) holds why, timing, failure behaviour or limits, about 80 words, never a repeat of the step.
