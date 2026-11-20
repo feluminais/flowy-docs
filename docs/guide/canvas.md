@@ -34,8 +34,8 @@ A flow opens with its first step moving, and each step waits at its end.
 - Back: a moving step plays again, and a second press within 2 seconds goes to the step before. A still step goes there at once.
 - Pause: holds everything where it is, the moving dot, a channel coming in and a shape's state included, and stays on through Back and Next.
 - Play: carries on. A step that has played out runs again, and the last step with Autoplay on starts from step 1.
-- Autoplay: a finished step goes on to the next, up to the last. It stays on through Back and Next, and a comparison pane opens with it off.
-- Repeat (browser, on by default): a moving step plays again 2.5 seconds after it ends. Greyed out on a still step and during Autoplay.
+- Autoplay (on at first): a finished step goes on to the next, up to the last. It stays on through Back and Next and for every flow, and a comparison pane opens with it off.
+- Repeat (browser, on at first, the arrows with a 1): a moving step plays again 2.5 seconds after it ends. Greyed out on a still step and during Autoplay.
 - The bar goes to any moment of any step. The browser keeps Autoplay, Repeat and the speed for your next visit, and the desktop app keeps Autoplay.
 - The card keeps the size of its tallest step, up to 180 px for the part between the chips and the buttons. A taller step makes the card taller for that step only, up to the canvas, where it scrolls.
 - A step on a part of a shape names it: "Scheduler in Core".

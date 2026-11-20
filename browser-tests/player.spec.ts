@@ -350,6 +350,20 @@ test('Autoplay is kept across visits', async ({ page }) => {
   await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
 })
 
+test.describe('On a fresh page', () => {
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test('Autoplay starts on, and turned off it stays off for the next visit and another flow', async ({ page }) => {
+    await openFlow(page)
+    await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'true')
+    await autoplay(page).click()
+    await page.goto('/#delivery/courier-pings-lost')
+    await page.reload()
+    await player(page).waitFor()
+    await expect(autoplay(page)).toHaveAttribute('aria-pressed', 'false')
+  })
+})
+
 test('Play sits between Back and Next', async ({ page }) => {
   await openFlow(page)
   const names = await player(page).locator('.player-buttons > button').evaluateAll(bs => bs.slice(0, 3).map(b => b.textContent?.trim()))

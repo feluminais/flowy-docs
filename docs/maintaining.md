@@ -389,8 +389,9 @@ Animation showcase (`npm run build:ui && node src/cli.ts --dir docs/showcase/flo
       Click a few pixels above a cell of the bar: the card goes to that step and moment. Step through Support refunds an order: the card's top edge and its
       buttons never move, and on its last step Repeat is greyed out with "Nothing moves on this step". The buttons read Back, Play, Next, Autoplay. On step 2 of
       "Customer places an order", Back plays the step again and a second click within two seconds goes to step 1. Both readers.
-- [ ] Play "Customer places an order": the first step moves by itself and nothing goes on to step 2. Without Repeat it rests on its end, the button says Play, and Play runs the
-      step again. Press A: step 2 starts, and each step goes on to the next. Pause holds it in a step or in the rest between two, Autoplay stays on, and Space carries on from there.
+- [ ] With no saved settings, play "Customer places an order": Autoplay is on (the switch with a play mark) and each step goes on to the next. Press A to turn it off, then open
+      another flow and reload: it is still off. Play "Customer places an order": the first step moves by itself and nothing goes on to step 2. Without Repeat (the arrows with a 1) it
+      rests on its end, the button says Play, and Play runs the step again. Press A: step 2 starts, and each step goes on to the next. Pause holds it in a step or in the rest between two, Autoplay stays on, and Space carries on from there.
       Back and Next leave Autoplay on, and paused they stay paused. On the last step it waits with Autoplay still on, the button says Play, and Play starts from step 1. In the
       browser Repeat is greyed out with "Autoplay is on", and Autoplay is still on after a reload. A pane of a comparison opens with it off, on a flow with Autoplay on behind it. Both readers.
 - [ ] Open *Effects* (`#steps/effects`) and press A: the label of each of four steps runs from Effects · from to Effects · to, down a slope, doing what its word says. squish stretches
@@ -427,8 +428,8 @@ Performance (`npm run build:ui && node src/cli.ts --dir perf-lab/flowy`):
       the panel, and the diagram still fits; Esc closes whichever is showing.
 - [ ] On Plum (`--dir docs/demo/flowy`, Delivery at 900 orders/min) the line from Dispatch to Order events runs behind Live tracking: its dots go faint and a little
       smaller as they reach the box, run across it as ghosts, and come back as they leave, with no jump at either edge, in the browser and in the desktop app. Click Dispatch:
-      the dots on its lines do the same under a label ("accepts or refuses", "travel times"), which stays readable, and in the browser under the card that appears when you
-      point at a shape. A dot that comes out of the first or last shape of its own line is not faint there. Reduced motion draws no dots at all.
+      the dots on its lines do the same under a label ("accepts or refuses", "asks for travel times"), which stays readable. In the browser, point at a shape on a line with
+      dots: none show on the card that appears. A dot that comes out of the first or last shape of its own line is not faint there. Reduced motion draws no dots at all.
 - [ ] Click Fulfilment worker: the panel stays and reads Busy and Failing with a curve each. Click the line from Order queue to
       it: its numbers show. Pick Slow gateway in the run list: the struggle is
       at a lower load. Press Home, then P (or click Ramp): the load sweeps up through the levels in about 30 s (from a later load it

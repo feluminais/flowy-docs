@@ -11,7 +11,12 @@ export default defineConfig({
   reporter: process.env.CI ? [['list'], ['html', { outputFolder: 'report', open: 'never' }]] : 'list',
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
-  use: { baseURL: `http://127.0.0.1:${port}`, trace: 'retain-on-failure' },
+  // Autoplay starts on, but these tests step through flows one stop at a time, so the page opens with it turned off; player.spec.ts checks the default on a fresh page.
+  use: {
+    baseURL: `http://127.0.0.1:${port}`,
+    trace: 'retain-on-failure',
+    storageState: { cookies: [], origins: [{ origin: `http://127.0.0.1:${port}`, localStorage: [{ name: 'flowy.autoplay', value: 'off' }] }] },
+  },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: `node src/cli.ts --dir docs/demo/flowy --port ${port} --no-open`,
