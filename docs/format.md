@@ -227,6 +227,7 @@ The holder is the newer one. It can't name itself, the id has to be a run, and a
 | An entry under `icons` | `put_icon`, `delete_icon` |
 | A connection, its `kind`, its `payloads` | `connect`, `disconnect`, `set_kind`, `set_payloads` |
 | A payload under `payloads` | `put_payload`, `delete_payload` |
+| The `code` of a shape, a connection, a flow, a step, a failure mode or a payload | `set_code`, or the tool that writes the whole part |
 | A flow and every key in it | `put_flow`, `move_flow`, `tag_flow`, `delete_flow` |
 | A failure analysis, or one mode of it | `put_failures`, `put_failure`, `delete_failures`, `delete_failure` |
 | The `compare` of a flow or a run | `set_compare` |

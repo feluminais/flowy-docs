@@ -34,6 +34,9 @@ public sealed record Connection(string? From, string? To, string? Label)
     /// <summary>The <c>payloads</c> as the file held them: a list of payload ids and payloads written in place if it is well formed, which <see cref="Payloads"/> reads and the checks report on.</summary>
     public object? Payloads { get; init; }
 
+    /// <summary>The <c>code</c> as the file held it: a list of paths (each <c>path</c> or <c>path:line</c>) if it is well formed, which <see cref="CodeRefs"/> reads and the checks report on; null when the key is not there.</summary>
+    public object? Code { get; init; }
+
     /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>).</summary>
     public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
 }
@@ -53,6 +56,9 @@ public sealed record Step(string? From, string? To, string? Text, string? Descri
 
     /// <summary>The step's <c>via</c>: the label of the connection it rides, where a pair of shapes draws a line for each connection (see <see cref="Strands"/>). Text when present.</summary>
     public string? Via { get; init; }
+
+    /// <summary>The <c>code</c> as the file held it: a list of paths (each <c>path</c> or <c>path:line</c>) if it is well formed, which <see cref="CodeRefs"/> reads and the checks report on; null when the key is not there.</summary>
+    public object? Code { get; init; }
 
     /// <summary>The paths to the keys the file left with no value (see <see cref="EmptyKeys"/>), this step's own, down into its animation and states.</summary>
     public IReadOnlyList<string[]> NoValue { get; init; } = EmptyKeys.Of(null);
@@ -79,6 +85,9 @@ public sealed record Flow(string? Name, string? View, IReadOnlyList<Step> Steps,
 
     /// <summary>The tags that are well formed, each once whatever its case, in the order written (see <see cref="Names.TagsOf"/>).</summary>
     public IReadOnlyList<string> Tags => Names.TagsOf(TagsRaw);
+
+    /// <summary>The <c>code</c> as the file held it: a list of paths (each <c>path</c> or <c>path:line</c>) if it is well formed, which <see cref="CodeRefs"/> reads and the checks report on; null when the key is not there.</summary>
+    public object? Code { get; init; }
 }
 
 /// <summary>The three ratings a failure mode keeps under <c>after</c>, as the text of a whole number from 1 to 10 (every file value is text).</summary>
@@ -91,7 +100,11 @@ public sealed record FailureRatings(string? Severity, string? Occurrence, string
 public sealed record FailureMode(
     string? Mode, string? On, string? From, string? To, string? Effect, string? Cause, string? Severity, string? Occurrence, string? Detection,
     string? Controls, string? Action, string? Owner, string? Status, string? Flow, string? Step, string? Run, string? Description,
-    FailureRatings? After, IReadOnlyList<string>? Affects);
+    FailureRatings? After, IReadOnlyList<string>? Affects)
+{
+    /// <summary>The <c>code</c> as the file held it: a list of paths (each <c>path</c> or <c>path:line</c>) if it is well formed, which <see cref="CodeRefs"/> reads and the checks report on; null when the key is not there.</summary>
+    public object? Code { get; init; }
+}
 
 /// <summary>What the two ends of a rating mean, for the picked mode's detail.</summary>
 public sealed record RatingEnds(string? Low, string? High);

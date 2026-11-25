@@ -1,0 +1,11 @@
+name: Walk
+view: root
+code: [docs/real.md:2, docs/gone.md]
+steps:
+  - from: good
+    to: coded
+    text: Asks
+    code: [docs/real.md, "docs/:3", docs/gone.md:8]
+  - from: coded
+    text: Works
+    code: docs/real.md

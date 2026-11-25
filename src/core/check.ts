@@ -12,6 +12,7 @@ import { stepPrefix, withoutStep } from './problem.ts'
 import type { Problem } from './problem.ts'
 import { connectionPayloadProblems, modelPayloadProblems, stepPayloadProblems } from './payloads.ts'
 import { snippetProblems } from './snippets.ts'
+import { codeProblems } from './code.ts'
 import { channelProblems } from './channels.ts'
 import { stateProblems } from './states.ts'
 import { pairLabels, viaProblem } from './strands.ts'
@@ -88,7 +89,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       if (why) add('model.yaml', undefined, `icon ${name}: ${why}`)
     }
   }
-  for (const message of modelPayloadProblems(model.meta)) add('model.yaml', undefined, message)
+  for (const message of modelPayloadProblems(model.meta, absent)) add('model.yaml', undefined, message)
 
   for (const [id, o] of Object.entries(model.objects)) {
     const p = (message: string) => add('model.yaml', id, `${id}: ${message}`)
@@ -100,13 +101,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     if (!missing(o.color) && !isColor(o.color)) p(`color "${o.color}" must be a name (${COLOR_NAMES.join(', ')}) or a hex like #3b82f6`)
     if (!missing(o.opacity) && !isOpacity(o.opacity)) p(`opacity "${o.opacity}" must be a whole number from 0 to 100`)
     if (!missing(o.icon) && !isKnownIcon(model.meta, o.icon)) p(`unknown icon "${o.icon}" (use a built-in name, or define it under icons: in model.yaml)`)
-    if (o.code !== undefined) {
-      if (!Array.isArray(o.code) || o.code.some(c => typeof c !== 'string')) p('code must be a list of paths')
-      else for (const path of o.code as string[]) {
-        if (!isRepoPath(path)) p(`code path "${path}" must be relative, with / between folders and no "." or ".." parts`)
-        else if (absent.has(path)) p(`code path "${path}" doesn't exist`)
-      }
-    }
+    for (const message of codeProblems(o.code, absent)) p(message)
     if (o.links !== undefined) {
       if (!Array.isArray(o.links) || !o.links.every(isLinkEntry)) p('links must be a list of entries with a url and, if you like, a title')
       else for (const { url } of o.links) {
@@ -148,7 +143,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     const key = JSON.stringify([c.from, c.to, c.label ?? ''])
     if (seen.has(key)) p(`duplicate${c.label ? ` "${c.label}"` : ''}`)
     seen.add(key)
-    for (const message of connectionPayloadProblems(model, c)) p(message)
+    for (const message of connectionPayloadProblems(model, c, absent)) p(message)
+    for (const message of codeProblems(c.code, absent)) p(message)
   })
 
   for (const [fid, f] of Object.entries(model.flows)) {
@@ -170,6 +166,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
     if (missing(f.view)) p('view is missing')
     else if (!viewOk) p(`view "${f.view}" must be "root" or an object with children`)
     if (f.steps.length === 0) p('has no steps')
+    for (const message of codeProblems(f.code, absent)) p(message)
     // The steps are read one at a time below, so each says its own number; compare says what is wrong with it in the lines after.
     for (const path of emptyKeys({ ...f, steps: [], compare: undefined })) p(emptyKeyMessage(path))
     const compareWhy = compareProblem(f.compare, 'flow')
@@ -187,7 +184,8 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
       else if (missing(s.from)) sp('"from" is missing')
       else if (!getObject(model, s.from)) sp(`unknown object "${s.from}"`)
       if (!hasText(s.text)) sp('text is missing')
-      for (const message of stepPayloadProblems(model, s)) sp(message)
+      for (const message of stepPayloadProblems(model, s, absent)) sp(message)
+      for (const message of codeProblems(s.code, absent)) sp(message)
       const animation = animationProblem(s.animation, !alone) ?? interceptorProblem(s.animation, s, id => getObject(model, id) !== undefined)
       if (animation && !(animation === RECURSE_HAS_TO && s.from === s.to)) sp(animation) // a step to itself is reported below
       if (alone) {
@@ -211,7 +209,7 @@ export function check(model: Model, absent: ReadonlySet<string> = new Set()): Pr
   }
 
   for (const [aid, a] of Object.entries(model.failures)) {
-    problems.push(...analysisProblems(model, aid, a))
+    problems.push(...analysisProblems(model, aid, a, absent))
     for (const path of emptyKeys(a)) add(pathOf(FILE_KINDS.failure, aid), undefined, emptyKeyMessage(path))
   }
   return problems

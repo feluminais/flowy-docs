@@ -46,7 +46,7 @@ public sealed class ModeChanges
 
 public static partial class EditOps
 {
-    private static readonly string[] ModeOrder = ["mode", "on", "from", "to", "effect", "cause", "severity", "occurrence", "detection", "controls", "action", "owner", "status", "after", "affects", "flow", "step", "run", "description"];
+    private static readonly string[] ModeOrder = ["mode", "on", "from", "to", "effect", "cause", "severity", "occurrence", "detection", "controls", "action", "owner", "status", "after", "affects", "flow", "step", "run", "description", "code"];
     private static readonly string[] AnalysisOrder = ["name", "about", "scope", "scale", "modes"];
     private static readonly string[] RatingOrder = ["severity", "occurrence", "detection"];
 

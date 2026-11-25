@@ -5,7 +5,7 @@ import { ROOT } from '../../src/core/model.ts'
 import { modelFiles, serializeLayout } from '../../src/core/modelfiles.ts'
 import { modelOf } from '../../src/core/state.ts'
 import type { Model, Step } from '../../src/core/model.ts'
-import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, reorderConnections, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setPairs, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
+import { connect, deleteAnalysis, deleteFlow, deleteMode, deleteObject, deleteObjects, deletePayload, deleteWith, forgetLayout, groupSteps, moveFlow, OpError, placeBoxes, putAnalysis, putFlow, putGroup, putMode, putObject, putPayload, refuseNewProblems, relabel, removeConnection, removeGroup, removeStep, reorderConnections, setCode, setCompare, setFlowTags, setGroupKind, setKind, setLinePayloads, setLines, setPairs, setProject, setStepAnimation, setStepGroup, setStepPayload, setStepStates, swapSteps, updateAnalysis, updateFlow, updateMode } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInput } from '../../src/core/ops.ts'
 import type { Run } from '../../src/core/perf/types.ts'
 import { loadState } from '../../src/node/files.ts'
@@ -69,6 +69,16 @@ export const STEPS: Spec[] = [
   { op: 'setLinePayloads', from: 'web', to: 'api', which: 'HTTP', payloads: ['order', 'receipt'] },
   { op: 'setLinePayloads', from: 'web', to: 'api', which: 'HTTP', payloads: ['nope'] },
   { op: 'setLinePayloads', from: 'web', to: 'api', which: 'nope', payloads: ['order'] },
+  { op: 'setCode', holder: { object: 'api' }, code: ['docs/api.md:3', ' docs/ ', ''] },
+  { op: 'setCode', holder: { object: 'api' }, code: ['docs/api.md:3', 'docs/:3', 'docs/api.md:0', '../x'] },
+  { op: 'setCode', holder: { object: 'api' }, code: [] },
+  { op: 'setCode', holder: { object: 'gone' }, code: ['docs/api.md'] },
+  { op: 'setCode', holder: { line: { from: 'web', to: 'api', label: 'HTTP' } }, code: ['docs/api.md:12'] },
+  { op: 'setCode', holder: { line: { from: 'web', to: 'api', label: 'HTTP' } }, code: ['docs/api.md', 'docs/'] },
+  { op: 'setCode', holder: { line: { from: 'web', to: 'api', label: 'nope' } }, code: ['docs/api.md'] },
+  { op: 'setCode', holder: { payload: 'order' }, code: ['docs/api.md:7'] },
+  { op: 'setCode', holder: { payload: 'nope' }, code: ['docs/api.md'] },
+  { op: 'connect', from: 'web', to: 'cache', label: 'Reads', code: ['docs/api.md:1'] },
   { op: 'deletePayload', id: 'order' },
   { op: 'deletePayload', id: 'nope' },
   { op: 'setLinePayloads', from: 'web', to: 'api', which: 'HTTP', payloads: [] },
@@ -187,6 +197,11 @@ export const STEPS: Spec[] = [
   { op: 'setStepPayload', id: 'play', index: 9, key: 'payload', value: 'receipt' },
   { op: 'deletePayload', id: 'receipt' },
   { op: 'setStepPayload', id: 'play', index: 0, key: 'payload' },
+  { op: 'setCode', holder: { flow: 'play' }, code: ['docs/api.md:1'] },
+  { op: 'setCode', holder: { flow: 'play', step: 0 }, code: ['docs/'] },
+  { op: 'setCode', holder: { flow: 'play', step: 0 }, code: ['docs/:2'] },
+  { op: 'setCode', holder: { flow: 'play', step: 9 }, code: ['docs/api.md'] },
+  { op: 'setCode', holder: { flow: 'nope' }, code: ['docs/api.md'] },
   { op: 'putFlow', id: 'sends', name: 'Sends', view: 'root', steps: [{ from: 'customer', to: 'shop', text: 'Asks', animation: 'call', payload: { name: 'Q ', about: '  ', shape: { language: 'TS', text: 'q\r\n' } }, reply: 'receipt' }] },
   { op: 'setStepAnimation', id: 'play', index: 0, animation: { kind: 'send', outcome: 'lost', share: '30', reason: 'Packet dropped' } },
   { op: 'setStepAnimation', id: 'play', index: 1, animation: 'send' },
@@ -399,6 +414,10 @@ export const FAILURE_STEPS: Spec[] = [
   { op: 'updateMode', analysis: 'ordering', id: 'api-slow', changes: { on: 'gone' } },
   { op: 'updateMode', analysis: 'ordering', id: 'nope', changes: { effect: 'e' } },
   { op: 'updateMode', analysis: 'nope', id: 'x', changes: { effect: 'e' } },
+  { op: 'setCode', holder: { analysis: 'ordering', mode: 'api-slow' }, code: ['docs/api.md:2'] },
+  { op: 'updateMode', analysis: 'ordering', id: 'api-slow', changes: { owner: 'Platform' } },
+  { op: 'setCode', holder: { analysis: 'ordering', mode: 'nope' }, code: ['docs/api.md'] },
+  { op: 'setCode', holder: { analysis: 'nope', mode: 'x' }, code: ['docs/api.md'] },
   { op: 'updateAnalysis', id: 'ordering', changes: { name: 'Orders', about: 'Rated by the team.', scope: 'api' } },
   { op: 'updateAnalysis', id: 'ordering', changes: { about: '', scope: '' } },
   { op: 'updateAnalysis', id: 'ordering', changes: { name: '' } },
@@ -419,7 +438,8 @@ function apply(model: Model, s: Spec): Model {
     case 'deleteObject': return deleteObject(model, s.id)
     case 'deleteObjects': return deleteObjects(model, s.ids)
     case 'deleteWith': return deleteWith(model, s.targets, s.resolutions)
-    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label, ...(s.kind === undefined ? {} : { kind: s.kind }), ...(s.payloads === undefined ? {} : { payloads: s.payloads }) })
+    case 'connect': return connect(model, { from: s.from, to: s.to, label: s.label, ...(s.kind === undefined ? {} : { kind: s.kind }), ...(s.payloads === undefined ? {} : { payloads: s.payloads }), ...(s.code === undefined ? {} : { code: s.code }) })
+    case 'setCode': return setCode(model, s.holder, s.code)
     case 'putPayload': {
       const { op: _, ...input } = s
       return putPayload(model, input as PayloadInput)

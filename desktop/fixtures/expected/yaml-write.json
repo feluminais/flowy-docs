@@ -6933,6 +6933,15 @@
       "folder": "desktop/fixtures/cases/links/flowy",
       "rel": "model.yaml",
       "data": {
+        "payloads": {
+          "order": {
+            "about": "An order.",
+            "code": [
+              "docs/real.md:1",
+              "docs/gone.md:3"
+            ]
+          }
+        },
         "objects": {
           "good": {
             "type": "system",
@@ -7023,11 +7032,72 @@
                 "url": "docs/real.md"
               }
             ]
+          },
+          "coded": {
+            "type": "system",
+            "name": "Coded",
+            "code": [
+              "docs/real.md:4",
+              "docs/gone.md:2",
+              "docs/:1",
+              "docs/real.md:0",
+              "docs/",
+              "docs/real.md:12345678"
+            ]
           }
         },
-        "connections": []
+        "connections": [
+          {
+            "from": "good",
+            "to": "coded",
+            "code": [
+              "docs/real.md:9",
+              "docs/gone.md"
+            ],
+            "payloads": [
+              "order",
+              {
+                "name": "Inline",
+                "about": "Written here.",
+                "code": [
+                  "docs/gone.md:5"
+                ]
+              }
+            ]
+          }
+        ]
       },
-      "text": "objects:\n  good:\n    type: system\n    name: Good\n    links:\n      - title: Real document\n        url: docs/real.md\n      - url: docs/\n      - title: Web\n        url: https://example.com/a?x=1#y\n      - url: HTTP://EXAMPLE.COM\n  missing:\n    type: system\n    name: Missing\n    links:\n      - title: Gone\n        url: docs/gone.md\n  schemes:\n    type: system\n    name: Schemes\n    links:\n      - url: file:///etc/passwd\n      - url: mailto:a@b.c\n      - url: javascript:alert(1)\n      - url: /etc/passwd\n      - url: C:/x\n      - url: ../up\n      - url: https://\n      - url: ftp://x.dev/f\n  noaddress:\n    type: system\n    name: No address\n    links:\n      - title: No address\n      - url: \"  \"\n  notalist:\n    type: system\n    name: Not a list\n    links: docs/real.md\n  badentries:\n    type: system\n    name: Bad entries\n    links:\n      - docs/real.md\n      - title:\n          - x\n        url: docs/real.md\nconnections: []\n"
+      "text": "payloads:\n  order:\n    about: An order.\n    code:\n      - docs/real.md:1\n      - docs/gone.md:3\nobjects:\n  good:\n    type: system\n    name: Good\n    links:\n      - title: Real document\n        url: docs/real.md\n      - url: docs/\n      - title: Web\n        url: https://example.com/a?x=1#y\n      - url: HTTP://EXAMPLE.COM\n  missing:\n    type: system\n    name: Missing\n    links:\n      - title: Gone\n        url: docs/gone.md\n  schemes:\n    type: system\n    name: Schemes\n    links:\n      - url: file:///etc/passwd\n      - url: mailto:a@b.c\n      - url: javascript:alert(1)\n      - url: /etc/passwd\n      - url: C:/x\n      - url: ../up\n      - url: https://\n      - url: ftp://x.dev/f\n  noaddress:\n    type: system\n    name: No address\n    links:\n      - title: No address\n      - url: \"  \"\n  notalist:\n    type: system\n    name: Not a list\n    links: docs/real.md\n  badentries:\n    type: system\n    name: Bad entries\n    links:\n      - docs/real.md\n      - title:\n          - x\n        url: docs/real.md\n  coded:\n    type: system\n    name: Coded\n    code:\n      - docs/real.md:4\n      - docs/gone.md:2\n      - docs/:1\n      - docs/real.md:0\n      - docs/\n      - docs/real.md:12345678\nconnections:\n  - from: good\n    to: coded\n    code:\n      - docs/real.md:9\n      - docs/gone.md\n    payloads:\n      - order\n      - name: Inline\n        about: Written here.\n        code:\n          - docs/gone.md:5\n"
+    },
+    {
+      "folder": "desktop/fixtures/cases/links/flowy",
+      "rel": "flows/walk.yaml",
+      "data": {
+        "name": "Walk",
+        "view": "root",
+        "code": [
+          "docs/real.md:2",
+          "docs/gone.md"
+        ],
+        "steps": [
+          {
+            "from": "good",
+            "to": "coded",
+            "text": "Asks",
+            "code": [
+              "docs/real.md",
+              "docs/:3",
+              "docs/gone.md:8"
+            ]
+          },
+          {
+            "from": "coded",
+            "text": "Works",
+            "code": "docs/real.md"
+          }
+        ]
+      },
+      "text": "name: Walk\nview: root\ncode:\n  - docs/real.md:2\n  - docs/gone.md\nsteps:\n  - from: good\n    to: coded\n    text: Asks\n    code:\n      - docs/real.md\n      - docs/:3\n      - docs/gone.md:8\n  - from: coded\n    text: Works\n    code: docs/real.md\n"
     },
     {
       "folder": "desktop/fixtures/cases/text/flowy",

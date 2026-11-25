@@ -1,3 +1,4 @@
+import { codeProblems } from './code.ts'
 import { FILE_KINDS, pathOf } from './filekinds.ts'
 import type { Problem } from './problem.ts'
 import { getObject, ID_RULE, isValidId, ROOT } from './model.ts'
@@ -316,7 +317,7 @@ export function lightFor(model: Model, view: string, m: Mode): Reach | undefined
  * doesn't exist. `check` adds these to the model's problems, so an edit that makes one is refused. A mode's problems carry its id and
  * start with it, so a list of problems says which mode. Whether a run exists needs the runs, which are not in the model: see runLinkProblems.
  */
-export function analysisProblems(model: Model, aid: string, a: Analysis): Problem[] {
+export function analysisProblems(model: Model, aid: string, a: Analysis, absent: ReadonlySet<string> = new Set()): Problem[] {
   const file = pathOf(FILE_KINDS.failure, aid)
   const problems: Problem[] = []
   if (!isValidId(aid)) problems.push({ file, message: `"${aid}" is not a valid analysis id: the file name must ${ID_RULE}` })
@@ -359,6 +360,7 @@ export function analysisProblems(model: Model, aid: string, a: Analysis): Proble
         p(`step ${m.step} is outside flow "${flow}", which has ${count === 1 ? '1 step' : `${count} steps`}`)
       }
     }
+    for (const message of codeProblems(m.code, absent)) p(message)
   }
   return problems
 }

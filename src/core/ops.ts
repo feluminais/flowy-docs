@@ -51,22 +51,22 @@ export type ObjectInput = {
   data?: DataInput[]
 }
 /** A payload as put_payload gives it: omitted keys stay, "" removes the name or the about, null removes the shape or the example (see payloads.ts). */
-export type PayloadInput = { id: string; name?: string; about?: string; shape?: { text: string; language?: string } | null; example?: { text: string; language?: string } | null }
+export type PayloadInput = { id: string; name?: string; about?: string; shape?: { text: string; language?: string } | null; example?: { text: string; language?: string } | null; code?: string[] }
 /** A payload written in place on a line or a step: it has no id, so it needs a name. */
-export type PayloadInputInline = { name: string; about?: string; shape?: { text: string; language?: string }; example?: { text: string; language?: string } }
+export type PayloadInputInline = { name: string; about?: string; shape?: { text: string; language?: string }; example?: { text: string; language?: string }; code?: string[] }
 /** `payloads` are what the line carries: ids from putPayload, or payloads written in place. `kind` is one of the six words of kinds.ts; "" or left out is the plain line. */
-export type ConnectionInput = { from: string; to: string; label?: string; kind?: string; payloads?: (string | PayloadInputInline)[] }
+export type ConnectionInput = { from: string; to: string; label?: string; kind?: string; payloads?: (string | PayloadInputInline)[]; code?: string[] }
 /** A group as put_flow gives it: `times` may be a number, which is written as text. */
 export type GroupInput = { kind?: string; text?: string; times?: string | number; until?: string; [extra: string]: unknown }
 /** `states` is where shapes stand before step 1 (shape id to state word); a step's `states` are the shapes it changes. Left out or empty writes no `states:`. */
-export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput>; states?: Record<string, string>; folder?: string; tags?: string[] }
+export type FlowInput = { id: string; name: string; view: string; steps: Step[]; groups?: Record<string, GroupInput>; states?: Record<string, string>; folder?: string; tags?: string[]; code?: string[] }
 /** A failure mode as put_failure gives it: ratings and `step` are numbers, which are written as text. */
 export type ModeInput = {
   mode: string; on?: string; from?: string; to?: string; effect?: string; cause?: string
   severity?: number; occurrence?: number; detection?: number
   controls?: string; action?: string; owner?: string; status?: string
   after?: { severity?: number; occurrence?: number; detection?: number }
-  affects?: string[]; flow?: string; step?: number; run?: string; description?: string
+  affects?: string[]; flow?: string; step?: number; run?: string; description?: string; code?: string[]
 }
 export type AnalysisInput = { id: string; name: string; about?: string; scope?: string; scale?: Analysis['scale']; modes: Record<string, ModeInput> }
 
@@ -124,6 +124,10 @@ export function putPayload(model: Model, { id, ...fields }: PayloadInput): Model
   for (const k of ['shape', 'example'] as const) {
     if (fields[k] === null) delete next[k]
     else if (fields[k] !== undefined) next[k] = fields[k]
+  }
+  if (fields.code !== undefined) {
+    if (fields.code.length === 0) delete next.code
+    else next.code = [...fields.code]
   }
   const tidy = tidyPayload(next) as Record<string, unknown>
   if (!saysSomething(tidy)) throw new OpError(`payload ${id} says nothing: give it an about, a shape or an example`)
@@ -340,12 +344,13 @@ function kindToWrite(kind: string | undefined): string | undefined {
 }
 
 /** Add a connection. An empty label means no label, an empty or missing kind the plain line, and no payloads means none. */
-export function connect(model: Model, { from, to, label, kind, payloads }: ConnectionInput): Model {
+export function connect(model: Model, { from, to, label, kind, payloads, code }: ConnectionInput): Model {
   for (const end of [from, to]) if (!getObject(model, end)) throw new OpError(`unknown object "${end}"`)
   const c: Connection = label ? { from, to, label } : { from, to }
   const word = kindToWrite(kind)
   if (word !== undefined) c.kind = word
   if (payloads?.length) c.payloads = lineList(model, payloads)
+  if (code?.length) c.code = [...code]
   return { ...model, connections: [...model.connections, c] }
 }
 
@@ -573,7 +578,7 @@ function withTags(flow: Flow, tags: readonly string[]): Flow {
 }
 
 /** Create or replace a flow. Replacing drops everything the old flow had, hand-written extra keys included, but keeps where its file is and its tags unless `folder` or `tags` is given. */
-export function putFlow(model: Model, { id, name, view, steps, groups, states, folder, tags }: FlowInput): Model {
+export function putFlow(model: Model, { id, name, view, steps, groups, states, folder, tags, code }: FlowInput): Model {
   if (!isValidId(id)) throw new OpError(`"${id}" is not a valid flow id: ${ID_RULE}`)
   refuseCaseClash(model.flows, id, 'flows')
   const where = folder === undefined ? folderOf(model, id) : cleanFolder(model, folder)
@@ -584,6 +589,7 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states, f
     if (typeof s.description === 'string' && !s.description.trim()) delete out.description
     if (typeof s.via === 'string' && !s.via.trim()) delete out.via
     if (isMap(s.states) && Object.keys(s.states).length === 0) delete out.states
+    if (Array.isArray(s.code) && s.code.length === 0) delete out.code
     // A number in an animation (share, at) is written as text, as a file holds it.
     if ('animation' in out) out.animation = animationAsText(out.animation)
     // A payload written in place is tidied as one on a line is.
@@ -598,7 +604,8 @@ export function putFlow(model: Model, { id, name, view, steps, groups, states, f
   // Replacing a flow keeps the tag it had: a flow's `compare` is set on its own (setCompare), not with its steps.
   const kept = model.flows[id]?.compare
   const named = labels.length > 0 ? { tags: labels } : {}
-  return withFolder(setFlow(model, id, { name, view, ...named, ...start, ...written, steps: steps.map(copy), ...(kept === undefined ? {} : { compare: kept }) }), id, where)
+  const files = code?.length ? { code: [...code] } : {}
+  return withFolder(setFlow(model, id, { name, view, ...named, ...files, ...start, ...written, steps: steps.map(copy), ...(kept === undefined ? {} : { compare: kept }) }), id, where)
 }
 
 /** Move the flow `id` into `folder` ("" is the top of flows/). Only where its file is changes: the flow keeps its id, so nothing that names it needs to. */
@@ -876,6 +883,7 @@ function modeOf(input: ModeInput): Mode {
   number('step')
   text('run')
   text('description')
+  if (input.code?.length) out.code = [...input.code]
   return out as Mode
 }
 
@@ -920,7 +928,7 @@ export function deleteMode(model: Model, analysisId: string, id: string): Model 
   })
 }
 
-const MODE_ORDER = ['mode', 'on', 'from', 'to', 'effect', 'cause', 'severity', 'occurrence', 'detection', 'controls', 'action', 'owner', 'status', 'after', 'affects', 'flow', 'step', 'run', 'description']
+const MODE_ORDER = ['mode', 'on', 'from', 'to', 'effect', 'cause', 'severity', 'occurrence', 'detection', 'controls', 'action', 'owner', 'status', 'after', 'affects', 'flow', 'step', 'run', 'description', 'code']
 const ANALYSIS_ORDER = ['name', 'about', 'scope', 'scale', 'modes']
 const RATING_ORDER = ['severity', 'occurrence', 'detection']
 
@@ -1081,6 +1089,70 @@ export function tidyViews(model: Model, only?: string): { model: Model; found: S
     next = tidyLayout(next, view)
   }
   return { model: next, found }
+}
+
+/**
+ * A part of the model that takes a `code` list: a shape, a connection (the first from → to with that label), a flow or one of its steps (`step` counts from 0),
+ * a failure mode, or a payload under `payloads:` in model.yaml.
+ */
+export type CodeHolder =
+  | { object: string }
+  | { line: ConnectionInput }
+  | { flow: string; step?: number }
+  | { analysis: string; mode: string }
+  | { payload: string }
+
+/** How a message names a part that takes `code`: "shape orders", "connection a → b", "flow checkout step 2", "failure mode stripe-down in pay", "payload order". */
+export function codeHolderText(holder: CodeHolder): string {
+  if ('object' in holder) return `shape ${holder.object}`
+  if ('line' in holder) return `connection ${holder.line.from} → ${holder.line.to}${holder.line.label ? ` "${holder.line.label}"` : ''}`
+  if ('flow' in holder) return holder.step === undefined ? `flow ${holder.flow}` : `flow ${holder.flow} step ${holder.step + 1}`
+  if ('analysis' in holder) return `failure mode ${holder.mode} in ${holder.analysis}`
+  return `payload ${holder.payload}`
+}
+
+/** `holder` with its `code` set to `code`, in place when it has one (a new one goes last); an empty list removes it. */
+function withCode<T extends object>(holder: T, code: readonly string[]): T {
+  const { code: _, ...rest } = holder as Record<string, unknown>
+  if (code.length === 0) return rest as T
+  return ('code' in holder ? { ...holder, code: [...code] } : { ...rest, code: [...code] }) as T
+}
+
+/**
+ * Set the files and lines one part of the model is in (see CodeHolder). Replaces the list; [] removes it. Each entry is `path` or `path:line`, and the
+ * paths are checked when the edit is saved, as a shape's are.
+ */
+export function setCode(model: Model, holder: CodeHolder, code: readonly string[]): Model {
+  const list = code.map(c => c.trim()).filter(c => c !== '')
+  if ('object' in holder) {
+    const object = getObject(model, holder.object)
+    if (!object) throw new OpError(`unknown object "${holder.object}"`)
+    return { ...model, objects: { ...model.objects, [holder.object]: withCode(object, list) } }
+  }
+  if ('line' in holder) {
+    const i = findConnection(model, holder.line)
+    return { ...model, connections: model.connections.with(i, withCode(model.connections[i], list)) }
+  }
+  if ('flow' in holder) {
+    const { flow: id, step: index } = holder
+    return withFlow(model, id, flow => {
+      if (index === undefined) return withCode(flow, list)
+      return { ...flow, steps: flow.steps.with(index, withCode(existingStep(flow, id, index), list)) }
+    })
+  }
+  if ('analysis' in holder) {
+    const { analysis: aid, mode } = holder
+    return withAnalysis(model, aid, analysis => {
+      if (!Object.hasOwn(analysis.modes, mode)) throw new OpError(`unknown failure mode "${mode}" in "${aid}"`)
+      const modes = { ...analysis.modes }
+      own(modes, mode, withCode(analysis.modes[mode], list))
+      return { ...analysis, modes }
+    })
+  }
+  const all = model.meta.payloads
+  const entry = isMap(all) && Object.hasOwn(all, holder.payload) ? all[holder.payload] : undefined
+  if (!isMap(all) || !isMap(entry)) throw new OpError(`unknown payload "${holder.payload}"`)
+  return { ...model, meta: { ...model.meta, payloads: { ...all, [holder.payload]: withCode(entry, list) } } }
 }
 
 /**

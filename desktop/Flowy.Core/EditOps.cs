@@ -11,7 +11,7 @@ public sealed record ObjectInput(string Id, string? Type = null, string? Name = 
     IReadOnlyList<OrderedDictionary<string, object?>>? Snippets = null);
 
 /// <summary>A connection to add or find. <c>Payloads</c> are what <see cref="EditOps.Connect"/> writes on it: ids, or payloads written in place. <c>Kind</c> is one of the six words of <see cref="Kinds"/>; "" or null is the plain line.</summary>
-public sealed record ConnectionInput(string From, string To, string? Label = null, IReadOnlyList<object?>? Payloads = null, string? Kind = null);
+public sealed record ConnectionInput(string From, string To, string? Label = null, IReadOnlyList<object?>? Payloads = null, string? Kind = null, IReadOnlyList<string>? Code = null);
 
 /// <summary>
 /// The edits, as functions from a <see cref="EditDoc"/> to a changed copy: a C# twin of src/core/ops.ts with the same rules, the same order of
@@ -143,6 +143,7 @@ public static partial class EditOps
         if (!string.IsNullOrEmpty(input.Label)) c["label"] = input.Label;
         if (word is not null) c["kind"] = word;
         if (input.Payloads is { Count: > 0 } payloads) c["payloads"] = LineList(doc, payloads);
+        if (input.Code is { Count: > 0 } code) c["code"] = code.Select(p => (object?)p).ToList();
         d.Connections.Add(c);
         return d;
     }

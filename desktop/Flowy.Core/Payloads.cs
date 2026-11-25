@@ -16,7 +16,11 @@ public static class Payloads
     public sealed record CodeBlock(string Text, string? Language);
 
     /// <summary>A payload as a reader shows it: <c>Id</c> only for one under <c>payloads:</c>, <c>Name</c> always filled in, and only the code blocks that hold code.</summary>
-    public sealed record Shown(string? Id, string Name, string? About, CodeBlock? Shape, CodeBlock? Example);
+    public sealed record Shown(string? Id, string Name, string? About, CodeBlock? Shape, CodeBlock? Example)
+    {
+        /// <summary>The entries of the payload's <c>code</c> that are text, as the file wrote them; null when it has none.</summary>
+        public IReadOnlyList<string>? Code { get; init; }
+    }
 
     /// <summary>The animation kinds that send something back, so a step of one of them may say what its reply carries.</summary>
     public static readonly string[] ReplyKinds = ["call", "callback", "recurse"];
@@ -42,7 +46,10 @@ public static class Payloads
             : null;
 
     private static Shown ShownOf(OrderedDictionary<string, object?> p, string name, string? id) =>
-        new(id, name, p.TryGetValue("about", out var about) && HasText(about) ? (string)about! : null, BlockOf(p.GetValueOrDefault("shape")), BlockOf(p.GetValueOrDefault("example")));
+        new(id, name, p.TryGetValue("about", out var about) && HasText(about) ? (string)about! : null, BlockOf(p.GetValueOrDefault("shape")), BlockOf(p.GetValueOrDefault("example")))
+        {
+            Code = p.GetValueOrDefault("code") is List<object?> code && code.OfType<string>().Any() ? [.. code.OfType<string>()] : null,
+        };
 
     /// <summary>The payload a connection or a step names: an id finds the entry (named after the id when it has none), a mapping with a name is itself; anything else finds nothing.</summary>
     public static Shown? Resolve(Model m, object? reference)
@@ -133,7 +140,7 @@ public static class Payloads
         }
     }
 
-    private static List<string> EntryProblems(string at, object? entry, bool inline)
+    private static List<string> EntryProblems(string at, object? entry, bool inline, ISet<string> absent)
     {
         if (entry is not OrderedDictionary<string, object?> p) return [$"{at} must be a mapping"];
         var out_ = new List<string>();
@@ -144,11 +151,12 @@ public static class Payloads
         if (!SaysSomething(p)) out_.Add($"{at} says nothing: give it an about, a shape or an example");
         out_.AddRange(BlockProblems(at, "shape", p.GetValueOrDefault("shape")));
         out_.AddRange(BlockProblems(at, "example", p.GetValueOrDefault("example")));
+        out_.AddRange(CodeRefs.Problems(p.GetValueOrDefault("code"), absent).Select(message => $"{at}: {message}"));
         return out_;
     }
 
     /// <summary>What is wrong with the top-level <c>payloads:</c> of model.yaml, each message whole.</summary>
-    public static List<string> ModelProblems(IReadOnlyDictionary<string, object?> meta)
+    public static List<string> ModelProblems(IReadOnlyDictionary<string, object?> meta, ISet<string>? absent = null)
     {
         if (!meta.TryGetValue("payloads", out var all) || all is null or "") return [];
         if (all is not OrderedDictionary<string, object?> map) return ["payloads must map ids to payloads"];
@@ -156,38 +164,38 @@ public static class Payloads
         foreach (var id in JsCompat.OrderKeys(map.Keys))
         {
             if (!Names.IsValidId(id)) found.Add($"payload {id}: ids {Names.IdRule}");
-            found.AddRange(EntryProblems($"payload {id}", map[id], false));
+            found.AddRange(EntryProblems($"payload {id}", map[id], false, absent ?? new HashSet<string>()));
         }
         if (map.Count > MaxInModel) found.Add($"{map.Count} payloads, at most {MaxInModel}");
         return found;
     }
 
-    private static IEnumerable<string> ReferenceProblems(Model m, string at, string word, object? reference) =>
-        reference is string id ? (All(m)?.ContainsKey(id) == true ? [] : [$"unknown {word} \"{id}\""]) : EntryProblems(at, reference, true);
+    private static IEnumerable<string> ReferenceProblems(Model m, string at, string word, object? reference, ISet<string> absent) =>
+        reference is string id ? (All(m)?.ContainsKey(id) == true ? [] : [$"unknown {word} \"{id}\""]) : EntryProblems(at, reference, true, absent);
 
     /// <summary>What is wrong with a connection's <c>payloads:</c>, without the "connection a → b: " the checks put before it.</summary>
-    public static List<string> ConnectionProblems(Model m, Connection c)
+    public static List<string> ConnectionProblems(Model m, Connection c, ISet<string>? absent = null)
     {
         if (c.Payloads is null) return [];
         if (c.Payloads is not List<object?> list) return ["payloads must be a list of payload ids or payloads"];
-        var found = list.SelectMany((r, i) => ReferenceProblems(m, $"payload {i + 1}", "payload", r)).ToList();
+        var found = list.SelectMany((r, i) => ReferenceProblems(m, $"payload {i + 1}", "payload", r, absent ?? new HashSet<string>())).ToList();
         if (list.Count > MaxPerLine) found.Add($"{list.Count} payloads, at most {MaxPerLine}");
         return found;
     }
 
     /// <summary>What is wrong with a step's <c>payload:</c> and <c>reply:</c>, without the "step N: " the checks put before it.</summary>
-    public static List<string> StepProblems(Model m, Step s)
+    public static List<string> StepProblems(Model m, Step s, ISet<string>? absent = null)
     {
         var found = new List<string>();
         var kind = Animations.Read(s)?.Kind;
         if (s.Payload is not null)
         {
-            found.AddRange(ReferenceProblems(m, "payload", "payload", s.Payload));
+            found.AddRange(ReferenceProblems(m, "payload", "payload", s.Payload, absent ?? new HashSet<string>()));
             if (s.To is null && kind != "recurse") found.Add("a payload needs a \"to\": nothing is sent");
         }
         if (s.Reply is not null)
         {
-            found.AddRange(ReferenceProblems(m, "reply", "reply", s.Reply));
+            found.AddRange(ReferenceProblems(m, "reply", "reply", s.Reply, absent ?? new HashSet<string>()));
             if (!ReplyKinds.Contains(kind)) found.Add("a reply needs a call, a callback or a recurse animation");
         }
         return found;

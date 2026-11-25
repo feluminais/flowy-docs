@@ -98,12 +98,84 @@
           "url": "docs/real.md"
         }
       ]
+    },
+    {
+      "id": "coded",
+      "type": "system",
+      "name": "Coded",
+      "code": [
+        "docs/real.md:4",
+        "docs/gone.md:2",
+        "docs/:1",
+        "docs/real.md:0",
+        "docs/",
+        "docs/real.md:12345678"
+      ]
     }
   ],
-  "connections": [],
+  "payloads": {
+    "order": {
+      "about": "An order.",
+      "code": [
+        "docs/real.md:1",
+        "docs/gone.md:3"
+      ]
+    }
+  },
+  "connections": [
+    {
+      "from": "good",
+      "to": "coded",
+      "payloads": [
+        "order",
+        {
+          "name": "Inline",
+          "about": "Written here.",
+          "code": [
+            "docs/gone.md:5"
+          ]
+        }
+      ],
+      "carries": [
+        "order",
+        "Inline"
+      ]
+    }
+  ],
   "layout": {},
-  "flows": [],
+  "flows": [
+    {
+      "id": "walk",
+      "name": "Walk",
+      "view": "root",
+      "steps": [
+        {
+          "from": "good",
+          "to": "coded",
+          "text": "Asks",
+          "placed": [
+            "good",
+            "coded"
+          ],
+          "ends": "Good → Coded"
+        },
+        {
+          "from": "coded",
+          "text": "Works",
+          "placed": [
+            "coded",
+            "coded"
+          ],
+          "ends": "Coded"
+        }
+      ]
+    }
+  ],
   "problems": [
+    {
+      "file": "model.yaml",
+      "message": "payload order: code path \"docs/gone.md:3\" doesn't exist"
+    },
     {
       "file": "model.yaml",
       "id": "missing",
@@ -168,6 +240,55 @@
       "file": "model.yaml",
       "id": "badentries",
       "message": "badentries: links must be a list of entries with a url and, if you like, a title"
+    },
+    {
+      "file": "model.yaml",
+      "id": "coded",
+      "message": "coded: code path \"docs/gone.md:2\" doesn't exist"
+    },
+    {
+      "file": "model.yaml",
+      "id": "coded",
+      "message": "coded: code path \"docs/:1\" is a folder, which has no lines"
+    },
+    {
+      "file": "model.yaml",
+      "id": "coded",
+      "message": "coded: code path \"docs/real.md:0\": the line must be a whole number from 1 to 9999999"
+    },
+    {
+      "file": "model.yaml",
+      "id": "coded",
+      "message": "coded: code path \"docs/real.md:12345678\": the line must be a whole number from 1 to 9999999"
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection good → coded: payload 2: code path \"docs/gone.md:5\" doesn't exist",
+      "connection": 0
+    },
+    {
+      "file": "model.yaml",
+      "message": "connection good → coded: code path \"docs/gone.md\" doesn't exist",
+      "connection": 0
+    },
+    {
+      "file": "flows/walk.yaml",
+      "message": "code path \"docs/gone.md\" doesn't exist"
+    },
+    {
+      "file": "flows/walk.yaml",
+      "message": "step 1: code path \"docs/:3\" is a folder, which has no lines",
+      "step": 0
+    },
+    {
+      "file": "flows/walk.yaml",
+      "message": "step 1: code path \"docs/gone.md:8\" doesn't exist",
+      "step": 0
+    },
+    {
+      "file": "flows/walk.yaml",
+      "message": "step 2: code must be a list of paths",
+      "step": 1
     }
   ],
   "views": {
@@ -179,10 +300,32 @@
         "schemes",
         "noaddress",
         "notalist",
-        "badentries"
+        "badentries",
+        "coded"
       ],
       "outsiders": [],
-      "edges": []
+      "edges": [
+        {
+          "from": "good",
+          "to": "coded",
+          "label": "",
+          "count": 1,
+          "carries": [
+            {
+              "name": "order",
+              "back": false,
+              "own": true,
+              "steps": []
+            },
+            {
+              "name": "Inline",
+              "back": false,
+              "own": true,
+              "steps": []
+            }
+          ]
+        }
+      ]
     }
   }
 }

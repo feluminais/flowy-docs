@@ -1,3 +1,4 @@
+import { codeRefsOf } from './code.ts'
 import { getObject, ROOT } from './model.ts'
 import type { Model } from './model.ts'
 import { chain, nameOf, parentOf } from './views.ts'
@@ -19,11 +20,9 @@ const nameOrder = (a: string, b: string) => a.localeCompare(b)
 export function shapesFor(model: Model, path: string): string[] {
   const found: { id: string; length: number }[] = []
   for (const [id, object] of Object.entries(model.objects)) {
-    if (!Array.isArray(object.code)) continue
     let best = -1
-    for (const entry of object.code) {
-      if (typeof entry !== 'string') continue
-      const listed = entry.replace(/\/$/, '')
+    for (const ref of codeRefsOf(object.code)) {
+      const listed = ref.path.replace(/\/$/, '')
       if (listed !== '' && (path === listed || path.startsWith(`${listed}/`))) best = Math.max(best, listed.length)
     }
     if (best >= 0) found.push({ id, length: best })

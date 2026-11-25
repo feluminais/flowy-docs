@@ -88,10 +88,12 @@
     "orEmpty"
   ],
   "ops": [
+    "codeHolderText",
     "deleteIcon",
     "disconnect",
     "putIcon",
     "refuseBlindDisconnect",
+    "setCode",
     "tidyLayout",
     "tidyViews"
   ],
