@@ -17,7 +17,7 @@ import { usePref } from './store.ts'
 export const SOURCE_WORDS = {
   title: 'Source',
   open: 'Open',
-  side: 'Right-click: Open to the side',
+  side: 'Right-click: Open to the Side',
   editor: 'Editor',
   field: 'Files and folders (one per line)',
   example: 'src/api/orders.ts:42',

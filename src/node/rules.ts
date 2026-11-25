@@ -41,7 +41,7 @@ function rule(heading: string, title: string, description: string) {
  */
 export const RULES = {
   writing: rule('Write the model', 'What gets a shape, and how to word it', 'What gets a shape, names, code paths, looks, teasers, descriptions, connection labels, and how a plain flow reads. Read once before the first write.'),
-  code: rule('Show a few lines of code', 'Writing code on a shape', 'Snippets on a shape: what to copy, how much, what to leave out. Read before adding code to a shape.'),
+  code: rule('Show a few lines of code', 'Writing code on a shape, a line, a flow or a step', 'Snippets on a shape: what to copy, how much, what to leave out. Code paths: where they start, a line in a file, and what lines, flows, steps, failure modes and payloads list. Read before adding code or code paths.'),
   data: rule('Data', 'Writing what a store holds', 'Tables, key sets, topics, collections, sample rows, notes and limits. Read before saying what a store holds.'),
   flows: rule('Flows beyond plain steps', 'Motion, failed requests, repeats, branches, states and payloads in a flow', 'Animation, outcomes, repeats, branches, parallel lanes, shape states, open streams, via, payloads, folders and tags. Read before a flow goes beyond plain steps.'),
   failures: rule('Failure modes', 'Writing a failure analysis', 'Modes, effects, ratings, controls and actions. Read before writing a failure analysis.'),

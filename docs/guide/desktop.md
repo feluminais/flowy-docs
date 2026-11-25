@@ -19,6 +19,13 @@ A native reader and editor of the same folders, with its own renderer and no ser
 - Markdown, text, PDF, common image: the default app.
 - Any other file: shown in its folder, never run. The type is the real file's, so a link called `notes.md` that points at a script counts as a script. A folder button beside each file does the same.
 - **File › Open Files With** picks your own app for any file in the repo. The choice stays on your computer.
+- A repo path is its title as text, with **Open**, a folder button and **GitHub** or **GitLab** beside it.
+
+## Source
+
+- **File › Open Code In** lists the editors found on this computer: VS Code, Cursor, Windsurf, VSCodium, Zed, the JetBrains IDEs, Visual Studio, Sublime Text and Notepad++. A path's button is named for the one picked (the first found until you pick).
+- VS Code and its forks, the JetBrains IDEs, Zed and Sublime Text open the project with the file at its line, in the window that already has the project. Visual Studio and Notepad++ open the file alone.
+- A folder, or a file on a computer with no editor, has **Show in folder** instead.
 
 ## Tabs
 

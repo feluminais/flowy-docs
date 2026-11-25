@@ -50,7 +50,7 @@ Other top-level keys are kept as they are.
 | `icon` | A [built-in icon name](guide/shapes.md#icons) or one under `icons` | Left out, the type's icon, or `cloud` with `external` |
 | `tech` | Text | The real stack: `Node, Fastify` |
 | `description` | Markdown | The first paragraph, up to the first blank line, is the hover teaser. A code fence that names a snippet language is coloured as a snippet |
-| `code` | A list of paths | Files and folders relative to the folder that holds `flowy/`, with `/` between folders and no `.` or `..` parts. A write with a missing path is refused, and one that goes missing later is a problem |
+| `code` | A list of paths | Files and folders relative to the folder that holds `flowy/`, with `/` between folders and no `.` or `..` parts. A file may end in `:line` (`src/api/orders.ts:42`), a whole number from 1 to 9999999. A write with a missing path is refused, and one that goes missing later is a problem. Lines, flows, steps, failure modes and payloads take the same list |
 | `links` | A list of `{ url, title }` | `url` is an `http` or `https` address, or a path as in `code`. `title` is optional |
 | `snippets` | A list of [snippets](#a-snippet), at most 6 | |
 | `data` | A list of [data entries](#a-data-entry) | Only on a `store` |
@@ -104,6 +104,7 @@ No text in `data` can hold a line break, and U+0085, U+2028 and U+2029 count as 
 | `label` | A few words: `reads menus`. The same `from`, `to` and `label` can't repeat |
 | `kind` | [How the two talk](guide/kinds.md): `request` (Request and reply), `stream` (Request then stream), `publish` (Publish and subscribe), `cached` (Cached publish), `object` (Object updates) or `extension` (Extension point). Left out, a Plain line. Any other word is a problem |
 | `payloads` | A list of what the line carries, at most 12: payload ids, or payloads written in place with a `name` |
+| `code` | Paths as an [object's](#an-object) `code`: where the call is made or handled |
 
 ### Payloads
 
@@ -113,6 +114,7 @@ No text in `data` can hold a line break, and U+0085, U+2028 and U+2029 count as 
 | `about` | Markdown: what it is and what it is for |
 | `shape` | `{ text, language }`: the whole thing, a type, a JSON schema or a CSV header. At most 400 lines and 40000 characters. `language` is a [snippet's](#a-snippet) |
 | `example` | `{ text, language }`: a filled-in instance, with the same limits |
+| `code` | Paths as an [object's](#an-object) `code`: where the type is defined |
 
 A payload needs at least one of `about`, `shape` and `example`. The id is what makes two the same: a payload written in place is never one of those under `payloads:`, whatever its name.
 
@@ -126,6 +128,7 @@ A payload needs at least one of `about`, `shape` and `example`. The id is what m
 | `groups` | A mapping of group id to [group](#a-group) |
 | `states` | Where shapes stand before step 1: object id to a state. Left out, `running` |
 | `tags` | A list of words of up to 32 characters, with no space at either end. A word counts once whatever its case. The form offers `happy path`, `error path`, `edge case`, `recovery` and `background`, and any word works |
+| `code` | Paths as an [object's](#an-object) `code`: where the whole story starts, such as its entry point or the test that plays it |
 | `compare` | The id of the older flow, or `{ with: <id>, note: "text" }`. The holder is the newer one. It can't name this flow, and the id has to be a flow. A tag that breaks either rule is a problem, and the flow still opens |
 
 ### A step
@@ -144,6 +147,7 @@ A payload needs at least one of `about`, `shape` and `example`. The id is what m
 | `states` | The objects this step changes: object id to a state. Two lanes of one parallel stop can't give one object two states |
 | `payload` | What the step sends: a payload id, or a payload written in place with a `name`. Needs a `to`, except on a `recurse` |
 | `reply` | What comes back, the same way. Only on a `call`, a `callback` or a `recurse` |
+| `code` | Paths as an [object's](#an-object) `code`: the code that does this step, at the line it starts on |
 
 A **state** is `running` (up and serving, the default), `starting` (coming up, not ready), `stopping` (draining or shutting down), `stopped` (off), `restarting` (down and coming back) or `degraded` (up but not well).
 
@@ -205,6 +209,7 @@ A **mode** is one way a part fails:
 | `flow`, `step` | The flow that tells it, and the step's place in that file's `steps`, counting from 1. A `step` needs a `flow` |
 | `run` | The id of a load-test run in `perf/`. It must exist |
 | `description` | More, in Markdown |
+| `code` | Paths as an [object's](#an-object) `code`: where it fails, or where its control or fix is |
 
 ## perf/&lt;id&gt;.yaml
 

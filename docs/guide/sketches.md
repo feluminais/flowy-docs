@@ -10,6 +10,18 @@ A sketch is for what isn't built or decided. It can't change the model, and its 
 - An exported page and the VS Code panel show the model alone
 - An id in both `sketches/` and `drafts/` is the one in `sketches/`
 
+## What a sketch holds
+
+A sketch is a design to think with, so it carries what a reader needs to judge the idea:
+
+- Shapes for what is new, and copies of the model's shapes it touches (`copy` on new_sketch).
+- Flows that tell the whole story: what starts it, each call and its answer, the payloads that move, and the steps that fail with what happens next. Five plain steps rarely say enough.
+- Motion on the steps that matter: a call that waits, an event, a timeout.
+- `code` on each shape, line, flow and step that already exists in the repo, at the line it starts on. What isn't built has none.
+- Failure modes for the risks the design takes, where one is worth rating.
+
+An AI asked over MCP to sketch something writes all of this unless told otherwise.
+
 ## Several lines between two shapes
 
 **Lines between two shapes** in Details at the top level (edit mode, nothing picked): **Merged**, or **Separate** for `pairs: separate`.

@@ -148,7 +148,7 @@ Another MCP client runs `node /path/to/flowy-docs/dist/cli.js mcp` over stdio. T
 
 ## Also
 
-- **Source links.** A shape lists the files it lives in, and a path that no longer exists is reported. [More](docs/guide/canvas.md#read-it)
+- **Source links.** Shapes, lines, flows and steps list the files and lines they live in, each with buttons that open it in your editor or on GitHub, and a path that no longer exists is reported. [More](docs/guide/canvas.md#read-it)
 - **Share.** Export a read-only site, or copy a view as a Mermaid diagram for a README or a pull request. [More](docs/guide/share.md)
 - **Search and history.** Ctrl+K finds a shape anywhere, and in the browser version the YAML tab keeps the last 300 changes to the files. [More](docs/guide/canvas.md#yaml-and-history)
 

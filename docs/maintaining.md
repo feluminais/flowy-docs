@@ -548,6 +548,10 @@ Editing (press E):
       Enter deletes, and one Ctrl+Z brings everything back. Select Cache and press Delete: it goes at once, and the notice has an Undo button.
 - [ ] Select API, type `src/cli.ts` under Source and press Tab: `example/model.yaml` gets a
       `code` list with `src/cli.ts`. Clear the field and press Tab: `code` is gone.
+- [ ] Give a line, a flow, a step, a failure mode and a payload `code` with a `:line` (`src/cli.ts:5`): each shows the path as text with an editor button and
+      GitHub (on a clone of the GitHub repo). In the desktop app the editor button is named for the pick under File › Open Code In and opens the project at
+      that line; in the browser served by `flowy`, the Editor picker sets it; in VS Code, Open opens it at that line and a right-click offers Open to the Side.
+      `src/:3` is refused with "is a folder, which has no lines". Light and dark both read.
 - [ ] Press New flow, name it, click Customer then Web app, type a step and press Enter. Add a
       second step, move it up with ↑, delete it with ×. Leave edit mode and play the new flow.
 - [ ] Open a flow in edit mode and open a step's Animation. Pick Call, then Rejected: the file gains `animation:` with `kind: call` and `outcome: rejected`, and Timeout stays
