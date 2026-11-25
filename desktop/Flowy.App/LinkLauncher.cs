@@ -19,6 +19,14 @@ internal static class LinkLauncher
     /// <summary>The chosen app with the file as its one argument: no shell, so nothing in the path is read as a command.</summary>
     internal static ProcessStartInfo CustomAppStart(string app, string path) => new(app) { UseShellExecute = false, ArgumentList = { path } };
 
+    /// <summary>An editor with the arguments Editors.Arguments built: no shell, so nothing in a path is read as a command.</summary>
+    internal static ProcessStartInfo EditorStart(string editor, IReadOnlyList<string> arguments)
+    {
+        var start = new ProcessStartInfo(editor) { UseShellExecute = false };
+        foreach (var a in arguments) start.ArgumentList.Add(a);
+        return start;
+    }
+
     /// <summary>Explorer or Finder with the file selected, running nothing. Null where there is no such thing (the caller opens the folder).</summary>
     internal static ProcessStartInfo? ShowInFolderStart(string path, Os os) => os switch
     {
@@ -48,6 +56,9 @@ internal static class LinkLauncher
                     return Told(await top.Launcher.LaunchFileInfoAsync(new FileInfo(action.Target)));
                 case LinkKind.CustomApp:
                     Process.Start(CustomAppStart(action.App!, action.Target))?.Dispose();
+                    break;
+                case LinkKind.Editor:
+                    Process.Start(EditorStart(action.App!, action.Arguments))?.Dispose();
                     break;
                 case LinkKind.ShowInFolder:
                     if (ShowInFolderStart(action.Target, Current) is { } start) Process.Start(start)?.Dispose();

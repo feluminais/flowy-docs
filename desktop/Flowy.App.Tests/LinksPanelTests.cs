@@ -62,15 +62,20 @@ public class LinksPanelTests
 
     private static void Click(Button b) => b.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
+    /// <summary>The Open button of the row of a link that is a path in the repo: its title is text, and the button opens it.</summary>
+    private static Button OpenOf(ReaderView reader, string text) =>
+        Buttons(reader).Single(b => Avalonia.Automation.AutomationProperties.GetName(b) == "Open"
+            && b.GetVisualAncestors().OfType<Border>().First(r => r.Classes.Contains("row")).GetVisualDescendants().OfType<TextBlock>().Any(t => t.Text == text));
+
     [AvaloniaFact]
     public void Each_link_opens_as_LinkOpening_decides()
     {
         var (temp, reader, actions, root) = Open();
         using var _ = temp;
-        Click(Link(reader, "Runbook"));
-        Click(Link(reader, "Batch job"));
+        Click(OpenOf(reader, "Runbook"));
+        Click(OpenOf(reader, "Batch job"));
         Click(Link(reader, "Status"));
-        Click(Link(reader, "docs/"));
+        Click(OpenOf(reader, "docs/"));
         Assert.Equal(
             [
                 new LinkAction(LinkKind.DefaultApp, Path.Combine(root, "docs", "runbook.md")),
@@ -109,7 +114,7 @@ public class LinksPanelTests
         var app = Path.Combine(root, "editor.exe");
         File.WriteAllText(app, "");
         reader.CustomApp = () => app;
-        Click(Link(reader, "Batch job"));
+        Click(OpenOf(reader, "Batch job"));
         Assert.Equal([new LinkAction(LinkKind.CustomApp, Path.Combine(root, "docs", "run.bat"), app)], actions);
     }
 }

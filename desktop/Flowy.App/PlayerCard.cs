@@ -23,6 +23,9 @@ internal sealed record PlayerStep(string Ends, string Text, string? Description,
     public Payloads.Shown? Sends { get; init; }
 
     public Payloads.Shown? Reply { get; init; }
+
+    /// <summary>The step's <c>code</c> as the file held it, drawn as its paths (see <see cref="SourceList"/>).</summary>
+    public object? Code { get; init; }
 }
 
 /// <summary>
@@ -31,7 +34,11 @@ internal sealed record PlayerStep(string Ends, string Text, string? Description,
 /// </summary>
 internal sealed record PlayerView(
     string FlowName, int Stop, int Count, string? Kind, Caption Caption, Progress Progress, bool ShowsPause, bool Moving, (string Name, int Step)? Trail, IReadOnlyList<PlayerStep> Steps,
-    IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null, IReadOnlyList<string>? ChannelKinds = null, bool Auto = false);
+    IReadOnlyList<StateMark>? States = null, IReadOnlyList<Change?>? Changes = null, IReadOnlyList<string>? ChannelKinds = null, bool Auto = false)
+{
+    /// <summary>The flow's <c>code</c> as the file held it, drawn at the foot of the card under Flow source.</summary>
+    public object? Code { get; init; }
+}
 
 /// <summary>The card at the bottom while a flow plays: which stop, the group it is in, who talks to whom, what happens, and Back, Next and Stop.</summary>
 internal sealed class PlayerCard : Border
@@ -408,6 +415,7 @@ internal sealed class PlayerCard : Border
             };
             block.Children.Add(new StackPanel { Children = { header, more } });
         }
+        if (SourceList.Of(step.Code, "Step source", bare: true) is { } source) block.Children.Add(source);
         if (step.Link is { } link)
         {
             var open = Tool(Icons.Route, $"Open flow: {link.Name}", () => OpenFlow?.Invoke(link.Id), link.Playable && !_inPane);
@@ -621,6 +629,7 @@ internal sealed class PlayerCard : Border
         if (v.States is { Count: > 0 } && StateKey.Of(v.States) is { } key) column.Children.Add(key);
         if (v.ChannelKinds is { Count: > 0 } kinds) column.Children.Add(ChannelKey.Of(kinds));
         foreach (var step in v.Steps) column.Children.Add(Block(step, v.Steps.Count > 1));
+        if (SourceList.Of(v.Code, "Flow source") is { } flowSource) column.Children.Add(flowSource);
         return (top, column);
     }
 

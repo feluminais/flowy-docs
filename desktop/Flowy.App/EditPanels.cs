@@ -153,7 +153,7 @@ internal sealed class ObjectEditor : StackPanel
         _tech = new FieldBox("Tech", "", false, v => Put(new ObjectInput(id, Tech: v)));
         _description = new FieldBox("Description (Markdown)", "", true, v => Put(new ObjectInput(id, Description: v)));
         _links = new FieldBox("Links (one per line: title | address)", "", true, v => Put(new ObjectInput(id, Links: LinkText.Parse(v, _rawLinks))));
-        _code = new FieldBox("Files and folders (one per line)", "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())));
+        _code = new FieldBox(SourceList.Words.Field, "", true, v => Put(new ObjectInput(id, Code: v.Split('\n').Select(l => l.Trim()).Where(l => l != "").ToList())), SourceList.Words.Example);
         // The text is the store's data as the file holds it. Text that is not YAML is refused here with the reader's message, like any other refusal, and stays in the box.
         _snippets = new SnippetsEditor(id, run);
         _data = new FieldBox("Data", "", true, v =>
@@ -353,6 +353,7 @@ internal sealed class LineEditor : StackPanel
         public string? Line;
         public ConnectionInput Which = new("", "");
         public required FieldBox Label;
+        public required FieldBox Source;
         public required Chooser Kind;
         public required StackPanel Problems;
         public required Control Inside;
@@ -447,6 +448,7 @@ internal sealed class LineEditor : StackPanel
             if (row.Line is not null && row.Line == strand) row.Card.Classes.Add("current");
             else row.Card.Classes.Remove("current");
             row.Label.Sync(c.Label ?? "");
+            row.Source.Sync(SourceList.FieldText(c.Code));
             row.Kind.Show(Kinds.KindOf(c) ?? "");
             row.Inside.IsVisible = c.From != wayFrom || c.To != wayTo;
             if (row.Inside is TextBlock t) t.Text = SidePanel.Describe(model, c);
@@ -515,11 +517,12 @@ internal sealed class LineEditor : StackPanel
         var inside = _owner.Muted("");
         var problems = new StackPanel();
         var payloads = new StackPanel { Spacing = 8 };
+        var source = SourceList.Field(null, code => _run(d => EditOps.SetCode(d, new CodeHolder(Line: row!.Which), code)));
         var up = MoveButton(Icons.ArrowUp, Lanes.MoveUp);
         var down = MoveButton(Icons.ArrowDown, Lanes.MoveDown);
         var move = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, IsVisible = false, Children = { up, down } };
-        var card = Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, move, label, kind, payloads, problems } });
-        row = new Row { Index = index, Label = label, Kind = kind, Problems = problems, Inside = inside, Payloads = payloads, Card = card, Move = move, Up = up, Down = down };
+        var card = Chrome.Card(new StackPanel { Spacing = 8, Children = { inside, move, label, kind, payloads, source, problems } });
+        row = new Row { Index = index, Label = label, Source = source, Kind = kind, Problems = problems, Inside = inside, Payloads = payloads, Card = card, Move = move, Up = up, Down = down };
         // The first connection of the form on its way up, or the last on its way down, cannot move: the buttons are greyed out with the reason. Each carries the places to swap.
         up.Click += (_, _) => Move(up);
         down.Click += (_, _) => Move(down);

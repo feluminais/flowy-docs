@@ -500,6 +500,7 @@ internal sealed class FailuresPanel : StackPanel
         if (mode.Affects is { Count: > 0 } affects) AddFact(more, "Affects", string.Join(", ", affects.Select(id => Views.NameOf(model, id))));
         if (more.Children.Count > 0) box.Children.Add(more);
         if (Failures.Has(mode.Description)) box.Children.Add(new MarkdownView(mode.Description!, 13));
+        if (SourceList.Of(mode.Code) is { } source) box.Children.Add(source);
 
         var buttons = new WrapPanel { Orientation = Orientation.Horizontal };
         if (mode.Flow is { } flow && model.Flows.Contains(flow))

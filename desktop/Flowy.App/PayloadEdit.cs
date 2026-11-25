@@ -140,6 +140,9 @@ internal static class PayloadEdit
         body.Children.Add(new FieldBox("About (Markdown)", p.GetValueOrDefault("about") as string ?? "", true, v => Put("about", v)) { Tag = FieldKey(id, "About") });
         body.Children.Add(Block("Shape", FieldKey(id, "Shape"), p.GetValueOrDefault("shape"), v => Put("shape", v)));
         body.Children.Add(Block("Example", FieldKey(id, "Example"), p.GetValueOrDefault("example"), v => Put("example", v)));
+        var source = SourceList.Field(p.GetValueOrDefault("code"), code => run(d => EditOps.SetCode(d, new CodeHolder(Payload: id), code)));
+        source.Tag = FieldKey(id, "Source");
+        body.Children.Add(source);
         var refused = new TextBlock { TextWrapping = TextWrapping.Wrap, IsVisible = false };
         refused.Classes.Add("refused");
         AutomationProperties.SetLiveSetting(refused, Avalonia.Automation.AutomationLiveSetting.Assertive);

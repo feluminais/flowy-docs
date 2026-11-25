@@ -162,11 +162,11 @@ public sealed record NavigatorState(string? Tab, IReadOnlyList<string> Expanded,
 }
 
 /// <summary>
-/// What the app remembers between runs. <c>OpenFilesWith</c> is the app the person chose to open a box's linked files with; null means the system's default. <c>Navigators</c> is what each project's navigator
+/// What the app remembers between runs. <c>OpenFilesWith</c> is the app the person chose to open a box's linked files with; null means the system's default. <c>CodeEditor</c> is the id of the editor code paths open in (see <see cref="Editors"/>); null means the first one found. <c>Navigators</c> is what each project's navigator
 /// remembers, by <see cref="ModelFolders.Key"/>. <c>ShowChanges</c> is the comparison's Show changes switch (off until it is turned on). <c>Autoplay</c> is the player's Autoplay switch
 /// (on until it is turned off), shared by every flow and tab; a pane of a comparison does not take part.
 /// </summary>
-public sealed record UserState(IReadOnlyList<string> Recent, string? Lines, bool CheckForUpdates, WindowSize? Window = null, string? OpenFilesWith = null, IReadOnlyDictionary<string, NavigatorState>? Navigators = null, bool ShowChanges = false, bool Autoplay = true)
+public sealed record UserState(IReadOnlyList<string> Recent, string? Lines, bool CheckForUpdates, WindowSize? Window = null, string? OpenFilesWith = null, IReadOnlyDictionary<string, NavigatorState>? Navigators = null, bool ShowChanges = false, bool Autoplay = true, string? CodeEditor = null)
 {
     public static UserState Default { get; } = new([], null, true);
 }
@@ -225,7 +225,9 @@ public sealed class UserStateStore(string file)
             var changes = root.TryGetProperty("showChanges", out var c) && c.ValueKind == JsonValueKind.True;
             // "autoplayOn", not the older "autoplay": that one was written false for everyone while Autoplay started off, so it says nothing anybody chose.
             var autoplay = !(root.TryGetProperty("autoplayOn", out var ap) && ap.ValueKind == JsonValueKind.False);
-            return new UserState(recent, lines, updates, window, openWith, navigators, changes, autoplay);
+            // The editor Open in opens code with, by its id (see Editors). One the computer no longer has falls back to the first found, so any text is kept.
+            var editor = root.TryGetProperty("codeEditor", out var ed) && ed.ValueKind == JsonValueKind.String && ed.GetString() is { Length: > 0 and <= 64 } id ? id : null;
+            return new UserState(recent, lines, updates, window, openWith, navigators, changes, autoplay, editor);
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException or InvalidOperationException)
         {
@@ -240,7 +242,7 @@ public sealed class UserStateStore(string file)
         {
             Directory.CreateDirectory(Path.GetDirectoryName(file)!);
             var temp = file + ".tmp";
-            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, showChanges = state.ShowChanges, autoplayOn = state.Autoplay, openFilesWith = state.OpenFilesWith, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null, navigators = state.Navigators?.ToDictionary(k => k.Key, k => new { tab = k.Value.Tab, expanded = k.Value.Expanded, navWidth = k.Value.NavWidth, detailsWidth = k.Value.DetailsWidth }) }, Json));
+            System.IO.File.WriteAllText(temp, JsonSerializer.Serialize(new { recent = state.Recent, lines = state.Lines, checkForUpdates = state.CheckForUpdates, showChanges = state.ShowChanges, autoplayOn = state.Autoplay, openFilesWith = state.OpenFilesWith, codeEditor = state.CodeEditor, window = state.Window is { } w ? new { width = w.Width, height = w.Height, maximized = w.Maximized } : null, navigators = state.Navigators?.ToDictionary(k => k.Key, k => new { tab = k.Value.Tab, expanded = k.Value.Expanded, navWidth = k.Value.NavWidth, detailsWidth = k.Value.DetailsWidth }) }, Json));
             System.IO.File.Move(temp, file, true);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)

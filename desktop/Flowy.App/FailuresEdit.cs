@@ -299,6 +299,7 @@ internal sealed class ModeForm : StackPanel
     private readonly FieldBox _step;
     private readonly TextChooser _runChoice;
     private readonly FieldBox _description;
+    private readonly FieldBox _source;
     private readonly Button _show = new();
     private IReadOnlyList<string> _affects = [];
 
@@ -337,6 +338,7 @@ internal sealed class ModeForm : StackPanel
         _step = new FieldBox("Step (from 1)", "", false, v => Text("step", v));
         _runChoice = FailureForms.Cells("Run", 2, v => Text("run", v), 150);
         _description = new FieldBox("More (Markdown)", "", true, v => Text("description", v));
+        _source = SourceList.Field(null, code => run(d => EditOps.SetCode(d, new CodeHolder(Analysis: analysis, Mode: id), code)));
         _show.Classes.Add("tool");
         Chrome.Fill(_show, Icons.Route, "Show it");
         _show.Click += (_, _) =>
@@ -371,6 +373,7 @@ internal sealed class ModeForm : StackPanel
         Children.Add(_step);
         Children.Add(_runChoice.View);
         Children.Add(_description);
+        Children.Add(_source);
         Children.Add(_show);
         Children.Add(delete);
     }
@@ -431,6 +434,7 @@ internal sealed class ModeForm : StackPanel
         _step.Sync(m.Step ?? "");
         _runChoice.Set([("", "None"), .. runs.Select(r => (r.Key, JsCompat.Blank(r.Value.Name) ? r.Key : r.Value.Name))], m.Run ?? "");
         _description.Sync(m.Description ?? "");
+        _source.Sync(SourceList.FieldText(m.Code));
         var flow = m.Flow is { } f && model.Flows.Contains(f) ? f : null;
         _show.IsVisible = flow is not null;
         _show.Tag = flow;

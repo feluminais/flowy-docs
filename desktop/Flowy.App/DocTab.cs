@@ -58,6 +58,9 @@ internal sealed class DocTab : IDisposable
         Reader.ModelPicked += picked => shell.Show(picked, null, TopLevel.GetTopLevel(Reader) as MainWindow);
         Reader.NavigatorChanged += navigator => shell.RememberNavigator(Dir, navigator);
         Reader.CustomApp = () => shell.State.OpenFilesWith;
+        Reader.CodeEditor = () => shell.CodeEditor;
+        shell.CodeEditorChanged += Reader.Sources.Refresh;
+        _leaveShell = () => shell.CodeEditorChanged -= Reader.Sources.Refresh;
     }
 
     public string Dir { get; }
@@ -130,8 +133,11 @@ internal sealed class DocTab : IDisposable
     }
 
     /// <summary>Lets go of what the tab holds on to: the folder's watcher and the reader's.</summary>
+    private readonly Action _leaveShell;
+
     public void Dispose()
     {
+        _leaveShell();
         _disk?.Dispose();
         Reader.Dispose();
     }
