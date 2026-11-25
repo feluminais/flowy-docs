@@ -66,9 +66,10 @@ public class KeyMapTests
 
     private static void Flow(Window w, ReaderView r)
     {
-        var flow = r.Folder!.Model.Flows.OrderByDescending(f => f.Value.Steps.Count).First();
-        r.GoTo(flow.Value.View ?? Names.Root);
-        r.Play(flow.Key, 1);
+        // By name: which flow is the longest changes whenever the demo does.
+        var flow = r.Folder!.Model.Flows["deliver-order"];
+        r.GoTo(flow.View ?? Names.Root);
+        r.Play("deliver-order", 1);
     }
 
     private static void Perf(Window w, ReaderView r) => w.KeyPress(Key.T, RawInputModifiers.None, PhysicalKey.T, null);
@@ -512,7 +513,7 @@ internal static class Expected
         "flow: right | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/2 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: left | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: home | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/0 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
-        "flow: end | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/10 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
+        "flow: end | taken | view=delivery edit=False panel=False tab= details=False perf=False fail=False flow=deliver-order/8 short=False search=False box= picked=0 undo=False redo=False pos=0 ramp=False mode= rec=False",
         "flow: space | taken | same",
         "flow: shift+space | left | same",
         "flow: p is not a key any more | left | same",
