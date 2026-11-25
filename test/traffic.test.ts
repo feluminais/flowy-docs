@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { advance, BACK, cutBy, ghost, GHOST, HOLD, howBehind, moteLook, MOST, newStream, POP, REJECTED_END, visibility } from '../ui/src/traffic.ts'
+import { advance, BACK, cutBy, ghost, GHOST, HOLD, howBehind, moteLook, MOST, newStream, POP, REJECTED_END, visibility, warmStream } from '../ui/src/traffic.ts'
 import type { Failure } from '../src/core/perf/types.ts'
 
 /** Run a stream for `ms` in frames of 16 ms, like a screen would. */
@@ -176,4 +176,13 @@ test('the number of random draws does not change with the style, so a test that 
   }
   assert.equal(draws(undefined), draws('lost'))
   assert.ok(draws('rejected') < draws('lost')) // a rejected call goes the whole way, so there is no place to draw
+})
+
+test('a stream made for a line already in use starts with its particles spread along it, as many as calls in flight', () => {
+  const line = { perSecond: 10, travelMs: 2000, failed: 0 }
+  const warm = warmStream(line, () => 0.99)
+  assert.ok(warm.motes.length >= 18 && warm.motes.length <= 22, `got ${warm.motes.length}`)
+  const ends = warm.motes.map(m => m.s)
+  assert.ok(Math.max(...ends) > 0.9 && Math.min(...ends) < 0.1, `spread ${Math.min(...ends)} to ${Math.max(...ends)}`)
+  assert.equal(warmStream({ perSecond: 0, travelMs: 2000, failed: 0 }, () => 0.99).motes.length, 0)
 })
