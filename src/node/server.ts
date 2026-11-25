@@ -11,7 +11,7 @@ import { splitSketchModelId } from '../core/sketches.ts'
 import type { ModelList } from '../core/modellist.ts'
 import type { State } from '../core/state.ts'
 import { jsonBody } from './body.ts'
-import { hasSketch, sketchDir, sketchFolderIn } from './sketches.ts'
+import { hasSketch, repoOf, sketchDir, sketchFolderIn } from './sketches.ts'
 import { loadState } from './files.ts'
 import type { History } from './history.ts'
 import { createHistoryApi } from './history-api.ts'
@@ -56,6 +56,15 @@ const GZIP_FROM = 32 * 1024 // under this the saving is not worth the wait
  * GET /api/state. The same state (loadState gives the same object while the files are unchanged) is turned into text once, tagged with a hash of it and compressed once. A page that
  * already holds that text is told so (304) instead of being sent it again; the tag is why the answer is `no-cache` (keep it, but ask) and not `no-store`.
  */
+/** The state with the folder `code` paths start from, so the page can offer an editor. One copy per state, so sendState's cache still holds. */
+const rooted = new WeakMap<State, State>()
+function withRoot(state: State, dir: string): State {
+  if ('parseError' in state) return state
+  let made = rooted.get(state)
+  if (!made) rooted.set(state, (made = { ...state, codeRoot: repoOf(dir) }))
+  return made
+}
+
 async function sendState(req: IncomingMessage, res: ServerResponse, state: State) {
   let made = sent.get(state)
   if (!made) {
@@ -247,7 +256,7 @@ export async function startServer({ dir, ui, port, history, gateMs, models, disc
       if (url.pathname.startsWith('/api/') && !host) return send(res, 404, { error: 'unknown model' })
       if (host) {
         const { served: { dir }, steps, clients } = host
-        if (req.method === 'GET' && url.pathname === '/api/state') return await sendState(req, res, await loadState(dir))
+        if (req.method === 'GET' && url.pathname === '/api/state') return await sendState(req, res, withRoot(await loadState(dir), dir))
         if (req.method === 'GET' && url.pathname === '/api/events') {
           res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store' })
           // Reconnect 1 s after flowy restarts. Writing at once also pushes the headers through proxies (Vite's dev server).

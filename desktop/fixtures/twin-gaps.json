@@ -93,7 +93,6 @@
     "disconnect",
     "putIcon",
     "refuseBlindDisconnect",
-    "setCode",
     "tidyLayout",
     "tidyViews"
   ],

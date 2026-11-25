@@ -1,3 +1,4 @@
+import { SourceList } from './Source.tsx'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import type { Problem } from '../../src/core/problem.ts'
 import { FILE_KINDS, pathOf } from '../../src/core/filekinds.ts'
@@ -210,6 +211,7 @@ export function FailuresBody(p: FailuresProps) {
             {mode.affects && mode.affects.length > 0 && <><dt>Affects</dt><dd>{mode.affects.map(id => nameOf(model, id)).join(', ')}</dd></>}
           </dl>
           {mode.description && <div className="prose"><Description text={mode.description} /></div>}
+          <SourceList code={mode.code} />
           <div className="perf-buttons">
             {flowShown && mode.flow !== undefined && <button aria-label={showIt} title={showIt} onClick={() => p.onShowFlow(mode.flow!, mode.step === undefined ? undefined : Number(mode.step))}><Route size={16} />Show it</button>}
             {seen && modeId !== undefined && <button aria-label={SEEN_IN_RUN_NAME} title={SEEN_IN_RUN_NAME} onClick={() => p.onSeenInRun(modeId)}><Activity size={16} />Seen in a run</button>}

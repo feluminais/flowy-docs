@@ -17,7 +17,7 @@ export const CHANGED_OUTSIDE = 'This file changed outside Flowy. Reloaded.'
 const text = (e: unknown) => (e instanceof Error ? e.message : String(e))
 
 type Loaded = {
-  model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; runs: Record<string, Run>; runProblems: Problem[]; failureProblems: Problem[]
+  model: Model; versions: Record<string, string | null>; problems: Problem[]; codeBase?: string; codeRoot?: string; runs: Record<string, Run>; runProblems: Problem[]; failureProblems: Problem[]
   /** The model folder's sketches (none in a sketch), and, in a sketch, the name of the model it belongs to. */
   sketches: SketchInfo[]; sketch?: { of: string }
 }
@@ -33,7 +33,7 @@ export function fromState(state: State): Loaded {
     throw new Error(`Can't read ${file}${line === undefined ? '' : ` (line ${line})`}: ${message}. Fix the file and this page updates.`)
   }
   let made = loaded.get(state)
-  if (!made) loaded.set(state, (made = { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, runs: state.runs ?? {}, runProblems: state.runProblems ?? [], failureProblems: state.failureProblems ?? [], sketches: state.sketches ?? [], ...(state.sketch ? { sketch: state.sketch } : {}) }))
+  if (!made) loaded.set(state, (made = { model: modelOf(state), versions: state.versions, problems: state.problems, codeBase: state.codeBase, ...(state.codeRoot ? { codeRoot: state.codeRoot } : {}), runs: state.runs ?? {}, runProblems: state.runProblems ?? [], failureProblems: state.failureProblems ?? [], sketches: state.sketches ?? [], ...(state.sketch ? { sketch: state.sketch } : {}) }))
   return made
 }
 

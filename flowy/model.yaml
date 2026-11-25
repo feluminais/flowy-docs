@@ -660,8 +660,8 @@ connections:
   - { from: reader, to: shell, label: "reads it, draws in edit mode" }
   - { from: reader, to: host, label: opens the shared link }
   - { from: reader, to: vscode, label: reads it inside the editor }
-  - { from: ai, to: mcp, label: writes the model }
-  - { from: cli, to: server, label: serves the canvas }
+  - { from: ai, to: mcp, label: writes the model, code: [src/node/mcp.ts] }
+  - { from: cli, to: server, label: serves the canvas, code: [src/node/server.ts] }
   - { from: desktop-canvas, to: desktop-core, label: what to draw }
   - { from: desktop-canvas, to: outline, label: asks for the navigator's rows }
   - { from: desktop-shell, to: desktop-canvas, label: one reader per window }
@@ -684,10 +684,10 @@ connections:
   - { from: shell, to: navigator, label: the panel's tabs }
   - { from: navigator, to: outline, label: asks for the rows }
   - { from: shell, to: ops, label: the edit the reader made }
-  - { from: panel, to: forge, label: links code paths }
+  - { from: panel, to: forge, label: links code paths, code: [ui/src/Source.tsx, ui/src/repolink.ts] }
   - { from: graph, to: views, label: "shapes, outsiders and lines" }
   - { from: api, to: filestore, label: reads and writes }
-  - { from: api, to: gitlink, label: where code links point }
+  - { from: api, to: gitlink, label: where code links point, code: [src/node/git.ts:25] }
   - { from: api, to: history, label: records each edit }
   - { from: filestore, to: folder, label: one file at a time }
   - { from: filestore, to: model, label: parses and serializes }

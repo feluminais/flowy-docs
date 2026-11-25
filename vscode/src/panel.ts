@@ -2,8 +2,9 @@ import { randomBytes } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { basename, dirname, join } from 'node:path'
 import * as vscode from 'vscode'
-import { changedMessage, pathToOpen, requestOf, responseMessage, revealMessage, textToCopy, urlToOpen } from '../../src/core/host.ts'
-import type { Request, Target } from '../../src/core/host.ts'
+import { changedMessage, openTarget, requestOf, responseMessage, revealMessage, textToCopy, urlToOpen } from '../../src/core/host.ts'
+import type { OpenTarget, Request, Target } from '../../src/core/host.ts'
+import { repoOf } from '../../src/node/sketches.ts'
 import { applyWrite } from '../../src/node/writes.ts'
 import { webviewPage } from './page.ts'
 import { repoFile } from './paths.ts'
@@ -27,9 +28,12 @@ async function answer(dir: string, request: Request): Promise<unknown> {
   return applyWrite(dir, request.method, request.file, request.body)
 }
 
-/** Open a path in the repo (a shape's `code`) in the editor, beside the panel; a folder is shown in the Explorer. */
-async function openPath(dir: string, path: string): Promise<void> {
-  const file = repoFile(dirname(dir), path)
+/**
+ * Open a path in the repo (an entry of a `code` list) in the editor, with the cursor on `line` when there is one: in the panel's own group, or beside
+ * the panel with `side`, as the Explorer's Open and Open to the Side do. A folder is shown in the Explorer.
+ */
+async function openPath(dir: string, { path, line, side }: OpenTarget): Promise<void> {
+  const file = repoFile(repoOf(dir), path)
   if (!file) return void vscode.window.showWarningMessage(`Flowy: "${path}" is not a path inside the repo.`)
   const uri = vscode.Uri.file(file)
   let type: vscode.FileType
@@ -39,7 +43,27 @@ async function openPath(dir: string, path: string): Promise<void> {
     return void vscode.window.showWarningMessage(`Flowy: ${path} doesn't exist.`)
   }
   if (type & vscode.FileType.Directory) await vscode.commands.executeCommand('revealInExplorer', uri)
-  else await vscode.commands.executeCommand('vscode.open', uri, { viewColumn: vscode.ViewColumn.Beside })
+  else {
+    const at = line === undefined ? {} : { selection: new vscode.Range(line - 1, 0, line - 1, 0) }
+    await vscode.commands.executeCommand('vscode.open', uri, { viewColumn: side ? vscode.ViewColumn.Beside : vscode.ViewColumn.Active, ...at })
+  }
+}
+
+/**
+ * What a right-click on a path in a panel hands a command: the folder the panel shows and the path, as the page put them on the row
+ * (`data-vscode-context`, see ui/src/Source.tsx). Undefined for anything else, or a folder no panel shows.
+ */
+function clicked(context: unknown): { dir: string; target: OpenTarget } | undefined {
+  if (typeof context !== 'object' || context === null) return undefined
+  const { webviewSection, folder, path, line } = context as Record<string, unknown>
+  if (webviewSection !== 'codePath' || typeof folder !== 'string' || !open.has(folder) || typeof path !== 'string' || path === '') return undefined
+  return { dir: folder, target: { path, ...(typeof line === 'number' && Number.isInteger(line) && line >= 1 ? { line } : {}) } }
+}
+
+/** The Open and Open to the Side items of the menu a right-click on a path in a panel opens. */
+export const openCodeCommand = (context: unknown, side: boolean): Promise<void> => {
+  const found = clicked(context)
+  return found ? openPath(found.dir, { ...found.target, ...(side ? { side } : {}) }) : Promise.resolve()
 }
 
 /** The built canvas the extension carries, or undefined, after saying what to do, when it isn't there. */
@@ -75,8 +99,8 @@ function attach(panel: vscode.WebviewPanel, dir: string, canvas: { media: vscode
   panel.webview.onDidReceiveMessage(async (message: unknown) => {
     const text = textToCopy(message)
     if (text !== undefined) return void vscode.env.clipboard.writeText(text).then(undefined, () => vscode.window.showWarningMessage("Flowy Docs couldn't copy: the clipboard isn't available. Try again."))
-    const path = pathToOpen(message)
-    if (path !== undefined) return void openPath(dir, path)
+    const target = openTarget(message)
+    if (target !== undefined) return void openPath(dir, target)
     const url = urlToOpen(message)
     if (url !== undefined) return void vscode.env.openExternal(vscode.Uri.parse(url))
     const asked = requestOf(message)

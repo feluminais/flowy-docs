@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { changedMessage, copyMessage, isChanged, openMessage, openUrlMessage, pathToOpen, requestMessage, requestOf, responseMessage, responseOf, revealMessage, revealOf, textToCopy, urlToOpen } from '../src/core/host.ts'
+import { changedMessage, copyMessage, isChanged, openMessage, openTarget, openUrlMessage, requestMessage, requestOf, responseMessage, responseOf, revealMessage, revealOf, textToCopy, urlToOpen } from '../src/core/host.ts'
 
 test('a page asks its host to copy text, and the host reads it back', () => {
   assert.equal(textToCopy(copyMessage('```mermaid\ngraph TD\n```\n')), '```mermaid\ngraph TD\n```\n')
@@ -47,11 +47,14 @@ test('the host tells the page the folder changed', () => {
     assert.equal(isChanged(data), false, JSON.stringify(data))
 })
 
-test('a page asks its host to open a path in the editor, and the host reads it back', () => {
-  assert.equal(pathToOpen(openMessage('apps/web/src/cart.ts')), 'apps/web/src/cart.ts')
-  assert.equal(pathToOpen(openMessage('apps/web/')), 'apps/web/')
+test('a page asks its host to open a path in the editor, at a line and to the side if it likes, and the host reads it back', () => {
+  assert.deepEqual(openTarget(openMessage('apps/web/src/cart.ts')), { path: 'apps/web/src/cart.ts' })
+  assert.deepEqual(openTarget(openMessage('apps/web/')), { path: 'apps/web/' })
+  assert.deepEqual(openTarget(openMessage('apps/web/src/cart.ts', { line: 42, side: true })), { path: 'apps/web/src/cart.ts', line: 42, side: true })
+  assert.deepEqual(openTarget({ type: 'flowy-open', path: 'a.ts', line: 0, side: 'yes' }), { path: 'a.ts' })
+  assert.deepEqual(openTarget({ type: 'flowy-open', path: 'a.ts', line: 2.5 }), { path: 'a.ts' })
   for (const data of [undefined, null, 'flowy-open', {}, { type: 'other', path: 'a' }, { type: 'flowy-open' }, { type: 'flowy-open', path: 3 }, { type: 'flowy-open', path: '' }])
-    assert.equal(pathToOpen(data), undefined, JSON.stringify(data))
+    assert.equal(openTarget(data), undefined, JSON.stringify(data))
 })
 
 test('the host tells the page to show a shape or a flow, and the page reads it back', () => {

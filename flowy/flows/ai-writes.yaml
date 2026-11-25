@@ -1,16 +1,18 @@
 name: An AI maps the repo
 view: flowy
 tags: [happy path]
+code: [test/mcp.test.ts]
 steps:
-  - { from: ai, to: mcp, text: "put_object, connect, put_flow", animation: call }
-  - { from: mcp, to: core, text: Applies the change to a fresh read of the model, animation: call }
+  - { from: ai, to: mcp, text: "put_object, connect, put_flow", animation: call, code: [src/node/mcp.ts:228] }
+  - { from: mcp, to: core, text: Applies the change to a fresh read of the model, animation: call, code: [src/node/commit.ts:52] }
   - from: core
     text: Refuses anything that would add a problem
     description: |
       Problems already in the files are left alone; a write may not add one. A `code` path that
       doesn't exist counts (the canvas can't check it, Node can), so the AI can't point a shape at
       code that's gone.
-  - { from: mcp, to: repo, text: Writes only the files that changed, animation: send }
-  - { from: repo, to: server, text: "The write wakes the server's file watcher" }
+    code: [src/core/ops.ts:1163]
+  - { from: mcp, to: repo, text: Writes only the files that changed, animation: send, code: [src/node/files.ts:452] }
+  - { from: repo, to: server, text: "The write wakes the server's file watcher", code: [src/node/server.ts:159] }
   - { from: server, to: canvas, text: Tells the open page over its event stream }
-  - { from: canvas, text: Picks the change up without a reload }
+  - { from: canvas, text: Picks the change up without a reload, code: [ui/src/useModel.ts:63] }

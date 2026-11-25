@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { request } from 'node:http'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import type { State } from '../src/core/state.ts'
 import { hashText } from '../src/node/files.ts'
 import { MAX_BODY } from '../src/node/body.ts'
@@ -39,9 +39,10 @@ function rawGet(port: number, path: string, host = `127.0.0.1:${port}`): Promise
   })
 }
 
-test('state of an empty folder', async t => {
-  const { getState } = await setup(t)
+test('state of an empty folder, with the folder code paths start from', async t => {
+  const { dir, getState } = await setup(t)
   assert.deepEqual(await getState(), {
+    codeRoot: dirname(dir),
     model: { objects: {}, connections: [], meta: {} },
     layout: {},
     flows: {},

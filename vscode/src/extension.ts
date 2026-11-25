@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import * as vscode from 'vscode'
 import { goToShapeCommand, openCommand, openFlowCommand, showFileCommand } from './commands.ts'
 import { exists, findFolders } from './folders.ts'
-import { closeAll, restoreDocs, VIEW_TYPE } from './panel.ts'
+import { closeAll, openCodeCommand, restoreDocs, VIEW_TYPE } from './panel.ts'
 
 /** Tell VS Code whether this workspace has Flowy docs, so the menus that need them show only then. */
 async function updateContext(): Promise<void> {
@@ -15,6 +15,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('flowy.openFlow', () => openFlowCommand(context)),
     vscode.commands.registerCommand('flowy.goToShape', () => goToShapeCommand(context)),
     vscode.commands.registerCommand('flowy.showFile', (resource?: vscode.Uri) => showFileCommand(context, resource)),
+    // The menu a right-click on a path in a panel opens (package.json, webview/context): the row hands over the folder and the path.
+    vscode.commands.registerCommand('flowy.openCode', (clicked: unknown) => openCodeCommand(clicked, false)),
+    vscode.commands.registerCommand('flowy.openCodeToSide', (clicked: unknown) => openCodeCommand(clicked, true)),
     // After a restart VS Code brings panels back empty and hands over what their page saved: the folder it showed, and where it was.
     vscode.window.registerWebviewPanelSerializer(VIEW_TYPE, {
       async deserializeWebviewPanel(panel, state: unknown) {

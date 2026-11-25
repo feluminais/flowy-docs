@@ -1,0 +1,380 @@
+{
+  "max": 9999999,
+  "entries": [
+    {
+      "entry": "src/api.ts",
+      "ref": {
+        "path": "src/api.ts"
+      },
+      "text": "src/api.ts",
+      "problems": []
+    },
+    {
+      "entry": "src/api.ts:1",
+      "ref": {
+        "path": "src/api.ts",
+        "line": 1
+      },
+      "text": "src/api.ts:1",
+      "problems": []
+    },
+    {
+      "entry": "src/api.ts:42",
+      "ref": {
+        "path": "src/api.ts",
+        "line": 42
+      },
+      "text": "src/api.ts:42",
+      "problems": []
+    },
+    {
+      "entry": "src/api.ts:9999999",
+      "ref": {
+        "path": "src/api.ts",
+        "line": 9999999
+      },
+      "text": "src/api.ts:9999999",
+      "problems": []
+    },
+    {
+      "entry": "src/api.ts:10000000",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"src/api.ts:10000000\": the line must be a whole number from 1 to 9999999"
+      ]
+    },
+    {
+      "entry": "src/api.ts:0",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"src/api.ts:0\": the line must be a whole number from 1 to 9999999"
+      ]
+    },
+    {
+      "entry": "src/api.ts:007",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"src/api.ts:007\": the line must be a whole number from 1 to 9999999"
+      ]
+    },
+    {
+      "entry": "src/api.ts:-3",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"src/api.ts:-3\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "src/",
+      "ref": {
+        "path": "src/"
+      },
+      "text": "src/",
+      "problems": []
+    },
+    {
+      "entry": "src/:3",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"src/:3\" is a folder, which has no lines"
+      ]
+    },
+    {
+      "entry": "src:3",
+      "ref": {
+        "path": "src",
+        "line": 3
+      },
+      "text": "src:3",
+      "problems": []
+    },
+    {
+      "entry": "a:b.ts",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"a:b.ts\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "a:b.ts:4",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"a:b.ts:4\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "src/api.ts:4:2",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"src/api.ts:4:2\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "../x.ts:3",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"../x.ts:3\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "/abs.ts:3",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"/abs.ts:3\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "C:/x.ts",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"C:/x.ts\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "a\\b.ts:2",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"a\\b.ts:2\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "a\nb.ts:2",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"a\nb.ts:2\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "a b.ts:2",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"a b.ts:2\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": ":3",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \":3\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "gone.ts:9",
+      "ref": {
+        "path": "gone.ts",
+        "line": 9
+      },
+      "text": "gone.ts:9",
+      "problems": [
+        "code path \"gone.ts:9\" doesn't exist"
+      ]
+    },
+    {
+      "entry": "gone/",
+      "ref": {
+        "path": "gone/"
+      },
+      "text": "gone/",
+      "problems": [
+        "code path \"gone/\" doesn't exist"
+      ]
+    },
+    {
+      "entry": "",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": " src/api.ts",
+      "ref": {
+        "path": " src/api.ts"
+      },
+      "text": " src/api.ts",
+      "problems": []
+    },
+    {
+      "entry": "src/api.ts ",
+      "ref": {
+        "path": "src/api.ts "
+      },
+      "text": "src/api.ts ",
+      "problems": []
+    },
+    {
+      "entry": "x.ts:1e3",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"x.ts:1e3\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "x.ts:٣",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"x.ts:٣\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    },
+    {
+      "entry": "x.ts:１",
+      "ref": null,
+      "text": null,
+      "problems": [
+        "code path \"x.ts:１\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    }
+  ],
+  "lists": [
+    {
+      "code": "(none)",
+      "refs": [],
+      "problems": []
+    },
+    {
+      "code": "src/api.ts",
+      "refs": [],
+      "problems": [
+        "code must be a list of paths"
+      ]
+    },
+    {
+      "code": [
+        "src/api.ts",
+        3
+      ],
+      "refs": [
+        {
+          "path": "src/api.ts"
+        }
+      ],
+      "problems": [
+        "code must be a list of paths"
+      ]
+    },
+    {
+      "code": [],
+      "refs": [],
+      "problems": []
+    },
+    {
+      "code": [
+        "src/api.ts",
+        "src/api.ts:1",
+        "src/api.ts:42",
+        "src/api.ts:9999999",
+        "src/api.ts:10000000",
+        "src/api.ts:0",
+        "src/api.ts:007",
+        "src/api.ts:-3",
+        "src/",
+        "src/:3",
+        "src:3",
+        "a:b.ts",
+        "a:b.ts:4",
+        "src/api.ts:4:2",
+        "../x.ts:3",
+        "/abs.ts:3",
+        "C:/x.ts",
+        "a\\b.ts:2",
+        "a\nb.ts:2",
+        "a b.ts:2",
+        ":3",
+        "gone.ts:9",
+        "gone/",
+        "",
+        " src/api.ts",
+        "src/api.ts ",
+        "x.ts:1e3",
+        "x.ts:٣",
+        "x.ts:１"
+      ],
+      "refs": [
+        {
+          "path": "src/api.ts"
+        },
+        {
+          "path": "src/api.ts",
+          "line": 1
+        },
+        {
+          "path": "src/api.ts",
+          "line": 42
+        },
+        {
+          "path": "src/api.ts",
+          "line": 9999999
+        },
+        {
+          "path": "src/"
+        },
+        {
+          "path": "src",
+          "line": 3
+        },
+        {
+          "path": "gone.ts",
+          "line": 9
+        },
+        {
+          "path": "gone/"
+        },
+        {
+          "path": " src/api.ts"
+        },
+        {
+          "path": "src/api.ts "
+        }
+      ],
+      "problems": [
+        "code path \"src/api.ts:10000000\": the line must be a whole number from 1 to 9999999",
+        "code path \"src/api.ts:0\": the line must be a whole number from 1 to 9999999",
+        "code path \"src/api.ts:007\": the line must be a whole number from 1 to 9999999",
+        "code path \"src/api.ts:-3\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"src/:3\" is a folder, which has no lines",
+        "code path \"a:b.ts\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"a:b.ts:4\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"src/api.ts:4:2\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"../x.ts:3\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"/abs.ts:3\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"C:/x.ts\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"a\\b.ts:2\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"a\nb.ts:2\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"a b.ts:2\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \":3\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"gone.ts:9\" doesn't exist",
+        "code path \"gone/\" doesn't exist",
+        "code path \"\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"x.ts:1e3\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"x.ts:٣\" must be relative, with / between folders and no \".\" or \"..\" parts",
+        "code path \"x.ts:１\" must be relative, with / between folders and no \".\" or \"..\" parts"
+      ]
+    }
+  ],
+  "model": {
+    "lists": 7,
+    "paths": [
+      "docs/",
+      "docs/gone.md",
+      "docs/real.md"
+    ]
+  }
+}
