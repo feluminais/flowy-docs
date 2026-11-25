@@ -69,6 +69,25 @@ npm run dev:ui
 
 `node src/cli.ts --dir docs/demo/flowy` opens Plum, the made-up delivery service in the README.
 
+## Working with Claude Code
+
+`CLAUDE.md` holds the rules AI sessions follow here: the UI text rules in `.claude/ui-text.md`, the fast desktop test set,
+no windows in the foreground, and how a core change reaches the desktop. `.claude/` holds what they use:
+
+| Name | Kind | Use it |
+| --- | --- | --- |
+| `port-to-desktop` | Skill | When a change to `src/core` or `src/node` has to reach the C# twin in `desktop/Flowy.Core` |
+| `retake-shots` | Skill | After a change in wording or layout that a `docs/images/desktop-*.png` picture shows |
+| `finish-work` | Skill, run as `/finish-work` | To verify a feature branch, merge it into main and remove its worktree |
+| `core-twin` | Review agent, read only | After a port, or before merging a change to a ported module: where the two cores differ, what no fixture pins |
+| `reader-parity` | Review agent, read only | After a change to UI text or a panel: where the browser and the desktop app say or do different things |
+| `docs-review` | Hook script | After main moves: which docs, pictures and checklists the new commits made stale |
+
+The docs review runs `claude -p` with read-only git tools and writes `reports/docs-review/latest.md`. To have it run after
+every commit on main, start `.claude/docs-review/review.sh` in the background from `.git/hooks/post-commit` and
+`.git/hooks/post-merge`. `review.sh --once <base> <head>` reviews one range now. Its checklist is
+`.claude/docs-review/checklist.md`.
+
 ## More
 
 [docs/maintaining.md](docs/maintaining.md) has the rest: retaking the pictures and animations, the animation showcase, the

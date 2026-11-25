@@ -23,3 +23,4 @@ The examples come from Plum, the model in [`docs/demo/flowy`](demo/flowy).
 | How two shapes talk: RPC, pub/sub, a stream, a plugin point | [Label connections](writing.md#label-connections), [Connection kinds](guide/kinds.md) |
 | `check`, `export`, Mermaid, `tidy`, publishing | [Check it and share it](guide/share.md) |
 | The desktop app | [The desktop app](guide/desktop.md) |
+| Work on Flowy Docs itself, its Claude Code skills and review agents | [Contributing](../CONTRIBUTING.md#working-with-claude-code) |
