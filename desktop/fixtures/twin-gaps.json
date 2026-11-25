@@ -362,7 +362,8 @@
     "howBehind",
     "moteLook",
     "newStream",
-    "visibility"
+    "visibility",
+    "warmStream"
   ],
   "ui/src/trail": [
     "cameFrom",

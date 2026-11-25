@@ -7,7 +7,7 @@ import { depthIn } from './graph.ts'
 import type { BoxData, Outline, Rect } from './graph.ts'
 import { outline, pathBetween, rect } from './Line.tsx'
 import { extend, flatten, pointAt } from './pathpoints.ts'
-import { advance, cutBy, ghost, howBehind, moteLook, newStream, visibility } from './traffic.ts'
+import { advance, cutBy, ghost, howBehind, moteLook, visibility, warmStream } from './traffic.ts'
 import type { Stream } from './traffic.ts'
 
 /** A shape a line runs behind: where it is and its outline. */
@@ -242,7 +242,7 @@ export function TrafficLayer({ lines, style, fade }: { lines: LineTraffic[]; sty
           ctx.restore()
         }
         let stream = streams.current.get(key)
-        if (!stream) streams.current.set(key, (stream = newStream()))
+        if (!stream) streams.current.set(key, (stream = warmStream(line, Math.random))) // a line new on screen starts full, so a view that opens shows its traffic at once
         advance(stream, line, ms, Math.random)
         const radius = (MARK * (line.radius ?? 1)) / zoom // a few pixels on screen, whatever the zoom and however many calls, and bigger or smaller only where the size of a call says
         const ramp = radius * 2 // how far either side of an outline a particle takes to go from clear to well behind

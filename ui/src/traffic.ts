@@ -16,6 +16,16 @@ export const MOST = 64
 
 export const newStream = (): Stream => ({ motes: [], due: 0 })
 
+/**
+ * A stream for a line that is new on screen, with its particles already spread along it as they would be had the load always been this:
+ * a view that opens shows its traffic at once instead of filling up from the start of each line. The desktop's TrafficLayer.Set does the same.
+ */
+export function warmStream(line: Pick<LineTraffic, 'perSecond' | 'travelMs' | 'failed' | 'failure'>, rand: () => number): Stream {
+  const stream = newStream()
+  for (let t = 0; t < line.travelMs; t += 32) advance(stream, line, 32, rand)
+  return stream
+}
+
 /** How long a lost call's pop lasts, in the same units as `s` (a fraction of the line). */
 export const POP = 0.08
 /** How long a rejected call waits at the bar, and how far back along the line it comes before it is gone. */
