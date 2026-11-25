@@ -6,7 +6,7 @@ import { ANIMATION_KINDS, animationFields, animationWith, CHANNEL_KINDS, CHANNEL
 import type { AnimationKey, ChannelKind } from '../../src/core/animation.ts'
 import { CHANNEL_LABELS, closableAt } from '../../src/core/channels.ts'
 import { compareOf } from '../../src/core/compare.ts'
-import { deleteFlow, groupSteps, moveFlow, OpError, putFlow, putGroup, removeGroup, removeStep, setCompare, setFlowTags, setGroupKind, setStepAnimation, setStepGroup, setStepPayload, swapSteps, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, moveFlow, OpError, putFlow, putGroup, removeGroup, removeStep, setCode, setCompare, setFlowTags, setGroupKind, setStepAnimation, setStepGroup, setStepPayload, swapSteps, updateFlow } from '../../src/core/ops.ts'
 import type { StateName } from '../../src/core/states.ts'
 import { declaredGroups, hasLanes, stopsOf, takesOption } from '../../src/core/structure.ts'
 import { flowList } from '../../src/core/outline.ts'
@@ -19,6 +19,7 @@ import type { Common, SaveEdit } from './forms.tsx'
 import { Section, TypeTile } from './Chrome.tsx'
 import { focusIfLost } from './focusback.ts'
 import { StepPayloads } from './Payloads.tsx'
+import { SourceField } from './Source.tsx'
 import { Paged } from './Paging.tsx'
 import { KindPicker, PartnerPicker, SketchPicker, StatePicker, TagPicker } from './Pickers.tsx'
 import type { PartnerTile, Sketch } from './Pickers.tsx'
@@ -316,6 +317,7 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
             <Field label="Folder" value={folderOf(model, rec.id)} list="flow-folders" placeholder="e.g. payments/refunds" onSave={folder => run(m => moveFlow(m, rec.id, folder))} />
             <FolderList model={model} />
             <TagPicker tags={tagsOf(flow)} used={flowList(model, { editing: true }).tags.map(t => t.tag)} onSet={tags => run(m => setFlowTags(m, rec.id, tags))} />
+            <SourceField code={flow.code} onSave={code => run(m => setCode(m, { flow: rec.id }, code))} />
           </form>
         )
         : <h2 className="iconhead"><span className="badge"><Route size={14} /></span>{rec.name}</h2>}
@@ -323,10 +325,11 @@ export function Recorder({ model, view, rec, onChange, onOpenFlow, run, onClose 
         {steps.map((s, i) => (
           <li key={i}>
             <Field label={ends(s.from, s.to)} value={s.text} onSave={text => change(all => all.with(i, { ...all[i], text }))} />
-            <details className="more" open={Boolean(s.description) || undefined}>
+            <details className="more" open={Boolean(s.description) || Array.isArray(s.code) || undefined}>
               <summary>More</summary>
               {/* An empty field removes the detail, so the step's file stays as short as it can be. */}
               <Field label="More (Markdown)" value={String(s.description ?? '')} multiline onSave={description => change(all => all.with(i, withDescription(all[i], description)))} />
+              <SourceField code={s.code} onSave={code => run(m => setCode(m, { flow: rec.id, step: i }, code))} />
             </details>
             <StepPayloads model={model} step={s} onSet={(key, value) => void run(m => setStepPayload(m, rec.id, i, key, value))} />
             <StepAnimation

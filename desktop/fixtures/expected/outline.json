@@ -27965,9 +27965,9 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "inside": 6,
-              "shapes": 6,
-              "flows": 0,
+              "inside": 7,
+              "shapes": 7,
+              "flows": 1,
               "problem": true,
               "expandable": true,
               "expanded": false,
@@ -27975,15 +27975,15 @@
             }
           ],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside",
-              "words": "6 inside"
+              "short": "7 inside · 1 flow",
+              "words": "7 inside, 1 flow"
             }
           ]
         },
@@ -28002,9 +28002,9 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "inside": 6,
-              "shapes": 6,
-              "flows": 0,
+              "inside": 7,
+              "shapes": 7,
+              "flows": 1,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -28017,6 +28017,23 @@
               "parent": "root",
               "depth": 1,
               "name": "Bad entries",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:coded",
+              "kind": "shape",
+              "id": "coded",
+              "parent": "root",
+              "depth": 1,
+              "name": "Coded",
               "type": "system",
               "external": false,
               "inside": 0,
@@ -28111,21 +28128,44 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:walk",
+              "kind": "flow",
+              "id": "walk",
+              "parent": "root",
+              "depth": 1,
+              "name": "Walk",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside",
-              "words": "6 inside"
+              "short": "7 inside · 1 flow",
+              "words": "7 inside, 1 flow"
             },
             {
               "key": "shape:badentries",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:coded",
               "short": "",
               "words": ""
             },
@@ -28151,6 +28191,11 @@
             },
             {
               "key": "shape:schemes",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:walk",
               "short": "",
               "words": ""
             }
@@ -28171,9 +28216,9 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "inside": 6,
-              "shapes": 6,
-              "flows": 0,
+              "inside": 7,
+              "shapes": 7,
+              "flows": 1,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -28186,6 +28231,23 @@
               "parent": "root",
               "depth": 1,
               "name": "Bad entries",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:coded",
+              "kind": "shape",
+              "id": "coded",
+              "parent": "root",
+              "depth": 1,
+              "name": "Coded",
               "type": "system",
               "external": false,
               "inside": 0,
@@ -28280,21 +28342,44 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:walk",
+              "kind": "flow",
+              "id": "walk",
+              "parent": "root",
+              "depth": 1,
+              "name": "Walk",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside",
-              "words": "6 inside"
+              "short": "7 inside · 1 flow",
+              "words": "7 inside, 1 flow"
             },
             {
               "key": "shape:badentries",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:coded",
               "short": "",
               "words": ""
             },
@@ -28320,6 +28405,11 @@
             },
             {
               "key": "shape:schemes",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:walk",
               "short": "",
               "words": ""
             }
@@ -28334,7 +28424,8 @@
             "schemes",
             "noaddress",
             "notalist",
-            "badentries"
+            "badentries",
+            "coded"
           ],
           "filter": "",
           "editing": false,
@@ -28346,9 +28437,9 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "inside": 6,
-              "shapes": 6,
-              "flows": 0,
+              "inside": 7,
+              "shapes": 7,
+              "flows": 1,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -28361,6 +28452,23 @@
               "parent": "root",
               "depth": 1,
               "name": "Bad entries",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:coded",
+              "kind": "shape",
+              "id": "coded",
+              "parent": "root",
+              "depth": 1,
+              "name": "Coded",
               "type": "system",
               "external": false,
               "inside": 0,
@@ -28455,21 +28563,44 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:walk",
+              "kind": "flow",
+              "id": "walk",
+              "parent": "root",
+              "depth": 1,
+              "name": "Walk",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside",
-              "words": "6 inside"
+              "short": "7 inside · 1 flow",
+              "words": "7 inside, 1 flow"
             },
             {
               "key": "shape:badentries",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:coded",
               "short": "",
               "words": ""
             },
@@ -28495,6 +28626,11 @@
             },
             {
               "key": "shape:schemes",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:walk",
               "short": "",
               "words": ""
             }
@@ -28509,7 +28645,8 @@
             "schemes",
             "noaddress",
             "notalist",
-            "badentries"
+            "badentries",
+            "coded"
           ],
           "filter": "",
           "editing": true,
@@ -28521,9 +28658,9 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "inside": 6,
-              "shapes": 6,
-              "flows": 0,
+              "inside": 7,
+              "shapes": 7,
+              "flows": 1,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -28536,6 +28673,23 @@
               "parent": "root",
               "depth": 1,
               "name": "Bad entries",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:coded",
+              "kind": "shape",
+              "id": "coded",
+              "parent": "root",
+              "depth": 1,
+              "name": "Coded",
               "type": "system",
               "external": false,
               "inside": 0,
@@ -28630,21 +28784,44 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:walk",
+              "kind": "flow",
+              "id": "walk",
+              "parent": "root",
+              "depth": 1,
+              "name": "Walk",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside",
-              "words": "6 inside"
+              "short": "7 inside · 1 flow",
+              "words": "7 inside, 1 flow"
             },
             {
               "key": "shape:badentries",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:coded",
               "short": "",
               "words": ""
             },
@@ -28670,6 +28847,11 @@
             },
             {
               "key": "shape:schemes",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "flow:walk",
               "short": "",
               "words": ""
             }
@@ -28688,9 +28870,9 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "inside": 6,
-              "shapes": 6,
-              "flows": 0,
+              "inside": 7,
+              "shapes": 7,
+              "flows": 1,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -28746,18 +28928,36 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:walk",
+              "kind": "flow",
+              "id": "walk",
+              "parent": "root",
+              "depth": 1,
+              "name": "Walk",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside",
-              "words": "6 inside"
+              "short": "7 inside · 1 flow",
+              "words": "7 inside, 1 flow"
             },
             {
               "key": "shape:badentries",
@@ -28773,6 +28973,11 @@
               "key": "shape:notalist",
               "short": "",
               "words": ""
+            },
+            {
+              "key": "flow:walk",
+              "short": "",
+              "words": ""
             }
           ]
         },
@@ -28785,9 +28990,9 @@
           "editing": false,
           "rows": [],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": []
         },
@@ -28806,9 +29011,9 @@
               "depth": 0,
               "name": "Overview",
               "external": false,
-              "inside": 6,
-              "shapes": 6,
-              "flows": 0,
+              "inside": 7,
+              "shapes": 7,
+              "flows": 1,
               "problem": true,
               "expandable": true,
               "expanded": true,
@@ -28821,6 +29026,23 @@
               "parent": "root",
               "depth": 1,
               "name": "Bad entries",
+              "type": "system",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
+            },
+            {
+              "key": "shape:coded",
+              "kind": "shape",
+              "id": "coded",
+              "parent": "root",
+              "depth": 1,
+              "name": "Coded",
               "type": "system",
               "external": false,
               "inside": 0,
@@ -28915,21 +29137,44 @@
               "expandable": false,
               "expanded": false,
               "match": true
+            },
+            {
+              "key": "flow:walk",
+              "kind": "flow",
+              "id": "walk",
+              "parent": "root",
+              "depth": 1,
+              "name": "Walk",
+              "external": false,
+              "inside": 0,
+              "shapes": 0,
+              "flows": 0,
+              "steps": 2,
+              "linked": false,
+              "problem": true,
+              "expandable": false,
+              "expanded": false,
+              "match": true
             }
           ],
           "totals": {
-            "shapes": 6,
-            "flows": 0,
-            "problems": 13
+            "shapes": 7,
+            "flows": 1,
+            "problems": 24
           },
           "counts": [
             {
               "key": "shape:root",
-              "short": "6 inside",
-              "words": "6 inside"
+              "short": "7 inside · 1 flow",
+              "words": "7 inside, 1 flow"
             },
             {
               "key": "shape:badentries",
+              "short": "",
+              "words": ""
+            },
+            {
+              "key": "shape:coded",
               "short": "",
               "words": ""
             },
@@ -28957,6 +29202,11 @@
               "key": "shape:schemes",
               "short": "",
               "words": ""
+            },
+            {
+              "key": "flow:walk",
+              "short": "",
+              "words": ""
             }
           ]
         }
@@ -28966,10 +29216,26 @@
           "name": "plain",
           "closed": [],
           "result": {
-            "rows": [],
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:walk",
+                "flow": {
+                  "id": "walk",
+                  "name": "Walk",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
             "tags": [],
-            "total": 0,
-            "shown": 0
+            "total": 1,
+            "shown": 1
           }
         },
         {
@@ -28977,10 +29243,26 @@
           "editing": true,
           "closed": [],
           "result": {
-            "rows": [],
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:walk",
+                "flow": {
+                  "id": "walk",
+                  "name": "Walk",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
             "tags": [],
-            "total": 0,
-            "shown": 0
+            "total": 1,
+            "shown": 1
           }
         },
         {
@@ -28988,10 +29270,26 @@
           "query": "a",
           "closed": [],
           "result": {
-            "rows": [],
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:walk",
+                "flow": {
+                  "id": "walk",
+                  "name": "Walk",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
             "tags": [],
-            "total": 0,
-            "shown": 0
+            "total": 1,
+            "shown": 1
           }
         },
         {
@@ -29001,7 +29299,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 0,
+            "total": 1,
             "shown": 0
           }
         },
@@ -29010,10 +29308,26 @@
           "query": "   ",
           "closed": [],
           "result": {
-            "rows": [],
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:walk",
+                "flow": {
+                  "id": "walk",
+                  "name": "Walk",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
             "tags": [],
-            "total": 0,
-            "shown": 0
+            "total": 1,
+            "shown": 1
           }
         },
         {
@@ -29023,7 +29337,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 0,
+            "total": 1,
             "shown": 0
           }
         },
@@ -29036,7 +29350,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 0,
+            "total": 1,
             "shown": 0
           }
         },
@@ -29051,7 +29365,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 0,
+            "total": 1,
             "shown": 0
           }
         },
@@ -29064,7 +29378,7 @@
           "result": {
             "rows": [],
             "tags": [],
-            "total": 0,
+            "total": 1,
             "shown": 0
           }
         },
@@ -29072,20 +29386,52 @@
           "name": "first-folder-closed",
           "closed": [],
           "result": {
-            "rows": [],
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:walk",
+                "flow": {
+                  "id": "walk",
+                  "name": "Walk",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
             "tags": [],
-            "total": 0,
-            "shown": 0
+            "total": 1,
+            "shown": 1
           }
         },
         {
           "name": "all-folders-closed",
           "closed": [],
           "result": {
-            "rows": [],
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:walk",
+                "flow": {
+                  "id": "walk",
+                  "name": "Walk",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
             "tags": [],
-            "total": 0,
-            "shown": 0
+            "total": 1,
+            "shown": 1
           }
         },
         {
@@ -29093,10 +29439,26 @@
           "closed": [],
           "query": "a",
           "result": {
-            "rows": [],
+            "rows": [
+              {
+                "kind": "flow",
+                "key": "flow:walk",
+                "flow": {
+                  "id": "walk",
+                  "name": "Walk",
+                  "steps": 2,
+                  "view": "root",
+                  "linked": false,
+                  "partners": [],
+                  "folder": "",
+                  "tags": []
+                },
+                "depth": 0
+              }
+            ],
             "tags": [],
-            "total": 0,
-            "shown": 0
+            "total": 1,
+            "shown": 1
           }
         }
       ],
@@ -29200,6 +29562,21 @@
           "self": true,
           "opened": [
             "badentries",
+            "root"
+          ]
+        },
+        {
+          "id": "coded",
+          "self": false,
+          "opened": [
+            "root"
+          ]
+        },
+        {
+          "id": "coded",
+          "self": true,
+          "opened": [
+            "coded",
             "root"
           ]
         },

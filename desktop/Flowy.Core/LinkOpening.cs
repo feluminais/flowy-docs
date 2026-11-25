@@ -12,12 +12,17 @@ public enum LinkKind
     CustomApp,
     /// <summary>Select the file in its folder and run nothing.</summary>
     ShowInFolder,
+    /// <summary>Open a code path in the editor picked for code (<c>App</c>), with the <c>Arguments</c> <see cref="Editors.Arguments"/> builds.</summary>
+    Editor,
     /// <summary>Open nothing: not a web address, not a real path inside the repo.</summary>
     Refused,
 }
 
-/// <summary>What a click on a link does. <c>Target</c> is the address or the real path (the link's own text when refused); <c>App</c> is the chosen app for <see cref="LinkKind.CustomApp"/>.</summary>
-public sealed record LinkAction(LinkKind Kind, string Target, string? App = null);
+/// <summary>What a click on a link does. <c>Target</c> is the address or the real path (the link's own text when refused); <c>App</c> is the chosen app for <see cref="LinkKind.CustomApp"/> and the editor for <see cref="LinkKind.Editor"/>, which also takes <c>Arguments</c>.</summary>
+public sealed record LinkAction(LinkKind Kind, string Target, string? App = null)
+{
+    public IReadOnlyList<string> Arguments { get; init; } = [];
+}
 
 /// <summary>
 /// What a click on a box's link may open. The files come from a repo nobody here wrote, so a path is opened only if it is a real file or

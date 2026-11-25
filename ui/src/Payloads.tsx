@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Connection, Model, Step } from '../../src/core/model.ts'
-import { deletePayload, putPayload } from '../../src/core/ops.ts'
+import { deletePayload, putPayload, setCode } from '../../src/core/ops.ts'
 import type { PayloadInput } from '../../src/core/ops.ts'
 import { payloadsOf, REPLY_KINDS } from '../../src/core/payloads.ts'
 import { animationOf } from '../../src/core/animation.ts'
@@ -11,6 +11,7 @@ import { isMap } from '../../src/core/text.ts'
 import { Description } from './Box.tsx'
 import { CodeBlock, CopyButton, LanguagePicker, languageFor } from './Code.tsx'
 import { Field } from './forms.tsx'
+import { SourceField, SourceList } from './Source.tsx'
 import type { SaveEdit } from './forms.tsx'
 import { ArrowLeft, ArrowRight, Plus, Trash } from './icons.tsx'
 
@@ -50,6 +51,7 @@ export function PayloadBody({ shown }: { shown: Shown }) {
       {shown.about && <Description text={shown.about} />}
       {shown.shape && <BlockView title="Shape" block={shown.shape} />}
       {shown.example && <BlockView title="Example" block={shown.example} />}
+      <SourceList code={shown.code} bare />
     </div>
   )
 }
@@ -123,6 +125,7 @@ export function PayloadForm({ model, id, run, offLine }: { model: Model; id: str
         <Field label="About (Markdown)" value={typeof p.about === 'string' ? p.about : ''} multiline onSave={about => put({ about })} />
         <BlockField title="Shape" block={block(p.shape)} onSave={shape => put({ shape: shape === null ? null : { text: shape.text, ...(shape.language ? { language: shape.language } : {}) } })} />
         <BlockField title="Example" block={block(p.example)} onSave={example => put({ example: example === null ? null : { text: example.text, ...(example.language ? { language: example.language } : {}) } })} />
+        <SourceField code={p.code} onSave={code => run(m => setCode(m, { payload: id }, code))} />
         <button type="button" className="danger" onClick={remove}><Trash size={16} />Delete payload</button>
         {refused && <p className="refused" role="alert">{refused}</p>}
       </div>

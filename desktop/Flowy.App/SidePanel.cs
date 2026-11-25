@@ -235,12 +235,7 @@ internal sealed class SidePanel : Border
             column.Children.Add(LinkList(boxLinks, links));
         }
 
-        var paths = o.Code is List<object?> code ? code.OfType<string>().ToList() : [];
-        if (paths.Count > 0)
-        {
-            column.Children.Add(Chrome.Section(Icons.Folder, "Source", paths.Count));
-            column.Children.Add(CodeList(paths, codeBase));
-        }
+        if (SourceList.Of(o.Code) is { } source) column.Children.Add(source);
         column.Children.Add(LinesOf(model, id, pick, hover));
         Show(column, key);
         _objectFor = (model, id, problems, codeBase, links.RepoRoot, app, state, ActualThemeVariant);
@@ -259,9 +254,11 @@ internal sealed class SidePanel : Border
             var web = Checks.IsWebAddress(link.Url);
             var now = LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp());
             var text = string.IsNullOrEmpty(link.Title) ? link.Url : link.Title;
+            // A web address is a link; a path in the repo is its title as text, with buttons that open it, as a path under Source has.
             Control label = now.Kind == LinkKind.Refused
                 ? new SelectableTextBlock { Text = text, TextWrapping = TextWrapping.Wrap, Foreground = Resource("MutedBrush") }
-                : Link(text, () => _ = context.Run(LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp())));
+                : web ? Link(text, () => _ = context.Run(LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp())))
+                : new SelectableTextBlock { Text = text, TextWrapping = TextWrapping.Wrap };
             var body = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center, Children = { label } };
             if (!web && !string.IsNullOrEmpty(link.Title))
                 body.Children.Add(new SelectableTextBlock { Text = link.Url, FontFamily = Fonts.Mono, FontSize = 12, Foreground = Resource("MutedBrush"), TextWrapping = TextWrapping.Wrap });
@@ -269,42 +266,32 @@ internal sealed class SidePanel : Border
             icon.VerticalAlignment = VerticalAlignment.Center;
             var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto)], ColumnSpacing = 10, Children = { icon, body } };
             Grid.SetColumn(body, 1);
-            if (now.Kind is LinkKind.DefaultApp or LinkKind.CustomApp)
+            if (!web && now.Kind != LinkKind.Refused)
             {
-                var show = new Button { Content = Icons.Make(Icons.Folder, "rowicon", 14), VerticalAlignment = VerticalAlignment.Center };
-                show.Classes.Add("tool");
-                Avalonia.Automation.AutomationProperties.SetName(show, "Show in folder");
-                ToolTip.SetTip(show, "Show in folder");
-                show.Click += (_, _) =>
+                var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center };
+                var open = new Button();
+                open.Classes.Add("tool");
+                open.Classes.Add("open");
+                Chrome.Fill(open, Icons.FileCode, "Open");
+                open.Click += (_, _) => _ = context.Run(LinkOpening.Decide(link.Url, context.RepoRoot, context.CustomApp()));
+                buttons.Children.Add(open);
+                if (now.Kind is LinkKind.DefaultApp or LinkKind.CustomApp)
                 {
-                    if (LinkOpening.Locate(context.RepoRoot, link.Url) is { } real) _ = context.Run(new LinkAction(LinkKind.ShowInFolder, real));
-                };
-                Grid.SetColumn(show, 2);
-                grid.Children.Add(show);
+                    var show = new Button { Content = Icons.Make(Icons.Folder, "rowicon", 14), VerticalAlignment = VerticalAlignment.Center };
+                    show.Classes.Add("tool");
+                    Avalonia.Automation.AutomationProperties.SetName(show, SourceList.Words.ShowInFolder);
+                    ToolTip.SetTip(show, SourceList.Words.ShowInFolder);
+                    show.Click += (_, _) =>
+                    {
+                        if (LinkOpening.Locate(context.RepoRoot, link.Url) is { } real) _ = context.Run(new LinkAction(LinkKind.ShowInFolder, real));
+                    };
+                    buttons.Children.Add(show);
+                }
+                // GitHub or GitLab, as a code path has it (the editor button is the code path's own: a document opens in its app).
+                if (SourceList.RemoteButton(new CodeRef(link.Url, null), GetValue(SourceList.OpenerProperty)) is { } remote) buttons.Children.Add(remote);
+                Grid.SetColumn(buttons, 2);
+                grid.Children.Add(buttons);
             }
-            var row = new Border { Child = grid };
-            row.Classes.Add("row");
-            list.Children.Add(row);
-        }
-        return list;
-    }
-
-    /// <summary>The files and folders a box lives in: a chip each with a file or folder icon, a link when the repo's origin is on a host that has them.</summary>
-    private Control CodeList(List<string> paths, string? codeBase)
-    {
-        var list = new StackPanel { Spacing = 0 };
-        foreach (var path in paths)
-        {
-            // A path the checks flag (../..) is shown, not linked: the address would be built from it.
-            var address = codeBase is null || !Checks.IsRepoPath(path) ? null : codeBase + CodeLinks.EncodePath(path);
-            Control label = address is not null && WebAddress.IsSafe(address)
-                ? Link(path, () => Open(address), mono: true)
-                : new SelectableTextBlock { Text = path, FontFamily = Fonts.Mono, FontSize = 13, TextWrapping = TextWrapping.Wrap };
-            var icon = Icons.Make(path.EndsWith('/') ? Icons.Folder : Icons.File, "rowicon", 16);
-            icon.VerticalAlignment = VerticalAlignment.Center;
-            var grid = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { icon, label } };
-            Grid.SetColumn(label, 1);
-            label.VerticalAlignment = VerticalAlignment.Center;
             var row = new Border { Child = grid };
             row.Classes.Add("row");
             list.Children.Add(row);
@@ -474,6 +461,7 @@ internal sealed class SidePanel : Border
                 if (kinded) section.Children.Add(KindRow(c));
                 section.Children.Add(string.IsNullOrEmpty(c.Label) ? new TextBlock { Text = "No label", FontStyle = FontStyle.Italic, Foreground = Resource("MutedBrush") } : new SelectableTextBlock { Text = c.Label, FontSize = 15, TextWrapping = TextWrapping.Wrap });
                 if (c.From != way.From || c.To != way.To) section.Children.Add(Muted(Describe(model, c), 12));
+                if (SourceList.Of(c.Code) is { } source) section.Children.Add(source);
                 var mine = problems.Where(p => p.Connection == index).Select(p => p.Message).ToList();
                 if (mine.Count > 0) section.Children.Add(Problems(mine));
                 var card = Chrome.Card(section);

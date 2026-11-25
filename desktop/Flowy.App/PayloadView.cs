@@ -60,6 +60,7 @@ internal static class PayloadView
         if (shown.About is { } about) body.Children.Add(new MarkdownView(about, 13));
         if (shown.Shape is { } shape) body.Children.Add(CodeView.Titled("Shape", shape.Text, shape.Language, resource, CodeHeight));
         if (shown.Example is { } example) body.Children.Add(CodeView.Titled("Example", example.Text, example.Language, resource, CodeHeight));
+        if (SourceList.Of(shown.Code, bare: true) is { } source) body.Children.Add(source);
     }
 
     /// <summary>Where a payload only flow steps send comes from: "Checkout, step 2 reply; ...". Null for one a connection lists.</summary>

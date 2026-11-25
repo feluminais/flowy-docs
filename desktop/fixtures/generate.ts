@@ -17,6 +17,7 @@ import { dumpUsedBy } from './usedby.ts'
 import { dumpFormula } from './formula.ts'
 import { dumpGeometry } from './geometry.ts'
 import { buildTrail, dumpHistory } from './history.ts'
+import { dumpCode } from './code.ts'
 import { dumpKinds } from './kinds.ts'
 import { dumpCapacity, dumpCurveLabels, dumpCurvePoses, dumpCurves, dumpSeparateLanes, dumpHits, dumpLaneLabels, dumpLanes, dumpParts, dumpPoses } from './lanes.ts'
 import { dumpLayout } from './layout.ts'
@@ -65,6 +66,7 @@ await write('beats', dumpBeats())
 await write('outline', await dumpOutline())
 await write('formula', dumpFormula())
 await write('numbers', dumpNumbers())
+await write('code', await dumpCode())
 await write('perf-runs', await dumpPerf())
 await write('perf-view', await dumpPerfView())
 await write('failures-core', await dumpFailures())

@@ -328,7 +328,7 @@ public static class Failures
     /// What is wrong with one analysis, given the model it points into: a part that isn't there, a rating that isn't one, a flow or step that doesn't exist.
     /// A mode's problems start with its id. Whether a run exists needs the runs: see <see cref="RunLinkProblems"/>.
     /// </summary>
-    public static List<Problem> AnalysisProblems(Model model, string aid, FailureAnalysis a)
+    public static List<Problem> AnalysisProblems(Model model, string aid, FailureAnalysis a, ISet<string>? absent = null)
     {
         var file = FolderLayout.FailureFile(aid);
         var problems = new List<Problem>();
@@ -382,6 +382,7 @@ public static class Failures
                     P($"step {m.Step} is outside flow \"{flow}\", which has {(count == 1 ? "1 step" : $"{count} steps")}");
                 }
             }
+            foreach (var message in CodeRefs.Problems(m.Code, absent ?? new HashSet<string>())) P(message);
         }
         return problems;
     }

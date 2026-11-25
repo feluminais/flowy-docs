@@ -74,14 +74,14 @@ internal static class FlowStage
             var channel = outcome is null && animation is not null ? Animations.ChannelLine(animation) : null;
             return new PlayerStep(ends, step.Text ?? "", step.Description, n < caption.Lanes.Count ? caption.Lanes[n] : "", LinkOf(model, step), outcome ?? channel, channel is not null)
             {
-                Sends = Payloads.OfStep(model, step), Reply = Payloads.ReplyOf(model, step),
+                Sends = Payloads.OfStep(model, step), Reply = Payloads.ReplyOf(model, step), Code = step.Code,
             };
         }).ToList();
         var moves = stop.Steps.Any(i => Animations.Read(flow.Steps[i]) is not null && shown?.Ends[i] is not null);
         var progress = Captions.ProgressOf(flow, stops);
         // A cell takes the mark of the steps of its stop (by file step number), when a comparison is marking this flow.
         var cells = changes is null ? null : progress.Cells.Select(c => CompareUi.ChangeOfStop(stops[c.Stop].Steps, changes)).ToList();
-        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, progress, showsPause, moves, trail, steps, states, cells, channels, auto);
+        var card = new PlayerView(string.IsNullOrEmpty(flow.Name) ? id : flow.Name, index, stops.Count, stop.Kind, caption, progress, showsPause, moves, trail, steps, states, cells, channels, auto) { Code = flow.Code };
         var marks = stop.Steps
             .Select((i, n) => (Placed: shown?.Ends[i], Text: n < caption.Marks.Count ? caption.Marks[n] : ""))
             .Where(x => x.Placed is not null && x.Text != "" && stop.Kind is not null)

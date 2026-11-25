@@ -66,6 +66,14 @@
         "command": "flowy.showFile",
         "category": "Flowy",
         "title": "Show This File in the Docs"
+      },
+      {
+        "command": "flowy.openCode",
+        "title": "Open"
+      },
+      {
+        "command": "flowy.openCodeToSide",
+        "title": "Open to the Side"
       }
     ],
     "menus": {
@@ -81,6 +89,26 @@
         {
           "command": "flowy.showFile",
           "when": "flowy.hasDocs"
+        },
+        {
+          "command": "flowy.openCode",
+          "when": "false"
+        },
+        {
+          "command": "flowy.openCodeToSide",
+          "when": "false"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "flowy.openCode",
+          "when": "webviewId == 'flowy.docs' && webviewSection == 'codePath'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "flowy.openCodeToSide",
+          "when": "webviewId == 'flowy.docs' && webviewSection == 'codePath'",
+          "group": "navigation@2"
         }
       ],
       "explorer/context": [

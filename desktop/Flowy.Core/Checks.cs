@@ -80,7 +80,7 @@ public static class Checks
                 foreach (var name in JsCompat.OrderKeys(iconMap.Keys))
                     if (Look.IconProblem(name, iconMap[name]) is { } why) Add(FolderLayout.ModelFile, null, $"icon {name}: {why}");
         }
-        foreach (var message in Payloads.ModelProblems(model.Meta)) Add(FolderLayout.ModelFile, null, message);
+        foreach (var message in Payloads.ModelProblems(model.Meta, absent)) Add(FolderLayout.ModelFile, null, message);
 
         foreach (var (id, o) in model.Objects)
         {
@@ -93,16 +93,7 @@ public static class Checks
             if (!Missing(o.Color) && !Look.IsColor(o.Color)) P($"color \"{o.Color}\" must be a name ({string.Join(", ", Look.ColorNames)}) or a hex like #3b82f6");
             if (!Missing(o.Opacity) && !Look.IsOpacity(o.Opacity)) P($"opacity \"{o.Opacity}\" must be a whole number from 0 to 100");
             if (!Missing(o.Icon) && !Look.IsKnownIcon(model.Meta, o.Icon)) P($"unknown icon \"{o.Icon}\" (use a built-in name, or define it under icons: in model.yaml)");
-            if (o.Code is not null)
-            {
-                if (o.Code is not List<object?> code || code.Any(c => c is not string)) P("code must be a list of paths");
-                else
-                    foreach (var path in code.Cast<string>())
-                    {
-                        if (!IsRepoPath(path)) P($"code path \"{path}\" must be relative, with / between folders and no \".\" or \"..\" parts");
-                        else if (absent.Contains(path)) P($"code path \"{path}\" doesn't exist");
-                    }
-            }
+            foreach (var message in CodeRefs.Problems(o.Code, absent)) P(message);
             if (o.Links is not null)
             {
                 if (o.Links is not List<object?> links || !links.All(IsLinkEntry)) P("links must be a list of entries with a url and, if you like, a title");
@@ -155,7 +146,8 @@ public static class Checks
             // A kind that is none of the six draws as the plain line; the problem is for whoever wrote it.
             if (!Missing(c.Kind) && !Kinds.IsKind(c.Kind)) P($"unknown kind \"{c.Kind}\" (use {Kinds.List})");
             if (!seen.Add((c.From, c.To, c.Label ?? ""))) P($"duplicate{(string.IsNullOrEmpty(c.Label) ? "" : $" \"{c.Label}\"")}");
-            foreach (var message in Payloads.ConnectionProblems(model, c)) P(message);
+            foreach (var message in Payloads.ConnectionProblems(model, c, absent)) P(message);
+            foreach (var message in CodeRefs.Problems(c.Code, absent)) P(message);
         }
 
         foreach (var (fid, f) in model.Flows)
@@ -177,6 +169,7 @@ public static class Checks
             if (Missing(f.View)) P("view is missing");
             else if (!viewOk) P($"view \"{f.View}\" must be \"root\" or an object with children");
             if (f.Steps.Count == 0) P("has no steps");
+            foreach (var message in CodeRefs.Problems(f.Code, absent)) P(message);
             foreach (var path in f.NoValue) P(EmptyKeys.Message(path)); // the steps are read one at a time below, so each says its own number; compare says what is wrong with it next
             if (Compares.Problem(f.CompareRaw, "flow") is { } compareWhy) P(compareWhy);
             else if (f.Compare is { } tag)
@@ -197,7 +190,8 @@ public static class Checks
                 else if (Missing(s.From)) Sp("\"from\" is missing");
                 else if (model.GetObject(s.From) is null) Sp($"unknown object \"{s.From}\"");
                 if (!NonEmpty(s.Text)) Sp("text is missing");
-                foreach (var message in Payloads.StepProblems(model, s)) Sp(message);
+                foreach (var message in Payloads.StepProblems(model, s, absent)) Sp(message);
+                foreach (var message in CodeRefs.Problems(s.Code, absent)) Sp(message);
                 if ((Animations.Problem(s.Animation, !alone) ?? Animations.InterceptorProblem(s.Animation, s.From, s.To, id => model.GetObject(id) is not null)) is { } animation
                     && !(animation == Animations.RecurseHasTo && s.From == s.To)) Sp(animation); // a step to itself is reported below
                 if (alone)
@@ -224,7 +218,7 @@ public static class Checks
                 else P(finding.Message);
             }
         }
-        foreach (var (aid, a) in model.Failures) problems.AddRange(Failures.AnalysisProblems(model, aid, a));
+        foreach (var (aid, a) in model.Failures) problems.AddRange(Failures.AnalysisProblems(model, aid, a, absent));
         return problems;
     }
 }

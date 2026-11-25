@@ -12,7 +12,7 @@ import type { Connection, FlowyObject, Group, Link, Model, ObjectType, Step } fr
 import { encodePath, isRepoPath, isWebAddress } from '../../src/core/paths.ts'
 import { ANIMATION_KINDS, animationFields, animationWith, KIND_SKETCHES, NAME_MAX, OUTCOME_SKETCHES, OUTCOMES, outcomeBlock, REASON_MAX } from '../../src/core/animation.ts'
 import type { AnimationKey } from '../../src/core/animation.ts'
-import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, reorderConnections, setGroupKind, setKind, setLinePayloads, setPairs, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
+import { deleteFlow, groupSteps, OpError, putFlow, putGroup, putObject, putPayload, relabel, removeGroup, removeStep, reorderConnections, setCode, setGroupKind, setKind, setLinePayloads, setPairs, setProject, setStepAnimation, setStepGroup, updateFlow } from '../../src/core/ops.ts'
 import type { ObjectInput, PayloadInputInline } from '../../src/core/ops.ts'
 import type { Target } from '../../src/core/dependents.ts'
 import type { StateMark, StateName } from '../../src/core/states.ts'
@@ -35,7 +35,8 @@ import { Chip, kindClass, lookVars, ObjectTile, Section, TypeTile } from './Chro
 import { ColorPicker, ExternalToggle, IconPicker, KindPicker, OpacityPicker, ShapePicker, SketchPicker, StatePicker, TypePicker } from './Pickers.tsx'
 import type { Sketch } from './Pickers.tsx'
 import { Alert, ArrowDown, ArrowLeft, ArrowUp, ArrowRight, ArrowsLeftRight, ArrowsSplit, Check, Cloud, Code, File, Folder, GitFork, iconOf, Link as LinkIcon, Pencil, Play, Plus, Repeat, Route, Sparkles, Table, Text, Trash, Close } from './icons.tsx'
-import { CodeList, LinkList, linkLine, parseLinks, RepoPath } from './ObjectLinks.tsx'
+import { LinkList, linkLine, parseLinks } from './ObjectLinks.tsx'
+import { SourceField, SourceList } from './Source.tsx'
 
 /**
  * What Details shows at the top level when nothing is picked: the system's name and what it is (the
@@ -188,8 +189,8 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
       <div className="prose">{object.description ? <Description text={object.description} /> : <p className="muted">No description yet.</p>}</div>
       <DataSection object={object} />
       <CodeSection object={object} />
-      <LinkList object={object} codeBase={codeBase} />
-      <CodeList object={object} codeBase={codeBase} />
+      <LinkList object={object} />
+      <SourceList code={object.code} />
       <LineList model={model} id={id} onPick={onPick} onHover={onHover} />
     </Panel>
   )
@@ -225,8 +226,7 @@ export function ObjectPanel({ model, id, editing, problems, codeBase, state, run
         <Section icon={Code} title="Code" />
         <CodeFields object={object} onSave={snippets => save({ snippets })} />
         <Section icon={Folder} title="Source" />
-        <Field label="Files and folders (one per line)" value={Array.isArray(object.code) ? object.code.join('\n') : ''} multiline
-          onSave={text => save({ code: text.split('\n').map(line => line.trim()).filter(Boolean) })} />
+        <SourceField code={object.code} onSave={code => save({ code })} />
         <Section icon={LinkIcon} title="Links" />
         <Field label="Links (one per line: title | address)" value={linksOf(object).map(linkLine).join('\n')} multiline
           onSave={text => save({ links: parseLinks(text, linksOf(object)) })} />
@@ -299,9 +299,15 @@ export function LinePanel({ model, view, from, to, strand, editing, problems, ru
               }} />
             )}
             {idsOf(c.payloads).map(id => <PayloadForm key={id} model={model} id={id} run={run} offLine={m => withoutPayload(m, which, id)} />)}
+            <SourceField code={c.code} onSave={code => run(m => setCode(m, { line: which }, code))} />
             <button type="button" className="danger" onClick={() => onDelete([{ line: which }])}><Trash size={16} />Delete</button>
           </form>
-        ) : <p>{c.label || <span className="muted">No label</span>}</p>}
+        ) : (
+          <>
+            <p>{c.label || <span className="muted">No label</span>}</p>
+            <SourceList code={c.code} />
+          </>
+        )}
         <ProblemList problems={problems.filter(p => p.connection === index)} />
       </section>
     )

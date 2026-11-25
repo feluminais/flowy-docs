@@ -42,6 +42,11 @@ public class EditOpsTests
     /// <summary>The groups of a flow in a script: group id → options, as a tree. None if the script has none; {} is an empty set.</summary>
     private static OrderedDictionary<string, object?>? Groups(JsonNode? groups) => groups is null ? null : (OrderedDictionary<string, object?>)YamlWriterTests.Tree(groups)!;
 
+    /// <summary>The part a setCode step names, as the script gives it.</summary>
+    private static CodeHolder Holder(JsonNode h) =>
+        h["line"] is { } line ? new CodeHolder(Line: new ConnectionInput(Str(line, "from")!, Str(line, "to")!, Str(line, "label")))
+        : new CodeHolder(Object: Str(h, "object"), Flow: Str(h, "flow"), Step: h["step"]?.GetValue<int>(), Analysis: Str(h, "analysis"), Mode: Str(h, "mode"), Payload: Str(h, "payload"));
+
     private static EditDoc Apply(EditDoc doc, JsonNode s)
     {
         switch (Str(s, "op"))
@@ -56,7 +61,8 @@ public class EditOpsTests
             case "deleteObject": return EditOps.DeleteObject(doc, Str(s, "id")!);
             case "deleteObjects": return EditOps.DeleteObjects(doc, s["ids"]!.AsArray().Select(i => i!.GetValue<string>()).ToList());
             case "deleteWith": return EditOps.DeleteWith(doc, Targets(s["targets"]), Resolutions(s["resolutions"]));
-            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label"), s["payloads"] is { } carried ? carried.AsArray().Select(YamlWriterTests.Tree).ToList() : null, Str(s, "kind")));
+            case "connect": return EditOps.Connect(doc, new ConnectionInput(Str(s, "from")!, Str(s, "to")!, Str(s, "label"), s["payloads"] is { } carried ? carried.AsArray().Select(YamlWriterTests.Tree).ToList() : null, Str(s, "kind"), s["code"]?.AsArray().Select(c => c!.GetValue<string>()).ToList()));
+            case "setCode": return EditOps.SetCode(doc, Holder(s["holder"]!), s["code"]!.AsArray().Select(c => c!.GetValue<string>()).ToList());
             case "putPayload":
             {
                 var fields = new Dictionary<string, object?>();

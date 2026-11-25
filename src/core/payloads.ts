@@ -1,3 +1,4 @@
+import { codeProblems } from './code.ts'
 import { animationOf } from './animation.ts'
 import type { Animation, Beat } from './animation.ts'
 import { ID_RULE, isValidId } from './model.ts'
@@ -20,7 +21,7 @@ export type CodeBlock = { text: string; language?: string; [extra: string]: unkn
 export type Payload = { name?: string; about?: string; shape?: CodeBlock; example?: CodeBlock; [extra: string]: unknown }
 
 /** A payload as a reader shows it: `id` only for one described under `payloads:`, `name` always filled in (the id when it has none), and only the code blocks that hold code. */
-export type Shown = { id?: string; name: string; about?: string; shape?: CodeBlock; example?: CodeBlock }
+export type Shown = { id?: string; name: string; about?: string; shape?: CodeBlock; example?: CodeBlock; code?: string[] }
 
 /** Whether a payload says something: a few words about it, a shape or an example. */
 export const saysSomething = (p: Record<string, unknown>): boolean => hasText(p.about) || p.shape !== undefined || p.example !== undefined
@@ -50,6 +51,7 @@ function shownOf(p: Record<string, unknown>, name: string, id?: string): Shown {
     ...(hasText(p.about) ? { about: p.about } : {}),
     ...(shape ? { shape } : {}),
     ...(example ? { example } : {}),
+    ...(Array.isArray(p.code) && p.code.some(c => typeof c === 'string') ? { code: p.code.filter((c): c is string => typeof c === 'string') } : {}),
   }
 }
 
@@ -106,25 +108,25 @@ function blockProblems(at: string, key: 'shape' | 'example', v: unknown): string
 }
 
 /** What is wrong with one payload mapping, each message starting with `at`. One written in place (`inline`) must have a name, as it has no id to go by. */
-function entryProblems(at: string, p: unknown, inline: boolean): string[] {
+function entryProblems(at: string, p: unknown, inline: boolean, absent: ReadonlySet<string>): string[] {
   if (!isMap(p)) return [`${at} must be a mapping`]
   const out: string[] = []
   if (p.name !== undefined && typeof p.name !== 'string') out.push(`${at}: name must be plain text`)
   else if (inline && !hasText(p.name)) out.push(`${at} has no name`)
   if (p.about !== undefined && typeof p.about !== 'string') out.push(`${at}: about must be plain text`)
   if (!saysSomething(p)) out.push(`${at} says nothing: give it an about, a shape or an example`)
-  return [...out, ...blockProblems(at, 'shape', p.shape), ...blockProblems(at, 'example', p.example)]
+  return [...out, ...blockProblems(at, 'shape', p.shape), ...blockProblems(at, 'example', p.example), ...codeProblems(p.code, absent).map(m => `${at}: ${m}`)]
 }
 
 /** What is wrong with the top-level `payloads:` of model.yaml, each message whole (it is reported on model.yaml, for no shape). */
-export function modelPayloadProblems(meta: Model['meta']): string[] {
+export function modelPayloadProblems(meta: Model['meta'], absent: ReadonlySet<string> = new Set()): string[] {
   const all = meta.payloads
   if (all === undefined || all === '') return []
   if (!isMap(all)) return ['payloads must map ids to payloads']
   const out: string[] = []
   for (const [id, p] of Object.entries(all)) {
     if (!isValidId(id)) out.push(`payload ${id}: ids ${ID_RULE}`)
-    out.push(...entryProblems(`payload ${id}`, p, false))
+    out.push(...entryProblems(`payload ${id}`, p, false, absent))
   }
   const count = Object.keys(all).length
   if (count > PAYLOAD_MAX.inModel) out.push(`${count} payloads, at most ${PAYLOAD_MAX.inModel}`)
@@ -132,34 +134,34 @@ export function modelPayloadProblems(meta: Model['meta']): string[] {
 }
 
 /** A reference to a payload: an id that must be under `payloads:`, or one written in place, checked as an entry is. */
-function referenceProblems(model: Pick<Model, 'meta'>, at: string, word: string, ref: unknown): string[] {
+function referenceProblems(model: Pick<Model, 'meta'>, at: string, word: string, ref: unknown, absent: ReadonlySet<string>): string[] {
   if (typeof ref === 'string') return isValidReference(model, ref) ? [] : [`unknown ${word} "${ref}"`]
-  return entryProblems(at, ref, true)
+  return entryProblems(at, ref, true, absent)
 }
 
 /** Whether an id names an entry at all (a malformed one is reported on the entry itself, not again on each line and step that names it). */
 const isValidReference = (model: Pick<Model, 'meta'>, ref: string): boolean => isMap(model.meta.payloads) && Object.hasOwn(model.meta.payloads, ref)
 
 /** What is wrong with a connection's `payloads:`, without the "connection a → b: " the checks put before it. */
-export function connectionPayloadProblems(model: Pick<Model, 'meta'>, c: Connection): string[] {
+export function connectionPayloadProblems(model: Pick<Model, 'meta'>, c: Connection, absent: ReadonlySet<string> = new Set()): string[] {
   const list = c.payloads
   if (list === undefined) return []
   if (!Array.isArray(list)) return ['payloads must be a list of payload ids or payloads']
-  const out = list.flatMap((ref, i) => referenceProblems(model, `payload ${i + 1}`, 'payload', ref))
+  const out = list.flatMap((ref, i) => referenceProblems(model, `payload ${i + 1}`, 'payload', ref, absent))
   if (list.length > PAYLOAD_MAX.perLine) out.push(`${list.length} payloads, at most ${PAYLOAD_MAX.perLine}`)
   return out
 }
 
 /** What is wrong with a step's `payload:` and `reply:`, without the "step N: " the checks put before it. */
-export function stepPayloadProblems(model: Pick<Model, 'meta'>, s: Step): string[] {
+export function stepPayloadProblems(model: Pick<Model, 'meta'>, s: Step, absent: ReadonlySet<string> = new Set()): string[] {
   const out: string[] = []
   const kind = animationOf(s)?.kind
   if (s.payload !== undefined) {
-    out.push(...referenceProblems(model, 'payload', 'payload', s.payload))
+    out.push(...referenceProblems(model, 'payload', 'payload', s.payload, absent))
     if (s.to === undefined && kind !== 'recurse') out.push('a payload needs a "to": nothing is sent')
   }
   if (s.reply !== undefined) {
-    out.push(...referenceProblems(model, 'reply', 'reply', s.reply))
+    out.push(...referenceProblems(model, 'reply', 'reply', s.reply, absent))
     if (!REPLY_KINDS.some(k => k === kind)) out.push('a reply needs a call, a callback or a recurse animation')
   }
   return out

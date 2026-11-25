@@ -83,6 +83,7 @@ import { useLineStyle } from './useLineStyle.ts'
 import { useNavigation } from './useNavigation.ts'
 import { usePanels } from './usePanels.ts'
 import { useReaderKeys } from './useReaderKeys.ts'
+import { SourceProvider } from './Source.tsx'
 import { useYamlTab } from './useYamlTab.ts'
 
 const nodeTypes = { box: Box, frame: Frame }
@@ -100,7 +101,13 @@ export function App() {
         </div>
       )}
       {loaded
-        ? <ErrorBoundary><Reader {...loaded} edit={edit} undo={undo} redo={redo} restore={restore} tag={tag} historyApi={history} changes={changes} live={live} readOnly={!live || banner !== undefined} broken={banner !== undefined} /></ErrorBoundary>
+        ? (
+          <ErrorBoundary>
+            <SourceProvider codeBase={loaded.codeBase} codeRoot={loaded.codeRoot}>
+              <Reader {...loaded} edit={edit} undo={undo} redo={redo} restore={restore} tag={tag} historyApi={history} changes={changes} live={live} readOnly={!live || banner !== undefined} broken={banner !== undefined} />
+            </SourceProvider>
+          </ErrorBoundary>
+        )
         : banner === undefined && <p className="muted loading" role="status">Loading</p>}
     </div>
   )

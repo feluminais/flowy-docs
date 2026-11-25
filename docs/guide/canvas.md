@@ -21,7 +21,8 @@ The keys are in [Shortcuts](../shortcuts.md).
 - Code section: each snippet's title, language and a Copy button, over the code in colour. Nothing in it runs.
 - Details: with nothing picked, the Overview at the top level and the shape you are in elsewhere.
 - A payload only a flow step sends sits under the line once, and its tooltip names the step.
-- Links and Source: a web address opens in a new tab. A repo path links to the file when `origin` is on GitHub or GitLab, else it is plain text. In the VS Code panel it opens in the editor.
+- Links and Source: a web address opens in a new tab. A repo path is text, with a button for each place it opens: **Open** in the VS Code panel (right-click for **Open to the Side**), the editor picked under **Editor** on a page the local server serves (VS Code, Cursor, Windsurf, VSCodium or Zed), the one picked under **File › Open Code In** in the desktop app, and **GitHub** or **GitLab** when `origin` is on one. An exported page off GitHub and GitLab shows the path alone.
+- Source is on shapes, lines, flows (at the foot of the player's card), steps, failure modes and payloads. A file can end in `:42`, and every button opens it at that line.
 - Side panels: they stop at 640 px, wider only for a line of code or a table, and a double-click on the edge resets them. Changing one fits the view again, unless you have zoomed or panned.
 - Screen readers (browser): names, never ids. The side panels are Navigator and Details, and a flow folder is a named group.
 
@@ -50,7 +51,7 @@ The browser and the [desktop app](desktop.md#the-desktop-app) do all of this and
 - Where a key is set: a line's card has Kind, a shape's panel Outside service (`external: true`), a step's form Payload, Reply and Group and flow.
 - Add: offers only the types that fit the view. Double-click an empty system, app or store to open it.
 - Overview form: clearing **Name** or **About** removes its key.
-- Source: one path per line. Links: one per line, `title | address` or an address alone.
+- Source: one path per line, `src/api/orders.ts:42` for a line. A line's card, a flow, a step (under More), a failure mode and a payload have one too. Links: one per line, `title | address` or an address alone.
 - Code: a card is saved once it has code. Language is Auto until you pick one, and Auto names what it worked out.
 - Kind on a line: a drawn tile for each kind and one for Plain line.
 - Payload and Reply in a step's form, Payloads on a line: a button for each payload.

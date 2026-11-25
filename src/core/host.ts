@@ -63,13 +63,22 @@ export const isChanged = (data: unknown): boolean => isMap(data) && data.type ==
 
 export const OPEN_MESSAGE = 'flowy-open'
 
-/** The message that asks the host to open `path`, a path in the repo as `code` lists it (a trailing "/" is a folder), in the editor. */
-export const openMessage = (path: string) => ({ type: OPEN_MESSAGE, path })
+/**
+ * Where the host opens a path in the repo: `path` as `code` lists it with the line left off (a trailing "/" is a folder), the `line` to put the
+ * cursor on, and `side` to open it beside the page instead of in the page's own group.
+ */
+export type OpenTarget = { path: string; line?: number; side?: boolean }
 
-/** The path a message asks the host to open, or undefined when `data` is some other message. */
-export function pathToOpen(data: unknown): string | undefined {
+/** The message that asks the host to open a path in the repo in the editor. */
+export const openMessage = (path: string, at: { line?: number; side?: boolean } = {}) =>
+  ({ type: OPEN_MESSAGE, path, ...(at.line === undefined ? {} : { line: at.line }), ...(at.side ? { side: true } : {}) })
+
+/** What a message asks the host to open, or undefined when `data` is some other message. A line that is not a whole number from 1 is left out. */
+export function openTarget(data: unknown): OpenTarget | undefined {
   if (!isMap(data) || data.type !== OPEN_MESSAGE) return undefined
-  return typeof data.path === 'string' && data.path !== '' ? data.path : undefined
+  if (typeof data.path !== 'string' || data.path === '') return undefined
+  const line = typeof data.line === 'number' && Number.isInteger(data.line) && data.line >= 1 ? data.line : undefined
+  return { path: data.path, ...(line === undefined ? {} : { line }), ...(data.side === true ? { side: true } : {}) }
 }
 
 export const OPEN_URL_MESSAGE = 'flowy-open-url'

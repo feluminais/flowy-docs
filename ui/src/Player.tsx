@@ -7,6 +7,7 @@ import type { GroupKind, Stop } from '../../src/core/structure.ts'
 import { isView, nameOf, stepEnds } from '../../src/core/views.ts'
 import { Description } from './Box.tsx'
 import { PayloadRow } from './Payloads.tsx'
+import { SourceList } from './Source.tsx'
 import { stepPayload, stepReply } from '../../src/core/payloads.ts'
 import { CHANGE_NAMES, changeOfStop } from './compare.ts'
 import type { ChannelKind } from '../../src/core/animation.ts'
@@ -354,6 +355,7 @@ function StopBody({ model, flow, stops, stop, ends, caption, progress, marks, ch
                 <Description text={String(step.description)} />
               </details>
             )}
+            <SourceList code={step.code} title="Step source" bare inCard />
             {target && (
               <div className="player-buttons flow-link">
                 <button disabled={onOpenFlow === undefined || target.steps.length === 0 || !isView(model, target.view)} title={onOpenFlow === undefined ? IN_A_PANE : undefined} onClick={() => onOpenFlow?.(link!)}><Route size={16} />Open flow: {target.name || link}</button>
@@ -362,6 +364,7 @@ function StopBody({ model, flow, stops, stop, ends, caption, progress, marks, ch
           </div>
         )
       })}
+      <SourceList code={flow.code} title="Flow source" inCard />
     </>
   )
 }

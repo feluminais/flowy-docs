@@ -139,6 +139,13 @@ Writing code (put_object's snippets), so a panel shows the few lines that explai
 - `title` says what the lines are ("Delivery fee"). Leave `language` out unless the code is too short to tell.
 - `snippets` replaces the whole list: read the shape with get_model first and send every snippet to keep.
 
+### Code paths
+
+- Every path starts at the folder that holds `flowy/`, never at `flowy/` or at another path: `libs/billing/` and `apps/management/src/` from the same place, however deep each is. Each must exist.
+- A file can end in `:line`, the line a reader starts at: the handler, not the import.
+- Lines, flows and steps take `code` as shapes do: where the call is made or handled, the entry point or test that plays a flow, the code that does a step. A failure mode takes where it fails or where its fix is, and a payload where its type is defined.
+- `set_code` sets the list on one part; put_flow sends a step's again with the flow.
+
 ## Failure modes
 
 Writing failure modes (put_failures, put_failure), when asked for a failure analysis:

@@ -236,6 +236,15 @@
     <Setter Property="Cursor" Value="Hand" />
   </Style>
   <Style Selector="Button.tool.icononly"><Setter Property="Padding" Value="0" /><Setter Property="MinWidth" Value="30" /></Style>
+  <!-- A button that opens a code path (the editor, GitHub or GitLab): outlined and small, so a row of them reads as buttons beside the path. -->
+  <Style Selector="Button.tool.open">
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="MinHeight" Value="26" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+  <Style Selector="Button.tool.open:pointerover /template/ ContentPresenter"><Setter Property="BorderBrush" Value="{DynamicResource LineBrush}" /></Style>
   <Style Selector="Button.tool Path.btnicon"><Setter Property="Stroke" Value="{DynamicResource MutedBrush}" /></Style>
   <Style Selector="Button.tool TextBlock.btntext"><Setter Property="Foreground" Value="{DynamicResource FgBrush}" /></Style>
   <Style Selector="Button.tool:pointerover /template/ ContentPresenter">

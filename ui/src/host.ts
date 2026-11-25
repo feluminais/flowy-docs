@@ -40,12 +40,15 @@ export function startFromSavedState(): void {
   if (!location.hash && hash && isSavedHash(hash)) history.replaceState(null, '', hash)
 }
 
-/** Open a path in the repo in the editor, if this page is in VS Code. Resolves to whether there is an editor to ask. */
-export function openInEditor(path: string): boolean {
+/** Open a path in the repo in the editor, at a line and beside the page if asked, if this page is in VS Code. Resolves to whether there is an editor to ask. */
+export function openInEditor(path: string, at: { line?: number; side?: boolean } = {}): boolean {
   if (!vscode) return false
-  vscode.postMessage(openMessage(path))
+  vscode.postMessage(openMessage(path, at))
   return true
 }
+
+/** The flowy/ folder this page shows, as the VS Code extension names it in the page; undefined on any other page. */
+export const hostFolder = (): string | undefined => (vscode ? document.querySelector('meta[name="flowy-folder"]')?.getAttribute('content') ?? undefined : undefined)
 
 /** Open a web address in the reader's browser by way of the extension, if this page is in VS Code. Resolves to whether there is an extension to ask. */
 export function openInBrowser(url: string): boolean {

@@ -81,7 +81,8 @@ public static class ModelFiles
         {
             var m = (OrderedDictionary<string, object?>)c!;
             m.TryGetValue("payloads", out var payloads);
-            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label")) { Kind = Text(m, "kind"), Payloads = payloads, NoValue = EmptyKeys.Of(m) };
+            m.TryGetValue("code", out var code);
+            return new Connection(Text(m, "from"), Text(m, "to"), Text(m, "label")) { Kind = Text(m, "kind"), Payloads = payloads, Code = code, NoValue = EmptyKeys.Of(m) };
         }).ToList();
         var meta = top.Where(kv => kv.Key is not ("objects" or "connections")).ToDictionary(kv => kv.Key, kv => kv.Value);
         return new ParsedModel(map, list, meta);
@@ -116,16 +117,18 @@ public static class ModelFiles
             m.TryGetValue("states", out var states);
             m.TryGetValue("payload", out var payload);
             m.TryGetValue("reply", out var reply);
+            m.TryGetValue("code", out var code);
             return new Step(Text(m, "from"), Text(m, "to"), Text(m, "text"), Text(m, "description"), animation, Text(m, "group"), Text(m, "lane"), Text(m, "flow"), states)
             {
-                Payload = payload, Reply = reply, Via = Text(m, "via"), NoValue = EmptyKeys.Of(m),
+                Payload = payload, Reply = reply, Via = Text(m, "via"), Code = code, NoValue = EmptyKeys.Of(m),
             };
         }).ToList();
         doc.TryGetValue("states", out var flowStates);
         // The steps say their own; so does compare, whose shape problem (a bare "compare:" included) is for Checks, never a parse error or an empty key.
         var head = new OrderedDictionary<string, object?>(doc.Where(kv => kv.Key is not ("steps" or "compare")));
         doc.TryGetValue("compare", out var compare);
-        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates) { NoValue = EmptyKeys.Of(head), CompareRaw = compare, TagsRaw = rawTags };
+        doc.TryGetValue("code", out var flowCode);
+        return new Flow(Text(doc, "name"), Text(doc, "view"), parsed, groups, flowStates) { NoValue = EmptyKeys.Of(head), CompareRaw = compare, TagsRaw = rawTags, Code = flowCode };
     }
 
     /// <summary>
@@ -164,7 +167,7 @@ public static class ModelFiles
             }
             modes.Add(mid, new FailureMode(
                 Text(m, "mode"), Text(m, "on"), Text(m, "from"), Text(m, "to"), Text(m, "effect"), Text(m, "cause"), Text(m, "severity"), Text(m, "occurrence"), Text(m, "detection"),
-                Text(m, "controls"), Text(m, "action"), Text(m, "owner"), Text(m, "status"), Text(m, "flow"), Text(m, "step"), Text(m, "run"), Text(m, "description"), after, affects));
+                Text(m, "controls"), Text(m, "action"), Text(m, "owner"), Text(m, "status"), Text(m, "flow"), Text(m, "step"), Text(m, "run"), Text(m, "description"), after, affects) { Code = m.GetValueOrDefault("code") });
         }
         doc.TryGetValue("scale", out var rawScale);
         OrderedDictionary<string, RatingEnds>? scale = null;

@@ -40,4 +40,16 @@ objects:
     links:
       - docs/real.md
       - { title: [x], url: docs/real.md }
-connections: []
+  coded:
+    type: system
+    name: Coded
+    code: [docs/real.md:4, docs/gone.md:2, "docs/:1", "docs/real.md:0", docs/, "docs/real.md:12345678"]
+connections:
+  - from: good
+    to: coded
+    code: [docs/real.md:9, docs/gone.md]
+    payloads: [order, { name: Inline, about: Written here., code: [docs/gone.md:5] }]
+payloads:
+  order:
+    about: An order.
+    code: [docs/real.md:1, docs/gone.md:3]

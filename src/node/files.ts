@@ -1,3 +1,4 @@
+import { codePaths } from '../core/code.ts'
 import { createHash, randomUUID } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import type { Dirent } from 'node:fs'
@@ -297,10 +298,10 @@ export async function loadFolder<T>(
 export const blockedBy = (loaded: Loaded, rel: string): string | undefined =>
   loaded.failureProblems.map(p => p.file).find(file => kindOfPath(file) === FILE_KINDS.failure && file.toLowerCase() === rel.toLowerCase())
 
-/** The `code` and `links` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
+/** The `code` paths (lines left off) and `links` paths in these models that don't exist. They're relative to the folder that holds `dir`. */
 export function missingPaths(dir: string, ...models: Model[]): Set<string> {
   const root = repoOf(dir)
-  const paths = models.flatMap(m => Object.values(m.objects).flatMap(o => [...(Array.isArray(o.code) ? o.code : []), ...linksOf(o).map(l => l.url)]))
+  const paths = models.flatMap(m => [...codePaths(m), ...Object.values(m.objects).flatMap(o => linksOf(o).map(l => l.url))])
   return new Set(paths.filter((p): p is string => typeof p === 'string' && isRepoPath(p) && !existsSync(join(root, p))))
 }
 

@@ -68,6 +68,36 @@ internal sealed class Shell
 
     public event Action? OpenFilesWithChanged;
 
+    public event Action? CodeEditorChanged;
+
+    private readonly Lazy<IReadOnlyList<EditorApp>> _editors = new(() => Editors.Find(new EditorProbe(File.Exists, SubFolders, Environment.GetEnvironmentVariable,
+        OperatingSystem.IsWindows() ? "windows" : OperatingSystem.IsMacOS() ? "macos" : "other")));
+
+    private static IEnumerable<string> SubFolders(string dir)
+    {
+        try
+        {
+            return Directory.Exists(dir) ? Directory.EnumerateDirectories(dir).ToList() : [];
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
+
+    /// <summary>The editors on this computer, looked for once, the first time a path is shown or the menu is built.</summary>
+    public IReadOnlyList<EditorApp> InstalledEditors => _editors.Value;
+
+    /// <summary>The editor code paths open in: the one picked under File › Open Code In, else the first found; null when there is none.</summary>
+    public EditorApp? CodeEditor => InstalledEditors.FirstOrDefault(e => e.Id == _state.CodeEditor) ?? InstalledEditors.FirstOrDefault();
+
+    /// <summary>Open code in the editor with this id from now on. Every window's menu and paths follow.</summary>
+    public void RememberCodeEditor(string id)
+    {
+        Remember(_state with { CodeEditor = id });
+        CodeEditorChanged?.Invoke();
+    }
+
     /// <summary>The app that opens a box's linked files, or null for the system's default. Every window's menu follows.</summary>
     public void RememberOpenFilesWith(string? app)
     {

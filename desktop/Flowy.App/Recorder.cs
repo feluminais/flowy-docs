@@ -29,6 +29,7 @@ internal sealed class Recorder : StackPanel
     {
         public required FieldBox Text;
         public required FieldBox Detail;
+        public required FieldBox Source;
         public required Choice<string> Group;
         public required FieldBox Lane;
         public required Choice<string> Flow;
@@ -187,6 +188,7 @@ internal sealed class Recorder : StackPanel
     internal TagPicker? TagPicker => _tagPicker;
 
     private FieldBox? _flowFolder;
+    private FieldBox? _flowSource;
 
     private TagPicker? _tagPicker;
 
@@ -227,6 +229,7 @@ internal sealed class Recorder : StackPanel
             _head.Children.Clear();
             _flowName = null;
             _flowFolder = null;
+            _flowSource = null;
             _tagPicker = null;
             NameBox = null;
             if (flow is not null)
@@ -234,16 +237,19 @@ internal sealed class Recorder : StackPanel
                 _flowName = new FieldBox("Flow", flow.Name ?? "", false, v => _run(d => EditOps.UpdateFlow(d, rec.Id, name: v)));
                 _flowFolder = new FieldBox("Folder", model.FolderOf(rec.Id), false, v => _run(d => EditOps.MoveFlow(d, rec.Id, v)), placeholder: "e.g. payments/refunds");
                 _tagPicker = new TagPicker(flow.Tags, UsedTags(model), tags => _run(d => EditOps.SetFlowTags(d, rec.Id, tags)));
+                _flowSource = SourceList.Field(flow.Code, code => _run(d => EditOps.SetCode(d, new CodeHolder(Flow: rec.Id), code)));
                 _head.Children.Add(Chrome.Section(Icons.Route, "Flow"));
                 _head.Children.Add(_flowName);
                 _head.Children.Add(_flowFolder);
                 _head.Children.Add(_tagPicker);
+                _head.Children.Add(_flowSource);
             }
             else _head.Children.Add(_owner.IconHeading(Icons.Route, rec.Name));
             _headFor = $"flow:{rec.Id}:{flow is not null}";
         }
         _flowName?.Sync(flow?.Name ?? "");
         _flowFolder?.Sync(model.FolderOf(rec.Id));
+        _flowSource?.Sync(SourceList.FieldText(flow?.Code));
         _tagPicker?.Sync(flow?.Tags ?? [], UsedTags(model));
 
         // The steps: the rows stay as they are while only the text changed, so a field being typed in keeps its focus.
@@ -274,6 +280,7 @@ internal sealed class Recorder : StackPanel
         {
             _rows[i].Text.Sync(steps[i].Text ?? "");
             _rows[i].Detail.Sync(steps[i].Description ?? "");
+            _rows[i].Source.Sync(SourceList.FieldText(steps[i].Code));
             var group = JsCompat.JsTrim(steps[i].Group ?? "");
             _rows[i].Group.Sync(group);
             _rows[i].Flow.Sync(JsCompat.JsTrim(steps[i].FlowId ?? ""));
@@ -585,14 +592,15 @@ internal sealed class Recorder : StackPanel
             if (v.Trim() == "") steps[i].Remove("description");
             else steps[i]["description"] = v;
         }));
+        var source = SourceList.Field(null, code => Edit(flowId, d => EditOps.SetCode(d, new CodeHolder(Flow: flowId, Step: i), code)));
         var more = new Button { Content = "▸ More", HorizontalAlignment = HorizontalAlignment.Left };
         more.Classes.Add("disclosure");
-        var open = !string.IsNullOrEmpty(shown[i].Description);
-        detail.IsVisible = open;
+        var open = !string.IsNullOrEmpty(shown[i].Description) || shown[i].Code is not null;
+        detail.IsVisible = source.IsVisible = open;
         more.Content = open ? "▾ More" : "▸ More";
         more.Click += (_, _) =>
         {
-            detail.IsVisible = !detail.IsVisible;
+            detail.IsVisible = source.IsVisible = !detail.IsVisible;
             more.Content = detail.IsVisible ? "▾ More" : "▸ More";
         };
 
@@ -674,13 +682,13 @@ internal sealed class Recorder : StackPanel
             statesToggle.Content = states.IsVisible ? "▾ State" : "▸ State";
         };
         var payloads = new StackPanel();
-        _rows.Add(new Row { Text = text, Detail = detail, Group = groupChoice, Lane = lane, Flow = flowChoice, States = tiles, Animation = animation, Payloads = payloads });
+        _rows.Add(new Row { Text = text, Detail = detail, Source = source, Group = groupChoice, Lane = lane, Flow = flowChoice, States = tiles, Animation = animation, Payloads = payloads });
         // A number before each step, so the order reads at a glance.
         var number = new Border { Child = new TextBlock { Text = (i + 1).ToString() }, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 22, 0, 0) };
         number.Classes.Add("badge");
         var top = new Grid { ColumnDefinitions = [new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Star)], ColumnSpacing = 10, Children = { number, text } };
         Grid.SetColumn(text, 1);
-        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, payloads, animationToggle, animation.Panel, structureToggle, structure, statesToggle, states, buttons } });
+        return Chrome.Card(new StackPanel { Spacing = 8, Children = { top, more, detail, source, payloads, animationToggle, animation.Panel, structureToggle, structure, statesToggle, states, buttons } });
     }
 
     private static string Title(string word) => word == "" ? word : char.ToUpperInvariant(word[0]) + word[1..];

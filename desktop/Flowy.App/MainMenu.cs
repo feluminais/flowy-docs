@@ -18,6 +18,10 @@ internal sealed class MainMenu : IDisposable
     private readonly Func<string?> _dir;
     private readonly NativeMenuItem _recentMenu = new("Open Recent") { Menu = new NativeMenu() };
     private readonly NativeMenuItem _openWithMenu = new("Open Files With") { Menu = new NativeMenu() };
+    private readonly NativeMenuItem _openCodeMenu = new(OpenCodeIn) { Menu = new NativeMenu() };
+
+    /// <summary>The submenu that picks the editor code paths open in, as the docs name it.</summary>
+    internal const string OpenCodeIn = "Open Code In";
     private readonly List<NativeMenuItem> _needsModel = [];
 
     /// <param name="window">The window the menu belongs to; it is the owner of every dialog the menu opens.</param>
@@ -34,6 +38,7 @@ internal sealed class MainMenu : IDisposable
         Build(frame, reload);
         shell.RecentChanged += RebuildRecent;
         shell.OpenFilesWithChanged += RebuildOpenWith;
+        shell.CodeEditorChanged += RebuildOpenCode;
     }
 
     private ReaderView Reader => _readerOnShow();
@@ -56,6 +61,7 @@ internal sealed class MainMenu : IDisposable
     {
         _shell.RecentChanged -= RebuildRecent;
         _shell.OpenFilesWithChanged -= RebuildOpenWith;
+        _shell.CodeEditorChanged -= RebuildOpenCode;
     }
 
     private void Build(DockPanel frame, Func<Task> reload)
@@ -79,7 +85,7 @@ internal sealed class MainMenu : IDisposable
         close.Click += (_, _) => _window.Close();
         var quit = new NativeMenuItem(OperatingSystem.IsMacOS() ? "Quit Flowy Docs" : "Exit") { Gesture = new KeyGesture(Key.Q, Command) };
         quit.Click += (_, _) => _shell.Quit();
-        var file = new NativeMenuItem("File") { Menu = new NativeMenu { Items = { open, _recentMenu, newWindow, new NativeMenuItemSeparator(), reloadItem, showFolder, _openWithMenu, new NativeMenuItemSeparator(), closeTab, close, quit } } };
+        var file = new NativeMenuItem("File") { Menu = new NativeMenu { Items = { open, _recentMenu, newWindow, new NativeMenuItemSeparator(), reloadItem, showFolder, _openWithMenu, _openCodeMenu, new NativeMenuItemSeparator(), closeTab, close, quit } } };
 
         var fit = new NativeMenuItem("Fit the View");
         fit.Click += (_, _) => Reader.FitNow();
@@ -121,6 +127,7 @@ internal sealed class MainMenu : IDisposable
         frame.Children.Insert(0, bar);
         RebuildRecent();
         RebuildOpenWith();
+        RebuildOpenCode();
         foreach (var item in _needsModel) item.IsEnabled = false; // until a folder is open
     }
 
@@ -138,6 +145,22 @@ internal sealed class MainMenu : IDisposable
         var choose = new NativeMenuItem("Choose App…");
         choose.Click += async (_, _) => await ChooseOpenWithAsync();
         items.Add(choose);
+    }
+
+    /// <summary>The Open Code In submenu: the editors found on this computer, the one code paths open in marked. Rebuilt whenever the choice changes.</summary>
+    private void RebuildOpenCode()
+    {
+        var items = _openCodeMenu.Menu!.Items;
+        items.Clear();
+        var chosen = _shell.CodeEditor;
+        foreach (var editor in _shell.InstalledEditors)
+        {
+            var item = new NativeMenuItem(editor.Name) { ToggleType = MenuItemToggleType.Radio, IsChecked = editor == chosen };
+            var id = editor.Id;
+            item.Click += (_, _) => _shell.RememberCodeEditor(id);
+            items.Add(item);
+        }
+        if (items.Count == 0) items.Add(new NativeMenuItem("No editor found") { IsEnabled = false });
     }
 
     private async Task ChooseOpenWithAsync()

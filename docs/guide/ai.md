@@ -20,4 +20,4 @@ The server refuses what is broken. It can't judge wording or tell that a shape i
 
 ## What the server offers
 
-**Tools.** The server has thirty-two. It also has five prompts for the usual jobs, and the rules and guides as resources. A client lists them all, and [What writes what over MCP](../format.md#what-writes-what-over-mcp) maps files to the tools that change them.
+**Tools.** The server has thirty-three. It also has five prompts for the usual jobs, and the rules and guides as resources. A client lists them all, and [What writes what over MCP](../format.md#what-writes-what-over-mcp) maps files to the tools that change them.

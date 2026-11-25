@@ -685,6 +685,20 @@ button[aria-pressed='true'] > .switch::after { transform: translateX(12px); }
 .link-list { display: contents; }
 .link-list ul { font-size: 14px; }
 .link-list .muted { margin-left: 2px; font-size: 12px; overflow-wrap: anywhere; }
+/* A path in the repo: the path as text to read and select, then a button for each place it opens (the editor, GitHub or GitLab). Narrow, the buttons go under it. */
+.source-list .code-list li, .link-list li:has(.source-open) { flex-wrap: wrap; row-gap: 4px; }
+.source-path { flex: 1 1 140px; min-width: 0; }
+.source-path .muted { font-size: inherit; }
+.source-open { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.source-open :is(button, a.button) {
+  display: inline-flex; align-items: center; gap: 5px; box-sizing: border-box; min-height: 24px; padding: 0 8px;
+  border: 1px solid var(--line); border-radius: 6px; background: none; color: var(--fg); font-size: 12px; font-weight: 500; line-height: 1; text-decoration: none; cursor: pointer;
+}
+.source-open :is(button, a.button):hover { background: var(--hover); text-decoration: none; }
+.source-open :is(button, a.button):focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+.source-open svg { color: var(--muted); }
+.source-editor { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin: 4px 0 0; font-size: 12px; }
+.source-list.bare .code-list { margin: 4px -8px 0; }
 
 /* Several shapes picked in edit mode: a bar at the foot of the canvas, so the shapes stay in sight and in reach for dragging. */
 .picked-bar {

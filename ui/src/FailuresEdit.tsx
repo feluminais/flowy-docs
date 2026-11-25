@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { bandOf, BAND_NAMES, partName, riskOf } from '../../src/core/failures.ts'
 import type { Analysis, Mode, Model } from '../../src/core/model.ts'
 import { getObject } from '../../src/core/model.ts'
-import { deleteAnalysis, deleteMode, putAnalysis, putMode, updateAnalysis, updateMode } from '../../src/core/ops.ts'
+import { deleteAnalysis, deleteMode, putAnalysis, putMode, setCode, updateAnalysis, updateMode } from '../../src/core/ops.ts'
 import type { ModeChanges } from '../../src/core/ops.ts'
 import type { Run as LoadRun } from '../../src/core/perf/types.ts'
 import { isView } from '../../src/core/views.ts'
@@ -12,6 +12,7 @@ import { STATUS_NAMES, toLine, toShape } from './failuresview.ts'
 import { Plus, Trash } from './icons.tsx'
 import { Dropdown } from './Dropdown.tsx'
 import { Choice, Field } from './forms.tsx'
+import { SourceField } from './Source.tsx'
 import type { SaveEdit } from './forms.tsx'
 
 /** The forms that write a failure analysis: every save is one edit, refused with the checker's words when it would add a problem, and the field goes back to what it was. */
@@ -169,6 +170,7 @@ export function ModeForm({ model, analysisId, modeId, runs, run }: { model: Mode
       {text('Step (from 1)', 'step')}
       <Choice label="Run" value={m.run ?? ''} options={runList} onSave={r => save({ run: r })} />
       <Field label="More (Markdown)" value={m.description ?? ''} multiline onSave={description => save({ description })} />
+      <SourceField code={m.code} onSave={code => run(model2 => setCode(model2, { analysis: analysisId, mode: modeId }, code))} />
       <button className="danger" onClick={() => void run(model2 => deleteMode(model2, analysisId, modeId))}><Trash size={16} />Delete mode</button>
     </div>
   )

@@ -108,11 +108,19 @@ internal sealed partial class ReaderView : Grid, IDisposable
     /// <summary>The app the person chose to open linked files with, or null for the system's default. Read at every click.</summary>
     internal Func<string?> CustomApp { get; set; } = () => null;
 
+    /// <summary>The editor code paths open in (File › Open Code In), or null when the computer has none. Read when the paths are drawn.</summary>
+    internal Func<EditorApp?> CodeEditor { get; set; } = () => null;
+
+    /// <summary>What every code path in this reader opens with; the paths find it through <see cref="SourceList.OpenerProperty"/>.</summary>
+    internal SourceOpener Sources { get; }
+
     /// <summary>What carries out a link's action; null means <see cref="LinkLauncher"/>. A test sets it to see what would be opened. Returns what went wrong, or null.</summary>
     internal Func<LinkAction, Task<string?>>? LinkRunner { get; set; }
 
     public ReaderView()
     {
+        Sources = new SourceOpener(() => _repoRoot, () => _codeBase, () => CodeEditor(), RunLink);
+        SourceList.SetOpener(this, Sources);
         _host = new Host(this);
         _edit = new EditMode(_host);
         _gestures = new EditGestures(_host, _edit, _canvas, _pickedBar);
@@ -464,6 +472,7 @@ internal sealed partial class ReaderView : Grid, IDisposable
             if (_folder is null || _dir != dir || ticket != _codeBaseAsked) return;
             _codeBase = codeBase;
             Refresh();
+            Sources.Refresh();
         }
         catch (Exception e)
         {
